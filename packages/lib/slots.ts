@@ -43,6 +43,16 @@ function buildSlots({
   organizerTimeZone: string;
   inviteeTimeZone: string;
 }) {
+  console.log("buildSlots", {
+    startOfInviteeDay,
+    computedLocalAvailability,
+    frequency,
+    eventLength,
+    offsetStart,
+    startDate,
+    organizerTimeZone,
+    inviteeTimeZone,
+  });
   // no slots today
   if (startOfInviteeDay.isBefore(startDate, "day")) {
     return [];
@@ -176,14 +186,12 @@ function buildSlotsWithDateRanges({
 
   let interval = Number(process.env.NEXT_PUBLIC_AVAILABILITY_SCHEDULE_INTERVAL) || 1;
   const intervalsWithDefinedStartTimes = [60, 30, 20, 15, 10, 5];
-
   for (let i = 0; i < intervalsWithDefinedStartTimes.length; i++) {
     if (frequency % intervalsWithDefinedStartTimes[i] === 0) {
       interval = intervalsWithDefinedStartTimes[i];
       break;
     }
   }
-
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
@@ -191,7 +199,6 @@ function buildSlotsWithDateRanges({
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
       : startTimeWithMinNotice;
-
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")

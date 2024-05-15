@@ -365,7 +365,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
-
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
   log.debug(
@@ -373,8 +372,14 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     JSON.stringify({
       workingHoursInUtc: workingHours,
       dateOverrides,
-      dateRangesAsPerAvailability: dateRanges,
-      dateRangesInWhichUserIsAvailable,
+      dateRangesAsPerAvailability: dateRanges.map((range) => ({
+        start: range.start.format(),
+        end: range.end.format(),
+      })),
+      dateRangesInWhichUserIsAvailable: dateRangesInWhichUserIsAvailable.map((range) => ({
+        start: range.start.format(),
+        end: range.end.format(),
+      })),
       detailedBusyTimes,
     })
   );

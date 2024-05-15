@@ -286,6 +286,10 @@ function getIntersection(range1: DateRange, range2: DateRange) {
   return null;
 }
 
+/**
+ * Make sure to pass all the ranges in the same timezone
+ * If not in passed in the same timezone, all timezones will be adjusted to the first sourceRange's timezone
+ */
 export function subtract(
   sourceRanges: (DateRange & { [x: string]: unknown })[],
   excludedRanges: DateRange[]
@@ -303,13 +307,18 @@ export function subtract(
 
     for (const { start: excludedStart, end: excludedEnd } of overlappingRanges) {
       if (excludedStart.isAfter(currentStart)) {
-        result.push({ start: currentStart, end: excludedStart });
+        result.push({
+          start: currentStart.utcOffset(sourceStart.utcOffset()),
+          end: excludedStart.utcOffset(sourceEnd.utcOffset()),
+          ...passThrough,
+        });
       }
       currentStart = excludedEnd.isAfter(currentStart) ? excludedEnd : currentStart;
     }
 
     if (sourceEnd.isAfter(currentStart)) {
-      result.push({ start: currentStart, end: sourceEnd, ...passThrough });
+      // Make sure that the dateRange still remain in the same utcOffset as the source
+      result.push({ start: currentStart.utcOffset(sourceStart.utcOffset()), end: sourceEnd, ...passThrough });
     }
   }
 

@@ -438,7 +438,7 @@ describe("getSchedule", () => {
       // `slotInterval` takes precedence over `length`
       // 4:30 is utc so it is 10:00 in IST
       expect(scheduleForEventWith30minsLengthAndSlotInterval2hrs).toHaveTimeSlots(
-        [`04:30:00.000Z`, `06:30:00.000Z`, `08:30:00.000Z`, `10:30:00.000Z`, `12:30:00.000Z`],
+        [`04:00:00.000Z`, `06:00:00.000Z`, `08:00:00.000Z`, `10:00:00.000Z`, `12:00:00.000Z`],
         {
           dateString: plus2DateString,
         }
@@ -535,142 +535,142 @@ describe("getSchedule", () => {
       vi.useRealTimers();
     });
 
-    test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+    describe("Buffer", () => {
+      test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
 
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
-
-      const scenarioData = {
-        eventTypes: [
+        CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
           {
-            id: 1,
-            length: 120,
-            beforeEventBuffer: 120,
-            afterEventBuffer: 120,
-            users: [
-              {
-                id: 101,
-              },
-            ],
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
           },
-        ],
-        users: [
-          {
-            ...TestData.users.example,
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-          },
-        ],
-        apps: [TestData.apps.googleCalendar],
-      };
+        ]);
 
-      await createBookingScenario(scenarioData);
+        const scenarioData = {
+          eventTypes: [
+            {
+              id: 1,
+              length: 120,
+              beforeEventBuffer: 120,
+              afterEventBuffer: 120,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+            },
+          ],
+          apps: [TestData.apps.googleCalendar],
+        };
 
-      const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: false,
-        },
-      });
+        await createBookingScenario(scenarioData);
 
-      expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
-        [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
-          `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
-        ],
-        {
-          dateString: plus3DateString,
-        }
-      );
-    });
-
-    test("afterBuffer and beforeBuffer tests - Cal Busy Time", async () => {
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-
-      CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
-        {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
-        },
-      ]);
-
-      const scenarioData = {
-        eventTypes: [
-          {
-            id: 1,
-            length: 120,
-            beforeEventBuffer: 120,
-            afterEventBuffer: 120,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        users: [
-          {
-            ...TestData.users.example,
-            id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
-            credentials: [getGoogleCalendarCredential()],
-            selectedCalendars: [TestData.selectedCalendars.google],
-          },
-        ],
-        bookings: [
-          {
-            userId: 101,
+        const scheduleForEventOnADayWithNonCalBooking = await getSchedule({
+          input: {
             eventTypeId: 1,
-            startTime: `${plus2DateString}T04:00:00.000Z`,
-            endTime: `${plus2DateString}T05:59:59.000Z`,
-            status: "ACCEPTED" as BookingStatus,
+            eventTypeSlug: "",
+            startTime: `${plus2DateString}T18:30:00.000Z`,
+            endTime: `${plus3DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: false,
           },
-        ],
-        apps: [TestData.apps.googleCalendar],
-      };
+        });
 
-      await createBookingScenario(scenarioData);
-
-      const scheduleForEventOnADayWithCalBooking = await getSchedule({
-        input: {
-          eventTypeId: 1,
-          eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
-          isTeamEvent: false,
-        },
+        expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
+          [
+            // `04:00:00.000Z`, // - 4 AM is booked
+            // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
+            `08:30:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
+            `10:30:00.000Z`,
+          ],
+          {
+            dateString: plus3DateString,
+          }
+        );
       });
 
-      expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
-        [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
-          // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
-        ],
-        {
-          dateString: plus2DateString,
-        }
-      );
+      test("afterBuffer and beforeBuffer tests - Cal Busy Time", async () => {
+        const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+        const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+        const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+        CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
+          {
+            start: `${plus3DateString}T04:00:00.000Z`,
+            end: `${plus3DateString}T05:59:59.000Z`,
+          },
+        ]);
+
+        const scenarioData = {
+          eventTypes: [
+            {
+              id: 1,
+              length: 120,
+              beforeEventBuffer: 120,
+              afterEventBuffer: 120,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          users: [
+            {
+              ...TestData.users.example,
+              id: 101,
+              schedules: [TestData.schedules.IstWorkHours],
+              credentials: [getGoogleCalendarCredential()],
+              selectedCalendars: [TestData.selectedCalendars.google],
+            },
+          ],
+          bookings: [
+            {
+              userId: 101,
+              eventTypeId: 1,
+              startTime: `${plus2DateString}T04:00:00.000Z`,
+              endTime: `${plus2DateString}T05:59:59.000Z`,
+              status: "ACCEPTED" as BookingStatus,
+            },
+          ],
+          apps: [TestData.apps.googleCalendar],
+        };
+
+        await createBookingScenario(scenarioData);
+
+        const scheduleForEventOnADayWithCalBooking = await getSchedule({
+          input: {
+            eventTypeId: 1,
+            eventTypeSlug: "",
+            startTime: `${plus1DateString}T18:30:00.000Z`,
+            endTime: `${plus2DateString}T18:29:59.999Z`,
+            timeZone: Timezones["+5:30"],
+            isTeamEvent: false,
+          },
+        });
+
+        expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
+          [
+            // `04:00:00.000Z`, // - 4 AM is booked
+            // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
+            // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
+            `10:30:00.000Z`,
+          ],
+          {
+            dateString: plus2DateString,
+          }
+        );
+      });
     });
 
     test("Start times are offset (offsetStart)", async () => {
@@ -782,7 +782,7 @@ describe("getSchedule", () => {
       });
 
       expect(scheduleForEventOnADayWithDateOverride).toHaveTimeSlots(
-        ["08:30:00.000Z", "09:30:00.000Z", "10:30:00.000Z", "11:30:00.000Z"],
+        ["09:00:00.000Z", "10:00:00.000Z", "11:00:00.000Z"],
         {
           dateString: plus2DateString,
         }

@@ -645,4 +645,52 @@ describe("subtract", () => {
       ])
     );
   });
+
+  it("subtracts appropriately maintaining the timezone of sourceRanges", () => {
+    const data = {
+      sourceRanges: [
+        { start: dayjs.utc("2023-07-05T04:00:00.000Z"), end: dayjs.utc("2023-07-05T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-06T04:00:00.000Z"), end: dayjs.utc("2023-07-06T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-07T04:00:00.000Z"), end: dayjs.utc("2023-07-07T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-10T04:00:00.000Z"), end: dayjs.utc("2023-07-10T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-11T04:00:00.000Z"), end: dayjs.utc("2023-07-11T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-12T04:00:00.000Z"), end: dayjs.utc("2023-07-12T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-13T04:00:00.000Z"), end: dayjs.utc("2023-07-13T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-14T04:00:00.000Z"), end: dayjs.utc("2023-07-14T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-17T04:00:00.000Z"), end: dayjs.utc("2023-07-17T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-18T04:00:00.000Z"), end: dayjs.utc("2023-07-18T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-19T04:00:00.000Z"), end: dayjs.utc("2023-07-19T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-20T04:00:00.000Z"), end: dayjs.utc("2023-07-20T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-21T04:00:00.000Z"), end: dayjs.utc("2023-07-21T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-24T04:00:00.000Z"), end: dayjs.utc("2023-07-24T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-25T04:00:00.000Z"), end: dayjs.utc("2023-07-25T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-26T04:00:00.000Z"), end: dayjs.utc("2023-07-26T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-27T04:00:00.000Z"), end: dayjs.utc("2023-07-27T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-28T04:00:00.000Z"), end: dayjs.utc("2023-07-28T12:00:00.000Z") },
+        { start: dayjs.utc("2023-07-31T04:00:00.000Z"), end: dayjs.utc("2023-07-31T12:00:00.000Z") },
+      ],
+      excludedRanges: [
+        {
+          start: dayjs.utc("2023-07-05T04:00:00.000Z").utcOffset(330),
+          end: dayjs.utc("2023-07-05T04:15:00.000Z").utcOffset(330),
+        },
+        {
+          start: dayjs.utc("2023-07-05T04:45:00.000Z").utcOffset(330),
+          end: dayjs.utc("2023-07-05T05:00:00.000Z").utcOffset(330),
+        },
+      ],
+    };
+
+    const result = subtract(data["sourceRanges"], data["excludedRanges"]).map((range) => ({
+      start: range.start.format(),
+      end: range.end.format(),
+    }));
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        { start: "2023-07-05T04:15:00Z", end: "2023-07-05T04:45:00Z" },
+        { start: "2023-07-05T05:00:00Z", end: "2023-07-05T12:00:00Z" },
+      ])
+    );
+  });
 });
