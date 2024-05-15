@@ -98,12 +98,23 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         const locationsSchema = z.array(z.object({ type: z.string() }));
         const locations = locationsSchema.parse(eventType.locations);
 
-        const updatedLocations = locations.map((location: { type: string }) => {
-          if (location.type.includes(integrationQuery)) {
-            return { type: DailyLocationType };
+        const dailyExists = locations.some((location) => location.type.includes(DailyLocationType));
+
+        const updatedLocations = [];
+        // Add the 'cal-video' location only if it doesn't already exist.
+        for (const location of locations) {
+          if (dailyExists) {
+            if (!location.type.includes(integrationQuery)) {
+              updatedLocations.push(location);
+            }
+          } else {
+            if (location.type.includes(integrationQuery)) {
+              updatedLocations.push({ type: DailyLocationType });
+            } else {
+              updatedLocations.push(location);
+            }
           }
-          return location;
-        });
+        }
 
         await prisma.eventType.update({
           where: {
