@@ -1,11 +1,12 @@
-import type { AuditLogsManager } from "@calcom/features/audit-logs/AuditLogsManager";
-import { AuditLogManagerDummy } from "@calcom/features/audit-logs/AuditLogsManager";
+import GenericAuditLogManager from "@calcom/app-store/templates/audit-log-implementation/lib/AuditLogManager";
+import type { AuditLogsManager } from "@calcom/features/audit-logs/types";
 
 export async function getAuditLogManager(): Promise<AuditLogsManager> {
-  // based on app keys, return the proper audit logs manager
-  // const appKeys: { apiKey: string; projectId: string } = (await getAppKeysFromSlug("boxyhq-retraced")) as any;
+  // Based on configuration, return the proper audit log manager, initiated
+  // This means that if there are multiple installations, we'd first define which installation to use
+  // get the necessary keys from that installation and then initiate its client
 
-  // at the moment boxyhq is the default audit logs manager
-  const boxy = new AuditLogManagerDummy({ apiKey: "", projectId: "" });
-  return boxy;
+  // At the moment Generic Audit Log Manager is the default audit logs manager.
+  const auditLogsManager = new GenericAuditLogManager({ apiKey: "", projectId: "" });
+  return auditLogsManager;
 }

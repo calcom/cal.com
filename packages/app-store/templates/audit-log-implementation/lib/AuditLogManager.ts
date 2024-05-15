@@ -1,9 +1,9 @@
-import type { AuditLogsManager } from "@calcom/features/audit-logs/AuditLogsManager";
+import type { AuditLogsManager } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 
 import type { AppKeys } from "../zod";
 
-export type GenericAuditLogClient = {
+type GenericAuditLogClient = {
   credentials: AppKeys;
   reportEvent: (event: any) => Promise<void>;
 };
