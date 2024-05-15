@@ -1,5 +1,17 @@
 # @calcom/embed-react
 
+## 1.5.0
+
+### Minor Changes
+
+- Added namespacing support throughout
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.5.0
+  - @calcom/embed-snippet@1.3.0
+
 ## 1.4.0
 
 ### Minor Changes

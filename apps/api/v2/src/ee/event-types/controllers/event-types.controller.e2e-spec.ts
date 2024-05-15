@@ -131,6 +131,11 @@ describe("Event types Endpoints", () => {
         description: "A description of the test event type.",
         length: 60,
         hidden: false,
+        disableGuests: true,
+        slotInterval: 15,
+        afterEventBuffer: 5,
+        beforeEventBuffer: 10,
+        minimumBookingNotice: 120,
         locations: [
           {
             type: "Online",
@@ -148,6 +153,12 @@ describe("Event types Endpoints", () => {
           const responseBody: ApiSuccessResponse<EventType> = response.body;
           expect(responseBody.data).toHaveProperty("id");
           expect(responseBody.data.title).toEqual(body.title);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
+          expect(responseBody.data.slotInterval).toEqual(body.slotInterval);
+          expect(responseBody.data.minimumBookingNotice).toEqual(body.minimumBookingNotice);
+          expect(responseBody.data.beforeEventBuffer).toEqual(body.beforeEventBuffer);
+          expect(responseBody.data.afterEventBuffer).toEqual(body.afterEventBuffer);
+
           eventType = responseBody.data;
         });
     });
@@ -157,14 +168,32 @@ describe("Event types Endpoints", () => {
 
       const body: UpdateEventTypeInput = {
         title: newTitle,
+        disableGuests: false,
+        slotInterval: 30,
+        afterEventBuffer: 10,
+        beforeEventBuffer: 15,
+        minimumBookingNotice: 240,
       };
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
         .send(body)
         .expect(200)
-        .then(async () => {
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          expect(responseBody.data.title).toEqual(newTitle);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
+          expect(responseBody.data.slotInterval).toEqual(body.slotInterval);
+          expect(responseBody.data.minimumBookingNotice).toEqual(body.minimumBookingNotice);
+          expect(responseBody.data.beforeEventBuffer).toEqual(body.beforeEventBuffer);
+          expect(responseBody.data.afterEventBuffer).toEqual(body.afterEventBuffer);
+
           eventType.title = newTitle;
+          eventType.disableGuests = responseBody.data.disableGuests ?? false;
+          eventType.slotInterval = body.slotInterval ?? null;
+          eventType.minimumBookingNotice = body.minimumBookingNotice ?? 10;
+          eventType.beforeEventBuffer = body.beforeEventBuffer ?? 10;
+          eventType.afterEventBuffer = body.afterEventBuffer ?? 10;
         });
     });
 

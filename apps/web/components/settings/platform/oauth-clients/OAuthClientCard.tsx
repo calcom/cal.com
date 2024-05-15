@@ -6,7 +6,7 @@ import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import type { Avatar } from "@calcom/prisma/client";
 import { Button, Icon, showToast } from "@calcom/ui";
 
-import { hasPermission } from "../../../../../../../packages/platform/utils/permissions";
+import { hasPermission } from "../../../../../../packages/platform/utils/permissions";
 
 type OAuthClientCardProps = {
   name: string;
@@ -115,7 +115,7 @@ export const OAuthClientCard = ({
         </div>
         <div className="border-subtle flex text-sm">
           <span className="font-semibold">Permissions: </span>
-          <div className="flex">{clientPermissions}</div>
+          {permissions ? <div className="flex">{clientPermissions}</div> : <>&nbsp;Disabled</>}
         </div>
         <div className="flex gap-1 text-sm">
           <span className="font-semibold">Redirect uris: </span>
@@ -145,7 +145,7 @@ export const OAuthClientCard = ({
           className="bg-subtle hover:bg-emphasis text-white"
           loading={isLoading}
           disabled={isLoading}
-          onClick={() => router.push(`/settings/organizations/platform/oauth-clients/create?clientId=${id}`)}>
+          onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
           Edit
         </Button>
         <Button
