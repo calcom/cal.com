@@ -6,14 +6,14 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TAddBulkTeams } from "./addBulkTeams.schema";
+import type { TAddBulkMembersToTeams } from "./addBulkMembersToTeams.schema";
 
 interface AddBulkToTeamProps {
   user: NonNullable<TrpcSessionUser>;
-  input: TAddBulkTeams;
+  input: TAddBulkMembersToTeams;
 }
 
-export const addBulkToTeam = async ({ user, input }: AddBulkToTeamProps) => {
+export const addBulkMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
   if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization

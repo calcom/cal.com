@@ -36,7 +36,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds, schedulingType: [SchedulingType.ROUND_ROBIN] },
   });
-  const mutation = trpc.viewer.organizations.bulkAddToEventType.useMutation({
+  const mutation = trpc.viewer.organizations.bulkAddMembersToEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },

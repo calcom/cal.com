@@ -29,7 +29,7 @@ export function TeamListBulkAction({ table }: Props) {
   const { data: teams } = trpc.viewer.organizations.getTeams.useQuery();
   const [selectedValues, setSelectedValues] = useState<Set<number>>(new Set());
   const utils = trpc.useUtils();
-  const mutation = trpc.viewer.organizations.bulkAddToTeams.useMutation({
+  const mutation = trpc.viewer.organizations.bulkAddMembersToTeams.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },
