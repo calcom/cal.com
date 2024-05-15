@@ -34,7 +34,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const utils = trpc.useUtils();
   const teamIds = orgTeams?.map((team) => team.id);
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
-    filters: { teamIds, schedulingType: SchedulingType.ROUND_ROBIN },
+    filters: { teamIds, schedulingType: [SchedulingType.ROUND_ROBIN] },
   });
   const mutation = trpc.viewer.organizations.bulkAddToEventType.useMutation({
     onError: (error) => {
