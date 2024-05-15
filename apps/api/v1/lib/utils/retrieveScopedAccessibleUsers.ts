@@ -26,6 +26,7 @@ const getAllAdminMemberships = async (userId: number) => {
   return await prisma.membership.findMany({
     where: {
       userId: userId,
+      accepted: true,
       OR: [{ role: MembershipRole.OWNER }, { role: MembershipRole.ADMIN }],
     },
     select: {
@@ -43,6 +44,7 @@ const getAllOrganizationMembers = async (organizationId: number) => {
   return await prisma.membership.findMany({
     where: {
       teamId: organizationId,
+      accepted: true,
     },
     select: {
       userId: true,
@@ -58,6 +60,7 @@ export const getAccessibleUsers = async ({
     where: {
       team: {
         isOrganization: true,
+        accepted: true,
       },
       OR: [
         { userId: { in: memberUserIds } },
