@@ -227,7 +227,11 @@ export async function isAuthorizedToAddActiveOnIds(
   }
 }
 
-async function getRemindersFromRemovedTeams(removedTeams: number[], workflowSteps: WorkflowStep[]) {
+async function getRemindersFromRemovedTeams(
+  removedTeams: number[],
+  workflowSteps: WorkflowStep[],
+  activeOn?: number[]
+) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
       id: number;
@@ -239,20 +243,49 @@ async function getRemindersFromRemovedTeams(removedTeams: number[], workflowStep
   removedTeams.forEach((teamId) => {
     const reminderToDelete = prisma.workflowReminder.findMany({
       where: {
-        booking: {
-          eventType: {
-            users: {
-              some: {
+        OR: [
+          {
+            //team event types + children managed event types
+            booking: {
+              eventType: {
+                OR: [{ teamId: teamId }, { parentId: teamId, teamId: null }],
+              },
+            },
+          },
+          {
+            // user bookings
+            booking: {
+              user: {
                 teams: {
                   some: {
-                    teamId,
-                    accepted: true,
+                    teamId: teamId, //user is part of removed team
                   },
+                },
+              },
+              eventType: {
+                teamId: null,
+                parentId: null, // children managed event types are handled above with team event types
+              },
+            },
+            //if user is part of removed team make sure they are not
+            NOT: {
+              booking: {
+                user: {
+                  teams: {
+                    some: {
+                      teamId: {
+                        in: activeOn,
+                      },
+                    },
+                  },
+                },
+                eventType: {
+                  teamId: null,
                 },
               },
             },
           },
-        },
+        ],
         workflowStepId: {
           in: workflowSteps.map((step) => {
             return step.id;
@@ -263,6 +296,15 @@ async function getRemindersFromRemovedTeams(removedTeams: number[], workflowStep
         id: true,
         referenceId: true,
         method: true,
+        booking: {
+          include: {
+            user: {
+              include: {
+                teams: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -328,13 +370,12 @@ export async function deleteAllReminders(
 export async function deleteRemindersFromRemovedActiveOn(
   removedActiveOnIds: number[],
   workflowSteps: WorkflowStep[],
-  userId: number,
-  isOrg: boolean
+  isOrg: boolean,
+  activeOnIds?: number[]
 ) {
   const remindersToDelete = !isOrg
     ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
-    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps);
-
+    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
   await deleteAllReminders(remindersToDelete);
 }
 
@@ -346,9 +387,10 @@ export async function scheduleWorkflowNotifications(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  teamId: number | null
+  teamId: number | null,
+  existingActiveOn?: number[]
 ) {
-  const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg);
+  const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg, existingActiveOn);
 
   await scheduleBookingReminders(
     bookingstoScheduleNotifications,
@@ -361,23 +403,62 @@ export async function scheduleWorkflowNotifications(
   );
 }
 
-async function getBookings(newActiveOn: number[], isOrg: boolean) {
-  if (newActiveOn.length === 0) return [];
+async function getBookings(activeOn: number[], isOrg: boolean, existingActiveOn: number[] = []) {
+  if (activeOn.length === 0) return [];
 
   if (isOrg) {
-    //test this
+    // this query is pretty much the same as we do it for workflowReminders, maybe we can reuse this somehow
     const bookingsForReminders = await prisma.booking.findMany({
       where: {
-        user: {
-          teams: {
-            some: {
-              teamId: {
-                in: newActiveOn,
-              },
-              accepted: true,
+        OR: [
+          {
+            // bookings from team event types + children managed event types
+            eventType: {
+              OR: [
+                {
+                  teamId: {
+                    in: activeOn,
+                  },
+                },
+                {
+                  teamId: null,
+                  parentId: {
+                    in: activeOn,
+                  },
+                },
+              ],
             },
           },
-        },
+          {
+            // user bookings
+            user: {
+              teams: {
+                some: {
+                  teamId: {
+                    in: activeOn,
+                  },
+                  accepted: true,
+                },
+              },
+            },
+            eventType: {
+              teamId: null,
+              parentId: null, // children managed event types are handled above with team event types
+            },
+            // if user is already part of an existing activeOn connecting reminders are already scheduled
+            NOT: {
+              user: {
+                teams: {
+                  some: {
+                    teamId: {
+                      in: existingActiveOn,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
       },
       select: bookingSelect,
     });
@@ -386,11 +467,11 @@ async function getBookings(newActiveOn: number[], isOrg: boolean) {
     const bookingsForReminders = await prisma.booking.findMany({
       where: {
         OR: [
-          { eventTypeId: { in: newActiveOn } },
+          { eventTypeId: { in: activeOn } },
           {
             eventType: {
               parentId: {
-                in: newActiveOn, // child event type can not disable workflows, so this should work
+                in: activeOn, // child event type can not disable workflows, so this should work
               },
             },
           },
@@ -420,8 +501,8 @@ async function scheduleBookingReminders(
   teamId: number | null
 ) {
   if (!bookingsReminders.length) return;
-  if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT)
-    return true;
+
+  if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
 
   //create reminders for all bookings with newEventTypes
   const promiseSteps = workflowSteps.map(async (step) => {
@@ -429,6 +510,7 @@ async function scheduleBookingReminders(
     // in some scenarios we could already have the phone number, so we should still schedule if phone number exists
     if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
       return;
+
     const promiseScheduleReminders = bookingsReminders.map(async (booking) => {
       const defaultLocale = "en";
       const bookingInfo = {

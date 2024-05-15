@@ -51,6 +51,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       steps: true,
       activeOn: true,
+      activeOnTeams: true,
     },
   });
 
@@ -141,7 +142,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     );
 
     //maybe I can call this after the if once and put it all into removedActiveOn
-    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, ctx.user.id, isOrg);
+    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg);
 
     // todo: where was that used?
     // if (userWorkflow.teamId) {
@@ -196,7 +197,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
 
     //maybe call it together?
-    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, ctx.user.id, isOrg);
+    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg, activeOn);
 
     //update active on
     await ctx.prisma.workflowsOnTeams.deleteMany({
@@ -213,6 +214,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
+  const exsitingActiveOn = userWorkflow.activeOnTeams
+    .filter((activeOnRel) => activeOn.includes(activeOnRel.teamId))
+    .map((activeOnRel) => activeOnRel.teamId);
+
   // schedule reminders for all new activeOn
   await scheduleWorkflowNotifications(
     newActiveOn,
@@ -222,7 +227,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     timeUnit,
     trigger,
     user.id,
-    userWorkflow.teamId
+    userWorkflow.teamId,
+    exsitingActiveOn
   );
 
   // handle deleted and edited workflow steps
@@ -307,7 +313,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         timeUnit,
         trigger,
         user.id,
-        userWorkflow.teamId
+        userWorkflow.teamId,
+        exsitingActiveOn
       );
     }
   });
@@ -355,7 +362,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId
+      userWorkflow.teamId,
+      exsitingActiveOn
     );
   }
 
