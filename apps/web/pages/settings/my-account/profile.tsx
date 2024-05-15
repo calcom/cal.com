@@ -124,6 +124,15 @@ const ProfileView = () => {
       }
     },
   });
+  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+    onSuccess: async (res) => {
+      showToast(t(res.message), "success");
+      utils.viewer.me.invalidate();
+    },
+    onError: (e) => {
+      showToast(t(e.message), "error");
+    },
+  });
 
   const addSecondaryEmailMutation = trpc.viewer.addSecondaryEmail.useMutation({
     onSuccess: (res) => {
@@ -439,10 +448,7 @@ const ProfileView = () => {
             <Button
               color="primary"
               onClick={() => {
-                updateProfileMutation.mutate({
-                  ...tempFormValues,
-                  unlinkConnectedAccount: true,
-                });
+                unlinkConnectedAccountMutation.mutate();
                 setShowAccountDisconnectWarning(false);
               }}>
               {t("confirm")}
