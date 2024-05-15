@@ -58,6 +58,11 @@ const getAppCategories = (baseURL: string, useQueryParam: boolean): AppCategoryE
       href: getHref(baseURL, "other", useQueryParam),
       icon: "grid-3x3",
     },
+    {
+      name: "auditLogs",
+      href: getHref(baseURL, "auditLogs", useQueryParam),
+      icon: "notebook-pen",
+    },
   ];
 };
 

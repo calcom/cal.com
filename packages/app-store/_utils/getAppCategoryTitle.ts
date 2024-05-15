@@ -12,6 +12,8 @@ const getAppCategoryTitle = (variant: AppCategories, returnLowerCase?: boolean) 
   if (variant === "crm") {
     title = "CRM";
     return title;
+  } else if (variant === "auditLogs") {
+    return "Audit Logs";
   } else {
     title = variant;
   }
