@@ -26,13 +26,13 @@ import type { User } from "../UserListTable";
 
 interface Props {
   table: Table<User>;
-  teams: RouterOutputs["viewer"]["organizations"]["getTeams"] | undefined;
+  orgTeams: RouterOutputs["viewer"]["organizations"]["getTeams"] | undefined;
 }
 
-export function EventTypesList({ table, teams }: Props) {
+export function EventTypesList({ table, orgTeams }: Props) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
-  const teamIds = teams?.map((team) => team.id);
+  const teamIds = orgTeams?.map((team) => team.id);
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds, schedulingType: SchedulingType.ROUND_ROBIN },
   });
@@ -54,7 +54,7 @@ export function EventTypesList({ table, teams }: Props) {
   });
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
-  const eventTypeGroups = data?.eventTypeGroups;
+  const teams = data?.eventTypeGroups;
 
   // Add value array to the set
   const addValue = (set: Set<number>, setSet: Dispatch<SetStateAction<Set<number>>>, value: number[]) => {
@@ -74,7 +74,7 @@ export function EventTypesList({ table, teams }: Props) {
     <>
       <Popover>
         <PopoverTrigger asChild>
-          <Button StartIcon="users">{t("add_to_event_type")}</Button>
+          <Button StartIcon="link">{t("add_to_event_type")}</Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0 shadow-md" align="start" sideOffset={12}>
           <Command>
@@ -82,11 +82,14 @@ export function EventTypesList({ table, teams }: Props) {
             <CommandList>
               <CommandEmpty>No results found.</CommandEmpty>
               <CommandGroup>
-                {eventTypeGroups &&
-                  eventTypeGroups.map((team) => {
+                {teams &&
+                  teams.map((team) => {
                     const events = team.eventTypes;
+                    const teamId = team.teamId;
+
+                    if (events.length === 0 || !teamId) return null;
+
                     const ids = events.map((event) => event.id);
-                    const teamId = team.teamId || 0;
                     const isSelected = ids.every((id) => selectedEvents.has(id));
                     return (
                       <>

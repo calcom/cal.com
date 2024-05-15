@@ -319,7 +319,7 @@ export function UserListTable() {
           },
           {
             type: "render",
-            render: (table) => <EventTypesList table={table} teams={teams} />,
+            render: (table) => <EventTypesList table={table} orgTeams={teams} />,
           },
           {
             type: "render",
