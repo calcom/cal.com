@@ -6,12 +6,10 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
-import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { hostedCal } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -238,156 +236,6 @@ const providers: Provider[] = [
   }),
   ImpersonationProvider,
 ];
-
-if (IS_GOOGLE_LOGIN_ENABLED) {
-  providers.push(
-    GoogleProvider({
-      clientId: GOOGLE_CLIENT_ID,
-      clientSecret: GOOGLE_CLIENT_SECRET,
-      allowDangerousEmailAccountLinking: true,
-    })
-  );
-}
-
-if (isSAMLLoginEnabled) {
-  providers.push({
-    id: "saml",
-    name: "BoxyHQ",
-    type: "oauth",
-    version: "2.0",
-    checks: ["pkce", "state"],
-    authorization: {
-      url: `${WEBAPP_URL}/api/auth/saml/authorize`,
-      params: {
-        scope: "",
-        response_type: "code",
-        provider: "saml",
-      },
-    },
-    token: {
-      url: `${WEBAPP_URL}/api/auth/saml/token`,
-      params: { grant_type: "authorization_code" },
-    },
-    userinfo: `${WEBAPP_URL}/api/auth/saml/userinfo`,
-    profile: async (profile: {
-      id?: number;
-      firstName?: string;
-      lastName?: string;
-      email?: string;
-      locale?: string;
-    }) => {
-      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
-        email: profile.email || "",
-      });
-      if (!user) throw new Error(ErrorCode.UserNotFound);
-
-      const [userProfile] = user.allProfiles;
-      return {
-        id: profile.id || 0,
-        firstName: profile.firstName || "",
-        lastName: profile.lastName || "",
-        email: profile.email || "",
-        name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
-        email_verified: true,
-        locale: profile.locale,
-        profile: userProfile,
-      };
-    },
-    options: {
-      clientId: "dummy",
-      clientSecret: clientSecretVerifier,
-    },
-    allowDangerousEmailAccountLinking: true,
-  });
-
-  // Idp initiated login
-  providers.push(
-    CredentialsProvider({
-      id: "saml-idp",
-      name: "IdP Login",
-      credentials: {
-        code: {},
-      },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { code } = credentials;
-
-        if (!code) {
-          return null;
-        }
-
-        const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
-
-        // Fetch access token
-        const { access_token } = await oauthController.token({
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: `${process.env.NEXTAUTH_URL}`,
-          client_id: "dummy",
-          client_secret: clientSecretVerifier,
-        });
-
-        if (!access_token) {
-          return null;
-        }
-        // Fetch user info
-        const userInfo = await oauthController.userInfo(access_token);
-
-        if (!userInfo) {
-          return null;
-        }
-
-        const { id, firstName, lastName } = userInfo;
-        const email = userInfo.email.toLowerCase();
-        let user = !email
-          ? undefined
-          : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
-        if (!user) {
-          const hostedCal = Boolean(HOSTED_CAL_FEATURES);
-          if (hostedCal && email) {
-            const domain = getDomainFromEmail(email);
-            const organizationId = await getVerifiedOrganizationByAutoAcceptEmailDomain(domain);
-            if (organizationId) {
-              const createUsersAndConnectToOrgProps = {
-                emailsToCreate: [email],
-                organizationId,
-                identityProvider: IdentityProvider.SAML,
-                identityProviderId: email,
-              };
-              await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
-              user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
-                email: email,
-              });
-            }
-          }
-          if (!user) throw new Error(ErrorCode.UserNotFound);
-        }
-        const [userProfile] = user?.allProfiles;
-        return {
-          id: id as unknown as number,
-          firstName,
-          lastName,
-          email,
-          name: `${firstName} ${lastName}`.trim(),
-          email_verified: true,
-          profile: userProfile,
-        };
-      },
-    })
-  );
-}
-
-providers.push(
-  EmailProvider({
-    type: "email",
-    maxAge: 10 * 60 * 60, // Magic links are valid for 10 min only
-    // Here we setup the sendVerificationRequest that calls the email template with the identifier (email) and token to verify.
-    sendVerificationRequest: async (props) => (await import("./sendVerificationRequest")).default(props),
-  })
-);
 
 function isNumber(n: string) {
   return !isNaN(parseFloat(n)) && !isNaN(+n);

@@ -65,7 +65,7 @@ const ChangePasswordSection = () => {
             <h2 className="font-cal text-emphasis text-lg font-medium leading-6">{t("change_password")}</h2>
           </div>
           <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0">
-            <div className="w-full ltr:mr-2 rtl:ml-2 sm:w-1/2">
+            <div className="w-full sm:w-1/2 ltr:mr-2 rtl:ml-2">
               <label htmlFor="current_password" className="text-default block text-sm font-medium">
                 {t("current_password")}
               </label>
