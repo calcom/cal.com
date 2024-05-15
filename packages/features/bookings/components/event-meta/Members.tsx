@@ -1,4 +1,5 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -18,6 +19,8 @@ export interface EventMembersProps {
 }
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
+  const username = useBookerStore((state) => state.username);
+  const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
   const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
@@ -34,13 +37,17 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         size="sm"
         className="border-muted"
         items={[
-          {
-            // We don't want booker to be able to see the list of other users or teams inside the embed
-            href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
-            image: profile.image || "",
-            alt: profile.name || "",
-            title: profile.name || "",
-          },
+          ...(isDynamic
+            ? []
+            : [
+                {
+                  // We don't want booker to be able to see the list of other users or teams inside the embed
+                  href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
+                  image: profile.image || "",
+                  alt: profile.name || "",
+                  title: profile.name || "",
+                },
+              ]),
           ...shownUsers.map((user) => ({
             href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
               user.profile?.username
