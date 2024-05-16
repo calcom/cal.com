@@ -8,6 +8,7 @@ export const apiHandlers = {
   applecalendar: import("./applecalendar/api"),
   around: import("./around/api"),
   autocheckin: import("./autocheckin/api"),
+  "baa-for-hipaa": import("./baa-for-hipaa/api"),
   basecamp3: import("./basecamp3/api"),
   "cal-ai": import("./cal-ai/api"),
   caldavcalendar: import("./caldavcalendar/api"),
