@@ -31,7 +31,7 @@ type User = {
 type Filters = {
   teamIds?: number[];
   upIds?: string[];
-  schedulingTypes?: (SchedulingType | null)[];
+  schedulingTypes?: SchedulingType[];
 };
 
 export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer>>;
@@ -213,6 +213,9 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     if (!filters || !hasFilter(filters) || !filters.schedulingTypes) {
       return true;
     }
+
+    if (!evType.schedulingType) return false;
+
     return filters.schedulingTypes.includes(evType.schedulingType);
   };
 
