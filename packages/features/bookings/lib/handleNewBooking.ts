@@ -1371,15 +1371,26 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // If location passed is empty , use default location of event
+  // If location of event is not set , use host default
+  if (locationBodyString.trim().length == 0) {
+    if (eventType.locations.length > 0) {
+      locationBodyString = eventType.locations[0].type;
+    } else {
+      locationBodyString = OrganizerDefaultConferencingAppType;
+    }
+  }
   // use host default
-  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-        organizerMetadata?.defaultConferencingApp?.appLink;
+      if (isManagedEventType || isTeamEventType) {
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+          organizerMetadata?.defaultConferencingApp?.appLink;
+      }
     } else {
       locationBodyString = "integrations:daily";
     }
