@@ -77,15 +77,7 @@ export const AppPage = ({
   const router = useRouter();
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
-  const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
-      if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
-    },
-    onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-    },
-  });
+  const mutation = useAddAppMutation(null);
 
   const handleAppInstall = () => {
     if (isConferencing(categories)) {
