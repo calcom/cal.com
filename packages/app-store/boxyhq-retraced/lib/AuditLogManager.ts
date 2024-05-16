@@ -17,6 +17,6 @@ export default class BoxyHQAuditLogManager implements AuditLogsManager {
   }
 
   public async report(event: AuditLogEvent) {
-    await this.client?.reportEvent(event);
+    await this.client?.reportEvent({ ...event, target: { id: "" } });
   }
 }
