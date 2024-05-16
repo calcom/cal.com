@@ -1,0 +1,16 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BoxyHQ Retraced",
+  "slug": "boxyhq-retraced",
+  "type": "boxyhq-retraced_auditLogs",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "auditLogs",
+  "categories": ["auditLogs"],
+  "publisher": "oliverqx",
+  "email": "oliverquixchan@gmail.com",
+  "description": "BoxyHQ's Audit Logs enable enterprise customers to efficiently record and search events within your application, streamlining compliance and reducing the need for complex, in-house development. Our solution's simple integration process saves time, ensuring fast compliance and focusing your team's efforts on core functionalities.\n\n",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "audit-log-implementation"
+}

@@ -10,6 +10,7 @@ export const apiHandlers = {
   autocheckin: import("./autocheckin/api"),
   "baa-for-hipaa": import("./baa-for-hipaa/api"),
   basecamp3: import("./basecamp3/api"),
+  "boxyhq-retraced": import("./boxyhq-retraced/api"),
   "cal-ai": import("./cal-ai/api"),
   caldavcalendar: import("./caldavcalendar/api"),
   campfire: import("./campfire/api"),
