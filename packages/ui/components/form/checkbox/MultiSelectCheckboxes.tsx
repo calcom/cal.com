@@ -121,7 +121,7 @@ export default function MultiSelectCheckboxes({
       isMulti
       isDisabled={isDisabled}
       className={classNames(className ? className : "w-64 text-sm")}
-      isSearchable={false}
+      isSearchable={true}
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
       isLoading={isLoading}
