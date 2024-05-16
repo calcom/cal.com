@@ -30,6 +30,11 @@ const workspaces = packagedEmbedTestsOnly
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
           setupFiles: ["setupVitest.ts"],
         },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
       },
     ]
   : timeZoneDependentTestsOnly
