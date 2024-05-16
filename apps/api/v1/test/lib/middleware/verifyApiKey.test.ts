@@ -9,9 +9,9 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "~/lib/utils/isAdmin";
-import { ScopeOfAdmin } from "~/lib/utils/scopeOfAdmin";
 
 import { verifyApiKey } from "../../../lib/helpers/verifyApiKey";
+import { ScopeOfAdmin } from "../../../lib/utils/scopeOfAdmin";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;

@@ -5,9 +5,8 @@ import { describe, it, expect } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import { ScopeOfAdmin } from "~/lib/utils/scopeOfAdmin";
-
 import { isAdminGuard } from "../../../lib/utils/isAdmin";
+import { ScopeOfAdmin } from "../../../lib/utils/scopeOfAdmin";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
