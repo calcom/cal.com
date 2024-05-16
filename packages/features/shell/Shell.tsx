@@ -251,11 +251,10 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && (
+        {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
