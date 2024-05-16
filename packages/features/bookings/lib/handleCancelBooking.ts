@@ -134,7 +134,7 @@ export type CustomRequest = NextApiRequest & {
   arePlatformEmailsEnabled?: boolean;
 };
 
-export type handleCancelBookingResponse = {
+export type HandleCancelBookingResponse = {
   success: boolean;
   message: string;
   removedAttendee: boolean;
