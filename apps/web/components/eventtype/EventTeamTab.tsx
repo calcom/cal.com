@@ -1,7 +1,5 @@
 import { Trans } from "next-i18next";
 import Link from "next/link";
-// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
-import { useRouter } from "next/router";
 import type { EventTypeSetupProps, Host } from "pages/event-types/[type]";
 import { useEffect, useRef, useState } from "react";
 import type { ComponentProps, Dispatch, SetStateAction } from "react";
@@ -17,8 +15,6 @@ import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/typ
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Label, Select, SettingsToggle } from "@calcom/ui";
-
-import AssignmentWarningDialog from "./AssignmentWarningDialog";
 
 export const mapMemberToChildrenOption = (
   member: EventTypeSetupProps["teamMembers"][number],
@@ -398,37 +394,10 @@ export const EventTeamTab = ({
     );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
-  const [pendingRoute, setPendingRoute] = useState("");
-  const leaveWithoutAssigningHosts = useRef(false);
   const { getValues, setValue } = useFormContext<FormValues>();
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
-  const router = useRouter();
-
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      const paths = url.split("/");
-      if (
-        eventType.hosts.length === 0 &&
-        !leaveWithoutAssigningHosts.current &&
-        (url === "/event-types" || paths[1] !== "event-types")
-      ) {
-        setIsOpenAssignmentWarnDialog(true);
-        setPendingRoute(url);
-        router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
-      }
-    };
-    router.events.on("routeChangeStart", handleRouteChange);
-    return () => {
-      router.events.off("routeChangeStart", handleRouteChange);
-    };
-  }, [router]);
 
   return (
     <div>
@@ -474,12 +443,6 @@ export const EventTeamTab = ({
           childrenEventTypeOptions={childrenEventTypeOptions}
         />
       )}
-      <AssignmentWarningDialog
-        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
-        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
-        pendingRoute={pendingRoute}
-        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
-      />
     </div>
   );
 };
