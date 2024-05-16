@@ -192,7 +192,9 @@ export default function WorkflowDetailsPage(props: Props) {
                   onChange={(e) => {
                     onChange(e);
                     if (e.target.value) {
-                      setSelectedOptions(isOrg ? teamOptions : allEventTypeOptions);
+                      const allOptions = isOrg ? teamOptions : allEventTypeOptions;
+                      setSelectedOptions(allOptions);
+                      form.setValue("activeOn", allOptions);
                     }
                   }}
                   checked={value}
