@@ -5,7 +5,8 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
-import { isAdminGuard, ScopeOfAdmin } from "../utils/isAdmin";
+import { isAdminGuard } from "../utils/isAdmin";
+import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {

@@ -3,10 +3,7 @@ import type { NextApiRequest } from "next";
 import prisma from "@calcom/prisma";
 import { UserPermissionRole, MembershipRole } from "@calcom/prisma/enums";
 
-export const ScopeOfAdmin = {
-  SystemWide: "SystemWide",
-  OrgOwnerOrAdmin: "OrgOwnerOrAdmin",
-} as const;
+import { ScopeOfAdmin } from "./scopeOfAdmin";
 
 export const isAdminGuard = async (req: NextApiRequest) => {
   const { userId } = req;
