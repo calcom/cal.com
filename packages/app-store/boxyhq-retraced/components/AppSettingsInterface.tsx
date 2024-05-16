@@ -80,7 +80,7 @@ const availableOptions = {
 export default function AppSettings() {
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
-  // const integrations = trpc.viewer.integrations.useQuery({ variant: "auditLog", appId: "audit-log-implementation" });
+  // const integrations = trpc.viewer.integrations.useQuery({ variant: "auditLog", appId: "boxyhq-retraced" });
   const [projectId, setProjectId] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [value, setValue] = useState<{ label: string; value: string } | undefined>(availableOptions.settings);
@@ -126,8 +126,8 @@ export default function AppSettings() {
         onClick={() => {
           console.log({ apiKey, projectId });
           saveKeysMutation.mutate({
-            slug: "audit-log-implementation",
-            dirName: "audit-log-implementation",
+            slug: "boxyhq-retraced",
+            dirName: "boxyhq-retraced",
             type: "auditLogs",
             keys: {
               apiKey: apiKey,
