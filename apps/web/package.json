@@ -58,6 +58,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
+    "@retracedhq/retraced": "^0.7.10",
     "@sentry/nextjs": "^7.73.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
