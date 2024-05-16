@@ -20,7 +20,7 @@ import { type PageProps } from "./videos-single-view.getServerSideProps";
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
-  const { meetingUrl, meetingPassword, booking } = props;
+  const { meetingUrl, meetingPassword, booking, hasTeamPlan } = props;
   const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
@@ -47,14 +47,16 @@ export default function JoinCall(props: PageProps) {
       },
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
-      customTrayButtons: {
-        transcription: {
-          label: "Cal.ai",
-          tooltip: "Toggle real time transcription powered by AI",
-          iconPath: `${WEBAPP_URL}/sparkles.svg`,
-          iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+      ...(hasTeamPlan && {
+        customTrayButtons: {
+          transcription: {
+            label: "Cal.ai",
+            tooltip: "Toggle real time transcription powered by AI",
+            iconPath: `${WEBAPP_URL}/sparkles.svg`,
+            iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+          },
         },
-      },
+      }),
     });
 
     setDaily(callFrame);
