@@ -19,9 +19,8 @@ type SendWebhookPayload = z.infer<typeof sendWebhookPayloadSchema>;
 
 export async function sendWebhook(payload: string): Promise<void> {
   try {
-    const parsedPayloadObj: SendWebhookPayload = JSON.parse(payload);
-    const { secretKey, triggerEvent, createdAt, webhook, data } =
-      sendWebhookPayloadSchema.parse(parsedPayloadObj);
+    const { secretKey, triggerEvent, createdAt, webhook, data }: SendWebhookPayload =
+      sendWebhookPayloadSchema.parse(JSON.parse(payload));
     await sendPayload(secretKey, triggerEvent, createdAt, webhook, data);
   } catch (error) {
     // ... handle error
