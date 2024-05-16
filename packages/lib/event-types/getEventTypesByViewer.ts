@@ -30,7 +30,7 @@ type User = {
 type Filters = {
   teamIds?: number[];
   upIds?: string[];
-  schedulingType?: SchedulingType[];
+  schedulingTypes?: SchedulingType[];
 };
 
 export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer>>;
@@ -210,16 +210,14 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     }
     return filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
-  const filterBySchedulingType = (evType: Awaited<ReturnType<typeof mapEventType>>) => {
-    if (!filters || !hasFilter(filters)) {
+  const filterBySchedulingTypes = (evType: Awaited<ReturnType<typeof mapEventType>>) => {
+    if (!filters || !hasFilter(filters) || !filters.schedulingTypes) {
       return true;
     }
 
-    if (!filters.schedulingType) return true;
-
     if (!evType.schedulingType) return false;
 
-    return filters.schedulingType.includes(evType.schedulingType);
+    return filters.schedulingTypes.includes(evType.schedulingType);
   };
 
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
@@ -304,7 +302,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
               )
-              .filter(filterBySchedulingType),
+              .filter(filterBySchedulingTypes),
           };
         })
     )
