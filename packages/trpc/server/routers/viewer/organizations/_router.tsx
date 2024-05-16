@@ -6,8 +6,8 @@ import authedProcedure, {
   authedOrgAdminProcedure,
 } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
-import { ZAddBulkMembersToEventTypes } from "./addBulkMembersToEventTypes.schema";
-import { ZAddBulkMembersToTeams } from "./addBulkMembersToTeams.schema";
+import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
+import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
@@ -89,17 +89,17 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getTeams"), () => import("./getTeams.handler"));
     return handler(opts);
   }),
-  bulkAddMembersToTeams: authedProcedure.input(ZAddBulkMembersToTeams).mutation(async (opts) => {
+  addMembersToTeams: authedProcedure.input(ZAddMembersToTeams).mutation(async (opts) => {
     const handler = await importHandler(
-      namespaced("addBulkMembersToTeams"),
-      () => import("./addBulkMembersToTeams.handler")
+      namespaced("addMembersToTeams"),
+      () => import("./addMembersToTeams.handler")
     );
     return handler(opts);
   }),
-  bulkAddMembersToEventTypes: authedProcedure.input(ZAddBulkMembersToEventTypes).mutation(async (opts) => {
+  addMembersToEventTypes: authedProcedure.input(ZAddMembersToEventTypes).mutation(async (opts) => {
     const handler = await importHandler(
-      namespaced("addBulkMembersToEventTypes"),
-      () => import("./addBulkMembersToEventTypes.handler")
+      namespaced("addMembersToEventTypes"),
+      () => import("./addMembersToEventTypes.handler")
     );
     return handler(opts);
   }),

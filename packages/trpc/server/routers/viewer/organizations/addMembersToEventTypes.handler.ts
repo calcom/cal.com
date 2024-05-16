@@ -6,17 +6,17 @@ import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TAddBulkMembersToEventTypes } from "./addBulkMembersToEventTypes.schema";
-import { addBulkMembersToTeams } from "./utils";
+import type { TAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
+import { addMembersToTeams } from "./utils";
 
 type AddBulkToEventTypeHandler = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TAddBulkMembersToEventTypes;
+  input: TAddMembersToEventTypes;
 };
 
-export async function addBulkMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
+export async function addMembersToEventTypesHandler({ ctx, input }: AddBulkToEventTypeHandler) {
   if (!ctx.user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
@@ -26,7 +26,7 @@ export async function addBulkMembersToEventTypesHandler({ ctx, input }: AddBulkT
   const { eventTypeIds, teamIds, userIds } = input;
 
   // invite users to whatever teams necessary
-  await addBulkMembersToTeams({
+  await addMembersToTeams({
     user: ctx.user,
     input: {
       teamIds,
@@ -49,4 +49,4 @@ export async function addBulkMembersToEventTypesHandler({ ctx, input }: AddBulkT
   });
 }
 
-export default addBulkMembersToEventTypesHandler;
+export default addMembersToEventTypesHandler;
