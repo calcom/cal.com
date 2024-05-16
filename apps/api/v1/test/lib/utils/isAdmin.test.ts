@@ -27,13 +27,29 @@ describe("isAdmin guard", () => {
     expect(scope).toBe(null);
   });
 
+  it("Returns false when org user is a member", async () => {
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "POST",
+      body: {},
+    });
+
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
+
+    req.userId = memberUser.id;
+
+    const { isAdmin, scope } = await isAdminGuard(req);
+
+    expect(isAdmin).toBe(false);
+    expect(scope).toBe(null);
+  });
+
   it("Returns system-wide admin when user is marked as such", async () => {
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "POST",
       body: {},
     });
 
-    const adminUser = await prisma.user.findFirst({ where: { email: "admin@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "admin@example.com" } });
 
     req.userId = adminUser.id;
 
@@ -49,7 +65,7 @@ describe("isAdmin guard", () => {
       body: {},
     });
 
-    const adminUser = await prisma.user.findFirst({ where: { email: "owner1-acme@example.com" } });
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
 
     req.userId = adminUser.id;
 
