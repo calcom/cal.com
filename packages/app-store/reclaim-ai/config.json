@@ -1,0 +1,17 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Reclaim.ai",
+  "slug": "reclaim-ai",
+  "type": "reclaim-ai_automation",
+  "logo": "icon.svg",
+  "url": "https://reclaim.ai",
+  "variant": "automation",
+  "categories": ["automation"],
+  "publisher": "Cal.com, Inc.",
+  "email": "support@cal.com",
+  "description": "The smart(est) calendar app that optimizes everyone’s schedules for better productivity, collaboration, and work-life balance.\r",
+  "isTemplate": false,
+  "dependencies": ["google-calendar"],
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app"
+}
