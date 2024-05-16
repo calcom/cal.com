@@ -7,6 +7,7 @@ import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAud
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
+import { AuditLogTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -131,20 +132,14 @@ export const paymentsRouter = router({
           eventTypeId: booking.eventTypeId || 0,
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         };
-
-        handleAuditLogTrigger({
-          action: "booking.paid",
-          eventTypeId: booking.eventTypeId,
-          crud: "c",
-          created: Date.now(),
-          source_ip: ctx.sourceIp,
+        await handleAuditLogTrigger({
+          action: AuditLogTriggerEvents.BOOKING_PAID,
           actor: {
-            id: ctx.user.id || 0,
+            id: ctx.user.id || "0",
             name: ctx.user.name || "",
           },
           target: {
-            name: "payment",
-            type: "Booking",
+            name: AuditLogTriggerTargets.BOOKING,
           },
         });
 

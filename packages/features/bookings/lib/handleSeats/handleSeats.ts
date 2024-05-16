@@ -1,4 +1,6 @@
 // eslint-disable-next-line no-restricted-imports
+import { AuditLogTriggerEvents } from "audit-logs/types";
+
 import dayjs from "@calcom/dayjs";
 import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -6,7 +8,7 @@ import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/rem
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { AuditLogTriggerTargets, BookingStatus } from "@calcom/prisma/enums";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking";
 import createNewSeat from "./create/createNewSeat";
@@ -134,18 +136,15 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
 
     await handleAuditLogTrigger({
-      action: "booking.seating",
-      eventTypeId: eventTypeId?.toString() ?? "",
-      crud: "c",
-      created: Date.now().toString(),
+      action: AuditLogTriggerEvents.BOOKING_MODIFIED,
       actor: {
         id: seatedBooking.userId?.toString() || "0",
       },
       target: {
-        name: "seating",
-        type: "Booking",
+        name: AuditLogTriggerTargets.BOOKING,
       },
     });
+
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 

@@ -1,5 +1,6 @@
 import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
+import { AuditLogTriggerEvents } from "audit-logs/types";
 import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
@@ -85,7 +86,12 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  AuditLogTriggerTargets,
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
   EventTypeMetaDataSchema,
@@ -2240,19 +2246,17 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
     };
+
     await handleAuditLogTrigger({
-      action: "booking.payment.initiated",
-      eventTypeId: booking.eventTypeId?.toString() ?? "",
-      crud: "c",
-      created: Date.now().toString(),
+      action: AuditLogTriggerEvents.PAYMENT_INITIATED,
       actor: {
-        id: booking.userId?.toString() || "0",
+        id: userId?.toString() || "0",
       },
       target: {
-        name: "payment",
-        type: "Booking",
+        name: AuditLogTriggerTargets.BOOKING,
       },
     });
+
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
       eventTrigger: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
@@ -2333,16 +2337,12 @@ async function handler(
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      action: "booking.created",
-      eventTypeId: eventTypeId?.toString() ?? "",
-      crud: "c",
-      created: Date.now().toString(),
+      action: AuditLogTriggerEvents.BOOKING_CREATED,
       actor: {
         id: booking.userId?.toString() || "0",
       },
       target: {
-        name: "created",
-        type: "Booking",
+        name: AuditLogTriggerTargets.BOOKING,
       },
     });
   } else {
@@ -2352,16 +2352,12 @@ async function handler(
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      action: "booking.created",
-      eventTypeId: eventTypeId?.toString() ?? "",
-      crud: "c",
-      created: Date.now().toString(),
+      action: AuditLogTriggerEvents.BOOKING_REQUESTED,
       actor: {
         id: booking.userId?.toString() || "0",
       },
       target: {
-        name: "created",
-        type: "Booking",
+        name: AuditLogTriggerTargets.BOOKING,
       },
     });
   }

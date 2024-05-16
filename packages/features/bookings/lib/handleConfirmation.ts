@@ -1,4 +1,5 @@
 import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import { AuditLogTriggerEvents } from "audit-logs/types";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
@@ -15,7 +16,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AuditLogTriggerTargets, BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -302,19 +303,16 @@ export async function handleConfirmation(args: {
     });
 
     await handleAuditLogTrigger({
-      action: "booking.created",
-      eventTypeId: booking.eventTypeId?.toString() ?? "",
-      crud: "c",
-      created: Date.now().toString(),
+      action: AuditLogTriggerEvents.BOOKING_CREATED,
       actor: {
         id: user.credentials[0].userId?.toString() || "0",
         name: user.username || "",
       },
       target: {
-        name: "create",
-        type: "Booking",
+        name: AuditLogTriggerTargets.BOOKING,
       },
     });
+
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
     const subscribersBookingCreated = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
@@ -394,20 +392,16 @@ export async function handleConfirmation(args: {
 
     if (paid) {
       await handleAuditLogTrigger({
-        action: "booking.paid",
-        eventTypeId: booking.eventTypeId,
-        crud: "c",
-        created: Date.now().toString(),
-        source_ip: sourceIp,
+        action: AuditLogTriggerEvents.BOOKING_PAID,
         actor: {
-          id: user.credentials[0].toString() || "0",
+          id: user.credentials[0].userId?.toString() || "0",
           name: user.username || "",
         },
         target: {
-          name: "payment",
-          type: "Booking",
+          name: AuditLogTriggerTargets.BOOKING,
         },
       });
+
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
         userId: triggerForUser ? booking.userId : null,

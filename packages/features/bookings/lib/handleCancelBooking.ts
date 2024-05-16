@@ -1,4 +1,5 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
+import { AuditLogTriggerEvents } from "audit-logs/types";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -24,6 +25,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
@@ -196,19 +198,19 @@ async function handler(req: CustomRequest) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
+  const userName = bookingToDelete.eventType?.hosts.filter((host) => host.user.id === userId)[0].user.name;
+
   await handleAuditLogTrigger({
-    action: "booking.cancelled",
-    eventTypeId: bookingToDelete.eventTypeId?.toString() ?? "",
-    crud: "c",
-    created: Date.now().toString(),
+    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
     actor: {
-      id: bookingToDelete.userId?.toString() || "0",
+      id: userId?.toString() || "0",
+      name: userName || "",
     },
     target: {
-      name: "cancelled",
-      type: "Booking",
+      name: AuditLogTriggerTargets.BOOKING,
     },
   });
+
   const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({

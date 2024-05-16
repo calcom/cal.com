@@ -4,31 +4,17 @@ export interface AuditLogsManager {
 
 export type AuditLogEvent = {
   action: string;
-  eventTypeId?: string;
-  group?: {
-    id?: string;
+  actor: {
+    id: string;
     name?: string;
   };
-  crud?: string;
-  created?: string;
-  actor?: {
-    id?: string;
+  target: {
     name?: string;
-    href?: string;
-    fields?: {
-      [key: string]: string;
-    };
-  };
-  target?: {
-    id?: string;
-    name?: string;
-    href?: string;
     type?: string;
     fields?: {
       [key: string]: string;
     };
   };
-  source_ip?: string;
   description?: string;
   is_failure?: boolean;
   is_anonymous?: boolean;
@@ -36,3 +22,14 @@ export type AuditLogEvent = {
     [key: string]: string;
   };
 };
+
+export const AuditLogTriggerEvents = {
+  BOOKING_CREATED: "BOOKING_CREATED",
+  BOOKING_MODIFIED: "BOOKING_MODIFIED",
+  BOOKING_RESCHEDULED: "BOOKING_RESCHEDULED",
+  BOOKING_REQUESTED: "BOOKING_REQUESTED",
+  BOOKING_CANCELLED: "BOOKING_CANCELLED",
+  BOOKING_REJECTED: "BOOKING_REJECTED",
+  PAYMENT_INITIATED: "BOOKING_PAYMENT_INITIATED",
+  BOOKING_PAID: "BOOKING_PAID",
+} as const;
