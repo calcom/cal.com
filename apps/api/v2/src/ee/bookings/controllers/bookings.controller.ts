@@ -148,17 +148,22 @@ export class BookingsController {
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const oAuthClientId = clientId?.toString();
-
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
       );
-
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      if (oAuthClientId) {
+        void (await this.billingService.increaseUsageByClientId(
+          oAuthClientId,
+          booking.uid,
+          booking.startTime,
+          booking.fromReschedule
+        ));
+      }
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -175,14 +180,22 @@ export class BookingsController {
     @Param("bookingId") bookingId: string,
     @Body() _: CancelBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; removedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       try {
         req.body.id = parseInt(bookingId);
-        await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+        const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+        if (oAuthClientId) {
+          void (await this.billingService.cancelUsageByBookingUid(res.bookingUid, res.removedAttendee));
+        }
         return {
           status: SUCCESS_STATUS,
+          data: {
+            bookingId: res.bookingId,
+            bookingUid: res.bookingUid,
+            removedAttendee: res.removedAttendee,
+          },
         };
       } catch (err) {
         this.handleBookingErrors(err);
@@ -205,7 +218,16 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      createdBookings.forEach(async (booking) => {
+        if (oAuthClientId) {
+          void (await this.billingService.increaseUsageByClientId(
+            oAuthClientId,
+            booking.uid,
+            booking.startTime,
+            null // recurring bookings can't be rescheduled
+          ));
+        }
+      });
 
       return {
         status: SUCCESS_STATUS,
@@ -230,7 +252,17 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      if (oAuthClientId) {
+        const now = new Date();
+        // add a 10 secondes delay to the usage incrementation
+        now.setSeconds(now.getSeconds() + 10);
+        void (await this.billingService.increaseUsageByClientId(
+          oAuthClientId,
+          instantMeeting.bookingUid,
+          now, // instant bookings are started instantly
+          null // recurring bookings can't be rescheduled
+        ));
+      }
 
       return {
         status: SUCCESS_STATUS,

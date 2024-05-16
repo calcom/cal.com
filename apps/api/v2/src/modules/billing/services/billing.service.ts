@@ -1,11 +1,14 @@
 import { AppConfig } from "@/config/type";
+import { BILLING_QUEUE, INCREMENT_JOB, IncrementJobDataType } from "@/modules/billing/billing.processor";
 import { BillingRepository } from "@/modules/billing/billing.repository";
 import { BillingConfigService } from "@/modules/billing/services/billing.config.service";
 import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
+import { InjectQueue } from "@nestjs/bull";
 import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
 
@@ -19,7 +22,8 @@ export class BillingService {
     public readonly stripeService: StripeService,
     private readonly billingRepository: BillingRepository,
     private readonly configService: ConfigService<AppConfig>,
-    private readonly billingConfigService: BillingConfigService
+    private readonly billingConfigService: BillingConfigService,
+    @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
     this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
@@ -59,7 +63,6 @@ export class BillingService {
         line_items: [
           {
             price: this.billingConfigService.get(plan),
-            quantity: 1,
           },
         ],
         success_url: `${this.webAppUrl}/settings/platform/`,
@@ -99,43 +102,58 @@ export class BillingService {
     );
   }
 
-  async increaseUsageForTeam(teamId: number) {
-    try {
-      const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
-      if (!billingSubscription || !billingSubscription?.subscriptionId) {
-        this.logger.error("Team did not have stripe subscription associated to it", {
-          teamId,
-        });
-        return void 0;
+  /**
+   *
+   * @param clientId
+   * @param bookingId
+   * @param startTime
+   * @param rescheduled
+   *
+   * Adds a job to the queue to increment usage of a stripe subscription.
+   * we delay the job until the booking starts.
+   * the delay ensure we can adapt to cancel / reschedule.
+   */
+  async increaseUsageByClientId(
+    clientId: string,
+    bookingUid?: string | null,
+    startTime?: Date | null,
+    fromReschedule?: string | null
+  ) {
+    if (startTime && bookingUid) {
+      const delay = startTime.getTime() - Date.now();
+      if (fromReschedule) {
+        // cancel the usage increment job for the booking that is being rescheduled
+        await this.cancelUsageByBookingUid(fromReschedule, false);
+        this.logger.log(`Cancelled usage increment job for rescheduled booking uid: ${fromReschedule}`);
       }
-
-      const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
-        billingSubscription.subscriptionId
+      await this.billingQueue.add(
+        INCREMENT_JOB,
+        {
+          oAuthClientId: clientId,
+        } satisfies IncrementJobDataType,
+        { delay: delay > 0 ? delay : 0, jobId: `increment-${bookingUid}`, removeOnComplete: true }
       );
-      const item = stripeSubscription.items.data[0];
-      // legacy plans are licensed, we cannot create usage records against them
-      if (item.price?.recurring?.usage_type === "licensed") {
-        return void 0;
-      }
-
-      await this.stripeService.stripe.subscriptionItems.createUsageRecord(item.id, {
-        action: "increment",
-        quantity: 1,
-        timestamp: "now",
-      });
-    } catch (error) {
-      // don't fail the request, log it.
-      this.logger.error("Failed to increase usage for team", {
-        teamId: teamId,
-        error,
-      });
+      this.logger.log(
+        `Added stripe usage increment job for booking ${bookingUid} and oAuthClientId ${clientId}`
+      );
     }
   }
 
-  async increaseUsageByClientId(clientId: string) {
-    const team = await this.teamsRepository.findTeamIdFromClientId(clientId);
-    if (!team.id) return Promise.resolve(); // noop resolution.
-
-    return this.increaseUsageForTeam(team?.id);
+  /**
+   *
+   * @param bookingId
+   *
+   * Cancels the usage increment job for a booking when it is cancelled.
+   */
+  async cancelUsageByBookingUid(bookingUid: string, removedAttendee: boolean) {
+    if (!removedAttendee) {
+      const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
+      if (job) {
+        await job.remove();
+        this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
+      }
+      return;
+    }
+    this.logger.log(`Booking was not cancelled, only an attendee was removed`);
   }
 }

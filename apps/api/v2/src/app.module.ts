@@ -11,6 +11,7 @@ import { JwtModule } from "@/modules/jwt/jwt.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { RedisService } from "@/modules/redis/redis.service";
+import { BullModule } from "@nestjs/bull";
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { APP_INTERCEPTOR, RouterModule } from "@nestjs/core";
@@ -26,7 +27,18 @@ import { AppController } from "./app.controller";
       isGlobal: true,
       load: [appConfig],
     }),
+
     RedisModule,
+    BullModule.forRootAsync({
+      imports: [RedisModule],
+      useFactory: async (redisService: RedisService) => ({
+        redis: {
+          host: redisService.redis.options.host,
+          port: redisService.redis.options.port,
+        },
+      }),
+      inject: [RedisService],
+    }),
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
       inject: [RedisService],

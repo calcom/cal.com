@@ -134,6 +134,14 @@ export type CustomRequest = NextApiRequest & {
   arePlatformEmailsEnabled?: boolean;
 };
 
+export type handleCancelBookingResponse = {
+  success: boolean;
+  message: string;
+  removedAttendee: boolean;
+  bookingId: number;
+  bookingUid: string;
+};
+
 async function handler(req: CustomRequest) {
   const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
     schemaBookingCancelParams.parse(req.body);
@@ -298,7 +306,14 @@ async function handler(req: CustomRequest) {
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(req, dataForWebhooks);
-  if (result) return { success: true };
+  if (result)
+    return {
+      success: true,
+      removedAttendee: true,
+      bookingId: bookingToDelete.id,
+      bookingUid: bookingToDelete.uid,
+      message: "Attendee successfully removed.",
+    } satisfies handleCancelBookingResponse;
 
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
@@ -476,7 +491,13 @@ async function handler(req: CustomRequest) {
     console.error("Error deleting event", error);
   }
   req.statusCode = 200;
-  return { message: "Booking successfully cancelled." };
+  return {
+    success: true,
+    message: "Booking successfully cancelled.",
+    removedAttendee: false,
+    bookingId: bookingToDelete.id,
+    bookingUid: bookingToDelete.uid,
+  } satisfies handleCancelBookingResponse;
 }
 
 export default handler;
