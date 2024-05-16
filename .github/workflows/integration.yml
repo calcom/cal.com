@@ -1,4 +1,4 @@
-name: E2E tests
+name: Integration tests
 on:
   workflow_call:
 env:
