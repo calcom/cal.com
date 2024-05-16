@@ -1,33 +1,25 @@
-import type { Availability as AvailabilityModel, Schedule as ScheduleModel } from "@prisma/client";
+import type { Availability } from "@prisma/client";
 
 import dayjs from "@calcom/dayjs";
 import { getWorkingHours } from "@calcom/lib/availability";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-export type ScheduleWithAvailabilities = ScheduleModel & { availability: AvailabilityModel[] };
+type ScheduleAvailability = Pick<Availability, "days" | "startTime" | "endTime">[];
+type ScheduleOverride = Pick<Availability, "date" | "startTime" | "endTime">[];
 
-export type ScheduleWithAvailabilitiesForWeb = Pick<ScheduleModel, "id" | "name"> & {
-  isManaged: boolean;
-  workingHours: ReturnType<typeof transformWorkingHoursForClient>;
-  schedule: AvailabilityModel[];
-  availability: ReturnType<typeof transformAvailabilityForClient>;
-  timeZone: string;
-  dateOverrides: ReturnType<typeof transformDateOverridesForClient>;
-  isDefault: boolean;
-  isLastSchedule: boolean;
-  readOnly: boolean;
-};
-
-export function transformWorkingHoursForClient(schedule: ScheduleWithAvailabilities) {
+export function transformWorkingHoursForAtom(schedule: {
+  timeZone: string | null;
+  availability: ScheduleAvailability;
+}) {
   return getWorkingHours(
     { timeZone: schedule.timeZone || undefined, utcOffset: 0 },
     schedule.availability || []
   );
 }
 
-export function transformAvailabilityForClient(schedule: ScheduleWithAvailabilities) {
-  return transformScheduleToAvailabilityForClient(schedule).map((a) =>
+export function transformAvailabilityForAtom(schedule: { availability: ScheduleAvailability }) {
+  return transformScheduleToAvailabilityForAtom(schedule).map((a) =>
     a.map((startAndEnd) => ({
       ...startAndEnd,
       end: new Date(startAndEnd.end.toISOString().replace("23:59:00.000Z", "23:59:59.999Z")),
@@ -35,7 +27,10 @@ export function transformAvailabilityForClient(schedule: ScheduleWithAvailabilit
   );
 }
 
-export function transformDateOverridesForClient(schedule: ScheduleWithAvailabilities, timeZone: string) {
+export function transformDateOverridesForAtom(
+  schedule: { availability: ScheduleOverride },
+  timeZone: string
+) {
   return schedule.availability.reduce((acc, override) => {
     // only iff future date override
     if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {
@@ -67,9 +62,7 @@ export function transformDateOverridesForClient(schedule: ScheduleWithAvailabili
   }, [] as { ranges: TimeRange[] }[]);
 }
 
-export const transformScheduleToAvailabilityForClient = (
-  schedule: Partial<ScheduleModel> & { availability: AvailabilityModel[] }
-) => {
+export const transformScheduleToAvailabilityForAtom = (schedule: { availability: ScheduleAvailability }) => {
   return schedule.availability.reduce(
     (schedule: Schedule, availability) => {
       availability.days.forEach((day) => {

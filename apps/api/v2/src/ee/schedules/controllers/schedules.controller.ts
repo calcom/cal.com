@@ -1,9 +1,3 @@
-import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
-import { DeleteScheduleOutput } from "@/ee/schedules/outputs/delete-schedule.output";
-import { GetDefaultScheduleOutput } from "@/ee/schedules/outputs/get-default-schedule.output";
-import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
-import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
-import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -26,9 +20,16 @@ import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateScheduleInput } from "@calcom/platform-types";
-
-import { CreateScheduleInput } from "../inputs/create-schedule.input";
+import {
+  CreateScheduleOutput,
+  CreateScheduleInput,
+  UpdateScheduleInput,
+  GetScheduleOutput,
+  UpdateScheduleOutput,
+  GetDefaultScheduleOutput,
+  DeleteScheduleOutput,
+  GetSchedulesOutput,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "schedules",
@@ -46,26 +47,22 @@ export class SchedulesController {
     @Body() bodySchedule: CreateScheduleInput
   ): Promise<CreateScheduleOutput> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
-    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
   @ApiResponse({ status: 200, description: "Returns the default schedule", type: GetDefaultScheduleOutput })
-  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetDefaultScheduleOutput | null> {
+  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
-    const scheduleFormatted = schedule
-      ? await this.schedulesService.formatScheduleForAtom(user, schedule)
-      : null;
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
@@ -77,11 +74,10 @@ export class SchedulesController {
     @Param("scheduleId") scheduleId: number
   ): Promise<GetScheduleOutput> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
-    const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
     return {
       status: SUCCESS_STATUS,
-      data: scheduleFormatted,
+      data: schedule,
     };
   }
 
@@ -89,15 +85,13 @@ export class SchedulesController {
   @Permissions([SCHEDULE_READ])
   async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
-    const schedulesFormatted = await this.schedulesService.formatSchedulesForAtom(user, schedules);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedulesFormatted,
+      data: schedules,
     };
   }
 
-  // note(Lauris): currently this endpoint is atoms only
   @Patch("/:scheduleId")
   @Permissions([SCHEDULE_WRITE])
   async updateSchedule(
@@ -106,7 +100,7 @@ export class SchedulesController {
     @Param("scheduleId") scheduleId: string
   ): Promise<UpdateScheduleOutput> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule(
-      user,
+      user.id,
       Number(scheduleId),
       bodySchedule
     );
