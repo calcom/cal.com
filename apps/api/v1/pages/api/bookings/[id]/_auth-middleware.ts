@@ -61,7 +61,7 @@ async function authMiddleware(req: NextApiRequest) {
     });
 
     if (!teamBookings) {
-      throw new HttpError({ statusCode: 401, message: "You are not authorized" });
+      throw new HttpError({ statusCode: 403, message: "You are not authorized" });
     }
   }
 }
