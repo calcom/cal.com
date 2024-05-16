@@ -1008,7 +1008,7 @@ model WorkflowReminder {
   referenceId         String?         @unique
   scheduled           Boolean
   workflowStepId      Int?
-  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
   cancelled           Boolean?
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
