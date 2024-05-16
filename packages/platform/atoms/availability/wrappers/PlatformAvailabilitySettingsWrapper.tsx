@@ -25,6 +25,7 @@ type PlatformAvailabilitySettingsWrapperProps = {
   onUpdateError?: (err: ApiErrorResponse) => void;
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
+  disableEditableHeading?: boolean;
 };
 
 export const PlatformAvailabilitySettingsWrapper = ({
@@ -34,6 +35,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onDeleteSuccess,
   onUpdateError,
   onUpdateSuccess,
+  disableEditableHeading = false,
 }: PlatformAvailabilitySettingsWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -88,6 +90,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   return (
     <AtomsWrapper>
       <AvailabilitySettings
+        disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
           atomSchedule.id && handleDelete(atomSchedule.id);
         }}
