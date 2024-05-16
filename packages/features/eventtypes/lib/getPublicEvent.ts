@@ -7,6 +7,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -85,11 +86,13 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
   },
   successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
   workflows: {
     include: {
       workflow: {
@@ -177,8 +180,7 @@ export const getPublicEvent = async (
         name: users[0].name,
         weekStart: users[0].weekStart,
         image: getUserAvatarUrl({
-          ...users[0],
-          profile: users[0].profile,
+          avatarUrl: users[0].avatarUrl,
         }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
@@ -335,22 +337,10 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: team
-      ? undefined
-      : // TODO: There must be a better way to do this, maybe a prisma middleware?
-        // This should come pre-proccessed from the database IMO instead of replacing everywhere
-        getUserAvatarUrl({
-          username: username || "",
-          profile: {
-            id: nonTeamprofile?.id || null,
-            username: username || null,
-            organizationId: nonTeamprofile?.organization?.id || null,
-            organization: nonTeamprofile?.organization
-              ? { ...nonTeamprofile?.organization, requestedSlug: null }
-              : null,
-          },
+      ? getOrgOrTeamAvatar(team)
+      : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logoUrl,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,

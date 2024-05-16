@@ -13,7 +13,7 @@ export const ZUpdateProfileInputSchema = z.object({
   name: z.string().max(FULL_NAME_LENGTH_MAX_LIMIT).optional(),
   email: z.string().optional(),
   bio: z.string().optional(),
-  avatar: z.string().nullable().optional(),
+  avatarUrl: z.string().nullable().optional(),
   timeZone: z.string().optional(),
   weekStart: z.string().optional(),
   hideBranding: z.boolean().optional(),
@@ -48,7 +48,6 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
-  unlinkConnectedAccount: z.boolean().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

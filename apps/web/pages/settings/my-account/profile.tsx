@@ -22,7 +22,6 @@ import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import type { Ensure } from "@calcom/types/utils";
 import {
   Alert,
   Button,
@@ -85,7 +84,7 @@ type Email = {
 
 export type FormValues = {
   username: string;
-  avatar: string;
+  avatarUrl: string | null;
   name: string;
   email: string;
   bio: string;
@@ -98,15 +97,10 @@ const ProfileView = () => {
   const { update } = useSession();
   const { data: user, isPending } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
 
-  const { data: avatarData } = trpc.viewer.avatar.useQuery(undefined, {
-    enabled: !isPending && !user?.avatarUrl,
-  });
-
   const updateProfileMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
       await update(res);
       utils.viewer.me.invalidate();
-      utils.viewer.avatar.invalidate();
       utils.viewer.shouldVerifyEmail.invalidate();
 
       if (res.hasEmailBeenChanged && res.sendEmailVerification) {
@@ -128,6 +122,15 @@ const ProfileView = () => {
         default:
           showToast(t("error_updating_settings"), "error");
       }
+    },
+  });
+  const unlinkConnectedAccountMutation = trpc.viewer.unlinkConnectedAccount.useMutation({
+    onSuccess: async (res) => {
+      showToast(t(res.message), "success");
+      utils.viewer.me.invalidate();
+    },
+    onError: (e) => {
+      showToast(t(e.message), "error");
     },
   });
 
@@ -250,10 +253,7 @@ const ProfileView = () => {
   const userEmail = user.email || "";
   const defaultValues = {
     username: user.username || "",
-    avatar: getUserAvatarUrl({
-      ...user,
-      profile: user.profile,
-    }),
+    avatarUrl: user.avatarUrl,
     name: user.name || "",
     email: userEmail,
     bio: user.bio || "",
@@ -284,7 +284,7 @@ const ProfileView = () => {
         key={JSON.stringify(defaultValues)}
         defaultValues={defaultValues}
         isPending={updateProfileMutation.isPending}
-        isFallbackImg={!user.avatarUrl && !avatarData?.avatar}
+        isFallbackImg={!user.avatarUrl}
         user={user}
         userOrganization={user.organization}
         onSubmit={(values) => {
@@ -448,10 +448,7 @@ const ProfileView = () => {
             <Button
               color="primary"
               onClick={() => {
-                updateProfileMutation.mutate({
-                  ...tempFormValues,
-                  unlinkConnectedAccount: true,
-                });
+                unlinkConnectedAccountMutation.mutate();
                 setShowAccountDisconnectWarning(false);
               }}>
               {t("confirm")}
@@ -529,7 +526,7 @@ const ProfileForm = ({
 
   const profileFormSchema = z.object({
     username: z.string(),
-    avatar: z.string(),
+    avatarUrl: z.string().nullable(),
     name: z
       .string()
       .trim()
@@ -622,17 +619,9 @@ const ProfileForm = ({
         <div className="flex items-center">
           <Controller
             control={formMethods.control}
-            name="avatar"
-            render={({ field: { value } }) => {
-              const showRemoveAvatarButton = value === null ? false : !isFallbackImg;
-              const organization =
-                userOrganization && userOrganization.id
-                  ? {
-                      ...(userOrganization as Ensure<NonNullable<typeof user.organization>, "id">),
-                      slug: userOrganization.slug || null,
-                      requestedSlug: userOrganization.metadata?.requestedSlug || null,
-                    }
-                  : null;
+            name="avatarUrl"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveAvatarButton = value !== null;
               return (
                 <>
                   <UserAvatar data-testid="profile-upload-avatar" previewSrc={value} size="lg" user={user} />
@@ -644,9 +633,9 @@ const ProfileForm = ({
                         id="avatar-upload"
                         buttonMsg={t("upload_avatar")}
                         handleAvatarChange={(newAvatar) => {
-                          formMethods.setValue("avatar", newAvatar, { shouldDirty: true });
+                          onChange(newAvatar);
                         }}
-                        imageSrc={value}
+                        imageSrc={getUserAvatarUrl({ avatarUrl: value })}
                         triggerButtonColor={showRemoveAvatarButton ? "secondary" : "primary"}
                       />
 
@@ -654,7 +643,7 @@ const ProfileForm = ({
                         <Button
                           color="secondary"
                           onClick={() => {
-                            formMethods.setValue("avatar", "", { shouldDirty: true });
+                            onChange(null);
                           }}>
                           {t("remove")}
                         </Button>
