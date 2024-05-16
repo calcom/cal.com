@@ -234,6 +234,7 @@ export default function Signup({
   };
 
   const isOrgInviteByLink = orgSlug && !prepopulateFormValues?.username;
+  const isPlatformUser = redirectUrl?.includes("platform") && redirectUrl?.includes("new");
 
   const signUp: SubmitHandler<FormValues> = async (_data) => {
     const { cfToken, ...data } = _data;
@@ -255,14 +256,35 @@ export default function Signup({
           pushGTMEvent("create_account", { email: data.email, user: data.username, lang: data.language });
 
         telemetry.event(telemetryEventTypes.signup, collectPageParameters());
+
         const verifyOrGettingStarted = emailVerificationEnabled ? "auth/verify-email" : "getting-started";
-        const callBackUrl = `${
-          searchParams?.get("callbackUrl")
-            ? isOrgInviteByLink
-              ? `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`
-              : addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup")
-            : `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`
-        }`;
+        const gettingStartedWithPlatform = "settings/platform/new";
+
+        const constructCallBackIfUrlPresent = () => {
+          if (isOrgInviteByLink) {
+            return `${WEBAPP_URL}/${searchParams.get("callbackUrl")}`;
+          }
+
+          return addOrUpdateQueryParam(`${WEBAPP_URL}/${searchParams.get("callbackUrl")}`, "from", "signup");
+        };
+
+        const constructCallBackIfUrlNotPresent = () => {
+          if (!!isPlatformUser) {
+            return `${WEBAPP_URL}/${gettingStartedWithPlatform}?from=signup`;
+          }
+
+          return `${WEBAPP_URL}/${verifyOrGettingStarted}?from=signup`;
+        };
+
+        const constructCallBackUrl = () => {
+          const callbackUrlSearchParams = searchParams?.get("callbackUrl");
+
+          return !!callbackUrlSearchParams
+            ? constructCallBackIfUrlPresent()
+            : constructCallBackIfUrlNotPresent();
+        };
+
+        const callBackUrl = constructCallBackUrl();
 
         await signIn<"credentials">("credentials", {
           ...data,
