@@ -3,7 +3,7 @@
   "name": "BoxyHQ Retraced",
   "slug": "boxyhq-retraced",
   "type": "boxyhq-retraced_auditLogs",
-  "logo": "icon.svg",
+  "logo": "logo.png",
   "url": "https://example.com/link",
   "variant": "auditLogs",
   "categories": ["auditLogs"],
