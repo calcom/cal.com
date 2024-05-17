@@ -16,7 +16,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
   const [newApiKeys, setNewApiKeys] = useState<Record<string, string>>({});
 
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const integrations = trpc.viewer.integrations.useQuery({ variant: "automation" });
   const oldApiKey = trpc.viewer.apiKeys.findKeyOfType.useQuery({ appId: MAKE });
   const teamsList = trpc.viewer.teams.listOwnedTeams.useQuery(undefined, {

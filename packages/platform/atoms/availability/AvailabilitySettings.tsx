@@ -10,6 +10,7 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -61,6 +62,8 @@ export type CustomClassNames = {
   };
 };
 
+export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
+
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: {
@@ -72,8 +75,9 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
-    schedule: Schedule[];
+    schedule: Availability[];
   };
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
   isDeleting: boolean;
   isSaving: boolean;
@@ -84,6 +88,7 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -143,9 +148,13 @@ const useExcludedDates = () => {
 const DateOverride = ({
   workingHours,
   userTimeFormat,
+  travelSchedules,
+  weekStart,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -168,20 +177,20 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
+          weekStart={weekStart}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
+          weekStart={weekStart}
           Trigger={
-            <Button
-              color="secondary"
-              StartIcon="plus"
-              data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -213,6 +222,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
 
 export function AvailabilitySettings({
   schedule,
+  travelSchedules,
   handleDelete,
   isDeleting,
   isLoading,
@@ -223,6 +233,7 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -244,7 +255,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -253,6 +264,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
@@ -264,7 +276,9 @@ export function AvailabilitySettings({
           schedule.schedule
             .filter((availability) => !!availability.days.length)
             .map((availability) => (
-              <span key={availability.id} className={cn(customClassNames?.subtitlesClassName)}>
+              <span
+                key={availability.startTime.valueOf().toString()}
+                className={cn(customClassNames?.subtitlesClassName)}>
                 {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
                 <br />
               </span>
@@ -324,11 +338,7 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button
-                      StartIcon="arrow-left"
-                      color="minimal"
-                      onClick={() => setOpenSidebar(false)}
-                    />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
@@ -483,8 +493,17 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule.workingHours && (
-                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
+                {schedule?.workingHours && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                  />
                 )}
               </div>
             ) : (

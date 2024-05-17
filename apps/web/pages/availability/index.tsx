@@ -24,7 +24,7 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const meQuery = trpc.viewer.me.useQuery();
 

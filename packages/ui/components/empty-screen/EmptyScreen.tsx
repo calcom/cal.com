@@ -9,6 +9,7 @@ import { Button } from "../../components/button";
 
 export function EmptyScreen({
   Icon: icon,
+  customIcon,
   avatar,
   headline,
   description,
@@ -20,8 +21,10 @@ export function EmptyScreen({
   className,
   iconClassName,
   iconWrapperClassName,
+  limitWidth = true,
 }: {
   Icon?: IconName;
+  customIcon?: React.ReactElement;
   avatar?: React.ReactElement;
   headline: string | React.ReactElement;
   description?: string | React.ReactElement;
@@ -32,6 +35,7 @@ export function EmptyScreen({
   dashedBorder?: boolean;
   iconWrapperClassName?: string;
   iconClassName?: string;
+  limitWidth?: boolean;
 } & React.HTMLAttributes<HTMLDivElement>) {
   return (
     <>
@@ -59,7 +63,8 @@ export function EmptyScreen({
             />
           </div>
         )}
-        <div className="flex max-w-[420px] flex-col items-center">
+        {!customIcon ? null : <>{customIcon}</>}
+        <div className={`flex ${limitWidth ? "max-w-[420px]" : ""}  flex-col items-center`}>
           <h2
             className={classNames(
               "text-semibold font-cal text-emphasis text-center text-xl",

@@ -21,7 +21,7 @@ import GroupTeamMappingTable from "./GroupTeamMappingTable";
 
 const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | null }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });

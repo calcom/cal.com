@@ -70,6 +70,13 @@ module.exports = {
             "no-undef": "off",
           },
         },
+        {
+          files: ["apps/website/**/*.{tsx,ts}"],
+          rules: {
+            /** TODO: Remove once website router is migrated  */
+            "@calcom/eslint/deprecated-imports-next-router": "off",
+          },
+        },
       ],
     },
     {

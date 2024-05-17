@@ -60,7 +60,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 
@@ -110,7 +109,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

@@ -9,6 +9,7 @@ import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/rout
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
+export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
 export { updateScheduleHandler };
 export type UpdateScheduleOutputType = Awaited<
@@ -47,14 +48,12 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
-  transformWorkingHoursForClient,
-  transformAvailabilityForClient,
-  transformDateOverridesForClient,
-} from "@calcom/lib/schedules/client/transformers";
-export type {
-  ScheduleWithAvailabilities,
-  ScheduleWithAvailabilitiesForWeb,
-} from "@calcom/lib/schedules/client/transformers";
+  transformWorkingHoursForAtom,
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformApiScheduleAvailability,
+  transformApiScheduleOverrides,
+} from "@calcom/lib/schedules/transformers";
 export type {
   BookingCreateBody,
   BookingResponse,

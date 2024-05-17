@@ -130,7 +130,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: subscribe rather than polling
   const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
 
   useEffect(() => {
@@ -167,6 +167,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             successRedirectUrl: props.eventType.successRedirectUrl,
             query: params,
             booking: props.booking,
+            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
           });
         }
       })();
@@ -180,6 +181,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.booking.status,
     props.eventType.id,
     props.eventType.successRedirectUrl,
+    props.eventType.forwardParamsSuccessRedirect,
     props.payment.success,
     searchParams,
     t,

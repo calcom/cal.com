@@ -2,7 +2,7 @@ import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger, Icon } from "@calcom/ui";
+import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 
 const Download = () => {
   const { filter } = useFilterContext();

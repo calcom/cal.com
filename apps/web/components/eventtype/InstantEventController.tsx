@@ -99,7 +99,7 @@ export default function InstantEventController({
 
 const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({

@@ -6,6 +6,10 @@ import {
   PERMISSIONS,
   SCHEDULE_READ,
   SCHEDULE_WRITE,
+  APPS_READ,
+  APPS_WRITE,
+  PROFILE_READ,
+  PROFILE_WRITE,
 } from "@calcom/platform-constants";
 import type { PLATFORM_PERMISSION } from "@calcom/platform-types";
 
@@ -41,6 +45,22 @@ export const hasScheduleReadPermission = (userPermissions: number): boolean => {
 
 export const hasScheduleWritePermission = (userPermissions: number): boolean => {
   return hasPermission(userPermissions, SCHEDULE_WRITE);
+};
+
+export const hasAppsReadPermission = (userPermissions: number): boolean => {
+  return hasPermission(userPermissions, APPS_READ);
+};
+
+export const hasAppsWritePermission = (userPermissions: number): boolean => {
+  return hasPermission(userPermissions, APPS_WRITE);
+};
+
+export const hasProfileReadPermission = (userPermissions: number): boolean => {
+  return hasPermission(userPermissions, PROFILE_READ);
+};
+
+export const hasProfileWritePermission = (userPermissions: number): boolean => {
+  return hasPermission(userPermissions, PROFILE_WRITE);
 };
 
 export const listPermissions = (userPermissions: number): PLATFORM_PERMISSION[] => {

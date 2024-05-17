@@ -1,15 +1,18 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { ScheduleWithAvailabilitiesForWeb, UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiErrorResponse, ApiResponse, ScheduleOutput } from "@calcom/platform-types";
 
-import useClientSchedule from "../../hooks/useClientSchedule";
-import useDeleteSchedule from "../../hooks/useDeleteSchedule";
+import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
+import { useSchedule } from "../../hooks/schedules/useSchedule";
+import { useSchedules } from "../../hooks/schedules/useSchedules";
+import useUpdateSchedule from "../../hooks/schedules/useUpdateSchedule";
 import { useMe } from "../../hooks/useMe";
-import useUpdateSchedule from "../../hooks/useUpdateSchedule";
+import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import type { Schedule } from "../AvailabilitySettings";
+import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
+import { transformApiScheduleForAtom } from "../atom-api-transformers/transformApiScheduleForAtom";
+import { transformAtomScheduleForApi } from "../atom-api-transformers/transformAtomScheduleForApi";
 import type { AvailabilityFormValues } from "../types";
 
 type PlatformAvailabilitySettingsWrapperProps = {
@@ -18,10 +21,11 @@ type PlatformAvailabilitySettingsWrapperProps = {
     tooltips: Partial<ScheduleLabelsType>;
   };
   customClassNames?: Partial<CustomClassNames>;
-  onUpdateSuccess?: (res: ApiResponse<UpdateScheduleOutputType>) => void;
+  onUpdateSuccess?: (res: ApiResponse<ScheduleOutput>) => void;
   onUpdateError?: (err: ApiErrorResponse) => void;
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
+  disableEditableHeading?: boolean;
 };
 
 export const PlatformAvailabilitySettingsWrapper = ({
@@ -31,11 +35,12 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onDeleteSuccess,
   onUpdateError,
   onUpdateSuccess,
+  disableEditableHeading = false,
 }: PlatformAvailabilitySettingsWrapperProps) => {
-  const { isLoading, data: schedule } = useClientSchedule(id);
-  const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
+  const { isLoading, data: schedule } = useSchedule(id);
+  const { data: schedules } = useSchedules();
   const { data: me } = useMe();
-  const userSchedule = mySchedule?.data;
+  const atomSchedule = transformApiScheduleForAtom(me?.data, schedule, schedules?.length || 0);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -74,57 +79,51 @@ export const PlatformAvailabilitySettingsWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const transformedDateOverrides =
-      body.dateOverrides.flatMap(
-        (dateOverridesRanges) =>
-          dateOverridesRanges?.ranges?.map((range) => ({ start: range.start, end: range.end })) ?? []
-      ) ?? [];
-
-    await updateSchedule({ ...body, scheduleId: id, dateOverrides: transformedDateOverrides });
+    const updateBody = transformAtomScheduleForApi(body);
+    updateSchedule({ id, ...updateBody });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
 
-  if (!userSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
+  if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
 
   return (
-    <AvailabilitySettings
-      handleDelete={() => {
-        userSchedule.id && handleDelete(userSchedule.id);
-      }}
-      handleSubmit={async (data) => {
-        userSchedule.id && handleUpdate(userSchedule.id, data);
-      }}
-      weekStart="Sunday"
-      timeFormat={timeFormat}
-      isLoading={isLoading}
-      schedule={
-        userSchedule
-          ? {
-              name: userSchedule.name,
-              id: userSchedule.id,
-              isLastSchedule: userSchedule.isLastSchedule,
-              isDefault: userSchedule.isDefault,
-              workingHours: userSchedule.workingHours,
-              dateOverrides: userSchedule.dateOverrides,
-              timeZone: userSchedule.timeZone,
-              availability: userSchedule.availability,
-              schedule:
-                userSchedule.schedule.reduce(
-                  (acc: Schedule[], avail: Schedule) => [
-                    ...acc,
-                    { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
-                  ],
-                  [] as Schedule[]
-                ) || [],
-            }
-          : undefined
-      }
-      isDeleting={isDeletionInProgress}
-      isSaving={isSavingInProgress}
-      backPath=""
-      isPlatform={true}
-      customClassNames={customClassNames}
-    />
+    <AtomsWrapper>
+      <AvailabilitySettings
+        disableEditableHeading={disableEditableHeading}
+        handleDelete={() => {
+          atomSchedule.id && handleDelete(atomSchedule.id);
+        }}
+        handleSubmit={async (data) => {
+          atomSchedule.id && handleUpdate(atomSchedule.id, data);
+        }}
+        weekStart="Sunday"
+        timeFormat={timeFormat}
+        isLoading={isLoading}
+        schedule={{
+          name: atomSchedule.name,
+          id: atomSchedule.id,
+          isLastSchedule: atomSchedule.isLastSchedule,
+          isDefault: atomSchedule.isDefault,
+          workingHours: atomSchedule.workingHours,
+          dateOverrides: atomSchedule.dateOverrides,
+          timeZone: atomSchedule.timeZone,
+          availability: atomSchedule.availability,
+          schedule:
+            atomSchedule.schedule.reduce(
+              (acc: Availability[], avail: Availability) => [
+                ...acc,
+                { days: avail.days, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
+              ],
+              []
+            ) || [],
+        }}
+        isDeleting={isDeletionInProgress}
+        isSaving={isSavingInProgress}
+        backPath=""
+        isPlatform={true}
+        customClassNames={customClassNames}
+      />
+    </AtomsWrapper>
   );
 };

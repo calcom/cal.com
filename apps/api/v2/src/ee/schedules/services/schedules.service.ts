@@ -1,35 +1,42 @@
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
 import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
+import { InputSchedulesService } from "@/ee/schedules/services/input-schedules.service";
+import { OutputSchedulesService } from "@/ee/schedules/services/output-schedules.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
+
+import { CreateScheduleInput, ScheduleOutput } from "@calcom/platform-types";
+import { UpdateScheduleInput } from "@calcom/platform-types";
 
 @Injectable()
 export class SchedulesService {
   constructor(
     private readonly schedulesRepository: SchedulesRepository,
-    private readonly availabilitiesService: AvailabilitiesService,
+    private readonly inputSchedulesService: InputSchedulesService,
+    private readonly outputSchedulesService: OutputSchedulesService,
     private readonly usersRepository: UsersRepository
   ) {}
 
-  async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
-    const availabilities = schedule.availabilities?.length
-      ? schedule.availabilities
-      : [this.availabilitiesService.getDefaultAvailabilityInput()];
+  async createUserDefaultSchedule(userId: number, timeZone: string) {
+    const defaultSchedule = {
+      isDefault: true,
+      name: "Default schedule",
+      timeZone,
+    };
 
-    const createdSchedule = await this.schedulesRepository.createScheduleWithAvailabilities(
-      userId,
-      schedule,
-      availabilities
-    );
+    return this.createUserSchedule(userId, defaultSchedule);
+  }
+
+  async createUserSchedule(userId: number, scheduleInput: CreateScheduleInput): Promise<ScheduleOutput> {
+    const schedule = this.inputSchedulesService.transformInputCreateSchedule(scheduleInput);
+
+    const createdSchedule = await this.schedulesRepository.createSchedule(userId, schedule);
 
     if (schedule.isDefault) {
       await this.usersRepository.setDefaultSchedule(userId, createdSchedule.id);
     }
 
-    return createdSchedule;
+    return this.outputSchedulesService.getResponseSchedule(createdSchedule);
   }
 
   async getUserScheduleDefault(userId: number) {
@@ -37,7 +44,10 @@ export class SchedulesService {
 
     if (!user?.defaultScheduleId) return null;
 
-    return this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+    const defaultSchedule = await this.schedulesRepository.getScheduleById(user.defaultScheduleId);
+
+    if (!defaultSchedule) return null;
+    return this.outputSchedulesService.getResponseSchedule(defaultSchedule);
   }
 
   async getUserSchedule(userId: number, scheduleId: number) {
@@ -49,14 +59,19 @@ export class SchedulesService {
 
     this.checkUserOwnsSchedule(userId, existingSchedule);
 
-    return existingSchedule;
+    return this.outputSchedulesService.getResponseSchedule(existingSchedule);
   }
 
   async getUserSchedules(userId: number) {
-    return this.schedulesRepository.getSchedulesByUserId(userId);
+    const schedules = await this.schedulesRepository.getSchedulesByUserId(userId);
+    return Promise.all(
+      schedules.map(async (schedule) => {
+        return this.outputSchedulesService.getResponseSchedule(schedule);
+      })
+    );
   }
 
-  async updateUserSchedule(userId: number, scheduleId: number, schedule: UpdateScheduleInput) {
+  async updateUserSchedule(userId: number, scheduleId: number, bodySchedule: UpdateScheduleInput) {
     const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 
     if (!existingSchedule) {
@@ -65,16 +80,24 @@ export class SchedulesService {
 
     this.checkUserOwnsSchedule(userId, existingSchedule);
 
-    const updatedSchedule = await this.schedulesRepository.updateScheduleWithAvailabilities(
-      scheduleId,
-      schedule
-    );
+    const availability = bodySchedule.availability
+      ? this.inputSchedulesService.transformInputScheduleAvailability(bodySchedule.availability)
+      : undefined;
+    const overrides = bodySchedule.overrides
+      ? this.inputSchedulesService.transformInputOverrides(bodySchedule.overrides)
+      : undefined;
 
-    if (schedule.isDefault) {
-      await this.usersRepository.setDefaultSchedule(userId, updatedSchedule.id);
+    if (bodySchedule.isDefault) {
+      await this.usersRepository.setDefaultSchedule(userId, scheduleId);
     }
 
-    return updatedSchedule;
+    const updatedSchedule = await this.schedulesRepository.updateSchedule(userId, scheduleId, {
+      ...bodySchedule,
+      availability,
+      overrides,
+    });
+
+    return this.outputSchedulesService.getResponseSchedule(updatedSchedule);
   }
 
   async deleteUserSchedule(userId: number, scheduleId: number) {

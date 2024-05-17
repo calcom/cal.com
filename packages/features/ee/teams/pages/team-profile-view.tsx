@@ -86,7 +86,7 @@ const ProfileView = () => {
   const teamId = Number(params.id);
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const session = useSession();
 
   useLayoutEffect(() => {
@@ -98,7 +98,7 @@ const ProfileView = () => {
     isPending,
     error,
   } = trpc.viewer.teams.get.useQuery(
-    { teamId, includeTeamLogo: true },
+    { teamId },
     {
       enabled: !!teamId,
     }
@@ -249,7 +249,7 @@ const ProfileView = () => {
 export type TeamProfileFormProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
 
@@ -259,12 +259,14 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
     },
     async onSuccess(res) {
       reset({
-        logo: (res?.logo || "") as string,
+        logo: res?.logoUrl,
         name: (res?.name || "") as string,
         bio: (res?.bio || "") as string,
         slug: res?.slug as string,
       });
       await utils.viewer.teams.get.invalidate();
+      // TODO: Not all changes require list invalidation
+      await utils.viewer.teams.list.invalidate();
       showToast(t("your_team_updated_successfully"), "success");
     },
   });
@@ -320,7 +322,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
       }}>
       <div className="border-subtle border-x px-4 py-8 sm:px-6">
         {!team.parent && (
-          <div className="flex items-center">
+          <div className="flex items-center pb-8">
             <Controller
               control={form.control}
               name="logo"
@@ -330,25 +332,22 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
                 return (
                   <>
                     <Avatar
-                      alt={defaultValues.name || ""}
-                      imageSrc={getPlaceholderAvatar(value, team?.name as string)}
+                      alt={form.getValues("name")}
+                      data-testid="profile-upload-logo"
+                      imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       size="lg"
                     />
                     <div className="ms-4 flex gap-2">
                       <ImageUploader
-                        target="avatar"
+                        target="logo"
                         id="avatar-upload"
                         buttonMsg={t("upload_logo")}
                         handleAvatarChange={onChange}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        imageSrc={value ?? undefined}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            onChange(null);
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}

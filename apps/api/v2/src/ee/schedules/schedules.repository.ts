@@ -1,20 +1,34 @@
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { UpdateScheduleInput } from "@/ee/schedules/inputs/update-schedule.input";
-import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+
+import type { CreateScheduleInput } from "@calcom/platform-types";
+
+type InputScheduleAvailabilityTransformed = {
+  days: number[];
+  startTime: Date;
+  endTime: Date;
+};
+
+type InputScheduleOverrideTransformed = {
+  date: Date;
+  startTime: Date;
+  endTime: Date;
+};
+
+type InputScheduleTransformed = Omit<CreateScheduleInput, "availability" | "overrides"> & {
+  availability: InputScheduleAvailabilityTransformed[];
+  overrides: InputScheduleOverrideTransformed[];
+};
 
 @Injectable()
 export class SchedulesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createScheduleWithAvailabilities(
-    userId: number,
-    schedule: CreateScheduleInput,
-    availabilities: CreateAvailabilityInput[]
-  ) {
+  async createSchedule(userId: number, schedule: Omit<InputScheduleTransformed, "isDefault">) {
+    const { availability, overrides } = schedule;
+
     const createScheduleData: Prisma.ScheduleCreateInput = {
       user: {
         connect: {
@@ -25,17 +39,34 @@ export class SchedulesRepository {
       timeZone: schedule.timeZone,
     };
 
-    if (availabilities.length > 0) {
+    const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
+
+    if (availability && availability.length > 0) {
+      availability.forEach((availability) => {
+        availabilitiesAndOverrides.push({
+          days: availability.days,
+          startTime: availability.startTime,
+          endTime: availability.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (overrides && overrides.length > 0) {
+      overrides.forEach((override) => {
+        availabilitiesAndOverrides.push({
+          date: override.date,
+          startTime: override.startTime,
+          endTime: override.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (availabilitiesAndOverrides.length > 0) {
       createScheduleData.availability = {
         createMany: {
-          data: availabilities.map((availability) => {
-            return {
-              days: availability.days,
-              startTime: availability.startTime,
-              endTime: availability.endTime,
-              userId,
-            };
-          }),
+          data: availabilitiesAndOverrides,
         },
       };
     }
@@ -65,6 +96,87 @@ export class SchedulesRepository {
     return schedule;
   }
 
+  async updateSchedule(
+    userId: number,
+    scheduleId: number,
+    schedule: Partial<Omit<InputScheduleTransformed, "isDefault">>
+  ) {
+    const { availability, overrides } = schedule;
+
+    const updateScheduleData: Prisma.ScheduleUpdateInput = {
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+    };
+
+    const availabilitiesAndOverrides: Prisma.AvailabilityCreateManyInput[] = [];
+
+    const deleteConditions = [];
+    if (availability) {
+      // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
+      // but availabilities have "date" field as null, while overrides have it as not null, so delete
+      // condition below results in deleting only rows from Availability table that are availabilities.
+      deleteConditions.push({
+        scheduleId: { equals: scheduleId },
+        date: null,
+      });
+    }
+
+    if (overrides) {
+      // note(Lauris): availabilities and overrides are stored in the same "Availability" table,
+      // but overrides have "date" field as not-null, while availabilities have it as null, so delete
+      // condition below results in deleting only rows from Availability table that are overrides.
+      deleteConditions.push({
+        scheduleId: { equals: scheduleId },
+        NOT: { date: null },
+      });
+    }
+
+    if (availability && availability.length > 0) {
+      availability.forEach((availability) => {
+        availabilitiesAndOverrides.push({
+          days: availability.days,
+          startTime: availability.startTime,
+          endTime: availability.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (overrides && overrides.length > 0) {
+      overrides.forEach((override) => {
+        availabilitiesAndOverrides.push({
+          date: override.date,
+          startTime: override.startTime,
+          endTime: override.endTime,
+          userId,
+        });
+      });
+    }
+
+    if (availabilitiesAndOverrides.length > 0) {
+      updateScheduleData.availability = {
+        deleteMany: deleteConditions,
+        createMany: {
+          data: availabilitiesAndOverrides,
+        },
+      };
+    }
+
+    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
+      where: {
+        id: scheduleId,
+      },
+      data: {
+        ...updateScheduleData,
+      },
+      include: {
+        availability: true,
+      },
+    });
+
+    return updatedSchedule;
+  }
+
   async getSchedulesByUserId(userId: number) {
     const schedules = await this.dbRead.prisma.schedule.findMany({
       where: {
@@ -76,51 +188,6 @@ export class SchedulesRepository {
     });
 
     return schedules;
-  }
-
-  async updateScheduleWithAvailabilities(scheduleId: number, schedule: UpdateScheduleInput) {
-    const existingSchedule = await this.dbRead.prisma.schedule.findUnique({
-      where: { id: scheduleId },
-    });
-
-    if (!existingSchedule) {
-      throw new BadRequestException(`Schedule with ID=${scheduleId} not found`);
-    }
-
-    const updatedScheduleData: Prisma.ScheduleUpdateInput = {
-      user: {
-        connect: {
-          id: existingSchedule.userId,
-        },
-      },
-    };
-    if (schedule.name) updatedScheduleData.name = schedule.name;
-    if (schedule.timeZone) updatedScheduleData.timeZone = schedule.timeZone;
-
-    if (schedule.availabilities && schedule.availabilities.length > 0) {
-      await this.dbWrite.prisma.availability.deleteMany({
-        where: { scheduleId },
-      });
-
-      updatedScheduleData.availability = {
-        createMany: {
-          data: schedule.availabilities.map((availability) => ({
-            ...availability,
-            userId: existingSchedule.userId,
-          })),
-        },
-      };
-    }
-
-    const updatedSchedule = await this.dbWrite.prisma.schedule.update({
-      where: { id: scheduleId },
-      data: updatedScheduleData,
-      include: {
-        availability: true,
-      },
-    });
-
-    return updatedSchedule;
   }
 
   async deleteScheduleById(scheduleId: number) {
