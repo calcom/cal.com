@@ -243,16 +243,14 @@ const persistOrganizationWithNonExistentOwner = async ({
   orgData,
   orgOwnerEmail,
 }: PersistOrganizationWithNonExistentOwnerProps) => {
-  const data = await OrganizationRepository.createWithNonExistentOwner({
+  const { organization, ownerProfile, orgOwner } = await OrganizationRepository.createWithNonExistentOwner({
     orgData,
     owner: {
       email: orgOwnerEmail,
     },
   });
 
-  const { organization, ownerProfile } = data;
-
-  return { organization, ownerProfile, orgOwner: data.orgOwner };
+  return { organization, ownerProfile, orgOwner };
 };
 
 type CreateUserProps = {
@@ -305,40 +303,28 @@ const createOrgUser = async ({
     isPlatform,
   };
 
-  const orgOwner = await prisma.user.findUnique({
+  const existingOrgOwner = await prisma.user.findUnique({
     where: {
       email: orgOwnerEmail,
     },
   });
-
-  if (orgOwner) {
+  let createdOrg;
+  let newOwnerProfile;
+  let createdOrgOwner;
+  if (existingOrgOwner) {
     const { organization, ownerProfile } = await persistOrganizationWithExistingUserAsOwner({
       orgData: orgData,
       orgOwnerEmail: orgOwnerEmail,
       existingOwnerDetails: {
-        ownerId: orgOwner.id,
+        ownerId: existingOrgOwner.id,
         orgId: orgId,
-        ownerUsername: orgOwner.username,
+        ownerUsername: existingOrgOwner.username,
       },
       loggedInUserId: loggedInUser.id,
     });
-
-    await sendOrganizationCreationEmail({
-      language: inputLanguageTranslation,
-      from: userName ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: null,
-      orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${null}`,
-      newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
-    });
-
-    const user = await UserRepository.enrichUserWithItsProfile({
-      user: { ...orgOwner, organizationId: organization.id },
-    });
-
+    createdOrg = organization;
+    newOwnerProfile = ownerProfile;
+    createdOrgOwner = existingOrgOwner;
     await prisma.availability.createMany({
       data: availability.map((schedule) => ({
         days: schedule.days,
@@ -347,44 +333,42 @@ const createOrgUser = async ({
         userId: user.id,
       })),
     });
+  } else {
+    const {
+      organization,
+      ownerProfile,
+      orgOwner: newOrgOwner,
+    } = await persistOrganizationWithNonExistentOwner({
+      orgData: orgData,
+      orgOwnerEmail: orgOwnerEmail,
+    });
+    createdOrgOwner = newOrgOwner;
+    createdOrg = organization;
+    newOwnerProfile = ownerProfile;
 
-    return {
-      userId: user.id,
-      email: user.email,
-      organizationId: user.organizationId,
-      upId: user.profile.upId,
-    };
+    await sendEmailVerification({
+      email: orgOwnerEmail,
+      language: userLocale,
+      username: ownerProfile.username || "",
+    });
   }
-
-  const {
-    organization,
-    ownerProfile,
-    orgOwner: persistOrgWithExistingOwnerOrgOwner,
-  } = await persistOrganizationWithNonExistentOwner({
-    orgData: orgData,
-    orgOwnerEmail: orgOwnerEmail,
-  });
-
-  await sendEmailVerification({
-    email: orgOwnerEmail,
-    language: userLocale,
-    username: ownerProfile.username || "",
-  });
 
   await sendOrganizationCreationEmail({
     language: inputLanguageTranslation,
-    from: userName ?? `${organization.name}'s admin`,
+    from: userName ?? `${createdOrg.name}'s admin`,
     to: orgOwnerEmail,
-    ownerNewUsername: ownerProfile.username,
+    ownerNewUsername: newOwnerProfile.username,
     ownerOldUsername: null,
     orgDomain: getOrgFullOrigin(orgData.slug, { protocol: false }),
-    orgName: organization.name,
-    prevLink: `${getOrgFullOrigin("", { protocol: true })}/${null}`,
-    newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${ownerProfile.username}`,
+    orgName: createdOrg.name,
+    prevLink: existingOrgOwner
+      ? `${getOrgFullOrigin("", { protocol: true })}/${existingOrgOwner.username || ""}`
+      : null,
+    newLink: `${getOrgFullOrigin(orgData.slug, { protocol: true })}/${newOwnerProfile.username}`,
   });
 
   const user = await UserRepository.enrichUserWithItsProfile({
-    user: { ...persistOrgWithExistingOwnerOrgOwner, organizationId: organization.id },
+    user: { ...createdOrgOwner, organizationId: createdOrg.id },
   });
 
   return {
@@ -424,12 +408,12 @@ const createPlatformUser = async ({
     isPlatform,
   };
 
-  const orgOwner = await prisma.user.findUnique({
+  let orgOwner = await prisma.user.findUnique({
     where: {
       email: orgOwnerEmail,
     },
   });
-
+  let createdOrg;
   if (orgOwner) {
     const { organization } = await persistOrganizationWithExistingUserAsOwner({
       orgData: orgData,
@@ -441,10 +425,7 @@ const createPlatformUser = async ({
       },
       loggedInUserId: loggedInUser.id,
     });
-
-    const user = await UserRepository.enrichUserWithItsProfile({
-      user: { ...orgOwner, organizationId: organization.id },
-    });
+    createdOrg = organization;
 
     await prisma.availability.createMany({
       data: availability.map((schedule) => ({
@@ -454,23 +435,17 @@ const createPlatformUser = async ({
         userId: user.id,
       })),
     });
-
-    return {
-      userId: user.id,
-      email: user.email,
-      organizationId: user.organizationId,
-      upId: user.profile.upId,
-    };
-  }
-
-  const { organization, orgOwner: persistOrgWithExistingOwnerOrgOwner } =
-    await persistOrganizationWithNonExistentOwner({
+  } else {
+    const { organization, orgOwner: newOrgOwner } = await persistOrganizationWithNonExistentOwner({
       orgData: orgData,
       orgOwnerEmail: orgOwnerEmail,
     });
+    orgOwner = newOrgOwner;
+    createdOrg = organization;
+  }
 
   const user = await UserRepository.enrichUserWithItsProfile({
-    user: { ...persistOrgWithExistingOwnerOrgOwner, organizationId: organization.id },
+    user: { ...orgOwner, organizationId: createdOrg.id },
   });
 
   return {
