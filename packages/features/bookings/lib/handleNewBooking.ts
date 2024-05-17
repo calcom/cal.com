@@ -24,7 +24,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -53,7 +53,10 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  scheduleTrigger,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import {
   isPrismaObjOrUndefined,
   parseBookingLimit,
@@ -362,24 +365,25 @@ export async function ensureAvailableUsers(
     });
   }
 
-  for (const user of eventType.users) {
-    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
-      {
+  (
+    await getUsersAvailability({
+      users: eventType.users,
+      query: {
         ...input,
-        userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
         dateFrom: startDateTimeUtc.format(),
         dateTo: endDateTimeUtc.format(),
       },
-      {
-        user,
+      initialData: {
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
         busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-      }
-    );
+      },
+    })
+  ).forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+    const user = eventType.users[index];
 
     log.debug(
       "calendarBusyTimes==>>>",
@@ -395,7 +399,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     let foundConflict = false;
@@ -422,7 +426,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     try {
@@ -434,7 +438,8 @@ export async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
     }
-  }
+  });
+
   if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
@@ -1866,7 +1871,11 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+            ? googleCalResult.updatedEvent[0]?.hangoutLink
+            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
@@ -1875,31 +1884,33 @@ async function handler(
             // Add google_meet to referencesToCreate in the same index as google_calendar
             updateManager.referencesToCreate[googleCalIndex] = {
               ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
             };
 
             // Also create a new referenceToCreate with type video for google_meet
             updateManager.referencesToCreate.push({
               type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
               uid: googleCalResult.uid,
               credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
             });
           }
         }
-
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0]?.updatedEvent[0]
+          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
-          results[0].createdEvent?.url ||
+          createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
@@ -2261,38 +2272,49 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
-        }
+    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const scheduleTriggerPromises = [];
+
+    if (rescheduleUid && originalRescheduledBooking) {
+      //delete all scheduled triggers for meeting ended and meeting started of booking
+      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
+        booking: originalRescheduledBooking,
       });
+    }
 
-      subscribersMeetingStarted.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      for (const subscriber of subscribersMeetingEnded) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
             booking,
-            subscriber.subscriberUrl,
+            subscriberUrl: subscriber.subscriberUrl,
             subscriber,
-            WebhookTriggerEvents.MEETING_STARTED
-          );
-        }
-      });
-    } catch (error) {
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
+      }
+
+      for (const subscriber of subscribersMeetingStarted) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
+      }
+    }
+
+    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
-        "Error while running scheduledJobs for booking",
+        "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
       );
-    }
+    });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

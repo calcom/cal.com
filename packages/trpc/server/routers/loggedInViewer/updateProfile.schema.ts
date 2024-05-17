@@ -49,7 +49,6 @@ export const ZUpdateProfileInputSchema = z.object({
       })
     )
     .optional(),
-  unlinkConnectedAccount: z.boolean().optional(),
 });
 
 export type TUpdateProfileInputSchema = z.infer<typeof ZUpdateProfileInputSchema>;

@@ -62,6 +62,8 @@ export type CustomClassNames = {
   };
 };
 
+export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
+
 type AvailabilitySettingsProps = {
   skeletonLabel?: string;
   schedule: {
@@ -73,7 +75,7 @@ type AvailabilitySettingsProps = {
     workingHours: WorkingHours[];
     dateOverrides: { ranges: TimeRange[] }[];
     timeZone: string;
-    schedule: Schedule[];
+    schedule: Availability[];
   };
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
@@ -86,6 +88,7 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -146,10 +149,12 @@ const DateOverride = ({
   workingHours,
   userTimeFormat,
   travelSchedules,
+  weekStart,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -172,6 +177,7 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
+          weekStart={weekStart}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
@@ -182,6 +188,7 @@ const DateOverride = ({
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
+          weekStart={weekStart}
           Trigger={
             <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
@@ -226,6 +233,7 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -256,6 +264,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
@@ -267,7 +276,9 @@ export function AvailabilitySettings({
           schedule.schedule
             .filter((availability) => !!availability.days.length)
             .map((availability) => (
-              <span key={availability.id} className={cn(customClassNames?.subtitlesClassName)}>
+              <span
+                key={availability.startTime.valueOf().toString()}
+                className={cn(customClassNames?.subtitlesClassName)}>
                 {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
                 <br />
               </span>
@@ -487,6 +498,11 @@ export function AvailabilitySettings({
                     workingHours={schedule.workingHours}
                     userTimeFormat={timeFormat}
                     travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
                   />
                 )}
               </div>
