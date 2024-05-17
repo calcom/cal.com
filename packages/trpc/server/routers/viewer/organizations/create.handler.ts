@@ -157,12 +157,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
 
     const translation = await getTranslation(input.language ?? "en", "common");
 
-    !isPlatform &&
-      (await sendEmailVerification({
-        email: orgOwnerEmail,
-        language: ctx.user.locale,
-        username: ownerProfile.username || "",
-      }));
+    await sendEmailVerification({
+      email: orgOwnerEmail,
+      language: ctx.user.locale,
+      username: ownerProfile.username || "",
+      isPlatform: isPlatform,
+    });
 
     !isPlatform &&
       (await sendOrganizationCreationEmail({
