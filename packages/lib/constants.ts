@@ -44,6 +44,7 @@ export const IS_CALCOM =
     new URL(WEBAPP_URL).hostname.endsWith("cal.dev") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal.qa") ||
     new URL(WEBAPP_URL).hostname.endsWith("cal-staging.com"));
+//Add this when you are working on localhost (||new URL(WEBAPP_URL).hostname === "localhost"))
 
 export const CONSOLE_URL =
   new URL(WEBAPP_URL).hostname.endsWith(".cal.dev") ||
