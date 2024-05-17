@@ -42,9 +42,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
     },
     onSuccess: () => {
       showToast(
-        `${table.getSelectedRowModel().flatRows.length} users added to ${
-          Array.from(selectedEvents).length
-        } events`,
+        `${selectedUsers.length} users added to ${Array.from(selectedEvents).length} events`,
         "success"
       );
 
@@ -60,6 +58,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
   const teams = data?.eventTypeGroups;
+  const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
 
   // Add value array to the set
   const addValue = (set: Set<number>, setSet: Dispatch<SetStateAction<Set<number>>>, value: number[]) => {
@@ -95,7 +94,11 @@ export function EventTypesList({ table, orgTeams }: Props) {
                     if (events.length === 0 || !teamId) return null;
 
                     const ids = events.map((event) => event.id);
-                    const isSelected = ids.every((id) => selectedEvents.has(id));
+                    const isSelected =
+                      ids.every((id) => selectedEvents.has(id)) ||
+                      selectedUsers.every((user) =>
+                        events.every((event) => event.hosts.some((host) => host.userId === user.id))
+                      );
                     return (
                       <>
                         <ListItem
@@ -116,7 +119,10 @@ export function EventTypesList({ table, orgTeams }: Props) {
                           key={team.profile.name}
                         />
                         {events.map((event) => {
-                          const isSelected = selectedEvents.has(event.id);
+                          const hosts = event.hosts;
+                          const isSelected =
+                            selectedEvents.has(event.id) ||
+                            selectedUsers.every((user) => hosts.some((host) => host.userId === user.id));
                           return (
                             <ListItem
                               isTeam={false}
@@ -158,10 +164,8 @@ export function EventTypesList({ table, orgTeams }: Props) {
               className="ml-auto mr-1.5 rounded-md"
               size="sm"
               onClick={() => {
-                const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
-
                 mutation.mutateAsync({
-                  userIds: selectedRows.map((row) => row.id),
+                  userIds: selectedUsers.map((user) => user.id),
                   teamIds: Array.from(selectedTeams),
                   eventTypeIds: Array.from(selectedEvents),
                 });
