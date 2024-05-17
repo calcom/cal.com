@@ -52,12 +52,14 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     }
 
     const headers: Record<string, string> = {
-      "Content-Type": "application/json",
+      "Content-Type":
+        !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
     };
 
     const parsedPayload = jsonParse(job.payload);
 
     const body = JSON.stringify({
+      ...(job.payload && parsedPayload),
       triggerEvent: parsedPayload.triggerEvent,
       payload: parsedPayload,
       createdAt: new Date().toISOString(),
