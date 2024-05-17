@@ -6,7 +6,14 @@ import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
-import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  createNewEventType,
+  gotoBookingPage,
+  gotoFirstEventType,
+  saveEventType,
+  selectFirstAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -364,25 +371,6 @@ const selectAttendeePhoneNumber = async (page: Page) => {
   await page.getByTestId("location-select").click();
   await page.locator(`text=${locationOptionText}`).click();
 };
-
-async function gotoFirstEventType(page: Page) {
-  const $eventTypes = page.locator("[data-testid=event-types] > li a");
-  const firstEventTypeElement = $eventTypes.first();
-  await firstEventTypeElement.click();
-  await page.waitForURL((url) => {
-    return !!url.pathname.match(/\/event-types\/.+/);
-  });
-}
-
-async function saveEventType(page: Page) {
-  await page.locator("[data-testid=update-eventtype]").click();
-}
-
-async function gotoBookingPage(page: Page) {
-  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
-
-  await page.goto(previewLink ?? "");
-}
 
 /**
  * Adds n+1 location to the event type

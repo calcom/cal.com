@@ -302,6 +302,7 @@ const Locations: React.FC<LocationsProps> = ({
                         <Icon name="corner-down-right" className="h-4 w-4" />
                       </div>
                       <LocationInput
+                        data-testid={`${eventLocationType.type}-location-input`}
                         defaultValue={
                           defaultLocation
                             ? defaultLocation[eventLocationType.defaultValueVariable]
