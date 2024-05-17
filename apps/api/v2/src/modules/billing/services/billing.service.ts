@@ -25,7 +25,7 @@ export class BillingService {
     private readonly billingConfigService: BillingConfigService,
     @InjectQueue(BILLING_QUEUE) private readonly billingQueue: Queue
   ) {
-    this.webAppUrl = configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
+    this.webAppUrl = this.configService.get("app.baseUrl", { infer: true }) ?? "https://app.cal.com";
   }
 
   async getBillingData(teamId: number) {
@@ -104,56 +104,47 @@ export class BillingService {
 
   /**
    *
-   * @param clientId
-   * @param bookingId
-   * @param startTime
-   * @param rescheduled
-   *
    * Adds a job to the queue to increment usage of a stripe subscription.
    * we delay the job until the booking starts.
    * the delay ensure we can adapt to cancel / reschedule.
    */
   async increaseUsageByClientId(
     clientId: string,
-    bookingUid?: string | null,
-    startTime?: Date | null,
-    fromReschedule?: string | null
-  ) {
-    if (startTime && bookingUid) {
-      const delay = startTime.getTime() - Date.now();
-      if (fromReschedule) {
-        // cancel the usage increment job for the booking that is being rescheduled
-        await this.cancelUsageByBookingUid(fromReschedule, false);
-        this.logger.log(`Cancelled usage increment job for rescheduled booking uid: ${fromReschedule}`);
-      }
-      await this.billingQueue.add(
-        INCREMENT_JOB,
-        {
-          oAuthClientId: clientId,
-        } satisfies IncrementJobDataType,
-        { delay: delay > 0 ? delay : 0, jobId: `increment-${bookingUid}`, removeOnComplete: true }
-      );
-      this.logger.log(
-        `Added stripe usage increment job for booking ${bookingUid} and oAuthClientId ${clientId}`
-      );
+    booking: {
+      uid: string;
+      startTime: Date;
+      fromReschedule?: string | null;
     }
+  ) {
+    const { uid, startTime, fromReschedule } = booking;
+
+    const delay = startTime.getTime() - Date.now();
+    if (fromReschedule) {
+      // cancel the usage increment job for the booking that is being rescheduled
+      await this.cancelUsageByBookingUid(fromReschedule);
+      this.logger.log(`Cancelled usage increment job for rescheduled booking uid: ${fromReschedule}`);
+    }
+    await this.billingQueue.add(
+      INCREMENT_JOB,
+      {
+        oAuthClientId: clientId,
+      } satisfies IncrementJobDataType,
+      { delay: delay > 0 ? delay : 0, jobId: `increment-${uid}`, removeOnComplete: true }
+    );
+    this.logger.log(`Added stripe usage increment job for booking ${uid} and oAuthClientId ${clientId}`);
   }
 
   /**
    *
-   * @param bookingId
-   *
    * Cancels the usage increment job for a booking when it is cancelled.
+   * Removing an attendee from a booking does not cancel the usage increment job.
    */
-  async cancelUsageByBookingUid(bookingUid: string, removedAttendee: boolean) {
-    if (!removedAttendee) {
-      const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
-      if (job) {
-        await job.remove();
-        this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
-      }
-      return;
+  async cancelUsageByBookingUid(bookingUid: string) {
+    const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
+    if (job) {
+      await job.remove();
+      this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
     }
-    this.logger.log(`Booking was not cancelled, only an attendee was removed`);
+    return;
   }
 }

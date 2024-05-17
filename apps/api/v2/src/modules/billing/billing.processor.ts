@@ -28,8 +28,8 @@ export class BillingProcessor {
   ) {}
 
   @Process(INCREMENT_JOB)
-  async handleIncrement(job: Job) {
-    const { oAuthClientId } = job.data as IncrementJobDataType;
+  async handleIncrement(job: Job<IncrementJobDataType>) {
+    const { oAuthClientId } = job.data;
     try {
       const team = await this.teamsRepository.findTeamIdFromClientId(oAuthClientId);
       const teamId = team.id;

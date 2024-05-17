@@ -156,13 +156,12 @@ export class BookingsController {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
       );
-      if (oAuthClientId) {
-        void (await this.billingService.increaseUsageByClientId(
-          oAuthClientId,
-          booking.uid,
-          booking.startTime,
-          booking.fromReschedule
-        ));
+      if (oAuthClientId && booking.uid && booking.startTime) {
+        void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+          uid: booking.uid,
+          startTime: booking.startTime,
+          fromReschedule: booking.fromReschedule,
+        }));
       }
       return {
         status: SUCCESS_STATUS,
@@ -186,8 +185,8 @@ export class BookingsController {
       try {
         req.body.id = parseInt(bookingId);
         const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
-        if (oAuthClientId) {
-          void (await this.billingService.cancelUsageByBookingUid(res.bookingUid, res.removedAttendee));
+        if (oAuthClientId && !res.removedAttendee) {
+          void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
         return {
           status: SUCCESS_STATUS,
@@ -219,13 +218,11 @@ export class BookingsController {
       );
 
       createdBookings.forEach(async (booking) => {
-        if (oAuthClientId) {
-          void (await this.billingService.increaseUsageByClientId(
-            oAuthClientId,
-            booking.uid,
-            booking.startTime,
-            null // recurring bookings can't be rescheduled
-          ));
+        if (oAuthClientId && booking.uid && booking.startTime) {
+          void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+            uid: booking.uid,
+            startTime: booking.startTime,
+          }));
         }
       });
 
@@ -252,16 +249,14 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      if (oAuthClientId) {
+      if (oAuthClientId && instantMeeting.bookingUid) {
         const now = new Date();
         // add a 10 secondes delay to the usage incrementation
         now.setSeconds(now.getSeconds() + 10);
-        void (await this.billingService.increaseUsageByClientId(
-          oAuthClientId,
-          instantMeeting.bookingUid,
-          now, // instant bookings are started instantly
-          null // recurring bookings can't be rescheduled
-        ));
+        void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+          uid: instantMeeting.bookingUid,
+          startTime: now,
+        }));
       }
 
       return {
