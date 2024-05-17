@@ -26,7 +26,7 @@ import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {
-  private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
+  private oAuthCalendarResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
   private redirectUri = `${this.config.get("api.url")}/calendars/office365/save`;
 
   constructor(
@@ -128,7 +128,7 @@ export class CalendarsService {
       throw new NotFoundException();
     }
 
-    const { client_id, client_secret } = this.gcalResponseSchema.parse(app.keys);
+    const { client_id, client_secret } = this.oAuthCalendarResponseSchema.parse(app.keys);
 
     if (!client_id) {
       throw new NotFoundException();

@@ -1,11 +1,11 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
+import { CalendarsService } from "@/v2/calendars/services/calendars.service";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -44,7 +44,7 @@ describe("Platform Calendars Endpoints", () => {
   let tokensRepositoryFixture: TokensRepositoryFixture;
   let credentialsRepositoryFixture: CredentialsRepositoryFixture;
   let user: User;
-  let gcalCredentials: Credential;
+  let office365Credentials: Credential;
   let accessTokenSecret: string;
   let refreshTokenSecret: string;
 
@@ -71,7 +71,7 @@ describe("Platform Calendars Endpoints", () => {
     credentialsRepositoryFixture = new CredentialsRepositoryFixture(moduleRef);
     organization = await teamRepositoryFixture.create({ name: "organization" });
     oAuthClient = await createOAuthClient(organization.id);
-    user = await userRepositoryFixture.createOAuthManagedUser("gcal-connect@gmail.com", oAuthClient.id);
+    user = await userRepositoryFixture.createOAuthManagedUser("office365-connect@gmail.com", oAuthClient.id);
     const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClient.id);
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
@@ -100,14 +100,14 @@ describe("Platform Calendars Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/GET/ee/calendars/office365/connect: it should respond 401 with invalid access token`, async () => {
+  it(`/GET/v2/calendars/office365/connect: it should respond 401 with invalid access token`, async () => {
     await request(app.getHttpServer())
       .get(`/v2/calendars/office365/connect`)
       .set("Authorization", `Bearer invalid_access_token`)
       .expect(401);
   });
 
-  it(`/GET/ee/calendars/office365/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
+  it(`/GET/v2/calendars/office365/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
       .get(`/v2/calendars/office365/connect`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
@@ -117,43 +117,43 @@ describe("Platform Calendars Endpoints", () => {
     expect(data.authUrl).toBeDefined();
   });
 
-  it(`/GET/v2/calendars/office365/connect/save: without access token`, async () => {
+  it(`/GET/v2/calendars/office365/save: without access token`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/v2/calendars/office365/connect/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=User.Read%20Calendars.Read%20Calendars.ReadWrite%20offline_access`
+        `/v2/calendars/office365/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=User.Read%20Calendars.Read%20Calendars.ReadWrite%20offline_access`
       )
       .expect(400);
   });
 
-  it(`/GET/v2/calendars/office365/connect/save: without origin`, async () => {
+  it(`/GET/v2/calendars/office365/save: without origin`, async () => {
     await request(app.getHttpServer())
       .get(
-        `/v2/calendars/office365/connect/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=User.Read%20Calendars.Read%20Calendars.ReadWrite%20offline_access`
+        `/v2/calendars/office365/save?state=accessToken=${accessTokenSecret}&code=4/0AfJohXmBuT7QVrEPlAJLBu4ZcSnyj5jtDoJqSW_riPUhPXQ70RPGkOEbVO3xs-OzQwpPQw&scope=User.Read%20Calendars.Read%20Calendars.ReadWrite%20offline_access`
       )
       .expect(400);
   });
 
-  it(`/GET/ee/calendars/office365/check without access token`, async () => {
-    await request(app.getHttpServer()).get(`/v2/gcal/check`).expect(401);
+  it(`/GET/v2/calendars/office365/check without access token`, async () => {
+    await request(app.getHttpServer()).get(`/v2/calendars/office365/check`).expect(401);
   });
 
-  it(`/GET/ee/calendars/office365/check with no credentials`, async () => {
+  it(`/GET/v2/calendars/office365/check with no credentials`, async () => {
     await request(app.getHttpServer())
-      .get(`/v2/gcal/check`)
+      .get(`/v2/calendars/office365/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(400);
   });
 
-  it(`/GET/ee/calendars/office365/check with access token, origin and gcal credentials`, async () => {
-    gcalCredentials = await credentialsRepositoryFixture.create(
+  it(`/GET/v2/calendars/office365/check with access token, origin and office365 credentials`, async () => {
+    office365Credentials = await credentialsRepositoryFixture.create(
       "office365_calendar",
       {},
       user.id,
       "office365-calendar"
     );
     await request(app.getHttpServer())
-      .get(`/v2/gcal/check`)
+      .get(`/v2/calendars/office365/check`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
@@ -162,7 +162,7 @@ describe("Platform Calendars Endpoints", () => {
   afterAll(async () => {
     await oauthClientRepositoryFixture.delete(oAuthClient.id);
     await teamRepositoryFixture.delete(organization.id);
-    await credentialsRepositoryFixture.delete(gcalCredentials.id);
+    await credentialsRepositoryFixture.delete(office365Credentials.id);
     await userRepositoryFixture.deleteByEmail(user.email);
     await app.close();
   });
