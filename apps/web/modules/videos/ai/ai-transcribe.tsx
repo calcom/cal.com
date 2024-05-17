@@ -28,7 +28,7 @@ export const CalAiTranscribe = () => {
     daily?.updateCustomTrayButtons({
       transcription: {
         label: "Stop",
-        tooltip: "Toggle real time transcription powered by AI",
+        tooltip: "Transcription powered by AI",
         iconPath: `${WEBAPP_URL}/sparkles-red.svg`,
         iconPathDarkMode: `${WEBAPP_URL}/sparkles-red.svg`,
       },
@@ -39,7 +39,7 @@ export const CalAiTranscribe = () => {
     daily?.updateCustomTrayButtons({
       transcription: {
         label: "Cal.ai",
-        tooltip: "Toggle real time transcription powered by AI",
+        tooltip: "Transcription powered by AI",
         iconPath: `${WEBAPP_URL}/sparkles`,
         iconPathDarkMode: `${WEBAPP_URL}/sparkles`,
       },
