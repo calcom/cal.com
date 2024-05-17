@@ -129,7 +129,7 @@ describe("Event types Endpoints", () => {
         title: "Test Event Type",
         slug: "test-event-type",
         description: "A description of the test event type.",
-        length: 60,
+        lengthInMinutes: 60,
         hidden: false,
         disableGuests: true,
         slotInterval: 15,

@@ -1,14 +1,10 @@
-import {
-  CREATE_EVENT_LENGTH_EXAMPLE,
-  CREATE_EVENT_SLUG_EXAMPLE,
-  CREATE_EVENT_TITLE_EXAMPLE,
-} from "@/ee/event-types/inputs/create-event-type.input";
 import { ApiProperty } from "@nestjs/swagger";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsInt, IsString } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { CREATE_EVENT_LENGTH_EXAMPLE, CREATE_EVENT_TITLE_EXAMPLE } from "@calcom/platform-types";
 
 class DeleteData {
   @IsInt()
@@ -20,7 +16,6 @@ class DeleteData {
   length!: number;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
   slug!: string;
 
   @IsString()

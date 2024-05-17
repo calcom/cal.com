@@ -2058,33 +2058,12 @@
           "refreshToken"
         ]
       },
-      "EventTypeLocation": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "link"
-          },
-          "link": {
-            "type": "string",
-            "example": "https://masterchief.com/argentina/flan/video/9129412"
-          }
-        },
-        "required": [
-          "type"
-        ]
-      },
       "CreateEventTypeInput": {
         "type": "object",
         "properties": {
-          "length": {
+          "lengthInMinutes": {
             "type": "number",
-            "minimum": 1,
             "example": 60
-          },
-          "slug": {
-            "type": "string",
-            "example": "cooking-class"
           },
           "title": {
             "type": "string",
@@ -2093,34 +2072,12 @@
           "description": {
             "type": "string",
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "slotInterval": {
-            "type": "number"
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "minimum": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
           }
         },
         "required": [
-          "length",
-          "slug",
-          "title"
+          "lengthInMinutes",
+          "title",
+          "description"
         ]
       },
       "EventTypeOutput": {
@@ -2134,10 +2091,6 @@
             "type": "number",
             "example": 60
           },
-          "slug": {
-            "type": "string",
-            "example": "cooking-class"
-          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
@@ -2147,20 +2100,23 @@
             "nullable": true,
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
+          "slug": {
+            "type": "string"
+          },
           "locations": {
             "nullable": true,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "type": "object"
             }
           }
         },
         "required": [
           "id",
           "length",
-          "slug",
           "title",
           "description",
+          "slug",
           "locations"
         ]
       },
@@ -2730,13 +2686,12 @@
             "type": "number",
             "example": 60
           },
-          "slug": {
-            "type": "string",
-            "example": "cooking-class"
-          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string"
           },
           "description": {
             "type": "string",
@@ -2746,8 +2701,8 @@
         "required": [
           "id",
           "length",
-          "slug",
-          "title"
+          "title",
+          "slug"
         ]
       },
       "GetEventTypesPublicOutput": {
@@ -2795,7 +2750,7 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "type": "object"
             }
           },
           "disableGuests": {
@@ -2847,20 +2802,19 @@
             "type": "number",
             "example": 60
           },
-          "slug": {
-            "type": "string",
-            "example": "cooking-class"
-          },
           "title": {
             "type": "string",
             "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string"
           }
         },
         "required": [
           "id",
           "length",
-          "slug",
-          "title"
+          "title",
+          "slug"
         ]
       },
       "DeleteEventTypeOutput": {

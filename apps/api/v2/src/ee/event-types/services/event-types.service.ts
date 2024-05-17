@@ -1,22 +1,24 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
+import { InputEventTypesService } from "@/ee/event-types/services/input-event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import { createEventType, slugify, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
+import { CreateEventTypeInput } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
 export class EventTypesService {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository,
+    private readonly inputEventTypesService: InputEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
@@ -26,8 +28,9 @@ export class EventTypesService {
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput): Promise<EventTypeOutput> {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
+    const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType } = await createEventType({
-      input: body,
+      input: bodyTransformed,
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -39,7 +42,10 @@ export class EventTypesService {
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput) {
-    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
+    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(
+      userId,
+      slugify(body.title)
+    );
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
     }

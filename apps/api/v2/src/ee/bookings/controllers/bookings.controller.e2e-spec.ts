@@ -67,7 +67,7 @@ describe("Bookings Endpoints", () => {
       };
       await schedulesService.createUserSchedule(user.id, userSchedule);
       const event = await eventTypesRepositoryFixture.create(
-        { title: "peer coding", slug: "peer-coding", length: 60 },
+        { title: "peer coding", slug: "peer-coding", lengthInMinutes: 60 },
         user.id
       );
       eventTypeId = event.id;

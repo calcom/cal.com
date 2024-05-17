@@ -1,4 +1,3 @@
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { GetPublicEventTypeQueryParams } from "@/ee/event-types/inputs/get-public-event-type-query-params.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
@@ -35,6 +34,7 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
 import { getEventTypesByViewer } from "@calcom/platform-libraries";
+import { CreateEventTypeInput } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({

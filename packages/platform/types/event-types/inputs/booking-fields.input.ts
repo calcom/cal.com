@@ -2,13 +2,8 @@ import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsString, IsBoolean, IsArray, IsIn } from "class-validator";
-import {
-  registerDecorator,
-  ValidationOptions,
-  validate,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from "class-validator";
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
 const bookingFields = [
   "email",
@@ -260,7 +255,7 @@ class BookingFieldValidator implements ValidatorConstraintInterface {
     boolean: BooleanField,
   };
 
-  async validate(bookingFields: any[]) {
+  async validate(bookingFields: { type: string }[]) {
     if (!Array.isArray(bookingFields)) {
       throw new BadRequestException(`'bookingFields' must be an array.`);
     }
@@ -297,6 +292,7 @@ class BookingFieldValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateBookingFields(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any, propertyName: string) {
     registerDecorator({
       name: "ValidateBookingFields",

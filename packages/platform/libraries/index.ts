@@ -75,3 +75,8 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+
+export {
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeLocations,
+} from "@calcom/lib/event-types/transformers";

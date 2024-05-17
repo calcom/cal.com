@@ -1,12 +1,5 @@
-import {
-  CREATE_EVENT_DESCRIPTION_EXAMPLE,
-  CREATE_EVENT_LENGTH_EXAMPLE,
-  CREATE_EVENT_SLUG_EXAMPLE,
-  CREATE_EVENT_TITLE_EXAMPLE,
-} from "@/ee/event-types/inputs/create-event-type.input";
 import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
 import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
-import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
 import {
   BookingField,
   IntervalLimits,
@@ -27,6 +20,13 @@ import {
   ValidateNested,
 } from "class-validator";
 
+import {
+  CREATE_EVENT_DESCRIPTION_EXAMPLE,
+  CREATE_EVENT_LENGTH_EXAMPLE,
+  CREATE_EVENT_TITLE_EXAMPLE,
+} from "@calcom/platform-types";
+import { Location } from "@calcom/platform-types";
+
 export class EventTypeOutput {
   @IsInt()
   @DocsProperty({ example: 1 })
@@ -37,7 +37,6 @@ export class EventTypeOutput {
   length!: number;
 
   @IsString()
-  @DocsProperty({ example: CREATE_EVENT_SLUG_EXAMPLE })
   slug!: string;
 
   @IsString()
@@ -53,9 +52,8 @@ export class EventTypeOutput {
   hidden!: boolean;
 
   @ValidateNested({ each: true })
-  @Type(() => EventTypeLocation)
   @IsArray()
-  locations!: EventTypeLocation[] | null;
+  locations!: Location[] | null;
 
   @IsInt()
   @ApiHideProperty()

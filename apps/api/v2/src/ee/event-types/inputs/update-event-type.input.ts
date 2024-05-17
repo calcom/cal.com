@@ -1,7 +1,6 @@
 import { Editable } from "@/ee/event-types/inputs/enums/editable";
 import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
-import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -15,6 +14,8 @@ import {
   IsDate,
   IsNumber,
 } from "class-validator";
+
+import { Location } from "@calcom/platform-types";
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested. Go to bottom of file to see UpdateEventTypeInput.
@@ -243,9 +244,8 @@ export class UpdateEventTypeInput {
   hidden?: boolean;
 
   @ValidateNested({ each: true })
-  @Type(() => EventTypeLocation)
   @IsOptional()
-  locations?: EventTypeLocation[];
+  locations?: Location[];
 
   // @IsInt()
   // @IsOptional()

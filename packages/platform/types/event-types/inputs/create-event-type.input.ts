@@ -1,7 +1,10 @@
-import { BookingField, ValidateBookingFields } from "@/ee/event-types/inputs/booking-fields.input";
-import { Location, ValidateLocations } from "@/ee/event-types/inputs/locations.input";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { IsString, IsInt, IsBoolean, IsOptional, Min } from "class-validator";
+
+import type { BookingField } from "./booking-fields.input";
+import { ValidateBookingFields } from "./booking-fields.input";
+import { ValidateLocations } from "./locations.input";
+import type { Location } from "./locations.input";
 
 export const CREATE_EVENT_LENGTH_EXAMPLE = 60;
 export const CREATE_EVENT_TITLE_EXAMPLE = "Learn the secrets of masterchief!";

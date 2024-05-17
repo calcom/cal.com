@@ -2,13 +2,8 @@ import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 import { IsString, IsUrl, IsIn, IsPhoneNumber } from "class-validator";
-import {
-  registerDecorator,
-  ValidationOptions,
-  validate,
-  ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from "class-validator";
+import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
+import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
 const locations = ["address", "link", "integration", "phone"] as const;
 
@@ -34,9 +29,9 @@ export class IntegrationLocation {
   @IsIn(locations)
   type!: "integration";
 
-  @IsIn(["cal-video", "google-meet"])
+  @IsIn(["cal-video"])
   @DocsProperty({ example: "cal-video" })
-  integration!: "cal-video" | "google-meet";
+  integration!: "cal-video";
 }
 
 export class PhoneLocation {
@@ -59,7 +54,7 @@ class LocationValidator implements ValidatorConstraintInterface {
     phone: PhoneLocation,
   };
 
-  async validate(locations: any[]) {
+  async validate(locations: { type: string }[]) {
     if (!Array.isArray(locations)) {
       throw new BadRequestException(`'locations' must be an array.`);
     }
@@ -98,6 +93,7 @@ class LocationValidator implements ValidatorConstraintInterface {
 }
 
 export function ValidateLocations(validationOptions?: ValidationOptions) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return function (object: any, propertyName: string) {
     registerDecorator({
       name: "ValidateLocation",
