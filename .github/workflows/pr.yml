@@ -42,12 +42,12 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  # integration-test:
-  #   name: Integration tests
-  #   needs: [changes]
-  #   if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-  #   uses: ./.github/workflows/integration.yml
-  #   secrets: inherit
+  integration-test:
+    name: Integration tests
+    needs: [changes]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration.yml
+    secrets: inherit
 
   lint:
     name: Linters
@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

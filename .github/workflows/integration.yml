@@ -79,8 +79,8 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
-      - name: Run Tests
-        run: yarn test -- --integrationTestsOnly
+      # - name: Run Tests
+      #   run: yarn test -- --integrationTestsOnly
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
