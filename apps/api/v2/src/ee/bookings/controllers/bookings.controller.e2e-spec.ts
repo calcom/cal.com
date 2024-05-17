@@ -2,11 +2,9 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -21,6 +19,7 @@ import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries";
+import { CreateScheduleInput } from "@calcom/platform-types";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
@@ -43,7 +42,7 @@ describe("Bookings Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, SchedulesModule],
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule],
         })
       )
         .overrideGuard(PermissionsGuard)
