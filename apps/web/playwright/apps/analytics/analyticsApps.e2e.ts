@@ -12,7 +12,7 @@ test.describe("Check analytics Apps ", () => {
     await page.goto("/apps/");
     await appsPage.goToAppsCategory("analytics");
     for (const app of ALL_APPS) {
-      await appsPage.installAppSkipConfigure(app);
+      await appsPage.installAnalyticsAppSkipConfigure(app);
       await appsPage.goBackToAppsPage();
     }
     await page.goto("/event-types");
@@ -33,7 +33,7 @@ test.describe("Check analytics Apps ", () => {
 
     for (const app of ALL_APPS) {
       await page.goto("/apps/categories/analytics");
-      await appsPage.installApp(app, eventTypesIds);
+      await appsPage.installAnalyticsApp(app, eventTypesIds);
     }
 
     for (const id of eventTypesIds) {
