@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
+import { withOptimize } from "@prisma/extension-optimize";
 
 const prismaClientSingleton = () => {
-  return new PrismaClient();
+  return new PrismaClient().$extends(withOptimize());
 };
 
 declare global {
