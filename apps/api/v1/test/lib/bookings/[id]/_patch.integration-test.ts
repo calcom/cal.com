@@ -63,8 +63,8 @@ describe("PATCH /api/bookings", () => {
   // TODO: Fix this test. It's currently failing. The test code seems correct...
   it("Allows PATCH when user is org-wide admin", async () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
-    const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
-    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });
+    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: memberUser.id } });
 
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "PATCH",
@@ -72,7 +72,7 @@ describe("PATCH /api/bookings", () => {
         title: booking.title,
         startTime: booking.startTime.toISOString(),
         endTime: booking.endTime.toISOString(),
-        userId: proUser.id,
+        userId: memberUser.id,
       },
       query: {
         id: booking.id,
