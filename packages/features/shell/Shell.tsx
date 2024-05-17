@@ -247,7 +247,6 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
@@ -725,7 +724,7 @@ const NavigationItem: React.FC<{
           {item.icon && (
             <Icon
               name={item.icon}
-              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 md:ltr:mx-auto lg:ltr:mr-2 rtl:ml-2 [&[aria-current='page']]:text-inherit"
+              className="todesktop:!text-blue-500 mr-2 h-4 w-4 flex-shrink-0 rtl:ml-2 md:ltr:mx-auto lg:ltr:mr-2 [&[aria-current='page']]:text-inherit"
               aria-hidden="true"
               aria-current={current ? "page" : undefined}
             />
@@ -1033,11 +1032,11 @@ export function ShellMain(props: LayoutProps) {
               className={classNames(props.large && "py-8", "flex w-full max-w-full items-center truncate")}>
               {props.HeadingLeftIcon && <div className="ltr:mr-4">{props.HeadingLeftIcon}</div>}
               <div
-                className={classNames("w-full truncate md:block ltr:mr-4 rtl:ml-4", props.headerClassName)}>
+                className={classNames("w-full truncate ltr:mr-4 rtl:ml-4 md:block", props.headerClassName)}>
                 {props.heading && (
                   <h3
                     className={classNames(
-                      "font-cal text-emphasis inline max-w-28 truncate text-lg font-semibold tracking-wide sm:max-w-72 sm:text-xl md:block md:max-w-80 xl:max-w-full",
+                      "font-cal text-emphasis max-w-28 sm:max-w-72 md:max-w-80 inline truncate text-lg font-semibold tracking-wide sm:text-xl md:block xl:max-w-full",
                       props.smallHeading ? "text-base" : "text-xl",
                       props.hideHeadingOnMobile && "hidden"
                     )}>
@@ -1056,7 +1055,7 @@ export function ShellMain(props: LayoutProps) {
                   className={classNames(
                     props.backPath
                       ? "relative"
-                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 md:z-auto ltr:right-4 md:ltr:right-0 rtl:left-4 md:rtl:left-0",
+                      : "pwa:bottom-[max(7rem,_calc(5rem_+_env(safe-area-inset-bottom)))] fixed bottom-20 z-40 ltr:right-4 rtl:left-4 md:z-auto md:ltr:right-0 md:rtl:left-0",
                     "flex-shrink-0 [-webkit-app-region:no-drag] md:relative md:bottom-auto md:right-auto"
                   )}>
                   {isLocaleReady && props.CTA}
@@ -1196,7 +1195,7 @@ function ProfileDropdown() {
           onInteractOutside={() => {
             setMenuOpen(false);
           }}
-          className="hariom group min-w-56 overflow-hidden rounded-md">
+          className="hariom min-w-56 group overflow-hidden rounded-md">
           <DropdownMenuItem className="p-3 uppercase">
             <span>Switch to</span>
           </DropdownMenuItem>

@@ -21,7 +21,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  BadRequestException,
   Delete,
   Query,
   NotFoundException,
