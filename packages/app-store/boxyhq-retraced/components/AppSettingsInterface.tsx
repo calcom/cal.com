@@ -81,7 +81,7 @@ export default function AppSettings() {
             <div>
               <div className="flex flex-col lg:flex-row lg:items-center">
                 <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
-                  <span>{tAuditLogs(`${action}.title`)}</span>
+                  <span>{tAuditLogs(`events.${action}.title`)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="grayWithoutHover" data-testid={true ? "required" : "optional"}>
@@ -90,7 +90,7 @@ export default function AppSettings() {
                 </div>
               </div>
               <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
-                {tAuditLogs(`${action}.description`)}
+                {tAuditLogs(`events.${action}.description`)}
               </p>
             </div>
             <div className="flex items-center space-x-2">
