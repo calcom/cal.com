@@ -1,11 +1,11 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
-import { CalendarsService } from "@/v2/calendars/services/calendars.service";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -16,6 +16,8 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+
+import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
 
@@ -147,10 +149,10 @@ describe("Platform Calendars Endpoints", () => {
 
   it(`/GET/v2/calendars/office365/check with access token, origin and office365 credentials`, async () => {
     office365Credentials = await credentialsRepositoryFixture.create(
-      "office365_calendar",
+      OFFICE_365_CALENDAR_TYPE,
       {},
       user.id,
-      "office365-calendar"
+      OFFICE_365_CALENDAR_ID
     );
     await request(app.getHttpServer())
       .get(`/v2/calendars/office365/check`)

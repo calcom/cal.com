@@ -19,6 +19,7 @@ import { DateTime } from "luxon";
 import { stringify } from "querystring";
 import { z } from "zod";
 
+import { OFFICE_365_CALENDAR_ID } from "@calcom/platform-constants";
 import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
 import { getBusyCalendarTimes } from "@calcom/platform-libraries";
 import { Calendar } from "@calcom/platform-types";
@@ -142,7 +143,7 @@ export class CalendarsService {
   }
 
   async getOffice365CalendarRedirectUrl(accessToken: string, origin: string) {
-    const { client_id } = await this.getAppKeys("office365-calendar");
+    const { client_id } = await this.getAppKeys(OFFICE_365_CALENDAR_ID);
 
     const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
     const params = {
@@ -163,7 +164,7 @@ export class CalendarsService {
 
   async getOffice365OAuthCredentials(code: string) {
     const scopes = ["offline_access", "Calendars.Read", "Calendars.ReadWrite"];
-    const { client_id, client_secret } = await this.getAppKeys("office365-calendar");
+    const { client_id, client_secret } = await this.getAppKeys(OFFICE_365_CALENDAR_ID);
 
     const toUrlEncoded = (payload: Record<string, string>) =>
       Object.keys(payload)
