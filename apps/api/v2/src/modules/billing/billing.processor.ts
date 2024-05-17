@@ -33,7 +33,7 @@ export class BillingProcessor {
     try {
       const team = await this.teamsRepository.findTeamIdFromClientId(oAuthClientId);
       const teamId = team.id;
-      if (!team.id) return;
+      if (!team.id) return void 0;
 
       const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
       if (!billingSubscription || !billingSubscription?.subscriptionId) {
@@ -62,11 +62,13 @@ export class BillingProcessor {
         oAuthClientId,
         itemId: item.id,
       });
+      return void 1;
     } catch (err) {
       this.logger.error("Failed to increase usage for oAuthClient", {
         oAuthClientId,
         err,
       });
+      return void 0;
     }
   }
 }
