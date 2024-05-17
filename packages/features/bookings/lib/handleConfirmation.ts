@@ -280,7 +280,8 @@ export async function handleConfirmation(args: {
         evt.attendeeSeatId
       );
       await scheduleWorkflowReminders({
-        workflows: updatedBookings[index]?.eventType?.workflows || [],
+        eventTypeWorkflows: updatedBookings[index]?.eventType?.workflows || [],
+        //add orgWorkflows
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,

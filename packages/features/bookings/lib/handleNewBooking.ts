@@ -184,6 +184,15 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           name: true,
           parentId: true,
+          activeOrgWorkflows: {
+            include: {
+              workflow: {
+                include: {
+                  steps: true,
+                },
+              },
+            },
+          },
         },
       },
       bookingFields: true,
@@ -1089,6 +1098,7 @@ async function handler(
         credentials: {
           select: credentialForCalendarServiceSelect,
         }, // Don't leak to client
+
         ...userSelect.select,
       },
     });
@@ -2378,7 +2388,10 @@ async function handler(
 
   try {
     await scheduleWorkflowReminders({
-      workflows: eventType.workflows,
+      eventTypeWorkflows: eventType.workflows, // only eventtype workflows
+      userId: eventType.userId ?? undefined,
+      orgId: organizerOrganizationId,
+      teamId: eventType.team?.id,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,

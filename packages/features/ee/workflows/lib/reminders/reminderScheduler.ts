@@ -25,7 +25,7 @@ type ProcessWorkflowStepParams = {
 };
 
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
-  workflows: (WorkflowsOnEventTypes & {
+  eventTypeWorkflows: (WorkflowsOnEventTypes & {
     workflow: Workflow & {
       steps: WorkflowStep[];
     };
@@ -33,6 +33,9 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
+  userId?: number;
+  teamId?: number;
+  orgId?: number;
 }
 
 const processWorkflowStep = async (
@@ -130,7 +133,7 @@ const processWorkflowStep = async (
 
 export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
   const {
-    workflows,
+    eventTypeWorkflows,
     smsReminderNumber,
     calendarEvent: evt,
     isNotConfirmed = false,
@@ -139,8 +142,41 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
+    userId,
+    teamId,
+    orgId,
   } = args;
-  if (isNotConfirmed || !workflows.length) return;
+  if (isNotConfirmed) return;
+
+  const globalWorkflows: typeof eventTypeWorkflows = [];
+
+  if (orgId) {
+    if (userId) {
+      //get all teams of user
+      // --> get all activeOrgWorkflows of these teams
+    } else if (teamId) {
+      // get activeOrgWorkflows of the team
+    }
+    // get all workflows of orgs
+    //--> filter all workflows that have activeOnAll enabled
+
+    // --> merge them together and remove duplicates --> I can use map for that
+  }
+
+  if (userId) {
+    //get all workflows from users that have isActiveOnAll selected
+  } else if (teamId) {
+    //get all workflows from team that have isActiveOnAll selected
+  }
+
+  // now we need to remove all the duplicate workflows from activeOnWorkflows
+  const workflowsToAdd = eventTypeWorkflows.filter(
+    (workflow) => !globalWorkflows.find((globalWorkflow) => globalWorkflow.id === workflow.id)
+  );
+
+  const workflows = globalWorkflows.concat(workflowsToAdd);
+
+  if (!workflows.length) return;
 
   for (const workflowReference of workflows) {
     if (workflowReference.workflow.steps.length === 0) continue;
