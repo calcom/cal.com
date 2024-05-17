@@ -25,13 +25,16 @@ export class LinkLocation {
   link!: string;
 }
 
+const integrations = ["cal-video"] as const;
+export type Integration = (typeof integrations)[number];
+
 export class IntegrationLocation {
   @IsIn(locations)
   type!: "integration";
 
-  @IsIn(["cal-video"])
-  @DocsProperty({ example: "cal-video" })
-  integration!: "cal-video";
+  @IsIn(integrations)
+  @DocsProperty({ example: integrations[0] })
+  integration!: Integration;
 }
 
 export class PhoneLocation {

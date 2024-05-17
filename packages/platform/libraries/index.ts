@@ -79,4 +79,6 @@ export { handleCancelBooking };
 export {
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
+  getResponseEventTypeLocations,
+  getResponseEventTypeBookingFields,
 } from "@calcom/lib/event-types/transformers";

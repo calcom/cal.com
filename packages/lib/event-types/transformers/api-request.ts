@@ -1,7 +1,7 @@
 import slugify from "@calcom/lib/slugify";
-import type { CreateEventTypeInput } from "@calcom/platform-types";
+import type { CreateEventTypeInput, Integration } from "@calcom/platform-types";
 
-const integrationsMapping: Record<string, string> = {
+const integrationsMapping: Record<Integration, string> = {
   "cal-video": "integrations:daily",
 };
 
