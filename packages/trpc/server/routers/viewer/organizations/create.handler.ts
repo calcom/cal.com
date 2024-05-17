@@ -164,8 +164,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       isPlatform: isPlatform,
     });
 
-    !isPlatform &&
-      (await sendOrganizationCreationEmail({
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
         language: translation,
         from: ctx.user.name ?? `${organization.name}'s admin`,
         to: orgOwnerEmail,
@@ -175,7 +175,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         orgName: organization.name,
         prevLink: null,
         newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-      }));
+      });
+    }
 
     const user = await UserRepository.enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
@@ -204,8 +205,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
-    !isPlatform &&
-      (await sendOrganizationCreationEmail({
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
         language: inputLanguageTranslation,
         from: ctx.user.name ?? `${organization.name}'s admin`,
         to: orgOwnerEmail,
@@ -215,7 +216,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
         orgName: organization.name,
         prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
         newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-      }));
+      });
+    }
 
     if (!organization.id) throw Error("User not created");
     const user = await UserRepository.enrichUserWithItsProfile({
