@@ -697,7 +697,7 @@ enum PaymentOption {
   HOLD
 }
 
-enum AuditLogTriggerEvents {
+enum AuditLogBookingTriggerEvents {
   BOOKING_CREATED
   BOOKING_PAYMENT_INITIATED
   BOOKING_PAID
@@ -717,6 +717,10 @@ enum AuditLogTriggerTargets {
   USER_PROFILE
   PASSWORD
   IMPERSONATION
+  APPS
+  ROUTING_FORMS
+  WORKFLOWS
+  SETTINGS
 }
 
 enum WebhookTriggerEvents {
