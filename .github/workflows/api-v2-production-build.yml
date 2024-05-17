@@ -33,10 +33,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
+      - name: Cache API v2 production build
+        uses: buildjet/cache@v3
+        id: cache-api-v2-build
+        env:
+          cache-name: api-v2-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/api/v2/**.[jt]s', 'apps/api/v2/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          # Ensures production-build.yml will always be fresh
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            **/dist/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
       - run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn workspace @calcom/api-v2 run generate-schemas
-          rm -rf apps/api/v2/node_modules
-          yarn install
-          yarn workspace @calcom/api-v2 run build
+          if [ ${{ steps.cache-api-v2-build.outputs.cache-hit }} == 'true' ]; then
+            echo "Cache hit for API v2 build. Skipping build."
+          else
+            yarn workspace @calcom/api-v2 run generate-schemas
+            rm -rf apps/api/v2/node_modules
+            yarn install
+            yarn workspace @calcom/api-v2 run build
+          fi
         shell: bash
