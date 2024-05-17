@@ -14,6 +14,7 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
