@@ -137,7 +137,7 @@ export type CustomRequest = NextApiRequest & {
 export type HandleCancelBookingResponse = {
   success: boolean;
   message: string;
-  removedAttendee: boolean;
+  onlyRemovedAttendee: boolean;
   bookingId: number;
   bookingUid: string;
 };
@@ -309,7 +309,7 @@ async function handler(req: CustomRequest) {
   if (result)
     return {
       success: true,
-      removedAttendee: true,
+      onlyRemovedAttendee: true,
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
       message: "Attendee successfully removed.",
@@ -494,7 +494,7 @@ async function handler(req: CustomRequest) {
   return {
     success: true,
     message: "Booking successfully cancelled.",
-    removedAttendee: false,
+    onlyRemovedAttendee: false,
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
   } satisfies HandleCancelBookingResponse;

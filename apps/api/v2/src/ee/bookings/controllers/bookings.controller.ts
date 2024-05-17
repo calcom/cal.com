@@ -179,13 +179,13 @@ export class BookingsController {
     @Param("bookingId") bookingId: string,
     @Body() _: CancelBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; removedAttendee: boolean }>> {
+  ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       try {
         req.body.id = parseInt(bookingId);
         const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
-        if (oAuthClientId && !res.removedAttendee) {
+        if (oAuthClientId && !res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
         return {
@@ -193,7 +193,7 @@ export class BookingsController {
           data: {
             bookingId: res.bookingId,
             bookingUid: res.bookingUid,
-            removedAttendee: res.removedAttendee,
+            onlyRemovedAttendee: res.onlyRemovedAttendee,
           },
         };
       } catch (err) {
