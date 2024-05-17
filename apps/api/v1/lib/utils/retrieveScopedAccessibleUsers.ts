@@ -74,6 +74,8 @@ export const getAccessibleUsers = async ({
     },
   });
 
+  console.log("---------", memberships);
+
   const orgId = memberships.find((membership) => membership.userId === adminUserId)?.teamId;
   if (!orgId) return [];
 
