@@ -579,7 +579,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                 break;
               case WorkflowActions.EMAIL_ADDRESS:
-                await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
                 sendTo = newStep.sendTo ? [newStep.sendTo] : [];
                 break;
             }
