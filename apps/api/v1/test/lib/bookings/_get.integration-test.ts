@@ -19,7 +19,7 @@ describe("GET /api/bookings", async () => {
   const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
   const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
-  it("Returns 403 when user has no permission to the bookings of another user", async () => {
+  it("Returns 0 bookings when user has no permission to the bookings of another user", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
 
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -50,6 +50,7 @@ describe("GET /api/bookings", async () => {
   });
 
   it("Returns bookings for specified user when accessed by system-wide admin", async () => {
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       pagination: DefaultPagination,
@@ -59,6 +60,7 @@ describe("GET /api/bookings", async () => {
     });
 
     req.isSystemWideAdmin = true;
+    req.userId = adminUser.id;
 
     const responseData = await handler(req);
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
@@ -69,16 +71,37 @@ describe("GET /api/bookings", async () => {
   // in this PR. Shouldn't a system admin get access to all bookings without having to
   // pass in userIds?
   it("Returns bookings for all users when accessed by system-wide admin", async () => {
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       pagination: DefaultPagination,
     });
 
     req.isSystemWideAdmin = true;
+    req.userId = adminUser.id;
 
     const responseData = await handler(req);
-    const groupedUsers = [...new Set(responseData.bookings.map((item) => item.userId))];
+    console.log(
+      "----------count",
+      responseData.bookings.map((b) => b.userId)
+    );
+    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
     expect(groupedUsers.length).toBeGreaterThan(2);
+  });
+
+  // TODO: We need bookings for org users for this to work.
+  it("Returns bookings for org users when accessed by org admin", async () => {
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      pagination: DefaultPagination,
+    });
+
+    req.userId = adminUser.id;
+    req.isOrganizationOwnerOrAdmin = true;
+
+    const responseData = await handler(req);
+    expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeUndefined();
   });
 });
