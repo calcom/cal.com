@@ -20,9 +20,9 @@ jobs:
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |

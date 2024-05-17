@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: "Determine tag"
         run: 'echo "RELEASE_TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV'
