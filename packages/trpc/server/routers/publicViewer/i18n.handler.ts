@@ -7,7 +7,7 @@ type I18nOptions = {
 export const i18nHandler = async ({ input }: I18nOptions) => {
   const { locale } = input;
   const { serverSideTranslations } = await import("next-i18next/serverSideTranslations");
-  const i18n = await serverSideTranslations(locale, ["common", "vital"]);
+  const i18n = await serverSideTranslations(locale, ["common", "vital", "auditLogs"]);
 
   return {
     i18n,

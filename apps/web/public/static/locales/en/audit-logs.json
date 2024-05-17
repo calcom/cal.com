@@ -1,0 +1,34 @@
+{
+  "events": {
+    "BOOKING_CREATED": {
+      "title": "Event Booked",
+      "description": "Will send logs whenever an event is booked by a third party"
+    }, 
+    "BOOKING_RESCHEDULE" : {
+      "title": "Event Rescheduled", 
+      "description": "Will send logs whenever an event is rescheduled"
+    },
+    "BOOKING_CANCELLED" : {
+      "title": "Event Cancelled", 
+      "description": "Will send logs whenever an event is cancelled"
+    },
+    "BOOKING_REJECTED" : {
+      "title": "Event Rejected", 
+      "description": "Will send logs whenever an event is rejected"
+    },
+    "BOOKING_PAYMENT_INITIATED": {
+      "title": "Event Payment Initiated",
+      "description": "Will send logs whenever payment for an event is initiated"
+    },
+    "BOOKING_PAID": {
+      "title": "Event Paid Successfully",
+      "description": "Will send logs whenever payment for an event is successful"
+    },
+    "BOOKING_REQUESTED": {
+      "title": "Event Requested",
+      "description": "Will send logs whenever an event is requested"
+    } 
+  },
+  "tooltipInformationEnabled": "Disable",
+  "tooltipInformationDisabled": "Enable"
+}
