@@ -1,89 +1,19 @@
 import { useState } from "react";
 
+import { availableTriggerTargets, availableTriggerEvents } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { Badge, Button, InputField, PasswordField, Select, showToast, Switch } from "@calcom/ui";
-
-type Action = {
-  type: string;
-  action: string;
-  id: number;
-  toggleEnabled: boolean;
-};
-
-const AvailableActions: Action[] = [
-  {
-    type: "events",
-    action: "booked",
-    id: 0,
-    toggleEnabled: true,
-  },
-  {
-    type: "events",
-    action: "created",
-    id: 0,
-    toggleEnabled: true,
-  },
-  {
-    type: "events",
-    action: "rescheduled",
-    id: 0,
-    toggleEnabled: true,
-  },
-  {
-    type: "events",
-    action: "cancelled",
-    id: 0,
-    toggleEnabled: true,
-  },
-];
-
-const availableOptions = {
-  bookings: {
-    label: "Bookings",
-    value: "bookings",
-  },
-  teams: {
-    label: "Teams",
-    value: "teams",
-  },
-  apps: {
-    label: "Apps",
-    value: "apps",
-  },
-  routingforms: {
-    label: "Routing Forms",
-    value: "routing-forms",
-  },
-  workflows: {
-    label: "Workflows",
-    value: "workflows",
-  },
-  edit: {
-    label: "Edit",
-    value: "edit",
-  },
-  settings: {
-    label: "Settings",
-    value: "settings",
-  },
-  profile: {
-    label: "Profile",
-    value: "profile",
-  },
-  schedule: {
-    label: "Schedule",
-    value: "schedule",
-  },
-};
 
 export default function AppSettings() {
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
-  // const integrations = trpc.viewer.integrations.useQuery({ variant: "auditLog", appId: "boxyhq-retraced" });
   const [projectId, setProjectId] = useState("");
   const [apiKey, setApiKey] = useState("");
-  const [value, setValue] = useState<{ label: string; value: string } | undefined>(availableOptions.settings);
+  const [value, setValue] = useState<{ label: string; value: AuditLogTriggerTargets; key: string }>(
+    availableTriggerTargets.booking
+  );
   const saveKeysMutation = trpc.viewer.appsRouter.saveKeys.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
@@ -93,12 +23,12 @@ export default function AppSettings() {
     },
   });
 
-  function onChange(value: string | undefined) {
-    if (value) {
-      const index = Object.keys(availableOptions).indexOf(value);
-      setValue(Object.values(availableOptions)[index]);
+  function onChange(key: string | undefined) {
+    if (key) {
+      const index = Object.keys(availableTriggerTargets).indexOf(key);
+      setValue(Object.values(availableTriggerTargets)[index]);
     } else {
-      setValue(Object.values(availableOptions)[0]);
+      setValue(Object.values(availableTriggerTargets)[0]);
     }
   }
 
@@ -126,8 +56,8 @@ export default function AppSettings() {
         onClick={() => {
           console.log({ apiKey, projectId });
           saveKeysMutation.mutate({
-            slug: "boxyhq-retraced",
-            dirName: "boxyhq-retraced",
+            slug: "audit-log-implementation",
+            dirName: "audit-log-implementation",
             type: "auditLogs",
             keys: {
               apiKey: apiKey,
@@ -138,34 +68,34 @@ export default function AppSettings() {
         {t("submit")}
       </Button>
 
-      <Select<{ label: string; value: string }>
+      <Select<{ label: string; value: AuditLogTriggerTargets; key: string }>
         className="capitalize"
-        options={Object.values(availableOptions)}
+        options={Object.values(availableTriggerTargets)}
         value={value}
-        onChange={(e) => onChange(e?.value)}
+        onChange={(e) => onChange(e?.key)}
       />
 
       <ul className="border-subtle divide-subtle mt-4 divide-y rounded-md border">
-        {AvailableActions.map((action, key) => (
+        {Object.values(availableTriggerEvents[value.key]).map((action, key) => (
           <li key={key} className="hover:bg-muted group relative flex items-center  justify-between p-4 ">
             <div>
               <div className="flex flex-col lg:flex-row lg:items-center">
                 <div className="text-default text-sm font-semibold ltr:mr-2 rtl:ml-2">
-                  <span>{tAuditLogs(`${action.type}.${action.action}.title`)}</span>
+                  <span>{tAuditLogs(`${action}.title`)}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Badge variant="grayWithoutHover" data-testid={true ? "required" : "optional"}>
-                    {action.toggleEnabled ? t("required") : t("optional")}
+                    {t("optional")}
                   </Badge>
                 </div>
               </div>
               <p className="text-subtle max-w-[280px] break-words pt-1 text-sm sm:max-w-[500px]">
-                {tAuditLogs(`${action.type}.${action.action}.description`)}
+                {tAuditLogs(`${action}.description`)}
               </p>
             </div>
             <div className="flex items-center space-x-2">
               <Switch
-                disabled={action.toggleEnabled}
+                disabled={false}
                 checked={true}
                 onCheckedChange={(checked) => {
                   console.log({ checked });
