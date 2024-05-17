@@ -64,7 +64,27 @@ jobs:
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
+      - name: Cache API v1 production build
+        uses: buildjet/cache@v3
+        id: cache-api-v1-build
+        env:
+          cache-name: api-v1-build
+          key-1: ${{ hashFiles('yarn.lock') }}
+          key-2: ${{ hashFiles('apps/api/v1/**.[jt]s', 'apps/api/v1/**.[jt]sx', '!**/node_modules') }}
+          key-3: ${{ github.event.pull_request.number || github.ref }}
+          # Ensures production-build.yml will always be fresh
+          key-4: ${{ github.sha }}
+        with:
+          path: |
+            ${{ github.workspace }}/apps/api/v1/.next
+            **/.turbo/**
+            **/dist/**
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ env.key-1 }}-${{ env.key-2 }}-${{ env.key-3 }}-${{ env.key-4 }}
       - run: |
           export NODE_OPTIONS="--max_old_space_size=8192"
-          yarn turbo run build --filter=@calcom/api...
+          if [ ${{ steps.cache-api-v1-build.outputs.cache-hit }} == 'true' ]; then
+            echo "Cache hit for API v1 build. Skipping build."
+          else
+            yarn turbo run build --filter=@calcom/api...
+          fi
         shell: bash
