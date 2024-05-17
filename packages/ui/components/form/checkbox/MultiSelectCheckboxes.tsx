@@ -1,6 +1,12 @@
 import type { Dispatch, SetStateAction } from "react";
 import React from "react";
-import type { GroupBase, OptionProps } from "react-select";
+import type {
+  GroupBase,
+  OptionProps,
+  MultiValueProps,
+  MultiValue as MultiValueType,
+  SingleValue,
+} from "react-select";
 import { components } from "react-select";
 import type { Props } from "react-select";
 
@@ -14,7 +20,7 @@ export type Option = {
   label: string;
 };
 
-const InputOption: React.FC<OptionProps<unknown, boolean, GroupBase<unknown>>> = ({
+const InputOption: React.FC<OptionProps<Option, boolean, GroupBase<Option>>> = ({
   isDisabled,
   isFocused,
   isSelected,
@@ -58,7 +64,7 @@ const MultiValue = ({
   countText,
 }: {
   index: number;
-  getValue: () => Option[];
+  getValue: () => readonly Option[];
   countText: string;
 }) => {
   const { t } = useLocale();
@@ -77,7 +83,9 @@ export default function MultiSelectCheckboxes({
   countText,
 }: Omit<Props, "options"> & MultiSelectionCheckboxesProps) {
   const additonalComponents = {
-    MultiValue: (props) => <MultiValue {...props} countText={countText || "selected"} />,
+    MultiValue: (props: MultiValueProps<Option, boolean, GroupBase<Option>>) => (
+      <MultiValue {...props} countText={countText || "selected"} />
+    ),
   };
 
   const allOptions = [{ label: "Select all", value: "all" }, ...options];
@@ -88,10 +96,10 @@ export default function MultiSelectCheckboxes({
     <Select
       value={allSelected}
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChange={(s: any, event: any) => {
+      onChange={(s: MultiValueType<Option> | SingleValue<Option>, event: any) => {
         const allSelected = [];
 
-        if (s !== null && s.length > 0) {
+        if (s !== null && Array.isArray(s) && s.length > 0) {
           if (s.find((option) => option.value === "all")) {
             if (event.action === "select-option") {
               allSelected.push(...[{ label: "Select all", value: "all" }, ...options]);
