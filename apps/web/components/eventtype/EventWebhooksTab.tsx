@@ -122,10 +122,21 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 {webhooks.length ? (
                   <>
                     <div className="border-subtle mb-2 rounded-md border p-8">
-                      <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
-                      <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
-                        {t("add_webhook_description", { appName: APP_NAME })}
-                      </p>
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
+                          <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
+                            {t("add_webhook_description", { appName: APP_NAME })}
+                          </p>
+                        </div>
+                        {isChildrenManagedEventType && !isManagedEventType ? (
+                          <Button StartIcon="lock" color="secondary" disabled>
+                            {t("locked_by_team_admin")}
+                          </Button>
+                        ) : (
+                          <NewWebhookButton />
+                        )}
+                      </div>
 
                       <div className="border-subtle my-8 rounded-md border">
                         {webhooks.map((webhook, index) => {

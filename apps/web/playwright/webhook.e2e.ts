@@ -2,6 +2,7 @@ import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
@@ -543,6 +544,131 @@ test.describe("BOOKING_RESCHEDULED", async () => {
   });
 });
 
+test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
+  test("should create/remove scheduledWebhookTriggers for existing bookings", async ({
+    page,
+    users,
+    bookings,
+  }, _testInfo) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const tomorrow = dayjs().add(1, "day");
+    const [eventType] = user.eventTypes;
+    bookings.create(user.id, user.name, eventType.id);
+    bookings.create(user.id, user.name, eventType.id, { startTime: dayjs().add(2, "day").toDate() });
+
+    //create a new webhook with meeting ended trigger here
+    await page.goto("/settings/developer/webhooks");
+    // --- add webhook
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', "https://www.example.com");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    const scheduledTriggers = await prisma.webhookScheduledTriggers.findMany({
+      where: {
+        webhook: {
+          userId: user.id,
+        },
+      },
+      select: {
+        payload: true,
+        webhook: {
+          select: {
+            userId: true,
+            id: true,
+            subscriberUrl: true,
+          },
+        },
+        startAfter: true,
+      },
+    });
+
+    const existingUserBookings = await prisma.booking.findMany({
+      where: {
+        userId: user.id,
+        startTime: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    const meetingStartedTriggers = scheduledTriggers.filter((trigger) =>
+      trigger.payload.includes("MEETING_STARTED")
+    );
+    const meetingEndedTriggers = scheduledTriggers.filter((trigger) =>
+      trigger.payload.includes("MEETING_ENDED")
+    );
+
+    expect(meetingStartedTriggers.length).toBe(existingUserBookings.length);
+    expect(meetingEndedTriggers.length).toBe(existingUserBookings.length);
+
+    expect(meetingStartedTriggers.map((trigger) => trigger.startAfter)).toEqual(
+      expect.arrayContaining(existingUserBookings.map((booking) => booking.startTime))
+    );
+    expect(meetingEndedTriggers.map((trigger) => trigger.startAfter)).toEqual(
+      expect.arrayContaining(existingUserBookings.map((booking) => booking.endTime))
+    );
+
+    page.reload();
+
+    // edit webhook and remove trigger meeting ended trigger
+    await page.click('[data-testid="webhook-edit-button"]');
+    await page.getByRole("button", { name: "Remove Meeting Ended" }).click();
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    const scheduledTriggersAfterRemovingTrigger = await prisma.webhookScheduledTriggers.findMany({
+      where: {
+        webhook: {
+          userId: user.id,
+        },
+      },
+    });
+
+    const newMeetingStartedTriggers = scheduledTriggersAfterRemovingTrigger.filter((trigger) =>
+      trigger.payload.includes("MEETING_STARTED")
+    );
+    const newMeetingEndedTriggers = scheduledTriggersAfterRemovingTrigger.filter((trigger) =>
+      trigger.payload.includes("MEETING_ENDED")
+    );
+
+    expect(newMeetingStartedTriggers.length).toBe(existingUserBookings.length);
+    expect(newMeetingEndedTriggers.length).toBe(0);
+
+    // disable webhook
+    await page.click('[data-testid="webhook-switch"]');
+
+    await page.waitForLoadState("networkidle");
+
+    const scheduledTriggersAfterDisabling = await prisma.webhookScheduledTriggers.findMany({
+      where: {
+        webhook: {
+          userId: user.id,
+        },
+      },
+      select: {
+        payload: true,
+        webhook: {
+          select: {
+            userId: true,
+          },
+        },
+        startAfter: true,
+      },
+    });
+
+    expect(scheduledTriggersAfterDisabling.length).toBe(0);
+  });
+});
+
 test.describe("FORM_SUBMITTED", async () => {
   test("on submitting user form, triggers user webhook", async ({ page, users, routingForms }) => {
     const webhookReceiver = createHttpServer();
@@ -577,6 +703,8 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
+
+    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";
@@ -636,6 +764,8 @@ test.describe("FORM_SUBMITTED", async () => {
         },
       ],
     });
+
+    await page.waitForLoadState("networkidle");
 
     await gotoRoutingLink({ page, formId: form.id });
     const fieldName = "name";

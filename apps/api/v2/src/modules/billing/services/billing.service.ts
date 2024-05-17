@@ -62,8 +62,8 @@ export class BillingService {
             quantity: 1,
           },
         ],
-        success_url: `${this.webAppUrl}/settings/platform/oauth-clients`,
-        cancel_url: `${this.webAppUrl}/settings/platform/oauth-clients`,
+        success_url: `${this.webAppUrl}/settings/platform/`,
+        cancel_url: `${this.webAppUrl}/settings/platform/`,
         mode: "subscription",
         metadata: {
           teamId: teamId.toString(),
@@ -75,6 +75,7 @@ export class BillingService {
             plan: plan.toString(),
           },
         },
+        allow_promotion_codes: true,
       });
 
       if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
