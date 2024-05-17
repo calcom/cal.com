@@ -44,6 +44,7 @@
   "no_options_available": "No options available",
   "cancellation_reason": "Reason for cancellation (optional)",
   "cancellation_reason_placeholder": "Why are you cancelling?",
+  "rejection_reason_placeholder": "Why are you rejecting?",
   "rejection_reason": "Reason for rejecting",
   "rejection_reason_title": "Reject the booking request?",
   "rejection_reason_description": "Are you sure you want to reject the booking? We'll let the person who tried to book know. You can provide a reason below.",

@@ -65,6 +65,7 @@ import { timeZone } from "@lib/clock";
 
 import PageWrapper from "@components/PageWrapper";
 import CancelBooking from "@components/booking/CancelBooking";
+import RejectBooking from "@components/booking/RejectBooking";
 import EventReservationSchema from "@components/schemas/EventReservationSchema";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
@@ -116,7 +117,7 @@ export default function Success(props: PageProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
-    reject,
+    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -207,6 +208,16 @@ export default function Success(props: PageProps) {
       if (_searchParams.get("cancel")) {
         _searchParams.delete("cancel");
       }
+    }
+
+    router.replace(`${pathname}?${_searchParams.toString()}`);
+  }
+
+  function setIsRejectionMode() {
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+
+    if (_searchParams.get("reject")) {
+      _searchParams.delete("reject");
     }
 
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -654,6 +665,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       !isCancelled &&
+                      !isRejectionMode &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -708,6 +720,19 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {userIsOwner && !isCancelled && isRejectionMode && (
+                      <>
+                        <hr className="border-subtle" />
+                        <RejectBooking
+                          booking={{
+                            id: bookingInfo.id,
+                            uid: bookingInfo?.uid,
+                            recurringEventId: bookingInfo.recurringEventId,
+                          }}
+                          setIsRejectionMode={setIsRejectionMode}
+                        />
+                      </>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&
