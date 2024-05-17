@@ -42,13 +42,6 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  integration-test:
-    name: Integration tests
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration.yml
-    secrets: inherit
-
   lint:
     name: Linters
     needs: [changes]
@@ -75,6 +68,13 @@ jobs:
     needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
+  integration-test:
+    name: Integration tests
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration.yml
     secrets: inherit
 
   e2e:
