@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import handler from "../../../pages/api/bookings/[id]/_patch";
+import handler from "../../../../pages/api/bookings/[id]/_patch";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
