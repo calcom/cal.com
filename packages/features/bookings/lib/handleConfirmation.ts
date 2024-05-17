@@ -53,7 +53,7 @@ export async function handleConfirmation(args: {
       workflows?: {
         workflow: Workflow;
       }[];
-    };
+    } | null;
     metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
