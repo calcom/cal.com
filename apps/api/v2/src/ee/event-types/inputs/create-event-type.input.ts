@@ -55,6 +55,7 @@ export class CreateEventTypeInput {
   disableGuests?: boolean;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   slotInterval?: number;
 
@@ -64,10 +65,12 @@ export class CreateEventTypeInput {
   minimumBookingNotice?: number;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   beforeEventBuffer?: number;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   afterEventBuffer?: number;
 
