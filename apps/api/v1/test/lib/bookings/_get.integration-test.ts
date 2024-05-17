@@ -5,10 +5,15 @@ import { describe, expect, it } from "vitest";
 
 import prisma from "@calcom/prisma";
 
-import handler from "../../../pages/api/bookings/_get";
+import { handler } from "../../../pages/api/bookings/_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
+
+const DefaultPagination = {
+  take: 10,
+  skip: 0,
+};
 
 describe("GET /api/bookings", () => {
   it("Returns 403 when user has no permission to the bookings of another user", async () => {
@@ -20,12 +25,13 @@ describe("GET /api/bookings", () => {
       query: {
         userId: proUser.id,
       },
+      pagination: DefaultPagination,
     });
 
     req.userId = memberUser.id;
 
     const responseData = await handler(req);
-    expect(responseData).toBeUndefined();
+    expect(responseData.bookings.length).toBe(0);
   });
 
   it("Returns bookings for regular user", async () => {
@@ -34,12 +40,13 @@ describe("GET /api/bookings", () => {
 
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
+      pagination: DefaultPagination,
     });
 
     req.userId = proUser.id;
 
     const responseData = await handler(req);
-    console.log("----------------------", responseData);
-    expect(responseData.bookings.length).toBe(1);
+    expect(responseData.bookings.find((b) => b.id === booking.id)).toBeDefined();
+    expect(responseData.bookings.find((b) => b.userId !== proUser.id)).toBeUndefined();
   });
 });

@@ -170,7 +170,7 @@ function buildWhereClause(
   };
 }
 
-async function handler(req: NextApiRequest) {
+export async function handler(req: NextApiRequest) {
   const {
     userId,
     isSystemWideAdmin,
