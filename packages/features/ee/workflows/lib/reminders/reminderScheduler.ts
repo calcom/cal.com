@@ -46,6 +46,7 @@ type WorkflowStep = {
   sender: string | null;
   includeCalendarEvent: boolean;
   numberVerificationPending: boolean;
+  numberRequired: true;
 };
 
 export const workflowSelect = {
@@ -66,6 +67,7 @@ export const workflowSelect = {
       numberVerificationPending: true,
       sender: true,
       includeCalendarEvent: true,
+      numberRequired: true,
     },
   },
 };
