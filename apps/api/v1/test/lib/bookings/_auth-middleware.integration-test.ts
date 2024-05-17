@@ -71,23 +71,22 @@ describe("Bookings auth middleware", () => {
     await authMiddleware(req);
   });
 
-  // TODO: Get this working - we need booking data for the org member
-  // it("No error is thrown when user is org-wide admin", async () => {
-  //   const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
-  //   const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });
-  //   const booking = await prisma.booking.findFirstOrThrow({ where: { userId: memberUser.id } });
+  it("No error is thrown when user is org-wide admin", async () => {
+    const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
+    const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });
+    const booking = await prisma.booking.findFirstOrThrow({ where: { userId: memberUser.id } });
 
-  //   const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-  //     method: "GET",
-  //     body: {},
-  //     query: {
-  //       id: booking.id,
-  //     },
-  //   });
+    const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+      method: "GET",
+      body: {},
+      query: {
+        id: booking.id,
+      },
+    });
 
-  //   req.userId = adminUser.id;
-  //   req.isOrganizationOwnerOrAdmin = true;
+    req.userId = adminUser.id;
+    req.isOrganizationOwnerOrAdmin = true;
 
-  //   await authMiddleware(req);
-  // });
+    await authMiddleware(req);
+  });
 });

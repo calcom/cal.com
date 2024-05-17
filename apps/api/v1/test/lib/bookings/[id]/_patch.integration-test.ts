@@ -60,7 +60,6 @@ describe("PATCH /api/bookings", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  // TODO: Fix this test. It's currently failing. The test code seems correct...
   it("Allows PATCH when user is org-wide admin", async () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member1-acme@example.com" } });

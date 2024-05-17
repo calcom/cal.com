@@ -89,7 +89,6 @@ describe("GET /api/bookings", async () => {
     expect(groupedUsers.size).toBeGreaterThan(2);
   });
 
-  // TODO: We need bookings for org users for this to work.
   it("Returns bookings for org users when accessed by org admin", async () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
