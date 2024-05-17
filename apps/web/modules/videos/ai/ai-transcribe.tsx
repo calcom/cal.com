@@ -28,7 +28,7 @@ export const CalAiTranscribe = () => {
     daily?.updateCustomTrayButtons({
       transcription: {
         label: "Stop",
-        tooltip: "Transcription powered by AI",
+        tooltip: "Stop transcription",
         iconPath: `${WEBAPP_URL}/sparkles-red.svg`,
         iconPathDarkMode: `${WEBAPP_URL}/sparkles-red.svg`,
       },
