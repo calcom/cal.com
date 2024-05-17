@@ -11,6 +11,7 @@ export const InstallAppButtonMap = {
   vital: dynamic(() => import("./vital/components/InstallAppButton")),
 };
 export const AppSettingsComponentsMap = {
+  "boxyhq-retraced": dynamic(() => import("./boxyhq-retraced/components/AppSettingsInterface")),
   "cal-ai": dynamic(() => import("./cal-ai/components/AppSettingsInterface")),
   "audit-log-implementation": dynamic(() =>
     import("./templates/audit-log-implementation/components/AppSettingsInterface")
