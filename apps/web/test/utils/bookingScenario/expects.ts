@@ -290,12 +290,16 @@ export function expectWebhookToHaveBeenCalledWith(
 
   if (parsedBody.payload) {
     if (data.payload) {
-      if (data.payload.metadata !== undefined) {
+      if (!!data.payload.metadata) {
         expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
       }
-      if (data.payload.responses !== undefined)
+      if (!!data.payload.responses)
         expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-      const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
+
+      if (!!data.payload.organizer)
+        expect(parsedBody.payload.organizer).toEqual(expect.objectContaining(data.payload.organizer));
+
+      const { responses: _1, metadata: _2, organizer: _3, ...remainingPayload } = data.payload;
       expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
   }
