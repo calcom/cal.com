@@ -33,10 +33,10 @@ describe("GET /api/bookings", async () => {
     req.userId = memberUser.id;
 
     const responseData = await handler(req);
-    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
+    const groupedUsers = new Set(responseData.bookings.map((b) => b.userId));
     expect(responseData.bookings.find((b) => b.userId === memberUser.id)).toBeDefined();
-    expect(groupedUsers.length).toBe(1);
-    expect(groupedUsers[0]).toBe(memberUser.id);
+    expect(groupedUsers.size).toBe(1);
+    expect(groupedUsers.entries().next().value[0]).toBe(memberUser.id);
   });
 
   it("Returns bookings for regular user", async () => {
@@ -84,9 +84,9 @@ describe("GET /api/bookings", async () => {
     req.userId = adminUser.id;
 
     const responseData = await handler(req);
-    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
+    const groupedUsers = new Set(responseData.bookings.map((b) => b.userId));
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
-    expect(groupedUsers.length).toBeGreaterThan(2);
+    expect(groupedUsers.size).toBeGreaterThan(2);
   });
 
   // TODO: We need bookings for org users for this to work.
@@ -101,8 +101,8 @@ describe("GET /api/bookings", async () => {
     req.isOrganizationOwnerOrAdmin = true;
 
     const responseData = await handler(req);
-    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
+    const groupedUsers = new Set(responseData.bookings.map((b) => b.userId));
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeUndefined();
-    expect(groupedUsers.length).toBeGreaterThanOrEqual(2);
+    expect(groupedUsers.size).toBeGreaterThanOrEqual(2);
   });
 });
