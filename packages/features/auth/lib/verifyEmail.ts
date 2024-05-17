@@ -20,6 +20,7 @@ interface VerifyEmailType {
   email: string;
   language?: string;
   secondaryEmailId?: number;
+  isPlatform?: boolean;
 }
 
 export const sendEmailVerification = async ({
@@ -27,6 +28,7 @@ export const sendEmailVerification = async ({
   language,
   username,
   secondaryEmailId,
+  isPlatform = false,
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
@@ -34,6 +36,11 @@ export const sendEmailVerification = async ({
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
+    return { ok: true, skipped: true };
+  }
+
+  if (isPlatform) {
+    log.warn("Skipping Email verification");
     return { ok: true, skipped: true };
   }
 

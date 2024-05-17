@@ -161,19 +161,22 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       email: orgOwnerEmail,
       language: ctx.user.locale,
       username: ownerProfile.username || "",
+      isPlatform: isPlatform,
     });
 
-    await sendOrganizationCreationEmail({
-      language: translation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: null,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: null,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
+        language: translation,
+        from: ctx.user.name ?? `${organization.name}'s admin`,
+        to: orgOwnerEmail,
+        ownerNewUsername: ownerProfile.username,
+        ownerOldUsername: null,
+        orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+        orgName: organization.name,
+        prevLink: null,
+        newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+      });
+    }
 
     const user = await UserRepository.enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
@@ -202,17 +205,19 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
-    await sendOrganizationCreationEmail({
-      language: inputLanguageTranslation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: nonOrgUsernameForOwner,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
+        language: inputLanguageTranslation,
+        from: ctx.user.name ?? `${organization.name}'s admin`,
+        to: orgOwnerEmail,
+        ownerNewUsername: ownerProfile.username,
+        ownerOldUsername: nonOrgUsernameForOwner,
+        orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+        orgName: organization.name,
+        prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
+        newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+      });
+    }
 
     if (!organization.id) throw Error("User not created");
     const user = await UserRepository.enrichUserWithItsProfile({
