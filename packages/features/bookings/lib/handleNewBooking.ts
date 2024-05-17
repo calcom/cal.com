@@ -49,6 +49,7 @@ import {
 import {
   cancelWorkflowReminders,
   scheduleWorkflowReminders,
+  workflowSelect,
 } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -184,15 +185,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           id: true,
           name: true,
           parentId: true,
-          activeOrgWorkflows: {
-            include: {
-              workflow: {
-                include: {
-                  steps: true,
-                },
-              },
-            },
-          },
         },
       },
       bookingFields: true,
@@ -231,11 +223,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       workflows: {
-        include: {
+        select: {
           workflow: {
-            include: {
-              steps: true,
-            },
+            select: workflowSelect,
           },
         },
       },
@@ -1635,6 +1625,7 @@ async function handler(
       subscriberOptions,
       eventTrigger,
       responses,
+      orgId: organizerOrganizationId,
     });
     if (newBooking) {
       req.statusCode = 201;
@@ -2108,9 +2099,9 @@ async function handler(
         let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
-        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+        const workflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
-        if (eventType.workflows) {
+        if (workflows) {
           isHostConfirmationEmailsDisabled =
             eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
           isAttendeeConfirmationEmailDisabled =
@@ -2378,9 +2369,11 @@ async function handler(
 
   const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
+  const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
+
   await scheduleMandatoryReminder(
     evtWithMetadata,
-    eventType.workflows || [],
+    eventTypeWorkflows,
     !isConfirmedByDefault,
     !!eventType.owner?.hideBranding,
     evt.attendeeSeatId
@@ -2388,7 +2381,7 @@ async function handler(
 
   try {
     await scheduleWorkflowReminders({
-      eventTypeWorkflows: eventType.workflows, // only eventtype workflows
+      eventTypeWorkflows, // only eventtype workflows
       userId: eventType.userId ?? undefined,
       orgId: organizerOrganizationId,
       teamId: eventType.team?.id,

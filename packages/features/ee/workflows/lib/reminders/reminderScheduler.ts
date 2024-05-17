@@ -1,8 +1,10 @@
-import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { WorkflowsOnEventTypes } from "@prisma/client";
 
 import { isSMSAction, isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
+import type { TimeUnit, WorkflowTemplates } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -24,18 +26,58 @@ type ProcessWorkflowStepParams = {
   seatReferenceUid?: string;
 };
 
+export type Workflow = {
+  id: number;
+  trigger: WorkflowTriggerEvents;
+  time: number | null;
+  timeUnit: TimeUnit | null;
+  userId: number | null;
+  teamId: number | null;
+  steps: WorkflowStep[];
+};
+
+type WorkflowStep = {
+  action: WorkflowActions;
+  sendTo: string | null;
+  template: WorkflowTemplates;
+  reminderBody: string | null;
+  emailSubject: string | null;
+  id: number;
+  sender: string | null;
+  includeCalendarEvent: boolean;
+  numberVerificationPending: boolean;
+};
+
+export const workflowSelect = {
+  id: true,
+  trigger: true,
+  time: true,
+  timeUnit: true,
+  userId: true,
+  teamId: true,
+  steps: {
+    select: {
+      id: true,
+      action: true,
+      sendTo: true,
+      reminderBody: true,
+      emailSubject: true,
+      template: true,
+      numberVerificationPending: true,
+      sender: true,
+      includeCalendarEvent: true,
+    },
+  },
+};
+
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
-  eventTypeWorkflows: (WorkflowsOnEventTypes & {
-    workflow: Workflow & {
-      steps: WorkflowStep[];
-    };
-  })[];
+  eventTypeWorkflows: Workflow[];
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
-  userId?: number;
-  teamId?: number;
-  orgId?: number;
+  userId?: number | null;
+  teamId?: number | null;
+  orgId?: number | null;
 }
 
 const processWorkflowStep = async (
@@ -147,41 +189,97 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     orgId,
   } = args;
   if (isNotConfirmed) return;
-
-  const globalWorkflows: typeof eventTypeWorkflows = [];
+  const allworkflows = eventTypeWorkflows;
 
   if (orgId) {
     if (userId) {
-      //get all teams of user
-      // --> get all activeOrgWorkflows of these teams
+      const teamsWithWorkflows = await prisma.team.findMany({
+        where: {
+          members: {
+            some: {
+              userId,
+              accepted: true,
+            },
+          },
+        },
+        select: {
+          activeOrgWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
+            },
+          },
+        },
+      });
+      const orgTeamWorkflows = teamsWithWorkflows
+        .map((team) => team.activeOrgWorkflows.map((worklfowRel) => worklfowRel.workflow))
+        .flat();
+      allworkflows.push(...orgTeamWorkflows);
     } else if (teamId) {
-      // get activeOrgWorkflows of the team
+      const teamWithWorkflows = await prisma.team.findFirst({
+        where: {
+          id: teamId,
+        },
+        select: {
+          activeOrgWorkflows: {
+            select: {
+              workflow: {
+                select: workflowSelect,
+              },
+            },
+          },
+        },
+      });
+      const orgTeamWorkflows =
+        teamWithWorkflows?.activeOrgWorkflows.map((workflowRel) => workflowRel.workflow) || [];
+      allworkflows.push(...orgTeamWorkflows);
     }
-    // get all workflows of orgs
-    //--> filter all workflows that have activeOnAll enabled
 
-    // --> merge them together and remove duplicates --> I can use map for that
+    const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
+      where: {
+        teamId: orgId,
+        isActiveOnAll: true,
+      },
+      select: workflowSelect,
+    });
+    allworkflows.push(...activeOnAllOrgWorkflows);
   }
 
   if (userId) {
-    //get all workflows from users that have isActiveOnAll selected
+    const activeOnUserWorkflows = await prisma.workflow.findMany({
+      where: {
+        userId,
+        isActiveOnAll: true,
+      },
+      select: workflowSelect,
+    });
+    allworkflows.push(...activeOnUserWorkflows);
   } else if (teamId) {
-    //get all workflows from team that have isActiveOnAll selected
+    const activeOnTeamWorkflows = await prisma.workflow.findMany({
+      where: {
+        teamId,
+        isActiveOnAll: true,
+      },
+      select: workflowSelect,
+    });
+    allworkflows.push(...activeOnTeamWorkflows);
   }
 
   // now we need to remove all the duplicate workflows from activeOnWorkflows
-  const workflowsToAdd = eventTypeWorkflows.filter(
-    (workflow) => !globalWorkflows.find((globalWorkflow) => globalWorkflow.id === workflow.id)
-  );
+  const seen = new Set();
 
-  const workflows = globalWorkflows.concat(workflowsToAdd);
+  const workflows = allworkflows.filter((workflow) => {
+    const duplicate = seen.has(workflow.id);
+    seen.add(workflow.id);
+    return !duplicate;
+  });
 
   if (!workflows.length) return;
 
-  for (const workflowReference of workflows) {
-    if (workflowReference.workflow.steps.length === 0) continue;
+  for (const workflow of workflows) {
+    if (workflow.steps.length === 0) continue;
 
-    const workflow = workflowReference.workflow;
     const isNotBeforeOrAfterEvent =
       workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
       workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;

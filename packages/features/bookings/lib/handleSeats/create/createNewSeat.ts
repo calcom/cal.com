@@ -117,7 +117,7 @@ const createNewSeat = async (
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
-    const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+    const workflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
     if (eventType.workflows) {
       isHostConfirmationEmailsDisabled =

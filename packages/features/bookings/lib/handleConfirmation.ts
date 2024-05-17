@@ -1,10 +1,14 @@
-import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
-import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import {
+  scheduleWorkflowReminders,
+  workflowSelect,
+} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -47,11 +51,9 @@ export async function handleConfirmation(args: {
       teamId?: number | null;
       parentId?: number | null;
       workflows?: {
-        workflow: Workflow & {
-          steps: WorkflowStep[];
-        };
+        workflow: Workflow;
       }[];
-    } | null;
+    };
     metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
@@ -85,7 +87,7 @@ export async function handleConfirmation(args: {
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
-      const workflows = eventType?.workflows?.map((workflow) => workflow.workflow);
+      const workflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow);
 
       if (workflows) {
         isHostConfirmationEmailsDisabled =
@@ -126,17 +128,21 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
+    user: {
+      id: number;
+      username: string | null;
+    } | null;
     eventType: {
+      userId: number | null;
+      teamId: number | null;
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       owner: {
         hideBranding?: boolean | null;
       } | null;
-      workflows: (WorkflowsOnEventTypes & {
-        workflow: Workflow & {
-          steps: WorkflowStep[];
-        };
-      })[];
+      workflows: {
+        workflow: Workflow;
+      }[];
     } | null;
   }[] = [];
 
@@ -174,20 +180,26 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
+              userId: true,
+              teamId: true,
               owner: {
                 select: {
                   hideBranding: true,
                 },
               },
               workflows: {
-                include: {
+                select: {
                   workflow: {
-                    include: {
-                      steps: true,
-                    },
+                    select: workflowSelect,
                   },
                 },
               },
+            },
+          },
+          user: {
+            select: {
+              id: true,
+              username: true,
             },
           },
           description: true,
@@ -227,6 +239,8 @@ export async function handleConfirmation(args: {
         eventType: {
           select: {
             slug: true,
+            userId: true,
+            teamId: true,
             bookingFields: true,
             owner: {
               select: {
@@ -234,14 +248,18 @@ export async function handleConfirmation(args: {
               },
             },
             workflows: {
-              include: {
+              select: {
                 workflow: {
-                  include: {
-                    steps: true,
-                  },
+                  select: workflowSelect,
                 },
               },
             },
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            username: true,
           },
         },
         uid: true,
@@ -259,6 +277,13 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: updatedBookings[0].user?.id || 0,
+      username: updatedBookings[0].user?.username || "",
+    },
+  });
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -272,16 +297,21 @@ export async function handleConfirmation(args: {
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
+      const eventTypeWorkflows =
+        updatedBookings[index]?.eventType?.workflows.map((workflowRel) => workflowRel.workflow) || [];
       await scheduleMandatoryReminder(
         evtOfBooking,
-        updatedBookings[index]?.eventType?.workflows || [],
+        eventTypeWorkflows,
         false,
         !!updatedBookings[index].eventType?.owner?.hideBranding,
         evt.attendeeSeatId
       );
+
       await scheduleWorkflowReminders({
-        eventTypeWorkflows: updatedBookings[index]?.eventType?.workflows || [],
-        //add orgWorkflows
+        eventTypeWorkflows,
+        teamId: updatedBookings[index]?.eventType?.teamId,
+        userId: updatedBookings[index]?.eventType?.userId,
+        orgId: organizerOrganizationProfile?.organizationId,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
