@@ -49,6 +49,7 @@ export function TeamListBulkAction({ table }: Props) {
   });
 
   const { t } = useLocale();
+  const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
 
   // Add a value to the set
   const addValue = (value: number) => {
@@ -79,7 +80,9 @@ export function TeamListBulkAction({ table }: Props) {
               <CommandGroup>
                 {teams &&
                   teams.map((option) => {
-                    const isSelected = selectedValues.has(option.id);
+                    const isSelected =
+                      selectedValues.has(option.id) ||
+                      selectedUsers.every((user) => user.teams.some((team) => team.id === option.id));
                     return (
                       <CommandItem
                         key={option.id}
@@ -110,9 +113,8 @@ export function TeamListBulkAction({ table }: Props) {
               className="ml-auto mr-1.5 rounded-md"
               size="sm"
               onClick={async () => {
-                const selectedRows = table.getSelectedRowModel().flatRows.map((row) => row.original);
                 mutation.mutateAsync({
-                  userIds: selectedRows.map((row) => row.id),
+                  userIds: selectedUsers.map((user) => user.id),
                   teamIds: Array.from(selectedValues),
                 });
               }}>
