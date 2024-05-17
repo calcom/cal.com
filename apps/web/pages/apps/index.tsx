@@ -71,7 +71,7 @@ export default function Apps({
       subtitle={t("app_store_description")}
       actions={(className) => (
         <div className="flex w-full flex-col pt-4 md:flex-row md:justify-between md:pt-0 lg:w-auto">
-          <div className="lg:hidden ltr:mr-2 rtl:ml-2">
+          <div className="ltr:mr-2 rtl:ml-2 lg:hidden">
             <HorizontalTabs tabs={tabs} />
           </div>
           <div>

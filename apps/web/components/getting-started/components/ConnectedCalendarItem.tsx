@@ -35,7 +35,7 @@ const ConnectedCalendarItem = (prop: IConnectedCalendarItem) => {
           <div className="fle-row flex">
             <span
               title={externalId}
-              className="text-subtle mt-1 max-w-44 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm">
+              className="text-subtle max-w-44 mt-1 overflow-hidden text-ellipsis whitespace-nowrap font-sans text-sm">
               {externalId}{" "}
             </span>
           </div>

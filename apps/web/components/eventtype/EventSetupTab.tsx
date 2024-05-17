@@ -308,7 +308,7 @@ export const EventSetupTab = (
                   {!(shouldLockDisableProps("locations").disabled && isChildrenManagedEventType) && (
                     <button
                       data-testid={`delete-locations.${index}.type`}
-                      className="block h-9 min-h-9 px-2"
+                      className="min-h-9 block h-9 px-2"
                       type="button"
                       onClick={() => remove(index)}
                       aria-label={t("remove")}>

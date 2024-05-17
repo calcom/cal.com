@@ -362,7 +362,7 @@ function BookingListItem(booking: BookingItemProps) {
       </Dialog>
 
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
-        <td className="hidden align-top sm:table-cell sm:min-w-[12rem] ltr:pl-6 rtl:pr-6">
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <Link href={bookingLink}>
             <div className="cursor-pointer py-4">
               <div className="text-emphasis text-sm leading-6">{startTime}</div>
@@ -456,17 +456,17 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
 
               {isPending && (
-                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("unconfirmed")}
                 </Badge>
               )}
               {booking.eventType?.team && (
-                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="gray">
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="gray">
                   {booking.eventType.team.name}
                 </Badge>
               )}
               {showPendingPayment && (
-                <Badge className="sm:hidden ltr:mr-2 rtl:ml-2" variant="orange">
+                <Badge className="ltr:mr-2 rtl:ml-2 sm:hidden" variant="orange">
                   {t("pending_payment")}
                 </Badge>
               )}
@@ -486,7 +486,7 @@ function BookingListItem(booking: BookingItemProps) {
               <div
                 title={title}
                 className={classNames(
-                  "max-w-10/12 text-emphasis text-sm font-medium leading-6 sm:max-w-56 md:max-w-full",
+                  "max-w-10/12 text-emphasis sm:max-w-56 text-sm font-medium leading-6 md:max-w-full",
                   isCancelled ? "line-through" : ""
                 )}>
                 {title}
@@ -500,7 +500,7 @@ function BookingListItem(booking: BookingItemProps) {
               </div>
               {booking.description && (
                 <div
-                  className="max-w-10/12 text-default truncate text-sm sm:max-w-32 md:max-w-52 xl:max-w-80"
+                  className="max-w-10/12 text-default sm:max-w-32 md:max-w-52 xl:max-w-80 truncate text-sm"
                   title={booking.description}>
                   &quot;{booking.description}&quot;
                 </div>
@@ -520,7 +520,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium sm:pl-0 ltr:pr-4 rtl:pl-4">
+        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}

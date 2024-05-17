@@ -17,7 +17,7 @@ export default SkeletonLoader;
 function SkeletonItem() {
   return (
     <li>
-      <div className="flex items-center justify-between py-5  ltr:pl-4 sm:ltr:pl-0 rtl:pr-4 sm:rtl:pr-0">
+      <div className="flex items-center justify-between py-5  ltr:pl-4 rtl:pr-4 sm:ltr:pl-0 sm:rtl:pr-0">
         <div className="items-between flex w-full flex-col justify-center sm:px-6">
           <SkeletonText className="my-1 h-4 w-32" />
           <SkeletonText className="my-1 h-2 w-24" />

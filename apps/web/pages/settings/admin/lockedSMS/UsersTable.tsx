@@ -99,7 +99,7 @@ const LockStatusTable = ({
           {users.map((user) => (
             <Row key={`user-${user.id}`}>
               <Cell widthClassNames="w-auto">
-                <div className="flex min-h-10 items-center">
+                <div className="min-h-10 flex items-center">
                   {" "}
                   <Avatar
                     size="md"
@@ -124,7 +124,7 @@ const LockStatusTable = ({
           {teams.map((team) => (
             <Row key={`team-${team.id}`}>
               <Cell widthClassNames="w-auto">
-                <div className="flex min-h-10 items-center">
+                <div className="min-h-10 flex items-center">
                   <Avatar
                     size="md"
                     alt={`Avatar of ${team.name}`}

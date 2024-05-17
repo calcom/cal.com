@@ -241,6 +241,7 @@ type UserPayload = Prisma.UserGetPayload<{
     movedToProfileId: true;
     isPlatformManaged: true;
     smsLockState: true;
+    funnelHubUserId: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(

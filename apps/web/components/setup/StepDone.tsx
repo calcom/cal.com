@@ -22,7 +22,7 @@ const StepDone = (props: {
         e.preventDefault();
         router.replace(props.nextStepPath);
       }}>
-      <div className="my-6 flex min-h-36 flex-col items-center justify-center">
+      <div className="min-h-36 my-6 flex flex-col items-center justify-center">
         <div className="dark:bg-default flex h-[72px] w-[72px] items-center justify-center rounded-full bg-gray-600">
           <Icon
             name="check"
