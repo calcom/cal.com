@@ -19,7 +19,7 @@ describe("GET /api/bookings", async () => {
   const proUser = await prisma.user.findFirstOrThrow({ where: { email: "pro@example.com" } });
   const proUserBooking = await prisma.booking.findFirstOrThrow({ where: { userId: proUser.id } });
 
-  it("Returns 0 bookings when user has no permission to the bookings of another user", async () => {
+  it("Does not return bookings of other users when user has no permission", async () => {
     const memberUser = await prisma.user.findFirstOrThrow({ where: { email: "member2-acme@example.com" } });
 
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
@@ -33,7 +33,10 @@ describe("GET /api/bookings", async () => {
     req.userId = memberUser.id;
 
     const responseData = await handler(req);
-    expect(responseData.bookings.length).toBe(0);
+    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
+    expect(responseData.bookings.find((b) => b.userId === memberUser.id)).toBeDefined();
+    expect(groupedUsers.length).toBe(1);
+    expect(groupedUsers[0]).toBe(memberUser.id);
   });
 
   it("Returns bookings for regular user", async () => {
@@ -81,10 +84,6 @@ describe("GET /api/bookings", async () => {
     req.userId = adminUser.id;
 
     const responseData = await handler(req);
-    console.log(
-      "----------count",
-      responseData.bookings.map((b) => b.userId)
-    );
     const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeDefined();
     expect(groupedUsers.length).toBeGreaterThan(2);
@@ -102,6 +101,8 @@ describe("GET /api/bookings", async () => {
     req.isOrganizationOwnerOrAdmin = true;
 
     const responseData = await handler(req);
+    const groupedUsers = [...new Set(responseData.bookings.map((b) => b.userId))];
     expect(responseData.bookings.find((b) => b.id === proUserBooking.id)).toBeUndefined();
+    expect(groupedUsers.length).toBeGreaterThanOrEqual(2);
   });
 });
