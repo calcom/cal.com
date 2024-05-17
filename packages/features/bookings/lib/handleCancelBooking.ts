@@ -313,7 +313,7 @@ async function handler(req: CustomRequest) {
       bookingId: bookingToDelete.id,
       bookingUid: bookingToDelete.uid,
       message: "Attendee successfully removed.",
-    } satisfies handleCancelBookingResponse;
+    } satisfies HandleCancelBookingResponse;
 
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
@@ -497,7 +497,7 @@ async function handler(req: CustomRequest) {
     removedAttendee: false,
     bookingId: bookingToDelete.id,
     bookingUid: bookingToDelete.uid,
-  } satisfies handleCancelBookingResponse;
+  } satisfies HandleCancelBookingResponse;
 }
 
 export default handler;
