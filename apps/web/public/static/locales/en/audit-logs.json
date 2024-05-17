@@ -4,7 +4,7 @@
       "title": "Event Booked",
       "description": "Will send logs whenever an event is booked by a third party"
     }, 
-    "BOOKING_RESCHEDULE" : {
+    "BOOKING_RESCHEDULED" : {
       "title": "Event Rescheduled", 
       "description": "Will send logs whenever an event is rescheduled"
     },
