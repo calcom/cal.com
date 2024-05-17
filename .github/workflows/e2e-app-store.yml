@@ -1,4 +1,4 @@
-name: E2E App-Store Apps Tests
+name: E2E App Store Tests
 on:
   workflow_call:
 env:

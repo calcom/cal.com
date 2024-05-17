@@ -1,4 +1,4 @@
-name: Integration tests
+name: Integration
 on:
   workflow_call:
 env:
@@ -41,7 +41,7 @@ env:
 jobs:
   integration:
     timeout-minutes: 20
-    name: Integration tests
+    name: Integration
     runs-on: buildjet-8vcpu-ubuntu-2204
     services:
       postgres:
