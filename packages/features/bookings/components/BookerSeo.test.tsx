@@ -19,9 +19,11 @@ vi.mock("@calcom/trpc/react", () => ({
     },
   },
 }));
+
 vi.mock("@calcom/lib/hooks/useLocale", () => ({
   useLocale: () => ({ t: (key: string) => key }),
 }));
+
 vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
@@ -32,21 +34,24 @@ vi.mock("@calcom/ui", () => ({
 }));
 
 describe("BookerSeo Component", () => {
-  it.only("renders SEO tags correctly for a regular event", () => {
-    const event = {
-      profile: { name: "John Doe", image: "image-url" },
-      title: "30min",
-      hidden: false,
-      users: [{ name: "Jane Doe", username: "jane" }],
+  it("renders SEO tags correctly for a regular event", () => {
+    const mockData = {
+      event: {
+        profile: { name: "John Doe", image: "image-url" },
+        title: "30min",
+        hidden: false,
+        users: [{ name: "Jane Doe", username: "jane" }],
+      },
+      fakeOrigin: "http://example.com",
     };
+
     trpc.viewer.public.event.useQuery.mockReturnValueOnce({
-      data: event,
+      data: mockData.event,
     });
-    const fakeOrigin = "http://example.com";
 
-    vi.mocked(getOrgFullOrigin).mockReturnValue(fakeOrigin);
+    vi.mocked(getOrgFullOrigin).mockReturnValue(mockData.fakeOrigin);
 
-    const { getByText, container } = render(
+    render(
       <BookerSeo
         username="john"
         eventSlug="event-slug"
@@ -57,20 +62,21 @@ describe("BookerSeo Component", () => {
 
     expect(HeadSeo).toHaveBeenCalledWith(
       {
-        origin: fakeOrigin,
+        origin: mockData.fakeOrigin,
         isBrandingHidden: undefined,
-        title: ` ${event.title} | ${event.profile.name}`,
-        description: ` ${event.title}`,
+        // Don't know why we are adding space in the beginning
+        title: ` ${mockData.event.title} | ${mockData.event.profile.name}`,
+        description: ` ${mockData.event.title}`,
         meeting: {
           profile: {
-            name: event.profile.name,
-            image: event.profile.image,
+            name: mockData.event.profile.name,
+            image: mockData.event.profile.image,
           },
-          title: event.title,
+          title: mockData.event.title,
           users: [
             {
-              name: event.users[0].name,
-              username: event.users[0].username,
+              name: mockData.event.users[0].name,
+              username: mockData.event.users[0].username,
             },
           ],
         },

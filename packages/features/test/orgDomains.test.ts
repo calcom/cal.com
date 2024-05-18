@@ -96,7 +96,7 @@ describe("Org Domains Utils", () => {
       });
       expect(getOrgFullOrigin(null)).toEqual("https://abc.com");
     });
-    it.only("should return the org origin if slug is set", () => {
+    it("should return the org origin if slug is set", () => {
       setupEnvs({
         WEBAPP_URL: "https://app.cal-app.com",
         WEBSITE_URL: "https://cal.com",
