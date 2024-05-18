@@ -7,11 +7,6 @@
  */
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect, vi } from "vitest";
-
-import { PeriodType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   TestData,
   createBookingScenario,
@@ -29,6 +24,12 @@ import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe, expect, vi } from "vitest";
+
+import { PeriodType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
