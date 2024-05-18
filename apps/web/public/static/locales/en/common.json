@@ -2336,6 +2336,8 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
+  "account_unlinked_success": "Account unlinked successfully",
+  "account_unlinked_error": "There was an error unlinking the account",
   "travel_schedule": "Travel Schedule",
   "travel_schedule_description":  "Plan your trip ahead to keep your existing schedule in a different timezone and prevent being booked at midnight.",
   "schedule_timezone_change": "Schedule timezone change",
@@ -2440,5 +2442,8 @@
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
   "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>.",
+  "unable_to_subscribe_to_the_platform": "An error occurred while trying to subscribe to the platform plan, please try again later",
+  "updating_oauth_client_error": "An error occurred while updating the OAuth client, please try again later",
+  "creating_oauth_client_error": "An error occurred while creating the OAuth client, please try again later",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
