@@ -656,6 +656,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender || null,
           senderName: senderName,
         });
+        if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
+          await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+        }
         const createdStep = await ctx.prisma.workflowStep.create({
           data: { ...newStep, numberVerificationPending: false },
         });
@@ -723,7 +726,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
                 case WorkflowActions.EMAIL_ADDRESS:
-                  await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
                   sendTo = step.sendTo ? [step.sendTo] : [];
                   break;
               }
