@@ -576,6 +576,8 @@
   "address": "Address",
   "enter_address": "Enter address",
   "in_person_attendee_address": "In Person (Attendee Address)",
+  "somewhere_else": "Somewhere Else",
+  "any_location": "Any location",
   "yes": "Yes",
   "no": "No",
   "additional_notes": "Additional notes",

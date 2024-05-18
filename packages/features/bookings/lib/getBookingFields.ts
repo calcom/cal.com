@@ -197,6 +197,11 @@ export const ensureBookingInputsHaveSystemFields = ({
           required: true,
           placeholder: "",
         },
+        somewhereElse: {
+          type: "text",
+          required: true,
+          placeholder: "",
+        },
         phone: {
           type: "phone",
           required: true,
