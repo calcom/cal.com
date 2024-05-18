@@ -75,6 +75,7 @@ export class BillingService {
             plan: plan.toString(),
           },
         },
+        allow_promotion_codes: true,
       });
 
       if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
