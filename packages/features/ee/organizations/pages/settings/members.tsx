@@ -1,5 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { UserListTable } from "@calcom/features/users/components/UserTable/UserListTable";
@@ -10,7 +13,8 @@ import { Meta } from "@calcom/ui";
 
 const MembersView = () => {
   const { t } = useLocale();
-  const { data: currentOrg, isPending } = trpc.viewer.organizations.listCurrent.useQuery();
+  const router = useRouter();
+  const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
 
   const isOrgAdminOrOwner =
     currentOrg &&
@@ -18,6 +22,15 @@ const MembersView = () => {
 
   const canLoggedInUserSeeMembers =
     (currentOrg?.isPrivate && isOrgAdminOrOwner) || isOrgAdminOrOwner || !currentOrg?.isPrivate;
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.replace("/enterprise");
+      }
+    },
+    [error]
+  );
 
   return (
     <LicenseRequired>
