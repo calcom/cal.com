@@ -2120,7 +2120,6 @@ async function handler(
           isAttendeeConfirmationEmailDisabled = true;
         }
 
-        console.log("sending emails");
         await sendScheduledEmails(
           {
             ...evt,
