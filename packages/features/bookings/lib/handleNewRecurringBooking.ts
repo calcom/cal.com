@@ -1,6 +1,6 @@
 import type { NextApiRequest } from "next";
 
-import handleNewBooking, { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
@@ -18,13 +18,13 @@ export const handleNewRecurringBooking = async (
   const numSlotsToCheckForAvailability = 2;
 
   let thirdPartyRecurringEventId = null;
-  const eventType = await getEventTypesFromDB(data[0].eventTypeId);
 
   // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
   let luckyUsers = undefined;
+  const differentRoundRobinRecurringHosts = undefined;
 
   if (isRoundRobin) {
     const recurringEventReq: NextApiRequest & { userId?: number } = req;
@@ -75,7 +75,7 @@ export const handleNewRecurringBooking = async (
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
       // send email for each booking if we have different hosts for each.
-      noEmail: isRoundRobin && eventType.differentRoundRobinRecurringHosts ? false : key !== 0,
+      noEmail: isRoundRobin && differentRoundRobinRecurringHosts ? false : key !== 0,
       luckyUsers,
     };
 

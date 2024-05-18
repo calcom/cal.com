@@ -2397,6 +2397,7 @@ async function handler(
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
   };
 }
 
