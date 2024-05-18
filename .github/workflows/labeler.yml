@@ -12,7 +12,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/labeler@v4
+      - uses: actions/labeler@v5
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           # https://github.com/actions/labeler/issues/442#issuecomment-1297359481
@@ -23,7 +23,7 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: equitybee/team-label-action@main
         with:
           repo-token: ${{ secrets.EQUITY_BEE_TEAM_LABELER_ACTION_TOKEN }}
@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Apply labels from linked issue to PR
-        uses: actions/github-script@v5
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
