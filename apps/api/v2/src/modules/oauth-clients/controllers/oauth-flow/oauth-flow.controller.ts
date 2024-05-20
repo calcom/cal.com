@@ -33,8 +33,8 @@ import { Response as ExpressResponse } from "express";
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
-  path: "oauth/:clientId",
-  version: "2",
+  path: "/v2/oauth/:clientId",
+  version: "2024-04-15",
 })
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
 @DocsTags("OAuth - development only")

@@ -33,8 +33,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
 
 @Controller({
-  path: "oauth-clients/:clientId/users",
-  version: "2",
+  path: "/v2/oauth-clients/:clientId/users",
+  version: "2024-04-15",
 })
 @UseGuards(OAuthClientCredentialsGuard)
 @DocsTags("Managed users")

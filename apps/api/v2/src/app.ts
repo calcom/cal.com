@@ -9,6 +9,7 @@ import { HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
+import { Request } from "express";
 import helmet from "helmet";
 
 import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
@@ -17,13 +18,19 @@ import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
+
   app.enableVersioning({
-    type: VersioningType.URI,
-    prefix: "v",
-    defaultVersion: "1",
+    type: VersioningType.CUSTOM,
+    extractor: (request: unknown) => {
+      const headerVersion = (request as Request)?.headers["cal-api-version"];
+      if (headerVersion) {
+        return headerVersion;
+      }
+      return "2024-04-15";
+    },
   });
 
-  app.use(helmet());
+  type: VersioningType.CUSTOM, app.use(helmet());
 
   app.enableCors({
     origin: "*",

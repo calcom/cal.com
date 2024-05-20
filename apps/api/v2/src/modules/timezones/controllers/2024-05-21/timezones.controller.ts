@@ -2,13 +2,12 @@ import { TimezonesService } from "@/modules/timezones/services/timezones.service
 import { Controller, Get } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { CityTimezones } from "@calcom/platform-libraries";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/timezones",
-  version: "2024-04-15",
+  version: "2024-05-21",
 })
 @DocsTags("Timezones")
 export class TimezonesController {
@@ -16,11 +15,6 @@ export class TimezonesController {
 
   @Get("/")
   async getTimeZones(): Promise<ApiResponse<CityTimezones>> {
-    const timeZones = await this.timezonesService.getCityTimeZones();
-
-    return {
-      status: SUCCESS_STATUS,
-      data: timeZones,
-    };
+    throw Error("Some sort of different implementation");
   }
 }

@@ -20,8 +20,8 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
-  path: "/provider",
-  version: "2",
+  path: "/v2/provider",
+  version: "2024-04-15",
 })
 @DocsTags("Cal provider")
 export class CalProviderController {

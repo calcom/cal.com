@@ -29,8 +29,8 @@ import { Stripe } from "stripe";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "/billing",
-  version: "2",
+  path: "/v2/billing",
+  version: "2024-04-15",
 })
 @ApiExcludeController(true)
 export class BillingController {

@@ -38,8 +38,8 @@ import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
-  path: "event-types",
-  version: "2",
+  path: "/v2/event-types",
+  version: "2024-04-15",
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")

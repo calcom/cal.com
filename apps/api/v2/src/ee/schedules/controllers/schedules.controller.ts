@@ -31,8 +31,8 @@ import { UpdateScheduleInput } from "@calcom/platform-types";
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
 @Controller({
-  path: "schedules",
-  version: "2",
+  path: "/v2/schedules",
+  version: "2024-04-15",
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")
