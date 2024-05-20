@@ -1,12 +1,11 @@
+import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-import { ScheduleOutput } from "./schedule.output";
-
-export class GetScheduleOutput {
+export class GetDefaultScheduleOutput {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
@@ -18,6 +17,4 @@ export class GetScheduleOutput {
   @ValidateNested()
   @Type(() => ScheduleOutput)
   data!: ScheduleOutput | null;
-
-  error?: Error;
 }
