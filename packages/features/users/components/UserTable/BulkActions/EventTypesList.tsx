@@ -159,8 +159,8 @@ export function EventTypesList({ table, orgTeams }: Props) {
                             hosts.some((host) => host.userId === user.id)
                           );
                           const isSelected =
-                            selectedEvents.has(event.id) ||
-                            (areAllUsersHostForEventType && !removeHostFromEvents.has(event.id));
+                            (selectedEvents.has(event.id) || areAllUsersHostForEventType) &&
+                            !removeHostFromEvents.has(event.id);
                           return (
                             <ListItem
                               isTeam={false}
