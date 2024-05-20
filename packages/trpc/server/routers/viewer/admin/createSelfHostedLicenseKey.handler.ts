@@ -1,0 +1,73 @@
+import * as crypto from "crypto";
+
+import type { TrpcSessionUser } from "../../../trpc";
+import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
+
+type GetOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: TCreateSelfHostedLicenseSchema;
+};
+
+const generateNonce = (): string => {
+  return crypto.randomBytes(16).toString("hex");
+};
+
+// Utility function to create a signature
+const createSignature = (body: Record<string, unknown>, nonce: string, secretKey: string): string => {
+  return crypto
+    .createHmac("sha256", secretKey)
+    .update(JSON.stringify(body) + nonce)
+    .digest("hex");
+};
+
+// Fetch wrapper function
+const fetchWithSignature = async (
+  url: string,
+  body: Record<string, unknown>,
+  secretKey: string,
+  options: RequestInit = {}
+): Promise<Response> => {
+  const nonce = generateNonce();
+  const signature = createSignature(body, nonce, secretKey);
+
+  const headers = {
+    ...options.headers,
+    "Content-Type": "application/json",
+    nonce: nonce,
+    signature: signature,
+  };
+
+  return await fetch(url, {
+    ...options,
+    method: "POST",
+    headers: headers,
+    body: JSON.stringify(body),
+  });
+};
+
+const createSelfHostedInstance = async ({ input, ctx }: GetOptions) => {
+  const privateApiUrl = process.env.CALCOM_PRIVATE_API_ROUTE;
+  const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
+
+  if (!privateApiUrl || !signatureToken) {
+    throw new Error("Private Api route does not exist in .env");
+  }
+
+  // Ensure admin
+  if (ctx.user.role !== "ADMIN") {
+    console.warning(`${ctx.user.username} just tried to create a license key without permission`);
+    throw new Error("You do not have permission to do this.");
+  }
+
+  const request = await fetchWithSignature(`${privateApiUrl}/api/license`, input, signatureToken, {
+    method: "POST",
+  });
+
+  const data = await request.json();
+
+  return data as { stripeCheckoutUrl: string };
+};
+
+export default createSelfHostedInstance;

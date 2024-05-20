@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
 import type { Ensure } from "@calcom/types/utils";
+import { showToast } from "@calcom/ui";
 import { Alert, Button, Form, Label, TextField, ToggleGroup } from "@calcom/ui";
 
 import { UserPermissionRole } from "../../../../prisma/enums";
-import { usePrivateApiPost } from "../lib/usePrivateApi";
 
 export const CreateANewLicenseKeyForm = () => {
   const session = useSession();
@@ -29,18 +30,20 @@ enum BillingPeriod {
   ANNUALLY = "ANNUALLY",
 }
 
+interface FormValues {
+  billingType: BillingType;
+  entityCount: number;
+  entityPrice: number;
+  billingPeriod: BillingPeriod;
+  overages: number;
+  billingEmail: string;
+}
+
 const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
-  const newLicenseKeyFormMethods = useForm<{
-    billingType: BillingType;
-    entityCount: number;
-    entityPrice: number;
-    billingPeriod: BillingPeriod;
-    overages: number;
-    billingEmail: string;
-  }>({
+  const newLicenseKeyFormMethods = useForm<FormValues>({
     defaultValues: {
       billingType: BillingType.PER_BOOKING,
       billingPeriod: BillingPeriod.MONTHLY,
@@ -48,6 +51,21 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
       overages: 99, // $0.99
       entityPrice: 50, // $0.5
       billingEmail: undefined,
+    },
+  });
+
+  const mutation = trpc.viewer.admin.createSelfHostedLicense.useMutation({
+    onSuccess: async () => {
+      showToast(
+        `Created: We have sent a stripe checkout link to ${newLicenseKeyFormMethods.getValues(
+          "billingEmail"
+        )}`,
+        "success"
+      );
+      newLicenseKeyFormMethods.reset();
+    },
+    onError: async (err) => {
+      setServerErrorMessage(err.message);
     },
   });
 
@@ -62,18 +80,6 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
     return `$ ${sum / 100} / ${occurance} months`;
   }
 
-  const mutation = usePrivateApiPost<{
-    stripeCheckoutUrl: string;
-  }>("/api/create-license", {
-    onSuccess: (data) => {
-      console.log("User created:", data);
-    },
-    onError: (error) => {
-      console.error("Error creating user:", error);
-      setServerErrorMessage(error.message);
-    },
-  });
-
   return (
     <>
       <Form
@@ -81,7 +87,6 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
         className="space-y-5"
         id="createOrg"
         handleSubmit={(values) => {
-          console.log(values);
           mutation.mutate(values);
         }}>
         <div>
