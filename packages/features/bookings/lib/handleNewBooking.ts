@@ -1280,11 +1280,12 @@ async function handler(
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
+        const userId = originalRescheduledBooking && originalRescheduledBooking.userId;
         const newLuckyUser =
-          originalRescheduledBooking &&
+          userId &&
           bookingData.responses.hostAssignment &&
           bookingData.responses.hostAssignment === "Same host"
-            ? freeUsers.find((user) => user.id === originalRescheduledBooking.userId)
+            ? freeUsers.find((user) => user.id === userId)
             : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
                 // find a lucky user that is not already in the luckyUsers array
                 availableUsers: freeUsers,
