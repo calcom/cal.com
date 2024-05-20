@@ -51,7 +51,7 @@ export default function JoinCall(props: PageProps) {
         customTrayButtons: {
           transcription: {
             label: "Cal.ai",
-            tooltip: "Toggle real time transcription powered by AI",
+            tooltip: "Transcription powered by AI",
             iconPath: `${WEBAPP_URL}/sparkles.svg`,
             iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
           },
@@ -103,12 +103,12 @@ export default function JoinCall(props: PageProps) {
             />
           ) : (
             <img
-              className="fixed z-10 inline-block h-4"
+              className="fixed z-10 hidden h-5 sm:inline-block"
               src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
               alt="Logo"
               style={{
-                top: 9,
-                left: "calc(50% - 45px)",
+                top: 47,
+                left: 20,
               }}
             />
           )}
