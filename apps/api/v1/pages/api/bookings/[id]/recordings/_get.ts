@@ -29,10 +29,12 @@ export async function getHandler(req: NextApiRequest) {
 
   const recordings = await getRecordingsOfCalVideoByRoomName(roomName);
   const recordingWithDownloadLink = recordings.data.map((recording) => {
-    return getDownloadLinkOfCalVideoByRecordingId(recording.id).then(({ download_link }) => ({
-      ...recording,
-      download_link,
-    }));
+    return getDownloadLinkOfCalVideoByRecordingId(recording.id)
+      .then(({ download_link }) => ({
+        ...recording,
+        download_link,
+      }))
+      .catch((err) => ({ ...recording, download_link: null, error: err.message }));
   });
   const res = await Promise.all(recordingWithDownloadLink);
   return res;
