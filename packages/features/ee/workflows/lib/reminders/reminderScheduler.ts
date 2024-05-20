@@ -77,10 +77,17 @@ const processWorkflowStep = async (
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
     });
-  } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
+  } else if (
+    step.action === WorkflowActions.EMAIL_ATTENDEE ||
+    step.action === WorkflowActions.EMAIL_HOST ||
+    step.action === WorkflowActions.EMAIL_ADDRESS
+  ) {
     let sendTo: string[] = [];
 
     switch (step.action) {
+      case WorkflowActions.EMAIL_ADDRESS:
+        sendTo = [step.sendTo || ""];
+        break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
         break;

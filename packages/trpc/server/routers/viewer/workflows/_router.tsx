@@ -5,10 +5,12 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
 import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
 
 type WorkflowsRouterHandlerCache = {
@@ -23,6 +25,8 @@ type WorkflowsRouterHandlerCache = {
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
+  getVerifiedEmails?: typeof import("./getVerifiedEmails.handler").getVerifiedEmailsHandler;
+  verifyEmailCode?: typeof import("./verifyEmailCode.handler").verifyEmailCodeHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -177,6 +181,42 @@ export const workflowsRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.getVerifiedNumbers({
+      ctx,
+      input,
+    });
+  }),
+
+  getVerifiedEmails: authedProcedure.input(ZGetVerifiedEmailsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getVerifiedEmails) {
+      UNSTABLE_HANDLER_CACHE.getVerifiedEmails = await import("./getVerifiedEmails.handler").then(
+        (mod) => mod.getVerifiedEmailsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getVerifiedEmails) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getVerifiedEmails({
+      ctx,
+      input,
+    });
+  }),
+
+  verifyEmailCode: authedProcedure.input(ZVerifyEmailCodeInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.verifyPhoneNumber) {
+      UNSTABLE_HANDLER_CACHE.verifyEmailCode = await import("./verifyEmailCode.handler").then(
+        (mod) => mod.verifyEmailCodeHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.verifyEmailCode) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.verifyEmailCode({
       ctx,
       input,
     });
