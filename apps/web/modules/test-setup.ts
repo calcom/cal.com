@@ -32,7 +32,7 @@ vi.mock("@calcom/core/event", () => ({
 }));
 
 vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
-  getOrgFullOrigin: vi.fn().mockImplementation((slug) => `${slug}.cal.local`),
+  getOrgFullOrigin: vi.fn(),
 }));
 
 vi.mock("@calcom/features/eventtypes/components", () => ({

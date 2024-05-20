@@ -30,7 +30,6 @@ describe("UserPage Component", () => {
           profile: {},
         },
       ],
-      fakeOrigin: "http://example.com",
       markdownStrippedBio: "My Bio",
       entity: {
         considerUnpublished: false,
@@ -40,7 +39,9 @@ describe("UserPage Component", () => {
       },
     };
 
-    vi.mocked(getOrgFullOrigin).mockReturnValue(mockData.fakeOrigin);
+    vi.mocked(getOrgFullOrigin).mockImplementation((text: string | null) => {
+      return `${text}.cal.local`;
+    });
 
     render(
       <UserPage
@@ -56,7 +57,7 @@ describe("UserPage Component", () => {
 
     expect(HeadSeo).toHaveBeenCalledWith(
       {
-        origin: mockData.fakeOrigin,
+        origin: `${mockData.entity.orgSlug}.cal.local`,
         title: `${mockData.profile.name}`,
         description: `${mockData.markdownStrippedBio}`,
         meeting: {

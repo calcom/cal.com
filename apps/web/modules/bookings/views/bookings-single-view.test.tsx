@@ -1,7 +1,8 @@
 import { render } from "@testing-library/react";
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { HeadSeo } from "@calcom/ui";
 
@@ -9,6 +10,7 @@ import Success from "./bookings-single-view";
 
 describe("Success Component", () => {
   it("renders HeadSeo correctly", () => {
+    vi.mocked(getOrgFullOrigin).mockImplementation((text: string | null) => `${text}.cal.local`);
     const mockObject = {
       props: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

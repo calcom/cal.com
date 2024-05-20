@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import React from "react";
 import { describe, it, expect, vi } from "vitest";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
@@ -28,7 +29,6 @@ vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
   getOrgFullOrigin: vi.fn(),
 }));
 
-// Mock HeadSeo component
 vi.mock("@calcom/ui", () => ({
   HeadSeo: vi.fn(),
 }));
@@ -37,32 +37,35 @@ describe("BookerSeo Component", () => {
   it("renders SEO tags correctly for a regular event", () => {
     const mockData = {
       event: {
-        profile: { name: "John Doe", image: "image-url" },
+        slug: "event-slug",
+        profile: { name: "John Doe", image: "image-url", username: "john" },
         title: "30min",
         hidden: false,
         users: [{ name: "Jane Doe", username: "jane" }],
       },
-      fakeOrigin: "http://example.com",
+      entity: { fromRedirectOfNonOrgLink: false, orgSlug: "org1" },
     };
 
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
     trpc.viewer.public.event.useQuery.mockReturnValueOnce({
       data: mockData.event,
     });
 
-    vi.mocked(getOrgFullOrigin).mockReturnValue(mockData.fakeOrigin);
+    vi.mocked(getOrgFullOrigin).mockImplementation((text: string | null) => `${text}.cal.local`);
 
     render(
       <BookerSeo
-        username="john"
-        eventSlug="event-slug"
+        username={mockData.event.profile.username}
+        eventSlug={mockData.event.slug}
         rescheduleUid={undefined}
-        entity={{ fromRedirectOfNonOrgLink: false }}
+        entity={mockData.entity}
       />
     );
 
     expect(HeadSeo).toHaveBeenCalledWith(
       {
-        origin: mockData.fakeOrigin,
+        origin: `${mockData.entity.orgSlug}.cal.local`,
         isBrandingHidden: undefined,
         // Don't know why we are adding space in the beginning
         title: ` ${mockData.event.title} | ${mockData.event.profile.name}`,
