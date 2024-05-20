@@ -44,7 +44,7 @@ export class MeController {
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesRepository.updateUserSchedule(user.id, user.defaultScheduleId, {
+      await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
       });
     }
