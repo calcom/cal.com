@@ -3,7 +3,11 @@ import type {
   batchProcessorBody,
   TGetTranscriptAccessLink,
 } from "@calcom/app-store/dailyvideo/zod";
-import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import type {
+  GetRecordingsResponseSchema,
+  GetAccessLinkResponseSchema,
+  TGetDailyWebhooks,
+} from "@calcom/prisma/zod-utils";
 
 import type { EventBusyDate } from "./Calendar";
 import type { CredentialPayload } from "./Credential";
@@ -41,6 +45,8 @@ export type VideoApiAdapter =
       ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }>;
 
       checkIfRoomNameMatchesInRecording?(roomName: string, recordingId: string): Promise<boolean>;
+
+      getWebhooks?(): Promise<TGetDailyWebhooks>;
     }
   | undefined;
 

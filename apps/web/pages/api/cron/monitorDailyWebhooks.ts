@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import DailyVideoApiAdapter from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter.ts";
+import { getWebhooks } from "@calcom/core/videoClient";
 import { defaultHandler } from "@calcom/lib/server";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -10,7 +10,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const webhooks = await DailyVideoApiAdapter.getWebhooks();
+  const webhooks = await getWebhooks();
 
   const inactiveWebhooks = webhooks.filter((webhook) => webhook.state !== "ACTIVE");
   if (inactiveWebhooks.length) {

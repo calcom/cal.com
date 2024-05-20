@@ -762,3 +762,18 @@ export const getRetellLLMSchema = z
   .passthrough();
 
 export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;
+
+export const getDailyWebhooks = z.array(
+  z
+    .object({
+      uuid: z.string(),
+      url: z.string().url(),
+      hmac: z.string(),
+      eventTypes: z.array(z.string()),
+      state: z.string(),
+      failedCount: z.number(),
+    })
+    .passthrough()
+);
+
+export type TGetDailyWebhooks = z.infer<typeof getDailyWebhooks>;
