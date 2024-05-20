@@ -1,26 +1,47 @@
-import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
-import type { Availability, EventType } from "@prisma/client";
+import type { EventType } from "@prisma/client";
 
 import { getResponseEventTypeLocations, getResponseEventTypeBookingFields } from "@calcom/platform-libraries";
-import { WeekDay } from "@calcom/platform-types";
-import { eventTypeLocations } from "@calcom/prisma/zod-utils";
+import { TransformedLocationsSchema, BookingFieldsSchema } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OutputEventTypesService {
-  constructor(private readonly usersRepository: UsersRepository) {}
-
   async getResponseEventType(databaseEventType: EventType) {
+    const {
+      id,
+      length,
+      title,
+      description,
+      disableGuests,
+      slotInterval,
+      minimumBookingNotice,
+      beforeEventBuffer,
+      afterEventBuffer,
+    } = databaseEventType;
+
     const locations = this.transformLocations(databaseEventType.locations);
     const bookingFields = this.transformBookingFields(databaseEventType.bookingFields);
-    return {};
+
+    return {
+      id,
+      length,
+      title,
+      description,
+      locations,
+      bookingFields,
+      disableGuests,
+      slotInterval,
+      minimumBookingNotice,
+      beforeEventBuffer,
+      afterEventBuffer,
+    };
   }
 
   transformLocations(locations: EventType["locations"]) {
-    return getResponseEventTypeLocations(eventTypeLocations.parse(locations));
+    return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
   transformBookingFields(inputBookingFields: EventType["bookingFields"]) {
-    return getResponseEventTypeBookingFields(fieldsSchema.parse(inputBookingFields));
+    return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
   }
 }

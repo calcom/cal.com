@@ -81,4 +81,6 @@ export {
   transformApiEventTypeLocations,
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
+  TransformedLocationsSchema,
+  BookingFieldsSchema,
 } from "@calcom/lib/event-types/transformers";

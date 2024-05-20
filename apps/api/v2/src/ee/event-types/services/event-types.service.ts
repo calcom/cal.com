@@ -3,6 +3,7 @@ import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
 import { InputEventTypesService } from "@/ee/event-types/services/input-event-types.service";
+import { OutputEventTypesService } from "@/ee/event-types/services/output-event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -19,13 +20,14 @@ export class EventTypesService {
   constructor(
     private readonly eventTypesRepository: EventTypesRepository,
     private readonly inputEventTypesService: InputEventTypesService,
+    private readonly outputEventTypesService: OutputEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService
   ) {}
 
-  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput): Promise<EventTypeOutput> {
+  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
@@ -38,7 +40,8 @@ export class EventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
-    return eventType as EventTypeOutput;
+
+    return this.outputEventTypesService.getResponseEventType(eventType);
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput) {

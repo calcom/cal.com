@@ -82,14 +82,19 @@ function getResponseEventTypeBookingFields(
       placeholder: field.placeholder || "", // Ensure placeholder is not undefined
     };
 
-    const options = ["select", "multiselect", "checkbox", "radio"].includes(field.type)
-      ? field.options?.map((option) => option.value)
-      : undefined;
+    if (
+      field.type === "select" ||
+      field.type === "multiselect" ||
+      field.type === "checkbox" ||
+      field.type === "radio"
+    ) {
+      return {
+        ...baseField,
+        options: field.options?.map((option) => option.value),
+      };
+    }
 
-    return {
-      ...baseField,
-      options,
-    };
+    return baseField;
   });
 }
 

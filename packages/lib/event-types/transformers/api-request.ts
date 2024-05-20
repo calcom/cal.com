@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import slugify from "@calcom/lib/slugify";
 import type { CreateEventTypeInput, Integration } from "@calcom/platform-types";
 
@@ -28,13 +30,41 @@ function transformApiEventTypeLocations(inputLocations: CreateEventTypeInput["lo
   });
 }
 
-function transformApiEventTypeBookingFields(inputBookingFields: CreateEventTypeInput["bookingFields"]) {
+const integrationsMappingSchema = {
+  "cal-video": z.literal("integrations:daily"),
+};
+
+const InPersonSchema = z.object({
+  type: z.literal("inPerson"),
+  address: z.string(),
+});
+
+const LinkSchema = z.object({
+  type: z.literal("link"),
+  link: z.string().url(),
+});
+
+const IntegrationSchema = z.object({
+  type: z.union([integrationsMappingSchema["cal-video"], integrationsMappingSchema["cal-video"]]),
+});
+
+const UserPhoneSchema = z.object({
+  type: z.literal("userPhone"),
+  hostPhoneNumber: z.string(),
+});
+
+const TransformedLocationSchema = z.union([InPersonSchema, LinkSchema, IntegrationSchema, UserPhoneSchema]);
+export const TransformedLocationsSchema = z.array(TransformedLocationSchema);
+
+function transformApiEventTypeBookingFields(
+  inputBookingFields: CreateEventTypeInput["bookingFields"]
+): BookingFields | undefined {
   if (!inputBookingFields) {
     return undefined;
   }
 
   return inputBookingFields.map((field) => {
-    const commonFields = {
+    const commonFields: CommonField = {
       name: slugify(field.label),
       type: field.type,
       label: field.label,
@@ -53,6 +83,10 @@ function transformApiEventTypeBookingFields(inputBookingFields: CreateEventTypeI
 
     const options = "options" in field && field.options ? transformSelectOptions(field.options) : undefined;
 
+    if (!options) {
+      return commonFields;
+    }
+
     return {
       ...commonFields,
       options,
@@ -66,5 +100,38 @@ function transformSelectOptions(options: string[]) {
     value: option,
   }));
 }
+const CommonFieldsSchema = z.object({
+  name: z.string(), // You'll need to handle the slugify operation prior to validation or within your application logic
+  type: z.string(),
+  label: z.string(),
+  sources: z.array(
+    z.object({
+      id: z.literal("user"),
+      type: z.literal("user"),
+      label: z.literal("User"),
+      fieldRequired: z.literal(true),
+    })
+  ),
+  editable: z.literal("user"),
+  required: z.boolean(),
+  placeholder: z.string().optional(),
+});
+
+type CommonField = z.infer<typeof CommonFieldsSchema>;
+
+// Options schema, assuming it could be undefined
+const OptionSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+
+// Schema for booking fields that might contain options
+const BookingFieldSchema = CommonFieldsSchema.extend({
+  options: z.array(OptionSchema).optional(),
+});
+
+// Schema for the entire transformed array of booking fields
+export const BookingFieldsSchema = z.array(BookingFieldSchema);
+type BookingFields = z.infer<typeof BookingFieldsSchema>;
 
 export { transformApiEventTypeLocations, transformApiEventTypeBookingFields };
