@@ -12,7 +12,7 @@ import { CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/calendars",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @UseGuards(AccessTokenGuard)
 @DocsTags("Calendars")

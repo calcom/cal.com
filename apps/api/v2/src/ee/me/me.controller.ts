@@ -15,7 +15,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/me",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Me")

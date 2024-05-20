@@ -41,7 +41,7 @@ const CALENDAR_SCOPES = [
 // Controller for the GCalConnect Atom
 @Controller({
   path: "/v2/gcal",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @DocsTags("Google Calendar")
 export class GcalController {

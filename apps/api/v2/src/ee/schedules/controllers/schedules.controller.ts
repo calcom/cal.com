@@ -32,7 +32,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
 @Controller({
   path: "/v2/schedules",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")

@@ -30,7 +30,7 @@ import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/billing",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @ApiExcludeController(true)
 export class BillingController {

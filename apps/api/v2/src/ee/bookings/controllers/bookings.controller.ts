@@ -73,7 +73,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 
 @Controller({
   path: "/v2/bookings",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")

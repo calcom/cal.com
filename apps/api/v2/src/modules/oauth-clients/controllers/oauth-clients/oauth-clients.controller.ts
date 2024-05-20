@@ -47,7 +47,7 @@ Second, make sure that the logged in user has organizationId set to pass the Org
 
 @Controller({
   path: "/v2/oauth-clients",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
 @DocsExcludeController(getEnv("NODE_ENV") === "production")

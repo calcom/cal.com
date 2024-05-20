@@ -12,7 +12,7 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "slots",
-  version: "2024-04-15",
+  version: ["2024-05-21", "2024-04-15"],
 })
 @DocsTags("Slots")
 export class SlotsController {
