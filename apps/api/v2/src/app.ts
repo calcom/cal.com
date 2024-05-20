@@ -30,7 +30,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     },
   });
 
-  type: VersioningType.CUSTOM, app.use(helmet());
+  app.use(helmet());
 
   app.enableCors({
     origin: "*",
