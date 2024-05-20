@@ -1277,13 +1277,19 @@ async function handler(
       );
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-        const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          // find a lucky user that is not already in the luckyUsers array
-          availableUsers: luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          ),
-          eventTypeId: eventType.id,
-        });
+        const freeUsers = luckyUserPool.filter(
+          (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
+        );
+        const newLuckyUser =
+          !!originalRescheduledBooking &&
+          bookingData.responses.hostAssignment &&
+          bookingData.responses.hostAssignment === "Keep same host"
+            ? freeUsers.find((user) => user.id === originalRescheduledBooking.userId)
+            : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+                // find a lucky user that is not already in the luckyUsers array
+                availableUsers: freeUsers,
+                eventTypeId: eventType.id,
+              });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }

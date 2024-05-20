@@ -8,6 +8,7 @@ export const SystemField = z.enum([
   "notes",
   "guests",
   "rescheduleReason",
+  "hostAssignment",
   "smsReminderNumber",
 ]);
 

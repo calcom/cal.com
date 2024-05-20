@@ -7,6 +7,7 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
@@ -17,15 +18,17 @@ export const BookingFields = ({
   rescheduleUid,
   isDynamicGroupBooking,
   bookingData,
+  schedulingType,
 }: {
   fields: NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"];
   locations: LocationObject[];
   rescheduleUid?: string;
   bookingData?: GetBookingType | null;
   isDynamicGroupBooking: boolean;
+  schedulingType?: SchedulingType | null;
 }) => {
   const { t } = useLocale();
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, getValues } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
@@ -57,6 +60,16 @@ export const BookingFields = ({
             return null;
           }
           // rescheduleReason is a reschedule specific field and thus should be editable during reschedule
+          readOnly = false;
+        }
+        if (field.name === SystemField.Enum.hostAssignment) {
+          // Check if bookingData is null or if schedulingType is defined and not ROUND_ROBIN
+          if (bookingData === null || (schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN)) {
+            return null;
+          }
+          if (!getValues("responses.hostAssignment")) {
+            setValue(`responses.${SystemField.Enum.hostAssignment}`, "Use round-robin algorithm");
+          }
           readOnly = false;
         }
 
