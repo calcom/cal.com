@@ -407,7 +407,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             const contactOwnerIsRRHost = eventType.hosts.find(
               (host) => host.user.email === teamMember && !host.isFixed
             );
-            const usersWithoutContactOwner = contactOwnerIsRRHost
+            const otherHosts = contactOwnerIsRRHost
               ? eventType.hosts
                   .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
                   .map(({ isFixed, user }) => ({ isFixed, ...user }))
@@ -415,7 +415,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
                   .filter((host) => host.user.email !== contactOwner.user.email)
                   .map(({ isFixed, user }) => ({ isFixed, ...user }));
 
-            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...usersWithoutContactOwner];
+            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...otherHosts];
           }
         }
       }
