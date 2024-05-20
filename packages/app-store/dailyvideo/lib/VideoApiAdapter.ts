@@ -71,6 +71,21 @@ const getRooms = z
   })
   .passthrough();
 
+const getWebhooks = z.array(
+  z
+    .object({
+      uuid: z.string(),
+      url: z.string().url(),
+      hmac: z.string(),
+      eventTypes: z.array(z.string()),
+      state: z.string(),
+      failedCount: z.number(),
+    })
+    .passthrough()
+);
+
+type TGetWebhooks = z.infer<typeof getWebhooks>;
+
 export interface DailyEventResult {
   id: string;
   name: string;
@@ -334,6 +349,14 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.error("err", err);
         throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err}`);
+      }
+    },
+    getWebhooks: async (): Promise<TGetWebhooks> => {
+      try {
+        const webhooks = await fetcher("/webhooks").then(getWebhooks.res);
+        return webhooks;
+      } catch (err) {
+        console.error("Error fetching daily webhooks", err);
       }
     },
   };
