@@ -1,70 +1,83 @@
 import { render } from "@testing-library/react";
-import React from "react";
-import { describe, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import { HeadSeo } from "@calcom/ui";
 
 import UserPage from "./users-public-view";
 
-// Mocking necessary modules and hooks
-vi.mock("next/link", () => ({
-  default:
-    () =>
-    ({ children }) =>
-      children,
-}));
-vi.mock("@calcom/embed-core/embed-iframe", () => ({
-  useEmbedNonStylesConfig: vi.fn().mockReturnValue("left"),
-  useEmbedStyles: vi.fn().mockReturnValue({}),
-  useIsEmbed: vi.fn().mockReturnValue(false),
-}));
-
-vi.mock("@calcom/features/ee/organizations/lib/orgDomains", () => ({
-  getOrgFullOrigin: vi.fn().mockReturnValue("https://example.com"),
-}));
-
-vi.mock("@calcom/features/eventtypes/components/EmptyPage", () => ({
-  default: vi.fn(),
-}));
-
-vi.mock("@calcom/features/eventtypes/components", () => ({
-  EventTypeDescriptionLazy: vi.fn(),
-}));
-
-vi.mock("@calcom/lib/hooks/useLocale", () => ({
-  useLocale: () => ({ t: (key: string) => key }),
-}));
-vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
-  useRouterQuery: () => ({}),
-}));
-
-vi.mock("@calcom/lib/hooks/useTheme", () => ({
-  default: vi.fn(),
-}));
-
-vi.mock("@calcom/ui", () => {
-  return {
-    HeadSeo: vi.fn(),
-    Icon: vi.fn(),
-    UnpublishedEntity: vi.fn(),
-    UserAvatar: vi.fn(),
-  };
-});
-
 describe("UserPage Component", () => {
-  it("renders user information correctly", () => {
+  it("renders HeadSeo correctly", () => {
+    const mockData = {
+      profile: {
+        name: "John Doe",
+        image: "john-profile-url",
+        theme: "dark",
+        brandColor: "red",
+        darkBrandColor: "black",
+        organization: { requestedSlug: "slug", slug: "slug", id: 1 },
+        allowSEOIndexing: true,
+        username: "john",
+      },
+      hidden: false,
+      users: [
+        {
+          name: "John Doe",
+          username: "john",
+          avatarUrl: "john-user-url",
+          bio: "",
+          verified: false,
+          profile: {},
+        },
+      ],
+      fakeOrigin: "http://example.com",
+      markdownStrippedBio: "My Bio",
+      entity: {
+        considerUnpublished: false,
+        orgSlug: "org1",
+        name: "Org1",
+        logoUrl: "Org1-logo",
+      },
+    };
+
+    vi.mocked(getOrgFullOrigin).mockReturnValue(mockData.fakeOrigin);
+
     render(
       <UserPage
-        users={[
-          {
-            bio: "Bio",
-            name: "John Doe",
-            profileImage: "image-url",
-            username: "john",
-          },
-        ]}
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        users={mockData.users}
+        profile={mockData.profile}
+        eventTypes={[]}
+        markdownStrippedBio={mockData.markdownStrippedBio}
+        entity={mockData.entity}
       />
     );
 
-    // expect(screen.getByTestId("name-title")).toHaveTextContent("John Doe");
-    // expect(screen.getByText("Bio")).toBeInTheDocument();
+    expect(HeadSeo).toHaveBeenCalledWith(
+      {
+        origin: mockData.fakeOrigin,
+        title: `${mockData.profile.name}`,
+        description: `${mockData.markdownStrippedBio}`,
+        meeting: {
+          profile: {
+            name: mockData.profile.name,
+            image: mockData.users[0].avatarUrl,
+          },
+          title: mockData.markdownStrippedBio,
+          users: [
+            {
+              name: mockData.users[0].name,
+              username: mockData.users[0].username,
+            },
+          ],
+        },
+        nextSeoProps: {
+          nofollow: !mockData.profile.allowSEOIndexing,
+          noindex: !mockData.profile.allowSEOIndexing,
+        },
+      },
+      {}
+    );
   });
 });

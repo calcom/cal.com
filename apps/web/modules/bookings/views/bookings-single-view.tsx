@@ -61,12 +61,10 @@ import {
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
-
-import { timeZone } from "@lib/clock";
-
-import PageWrapper from "@components/PageWrapper";
-import CancelBooking from "@components/booking/CancelBooking";
-import EventReservationSchema from "@components/schemas/EventReservationSchema";
+import PageWrapper from "@calcom/web/components/PageWrapper";
+import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
+import { timeZone } from "@calcom/web/lib/clock";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
