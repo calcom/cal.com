@@ -84,8 +84,7 @@ import {
   type IconName,
 } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
-
-import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
