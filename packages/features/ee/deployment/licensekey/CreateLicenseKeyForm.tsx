@@ -8,12 +8,14 @@ import type { Ensure } from "@calcom/types/utils";
 import { Alert, Button, Form, Label, TextField, ToggleGroup } from "@calcom/ui";
 
 import { UserPermissionRole } from "../../../../prisma/enums";
+import { usePrivateApiPost } from "../lib/usePrivateApi";
 
 export const CreateANewLicenseKeyForm = () => {
   const session = useSession();
-  if (!session.data) {
+  if (session.data?.user.role !== "ADMIN") {
     return null;
   }
+  // @ts-expect-error session cannt be null due to the early return
   return <CreateANewLicenseKeyFormChild session={session} />;
 };
 
@@ -33,71 +35,44 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const newLicenseKeyFormMethods = useForm<{
     billingType: BillingType;
-    bookingsIncluded: number;
-    usersIncluded: number;
+    entityCount: number;
+    entityPrice: number;
     billingPeriod: BillingPeriod;
     overages: number;
     billingEmail: string;
-    fixedBaseFee: number;
   }>({
     defaultValues: {
       billingType: BillingType.PER_BOOKING,
       billingPeriod: BillingPeriod.MONTHLY,
-      bookingsIncluded: 500,
-      usersIncluded: 100,
+      entityCount: 500,
       overages: 99, // $0.99
-      fixedBaseFee: 50, // $99
+      entityPrice: 50, // $0.5
       billingEmail: undefined,
     },
   });
 
-  const watchedBillingType = newLicenseKeyFormMethods.watch("billingType");
   const watchedBillingPeriod = newLicenseKeyFormMethods.watch("billingPeriod");
-  const watchedBookingIncluded = newLicenseKeyFormMethods.watch("bookingsIncluded");
-  const watchedUsersIncluded = newLicenseKeyFormMethods.watch("usersIncluded");
-  const watchedFixedBaseFee = newLicenseKeyFormMethods.watch("fixedBaseFee");
+  const watchedEntityCount = newLicenseKeyFormMethods.watch("entityCount");
+  const watchedEntityPrice = newLicenseKeyFormMethods.watch("entityPrice");
+
   function calculateMonthlyPrice() {
-    const values = newLicenseKeyFormMethods.getValues();
     const occurance = watchedBillingPeriod === "MONTHLY" ? 1 : 12;
 
-    if (watchedBillingType === BillingType.PER_BOOKING) {
-      const sum = watchedBookingIncluded * watchedFixedBaseFee * occurance;
-      return `$ ${sum / 100} / ${occurance} months`;
-    }
-    const sum = watchedUsersIncluded * watchedFixedBaseFee * occurance;
+    const sum = watchedEntityCount * watchedEntityPrice * occurance;
     return `$ ${sum / 100} / ${occurance} months`;
   }
 
-  // const createOrganizationMutation = trpc.viewer.organizations.create.useMutation({
-  //   onSuccess: async (data) => {
-  //     telemetry.event(telemetryEventTypes.license_key_created);
-  //     // This is necessary so that server token has the updated upId
-  //     await session.update({
-  //       upId: data.upId,
-  //     });
-  //     if (isAdmin && data.userId !== session.data?.user.id) {
-  //       // Impersonate the user chosen as the organization owner(if the admin user isn't the owner himself), so that admin can now configure the organisation on his behalf.
-  //       // He won't need to have access to the org directly in this way.
-  //       signIn("impersonation-auth", {
-  //         username: data.email,
-  //         callbackUrl: `/settings/organizations/${data.organizationId}/about`,
-  //       });
-  //     }
-  //     router.push(`/settings/organizations/${data.organizationId}/about`);
-  //   },
-  //   onError: (err) => {
-  //     if (err.message === "organization_url_taken") {
-  //       newOrganizationFormMethods.setError("slug", { type: "custom", message: t("url_taken") });
-  //     } else if (err.message === "domain_taken_team" || err.message === "domain_taken_project") {
-  //       newOrganizationFormMethods.setError("slug", {
-  //         type: "custom",
-  //         message: t("problem_registering_domain"),
-  //       });
-  //     } else {
-  //       setServerErrorMessage(err.message);
-  //     }
-  //   },
-  // });
+  const mutation = usePrivateApiPost<{
+    stripeCheckoutUrl: string;
+  }>("/api/create-license", {
+    onSuccess: (data) => {
+      console.log("User created:", data);
+    },
+    onError: (error) => {
+      console.error("Error creating user:", error);
+      setServerErrorMessage(error.message);
+    },
+  });
 
   return (
     <>
@@ -107,6 +82,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
         id="createOrg"
         handleSubmit={(values) => {
           console.log(values);
+          mutation.mutate(values);
         }}>
         <div>
           {serverErrorMessage && (
@@ -195,84 +171,42 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
           />
         </div>
 
-        {watchedBillingType === "PER_BOOKING" && (
-          <div className="flex flex-wrap gap-2 [&>*]:flex-1">
-            <Controller
-              name="bookingsIncluded"
-              control={newLicenseKeyFormMethods.control}
-              rules={{
-                required: "Must enter a total of bookings",
-              }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  className="mt-2"
-                  name="bookingsIncluded"
-                  label="Total bookings included"
-                  placeholder="acme"
-                  defaultValue={value}
-                  onChange={(event) => onChange(+event.target.value)}
-                />
-              )}
-            />
-            <Controller
-              name="fixedBaseFee"
-              control={newLicenseKeyFormMethods.control}
-              rules={{
-                required: "Must enter fixed base fee",
-              }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  className="mt-2"
-                  name="fixedBaseFee"
-                  label="Fixed Base Fee"
-                  placeholder="acme"
-                  addOnSuffix="$"
-                  defaultValue={value / 100}
-                  onChange={(event) => onChange(+event.target.value * 100)}
-                />
-              )}
-            />
-          </div>
-        )}
-        {watchedBillingType === "PER_USER" && (
-          <div className="flex flex-wrap gap-2 [&>*]:flex-1">
-            <Controller
-              name="usersIncluded"
-              control={newLicenseKeyFormMethods.control}
-              rules={{
-                required: "Must enter a total of billable users",
-              }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  className="mt-2"
-                  name="bookingsIncluded"
-                  label="Total users included"
-                  placeholder="100"
-                  defaultValue={value}
-                  onChange={(event) => onChange(+event.target.value)}
-                />
-              )}
-            />
-            <Controller
-              name="fixedBaseFee"
-              control={newLicenseKeyFormMethods.control}
-              rules={{
-                required: "Must enter fixed price per user",
-              }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  className="mt-2"
-                  name="fixedBaseFee"
-                  label="Fixed price per user"
-                  placeholder="acme"
-                  addOnSuffix="$"
-                  defaultValue={value / 100}
-                  onChange={(event) => onChange(+event.target.value * 100)}
-                />
-              )}
-            />
-          </div>
-        )}
+        <div className="flex flex-wrap gap-2 [&>*]:flex-1">
+          <Controller
+            name="entityCount"
+            control={newLicenseKeyFormMethods.control}
+            rules={{
+              required: "Must enter a total of billable users",
+            }}
+            render={({ field: { value, onChange } }) => (
+              <TextField
+                className="mt-2"
+                name="entityCount"
+                label="Total entities included"
+                placeholder="100"
+                defaultValue={value}
+                onChange={(event) => onChange(+event.target.value)}
+              />
+            )}
+          />
+          <Controller
+            name="entityPrice"
+            control={newLicenseKeyFormMethods.control}
+            rules={{
+              required: "Must enter fixed price per user",
+            }}
+            render={({ field: { value, onChange } }) => (
+              <TextField
+                className="mt-2"
+                name="entityPrice"
+                label="Fixed price per entity"
+                addOnSuffix="$"
+                defaultValue={value / 100}
+                onChange={(event) => onChange(+event.target.value * 100)}
+              />
+            )}
+          />
+        </div>
 
         <div>
           <Controller
