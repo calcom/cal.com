@@ -14,6 +14,7 @@ export const DatePicker = ({
   event,
   schedule,
   classNames,
+  scrollToTimeSlots,
 }: {
   event: useEventReturnType;
   schedule: useScheduleForEventReturnType;
@@ -25,6 +26,7 @@ export const DatePicker = ({
     datePickerDatesActive?: string;
     datePickerToggle?: string;
   };
+  scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
@@ -47,6 +49,7 @@ export const DatePicker = ({
       isPending={schedule.isPending}
       onChange={(date: Dayjs | null) => {
         setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
+        if (scrollToTimeSlots) scrollToTimeSlots();
       }}
       onMonthChange={(date: Dayjs) => {
         setMonth(date.format("YYYY-MM"));

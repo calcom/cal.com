@@ -113,6 +113,9 @@ const BookerComponent = ({
 
   const timeslotsRef = useRef<HTMLDivElement>(null);
   const StickyOnDesktop = isMobile ? "div" : StickyBox;
+  const scrollToTimeSlots = () => {
+    timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const { bookerFormErrorRef, key, formEmail, bookingForm, errors: formErrors } = bookerForm;
 
@@ -346,7 +349,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker event={event} schedule={schedule} />
+                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
                     </div>
                   )}
               </BookerSection>
