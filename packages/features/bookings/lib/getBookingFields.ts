@@ -291,10 +291,10 @@ export const ensureBookingInputsHaveSystemFields = ({
       required: false,
       options: [
         {
-          label: "Use round-robin algorithm",
+          label: "Round-Robin host",
           value: "",
         },
-        { label: "Keep same host", value: "" },
+        { label: "Same host", value: "" },
       ],
       sources: [
         {

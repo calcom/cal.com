@@ -1281,9 +1281,9 @@ async function handler(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
         const newLuckyUser =
-          !!originalRescheduledBooking &&
+          originalRescheduledBooking &&
           bookingData.responses.hostAssignment &&
-          bookingData.responses.hostAssignment === "Keep same host"
+          bookingData.responses.hostAssignment === "Same host"
             ? freeUsers.find((user) => user.id === originalRescheduledBooking.userId)
             : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
                 // find a lucky user that is not already in the luckyUsers array

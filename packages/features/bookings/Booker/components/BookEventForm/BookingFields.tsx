@@ -68,7 +68,7 @@ export const BookingFields = ({
             return null;
           }
           if (!getValues("responses.hostAssignment")) {
-            setValue(`responses.${SystemField.Enum.hostAssignment}`, "Use round-robin algorithm");
+            setValue(`responses.${SystemField.Enum.hostAssignment}`, "Round-Robin host");
           }
           readOnly = false;
         }
