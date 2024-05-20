@@ -11,6 +11,7 @@ export const appSettingsSchema = z.object({
 export const appKeysSchema = z.object({
   apiKey: z.string().min(1),
   projectId: z.string().min(1),
+  endpoint: z.string().min(1),
 });
 
 export type AppKeys = z.infer<typeof appKeysSchema>;

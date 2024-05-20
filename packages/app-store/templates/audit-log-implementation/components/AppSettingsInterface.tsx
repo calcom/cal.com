@@ -1,9 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { InputShell } from "templates/audit-log-implementation/components/InputShell";
-import { NavigationPanel } from "templates/audit-log-implementation/components/NavigationPanel";
 
+import { InputShell } from "@calcom/app-store/templates/audit-log-implementation/components/InputShell";
+import { NavigationPanel } from "@calcom/app-store/templates/audit-log-implementation/components/NavigationPanel";
 import { availableTriggerTargets } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AuditLogTriggerTargets } from "@calcom/prisma/enums";
