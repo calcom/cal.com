@@ -119,7 +119,10 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
             </div>
           ) : null
         }>
-        <AppSettings slug={item.slug} />
+        <AppSettings
+          slug={item.slug}
+          credentialId={item.credentialOwner?.credentialId || item.userCredentialIds[0]}
+        />
       </AppListCard>
     );
   };

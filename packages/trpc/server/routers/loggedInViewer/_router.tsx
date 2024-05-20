@@ -2,6 +2,7 @@ import authedProcedure from "../../procedures/authedProcedure";
 import { importHandler, router } from "../../trpc";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
+import { ZAppCredentialByIdInputSchema } from "./appCredentialById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
 import { ZConnectAndJoinInputSchema } from "./connectAndJoin.schema";
 import { ZConnectedCalendarsInputSchema } from "./connectedCalendars.schema";
@@ -36,6 +37,7 @@ type AppsRouterHandlerCache = {
   integrations?: typeof import("./integrations.handler").integrationsHandler;
   appById?: typeof import("./appById.handler").appByIdHandler;
   appCredentialsByType?: typeof import("./appCredentialsByType.handler").appCredentialsByTypeHandler;
+  appCredentialById?: typeof import("./appCredentialById.handler").appCredentialByIdHandler;
   stripeCustomer?: typeof import("./stripeCustomer.handler").stripeCustomerHandler;
   updateProfile?: typeof import("./updateProfile.handler").updateProfileHandler;
   eventTypeOrder?: typeof import("./eventTypeOrder.handler").eventTypeOrderHandler;
@@ -167,6 +169,21 @@ export const loggedInViewerRouter = router({
 
       return UNSTABLE_HANDLER_CACHE.appCredentialsByType({ ctx, input });
     }),
+
+  appCredentialById: authedProcedure.input(ZAppCredentialByIdInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.appCredentialById) {
+      UNSTABLE_HANDLER_CACHE.appCredentialById = (
+        await import("./appCredentialById.handler")
+      ).appCredentialByIdHandler;
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.appCredentialById) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.appCredentialById({ ctx, input });
+  }),
 
   stripeCustomer: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.stripeCustomer) {
