@@ -313,6 +313,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  teamMember?: string | undefined;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -364,18 +365,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let currentSeats: CurrentSeats | undefined;
 
   let usersWithCredentials;
-  let teamMember: string;
+  let teamMember: string | undefined;
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     let crmRoundRobinLeadSkip;
     // See if CRM app is enabled and skip RR assignment
     const eventTypeAppMetadata = eventType?.metadata?.apps;
     for (const appKey in eventTypeAppMetadata) {
-      const app = eventTypeAppMetadata[appKey];
+      const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
       if (
         app.enabled &&
-        app.appCategories &&
-        app.appCategories.some((category) => category === "crm") &&
+        typeof app.appCategories === "object" &&
+        app.appCategories.some((category: string) => category === "crm") &&
         app.roundRobinLeadSkip
       ) {
         crmRoundRobinLeadSkip = app;
