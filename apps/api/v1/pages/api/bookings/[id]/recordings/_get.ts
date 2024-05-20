@@ -34,7 +34,7 @@ export async function getHandler(req: NextApiRequest) {
       download_link,
     }));
   });
-  const res = Promise.all(recordingWithDownloadLink);
+  const res = await Promise.all(recordingWithDownloadLink);
   return res;
 }
 
