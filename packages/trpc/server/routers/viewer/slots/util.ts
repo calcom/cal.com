@@ -404,21 +404,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
           if (contactOwner) {
             teamMember = contactOwner.user.email;
-            let fixedUsersWithCredential;
-            if (!!eventType.hosts?.length) {
-              fixedUsersWithCredential = eventType.hosts
-                .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
-                .map(({ isFixed, user }) => ({ isFixed, ...user }));
-            } else {
-              fixedUsersWithCredential = eventType.users
-                .filter((user) => user.email !== contactOwner.user.email)
-                .map((user) => ({
-                  isFixed:
-                    !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-                  ...user,
-                }));
-            }
-
+            const fixedUsersWithCredential = eventType.hosts
+              .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
+              .map(({ isFixed, user }) => ({ isFixed, ...user }));
             usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...fixedUsersWithCredential];
           }
         }
