@@ -925,6 +925,11 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);
 
+  const sidebarStylingAttributes = {
+    maxHeight: `calc(100vh - ${bannersHeight}px)`,
+    top: `${bannersHeight}px`,
+  };
+
   const bottomNavItems: NavigationItemType[] = [
     {
       name: "view_public_page",
@@ -951,7 +956,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
   return (
     <div className="relative">
       <aside
-        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+        style={!isPlatformUser ? sidebarStylingAttributes : {}}
         className="bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
