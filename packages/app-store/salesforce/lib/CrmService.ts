@@ -33,6 +33,13 @@ const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
 
+type ContactRecord = {
+  Id: string;
+  Email: string;
+  OwnerId: string;
+  [key: string]: any;
+};
+
 const salesforceTokenSchema = z.object({
   id: z.string(),
   issued_at: z.string(),
@@ -260,18 +267,20 @@ export default class SalesforceCRMService implements CRM {
 
     if (!results || !results.records.length) return [];
 
+    const records = results.records as ContactRecord[];
+
     if (includeOwner) {
-      const ownerIds = new Set();
-      results.records.forEach((record) => {
+      const ownerIds: Set<string> = new Set();
+      records.forEach((record) => {
         ownerIds.add(record.OwnerId);
       });
 
-      const ownersQuery = await Promise.all(
+      const ownersQuery = (await Promise.all(
         Array.from(ownerIds).map(async (ownerId) => {
           return this.getSalesforceUserFromOwnerId(ownerId);
         })
-      );
-      const contactsWithOwners = results.records.map((record) => {
+      )) as { records: ContactRecord[] }[];
+      const contactsWithOwners = records.map((record) => {
         const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
           .Email;
         return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
@@ -279,8 +288,8 @@ export default class SalesforceCRMService implements CRM {
       return contactsWithOwners;
     }
 
-    return results.records
-      ? results.records.map((record) => ({
+    return records
+      ? records.map((record) => ({
           id: record.Id,
           email: record.Email,
         }))
