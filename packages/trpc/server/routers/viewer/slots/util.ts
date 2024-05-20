@@ -364,7 +364,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let currentSeats: CurrentSeats | undefined;
 
   let usersWithCredentials;
-  let teamMember;
+  let teamMember: string;
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     let crmRoundRobinLeadSkip;
@@ -404,10 +404,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
           if (contactOwner) {
             teamMember = contactOwner.user.email;
-            const fixedUsersWithCredential = eventType.hosts
-              .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
-              .map(({ isFixed, user }) => ({ isFixed, ...user }));
-            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...fixedUsersWithCredential];
+            const contactOwnerIsRRHost = eventType.hosts.find(
+              (host) => host.user.email === teamMember && !host.isFixed
+            );
+            const usersWithoutContactOwner = contactOwnerIsRRHost
+              ? eventType.hosts
+                  .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
+                  .map(({ isFixed, user }) => ({ isFixed, ...user }))
+              : eventType.hosts
+                  .filter((host) => host.user.email !== contactOwner.user.email)
+                  .map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...usersWithoutContactOwner];
           }
         }
       }
