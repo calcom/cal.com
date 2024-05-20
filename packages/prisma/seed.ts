@@ -712,6 +712,18 @@ async function main() {
     },
   });
 
+  await createUserAndEventType({
+    user: {
+      email: "platform@example.com",
+      /** To comply with admin password requirements  */
+      password: "PLATFORMadmin2024!",
+      username: "platform",
+      name: "Platform Admin",
+      role: "ADMIN",
+      isPlatform: true, // user?.organization.isPlatform;
+    },
+  });
+
   const pro2UserTeam = await createUserAndEventType({
     user: {
       email: "teampro2@example.com",
