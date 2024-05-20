@@ -120,7 +120,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     isMandatoryReminder,
     action,
   } = args;
-  if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -141,6 +140,12 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   let timeZone = "";
 
   switch (action) {
+    case WorkflowActions.EMAIL_ADDRESS:
+      name = "";
+      attendeeToBeUsedInMail = evt.attendees[0];
+      attendeeName = evt.attendees[0].name;
+      timeZone = evt.organizer.timeZone;
+      break;
     case WorkflowActions.EMAIL_HOST:
       attendeeToBeUsedInMail = evt.attendees[0];
       name = evt.organizer.name;

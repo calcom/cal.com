@@ -28,6 +28,45 @@ type UpdateOptions = {
   input: TUpdateInputSchema;
 };
 
+const verifyEmailSender = async (
+  email: string,
+  userId: number,
+  teamId: number | null,
+  prisma: PrismaClient
+) => {
+  const verifiedEmail = await prisma.verifiedEmail.findFirst({
+    where: {
+      email,
+      OR: [{ userId }, { teamId }],
+    },
+  });
+
+  if (!verifiedEmail) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  }
+
+  if (teamId) {
+    if (!verifiedEmail.teamId) {
+      await prisma.verifiedEmail.update({
+        where: {
+          id: verifiedEmail.id,
+        },
+        data: {
+          teamId,
+        },
+      });
+    } else if (verifiedEmail.teamId !== teamId) {
+      await prisma.verifiedEmail.create({
+        data: {
+          email,
+          userId,
+          teamId,
+        },
+      });
+    }
+  }
+};
+
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
@@ -278,17 +317,20 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
       // update step
       const requiresSender =
-        newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
+        newStep.action === WorkflowActions.SMS_NUMBER ||
+        newStep.action === WorkflowActions.WHATSAPP_NUMBER ||
+        newStep.action === WorkflowActions.EMAIL_ADDRESS;
+
+      if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
+        await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+      }
       await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
         },
         data: {
           action: newStep.action,
-          sendTo: requiresSender /*||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
-            ? newStep.sendTo
-            : null,
+          sendTo: requiresSender ? newStep.sendTo : null,
           stepNumber: newStep.stepNumber,
           workflowId: newStep.workflowId,
           reminderBody: newStep.reminderBody,
