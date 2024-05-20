@@ -14,6 +14,7 @@ export const DatePicker = ({
   event,
   schedule,
   classNames,
+  scrollToTimeSlots,
 }: {
   event: useEventReturnType;
   schedule: useScheduleForEventReturnType;
@@ -25,6 +26,7 @@ export const DatePicker = ({
     datePickerDatesActive?: string;
     datePickerToggle?: string;
   };
+  scrollToTimeSlots?: () => void;
 }) => {
   const { i18n } = useLocale();
   const [month, selectedDate] = useBookerStore((state) => [state.month, state.selectedDate], shallow);
@@ -59,6 +61,7 @@ export const DatePicker = ({
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
       slots={schedule?.data?.slots}
+      scrollToTimeSlots={scrollToTimeSlots}
     />
   );
 };
