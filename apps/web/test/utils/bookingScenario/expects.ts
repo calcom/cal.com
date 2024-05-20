@@ -1,5 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { InputEventType, getOrganizer } from "./bookingScenario";
+
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
@@ -16,7 +18,6 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.

@@ -36,9 +36,10 @@ enum SchedulingType {
 }
 
 enum PeriodType {
-  UNLIMITED @map("unlimited")
-  ROLLING   @map("rolling")
-  RANGE     @map("range")
+  UNLIMITED      @map("unlimited")
+  ROLLING        @map("rolling")
+  ROLLING_WINDOW @map("rolling_window")
+  RANGE          @map("range")
 }
 
 model Host {
