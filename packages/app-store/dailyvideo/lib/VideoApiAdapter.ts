@@ -343,10 +343,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getWebhooks: async (): Promise<TGetDailyWebhooks> => {
       try {
-        const webhooks = await fetcher("/webhooks").then(getDailyWebhooks.res);
-        return webhooks;
+        const webhooks = await fetcher("/webhooks").then(getDailyWebhooks.parse);
+        return Promise.resolve(webhooks);
       } catch (err) {
         console.error("Error fetching daily webhooks", err);
+        throw new Error("Something went wrong! Unable to get webhook");
       }
     },
   };
