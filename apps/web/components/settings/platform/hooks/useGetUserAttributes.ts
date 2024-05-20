@@ -1,5 +1,5 @@
-import { useCheckTeamBilling } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
-import useMeQuery from "@lib/hooks/useMeQuery";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 export const useGetUserAttributes = () => {
   const { data: user, isLoading: isUserLoading } = useMeQuery();

@@ -84,6 +84,7 @@ import {
   type IconName,
 } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -381,6 +382,7 @@ interface UserDropdownProps {
 }
 
 function UserDropdown({ small }: UserDropdownProps) {
+  const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useUtils();
@@ -469,33 +471,42 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/profile">
-                    {t("my_profile")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={
-                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                    }
-                    href="/settings/my-account/general">
-                    {t("my_settings")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/out-of-office">
-                    {t("out_of_office")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {!isPlatformUser && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/profile">
+                        {t("my_profile")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/general">
+                        {t("my_settings")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/out-of-office">
+                        {t("out_of_office")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
                 <DropdownMenuItem>
                   <DropdownItem
                     CustomStartIcon={<Discord className="text-default h-4 w-4" />}
@@ -519,11 +530,17 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                {!isPlatformUser && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="download"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={DESKTOP_APP_LINK}>
+                      {t("download_desktop_app")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
 
                 <DropdownMenuSeparator />
 
