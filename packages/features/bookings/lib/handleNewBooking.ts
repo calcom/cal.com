@@ -1445,29 +1445,31 @@ async function handler(
   const teamDestinationCalendars: DestinationCalendar[] = [];
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users.slice(1).map(async (user) => {
-    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-    // push to teamDestinationCalendars if it's a team event but collective only
-    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push({
-        ...user.destinationCalendar,
-        externalId: processExternalId(user.destinationCalendar),
-      });
-    }
+  const teamMemberPromises = users
+    .filter((user) => user.email !== organizerUser.email)
+    .map(async (user) => {
+      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
+      // push to teamDestinationCalendars if it's a team event but collective only
+      if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+        teamDestinationCalendars.push({
+          ...user.destinationCalendar,
+          externalId: processExternalId(user.destinationCalendar),
+        });
+      }
 
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      name: user.name ?? "",
-      firstName: "",
-      lastName: "",
-      timeZone: user.timeZone,
-      language: {
-        translate: await getTranslation(user.locale ?? "en", "common"),
-        locale: user.locale ?? "en",
-      },
-    };
-  });
+      return {
+        id: user.id,
+        email: user.email ?? "",
+        name: user.name ?? "",
+        firstName: "",
+        lastName: "",
+        timeZone: user.timeZone,
+        language: {
+          translate: await getTranslation(user.locale ?? "en", "common"),
+          locale: user.locale ?? "en",
+        },
+      };
+    });
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
