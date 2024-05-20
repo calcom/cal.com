@@ -133,6 +133,14 @@ const BookerComponent = ({
     onToggleCalendar,
   } = calendars;
 
+  const scrolledToTimeslotsOnce = useRef(false);
+  const scrollToTimeSlots = () => {
+    if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
+      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+      scrolledToTimeslotsOnce.current = true;
+    }
+  };
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -346,7 +354,7 @@ const BookerComponent = ({
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
                     <div className="mt-auto px-5 py-3 ">
-                      <DatePicker event={event} schedule={schedule} />
+                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
                     </div>
                   )}
               </BookerSection>
@@ -379,6 +387,7 @@ const BookerComponent = ({
                 }}
                 event={event}
                 schedule={schedule}
+                scrollToTimeSlots={scrollToTimeSlots}
               />
             </BookerSection>
 
