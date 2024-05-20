@@ -36,7 +36,7 @@ export function EventTypesList({ table, orgTeams }: Props) {
   const { data } = trpc.viewer.eventTypes.getByViewer.useQuery({
     filters: { teamIds, schedulingTypes: [SchedulingType.ROUND_ROBIN] },
   });
-  const mutation = trpc.viewer.organizations.addMembersToEventTypes.useMutation({
+  const addMutation = trpc.viewer.organizations.addMembersToEventTypes.useMutation({
     onError: (error) => {
       showToast(error.message, "error");
     },
@@ -55,8 +55,27 @@ export function EventTypesList({ table, orgTeams }: Props) {
       table.toggleAllRowsSelected(false);
     },
   });
+  const removeHostsMutation = trpc.viewer.organizations.removeHostsFromEventTypes.useMutation({
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+    onSuccess: () => {
+      showToast(
+        `${selectedUsers.length} users were removed from ${Array.from(removeHostFromEvents).length} events`,
+        "success"
+      );
+
+      utils.viewer.organizations.listMembers.invalidate();
+      utils.viewer.eventTypes.invalidate();
+
+      // Clear the selected values
+      setRemoveHostFromEvents(new Set());
+      table.toggleAllRowsSelected(false);
+    },
+  });
   const [selectedEvents, setSelectedEvents] = useState<Set<number>>(new Set());
   const [selectedTeams, setSelectedTeams] = useState<Set<number>>(new Set());
+  const [removeHostFromEvents, setRemoveHostFromEvents] = useState<Set<number>>(new Set());
   const teams = data?.eventTypeGroups;
   const selectedUsers = table.getSelectedRowModel().flatRows.map((row) => row.original);
 
@@ -94,11 +113,13 @@ export function EventTypesList({ table, orgTeams }: Props) {
                     if (events.length === 0 || !teamId) return null;
 
                     const ids = events.map((event) => event.id);
-                    const isSelected =
-                      ids.every((id) => selectedEvents.has(id)) ||
-                      selectedUsers.every((user) =>
-                        events.every((event) => event.hosts.some((host) => host.userId === user.id))
-                      );
+                    const areAllUsersHostForTeam = selectedUsers.every((user) =>
+                      events.every((event) => event.hosts.some((host) => host.userId === user.id))
+                    );
+                    const isSelected = ids.every(
+                      (id) =>
+                        selectedEvents.has(id) || (areAllUsersHostForTeam && !removeHostFromEvents.has(id))
+                    );
                     return (
                       <>
                         <ListItem
@@ -108,8 +129,22 @@ export function EventTypesList({ table, orgTeams }: Props) {
                               // Add current team and its event
                               addValue(selectedTeams, setSelectedTeams, [teamId]);
                               addValue(selectedEvents, setSelectedEvents, ids);
+                              setRemoveHostFromEvents(new Set());
                             } else {
-                              // Remove current team and its event
+                              const eventIdsWhereAllUsersAreHosts = events
+                                .filter((event) =>
+                                  selectedUsers.every((user) =>
+                                    event.hosts.some((host) => host.userId === user.id)
+                                  )
+                                )
+                                .map((event) => event.id);
+
+                              addValue(
+                                removeHostFromEvents,
+                                setRemoveHostFromEvents,
+                                eventIdsWhereAllUsersAreHosts
+                              );
+                              // Remove selected team and its event
                               removeValue(selectedEvents, setSelectedEvents, ids);
                               removeValue(selectedTeams, setSelectedTeams, [teamId]);
                             }
@@ -120,31 +155,43 @@ export function EventTypesList({ table, orgTeams }: Props) {
                         />
                         {events.map((event) => {
                           const hosts = event.hosts;
+                          const areAllUsersHostForEventType = selectedUsers.every((user) =>
+                            hosts.some((host) => host.userId === user.id)
+                          );
                           const isSelected =
                             selectedEvents.has(event.id) ||
-                            selectedUsers.every((user) => hosts.some((host) => host.userId === user.id));
+                            (areAllUsersHostForEventType && !removeHostFromEvents.has(event.id));
                           return (
                             <ListItem
                               isTeam={false}
                               onSelect={() => {
                                 if (!isSelected) {
-                                  // Add current event and its team
-                                  addValue(selectedEvents, setSelectedEvents, [event.id]);
-                                  addValue(selectedTeams, setSelectedTeams, [teamId]);
+                                  if (areAllUsersHostForEventType) {
+                                    removeValue(removeHostFromEvents, setRemoveHostFromEvents, [event.id]);
+                                  } else {
+                                    // Add current event and its team
+                                    addValue(selectedEvents, setSelectedEvents, [event.id]);
+                                    addValue(selectedTeams, setSelectedTeams, [teamId]);
+                                  }
                                 } else {
-                                  // remove current event and its team
-                                  removeValue(selectedEvents, setSelectedEvents, [event.id]);
-                                  // if no event from current team is selected, remove the team
-                                  setSelectedEvents((selectedEvents) => {
-                                    if (!ids.some((id) => selectedEvents.has(id))) {
-                                      setSelectedTeams((selectedTeams) => {
-                                        const updatedTeams = new Set(selectedTeams);
-                                        updatedTeams.delete(teamId);
-                                        return updatedTeams;
-                                      });
-                                    }
-                                    return selectedEvents;
-                                  });
+                                  if (areAllUsersHostForEventType) {
+                                    // remove selected users as hosts
+                                    addValue(removeHostFromEvents, setRemoveHostFromEvents, [event.id]);
+                                  } else {
+                                    // remove current event and its team
+                                    removeValue(selectedEvents, setSelectedEvents, [event.id]);
+                                    // if no event from current team is selected, remove the team
+                                    setSelectedEvents((selectedEvents) => {
+                                      if (!ids.some((id) => selectedEvents.has(id))) {
+                                        setSelectedTeams((selectedTeams) => {
+                                          const updatedTeams = new Set(selectedTeams);
+                                          updatedTeams.delete(teamId);
+                                          return updatedTeams;
+                                        });
+                                      }
+                                      return selectedEvents;
+                                    });
+                                  }
                                 }
                               }}
                               key={event.id}
@@ -164,11 +211,21 @@ export function EventTypesList({ table, orgTeams }: Props) {
               className="ml-auto mr-1.5 rounded-md"
               size="sm"
               onClick={() => {
-                mutation.mutateAsync({
-                  userIds: selectedUsers.map((user) => user.id),
-                  teamIds: Array.from(selectedTeams),
-                  eventTypeIds: Array.from(selectedEvents),
-                });
+                const userIds = selectedUsers.map((user) => user.id);
+                if (selectedEvents.size > 0) {
+                  addMutation.mutateAsync({
+                    userIds: userIds,
+                    teamIds: Array.from(selectedTeams),
+                    eventTypeIds: Array.from(selectedEvents),
+                  });
+                }
+
+                if (removeHostFromEvents.size > 0) {
+                  removeHostsMutation.mutateAsync({
+                    userIds,
+                    eventTypeIds: Array.from(removeHostFromEvents),
+                  });
+                }
               }}>
               {t("apply")}
             </Button>
