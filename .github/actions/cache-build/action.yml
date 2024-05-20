@@ -8,7 +8,7 @@ runs:
   using: "composite"
   steps:
     - name: Cache production build
-      uses: buildjet/cache@v3
+      uses: buildjet/cache@v4
       id: cache-build
       env:
         # WARN: Don't touch this cache key. Currently github.sha refers to the latest commit in main
