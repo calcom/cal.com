@@ -65,6 +65,45 @@ const bookingSelect = {
   },
 };
 
+export const verifyEmailSender = async (
+  email: string,
+  userId: number,
+  teamId: number | null,
+  prisma: PrismaClient
+) => {
+  const verifiedEmail = await prisma.verifiedEmail.findFirst({
+    where: {
+      email,
+      OR: [{ userId }, { teamId }],
+    },
+  });
+
+  if (!verifiedEmail) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  }
+
+  if (teamId) {
+    if (!verifiedEmail.teamId) {
+      await prisma.verifiedEmail.update({
+        where: {
+          id: verifiedEmail.id,
+        },
+        data: {
+          teamId,
+        },
+      });
+    } else if (verifiedEmail.teamId !== teamId) {
+      await prisma.verifiedEmail.create({
+        data: {
+          email,
+          userId,
+          teamId,
+        },
+      });
+    }
+  }
+};
+
 export function getSender(
   step: Pick<WorkflowStep, "action" | "sender"> & { senderName: string | null | undefined }
 ) {
@@ -542,8 +581,8 @@ async function scheduleBookingReminders(
       };
       if (
         step.action === WorkflowActions.EMAIL_HOST ||
-        step.action === WorkflowActions.EMAIL_ATTENDEE /*||
-                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+        step.action === WorkflowActions.EMAIL_ATTENDEE ||
+        step.action === WorkflowActions.EMAIL_ADDRESS
       ) {
         let sendTo: string[] = [];
 
@@ -554,8 +593,9 @@ async function scheduleBookingReminders(
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
-          /*case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";*/
+          case WorkflowActions.EMAIL_ADDRESS:
+            await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+            sendTo = step.sendTo || "";
         }
 
         await scheduleEmailReminder({
