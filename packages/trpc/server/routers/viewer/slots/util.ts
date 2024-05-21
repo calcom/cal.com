@@ -2,6 +2,7 @@
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
 
+import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -312,6 +313,7 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  teamMember?: string | undefined;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -362,13 +364,74 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
-    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-    ...user,
-  }));
-  // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  let usersWithCredentials;
+  let teamMember: string | undefined;
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
+    let crmRoundRobinLeadSkip;
+    // See if CRM app is enabled and skip RR assignment
+    const eventTypeAppMetadata = eventType?.metadata?.apps;
+    for (const appKey in eventTypeAppMetadata) {
+      const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
+      if (
+        app.enabled &&
+        typeof app.appCategories === "object" &&
+        app.appCategories.some((category: string) => category === "crm") &&
+        app.roundRobinLeadSkip
+      ) {
+        crmRoundRobinLeadSkip = app;
+        break;
+      }
+    }
+
+    if (crmRoundRobinLeadSkip) {
+      const crmCredential = await prisma.credential.findUnique({
+        where: {
+          id: crmRoundRobinLeadSkip.credentialId,
+        },
+        include: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      if (crmCredential) {
+        const crm = new CrmManager(crmCredential);
+        const contact = await crm.getContacts(input.bookerEmail, true);
+        if (contact?.length) {
+          // Since this is enabled for round robin event, we iterate through hosts
+          const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
+          if (contactOwner) {
+            teamMember = contactOwner.user.email;
+            const contactOwnerIsRRHost = eventType.hosts.find(
+              (host) => host.user.email === teamMember && !host.isFixed
+            );
+            const otherHosts = contactOwnerIsRRHost
+              ? eventType.hosts
+                  .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
+                  .map(({ isFixed, user }) => ({ isFixed, ...user }))
+              : eventType.hosts
+                  .filter((host) => host.user.email !== contactOwner.user.email)
+                  .map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...otherHosts];
+          }
+        }
+      }
+    }
+  }
+
+  if (!usersWithCredentials) {
+    if (eventType.schedulingType && !!eventType.hosts?.length) {
+      usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+    } else {
+      usersWithCredentials = eventType.users.map((user) => ({
+        isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+        ...user,
+      }));
+    }
   }
 
   const durationToUse = input.duration || 0;
@@ -702,6 +765,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: computedAvailableSlots,
+    teamMember,
   };
 }
 

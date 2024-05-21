@@ -16,6 +16,7 @@ type UseHandleBookingProps = {
   event: useEventReturnType;
   metadata: Record<string, string>;
   hashedLink?: string | null;
+  teamMemberEmail?: string;
   handleBooking: (input: UseCreateBookingInput) => void;
   handleInstantBooking: (input: BookingCreateBody) => void;
   handleRecBooking: (input: BookingCreateBody[]) => void;
@@ -27,6 +28,7 @@ export const useHandleBookEvent = ({
   event,
   metadata,
   hashedLink,
+  teamMemberEmail,
   handleBooking,
   handleInstantBooking,
   handleRecBooking,
@@ -79,6 +81,7 @@ export const useHandleBookEvent = ({
         username: username || "",
         metadata: metadata,
         hashedLink,
+        teamMemberEmail,
         orgSlug: orgSlug ? orgSlug : undefined,
       };
 
