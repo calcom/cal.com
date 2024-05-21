@@ -48,7 +48,7 @@ WORKDIR /app
 
 COPY  --from=builder /app/. ./
 
-RUN yarn run test
+RUN yarn test
 
 
 #############################################
