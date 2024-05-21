@@ -31,11 +31,11 @@ export default function AppSettings(props: { credentialId: string }) {
   });
 
   useEffect(() => {
-    if (isLoading === false && data && data.credential && data.credential.key) {
+    if (isLoading === false && data) {
       form.reset({
-        apiKey: data.credential.key.apiKey,
-        projectId: data.credential.key.projectId,
-        endpoint: data.credential.key.endpoint,
+        apiKey: data.apiKey as string,
+        projectId: data.projectId as string,
+        endpoint: data.endpoint as string,
       });
     }
   }, [isLoading]);
@@ -67,7 +67,7 @@ export default function AppSettings(props: { credentialId: string }) {
         handleSubmit={async (values) => {
           try {
             updateAppCredentialsMutation.mutate({
-              credentialId: 1,
+              credentialId: parseInt(props.credentialId),
               key: values,
             });
           } catch (e) {

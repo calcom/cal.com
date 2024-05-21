@@ -35,6 +35,8 @@ import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as audit_log_implementation_zod_ts } from "./templates/audit-log-implementation/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
+import { appDataSchema as test_zod_ts } from "./test/zod";
+import { appDataSchema as ttt_zod_ts } from "./ttt/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
 import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
@@ -78,6 +80,8 @@ export const appDataSchemas = {
   "audit-log-implementation": audit_log_implementation_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
+  test: test_zod_ts,
+  ttt: ttt_zod_ts,
   vital: vital_zod_ts,
   webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,

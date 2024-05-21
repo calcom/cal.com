@@ -18,6 +18,8 @@ export const AppSettingsComponentsMap = {
   "general-app-settings": dynamic(() =>
     import("./templates/general-app-settings/components/AppSettingsInterface")
   ),
+  test: dynamic(() => import("./test/components/AppSettingsInterface")),
+  ttt: dynamic(() => import("./ttt/components/AppSettingsInterface")),
   weather_in_your_calendar: dynamic(() =>
     import("./weather_in_your_calendar/components/AppSettingsInterface")
   ),
