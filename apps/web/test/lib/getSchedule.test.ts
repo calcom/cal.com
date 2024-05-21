@@ -1,13 +1,4 @@
 import CalendarManagerMock from "../../../../tests/libs/__mocks__/CalendarManager";
-import prismock from "../../../../tests/libs/__mocks__/prisma";
-
-import { diff } from "jest-diff";
-import { describe, expect, vi, beforeEach, afterEach, test } from "vitest";
-
-import dayjs from "@calcom/dayjs";
-import type { BookingStatus } from "@calcom/prisma/enums";
-import type { Slot } from "@calcom/trpc/server/routers/viewer/slots/types";
-import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import {
   getDate,
@@ -16,7 +7,19 @@ import {
   createOrganization,
   getOrganizer,
   getScenarioData,
+  Timezones,
+  TestData,
 } from "../utils/bookingScenario/bookingScenario";
+
+import { describe, vi, test } from "vitest";
+
+import dayjs from "@calcom/dayjs";
+import type { BookingStatus } from "@calcom/prisma/enums";
+import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
+
+import { expect } from "./getSchedule/expects";
+import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
+import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -24,149 +27,8 @@ vi.mock("@calcom/lib/constants", () => ({
   RESERVED_SUBDOMAINS: ["auth", "docs"],
 }));
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace jest {
-    interface Matchers<R> {
-      toHaveTimeSlots(expectedSlots: string[], date: { dateString: string }): R;
-    }
-  }
-}
-
-expect.extend({
-  toHaveTimeSlots(
-    schedule: { slots: Record<string, Slot[]> },
-    expectedSlots: string[],
-    { dateString }: { dateString: string }
-  ) {
-    if (!schedule.slots[`${dateString}`]) {
-      return {
-        pass: false,
-        message: () => `has no timeslots for ${dateString}`,
-      };
-    }
-    if (
-      !schedule.slots[`${dateString}`]
-        .map((slot) => slot.time)
-        .every((actualSlotTime, index) => {
-          return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
-        })
-    ) {
-      return {
-        pass: false,
-        message: () =>
-          `has incorrect timeslots for ${dateString}.\n\r ${diff(
-            expectedSlots.map((expectedSlot) => `${dateString}T${expectedSlot}`),
-            schedule.slots[`${dateString}`].map((slot) => slot.time)
-          )}`,
-      };
-    }
-    return {
-      pass: true,
-      message: () => "has correct timeslots ",
-    };
-  },
-});
-
-const Timezones = {
-  "+5:30": "Asia/Kolkata",
-  "+6:00": "Asia/Dhaka",
-};
-
-const TestData = {
-  selectedCalendars: {
-    google: {
-      integration: "google_calendar",
-      externalId: "john@example.com",
-    },
-  },
-  credentials: {
-    google: getGoogleCalendarCredential(),
-  },
-  schedules: {
-    IstWorkHours: {
-      id: 1,
-      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
-      availability: [
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T09:30:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: null,
-        },
-      ],
-      timeZone: Timezones["+5:30"],
-    },
-    IstWorkHoursWithDateOverride: (dateString: string) => ({
-      id: 1,
-      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT but with a Date Override for 2PM to 6PM IST(in GST time it is 8:30AM to 12:30PM)",
-      availability: [
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T09:30:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: null,
-        },
-        {
-          userId: null,
-          eventTypeId: null,
-          days: [0, 1, 2, 3, 4, 5, 6],
-          startTime: new Date("1970-01-01T14:00:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: dateString,
-        },
-      ],
-      timeZone: Timezones["+5:30"],
-    }),
-  },
-  users: {
-    example: {
-      name: "Example",
-      username: "example",
-      defaultScheduleId: 1,
-      email: "example@example.com",
-      timeZone: Timezones["+5:30"],
-    },
-  },
-  apps: {
-    googleCalendar: {
-      slug: "google-calendar",
-      dirName: "whatever",
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      keys: {
-        expiry_date: Infinity,
-        client_id: "client_id",
-        client_secret: "client_secret",
-        redirect_uris: ["http://localhost:3000/auth/callback"],
-      },
-    },
-  },
-};
-
-const cleanup = async () => {
-  await prismock.eventType.deleteMany();
-  await prismock.user.deleteMany();
-  await prismock.schedule.deleteMany();
-  await prismock.selectedCalendar.deleteMany();
-  await prismock.credential.deleteMany();
-  await prismock.booking.deleteMany();
-  await prismock.app.deleteMany();
-};
-
-beforeEach(async () => {
-  await cleanup();
-});
-
-afterEach(async () => {
-  await cleanup();
-});
-
 describe("getSchedule", () => {
+  setupAndTeardown();
   describe("Calendar event", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -201,7 +63,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
       // An event with one accepted booking
       await createBookingScenario(scenarioData);
@@ -445,22 +307,12 @@ describe("getSchedule", () => {
       );
     });
 
-    // FIXME: Fix minimumBookingNotice is respected test
-    // eslint-disable-next-line playwright/no-skipped-test
-    test.skip("minimumBookingNotice is respected", async () => {
-      vi.useFakeTimers().setSystemTime(
-        (() => {
-          const today = new Date();
-          // Beginning of the day in current timezone of the system
-          return new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        })()
-      );
-
+    test("minimumBookingNotice is respected", async () => {
       await createBookingScenario({
         eventTypes: [
           {
             id: 1,
-            length: 120,
+            length: 2 * 60,
             minimumBookingNotice: 13 * 60, // Would take the minimum bookable time to be 18:30UTC+13 = 7:30AM UTC
             users: [
               {
@@ -470,7 +322,7 @@ describe("getSchedule", () => {
           },
           {
             id: 2,
-            length: 120,
+            length: 2 * 60,
             minimumBookingNotice: 10 * 60, // Would take the minimum bookable time to be 18:30UTC+10 = 4:30AM UTC
             users: [
               {
@@ -487,8 +339,13 @@ describe("getSchedule", () => {
           },
         ],
       });
+
       const { dateString: todayDateString } = getDate();
       const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+
       const scheduleForEventWithBookingNotice13Hrs = await getSchedule({
         input: {
           eventTypeId: 1,
@@ -499,9 +356,11 @@ describe("getSchedule", () => {
           isTeamEvent: false,
         },
       });
+
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC*/ `08:00:00.000Z`,
+          /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
+          `08:00:00.000Z`,
           `10:00:00.000Z`,
           `12:00:00.000Z`,
         ],
@@ -522,17 +381,15 @@ describe("getSchedule", () => {
       });
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
-          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC but next available is 06:00*/
-          `06:00:00.000Z`,
-          `08:00:00.000Z`,
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
+          `05:00:00.000Z`,
+          `07:00:00.000Z`,
+          `09:00:00.000Z`,
         ],
         {
           dateString: todayDateString,
         }
       );
-      vi.useRealTimers();
     });
 
     test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
@@ -569,7 +426,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -643,7 +500,7 @@ describe("getSchedule", () => {
             status: "ACCEPTED" as BookingStatus,
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -701,7 +558,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -879,6 +736,7 @@ describe("getSchedule", () => {
         }
       );
     });
+
     test("test that booking limit is working correctly if user is all day available", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
@@ -938,6 +796,7 @@ describe("getSchedule", () => {
             ],
           },
         ],
+        // One bookings for each(E1 and E2) on plus2Date
         bookings: [
           {
             userId: 101,

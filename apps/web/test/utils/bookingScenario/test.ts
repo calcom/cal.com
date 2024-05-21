@@ -1,9 +1,10 @@
+import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
 import type { TestFunction } from "vitest";
 
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
-import { createOrganization } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 const WEBSITE_PROTOCOL = new URL(WEBSITE_URL).protocol;
 const _testWithAndWithoutOrg = (

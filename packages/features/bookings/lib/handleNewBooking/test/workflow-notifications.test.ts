@@ -1,8 +1,3 @@
-import { describe, beforeEach } from "vitest";
-
-import { resetTestSMS } from "@calcom/lib/testSMS";
-import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getGoogleCalendarCredential,
@@ -24,6 +19,12 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe, beforeEach } from "vitest";
+
+import { resetTestSMS } from "@calcom/lib/testSMS";
+import { SMSLockState, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
