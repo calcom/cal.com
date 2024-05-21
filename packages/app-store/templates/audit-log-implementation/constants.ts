@@ -1,5 +1,4 @@
-import { getHref } from "templates/audit-log-implementation/lib/utils";
-
+import { getHref } from "@calcom/app-store/templates/audit-log-implementation/lib/utils";
 import type { IconName } from "@calcom/ui";
 
 type AppSettingOptionEntry = {

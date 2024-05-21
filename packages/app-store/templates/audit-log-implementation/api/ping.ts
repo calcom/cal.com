@@ -1,9 +1,9 @@
-import * as Retraced from "@retracedhq/retraced";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
+import GenericAuditLogManager from "../lib/AuditLogManager";
 import { appKeysSchema } from "../zod";
 
 const pingEvent = {
@@ -33,10 +33,10 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!projectId || !apiKey || !endpoint)
     throw new HttpError({ statusCode: 400, message: "App keys not provided." });
 
-  const retraced = new Retraced.Client({ projectId, apiKey, endpoint });
+  const auditLogManager = new GenericAuditLogManager({ projectId, apiKey, endpoint });
 
   try {
-    const response = await retraced.reportEvent(pingEvent);
+    auditLogManager.reportEvent(pingEvent);
 
     // if (userInfo.first_name) {
     return res.status(200).end();

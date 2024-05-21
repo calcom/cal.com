@@ -1,20 +1,16 @@
-import { appSettingsOptions } from "templates/audit-log-implementation/constants";
-
-import { HorizontalTabs, VerticalTabs } from "@calcom/ui";
+import { appSettingsOptions } from "@calcom/app-store/templates/audit-log-implementation/constants";
+import { VerticalTabs } from "@calcom/ui";
 
 export const NavigationPanel = () => {
   return (
     <>
-      <div className="hidden xl:block">
+      <div className="block">
         <VerticalTabs
           tabs={appSettingsOptions}
           sticky
           linkShallow
           // itemClassname={classNames?.verticalTabsItem}
         />
-      </div>
-      <div className="block overflow-x-scroll xl:hidden">
-        <HorizontalTabs tabs={appSettingsOptions} linkShallow />
       </div>
     </>
   );

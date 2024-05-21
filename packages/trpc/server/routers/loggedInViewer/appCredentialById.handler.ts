@@ -2,13 +2,13 @@ import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import type { TAppCredentialsByIdInputSchema } from "./appCredentialsById.schema";
+import type { TAppCredentialByIdInputSchema } from "./appCredentialById.schema";
 
 type AppCredentialsByIdOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
-  input: TAppCredentialsByIdInputSchema;
+  input: TAppCredentialByIdInputSchema;
 };
 
 export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByIdOptions) => {
@@ -34,7 +34,7 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
     },
   });
 
-  return {
-    credential,
-  };
+  if (credential && credential?.key) {
+    return credential.key;
+  } else return {};
 };
