@@ -195,20 +195,24 @@ jobs:
         run: |
               echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
-      - name:  Run Trivy for HIGH,CRITICAL CVEs and report (non-blocking)
-        uses: aquasecurity/trivy-action@master
+      - name: Run Trivy for HIGH,CRITICAL CVEs and report (non-blocking)
+        uses: aquasecurity/trivy-action@0.20.0
         with:
           image-ref: ghcr.io/${{env.REPO}}:${{ github.run_id }}
-          exit-code: 0
-          ignore-unfixed: true
+          format: sarif # table, json, sarif
+          exit-code: 0 # 1 or 0. 0 means don't fail the job if issues are found
+          ignore-unfixed: true # Ignore unpatched/unfixed vulnerabilities
           vuln-type: 'os,library'
-          severity: 'HIGH,CRITICAL'
-          format: 'sarif'
+          severity: 'HIGH,CRITICAL' # UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          timeout: 10m0s
           output: 'trivy-results.sarif'
+        env:
+          TRIVY_USERNAME: ${{ github.repository_owner }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() 
         with:
           sarif_file: 'trivy-results.sarif'
 
