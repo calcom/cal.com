@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
@@ -187,6 +188,7 @@ test.describe("Bookings", () => {
         }
       );
     });
+
     test.describe("User Event with same slug as another user's", () => {
       test("booking is created for first user when first user is booked", async ({ page, users, orgs }) => {
         const org = await orgs.create({
@@ -250,6 +252,55 @@ test.describe("Bookings", () => {
           }
         );
       });
+    });
+
+    test("check SSR and OG ", async ({ page, users, orgs }) => {
+      const name = "Test User";
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+
+      const user = await users.create({
+        name,
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.MEMBER,
+      });
+
+      const firstEventType = await user.getFirstEventAsOwner();
+      const calLink = `/${user.username}/${firstEventType.slug}`;
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          const [response] = await Promise.all([
+            // This promise resolves to the main resource response
+            page.waitForResponse(
+              (response) => response.url().includes(`${calLink}`) && response.status() === 200
+            ),
+
+            // Trigger the page navigation
+            page.goto(`${calLink}`),
+          ]);
+          const ssrResponse = await response.text();
+          const document = new JSDOM(ssrResponse).window.document;
+          const orgOrigin = `http://${org.slug}.cal.local:3000`;
+          const titleText = document.querySelector("title")?.textContent;
+          const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+          const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
+          const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+          expect(titleText).toContain(name);
+          expect(ogUrl).toEqual(`${orgOrigin}${calLink}`);
+          expect(canonicalLink).toEqual(`${orgOrigin}${calLink}`);
+          // Verify that there is correct URL that would generate the awesome OG image
+          expect(ogImage).toContain(
+            "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+          );
+          // Verify Organizer Name in the URL
+          expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+        }
+      );
     });
   });
 
