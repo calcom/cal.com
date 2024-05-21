@@ -321,9 +321,10 @@ export interface IGetAvailableSlots {
 }
 
 async function getCRMContactOwnerForRRLeadSkip(
-  apps: z.infer<typeof EventTypeAppMetadataSchema>,
-  bookerEmail: string
+  bookerEmail: string,
+  apps?: z.infer<typeof EventTypeAppMetadataSchema>
 ) {
+  if (!apps) return;
   const crm = await getCRMManagerWithRRLeadSkip(apps);
 
   if (!crm) return;
@@ -434,8 +435,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
-      eventType?.metadata?.apps,
-      input.bookerEmail
+      input.bookerEmail,
+      eventType?.metadata?.apps
     );
     const contactOwnerHost = eventType.hosts.find((host) => host.user.email === crmContactOwner);
     if (contactOwnerHost) {

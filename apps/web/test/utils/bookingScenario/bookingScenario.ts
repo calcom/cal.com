@@ -136,6 +136,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
+  metadata?: any;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -195,6 +196,7 @@ export async function addEventTypesToDb(
     destinationCalendar?: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
+    metadata?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -1470,6 +1472,7 @@ export function mockCrmApp(
     getContacts?: {
       id: string;
       email: string;
+      ownerEmail;
     }[];
   }
 ) {
@@ -1480,6 +1483,7 @@ export function mockCrmApp(
   let contactsQueried: {
     id: string;
     email: string;
+    ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
@@ -1490,24 +1494,30 @@ export function mockCrmApp(
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        CrmService: () => ({
-          createContact: () => {
+        CrmService: class {
+          constructor() {
+            log.debug("Create CrmSerive");
+          }
+
+          createContact() {
             if (crmData?.createContacts) {
               contactsCreated = crmData.createContacts;
               return Promise.resolve(crmData?.createContacts);
             }
-          },
-          getContacts: () => {
+          }
+
+          getContacts() {
             if (crmData?.getContacts) {
               contactsQueried = crmData?.getContacts;
               return Promise.resolve(crmData?.getContacts);
             }
-          },
-          createEvent: () => {
+          }
+
+          createEvent() {
             eventsCreated.push(true);
             return Promise.resolve({});
-          },
-        }),
+          }
+        },
       },
     });
 

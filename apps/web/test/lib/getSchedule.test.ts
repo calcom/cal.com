@@ -9,6 +9,8 @@ import {
   getScenarioData,
   Timezones,
   TestData,
+  createCredentials,
+  mockCrmApp,
 } from "../utils/bookingScenario/bookingScenario";
 
 import { describe, vi, test } from "vitest";
@@ -82,6 +84,104 @@ describe("getSchedule", () => {
       // As per Google Calendar Availability, only 4PM(4-4:45PM) GMT slot would be available
       expect(scheduleForDayWithAGoogleCalendarBooking).toHaveTimeSlots([`04:00:00.000Z`], {
         dateString: plus2DateString,
+      });
+    });
+  });
+
+  describe("Round robin lead skip - CRM", async () => {
+    test("correctly identifies unavailable slots from calendar", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      //I need to create crmCredential in db
+
+      const crmCredential = {
+        id: 1,
+        type: "salesforce_crm",
+        key: {
+          clientId: "test-client-id",
+        },
+        userId: 1,
+        teamId: null,
+        appId: "salesforce",
+        invalid: false,
+        user: { email: "test@test.com" },
+      };
+
+      await createCredentials([crmCredential]);
+      const mockedCrmApp = mockCrmApp("salesforce", {
+        getContacts: [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+            ownerEmail: "asdf@example.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              apps: {
+                salesforce: {
+                  enabled: true,
+                  appCategories: ["crm"],
+                  roundRobinLeadSkip: true,
+                },
+              },
+            },
+          },
+          {
+            id: 2,
+            slotInterval: 45,
+            length: 45,
+            users: [
+              {
+                id: 102,
+              },
+            ],
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+          {
+            ...TestData.users.example,
+            id: 102,
+            schedules: [TestData.schedules.IstWorkHours],
+          },
+        ],
+        bookings: [],
+      });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "test@test.com",
+        },
       });
     });
   });
