@@ -131,6 +131,4 @@ const workspaces = packagedEmbedTestsOnly
       },
     ];
 
-console.log(workspaces);
-
 export default defineWorkspace(workspaces);
