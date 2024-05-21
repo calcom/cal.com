@@ -1,6 +1,7 @@
 import dayjs from "@calcom/dayjs";
 import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSenderIdSupport";
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
+import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
@@ -18,6 +19,7 @@ const handleSendingSMS = ({
 }) => {
   return new Promise(async (resolve, reject) => {
     try {
+      await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
       const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
       resolve(sms);
     } catch (e) {

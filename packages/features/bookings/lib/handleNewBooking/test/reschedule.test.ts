@@ -2266,7 +2266,7 @@ describe("handleNewBooking", () => {
                         sources: [{ id: "default", type: "default", label: "Default" }],
                         editable: "system-but-optional",
                         required: true,
-                        defaultLabel: "attendee_phone_number",
+                        defaultLabel: "phone_number",
                       },
                     ],
                   }),
