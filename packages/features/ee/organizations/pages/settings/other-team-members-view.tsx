@@ -114,7 +114,7 @@ const MembersView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (otherMembersError || otherTeamError) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [router, otherMembersError, otherTeamError]

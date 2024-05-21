@@ -117,7 +117,7 @@ const MembersView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [teamError]
