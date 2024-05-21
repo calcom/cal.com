@@ -1,5 +1,8 @@
+import type { AuditLogEvent } from "@calcom/features/audit-logs/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { IconName } from "@calcom/ui";
+
+import type { GenericAuditLogClient } from "./AuditLogManager";
 
 export function getHref(
   baseURL: string,
@@ -29,4 +32,21 @@ export function getAppSettingsOptions(credentialId: string): AppSettingOptionEnt
       icon: "bar-chart",
     },
   ];
+}
+
+export function getGenericAuditLogClient(
+  apiKey: string,
+  projectId: string,
+  endpoint: string
+): GenericAuditLogClient {
+  return {
+    credentials: {
+      apiKey: apiKey,
+      projectId: projectId,
+      endpoint: endpoint,
+    },
+    reportEvent: (event: AuditLogEvent) => {
+      console.log({ event });
+    },
+  };
 }

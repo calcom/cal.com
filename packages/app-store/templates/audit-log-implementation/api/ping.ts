@@ -1,39 +1,55 @@
+import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
+import z from "zod";
 
+import type { AuditLogEvent } from "@calcom/features/audit-logs/types";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 
 import GenericAuditLogManager from "../lib/AuditLogManager";
-import { appKeysSchema } from "../zod";
 
-const pingEvent = {
+const pingEvent: AuditLogEvent = {
   action: "ping.connection",
-  teamId: "boxyhq",
-  group: {
-    id: "dev",
-    name: "dev",
-  },
-  crud: "c" as const,
-  created: new Date(),
-  source_ip: "127.0.0.1",
   actor: {
     id: "jackson@boxyhq.com",
     name: "Jackson",
   },
   target: {
-    id: "100",
     name: "tasks",
     type: "Tasks",
   },
 };
 
+const ZPingInputSchema = z.object({
+  credentialId: z.number(),
+});
+
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { projectId, apiKey, endpoint } = appKeysSchema.parse(req.body);
+  const { credentialId } = ZPingInputSchema.parse(req.body);
 
-  if (!projectId || !apiKey || !endpoint)
-    throw new HttpError({ statusCode: 400, message: "App keys not provided." });
+  if (!credentialId) throw new HttpError({ statusCode: 400, message: "Credential ID not provided." });
 
-  const auditLogManager = new GenericAuditLogManager({ projectId, apiKey, endpoint });
+  const data = await prisma.credential.findUnique({
+    where: {
+      id: credentialId,
+    },
+  });
+
+  if (
+    !data ||
+    !data?.key ||
+    !(data.key as Prisma.JsonObject).projectId ||
+    !(data.key as Prisma.JsonObject).apiKey ||
+    !(data.key as Prisma.JsonObject).endpoint
+  )
+    throw new HttpError({ statusCode: 400, message: "Invalid credentials." });
+
+  const auditLogManager = new GenericAuditLogManager({
+    projectId: (data.key as Prisma.JsonObject).projectId as string,
+    apiKey: (data.key as Prisma.JsonObject).apiKey as string,
+    endpoint: (data.key as Prisma.JsonObject).endpoint as string,
+  });
 
   try {
     auditLogManager.reportEvent(pingEvent);

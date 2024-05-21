@@ -68,7 +68,7 @@ export default function AppSettings(props: { credentialId: string }) {
     <div className="align-right space-y-4 px-4 pb-4 pt-4 text-sm">
       <div className="items-between flex space-x-4">
         <div className="flex w-[25%] flex-col space-y-4">
-          <AuditSystemStatus />
+          <AuditSystemStatus credentialId={props.credentialId} />
           <NavigationPanel credentialId={props.credentialId} />
         </div>
         {logs ? (
