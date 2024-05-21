@@ -23,7 +23,9 @@ function getOrgOrigin(orgSlug: string | null) {
     throw new Error("orgSlug is required");
   }
 
-  return WEBAPP_URL.replace("://app", `://${orgSlug}`);
+  let orgOrigin = WEBAPP_URL.replace("://app", `://${orgSlug}`);
+  orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
+  return orgOrigin;
 }
 
 test.describe("Bookings", () => {
