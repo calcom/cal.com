@@ -49,7 +49,7 @@ export function DataTableToolbar<TData>({
   const { t } = useLocale();
 
   return (
-    <div className="flex items-center justify-end space-x-2 py-4">
+    <div className="flex items-center justify-end  py-4">
       {searchKey && (
         <Input
           className="max-w-64 mb-0 mr-auto rounded-md"
