@@ -3,6 +3,7 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
+import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
@@ -124,10 +125,14 @@ export const paymentsRouter = router({
           throw new TRPCError({ code: "NOT_FOUND", message: `Could not generate payment data` });
         }
 
+        const userId = ctx.user.id || 0;
+        const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId });
+
         const subscriberOptions = {
-          userId: ctx.user.id || 0,
+          userId,
           eventTypeId: booking.eventTypeId || 0,
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
+          orgId,
         };
 
         const subscribers = await getWebhooks(subscriberOptions);

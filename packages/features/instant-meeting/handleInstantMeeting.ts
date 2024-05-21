@@ -12,6 +12,7 @@ import {
   getBookingData,
   getCustomInputsResponses,
   getEventTypesFromDB,
+  getOrgIdFromMemberOrTeamId,
 } from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
@@ -25,18 +26,32 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
+  teamId: number;
 }) => {
+  const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: args.teamId })) ?? 0;
+
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
 
     const subscribers = await prisma.webhook.findMany({
       where: {
+        OR: [
+          {
+            teamId: {
+              in: [orgId, args.teamId],
+            },
+          },
+          {
+            eventTypeId: args.eventTypeId,
+          },
+        ],
         AND: {
-          eventTypeId: args.eventTypeId,
           eventTriggers: {
             has: eventTrigger,
           },
-          active: true,
+          active: {
+            equals: true,
+          },
         },
       },
       select: {
@@ -213,6 +228,7 @@ async function handler(req: NextApiRequest) {
   await handleInstantMeetingWebhookTrigger({
     eventTypeId: eventType.id,
     webhookData,
+    teamId: eventType.team?.id,
   });
 
   return {

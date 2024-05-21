@@ -11,6 +11,7 @@ import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/s
 import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -290,13 +291,16 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
+  const userId = triggerForUser ? bookingToReschedule.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToReschedule.userId : null,
+    userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>

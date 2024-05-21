@@ -1568,11 +1568,16 @@ async function handler(
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
 
+  const organizerUserId = triggerForUser ? organizerUser.id : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: triggerForUser ? organizerUser.id : null,
+    userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
+    orgId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1586,6 +1591,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
+    orgId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -1593,6 +1599,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
+    orgId,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2240,6 +2247,7 @@ async function handler(
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
+      orgId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2551,3 +2559,47 @@ export const findUsersByUsername = async ({
     };
   });
 };
+
+export async function getOrgIdFromMemberOrTeamId(args: { memberId?: number | null; teamId?: number | null }) {
+  const userId = args.memberId ?? 0;
+  const teamId = args.teamId ?? 0;
+
+  const orgId = await prisma.team.findFirst({
+    where: {
+      OR: [
+        {
+          AND: [
+            {
+              members: {
+                some: {
+                  userId,
+                },
+              },
+            },
+            {
+              isOrganization: true,
+            },
+          ],
+        },
+        {
+          AND: [
+            {
+              children: {
+                some: {
+                  id: teamId,
+                },
+              },
+            },
+            {
+              isOrganization: true,
+            },
+          ],
+        },
+      ],
+    },
+    select: {
+      id: true,
+    },
+  });
+  return orgId?.id;
+}

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
+import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -60,11 +61,16 @@ const triggerWebhook = async ({
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
 
+  const organizerUserId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId: booking.teamId });
+
   const subscriberOptions = {
-    userId: triggerForUser ? booking.userId : null,
+    userId: organizerUserId,
     eventTypeId: booking.eventTypeId,
     triggerEvent: eventTrigger,
     teamId: booking.teamId,
+    orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
 

@@ -7,6 +7,8 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { getOrgIdFromMemberOrTeamId } from "./handleNewBooking";
+
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
 
 /**
@@ -39,12 +41,18 @@ export async function handleBookingRequested(args: {
   await sendOrganizerRequestEmail({ ...evt });
   await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
+  const orgId = await getOrgIdFromMemberOrTeamId({
+    memberId: booking.userId,
+    teamId: booking.eventType?.teamId,
+  });
+
   try {
     const subscribersBookingRequested = await getWebhooks({
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
       teamId: booking.eventType?.teamId,
+      orgId,
     });
 
     const webhookPayload = getWebhookPayloadForBooking({

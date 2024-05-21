@@ -1,5 +1,6 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
+import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
@@ -33,9 +34,15 @@ export async function onFormSubmission(
     };
   }
 
+  const { userId, teamId } = getWebhookTargetEntity(form);
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
   const subscriberOptions = {
+    userId,
+    teamId,
+    orgId,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-    ...getWebhookTargetEntity(form),
   };
 
   const webhooks = await getWebhooks(subscriberOptions);
