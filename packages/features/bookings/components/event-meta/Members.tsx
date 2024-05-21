@@ -24,7 +24,6 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const isEmbed = useIsEmbed();
   const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
-
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
@@ -37,7 +36,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         size="sm"
         className="border-muted"
         items={[
-          ...(isDynamic
+          ...(isDynamic && !profile.image
             ? []
             : [
                 {
