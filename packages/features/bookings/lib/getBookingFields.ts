@@ -201,7 +201,7 @@ export const ensureBookingInputsHaveSystemFields = ({
   ];
   if (isTeamEvent) {
     systemBeforeFields.splice(2, 0, {
-      defaultLabel: "attendee_phone_number",
+      defaultLabel: "phone_number",
       type: "phone",
       name: "attendeePhoneNumber",
       required: true,
