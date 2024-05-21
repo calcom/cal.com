@@ -315,7 +315,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v5
         with:
-          images: calcom/cal.com
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/cal.com
           flavor: |
             latest=false
           tags: |
@@ -373,3 +373,72 @@ jobs:
 
       
 
+# NEXT JOB #######################################################################  
+#update docker compose image tag and  kubernetes manifest "image tag "in a seperate repo
+
+  tag-manifest-update-compose:
+    name: Tag kubernetes manifest and update compose
+    needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write 
+    
+    steps:
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      
+      - name: Extract parameters
+        run: |
+          cp infra/docker/web/.env.example infra/docker/web/.env
+          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com::${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
+ 
+      - name: Configure git
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
+
+      - name: Pull the latest changes and rebase
+        run: |
+          git pull origin --rebase
+
+     
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }} 
+
+      # - name: Trigger workflow in remote repository for pull requests
+      #   if: github.event_name == 'pull_request'
+      #   env:
+      #     GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
+      #   run: |
+      #     gh api \
+      #       -X POST \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       /repos/${{ github.repository_owner }}/REPO_NAME/actions/workflows/WORKFLOW_NAME.yaml/dispatches \
+      #       -f ref=main \
+      #       -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
+           
+
+      # - name: Trigger workflow in remote repository for other events
+      #   if: github.event_name != 'pull_request'
+      #   env:
+      #     GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
+      #   run: |
+      #     gh api \
+      #       -X POST \
+      #       -H "Accept: application/vnd.github.v3+json" \
+      #       /repos/${{ github.repository_owner }}/REPO_NAME/actions/workflows/WORKFLOW_NAME.yaml/dispatches \
+      #       -f ref=main \
+      #       -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
