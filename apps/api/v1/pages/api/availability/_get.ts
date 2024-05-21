@@ -189,7 +189,7 @@ const availabilitySchema = z
   );
 
 async function handler(req: NextApiRequest) {
-  const { isAdmin, userId: reqUserId } = req;
+  const { isSystemWideAdmin, userId: reqUserId } = req;
   const { username, userId, eventTypeId, dateTo, dateFrom, teamId } = availabilitySchema.parse(req.query);
   if (!teamId)
     return getUserAvailability({
@@ -224,7 +224,7 @@ async function handler(req: NextApiRequest) {
   const isUserAdminOrOwner =
     memberRoles[reqUserId] == MembershipRole.ADMIN ||
     memberRoles[reqUserId] == MembershipRole.OWNER ||
-    isAdmin;
+    isSystemWideAdmin;
   if (!isUserAdminOrOwner) throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const availabilities = members.map(async (user) => {
     return {

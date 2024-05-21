@@ -11,7 +11,8 @@ export declare module "next" {
     method: string;
     // session: { user: { id: number } };
     // query: Partial<{ [key: string]: string | string[] }>;
-    isAdmin: boolean;
+    isSystemWideAdmin: boolean;
+    isOrganizationOwnerOrAdmin: boolean;
     pagination: { take: number; skip: number };
   }
 }

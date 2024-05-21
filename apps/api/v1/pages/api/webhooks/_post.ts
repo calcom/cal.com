@@ -66,7 +66,7 @@ import { schemaWebhookCreateBodyParams, schemaWebhookReadPublic } from "~/lib/va
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const {
     eventTypeId,
     userId: bodyUserId,
@@ -80,14 +80,15 @@ async function postHandler(req: NextApiRequest) {
 
   if (eventTypeId) {
     const where: Prisma.EventTypeWhereInput = { id: eventTypeId };
-    if (!isAdmin) where.userId = userId;
+    if (!isSystemWideAdmin) where.userId = userId;
     await prisma.eventType.findFirstOrThrow({ where });
     args.data.eventTypeId = eventTypeId;
   }
 
-  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  if (!isSystemWideAdmin && bodyUserId)
+    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
 
-  if (isAdmin && bodyUserId) {
+  if (isSystemWideAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;

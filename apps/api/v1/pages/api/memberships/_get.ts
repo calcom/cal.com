@@ -46,26 +46,28 @@ async function getHandler(req: NextApiRequest) {
  * Returns requested users IDs only if admin, otherwise return only current user ID
  */
 function getUserIds(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   /** Only admins can query other users */
-  if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
-  if (isAdmin && req.query.userId) {
+  if (!isSystemWideAdmin && req.query.userId)
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (isSystemWideAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     return userIds;
   }
   // Return all memberships for ADMIN, limit to current user to non-admins
-  return isAdmin ? undefined : [userId];
+  return isSystemWideAdmin ? undefined : [userId];
 }
 
 /**
  * Returns requested teams IDs only if admin
  */
 function getTeamIds(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   /** Only admins can query other teams */
-  if (!isAdmin && req.query.teamId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
-  if (isAdmin && req.query.teamId) {
+  if (!isSystemWideAdmin && req.query.teamId)
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (isSystemWideAdmin && req.query.teamId) {
     const query = schemaQuerySingleOrMultipleTeamIds.parse(req.query);
     const teamIds = Array.isArray(query.teamId) ? query.teamId : [query.teamId];
     return teamIds;

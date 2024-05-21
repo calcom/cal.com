@@ -36,7 +36,24 @@ const workspaces = packagedEmbedTestsOnly
       },
     ]
   : // It doesn't seem to be possible to fake timezone per test, so we rerun the entire suite with different TZ. See https://github.com/vitest-dev/vitest/issues/1575#issuecomment-1439286286
-  timeZoneDependentTestsOnly
+  integrationTestsOnly
+  ? [
+      {
+        test: {
+          name: `IntegrationTests`,
+          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
+          // TODO: Ignore the api until tests are fixed
+          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
+      },
+    ]
+  : timeZoneDependentTestsOnly
   ? [
       {
         test: {
