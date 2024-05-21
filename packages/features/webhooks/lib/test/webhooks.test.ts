@@ -46,20 +46,20 @@ describe("Cron job handler", () => {
   });
   test(`should trigger if current date is after startAfter`, async () => {
     const now = dayjs();
-    const payload = `{"triggerEvent":"MEETING_ENDED"}`;
+    const payload = { triggerEvent: "MEETING_ENDED" };
     await prismock.webhookScheduledTriggers.createMany({
       data: [
         {
           id: 1,
           subscriberUrl: "https://example.com",
           startAfter: now.add(5, "minute").toDate(),
-          payload,
+          payload: JSON.stringify(payload),
         },
         {
           id: 2,
           subscriberUrl: "https://example.com/test",
           startAfter: now.subtract(5, "minute").toDate(),
-          payload,
+          payload: JSON.stringify(payload),
         },
       ],
     });
