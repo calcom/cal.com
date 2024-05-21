@@ -6,10 +6,12 @@ import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import { withMiddleware } from "~/lib/helpers/withMiddleware";
+
 import {
   getAccessibleUsers,
   retrieveOrgScopedAccessibleUsers,
 } from "~/lib/utils/retrieveScopedAccessibleUsers";
+
 import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -252,6 +254,7 @@ export async function handler(req: NextApiRequest) {
   const data = await prisma.booking.findMany(args);
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
+
 
 const handleSystemWideAdminArgs = async ({
   adminDidQueryUserIds,

@@ -30,7 +30,7 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
-    enable_transcription_storage: z.boolean(),
+    enable_transcription_storage: z.boolean().default(false),
   }),
 });
 
@@ -179,9 +179,11 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         exp: exp,
         enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!hasTeamPlan,
-        permissions: {
-          canAdmin: ["transcription"],
-        },
+        ...(!!hasTeamPlan && {
+          permissions: {
+            canAdmin: ["transcription"],
+          },
+        }),
       },
     };
   };
