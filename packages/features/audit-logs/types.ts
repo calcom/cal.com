@@ -1,5 +1,5 @@
 export interface AuditLogsManager {
-  report(event: AuditLogEvent): void;
+  reportEvent(event: AuditLogEvent): void;
 }
 
 export type AuditLogEvent = {
