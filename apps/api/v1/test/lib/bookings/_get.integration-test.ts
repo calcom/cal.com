@@ -34,6 +34,7 @@ describe("GET /api/bookings", async () => {
 
     const responseData = await handler(req);
     const groupedUsers = new Set(responseData.bookings.map((b) => b.userId));
+
     expect(responseData.bookings.find((b) => b.userId === memberUser.id)).toBeDefined();
     expect(groupedUsers.size).toBe(1);
     expect(groupedUsers.entries().next().value[0]).toBe(memberUser.id);
@@ -77,7 +78,10 @@ describe("GET /api/bookings", async () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
-      pagination: DefaultPagination,
+      pagination: {
+        take: 100,
+        skip: 0,
+      },
     });
 
     req.isSystemWideAdmin = true;
