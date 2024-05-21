@@ -113,7 +113,6 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 }
 
 export default useAddAppMutation;
-
 const generateSearchParamString = ({
   stateStr,
   teamId,
@@ -123,7 +122,16 @@ const generateSearchParamString = ({
   teamId?: number;
   returnTo?: string;
 }) => {
-  const teamIdParam = teamId ? `&teamId=${teamId}` : "";
-  const returnToParam = returnTo ? `&returnTo=${returnTo}` : "";
-  return `?state=${stateStr}${teamIdParam}${returnToParam}`;
+  const url = new URL("https://example.com"); // Base URL can be anything since we only care about the search params
+
+  url.searchParams.append("state", stateStr);
+  if (teamId !== undefined) {
+    url.searchParams.append("teamId", teamId.toString());
+  }
+  if (returnTo) {
+    url.searchParams.append("returnTo", returnTo);
+  }
+
+  // Return the search string part of the URL
+  return url.search;
 };
