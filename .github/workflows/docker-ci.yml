@@ -376,47 +376,47 @@ jobs:
 # NEXT JOB #######################################################################  
 #update docker compose image tag and  kubernetes manifest "image tag "in a seperate repo
 
-  tag-manifest-update-compose:
-    name: Tag kubernetes manifest and update compose
-    needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
-    runs-on: ubuntu-latest
+  # tag-manifest-update-compose:
+  #   name: Tag kubernetes manifest and update compose
+  #   needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
+  #   runs-on: ubuntu-latest
 
-    permissions:
-      contents: write 
+  #   permissions:
+  #     contents: write 
     
-    steps:
+  #   steps:
       
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          # fetch-depth: 0
-          ref: ${{github.event.repository.default_branch}}
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         persist-credentials: false
+  #         # fetch-depth: 0
+  #         ref: ${{github.event.repository.default_branch}}
       
-      - name: Extract parameters
-        run: |
-          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com::${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
+  #     - name: Extract parameters
+  #       run: |
+  #         yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com::${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
  
-      - name: Configure git
-        run: |
-          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
+  #     - name: Configure git
+  #       run: |
+  #         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+  #         git config --local user.name "github-actions[bot]"
 
-      - name: Commit changes
-        run: |
-          git add .
-          git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
+  #     - name: Commit changes
+  #       run: |
+  #         git add .
+  #         git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
 
-      - name: Pull the latest changes and rebase
-        run: |
-          git pull origin --rebase
+  #     - name: Pull the latest changes and rebase
+  #       run: |
+  #         git pull origin --rebase
 
      
-      - name: Push changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.RELEASE_MAIN }}
-          branch: ${{ github.ref }} 
+  #     - name: Push changes
+  #       uses: ad-m/github-push-action@master
+  #       with:
+  #         github_token: ${{ secrets.RELEASE_MAIN }}
+  #         branch: ${{ github.ref }} 
 
       # - name: Trigger workflow in remote repository for pull requests
       #   if: github.event_name == 'pull_request'
