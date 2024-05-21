@@ -300,6 +300,7 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
+  verifiedEmails       VerifiedEmail[]
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
@@ -379,6 +380,7 @@ model Team {
   brandColor            String?
   darkBrandColor        String?
   verifiedNumbers       VerifiedNumber[]
+  verifiedEmails        VerifiedEmail[]
   bannerUrl             String?
   parentId              Int?
   parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
@@ -1058,6 +1060,18 @@ model VerifiedNumber {
   teamId      Int?
   team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model VerifiedEmail {
+  id     Int    @id @default(autoincrement())
+  userId Int?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email  String
 
   @@index([userId])
   @@index([teamId])

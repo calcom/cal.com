@@ -3,6 +3,7 @@ import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
@@ -16,6 +17,14 @@ import {
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
 import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 import { acceptTeamOrOrgInvite, inviteExistingUserToOrganization } from "./lib/inviteUser";
+
+function getOrgOrigin(orgSlug: string | null) {
+  if (!orgSlug) {
+    throw new Error("orgSlug is required");
+  }
+
+  return WEBAPP_URL.replace("://app", `://${orgSlug}`);
+}
 
 test.describe("Bookings", () => {
   test.afterEach(({ orgs, users }) => {
@@ -285,7 +294,7 @@ test.describe("Bookings", () => {
           ]);
           const ssrResponse = await response.text();
           const document = new JSDOM(ssrResponse).window.document;
-          const orgOrigin = `http://${org.slug}.cal.local:3000`;
+          const orgOrigin = getOrgOrigin(org.slug);
           const titleText = document.querySelector("title")?.textContent;
           const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
           const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
