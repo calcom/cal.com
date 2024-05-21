@@ -244,6 +244,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             color="primary"
             type="submit"
             form="createOrg"
+            loading={mutation.isPending}
             className="w-full justify-center">
             {t("continue")} - {calculateMonthlyPrice()}
           </Button>
