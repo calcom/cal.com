@@ -455,7 +455,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
 
       usersWithCredentials = usersWithCredentials.filter(
-        (host) => host.user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || host.isFixed)
+        (user) => user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || user.isFixed)
       );
       usersWithCredentials.push({ ...contactOwnerHost.user, isFixed: true });
     }
