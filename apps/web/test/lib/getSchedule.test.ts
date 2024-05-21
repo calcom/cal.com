@@ -115,7 +115,7 @@ describe("getSchedule", () => {
           {
             id: "contact-id",
             email: "test@test.com",
-            ownerEmail: "asdf@example.com",
+            ownerEmail: "example@example.com",
           },
         ],
         createContacts: [{ id: "contact-id", email: "test@test.com" }],
@@ -160,13 +160,15 @@ describe("getSchedule", () => {
         users: [
           {
             ...TestData.users.example,
+            email: "example@example.com",
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
           },
           {
             ...TestData.users.example,
+            email: "example1@example.com",
             id: 102,
-            schedules: [TestData.schedules.IstWorkHours],
+            schedules: [TestData.schedules.IstMorningShift],
           },
         ],
         bookings: [],

@@ -433,19 +433,28 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let usersWithCredentials;
   let teamMember: string | undefined;
 
+  const hosts =
+    eventType.hosts?.length && eventType.schedulingType
+      ? eventType.hosts
+      : eventType.users.map((user) => {
+          return {
+            isFixed: !eventType.schedulingType || schedulingType === SchedulingType.COLLECTIVE,
+            user: user,
+          };
+        });
+
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
       input.bookerEmail,
       eventType?.metadata?.apps
     );
-    const contactOwnerHost = eventType.hosts.find((host) => host.user.email === crmContactOwner);
+    const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
+
     if (contactOwnerHost) {
       const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
 
-      const otherHosts = eventType.hosts
-        .filter(
-          (host) => host.user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || host.isFixed)
-        )
+      const otherHosts = hosts
+        .filter((host) => host.user.email !== crmContactOwner && (!contactOwnerIsRRHost || host.isFixed))
         .map(({ isFixed, user }) => ({ isFixed, ...user }));
 
       usersWithCredentials = [{ ...contactOwnerHost.user, isFixed: true }, ...otherHosts];
@@ -453,14 +462,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
 
   if (!usersWithCredentials) {
-    if (eventType.schedulingType && !!eventType.hosts?.length) {
-      usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-    } else {
-      usersWithCredentials = eventType.users.map((user) => ({
-        isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-        ...user,
-      }));
-    }
+    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
   }
 
   const durationToUse = input.duration || 0;
