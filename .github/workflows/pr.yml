@@ -35,8 +35,8 @@ jobs:
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
-  test:
-    name: Unit tests
+  unit-test:
+    name: Tests
     needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
@@ -70,29 +70,36 @@ jobs:
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
+  integration-test:
+    name: Tests
+    needs: [changes, lint, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
   e2e:
-    name: E2E tests
+    name: Tests
     needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
-    name: E2E App Store tests
+    name: Tests
     needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
-    name: E2E embeds tests
+    name: Tests
     needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
-    name: E2E React embeds tests
+    name: Tests
     needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
@@ -106,7 +113,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

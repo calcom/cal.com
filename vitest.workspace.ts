@@ -2,6 +2,7 @@ import { defineWorkspace } from "vitest/config";
 
 const packagedEmbedTestsOnly = process.argv.includes("--packaged-embed-tests-only");
 const timeZoneDependentTestsOnly = process.argv.includes("--timeZoneDependentTestsOnly");
+const integrationTestsOnly = process.argv.includes("--integrationTestsOnly");
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const envTZ = process.env.TZ;
 if (timeZoneDependentTestsOnly && !envTZ) {
@@ -15,6 +16,22 @@ const workspaces = packagedEmbedTestsOnly
         test: {
           include: ["packages/embeds/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
+        },
+      },
+    ]
+  : integrationTestsOnly
+  ? [
+      {
+        test: {
+          name: `IntegrationTests`,
+          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
+          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
         },
       },
     ]
