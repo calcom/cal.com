@@ -1,5 +1,5 @@
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
@@ -8,7 +8,7 @@ export default class AwaitingPaymentSMS extends SMSManager {
     super(calEvent);
   }
 
-  getMessage(attendee: Person) {
+  getMessage(attendee: Attendee) {
     const t = attendee.language.translate;
     return `${t("meeting_awaiting_payment")}: ${t("complete_your_booking_subject", {
       title: this.calEvent.title,

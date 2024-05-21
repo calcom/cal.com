@@ -27,7 +27,7 @@ type PaymentInfo = {
 
 export type Person = {
   name: string;
-  email: string;
+  email?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
   username?: string;
@@ -39,10 +39,20 @@ export type Person = {
   phoneNumber?: string | null;
 };
 
+export type Organizer = Person & {
+  email: string;
+};
+
+export type Attendee = RequireAtLeastOne<Person, "email", "phoneNumber">;
+
+export type RequireAtLeastOne<T, Keys extends keyof T> = Pick<T, Exclude<keyof T, Keys>> & {
+  [K in Keys]-?: Required<Pick<T, K>> & Partial<Record<Exclude<Keys, K>, undefined>>;
+};
+
 export type TeamMember = {
   id?: number;
   name: string;
-  email: string;
+  email?: string | null;
   phoneNumber?: string | null;
   timeZone: string;
   language: { translate: TFunction; locale: string };
@@ -164,8 +174,8 @@ export interface CalendarEvent {
   title: string;
   startTime: string;
   endTime: string;
-  organizer: Person;
-  attendees: Person[];
+  organizer: Organizer;
+  attendees: Attendee[];
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonObject | null;
   description?: string | null;

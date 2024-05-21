@@ -5,6 +5,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { getWorkingHours } from "@calcom/lib/availability";
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import type { DateOverride, WorkingHours } from "@calcom/lib/date-ranges";
 import { buildDateRanges, subtract } from "@calcom/lib/date-ranges";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -181,7 +182,7 @@ const _getCurrentSeats = async (
 
   return bookings.map((booking) => {
     const attendees = isTeamEvent
-      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
+      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email ?? BOOKED_WITH_SMS_EMAIL))
       : booking.attendees;
 
     return {

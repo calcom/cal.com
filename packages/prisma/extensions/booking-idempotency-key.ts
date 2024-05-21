@@ -9,11 +9,19 @@ export function bookingIdempotencyKeyExtension() {
       booking: {
         async create({ args, query }) {
           const uniqueEmailJoinInput: string[] = [];
-          if (args.data.attendees?.create && !Array.isArray(args.data.attendees?.create)) {
+          if (
+            args.data.attendees?.create &&
+            !Array.isArray(args.data.attendees?.create) &&
+            args.data.attendees?.create.email
+          ) {
             uniqueEmailJoinInput.push(args.data.attendees?.create.email);
           }
           if (args.data.attendees?.createMany && Array.isArray(args.data.attendees?.createMany.data)) {
-            uniqueEmailJoinInput.push(...args.data.attendees?.createMany.data.map((record) => record.email));
+            uniqueEmailJoinInput.push(
+              ...args.data.attendees?.createMany.data
+                .map((record) => record.email)
+                .filter((email): email is string => !!email)
+            );
           }
           const idempotencyKey = uuidv5(
             `${

@@ -3,7 +3,7 @@ import { getSenderId } from "@calcom/features/ee/workflows/lib/alphanumericSende
 import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/twilioProvider";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
 
 const handleSendingSMS = ({
   reminderPhone,
@@ -52,9 +52,9 @@ export default abstract class SMSManager {
     )} (${timezone})`;
   }
 
-  abstract getMessage(attendee: Person): string;
+  abstract getMessage(attendee: Attendee): string;
 
-  async sendSMSToAttendee(attendee: Person) {
+  async sendSMSToAttendee(attendee: Attendee) {
     if (!this.isTeamEvent || !this.calEvent?.team?.id) return;
 
     const attendeePhoneNumber = attendee.phoneNumber;

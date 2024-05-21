@@ -1,4 +1,4 @@
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
 
 import SMSManager from "../sms-manager";
 
@@ -7,7 +7,7 @@ export default class CancelledSeatSMS extends SMSManager {
     super(calEvent);
   }
 
-  getMessage(attendee: Person) {
+  getMessage(attendee: Attendee) {
     return `${attendee.language.translate("no_longer_attending", {
       name: attendee.name,
     })} . \n\n ${attendee.language.translate("event_no_longer_attending_subject", {

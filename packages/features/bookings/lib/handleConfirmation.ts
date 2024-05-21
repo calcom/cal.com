@@ -118,7 +118,8 @@ export async function handleConfirmation(args: {
     location: string | null;
     attendees: {
       name: string;
-      email: string;
+      email?: string | null;
+      phoneNumber?: string | null;
     }[];
     startTime: Date;
     endTime: Date;

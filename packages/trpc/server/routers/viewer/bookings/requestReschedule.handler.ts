@@ -22,7 +22,7 @@ import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person } from "@calcom/types/Calendar";
+import type { CalendarEvent, Organizer } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
@@ -160,7 +160,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?
   const tAttendees = await getTranslation(mainAttendee.locale ?? "en", "common");
-  const usersToPeopleType = (users: PersonAttendeeCommonFields[], selectedLanguage: TFunction): Person[] => {
+  const usersToPeopleType = (
+    users: PersonAttendeeCommonFields[],
+    selectedLanguage: TFunction
+  ): Organizer[] => {
     return users?.map((user) => {
       return {
         email: user.email || "",
@@ -168,6 +171,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         username: user?.username || "",
         language: { translate: selectedLanguage, locale: user.locale || "en" },
         timeZone: user?.timeZone,
+        phoneNumber: user.phoneNumber,
       };
     });
   };

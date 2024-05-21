@@ -951,6 +951,7 @@ async function handler(
       organizerUser,
       originalRescheduledBooking,
       bookerEmail,
+      bookerPhoneNumber,
       tAttendees,
       bookingSeat,
       reqUserId: req.userId,
@@ -1079,7 +1080,10 @@ async function handler(
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
-        (attendee) => attendee.email === req.body.responses.email
+        (attendee) =>
+          attendee.email === req.body.responses.email ||
+          (req.body.responses.attendeePhoneNumber &&
+            attendee.phoneNumber === req.body.responses.attendeePhoneNumber)
       );
 
       // Save description to bookingSeat
@@ -1296,6 +1300,7 @@ async function handler(
             name: user.name,
             email: user.email,
             timeZone: user.timeZone,
+            phoneNumber: user.phoneNumber,
             language: { translate, locale: user.locale ?? "en" },
           });
         }
@@ -1575,7 +1580,8 @@ async function handler(
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
       fullName,
-      bookerEmail
+      bookerEmail,
+      bookerPhoneNumber
     );
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

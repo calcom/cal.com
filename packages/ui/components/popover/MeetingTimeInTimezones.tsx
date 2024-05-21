@@ -12,7 +12,8 @@ import { Icon } from "../..";
 
 type Attendee = {
   id: number;
-  email: string;
+  email?: string | null;
+  phoneNumber?: string | null;
   name: string;
   timeZone: string;
   locale: string | null;

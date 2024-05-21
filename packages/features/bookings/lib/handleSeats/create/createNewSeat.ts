@@ -37,6 +37,7 @@ const createNewSeat = async (
     bookerEmail,
     responses,
     workflows,
+    bookerPhoneNumber,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   let resultBooking: HandleSeatsResultBooking;
@@ -186,7 +187,8 @@ const createNewSeat = async (
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       seatedBooking,
       fullName,
-      bookerEmail
+      bookerEmail,
+      bookerPhoneNumber
     );
 
     resultBooking = { ...foundBooking };

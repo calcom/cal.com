@@ -17,8 +17,9 @@ export interface IAbstractPaymentService {
     userId: Booking["userId"],
     username: string | null,
     bookerName: string | null,
-    bookerEmail: string,
     paymentOption: PaymentOption,
+    bookerEmail?: string | null,
+    bookerPhoneNumber?: string | null,
     eventTitle?: string,
     bookingTitle?: string
   ): Promise<Payment>;
@@ -26,8 +27,9 @@ export interface IAbstractPaymentService {
   collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: Booking["id"],
-    bookerEmail: string,
-    paymentOption: PaymentOption
+    paymentOption: PaymentOption,
+    bookerEmail?: string | null,
+    bookerPhoneNumber?: string | null
   ): Promise<Payment>;
   chargeCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
