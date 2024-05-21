@@ -892,7 +892,7 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
           ...(booker.attendeePhoneNumber
             ? {
                 attendeePhoneNumber: {
-                  label: "attendee_phone_number",
+                  label: "phone_number",
                   value: booker.attendeePhoneNumber,
                   isHidden: isAttendeePhoneNumberHidden,
                 },
@@ -921,7 +921,7 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
           ...(booker.attendeePhoneNumber
             ? {
                 attendeePhoneNumber: {
-                  label: "attendee_phone_number",
+                  label: "phone_number",
                   value: booker.attendeePhoneNumber,
                 },
               }
@@ -967,7 +967,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
           ...(booker.attendeePhoneNumber
             ? {
                 attendeePhoneNumber: {
-                  label: "attendee_phone_number",
+                  label: "phone_number",
                   value: booker.attendeePhoneNumber,
                   isHidden: isAttendeePhoneNumberHidden,
                 },
@@ -999,7 +999,7 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
           ...(booker.attendeePhoneNumber
             ? {
                 attendeePhoneNumber: {
-                  label: "attendee_phone_number",
+                  label: "phone_number",
                   value: booker.attendeePhoneNumber,
                 },
               }
