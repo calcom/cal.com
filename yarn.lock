@@ -4047,6 +4047,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa":
+  version: 0.0.0-use.local
+  resolution: "@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/base@workspace:packages/platform/examples/base":
   version: 0.0.0-use.local
   resolution: "@calcom/base@workspace:packages/platform/examples/base"

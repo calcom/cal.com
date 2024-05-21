@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { withMiddleware } from "~/lib/helpers/withMiddleware";
 import { schemaBookingGetParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQuerySingleOrMultipleAttendeeEmails } from "~/lib/validations/shared/queryAttendeeEmail";
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
@@ -225,4 +226,4 @@ async function handler(req: NextApiRequest) {
   return { bookings: data.map((booking) => schemaBookingReadPublic.parse(booking)) };
 }
 
-export default defaultResponder(handler);
+export default withMiddleware("pagination")(defaultResponder(handler));
