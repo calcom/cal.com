@@ -34,7 +34,7 @@ vi.mock("@calcom/ui", () => ({
 }));
 
 describe("BookerSeo Component", () => {
-  it("renders SEO tags correctly for a regular event", () => {
+  it("renders HeadSeo with correct props", () => {
     const mockData = {
       event: {
         slug: "event-slug",

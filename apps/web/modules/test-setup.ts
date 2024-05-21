@@ -2,15 +2,19 @@ import React from "react";
 import { vi } from "vitest";
 
 global.React = React;
+
+// Mock all modules that are used in multiple tests for modules
+// We don't intend to provide the mock implementation here. They should be provided by respective tests.
+// But it makes it super easy to start testing any module view without worrying about mocking the dependencies.
 vi.mock("next-auth/react", () => ({
-  useSession: vi.fn().mockReturnValue({ data: { user: { id: "user-id" } } }),
+  useSession: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn().mockReturnValue({
     replace: vi.fn(),
   }),
-  usePathname: vi.fn().mockReturnValue("/success"),
+  usePathname: vi.fn(),
 }));
 
 vi.mock("@calcom/app-store/BookingPageTagManager", () => ({
@@ -20,15 +24,15 @@ vi.mock("@calcom/app-store/BookingPageTagManager", () => ({
 vi.mock("@calcom/app-store/locations", () => ({
   DailyLocationType: "daily",
   guessEventLocationType: vi.fn(),
-  getSuccessPageLocationMessage: vi.fn().mockReturnValue(""),
+  getSuccessPageLocationMessage: vi.fn(),
 }));
 
 vi.mock("@calcom/app-store/utils", () => ({
-  getEventTypeAppData: vi.fn().mockReturnValue({}),
+  getEventTypeAppData: vi.fn(),
 }));
 
 vi.mock("@calcom/core/event", () => ({
-  getEventName: vi.fn().mockReturnValue("event-name"),
+  getEventName: vi.fn(),
 }));
 
 vi.mock("@calcom/ee/organizations/lib/orgDomains", () => ({
@@ -41,10 +45,10 @@ vi.mock("@calcom/features/eventtypes/components", () => ({
 
 vi.mock("@calcom/embed-core/embed-iframe", () => {
   return {
-    useIsBackgroundTransparent: vi.fn().mockReturnValue(false),
-    useIsEmbed: vi.fn().mockReturnValue(false),
-    useEmbedNonStylesConfig: vi.fn().mockReturnValue({}),
-    useEmbedStyles: vi.fn().mockReturnValue({}),
+    useIsBackgroundTransparent: vi.fn(),
+    useIsEmbed: vi.fn(),
+    useEmbedNonStylesConfig: vi.fn(),
+    useEmbedStyles: vi.fn(),
   };
 });
 
@@ -76,7 +80,7 @@ vi.mock("@calcom/lib/getBrandColours", () => {
 
 vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => {
   return {
-    useCompatSearchParams: vi.fn().mockReturnValue({}),
+    useCompatSearchParams: vi.fn(),
   };
 });
 
@@ -95,9 +99,7 @@ vi.mock("@calcom/lib/hooks/useLocale", () => {
 
 vi.mock("@calcom/lib/hooks/useRouterQuery", () => {
   return {
-    useRouterQuery: vi.fn().mockReturnValue({
-      uid: "uid",
-    }),
+    useRouterQuery: vi.fn(),
   };
 });
 
@@ -168,8 +170,8 @@ vi.mock("./bookings-single-view.getServerSideProps", () => ({}));
 
 vi.mock("@calcom/lib/webstorage", () => ({
   localStorage: {
-    getItem: vi.fn().mockReturnValue(null),
-    setItem: vi.fn().mockReturnValue(null),
+    getItem: vi.fn(),
+    setItem: vi.fn(),
   },
 }));
 

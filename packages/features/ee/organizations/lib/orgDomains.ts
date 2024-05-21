@@ -117,7 +117,6 @@ export function getOrgFullOrigin(slug: string | null, options: { protocol: boole
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;
-  console.log({ WEBSITE_URL, orgFullOrigin });
   return orgFullOrigin;
 }
 
