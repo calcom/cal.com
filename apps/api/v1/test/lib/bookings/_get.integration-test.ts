@@ -71,9 +71,6 @@ describe("GET /api/bookings", async () => {
     expect(responseData.bookings.find((b) => b.userId !== proUser.id)).toBeUndefined();
   });
 
-  // TODO: This test is currently failing but seems to be because of a change in logic
-  // in this PR. Shouldn't a system admin get access to all bookings without having to
-  // pass in userIds?
   it("Returns bookings for all users when accessed by system-wide admin", async () => {
     const adminUser = await prisma.user.findFirstOrThrow({ where: { email: "owner1-acme@example.com" } });
     const { req } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
