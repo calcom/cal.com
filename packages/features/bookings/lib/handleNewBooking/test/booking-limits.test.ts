@@ -7,10 +7,6 @@
  */
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect, vi } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   TestData,
   createBookingScenario,
@@ -19,11 +15,21 @@ import {
   getNextMonthNotStartingOnWeekStart,
   getOrganizer,
   getScenarioData,
+  getGoogleCalendarCredential,
+  BookingLocations,
+  mockSuccessfulVideoMeetingCreation,
+  mockCalendarToHaveNoBusySlots,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe, expect, vi } from "vitest";
+
+import { PeriodType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -597,6 +603,179 @@ describe("handleNewBooking", () => {
     });
     await expect(async () => await handleNewBooking(req)).rejects.toThrowError(
       "no_available_users_found_error"
+    );
+  });
+
+  test(
+    `should fail booking if the start date is in the past`,
+    async ({}) => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+        credentials: [getGoogleCalendarCredential()],
+        selectedCalendars: [TestData.selectedCalendars.google],
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          user: organizer.username,
+          eventTypeId: 1,
+          start: `${getDate({ dateIncrement: -1 }).dateString}T05:00:00.000Z`,
+          end: `${getDate({ dateIncrement: -1 }).dateString}T05:30:00.000Z`,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      const scenarioData = getScenarioData({
+        webhooks: [
+          {
+            userId: organizer.id,
+            eventTriggers: ["BOOKING_CREATED"],
+            subscriberUrl: "http://my-webhook.example.com",
+            active: true,
+            eventTypeId: 1,
+            appId: null,
+          },
+        ],
+        workflows: [
+          {
+            userId: organizer.id,
+            trigger: "NEW_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeEventTypeId: 1,
+          },
+        ],
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [TestData.apps["google-calendar"], TestData.apps["daily-video"]],
+      });
+
+      mockCalendarToHaveNoBusySlots("googlecalendar", {});
+      await createBookingScenario(scenarioData);
+
+      await expect(() => handleNewBooking(req)).rejects.toThrowError("book a meeting in the past");
+    },
+    timeout
+  );
+
+  describe("Future Limits", () => {
+    test(
+      `should fail booking if periodType=ROLLING check fails`,
+      async () => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const organizerOtherEmail = "organizer2@example.com";
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+          credentials: [getGoogleCalendarCredential()],
+          selectedCalendars: [TestData.selectedCalendars.google],
+          destinationCalendar: {
+            integration: "google_calendar",
+            externalId: "organizer@google-calendar.com",
+            primaryEmail: organizerOtherEmail,
+          },
+        });
+
+        await createBookingScenario(
+          getScenarioData({
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                periodType: PeriodType.ROLLING,
+                // Today, plus1 and plus2
+                periodDays: 2,
+                periodCountCalendarDays: true,
+                length: 30,
+                useEventTypeDestinationCalendarEmail: true,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [],
+          })
+        );
+
+        const plus3DateString = getDate({ dateIncrement: 3 }).dateString;
+        const mockBookingData = getMockRequestDataForBooking({
+          data: {
+            user: organizer.username,
+            // plus2Date timeslot being booked
+            start: `${plus3DateString}T05:00:00.000Z`,
+            end: `${plus3DateString}T05:30:00.000Z`,
+            eventTypeId: 1,
+            responses: {
+              email: booker.email,
+              name: booker.name,
+              location: { optionValue: "", value: BookingLocations.CalVideo },
+            },
+          },
+        });
+
+        const { req } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData,
+        });
+
+        mockCalendarToHaveNoBusySlots("googlecalendar", {
+          create: {
+            id: "MOCKED_GOOGLE_CALENDAR_EVENT_ID",
+          },
+        });
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: "dailyvideo",
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        expect(() => handleNewBooking(req)).rejects.toThrowError("cannot be booked at this time");
+      },
+      timeout
     );
   });
 });
