@@ -76,8 +76,6 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
-import test_config_json from "./test/config.json";
-import ttt_config_json from "./ttt/config.json";
 import typeform_config_json from "./typeform/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
@@ -168,8 +166,6 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
-  test: test_config_json,
-  ttt: ttt_config_json,
   typeform: typeform_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
