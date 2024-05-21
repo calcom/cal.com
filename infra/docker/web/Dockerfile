@@ -18,6 +18,7 @@ ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true \
 ENV NEXT_BUILD_ENV_OUTPUT=standalone
 
 ENV NEXT_PUBLIC_WEBAPP_URL=http://localhost:3000 \
+    NEXT_PUBLIC_API_V2_URL=http://localhost:5555/api/v2 \
     NEXTAUTH_URL=${NEXT_PUBLIC_WEBAPP_URL}/api/auth \
     NEXTAUTH_SECRET=auth_secret \
     CALENDSO_ENCRYPTION_KEY=encyrption_secret \
