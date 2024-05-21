@@ -14,9 +14,9 @@ jobs:
       embed: ${{ steps.filter.outputs.embed }}
       embed-react: ${{ steps.filter.outputs.embed-react }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
