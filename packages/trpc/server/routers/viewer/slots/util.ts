@@ -320,7 +320,10 @@ export interface IGetAvailableSlots {
   teamMember?: string | undefined;
 }
 
-async function getCRMContactOwnerForRRLeadSkip(apps: any, bookerEmail: string) {
+async function getCRMContactOwnerForRRLeadSkip(
+  apps: z.infer<typeof EventTypeAppMetadataSchema>,
+  bookerEmail: string
+) {
   const crm = await getCRMManagerWithRRLeadSkip(apps);
 
   if (!crm) return;
