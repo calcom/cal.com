@@ -35,7 +35,7 @@ jobs:
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
-  test:
+  unit-test:
     name: Tests
     needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
@@ -74,7 +74,7 @@ jobs:
     name: Tests
     needs: [changes, lint, build, build-api-v1, build-api-v2]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration.yml
+    uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   e2e:
@@ -113,7 +113,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
