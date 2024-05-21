@@ -26,7 +26,6 @@ const workspaces = packagedEmbedTestsOnly
           name: `IntegrationTests`,
           include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
           exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
-          passWithNoTests: true,
           setupFiles: ["setupVitest.ts"],
         },
         resolve: {
@@ -131,5 +130,7 @@ const workspaces = packagedEmbedTestsOnly
         },
       },
     ];
+
+console.log(workspaces);
 
 export default defineWorkspace(workspaces);
