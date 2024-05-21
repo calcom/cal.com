@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import type z from "zod";
 
 import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
@@ -27,6 +28,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -318,6 +320,52 @@ export interface IGetAvailableSlots {
   teamMember?: string | undefined;
 }
 
+async function getCRMContactOwnerForRRLeadSkip(apps: any, bookerEmail: string) {
+  const crm = await getCRMManagerWithRRLeadSkip(apps);
+
+  if (!crm) return;
+
+  const contact = await crm.getContacts(bookerEmail, true);
+  if (contact?.length) {
+    return contact[0].ownerEmail;
+  }
+}
+
+async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
+  let crmRoundRobinLeadSkip;
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof apps];
+    if (
+      app.enabled &&
+      typeof app.appCategories === "object" &&
+      app.appCategories.some((category: string) => category === "crm") &&
+      app.roundRobinLeadSkip
+    ) {
+      crmRoundRobinLeadSkip = app;
+      break;
+    }
+  }
+
+  if (crmRoundRobinLeadSkip) {
+    const crmCredential = await prisma.credential.findUnique({
+      where: {
+        id: crmRoundRobinLeadSkip.credentialId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    if (crmCredential) {
+      return new CrmManager(crmCredential);
+    }
+  }
+  return;
+}
+
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
@@ -382,58 +430,21 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   let teamMember: string | undefined;
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
-    let crmRoundRobinLeadSkip;
-    // See if CRM app is enabled and skip RR assignment
-    const eventTypeAppMetadata = eventType?.metadata?.apps;
-    for (const appKey in eventTypeAppMetadata) {
-      const app = eventTypeAppMetadata[appKey as keyof typeof eventTypeAppMetadata];
-      if (
-        app.enabled &&
-        typeof app.appCategories === "object" &&
-        app.appCategories.some((category: string) => category === "crm") &&
-        app.roundRobinLeadSkip
-      ) {
-        crmRoundRobinLeadSkip = app;
-        break;
-      }
-    }
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
+      eventType?.metadata?.apps,
+      input.bookerEmail
+    );
+    const contactOwnerHost = eventType.hosts.find((host) => host.user.email === crmContactOwner);
+    if (contactOwnerHost) {
+      const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
 
-    if (crmRoundRobinLeadSkip) {
-      const crmCredential = await prisma.credential.findUnique({
-        where: {
-          id: crmRoundRobinLeadSkip.credentialId,
-        },
-        include: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-        },
-      });
-      if (crmCredential) {
-        const crm = new CrmManager(crmCredential);
-        const contact = await crm.getContacts(input.bookerEmail, true);
-        if (contact?.length) {
-          // Since this is enabled for round robin event, we iterate through hosts
-          const contactOwner = eventType.hosts.find((host) => host.user.email === contact[0].ownerEmail);
-          if (contactOwner) {
-            teamMember = contactOwner.user.email;
-            const contactOwnerIsRRHost = eventType.hosts.find(
-              (host) => host.user.email === teamMember && !host.isFixed
-            );
-            const otherHosts = contactOwnerIsRRHost
-              ? eventType.hosts
-                  .filter((host) => host.user.email !== contactOwner.user.email && host.isFixed)
-                  .map(({ isFixed, user }) => ({ isFixed, ...user }))
-              : eventType.hosts
-                  .filter((host) => host.user.email !== contactOwner.user.email)
-                  .map(({ isFixed, user }) => ({ isFixed, ...user }));
+      const otherHosts = eventType.hosts
+        .filter(
+          (host) => host.user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || host.isFixed)
+        )
+        .map(({ isFixed, user }) => ({ isFixed, ...user }));
 
-            usersWithCredentials = [{ ...contactOwner.user, isFixed: true }, ...otherHosts];
-          }
-        }
-      }
+      usersWithCredentials = [{ ...contactOwnerHost.user, isFixed: true }, ...otherHosts];
     }
   }
 
