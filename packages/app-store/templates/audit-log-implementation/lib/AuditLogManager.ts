@@ -5,8 +5,25 @@ import type { AppKeys } from "../zod";
 
 type GenericAuditLogClient = {
   credentials: AppKeys;
-  reportEvent: (event: any) => Promise<void>;
+  reportEvent: (event: AuditLogEvent) => void;
 };
+
+function getGenericAuditLogClient(
+  apiKey: string,
+  projectId: string,
+  endpoint: string
+): GenericAuditLogClient {
+  return {
+    credentials: {
+      apiKey: apiKey,
+      projectId: projectId,
+      endpoint: endpoint,
+    },
+    reportEvent: (event: AuditLogEvent) => {
+      console.log({ event });
+    },
+  };
+}
 
 const log = logger.getSubLogger({ prefix: ["AuditLogManager"] });
 export default class GenericAuditLogManager implements AuditLogsManager {
@@ -15,21 +32,12 @@ export default class GenericAuditLogManager implements AuditLogsManager {
   constructor(appKeys: AppKeys) {
     log.silly("Initializing GenericAuditLogManager");
 
-    this.client = {
-      credentials: {
-        apiKey: appKeys.apiKey,
-        projectId: appKeys.projectId,
-      },
-
-      async reportEvent(event: any) {
-        console.log(event);
-      },
-    };
+    this.client = getGenericAuditLogClient(appKeys.apiKey, appKeys.projectId, appKeys.endpoint);
   }
 
-  public async report(event: AuditLogEvent) {
+  public async reportEvent(event: AuditLogEvent) {
+    log.silly("Reporting event.");
     // Here you can intercept the event before its sent by your client.
-    event.crud = "d";
-    await this.client?.reportEvent(event);
+    this.client?.reportEvent(event);
   }
 }
