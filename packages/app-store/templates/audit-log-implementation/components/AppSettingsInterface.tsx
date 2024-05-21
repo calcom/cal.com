@@ -10,16 +10,15 @@ import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
 import { appKeysSchema } from "../zod";
+import { AuditLogEventToggles } from "./AuditLogEventToggles";
 import { AuditSystemStatus } from "./AuditSystemStatus";
 import { CredentialsForm } from "./CredentialsForm";
-import { LogEventSettings } from "./LogEventSettings";
 import { NavigationPanel } from "./NavigationPanel";
 
 export default function AppSettings(props: { credentialId: string }) {
   const searchParams = useSearchParams();
   const logs = searchParams.get(props.credentialId);
   const { t } = useLocale();
-  const { t: tAuditLogs } = useLocale("audit-logs");
   const { data, isLoading } = trpc.viewer.appCredentialById.useQuery({
     id: parseInt(props.credentialId),
   });
@@ -72,7 +71,7 @@ export default function AppSettings(props: { credentialId: string }) {
           <NavigationPanel credentialId={props.credentialId} />
         </div>
         {logs ? (
-          <LogEventSettings value={value} onChange={onChange} />
+          <AuditLogEventToggles value={value} onChange={onChange} />
         ) : (
           <CredentialsForm
             form={form}

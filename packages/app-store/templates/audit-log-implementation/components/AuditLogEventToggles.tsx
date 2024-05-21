@@ -1,19 +1,43 @@
+import { useState } from "react";
+
 import { availableTriggerEvents, availableTriggerTargets } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { Badge, Switch, Select, Button } from "@calcom/ui";
 
-export const LogEventSettings = ({
+import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
+
+export const AuditLogEventToggles = ({
   value,
   onChange,
 }: {
   value: { label: string; value: AuditLogTriggerTargets; key: string };
   onChange(key: string | undefined): void;
 }) => {
+  const [loading, setLoading] = useState(false);
+  const [isOpen, setOpen] = useState(false);
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
+
+  function handleUpdate(checked: boolean, action: string) {
+    setLoading(true);
+    setOpen(true);
+    console.log({ checked, action });
+  }
+
+  function handleOpenChange() {
+    setOpen((isOpen) => !isOpen);
+  }
+
   return (
     <div className="flex w-[80%] flex-col justify-between space-y-4">
+      <ManagedAuditLogEventDialog
+        isPending={false}
+        actionKey="BOOKING_RESCHEDULED"
+        onOpenChange={handleOpenChange}
+        onConfirm={() => console.log("heyyyy")}
+        isOpen={isOpen}
+      />
       <div className="grid h-[100%] w-[100%]">
         <Select<{ label: string; value: AuditLogTriggerTargets; key: string }>
           className="capitalize"
@@ -42,11 +66,10 @@ export const LogEventSettings = ({
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
-                  disabled={false}
+                  disabled={loading}
                   checked={true}
                   onCheckedChange={(checked) => {
-                    console.log({ checked });
-                    // update(index, { ...field, hidden: !checked });
+                    handleUpdate(checked, action as string);
                   }}
                   classNames={{ container: "p-2 hover:bg-subtle rounded" }}
                   tooltip={
