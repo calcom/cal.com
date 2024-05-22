@@ -191,6 +191,11 @@ async function createOrganizationAndAddMembersAndTeams({
         create: orgMembersInDb.map((member) => ({
           uid: uuid(),
           username: member.orgProfile.username,
+          movedFromUser: {
+            connect: {
+              id: member.id,
+            },
+          },
           user: {
             connect: {
               id: member.id,
