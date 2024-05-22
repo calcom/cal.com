@@ -80,10 +80,10 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { eventTypeId, ...body } = schemaEventTypeCustomInputBodyParams.parse(req.body);
 
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     /* We check that the user has access to the event type he's trying to add a custom input to. */
     const eventType = await prisma.eventType.findFirst({
       where: { id: eventTypeId, userId },
