@@ -2,33 +2,44 @@
   "events": {
     "BOOKING_CREATED": {
       "title": "Event Booked",
-      "description": "Will send logs whenever an event is booked by a third party"
+      "description": "Will send logs whenever an event is booked by a third party",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is booked."
     }, 
-    "BOOKING_RESCHEDULE" : {
+    "BOOKING_RESCHEDULED" : {
       "title": "Event Rescheduled", 
-      "description": "Will send logs whenever an event is rescheduled"
+      "description": "Will send logs whenever an event is rescheduled",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is rescheduled."
     },
     "BOOKING_CANCELLED" : {
       "title": "Event Cancelled", 
-      "description": "Will send logs whenever an event is cancelled"
+      "description": "Will send logs whenever an event is cancelled",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is cancelled."
     },
     "BOOKING_REJECTED" : {
       "title": "Event Rejected", 
-      "description": "Will send logs whenever an event is rejected"
+      "description": "Will send logs whenever an event is rejected",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is rejected."
     },
     "BOOKING_PAYMENT_INITIATED": {
       "title": "Event Payment Initiated",
-      "description": "Will send logs whenever payment for an event is initiated"
+      "description": "Will send logs whenever payment for an event is initiated",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when payment for an event is initiated."
     },
     "BOOKING_PAID": {
       "title": "Event Paid Successfully",
-      "description": "Will send logs whenever payment for an event is successful"
+      "description": "Will send logs whenever payment for an event is successful",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is payed successfully."
     },
     "BOOKING_REQUESTED": {
       "title": "Event Requested",
-      "description": "Will send logs whenever an event is requested"
+      "description": "Will send logs whenever an event is requested",
+      "managed_auditLog_event_dialog_clarification": "After confirming your request, Cal.com will no longer send audit logs when an event is requested."
     } 
   },
   "tooltipInformationEnabled": "Disable",
-  "tooltipInformationDisabled": "Enable"
+  "tooltipInformationDisabled": "Enable",
+  "managed_auditLog_event_dialog_title": "You're disabling an audit logging event.",
+  "managed_auditLog_event_dialog_confirm_button": "Confirm",
+  "go_back": "Cancel",
+  "settings_have_been_updated": "Settings have been successfully updated."
 }
