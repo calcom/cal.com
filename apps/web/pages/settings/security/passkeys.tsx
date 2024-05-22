@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from "@github/webauthn-json";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
