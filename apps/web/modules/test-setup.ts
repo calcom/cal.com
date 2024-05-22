@@ -1,7 +1,11 @@
 import React from "react";
-import { vi } from "vitest";
+import { vi, afterEach } from "vitest";
 
 global.React = React;
+
+afterEach(() => {
+  vi.resetAllMocks();
+});
 
 // Mock all modules that are used in multiple tests for modules
 // We don't intend to provide the mock implementation here. They should be provided by respective tests.
