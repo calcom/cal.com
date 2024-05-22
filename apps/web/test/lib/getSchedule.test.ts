@@ -176,7 +176,6 @@ describe("getSchedule", () => {
           bookerEmail: "test@test.com", // example@example is contact owner
         },
       });
-      console.log(`schedule here ${JSON.stringify(scheduleWithLeadSkip)}`);
 
       // only slots where example@example.com is available
       expect(scheduleWithLeadSkip).toHaveTimeSlots(
