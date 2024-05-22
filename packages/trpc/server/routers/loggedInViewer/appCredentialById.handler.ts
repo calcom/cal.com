@@ -41,6 +41,7 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
       apiKey: (data.key as Prisma.JsonObject).apiKey,
       endpoint: (data.key as Prisma.JsonObject).endpoint,
       projectId: (data.key as Prisma.JsonObject).projectId,
+      settings: data.settings,
     };
   } else return {};
 };
