@@ -5,27 +5,20 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test, vi, afterEach } from "vitest";
 
-import {
-  getRecordingsOfCalVideoByRoomName,
-  getDownloadLinkOfCalVideoByRecordingId,
-} from "@calcom/core/videoClient";
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
 import { buildBooking } from "@calcom/lib/test/builder";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
 import authMiddleware from "../../../../../pages/api/bookings/[id]/_auth-middleware";
-import handler from "../../../../../pages/api/bookings/[id]/recordings/_get";
+import handler from "../../../../../pages/api/bookings/[id]/transcripts/_get";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-const adminUserId = 1;
-const memberUserId = 10;
-
 vi.mock("@calcom/core/videoClient", () => {
   return {
-    getRecordingsOfCalVideoByRoomName: vi.fn(),
-    getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
+    getAllTranscriptsAccessLinkFromRoomName: vi.fn(),
   };
 });
 
@@ -39,29 +32,17 @@ afterEach(() => {
   vi.resetAllMocks();
 });
 
-const mockGetRecordingsAndDownloadLink = () => {
-  const download_link = "https://URL";
-  const recordingItem = {
-    id: "TEST_ID",
-    room_name: "0n22w24AQ5ZFOtEKX2gX",
-    start_ts: 1716215386,
-    status: "finished",
-    max_participants: 1,
-    duration: 11,
-    share_token: "TEST_TOKEN",
-  };
+const mockGetTranscripts = () => {
+  const downloadLinks = ["https://URL1", "https://URL2"];
 
-  vi.mocked(getRecordingsOfCalVideoByRoomName).mockResolvedValue({ data: [recordingItem], total_count: 1 });
+  vi.mocked(getAllTranscriptsAccessLinkFromRoomName).mockResolvedValue(downloadLinks);
 
-  vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue({
-    download_link,
-  });
-
-  return [{ ...recordingItem, download_link }];
+  return downloadLinks;
 };
 
-describe("GET /api/bookings/[id]/recordings", () => {
-  test("Returns recordings if user is system-wide admin", async () => {
+describe("GET /api/bookings/[id]/transcripts", () => {
+  test("Returns transcripts if user is system-wide admin", async () => {
+    const adminUserId = 1;
     const userId = 2;
 
     const bookingId = 1111;
@@ -83,7 +64,7 @@ describe("GET /api/bookings/[id]/recordings", () => {
       })
     );
 
-    const mockedRecordings = mockGetRecordingsAndDownloadLink();
+    const mockedTranscripts = mockGetTranscripts();
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       body: {},
@@ -99,10 +80,12 @@ describe("GET /api/bookings/[id]/recordings", () => {
     await handler(req, res);
 
     expect(res.statusCode).toBe(200);
-    expect(JSON.parse(res._getData())).toEqual(mockedRecordings);
+    expect(JSON.parse(res._getData())).toEqual(mockedTranscripts);
   });
 
-  test("Allows GET recordings when user is org-wide admin", async () => {
+  test("Allows GET transcripts when user is org-wide admin", async () => {
+    const adminUserId = 1;
+    const memberUserId = 10;
     const bookingId = 3333;
 
     prismaMock.booking.findUnique.mockResolvedValue(
@@ -125,7 +108,8 @@ describe("GET /api/bookings/[id]/recordings", () => {
 
     req.userId = adminUserId;
     req.isOrganizationOwnerOrAdmin = true;
-    const mockedRecordings = mockGetRecordingsAndDownloadLink();
+    mockGetTranscripts();
+
     vi.mocked(getAccessibleUsers).mockResolvedValue([memberUserId]);
 
     await authMiddleware(req);
