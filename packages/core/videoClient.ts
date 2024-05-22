@@ -191,7 +191,6 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
-    console.log(e);
     return;
   }
   const [videoAdapter] = await getVideoAdapters([
