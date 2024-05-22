@@ -369,9 +369,9 @@ export async function handleConfirmation(args: {
         smsReminderNumber: booking.smsReminderNumber || undefined,
         metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       }).catch((e) => {
-        console.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
-          e
+        log.error(
+          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+          safeStringify(e)
         );
       })
     );
@@ -426,9 +426,9 @@ export async function handleConfirmation(args: {
             ...(paid ? paymentMetadata : {}),
           },
         }).catch((e) => {
-          console.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}`,
-            e
+          log.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+            safeStringify(e)
           );
         })
       );
