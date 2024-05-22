@@ -3,6 +3,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -118,7 +119,7 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
-      calEvent.location = "integrations:daily";
+      calEvent.location = DailyLocationType;
     }
 
     returnObject = { ...returnObject, originalEvent: calEvent, createdEvent: defaultMeeting };
