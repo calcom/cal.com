@@ -170,14 +170,20 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts && eventType.hosts.length > 0) {
-      await prismock.host.createMany({
-        data: eventType.hosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: eventType.id,
-          isFixed: host.isFixed ?? false,
-        })),
-      });
+    if (eventType.hosts) {
+      for (const host of eventType.hosts) {
+        await prismock.host.create({
+          data: {
+            eventTypeId: eventType.id,
+            isFixed: host.isFixed ?? false,
+            user: {
+              connect: {
+                id: host.id,
+              },
+            },
+          },
+        });
+      }
     }
   }
 }
@@ -858,6 +864,23 @@ export const TestData = {
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift and IstEveningShift
+     */
+    IstMidShift: {
+      name: "12:30AM to 8PM in India - 7:00AM to 14:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T12:30:00.000Z"),
+          endTime: new Date("1970-01-01T20:00:00.000Z"),
           date: null,
         },
       ],

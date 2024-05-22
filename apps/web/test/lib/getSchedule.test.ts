@@ -89,7 +89,7 @@ describe("getSchedule", () => {
   });
 
   describe("Round robin lead skip - CRM", async () => {
-    test("correctly identifies unavailable slots from calendar", async () => {
+    test("correctly get slots for event with only round robin hosts", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
 
@@ -125,12 +125,14 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 60,
             length: 60,
-            users: [
+            hosts: [
               {
                 id: 101,
+                isFixed: false,
               },
               {
                 id: 102,
+                isFixed: false,
               },
             ],
             schedulingType: "ROUND_ROBIN",
@@ -212,6 +214,149 @@ describe("getSchedule", () => {
           `14:30:00.000Z`,
           `15:30:00.000Z`,
         ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+    test("correctly get slots for event with round robin and fixed hosts", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+
+      const crmCredential = {
+        id: 1,
+        type: "salesforce_crm",
+        key: {
+          clientId: "test-client-id",
+        },
+        userId: 1,
+        teamId: null,
+        appId: "salesforce",
+        invalid: false,
+        user: { email: "test@test.com" },
+      };
+
+      await createCredentials([crmCredential]);
+
+      mockCrmApp("salesforce", {
+        getContacts: [
+          {
+            id: "contact-id",
+            email: "test@test.com",
+            ownerEmail: "example@example.com",
+          },
+          {
+            id: "contact-id-1",
+            email: "test1@test.com",
+            ownerEmail: "example1@example.com",
+          },
+        ],
+        createContacts: [{ id: "contact-id", email: "test@test.com" }],
+      });
+
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                id: 101,
+                isFixed: true,
+              },
+              {
+                id: 102,
+                isFixed: false,
+              },
+              {
+                id: 103,
+                isFixed: false,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              apps: {
+                salesforce: {
+                  enabled: true,
+                  appCategories: ["crm"],
+                  roundRobinLeadSkip: true,
+                },
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstMidShift],
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
+          },
+          {
+            ...TestData.users.example,
+            email: "example2@example.com",
+            id: 103,
+            schedules: [TestData.schedules.IstEveningShift],
+
+            defaultScheduleId: 3,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleFixedHostLead = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "test@test.com", // example@example (fixed host) is contact owner
+        },
+      });
+
+      console.log(`schedule here ${JSON.stringify(scheduleFixedHostLead)}`);
+
+      // show normal slots, example@example + one RR host needs to be available
+      expect(scheduleFixedHostLead).toHaveTimeSlots(
+        [
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+          `12:30:00.000Z`,
+          `13:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
+
+      const scheduleRRHostLead = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "test1@test.com", // example1@example.com (rr host) is contact owner
+        },
+      });
+
+      // slots where example@example (fixed host) + example1@example.com are available together
+      expect(scheduleRRHostLead).toHaveTimeSlots(
+        [`07:30:00.000Z`, `08:30:00.000Z`, `09:30:00.000Z`, `10:30:00.000Z`, `11:30:00.000Z`],
         {
           dateString: plus2DateString,
         }
