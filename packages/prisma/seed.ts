@@ -7,8 +7,9 @@ import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
@@ -146,6 +147,15 @@ async function createOrganizationAndAddMembersAndTeams({
         orgMembership: member.orgMembership,
         orgProfile: member.orgProfile,
       };
+
+      await prisma.tempOrgRedirect.create({
+        data: {
+          fromOrgId: 0,
+          type: RedirectType.User,
+          from: member.memberData.username,
+          toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+        },
+      });
 
       orgMembersInDb.push(orgMemberInDb);
     }
