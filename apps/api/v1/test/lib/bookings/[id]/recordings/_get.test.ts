@@ -39,7 +39,7 @@ const mockGetRecordingsAndDownloadLink = () => {
     share_token: "TEST_TOKEN",
   };
 
-  vi.mocked(getRecordingsOfCalVideoByRoomName).mockResolvedValue([recordingItem]);
+  vi.mocked(getRecordingsOfCalVideoByRoomName).mockResolvedValue({ data: [recordingItem], total_count: 1 });
 
   vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue({
     download_link,
@@ -72,6 +72,7 @@ describe("GET /api/bookings/[id]/recordings", () => {
       })
     );
 
+    const mockedRecordings = mockGetRecordingsAndDownloadLink();
     const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
       method: "GET",
       body: {},
@@ -82,9 +83,10 @@ describe("GET /api/bookings/[id]/recordings", () => {
 
     req.isSystemWideAdmin = true;
     req.userId = adminUserId;
-    const mockedRecordings = mockGetRecordingsAndDownloadLink();
 
     await handler(req, res);
+
+    console.log("res._getData()", JSON.parse(res._getData()));
 
     expect(res.statusCode).toBe(200);
     expect(JSON.parse(res._getData())).toEqual(mockedRecordings);
