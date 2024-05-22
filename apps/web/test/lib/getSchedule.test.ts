@@ -173,9 +173,11 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com", // example@example is contact owner
+          bookerEmail: "test@test.com",
         },
       });
+
+      expect(scheduleWithLeadSkip.teamMember).toBe("example@example.com");
 
       // only slots where example@example.com is available
       expect(scheduleWithLeadSkip).toHaveTimeSlots(
@@ -193,9 +195,11 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "testtest@test.com", // does not have a contact owner
+          bookerEmail: "testtest@test.com",
         },
       });
+
+      expect(scheduleWithoutLeadSkip.teamMember).toBe(undefined);
 
       // slots where either one of the rr hosts is available
       expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
@@ -319,11 +323,11 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com", // example@example (fixed host) is contact owner
+          bookerEmail: "test@test.com",
         },
       });
 
-      console.log(`schedule here ${JSON.stringify(scheduleFixedHostLead)}`);
+      expect(scheduleFixedHostLead.teamMember).toBe("example@example");
 
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
@@ -349,9 +353,11 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test1@test.com", // example1@example.com (rr host) is contact owner
+          bookerEmail: "test1@test.com",
         },
       });
+
+      expect(scheduleFixedHostLead.teamMember).toBe("example1@example.com");
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(

@@ -452,6 +452,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
 
     if (contactOwnerHost) {
+      teamMember = contactOwnerHost.user.email;
       const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
 
       usersWithCredentials = usersWithCredentials.filter(
