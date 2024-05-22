@@ -27,6 +27,37 @@ const swaggerHandler = withSwagger({
             $ref: "#/components/schemas/Booking",
           },
         },
+        ArrayOfRecordings: {
+          type: "array",
+          items: {
+            $ref: "#/components/schemas/Recording",
+          },
+        },
+        Recording: {
+          properties: {
+            id: {
+              type: "string",
+            },
+            room_name: {
+              type: "string",
+            },
+            start_ts: {
+              type: "number",
+            },
+            status: {
+              type: "string",
+            },
+            max_participants: {
+              type: "number",
+            },
+            duration: {
+              type: "number",
+            },
+            download_link: {
+              type: "string",
+            },
+          },
+        },
         Booking: {
           properties: {
             id: {
