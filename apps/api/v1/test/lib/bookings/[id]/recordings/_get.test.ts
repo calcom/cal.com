@@ -3,7 +3,7 @@ import prismaMock from "../../../../../../../../tests/libs/__mocks__/prismaMock"
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test, vi, afterEach } from "vitest";
 
 import {
   getRecordingsOfCalVideoByRoomName,
