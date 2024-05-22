@@ -180,8 +180,10 @@ export async function handler(req: NextApiRequest) {
   const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
-  args.take = take;
-  args.skip = skip;
+  if (req.query.take && req.query.page) {
+    args.take = take;
+    args.skip = skip;
+  }
   args.include = {
     attendees: true,
     user: true,
