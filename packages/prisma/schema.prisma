@@ -171,6 +171,8 @@ model Credential {
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
+  /// Note: settings type depends on implementation/slug this credential belongs to.
+  settings             Json                  @default("{ \"empty\": \"true\" }")
 
   @@index([userId])
   @@index([appId])
@@ -858,6 +860,7 @@ model App {
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
+  /// @zod.custom(imports.RoutingFormSettings)
   settings    Json?
 
   @@index([enabled])
