@@ -24,14 +24,13 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const isEmbed = useIsEmbed();
   const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
-
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
-  const orgAvatarItem = entity.orgSlug && !isDynamic
+  const orgAvatarItem = entity.orgSlug && !(isDynamic && !profile.image)
     ? [
         {
           // We don't want booker to be able to see the list of other users or teams inside the embed

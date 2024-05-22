@@ -116,21 +116,32 @@ async function createOrganizationAndAddMembersAndTeams({
     };
   })[] = [];
 
-  // Create all users first
   try {
     for (const member of orgMembers) {
-      const orgMemberInDb = {
-        ...(await prisma.user.create({
-          data: {
-            ...member.memberData,
-            emailVerified: new Date(),
-            password: {
-              create: {
-                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+      const newUser = await createUserAndEventType({
+        user: {
+          ...member.memberData,
+          password: member.memberData.password.create?.hash,
+        },
+        eventTypes: [
+          {
+            title: "30min",
+            slug: "30min",
+            length: 30,
+            _bookings: [
+              {
+                uid: uuid(),
+                title: "30min",
+                startTime: dayjs().add(1, "day").toDate(),
+                endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
               },
-            },
+            ],
           },
-        })),
+        ],
+      });
+
+      const orgMemberInDb = {
+        ...newUser,
         inTeams: member.inTeams,
         orgMembership: member.orgMembership,
         orgProfile: member.orgProfile,
@@ -145,6 +156,7 @@ async function createOrganizationAndAddMembersAndTeams({
         return;
       }
     }
+    console.error(e);
   }
 
   await Promise.all([
