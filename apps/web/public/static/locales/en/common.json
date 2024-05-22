@@ -2442,7 +2442,7 @@
   "lowest_rated_members": "Members with lowest rated meetings",
   "csat_score": "CSAT Score",
   "lockedSMS": "Locked SMS",
-  "signing_up_terms": "By proceeding, you agree to our <1>Terms</1> and <2>Privacy Policy</2>.",
+  "signing_up_terms": "By proceeding, you agree to our <0>Terms</0> and <1>Privacy Policy</1>.",
   "always_show_x_days": "Always {{x}} days available",
   "unable_to_subscribe_to_the_platform": "An error occurred while trying to subscribe to the platform plan, please try again later",
   "updating_oauth_client_error": "An error occurred while updating the OAuth client, please try again later",
