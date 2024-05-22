@@ -1197,7 +1197,7 @@ async function handler(
   let luckyUserResponse;
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot) {
+  if (!eventType.seatsPerTimeSlot || eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
       users: IsFixedAwareUser[];
     } = {
