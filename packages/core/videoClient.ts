@@ -118,10 +118,10 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
-      calEvent.location = "integrations:dailyvideo";
+      calEvent.location = "integrations:daily";
     }
 
-    returnObject = { ...returnObject, createdEvent: defaultMeeting };
+    returnObject = { ...returnObject, originalEvent: calEvent, createdEvent: defaultMeeting };
   }
 
   return returnObject;
@@ -191,6 +191,7 @@ const createMeetingWithCalVideo = async (calEvent: CalendarEvent) => {
   try {
     dailyAppKeys = await getDailyAppKeys();
   } catch (e) {
+    console.log(e);
     return;
   }
   const [videoAdapter] = await getVideoAdapters([

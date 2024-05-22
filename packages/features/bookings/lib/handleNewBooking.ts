@@ -2356,6 +2356,7 @@ async function handler(
         uid: booking.uid,
       },
       data: {
+        location: evt.location,
         metadata: { ...(typeof booking.metadata === "object" && booking.metadata), ...metadata },
         references: {
           createMany: {
