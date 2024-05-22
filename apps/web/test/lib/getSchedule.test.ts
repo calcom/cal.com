@@ -92,9 +92,6 @@ describe("getSchedule", () => {
     test("correctly identifies unavailable slots from calendar", async () => {
       const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-
-      //I need to create crmCredential in db
 
       const crmCredential = {
         id: 1,
@@ -110,7 +107,8 @@ describe("getSchedule", () => {
       };
 
       await createCredentials([crmCredential]);
-      const mockedCrmApp = mockCrmApp("salesforce", {
+
+      mockCrmApp("salesforce", {
         getContacts: [
           {
             id: "contact-id",
@@ -125,8 +123,8 @@ describe("getSchedule", () => {
         eventTypes: [
           {
             id: 1,
-            slotInterval: 45,
-            length: 45,
+            slotInterval: 60,
+            length: 60,
             users: [
               {
                 id: 101,
@@ -146,35 +144,26 @@ describe("getSchedule", () => {
               },
             },
           },
-          {
-            id: 2,
-            slotInterval: 45,
-            length: 45,
-            users: [
-              {
-                id: 102,
-              },
-            ],
-          },
         ],
         users: [
           {
             ...TestData.users.example,
             email: "example@example.com",
             id: 101,
-            schedules: [TestData.schedules.IstWorkHours],
+            schedules: [TestData.schedules.IstEveningShift],
           },
           {
             ...TestData.users.example,
             email: "example1@example.com",
             id: 102,
             schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 2,
           },
         ],
         bookings: [],
       });
 
-      const schedule = await getSchedule({
+      const scheduleWithLeadSkip = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
@@ -182,9 +171,51 @@ describe("getSchedule", () => {
           endTime: `${plus2DateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: true,
-          bookerEmail: "test@test.com",
+          bookerEmail: "test@test.com", // example@example is contact owner
         },
       });
+      console.log(`schedule here ${JSON.stringify(scheduleWithLeadSkip)}`);
+
+      // only slots where example@example.com is available
+      expect(scheduleWithLeadSkip).toHaveTimeSlots(
+        [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+
+      const scheduleWithoutLeadSkip = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "testtest@test.com", // does not have a contact owner
+        },
+      });
+
+      // slots where either one of the rr hosts is available
+      expect(scheduleWithoutLeadSkip).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+          `12:30:00.000Z`,
+          `13:30:00.000Z`,
+          `14:30:00.000Z`,
+          `15:30:00.000Z`,
+        ],
+        {
+          dateString: plus2DateString,
+        }
+      );
     });
   });
 

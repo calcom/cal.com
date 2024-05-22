@@ -1506,10 +1506,12 @@ export function mockCrmApp(
             }
           }
 
-          getContacts() {
+          getContacts(email: string) {
             if (crmData?.getContacts) {
               contactsQueried = crmData?.getContacts;
-              return Promise.resolve(crmData?.getContacts);
+              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+
+              return Promise.resolve(contactsOfEmail);
             }
           }
 
