@@ -327,7 +327,7 @@ describe("getSchedule", () => {
         },
       });
 
-      expect(scheduleFixedHostLead.teamMember).toBe("example@example");
+      expect(scheduleFixedHostLead.teamMember).toBe("example@example.com");
 
       // show normal slots, example@example + one RR host needs to be available
       expect(scheduleFixedHostLead).toHaveTimeSlots(
@@ -357,7 +357,7 @@ describe("getSchedule", () => {
         },
       });
 
-      expect(scheduleFixedHostLead.teamMember).toBe("example1@example.com");
+      expect(scheduleRRHostLead.teamMember).toBe("example1@example.com");
 
       // slots where example@example (fixed host) + example1@example.com are available together
       expect(scheduleRRHostLead).toHaveTimeSlots(
