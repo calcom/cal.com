@@ -2,7 +2,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ConfirmationDialogContent, Dialog } from "@calcom/ui";
 
 interface ManagedEventDialogProps {
-  actionKey: string;
+  actionKey: {
+    action: string;
+    checked: boolean;
+  };
   onOpenChange: () => void;
   isPending: boolean;
   isOpen: boolean;
@@ -10,7 +13,7 @@ interface ManagedEventDialogProps {
 }
 
 export default function ManagedAuditLogEventDialog(props: ManagedEventDialogProps) {
-  const { t } = useLocale();
+  const { t } = useLocale("audit-logs");
   const { actionKey, onOpenChange, isPending, onConfirm, isOpen } = props;
 
   return (
@@ -25,9 +28,7 @@ export default function ManagedAuditLogEventDialog(props: ManagedEventDialogProp
         cancelBtnText={t("go_back")}
         onConfirm={onConfirm}>
         <p className="mt-5">
-          {t("managed_auditLog_event_dialog_clarification", {
-            eventClarification: "an event is rescheduled.",
-          })}
+          {t(`events.${props.actionKey.action}.managed_auditLog_event_dialog_clarification`)}
         </p>
       </ConfirmationDialogContent>
     </Dialog>

@@ -4,9 +4,9 @@ import { Label, showToast } from "@calcom/ui";
 
 import appConfig from "../config.json";
 
-export const AuditSystemStatus = ({ credentialId }: { credentialId: string }) => {
+export const AuditSystemStatus = ({ credentialId }: { credentialId: number }) => {
   const { data: checkStatus, isLoading } = useQuery({
-    queryKey: ["ping", credentialId],
+    queryKey: ["ping", credentialId.toString()],
     queryFn: async () => {
       const response = await fetch(`/api/integrations/${appConfig.slug}/ping`, {
         method: "post",

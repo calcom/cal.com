@@ -1,15 +1,16 @@
 {
   "/*": "Don't modify slug - If required, do it using cli edit command",
-  "name": "Audit Logs Implementation Example",
-  "slug": "audit-logs-implementation",
-  "type": "audit-los-implementation_auditLogs",
+  "name": "test",
+  "slug": "test",
+  "type": "test_auditLogs",
   "logo": "icon.svg",
   "url": "https://example.com/link",
   "variant": "auditLogs",
   "categories": ["auditLogs"],
-  "publisher": "oliverqx",
-  "email": "oliverquixchan@gmail.com",
-  "description": "This is an example of an audit logs sdk implementation. Don't forget to update app slug using cli.",
-  "isTemplate": true,
-  "__createdUsingCli": true
+  "publisher": "sadf",
+  "email": "asdf",
+  "description": "test",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "audit-log-implementation"
 }

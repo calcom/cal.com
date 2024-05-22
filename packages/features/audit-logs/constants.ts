@@ -1,6 +1,6 @@
 import { AuditLogBookingTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
-export const availableTriggerEvents: { [key: string]: any } = {
+export const availableTriggerEvents: { [key: string]: string } = {
   booking: {
     ...AuditLogBookingTriggerEvents,
   },

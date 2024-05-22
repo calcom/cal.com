@@ -3,39 +3,71 @@ import { useState } from "react";
 import { availableTriggerEvents, availableTriggerTargets } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AuditLogTriggerTargets } from "@calcom/prisma/enums";
-import { Badge, Switch, Select, Button } from "@calcom/ui";
+import { trpc } from "@calcom/trpc";
+import { Badge, Switch, Select } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
 export const AuditLogEventToggles = ({
   value,
   onChange,
+  credentialId,
+  settings,
 }: {
   value: { label: string; value: AuditLogTriggerTargets; key: string };
   onChange(key: string | undefined): void;
+  settings: { empty: boolean; disabledEvents: string[] };
+  credentialId: number;
 }) => {
-  const [loading, setLoading] = useState(false);
   const [isOpen, setOpen] = useState(false);
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
+  const [actionKey, setActionKey] = useState({ checked: true, action: "" });
+
+  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(settings.disabledEvents));
 
   function handleUpdate(checked: boolean, action: string) {
-    setLoading(true);
     setOpen(true);
-    console.log({ checked, action });
+    setActionKey({ checked, action });
   }
 
   function handleOpenChange() {
     setOpen((isOpen) => !isOpen);
   }
 
+  const updateCredentialSettingsMutation = trpc.viewer.appsRouter.updateCredentialSettings.useMutation({
+    onSuccess: () => {
+      showToast(t("keys_have_been_saved"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
+  async function handleOnConfirm() {
+    updateCredentialSettingsMutation.mutate({
+      credentialId: credentialId.toString(),
+      settings: { toBeDisabled: !actionKey.checked, event: actionKey.action },
+    });
+
+    const newDisabledEvents = disabledEvents;
+    if (!actionKey.checked) {
+      newDisabledEvents.add(actionKey.action);
+      setDisabledEvents(newDisabledEvents);
+    } else {
+      newDisabledEvents.delete(actionKey.action);
+      setDisabledEvents(newDisabledEvents);
+    }
+  }
+
   return (
     <div className="flex w-[80%] flex-col justify-between space-y-4">
       <ManagedAuditLogEventDialog
         isPending={false}
-        actionKey="BOOKING_RESCHEDULED"
-        onOpenChange={handleOpenChange}
-        onConfirm={() => console.log("heyyyy")}
+        actionKey={actionKey}
+        onOpenChange={() => handleOpenChange()}
+        onConfirm={() => handleOnConfirm()}
         isOpen={isOpen}
       />
       <div className="grid h-[100%] w-[100%]">
@@ -66,10 +98,9 @@ export const AuditLogEventToggles = ({
               </div>
               <div className="flex items-center space-x-2">
                 <Switch
-                  disabled={loading}
-                  checked={true}
+                  checked={!disabledEvents.has(action)}
                   onCheckedChange={(checked) => {
-                    handleUpdate(checked, action as string);
+                    handleUpdate(checked, action);
                   }}
                   classNames={{ container: "p-2 hover:bg-subtle rounded" }}
                   tooltip={
@@ -80,9 +111,6 @@ export const AuditLogEventToggles = ({
             </li>
           ))}
         </ul>
-        <div className="text-right">
-          <Button size="base">{t("submit")}</Button>
-        </div>
       </div>
     </div>
   );

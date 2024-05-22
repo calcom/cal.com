@@ -19,7 +19,7 @@ type AppSettingOptionEntry = {
   icon: IconName;
 }[];
 
-export function getAppSettingsOptions(credentialId: string): AppSettingOptionEntry[] {
+export function getAppSettingsOptions(credentialId: number): AppSettingOptionEntry[] {
   return [
     {
       name: "Credentials",
@@ -28,7 +28,10 @@ export function getAppSettingsOptions(credentialId: string): AppSettingOptionEnt
     },
     {
       name: "Logs",
-      href: getHref("/apps/installed/auditLogs", { credentialId: credentialId, activeOption: "logs" }),
+      href: getHref("/apps/installed/auditLogs", {
+        credentialId: credentialId.toString(),
+        activeOption: "logs",
+      }),
       icon: "bar-chart",
     },
   ];

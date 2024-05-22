@@ -15,13 +15,14 @@ import { AuditSystemStatus } from "./AuditSystemStatus";
 import { CredentialsForm } from "./CredentialsForm";
 import { NavigationPanel } from "./NavigationPanel";
 
-export default function AppSettings(props: { credentialId: string }) {
+export default function AppSettings(props: { credentialId: number }) {
   const searchParams = useSearchParams();
-  const logs = searchParams.get(props.credentialId);
+  const logs = searchParams.get(props.credentialId.toString());
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.appCredentialById.useQuery({
-    id: parseInt(props.credentialId),
+    id: props.credentialId,
   });
+
   const [value, setValue] = useState<{ label: string; value: AuditLogTriggerTargets; key: string }>(
     availableTriggerTargets.booking
   );
@@ -63,6 +64,8 @@ export default function AppSettings(props: { credentialId: string }) {
     },
   });
 
+  if (isLoading) return null;
+
   return (
     <div className="align-right space-y-4 px-4 pb-4 pt-4 text-sm">
       <div className="items-between flex space-x-4">
@@ -71,7 +74,12 @@ export default function AppSettings(props: { credentialId: string }) {
           <NavigationPanel credentialId={props.credentialId} />
         </div>
         {logs ? (
-          <AuditLogEventToggles value={value} onChange={onChange} />
+          <AuditLogEventToggles
+            credentialId={props.credentialId}
+            settings={data?.settings as { empty: boolean; disabledEvents: string[] }}
+            value={value}
+            onChange={onChange}
+          />
         ) : (
           <CredentialsForm
             form={form}
