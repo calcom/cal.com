@@ -5,6 +5,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 import { schemaBookingEditBodyParams, schemaBookingReadPublic } from "~/lib/validations/booking";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -109,13 +110,26 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaBookingEditBodyParams>) {
-  const { isAdmin } = req;
-  if (body.userId && !isAdmin) {
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  if (body.userId && !isSystemWideAdmin && !isOrganizationOwnerOrAdmin) {
     // Organizer has to be a cal user and we can't allow a booking to be transfered to some other cal user's name
     throw new HttpError({
       statusCode: 403,
       message: "Only admin can change the organizer of a booking",
     });
+  }
+
+  if (body.userId && isOrganizationOwnerOrAdmin) {
+    const accessibleUsersIds = await getAccessibleUsers({
+      adminUserId: userId,
+      memberUserIds: [body.userId],
+    });
+    if (accessibleUsersIds.length === 0) {
+      throw new HttpError({
+        statusCode: 403,
+        message: "Only admin can change the organizer of a booking",
+      });
+    }
   }
 }
 
