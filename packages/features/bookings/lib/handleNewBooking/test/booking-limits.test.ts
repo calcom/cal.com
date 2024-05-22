@@ -687,11 +687,12 @@ describe("handleNewBooking", () => {
     timeout
   );
 
-  // FIXME: Test is flaky, sometimes it fails on CI. It resolves instead of rejecting.
-  describe.skipIf(true)("Future Limits", () => {
+  describe("Future Limits", () => {
     test(
       `should fail booking if periodType=ROLLING check fails`,
       async () => {
+        // In IST it is 2024-05-22 12:39am
+        vi.setSystemTime("2024-05-21T19:09:13Z");
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
         const booker = getBooker({
           email: "booker@example.com",
@@ -721,7 +722,7 @@ describe("handleNewBooking", () => {
                 id: 1,
                 slotInterval: 30,
                 periodType: PeriodType.ROLLING,
-                // Today, plus1 and plus2
+                // 22st, 23nd and 24th in IST availability(Schedule being used is ISTWorkHours)
                 periodDays: 2,
                 periodCountCalendarDays: true,
                 length: 30,
@@ -738,7 +739,7 @@ describe("handleNewBooking", () => {
           })
         );
 
-        const plus3DateString = getDate({ dateIncrement: 3 }).dateString;
+        const plus3DateString = `2024-05-25`;
         const mockBookingData = getMockRequestDataForBooking({
           data: {
             user: organizer.username,
