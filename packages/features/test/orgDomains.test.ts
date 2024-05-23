@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { getOrgSlug, getOrgDomainConfigFromHostname } from "@calcom/features/ee/organizations/lib/orgDomains";
+import {
+  getOrgSlug,
+  getOrgDomainConfigFromHostname,
+  getOrgFullOrigin,
+} from "@calcom/features/ee/organizations/lib/orgDomains";
 import * as constants from "@calcom/lib/constants";
 
-function setupEnvs({ WEBAPP_URL = "https://app.cal.com" } = {}) {
+function setupEnvs({ WEBAPP_URL = "https://app.cal.com", WEBSITE_URL } = {}) {
   Object.defineProperty(constants, "WEBAPP_URL", { value: WEBAPP_URL });
+  Object.defineProperty(constants, "WEBSITE_URL", { value: WEBSITE_URL });
   Object.defineProperty(constants, "ALLOWED_HOSTNAMES", {
     value: ["cal.com", "cal.dev", "cal-staging.com", "cal.community", "cal.local:3000", "localhost:3000"],
   });
@@ -80,6 +85,24 @@ describe("Org Domains Utils", () => {
     it("should handle a local web app with port url with a non-local subdomain hostname", () => {
       setupEnvs({ WEBAPP_URL: "http://app.cal.local:3000" });
       expect(getOrgSlug("acme.cal.com:3000")).toEqual(null);
+    });
+  });
+
+  describe("getOrgFullOrigin", () => {
+    it("should return the regular(non-org) origin if slug is null", () => {
+      setupEnvs({
+        WEBAPP_URL: "https://app.cal.com",
+        WEBSITE_URL: "https://abc.com",
+      });
+      expect(getOrgFullOrigin(null)).toEqual("https://abc.com");
+    });
+    it("should return the org origin if slug is set", () => {
+      setupEnvs({
+        WEBAPP_URL: "https://app.cal-app.com",
+        WEBSITE_URL: "https://cal.com",
+      });
+      // We are supposed to use WEBAPP_URL to derive the origin from and not WEBSITE_URL
+      expect(getOrgFullOrigin("org")).toEqual("https://org.cal-app.com");
     });
   });
 });

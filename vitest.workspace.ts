@@ -146,6 +146,15 @@ const workspaces = packagedEmbedTestsOnly
           setupFiles: [],
         },
       },
+      {
+        test: {
+          globals: true,
+          environment: "jsdom",
+          name: "@calcom/web/modules/views",
+          include: ["apps/web/modules/**/*.{test,spec}.tsx"],
+          setupFiles: ["apps/web/modules/test-setup.ts"],
+        },
+      },
     ];
 
 export default defineWorkspace(workspaces);

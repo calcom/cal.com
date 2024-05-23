@@ -19,6 +19,7 @@ import type { nameObjectSchema } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import {
   useEmbedNonStylesConfig,
   useIsBackgroundTransparent,
@@ -60,12 +61,10 @@ import {
   EmptyScreen,
   Icon,
 } from "@calcom/ui";
-
-import { timeZone } from "@lib/clock";
-
-import PageWrapper from "@components/PageWrapper";
-import CancelBooking from "@components/booking/CancelBooking";
-import EventReservationSchema from "@components/schemas/EventReservationSchema";
+import PageWrapper from "@calcom/web/components/PageWrapper";
+import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
+import { timeZone } from "@calcom/web/lib/clock";
 
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
@@ -109,7 +108,7 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug } = props;
 
   const {
     allRemainingBookings,
@@ -377,7 +376,7 @@ export default function Success(props: PageProps) {
           </Link>
         </div>
       )}
-      <HeadSeo title={title} description={title} />
+      <HeadSeo origin={getOrgFullOrigin(orgSlug)} title={title} description={title} />
       <BookingPageTagManager eventType={eventType} />
       <main className={classNames(shouldAlignCentrally ? "mx-auto" : "", isEmbed ? "" : "max-w-3xl")}>
         <div className={classNames("overflow-y-auto", isEmbed ? "" : "z-50 ")}>
