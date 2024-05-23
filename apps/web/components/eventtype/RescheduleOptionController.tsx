@@ -16,16 +16,21 @@ type RescheduleOptionControllerProps = {
 
 export default function RescheduleOptionController({ eventType }: RescheduleOptionControllerProps) {
   const { t } = useLocale();
-  const defaultallSetup = { time: 0 };
-  const [flexibleSetup, setFlexibleSetup] = useState(defaultallSetup);
-  const [strictSetup, setStrictSetup] = useState(defaultallSetup);
   const formMethods = useFormContext<FormValues>();
+
+  const rescheduleOption = formMethods.getValues("rescheduleOption");
+  const hasRescheduleOption = Object.keys(rescheduleOption ?? {}).length > 0;
+
+  const [flexibleSetup, setFlexibleSetup] = useState({
+    timeStamp: hasRescheduleOption && rescheduleOption.type === "flexible" ? rescheduleOption.timeStamp : 0,
+  });
+
+  const [strictSetup, setStrictSetup] = useState({
+    timeStamp: hasRescheduleOption && rescheduleOption.type === "strict" ? rescheduleOption.timeStamp : 1,
+  });
 
   const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
   const rescheduleOptionLockedProps = shouldLockDisableProps("rescheduleOption");
-  const [rescheduleOptionToggle, setrescheduleOptionToggle] = useState(
-    !!formMethods.getValues("rescheduleOption")
-  );
 
   return (
     <div className="block items-start sm:flex">
@@ -39,32 +44,40 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
               toggleSwitchAtTheEnd={true}
               switchContainerClassName={classNames(
                 "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-                rescheduleOptionToggle && "rounded-b-none"
+                hasRescheduleOption && "rounded-b-none"
               )}
               childrenClassName="lg:ml-0"
               title={t("enable_reschedule_options")}
               data-testid="reschedule-Option"
               disabled={rescheduleOptionLockedProps.disabled}
               description={t("enable_reschedule_options_description")}
-              checked={rescheduleOptionToggle}
+              checked={hasRescheduleOption}
               LockedIcon={rescheduleOptionLockedProps.LockedIcon}
               onCheckedChange={(val) => {
-                setrescheduleOptionToggle(val);
                 if (!val) {
-                  formMethods.setValue("rescheduleOption", undefined, {
-                    shouldDirty: true,
-                  });
+                  formMethods.setValue(
+                    "rescheduleOption",
+                    {},
+                    {
+                      shouldDirty: true,
+                    }
+                  );
+                } else {
+                  formMethods.setValue(
+                    "rescheduleOption",
+                    { type: rescheduleOption.type ?? "strict", timeStamp: rescheduleOption.timeStamp ?? 1 },
+                    { shouldDirty: true }
+                  );
                 }
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
-                  defaultValue="strict"
+                  defaultValue={rescheduleOption.type || "strict"}
                   onValueChange={(val) => {
                     if (val === "flexible") {
-                      setrescheduleOptionToggle(true);
                       formMethods.setValue(
                         "rescheduleOption",
-                        { type: "flexible", timestamp: flexibleSetup.time },
+                        { type: "flexible", timeStamp: flexibleSetup.timeStamp },
                         {
                           shouldDirty: true,
                         }
@@ -72,12 +85,11 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
                     } else if (val === "strict") {
                       formMethods.setValue(
                         "rescheduleOption",
-                        { type: "strict", timestamp: strictSetup.time },
+                        { type: "strict", timeStamp: strictSetup.timeStamp },
                         {
                           shouldDirty: true,
                         }
                       );
-                      setrescheduleOptionToggle(true);
                     }
                   }}>
                   <div className="flex flex-col flex-wrap justify-start gap-y-2">
@@ -89,29 +101,30 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
                           <>
                             <Trans
                               i18nKey="reschedule_within_grace_period"
-                              defaults="Allow reschedule within a grace period of after <time></time> start time"
+                              defaults="Allow reschedule within a grace period of <time></time> after start time"
                               components={{
                                 time: (
                                   <div className="mx-2 inline-flex">
                                     <TextField
                                       type="number"
-                                      min={1}
+                                      min={0}
                                       disabled={rescheduleOptionLockedProps.disabled}
                                       onChange={(evt) => {
                                         const val = Number(evt.target?.value);
                                         setFlexibleSetup({
-                                          time: val,
+                                          timeStamp: val,
                                         });
                                         formMethods.setValue(
                                           "rescheduleOption",
-                                          { type: "flexible", timestamp: val },
+                                          { type: "flexible", timeStamp: val },
                                           { shouldDirty: true }
                                         );
                                       }}
                                       className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
-                                      defaultValue={0}
+                                      defaultValue={flexibleSetup.timeStamp}
                                       addOnSuffix={<>{t("minutes")}</>}
                                     />
+                                    <div />
                                   </div>
                                 ),
                               }}
@@ -142,18 +155,19 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
                                       onChange={(evt) => {
                                         const val = Number(evt.target?.value);
                                         setStrictSetup({
-                                          time: val,
+                                          timeStamp: val,
                                         });
                                         formMethods.setValue(
                                           "rescheduleOption",
-                                          { type: "strict", timestamp: val },
+                                          { type: "strict", timeStamp: val },
                                           { shouldDirty: true }
                                         );
                                       }}
-                                      defaultValue={0}
+                                      defaultValue={strictSetup.timeStamp}
                                       className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
                                       addOnSuffix={<>{t("hours")}</>}
                                     />
+                                    <div />
                                   </div>
                                 ),
                               }}
