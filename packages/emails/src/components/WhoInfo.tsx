@@ -35,7 +35,7 @@ export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
               key={member.name}
               name={member.name}
               role={t("team_member")}
-              email={member?.email ?? BOOKED_WITH_SMS_EMAIL}
+              email={member?.email ?? undefined}
             />
           ))}
           {props.calEvent.attendees.map((attendee) => (

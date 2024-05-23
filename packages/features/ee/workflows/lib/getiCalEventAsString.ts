@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { parseRecurringEvent } from "@calcom/lib";
-import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import type { Prisma, User } from "@calcom/prisma/client";
 
 type Booking = Prisma.BookingGetPayload<{
@@ -53,7 +52,7 @@ export function getiCalEventAsString(
     attendees: [
       {
         name: booking.attendees[0].name,
-        email: booking.attendees[0].email ?? BOOKED_WITH_SMS_EMAIL,
+        email: booking.attendees[0].email ?? undefined,
         partstat: "ACCEPTED",
         role: "REQ-PARTICIPANT",
         rsvp: true,
