@@ -240,7 +240,9 @@ export function AvailabilitySettings({
   useEffect(() => {
     const subscription = form.watch(
       (value, { name }) => {
-        if (!!name && name.split(".")[0] !== "schedule") handleSubmit(value as AvailabilityFormValues);
+        console.log(name);
+        if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
+          handleSubmit(value as AvailabilityFormValues);
       },
       {
         ...schedule,
