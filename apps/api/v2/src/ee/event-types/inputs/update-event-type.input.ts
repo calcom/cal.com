@@ -275,11 +275,11 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // parentId?: number;
 
-  // @IsOptional()
-  // @IsArray()
-  // @ValidateNested({ each: true })
-  // @Type(() => BookingField)
-  // bookingFields?: BookingField[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BookingField)
+  bookingFields?: BookingField[];
 
   // @IsString()
   // @IsOptional()
@@ -336,10 +336,12 @@ export class UpdateEventTypeInput {
   minimumBookingNotice?: number;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   beforeEventBuffer?: number;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   afterEventBuffer?: number;
 
@@ -376,6 +378,7 @@ export class UpdateEventTypeInput {
   // currency?: string;
 
   @IsInt()
+  @Min(0)
   @IsOptional()
   slotInterval?: number;
 
