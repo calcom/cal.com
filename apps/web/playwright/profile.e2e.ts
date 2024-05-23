@@ -99,8 +99,8 @@ test.describe("Update Profile", () => {
     expect(await emailInputUpdated.inputValue()).toEqual(user.email);
   });
 
-  // eslint-disable-next-line playwright/no-skipped-test
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip("Can update a users email (verification enabled)", async ({ page, users, prisma, features }) => {
     const emailVerificationEnabled = features.get("email-verification");
     // eslint-disable-next-line playwright/no-conditional-in-test, playwright/no-skipped-test
@@ -374,8 +374,8 @@ test.describe("Update Profile", () => {
     expect(await page.getByTestId("profile-form-email-1-unverified-badge").isVisible()).toEqual(false);
   });
 
-  // eslint-disable-next-line playwright/no-skipped-test
   // TODO: This test is extremely flaky and has been failing a lot, blocking many PRs. Fix this.
+  // eslint-disable-next-line playwright/no-skipped-test
   test.skip("Can resend verification link if the secondary email is unverified", async ({
     page,
     users,
