@@ -81,6 +81,7 @@ const createNewSeat = async (
       attendees: {
         create: {
           email: inviteeToAdd.email,
+          phoneNumber: inviteeToAdd.phoneNumber,
           name: inviteeToAdd.name,
           timeZone: inviteeToAdd.timeZone,
           locale: inviteeToAdd.language.locale,
