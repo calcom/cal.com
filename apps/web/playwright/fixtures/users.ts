@@ -66,6 +66,7 @@ const createTeamEventType = async (
     teamEventTitle?: string;
     teamEventSlug?: string;
     teamEventLength?: number;
+    seatsPerTimeSlot?: number;
   }
 ) => {
   return await prisma.eventType.create({
@@ -95,6 +96,7 @@ const createTeamEventType = async (
       title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
+      seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
     },
   });
 };
@@ -228,6 +230,7 @@ export const createUsersFixture = (
         isDnsSetup?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
+        seatsPerTimeSlot?: number;
       } = {}
     ) => {
       const _user = await prisma.user.create({
