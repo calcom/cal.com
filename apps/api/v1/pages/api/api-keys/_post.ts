@@ -10,7 +10,7 @@ import prisma from "@calcom/prisma";
 import { apiKeyCreateBodySchema, apiKeyPublicSchema } from "~/lib/validations/api-key";
 
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { neverExpires, userId: bodyUserId, ...input } = apiKeyCreateBodySchema.parse(req.body);
   const [hashedKey, apiKey] = generateUniqueAPIKey();
   const args: Prisma.ApiKeyCreateArgs = {
@@ -24,9 +24,10 @@ async function postHandler(req: NextApiRequest) {
     },
   };
 
-  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  if (!isSystemWideAdmin && bodyUserId)
+    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
 
-  if (isAdmin && bodyUserId) {
+  if (isSystemWideAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;
