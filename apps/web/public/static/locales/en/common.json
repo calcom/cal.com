@@ -2263,7 +2263,7 @@
   "create_your_org_description": "Upgrade to Organizations and receive a subdomain, unified billing, Insights, extensive whitelabeling and more",
   "create_your_enterprise_description": "Upgrade to Enterprise and get access to Active Directory Sync, SCIM Automatic User provisioning, Cal.ai Voice Agents, Admin APIs and more!",
   "other_payment_app_enabled": "You can only enable one payment app per event type",
-  "admin_delete_organization_description": "<ul><li>Teams that are member of this organization will also be deleted along with their event-types</li><li>Users that were part of the organization will not be deleted and their event-types will also remain intact.</li><li>Usernames would be changed to allow them to exist outside the organization</li></ul>",
+  "admin_delete_organization_description": "<ul><li>Teams that are member of this organization will also be deleted along with their event-types</li><li>Users that were part of the organization will not be deleted but their usernames would be changed to allow them to exist outside the organization</li><li>User event-types created after the user was in the organization will be deleted</li><li>Migrated user event-types will not be deleted</li></ul>",
   "admin_delete_organization_title": "Delete {{organizationName}}?",
   "published": "Published",
   "unpublished": "Unpublished",

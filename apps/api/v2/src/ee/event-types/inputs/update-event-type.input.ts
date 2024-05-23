@@ -275,11 +275,11 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // parentId?: number;
 
-  // @IsOptional()
-  // @IsArray()
-  // @ValidateNested({ each: true })
-  // @Type(() => BookingField)
-  // bookingFields?: BookingField[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BookingField)
+  bookingFields?: BookingField[];
 
   // @IsString()
   // @IsOptional()
