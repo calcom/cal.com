@@ -1,10 +1,46 @@
-import GenericAuditLogManager from "@calcom/app-store/templates/audit-log-implementation/lib/AuditLogManager";
 import type { AuditLogsManager } from "@calcom/features/audit-logs/types";
+import logger from "@calcom/lib/logger";
+import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type { Credential } from ".prisma/client";
 
-export function getAuditLogManager(credential: Credential): AuditLogsManager {
-  const credentialKey = credential.key as { apiKey: string; endpoint: string; projectId: string };
-  const auditLogsManager = new GenericAuditLogManager({ ...credentialKey });
-  return auditLogsManager;
+const auditLogImplementations = {
+  // example: () => import("./example"),
+  genericImplementation: () => import("@calcom/app-store/templates/audit-log-implementation"),
+};
+
+const log = logger.getSubLogger({ prefix: ["[lib] auditLogManagerClient"] });
+
+export async function getAuditLogManager(credential: Credential): Promise<AuditLogsManager | void> {
+  log.silly(
+    "Getting audit log manager for",
+    safeStringify({ appName: credential.appId, cred: getPiiFreeCredential(credential) })
+  );
+
+  if (!credential.type.includes("auditLogs")) {
+    log.error(`Attempted to get auditLogManager for an incompatible app type: ${credential.appId}`);
+    return;
+  }
+
+  const appImportFn = auditLogImplementations[credential.appId as keyof typeof auditLogImplementations];
+  const auditLogsManager = appImportFn ? await appImportFn() : null;
+
+  if (!auditLogsManager) {
+    log.error(`Couldn't get manager for ${credential.appId}. Assigning generic manager.`);
+    return;
+  }
+
+  if (!("zod" in auditLogsManager) || !("appKeysSchema" in auditLogsManager.zod)) {
+    log.error(`Zod schemas not properly defined for ${credential.appId}`);
+    return;
+  }
+  if (!("lib" in auditLogsManager) || !("AuditLogManager" in auditLogsManager.lib)) {
+    log.error(`AuditLogManager not properly defined for ${credential.appId}`);
+    return;
+  }
+
+  const credentialKey = auditLogsManager.zod.appKeysSchema.parse(credential.key);
+  const auditLogManager = auditLogsManager.lib.AuditLogManager;
+  return new auditLogManager(credentialKey);
 }

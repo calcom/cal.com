@@ -59,7 +59,12 @@ export async function handleAuditLogTrigger({
       if (event.target.name && settings.disabledEvents && settings.disabledEvents.includes(event.action))
         continue;
 
-      const auditLogManager = getAuditLogManager(credential);
+      const auditLogManager = await getAuditLogManager(credential);
+
+      if (!auditLogManager) {
+        return;
+      }
+
       auditLogManager.reportEvent(event);
     }
   } catch (error) {
