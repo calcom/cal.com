@@ -405,7 +405,7 @@ jobs:
       - name: Update compose manifest
         if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         run: |
-          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
+          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
 
       - name: Configure git
         if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
@@ -436,7 +436,7 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.PREVIEW_WORKFLOW}}/dispatches \
             -f ref=main \
-            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" 
+            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
            
 
       - name: Trigger workflow in remote repository for other events
@@ -449,4 +449,4 @@ jobs:
             -H "Accept: application/vnd.github.v3+json" \
             /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.REMOTE_WORKFLOW}}/dispatches \
             -f ref=main \
-            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" 
+            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
