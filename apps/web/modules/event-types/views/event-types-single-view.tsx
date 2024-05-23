@@ -827,12 +827,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
         pendingRoute={pendingRoute}
         leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
       />
       ;
     </>
   );
 };
-
 const EventTypePageWrapper: React.FC<PageProps> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
