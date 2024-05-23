@@ -396,38 +396,38 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         with:
           persist-credentials: false
           fetch-depth: 0
           ref: ${{ github.ref }}
 
       - name: Update compose manifest
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         run: |
           yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
 
       - name: Configure git
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         run: |
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
 
       - name: Commit changes
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         run: |
           git add .
           git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
 
       - name: Push changes
-        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        if: github.event_name == 'push' || (github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main')
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.RELEASE_MAIN }}
           branch: ${{ github.ref }}
 
       - name: Trigger workflow in remote repository for pull requests
-        if: github.event_name == 'pull_request' && env.PUSH_MANIFEST_TAG == 'true' && env.ENABLE_PREVIEW == 'true' 
+        if: github.event_name == 'pull_request_target' && env.PUSH_MANIFEST_TAG == 'true' && env.ENABLE_PREVIEW == 'true' 
         env:
           GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
         run: |
@@ -440,7 +440,7 @@ jobs:
            
 
       - name: Trigger workflow in remote repository for other events
-        if: github.event_name != 'pull_request' && env.PUSH_MANIFEST_TAG == 'true' 
+        if: github.event_name != 'pull_request_target' && env.PUSH_MANIFEST_TAG == 'true' 
         env:
           GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
         run: |
