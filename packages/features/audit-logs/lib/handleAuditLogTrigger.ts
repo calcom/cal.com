@@ -1,28 +1,52 @@
+import type { AuditLogEvent } from "audit-logs/types";
+
 import { getAuditLogManager } from "@calcom/features/audit-logs/lib/getAuditLogManager";
-import type { AuditLogEvent } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import { AppCategories } from "@calcom/prisma/enums";
 
-export async function handleAuditLogTrigger(event: AuditLogEvent) {
+const getFirstClause = (userId: number | null | undefined, teamId: number | null | undefined) => {
+  const clauses = [];
+  if (userId) {
+    clauses.push({
+      userId: {
+        equals: userId,
+      },
+    });
+  }
+
+  if (teamId) {
+    clauses.push({
+      teamId: {
+        equals: teamId,
+      },
+    });
+  }
+
+  if (clauses.length > 1) {
+    return { OR: [...clauses] };
+  } else return clauses[0];
+};
+
+export async function handleAuditLogTrigger({
+  event,
+  userId,
+  teamId,
+}: {
+  event: AuditLogEvent;
+  userId?: number | null | undefined;
+  teamId?: number | null | undefined;
+}) {
+  const firstClause = getFirstClause(userId, teamId);
+
   try {
     const credentials = await prisma.credential.findMany({
       where: {
         AND: [
+          firstClause,
           {
-            OR: [
-              {
-                userId: {
-                  equals: 1,
-                },
-              },
-              {
-                teamId: {
-                  equals: 1,
-                },
-              },
-            ],
-            appId: {
-              equals: "hey-",
+            type: {
+              contains: AppCategories.auditLogs,
             },
           },
         ],
@@ -30,10 +54,9 @@ export async function handleAuditLogTrigger(event: AuditLogEvent) {
     });
 
     for (const credential of credentials) {
-      if (
-        event.target.name &&
-        (credential.settings as { disabledEvents: string[] }).disabledEvents.includes(event.action)
-      )
+      const settings = credential.settings as { disabledEvents: string[] | undefined };
+
+      if (event.target.name && settings.disabledEvents && settings.disabledEvents.includes(event.action))
         continue;
 
       const auditLogManager = getAuditLogManager(credential);

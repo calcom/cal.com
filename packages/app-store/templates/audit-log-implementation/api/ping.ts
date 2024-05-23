@@ -45,10 +45,12 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
   )
     throw new HttpError({ statusCode: 400, message: "Invalid credentials." });
 
+  const appCredentials = data.key as { projectId: string; apiKey: string; endpoint: string };
+
   const auditLogManager = new GenericAuditLogManager({
-    projectId: (data.key as Prisma.JsonObject).projectId as string,
-    apiKey: (data.key as Prisma.JsonObject).apiKey as string,
-    endpoint: (data.key as Prisma.JsonObject).endpoint as string,
+    projectId: appCredentials.projectId,
+    apiKey: appCredentials.apiKey,
+    endpoint: appCredentials.endpoint,
   });
 
   try {
