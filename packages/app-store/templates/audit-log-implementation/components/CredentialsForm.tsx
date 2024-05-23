@@ -31,7 +31,7 @@ export const CredentialsForm = ({
         }
       }}>
       <Controller
-        name="projectId"
+        name="endpoint"
         control={form.control}
         render={({ field: { onBlur, onChange, value }, fieldState }) => (
           <div className="col-span-4 col-start-2 row-start-1 flex flex-row items-end space-x-5">
@@ -49,7 +49,7 @@ export const CredentialsForm = ({
         )}
       />
       <Controller
-        name="endpoint"
+        name="projectId"
         control={form.control}
         render={({ field: { onBlur, onChange, value }, fieldState }) => (
           <div className="col-span-4 col-start-2 row-start-2 flex flex-row items-end space-x-5">

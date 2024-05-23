@@ -38,12 +38,7 @@ export async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   try {
     auditLogManager.reportEvent(pingEvent);
-
-    // if (userInfo.first_name) {
     return res.status(200).end();
-    // } else {
-    //   return res.status(404).end();
-    // }
   } catch (e) {
     return res.status(500).json({ message: e });
   }
