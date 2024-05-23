@@ -2,6 +2,8 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { Editable } from "@/ee/event-types/inputs/enums/editable";
+import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
@@ -23,7 +25,12 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { EventTypesByViewer, EventTypesPublic } from "@calcom/platform-libraries";
+import {
+  EventTypesByViewer,
+  EventTypesPublic,
+  eventTypeBookingFields,
+  eventTypeLocations,
+} from "@calcom/platform-libraries";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
@@ -194,6 +201,77 @@ describe("Event types Endpoints", () => {
           eventType.minimumBookingNotice = body.minimumBookingNotice ?? 10;
           eventType.beforeEventBuffer = body.beforeEventBuffer ?? 10;
           eventType.afterEventBuffer = body.afterEventBuffer ?? 10;
+        });
+    });
+
+    it("should update event type locations", async () => {
+      const locations = [{ type: "inPerson", address: "123 Main St" }];
+
+      const body: UpdateEventTypeInput = {
+        locations,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          const responseLocations = eventTypeLocations.parse(responseBody.data.locations);
+          expect(responseLocations).toBeDefined();
+          expect(responseLocations.length).toEqual(locations.length);
+          expect(responseLocations).toEqual(locations);
+          eventType.locations = responseLocations;
+        });
+    });
+
+    it("should update event type bookingFields", async () => {
+      const bookingFieldName = "location-name";
+      const bookingFields = [
+        {
+          name: bookingFieldName,
+          type: BaseField.radio,
+          label: "Location",
+          options: [
+            {
+              label: "Via Bari 10, Roma, 90119, Italy",
+              value: "Via Bari 10, Roma, 90119, Italy",
+            },
+            {
+              label: "Via Reale 28, Roma, 9001, Italy",
+              value: "Via Reale 28, Roma, 9001, Italy",
+            },
+          ],
+          sources: [
+            {
+              id: "user",
+              type: "user",
+              label: "User",
+              fieldRequired: true,
+            },
+          ],
+          editable: Editable.user,
+          required: true,
+          placeholder: "",
+        },
+      ];
+
+      const body: UpdateEventTypeInput = {
+        bookingFields,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          const responseBookingFields = eventTypeBookingFields.parse(responseBody.data.bookingFields);
+          expect(responseBookingFields).toBeDefined();
+          // note(Lauris): response bookingFields are already existing default bookingFields + the new one
+          const responseBookingField = responseBookingFields.find((field) => field.name === bookingFieldName);
+          expect(responseBookingField).toEqual(bookingFields[0]);
+          eventType.bookingFields = responseBookingFields;
         });
     });
 
