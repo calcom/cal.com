@@ -1,3 +1,6 @@
+import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementation/zod";
+import type { IconName } from "@calcom/ui";
+
 export interface AuditLogsManager {
   reportEvent(event: AuditLogEvent): void;
 }
@@ -33,3 +36,14 @@ export const AuditLogTriggerEvents = {
   PAYMENT_INITIATED: "BOOKING_PAYMENT_INITIATED",
   BOOKING_PAID: "BOOKING_PAID",
 } as const;
+
+export type AppSettingOptionEntry = {
+  name: string;
+  href: string;
+  icon: IconName;
+}[];
+
+export type GenericAuditLogClient = {
+  credentials: AppKeys;
+  reportEvent: (event: AuditLogEvent) => void;
+};

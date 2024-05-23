@@ -1,13 +1,12 @@
-import type { Prisma } from "@prisma/client";
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
 import type { AuditLogEvent } from "@calcom/features/audit-logs/types";
-import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
-import GenericAuditLogManager from "../lib/AuditLogManager";
+import AuditLogManager from "../lib/AuditLogManager";
+import { appKeysSchema } from "../zod";
 
 const pingEvent: AuditLogEvent = {
   action: "ping.connection",
@@ -28,30 +27,14 @@ const ZPingInputSchema = z.object({
 export async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { credentialId } = ZPingInputSchema.parse(req.body);
 
-  if (!credentialId) throw new HttpError({ statusCode: 400, message: "Credential ID not provided." });
-
   const data = await prisma.credential.findUnique({
     where: {
       id: credentialId,
     },
   });
 
-  if (
-    !data ||
-    !data?.key ||
-    !(data.key as Prisma.JsonObject).projectId ||
-    !(data.key as Prisma.JsonObject).apiKey ||
-    !(data.key as Prisma.JsonObject).endpoint
-  )
-    throw new HttpError({ statusCode: 400, message: "Invalid credentials." });
-
-  const appCredentials = data.key as { projectId: string; apiKey: string; endpoint: string };
-
-  const auditLogManager = new GenericAuditLogManager({
-    projectId: appCredentials.projectId,
-    apiKey: appCredentials.apiKey,
-    endpoint: appCredentials.endpoint,
-  });
+  const appKeys = appKeysSchema.parse(data?.key);
+  const auditLogManager = new AuditLogManager(appKeys);
 
   try {
     auditLogManager.reportEvent(pingEvent);

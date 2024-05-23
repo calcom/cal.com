@@ -1,21 +1,22 @@
-import type { AuditLogEvent, AuditLogsManager } from "@calcom/features/audit-logs/types";
+import { getGenericAuditLogClient } from "@calcom/features/audit-logs/lib/getGenericAuditLogClient";
+import type {
+  AuditLogEvent,
+  AuditLogsManager,
+  GenericAuditLogClient,
+} from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 
+import config from "../config.json";
 import type { AppKeys } from "../zod";
-import { getGenericAuditLogClient } from "./utils";
 
-export type GenericAuditLogClient = {
-  credentials: AppKeys;
-  reportEvent: (event: AuditLogEvent) => void;
-};
-
-const log = logger.getSubLogger({ prefix: ["AuditLogManager"] });
+const log = logger.getSubLogger({ prefix: ["AuditLogManager", config.slug] });
 export default class GenericAuditLogManager implements AuditLogsManager {
   private client: undefined | GenericAuditLogClient;
 
   constructor(appKeys: AppKeys) {
     log.silly("Initializing GenericAuditLogManager");
 
+    // This is where your audit log client goes. Should be edited.
     this.client = getGenericAuditLogClient(appKeys.apiKey, appKeys.projectId, appKeys.endpoint);
   }
 
