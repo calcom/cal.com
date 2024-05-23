@@ -1,3 +1,7 @@
+import { describe } from "vitest";
+
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   BookingLocations,
   createBookingScenario,
@@ -13,11 +17,6 @@ import {
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import { expectBookingCancelledWebhookToHaveBeenFired } from "@calcom/web/test/utils/bookingScenario/expects";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
-
-import { describe } from "vitest";
-
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 
 describe("Cancel Booking", () => {
   setupAndTeardown();
