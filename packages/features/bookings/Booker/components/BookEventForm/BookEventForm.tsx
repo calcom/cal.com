@@ -114,17 +114,25 @@ export const BookEventForm = ({
         )}
         {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
-            <Trans i18nKey="signing_up_terms">
-              By proceeding, you agree to our
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-                Terms
-              </Link>{" "}
-              and{" "}
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-                Privacy Policy
-              </Link>
-              .
-            </Trans>
+            <Trans
+              i18nKey="signing_up_terms"
+              components={[
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="terms"
+                  href={`${WEBSITE_URL}/terms`}
+                  target="_blank">
+                  Terms
+                </Link>,
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="privacy"
+                  href={`${WEBSITE_URL}/privacy`}
+                  target="_blank">
+                  Privacy Policy.
+                </Link>,
+              ]}
+            />
           </div>
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
