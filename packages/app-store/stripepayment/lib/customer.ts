@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 
@@ -83,27 +84,31 @@ export async function deleteStripeCustomer(user: UserType): Promise<string | nul
   return deletedCustomer.id;
 }
 
-// TODO: How to fix this? Emails could be missing
-export async function retrieveOrCreateStripeCustomerByEmail(stripeAccountId: string, email?: string | null) {
-  const customer = await stripe.customers.list(
-    {
-      email: email ?? undefined,
-      limit: 1,
-    },
-    {
-      stripeAccount: stripeAccountId,
-    }
-  );
-
-  if (customer.data[0]?.id) {
-    return customer.data[0];
-  } else {
-    const newCustomer = await stripe.customers.create(
-      { email: email ?? undefined },
+// stripe.customers.list only works with email field so if booked with only phone numeber then we won't be able to get customer so we'll create new customer
+export async function retrieveOrCreateStripeCustomerByEmail(
+  stripeAccountId: string,
+  email?: string | null,
+  phoneNumber?: string | null
+) {
+  if (email !== BOOKED_WITH_SMS_EMAIL) {
+    const customer = await stripe.customers.list(
+      {
+        email: email ?? undefined,
+        limit: 1,
+      },
       {
         stripeAccount: stripeAccountId,
       }
     );
-    return newCustomer;
+    if (customer.data[0]?.id) {
+      return customer.data[0];
+    }
   }
+  const newCustomer = await stripe.customers.create(
+    { email: email ?? undefined, phone: phoneNumber ?? undefined },
+    {
+      stripeAccount: stripeAccountId,
+    }
+  );
+  return newCustomer;
 }

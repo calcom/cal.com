@@ -79,7 +79,8 @@ export class PaymentService implements IAbstractPaymentService {
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         this.credentials.stripe_user_id,
-        bookerEmail
+        bookerEmail,
+        bookerPhoneNumber
       );
 
       const params: Stripe.PaymentIntentCreateParams = {
@@ -159,7 +160,8 @@ export class PaymentService implements IAbstractPaymentService {
 
       const customer = await retrieveOrCreateStripeCustomerByEmail(
         this.credentials.stripe_user_id,
-        bookerEmail
+        bookerEmail,
+        bookerPhoneNumber
       );
 
       const params = {
