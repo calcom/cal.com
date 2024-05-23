@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
 import { deleteUser } from "@calcom/features/users/lib/userDeletionService";
@@ -67,7 +69,9 @@ export const deleteMeHandler = async ({ ctx, input }: DeleteMeOptions) => {
       throw new Error(ErrorCode.InternalServerError);
     }
 
-    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
+    const secret = symmetricDecrypt(user.twoFactorSecret, {
+      schema: z.string(),
+    });
     if (secret.length !== 32) {
       console.error(
         `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`

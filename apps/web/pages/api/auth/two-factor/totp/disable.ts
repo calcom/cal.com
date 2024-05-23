@@ -1,9 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import * as z from "zod";
 
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { verifyPassword } from "@calcom/features/auth/lib/verifyPassword";
-import { symmetricDecrypt } from "@calcom/lib/crypto";
+import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/client";
@@ -55,7 +56,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ error: ErrorCode.MissingBackupCodes });
     }
 
-    const backupCodes = JSON.parse(symmetricDecrypt(user.backupCodes, process.env.CALENDSO_ENCRYPTION_KEY));
+    const backupCodes = symmetricDecrypt(user.backupCodes, {
+      schema: z.array(z.string()),
+      onShouldUpdate: async (result) =>
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { backupCodes: symmetricEncrypt(JSON.stringify(result)) },
+        }),
+    });
 
     // check if user-supplied code matches one
     const index = backupCodes.indexOf(req.body.backupCode.replaceAll("-", ""));
@@ -82,11 +90,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       throw new Error(ErrorCode.InternalServerError);
     }
 
-    const secret = symmetricDecrypt(user.twoFactorSecret, process.env.CALENDSO_ENCRYPTION_KEY);
-    if (secret.length !== 32) {
-      console.error(
-        `Two factor secret decryption failed. Expected key with length 32 but got ${secret.length}`
-      );
+    let secret;
+    try {
+      secret = symmetricDecrypt(user.twoFactorSecret, {
+        schema: z.string().length(32),
+        onShouldUpdate: async (result) =>
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { twoFactorSecret: symmetricEncrypt(result) },
+          }),
+      });
+    } catch (e) {
+      console.error(`Two factor secret decryption failed: ${e}`);
       throw new Error(ErrorCode.InternalServerError);
     }
 

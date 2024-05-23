@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 
 import type { CloseComFieldOptions } from "@calcom/lib/CloseCom";
 import CloseCom from "@calcom/lib/CloseCom";
@@ -17,8 +17,6 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 const apiKeySchema = z.object({
   encrypted: z.string(),
 });
-
-const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
 // Cal.com Custom Activity Fields
 const calComCustomActivityFields: CloseComFieldOptions = [
@@ -62,10 +60,12 @@ export default class CloseComCalendarService implements Calendar {
 
     const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
 
-    let decrypted;
     if (parsedCredentialKey.success) {
-      decrypted = symmetricDecrypt(parsedCredentialKey.data.encrypted, CALENDSO_ENCRYPTION_KEY);
-      const { api_key } = JSON.parse(decrypted);
+      const { api_key } = symmetricDecrypt(parsedCredentialKey.data.encrypted, {
+        schema: z.object({
+          api_key: z.string(),
+        }),
+      });
       this.closeCom = new CloseCom(api_key);
     } else {
       throw Error(

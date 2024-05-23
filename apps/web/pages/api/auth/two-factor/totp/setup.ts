@@ -65,9 +65,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       id: session.user.id,
     },
     data: {
-      backupCodes: symmetricEncrypt(JSON.stringify(backupCodes), process.env.CALENDSO_ENCRYPTION_KEY),
+      backupCodes: symmetricEncrypt(JSON.stringify(backupCodes)),
       twoFactorEnabled: false,
-      twoFactorSecret: symmetricEncrypt(secret, process.env.CALENDSO_ENCRYPTION_KEY),
+      twoFactorSecret: symmetricEncrypt(secret),
     },
   });
 

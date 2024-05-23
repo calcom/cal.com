@@ -24,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(JSON.stringify({ urls })),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,

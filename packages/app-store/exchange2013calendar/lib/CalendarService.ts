@@ -19,6 +19,7 @@ import {
   WebCredentials,
   WellKnownFolderName,
 } from "ews-javascript-api";
+import { z } from "zod";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 // Probably don't need
@@ -45,12 +46,13 @@ export default class ExchangeCalendarService implements Calendar {
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
-    const decryptedCredential = JSON.parse(
-      symmetricDecrypt(credential.key?.toString() || "", process.env.CALENDSO_ENCRYPTION_KEY || "")
-    );
-    const username = decryptedCredential.username;
-    const url = decryptedCredential.url;
-    const password = decryptedCredential.password;
+    const { username, url, password } = symmetricDecrypt(credential.key?.toString() || "", {
+      schema: z.object({
+        username: z.string(),
+        url: z.string(),
+        password: z.string(),
+      }),
+    });
 
     this.url = url;
 
