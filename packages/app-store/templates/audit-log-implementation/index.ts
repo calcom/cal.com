@@ -1,4 +1,4 @@
-export * as GenericAuditLogManager from "./lib/AuditLogManager";
+export * as AuditLogManager from "./lib/AuditLogManager";
 
 export * as api from "./api";
 export * as lib from "./lib";
