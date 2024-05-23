@@ -152,6 +152,7 @@ const Days = ({
     datePickerDate?: string;
     datePickerDateActive?: string;
   };
+  scrollToTimeSlots?: () => void;
 }) => {
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
@@ -267,6 +268,7 @@ const Days = ({
               date={day}
               onClick={() => {
                 props.onChange(day);
+                props?.scrollToTimeSlots?.();
               }}
               disabled={disabled}
               active={isActive(day)}
@@ -302,6 +304,7 @@ const DatePicker = ({
       datePickerDatesActive?: string;
       datePickerToggle?: string;
     };
+    scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n } = useLocale();

@@ -55,7 +55,7 @@ describe("GET /api/event-types/[id]", () => {
         })
       );
 
-      req.isAdmin = true;
+      req.isSystemWideAdmin = true;
       req.userId = 333333;
       await handler(req, res);
 
@@ -91,7 +91,7 @@ describe("GET /api/event-types/[id]", () => {
         ],
       });
 
-      req.isAdmin = false;
+      req.isSystemWideAdmin = false;
       req.userId = userId;
       await handler(req, res);
 
@@ -131,7 +131,7 @@ describe("GET /api/event-types/[id]", () => {
         })
       );
 
-      req.isAdmin = false;
+      req.isSystemWideAdmin = false;
       req.userId = userId;
       await handler(req, res);
 

@@ -1,4 +1,4 @@
-name: E2E tests
+name: E2E
 on:
   workflow_call:
 env:
@@ -41,8 +41,8 @@ env:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: E2E tests (${{ matrix.shard }}/${{ strategy.job-total }})
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
+    runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
         image: postgres:13
@@ -77,7 +77,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
