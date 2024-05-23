@@ -303,14 +303,18 @@ export async function handleConfirmation(args: {
     });
 
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_CREATED,
-      actor: {
-        id: user.credentials[0].userId?.toString() || "0",
-        name: user.username || "",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_CREATED,
+        actor: {
+          id: user.credentials[0].userId?.toString() || "0",
+          name: user.username || "",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId: user.credentials[0].userId,
+      teamId,
     });
 
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
@@ -392,14 +396,18 @@ export async function handleConfirmation(args: {
 
     if (paid) {
       await handleAuditLogTrigger({
-        action: AuditLogTriggerEvents.BOOKING_PAID,
-        actor: {
-          id: user.credentials[0].userId?.toString() || "0",
-          name: user.username || "",
+        event: {
+          action: AuditLogTriggerEvents.BOOKING_PAID,
+          actor: {
+            id: user.credentials[0].userId?.toString() || "0",
+            name: user.username || "",
+          },
+          target: {
+            name: AuditLogTriggerTargets.BOOKING,
+          },
         },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
+        userId: user.credentials[0].userId,
+        teamId,
       });
 
       let paymentExternalId: string | undefined;

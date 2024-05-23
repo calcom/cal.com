@@ -55,13 +55,17 @@ export async function handleBookingRequested(args: {
     });
 
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_PAID,
-      actor: {
-        id: booking.userId?.toString() || "0",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_PAID,
+        actor: {
+          id: booking.userId?.toString() || "0",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId: booking.userId,
+      teamId: booking.eventType?.teamId,
     });
 
     const promises = subscribersBookingRequested.map((sub) =>

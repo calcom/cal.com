@@ -201,14 +201,17 @@ async function handler(req: CustomRequest) {
   const userName = bookingToDelete.eventType?.hosts.filter((host) => host.user.id === userId)[0].user.name;
 
   await handleAuditLogTrigger({
-    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-    actor: {
-      id: userId?.toString() || "0",
-      name: userName || "",
+    event: {
+      action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+      actor: {
+        id: userId?.toString() || "0",
+        name: userName || "",
+      },
+      target: {
+        name: AuditLogTriggerTargets.BOOKING,
+      },
     },
-    target: {
-      name: AuditLogTriggerTargets.BOOKING,
-    },
+    userId,
   });
 
   const webhooks = await getWebhooks(subscriberOptions);

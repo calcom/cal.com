@@ -2250,13 +2250,17 @@ async function handler(
     };
 
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.PAYMENT_INITIATED,
-      actor: {
-        id: userId?.toString() || "0",
+      event: {
+        action: AuditLogTriggerEvents.PAYMENT_INITIATED,
+        actor: {
+          id: userId?.toString() || "0",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId,
+      teamId,
     });
 
     await handleWebhookTrigger({
@@ -2339,13 +2343,17 @@ async function handler(
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_CREATED,
-      actor: {
-        id: booking.userId?.toString() || "0",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_CREATED,
+        actor: {
+          id: booking.userId?.toString() || "0",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId,
+      teamId,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2354,13 +2362,17 @@ async function handler(
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_REQUESTED,
-      actor: {
-        id: booking.userId?.toString() || "0",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_REQUESTED,
+        actor: {
+          id: booking.userId?.toString() || "0",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId,
+      teamId,
     });
   }
 

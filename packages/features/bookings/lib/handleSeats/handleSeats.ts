@@ -135,13 +135,16 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
 
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_MODIFIED,
-      actor: {
-        id: seatedBooking.userId?.toString() || "0",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_MODIFIED,
+        actor: {
+          id: seatedBooking.userId?.toString() || "0",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId: seatedBooking.userId,
     });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

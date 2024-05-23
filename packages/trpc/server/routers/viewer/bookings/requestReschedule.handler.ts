@@ -303,14 +303,18 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   };
 
   await handleAuditLogTrigger({
-    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-    actor: {
-      id: ctx.user.id || "0",
-      name: ctx.user.name || "",
+    event: {
+      action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+      actor: {
+        id: ctx.user.id || "0",
+        name: ctx.user.name || "",
+      },
+      target: {
+        name: AuditLogTriggerTargets.BOOKING,
+      },
     },
-    target: {
-      name: AuditLogTriggerTargets.BOOKING,
-    },
+    userId,
+    teamId,
   });
 
   const webhooks = await getWebhooks(subscriberOptions);

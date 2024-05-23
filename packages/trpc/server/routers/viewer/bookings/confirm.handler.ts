@@ -405,14 +405,18 @@ export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) =
     };
 
     await handleAuditLogTrigger({
-      action: AuditLogTriggerEvents.BOOKING_REJECTED,
-      actor: {
-        id: ctx.user.id || "0",
-        name: ctx.user.name || "",
+      event: {
+        action: AuditLogTriggerEvents.BOOKING_REJECTED,
+        actor: {
+          id: ctx.user.id || "0",
+          name: ctx.user.name || "",
+        },
+        target: {
+          name: AuditLogTriggerTargets.BOOKING,
+        },
       },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
+      userId,
+      teamId,
     });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
