@@ -111,7 +111,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         if (team?.parent) {
           const { parent, ...filteredTeam } = team;
           filteredTeams.push(filteredTeam);
-          parentTeams.push(parent);
+          // Only add parent team if it's not already in teamsQuery
+          if (!teamsQuery.some((t) => t.id === parent.id)) {
+            parentTeams.push(parent);
+          }
         }
       });
     }
