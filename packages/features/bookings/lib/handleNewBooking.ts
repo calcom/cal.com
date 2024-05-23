@@ -1636,8 +1636,8 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
+        paymentRequired: false,
       };
-
       return {
         ...bookingResponse,
         ...luckyUserResponse,
@@ -2253,7 +2253,7 @@ async function handler(
     req.statusCode = 201;
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
-    const bookingReponse = {
+    const bookingResponse = {
       ...booking,
       user: {
         ...booking.user,
@@ -2262,9 +2262,10 @@ async function handler(
     };
 
     return {
-      ...bookingReponse,
+      ...bookingResponse,
       ...luckyUserResponse,
       message: "Payment required",
+      paymentRequired: true,
       paymentUid: payment?.uid,
       paymentId: payment?.id,
     };
@@ -2404,6 +2405,7 @@ async function handler(
       ...booking.user,
       email: null,
     },
+    paymentRequired: false,
   };
 
   return {

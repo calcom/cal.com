@@ -1,8 +1,8 @@
 import Script from "next/script";
-import type { Tag } from "types";
 
 import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
+import type { Tag } from "@calcom/app-store/types";
 import { sdkActionManager } from "@calcom/lib/sdk-event";
 import type { AppMeta } from "@calcom/types/App";
 
@@ -26,10 +26,12 @@ if (typeof window !== "undefined") {
     if (name.startsWith("__")) {
       return;
     }
+
     Object.entries(window).forEach(([prop, value]) => {
       if (!prop.startsWith(PushEventPrefix) || typeof value !== "function") {
         return;
       }
+      // Find the pushEvent if defined by the analytics app
       const pushEvent = window[prop as keyof typeof window];
 
       pushEvent({
@@ -39,12 +41,9 @@ if (typeof window !== "undefined") {
     });
   });
 }
-export default function BookingPageTagManager({
-  eventType,
-}: {
-  eventType: Parameters<typeof getEventTypeAppData>[0];
-}) {
-  const analyticsApps = Object.entries(appStoreMetadata).reduce(
+
+function getAnalyticsApps(eventType: Parameters<typeof getEventTypeAppData>[0]) {
+  return Object.entries(appStoreMetadata).reduce(
     (acc, entry) => {
       const [appId, app] = entry;
       const eventTypeAppData = getEventTypeAppData(eventType, appId as keyof typeof appDataSchemas);
@@ -67,6 +66,14 @@ export default function BookingPageTagManager({
       }
     >
   );
+}
+
+export default function BookingPageTagManager({
+  eventType,
+}: {
+  eventType: Parameters<typeof getEventTypeAppData>[0];
+}) {
+  const analyticsApps = getAnalyticsApps(eventType);
 
   return (
     <>
@@ -127,8 +134,10 @@ const getPushEventScript = ({ tag, appId }: { tag: Tag; appId: string }) => {
   if (!tag.pushEventScript) {
     return tag.pushEventScript;
   }
+
   return {
     ...tag.pushEventScript,
+    // In case of complex pushEvent implementations, we could think about exporting a pushEvent function from the analytics app maybe but for now this should suffice
     content: tag.pushEventScript?.content?.replace("$pushEvent", `${PushEventPrefix}_${appId}`),
   };
 };

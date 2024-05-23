@@ -117,6 +117,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", {
+          uid: responseData.uid,
+          title: responseData.title,
+          startTime: responseData.startTime,
+          endTime: responseData.endTime,
+          eventTypeId: responseData.eventTypeId,
+          status: responseData.status,
+          paymentRequired: responseData.paymentRequired,
+        });
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
           booking: responseData,
@@ -129,6 +138,16 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
             timeZone: responseData.user?.timeZone || "Europe/London",
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+        });
+
+        sdkActionManager?.fire("bookingSuccessfulV2", {
+          uid: responseData.uid,
+          title: responseData.title,
+          startTime: responseData.startTime,
+          endTime: responseData.endTime,
+          eventTypeId: responseData.eventTypeId,
+          status: responseData.status,
+          paymentRequired: responseData.paymentRequired,
         });
       }
 
