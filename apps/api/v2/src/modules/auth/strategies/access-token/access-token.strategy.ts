@@ -27,7 +27,10 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
         throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
       }
 
-      await this.oauthFlowService.validateAccessToken(accessToken);
+      const accessTokenValid = await this.oauthFlowService.validateAccessToken(accessToken);
+      if (!accessTokenValid) {
+        throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
+      }
 
       const client = await this.tokensRepository.getAccessTokenClient(accessToken);
       if (!client) {
@@ -35,7 +38,9 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       }
 
       if (requestOrigin && !client.redirectUris.some((uri) => uri.startsWith(requestOrigin))) {
-        throw new UnauthorizedException("Invalid request origin");
+        throw new UnauthorizedException(
+          `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${requestOrigin}' to the 'Redirect uris' of your OAuth client.`
+        );
       }
 
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);

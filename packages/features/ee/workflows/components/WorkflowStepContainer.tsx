@@ -45,7 +45,6 @@ import {
   isAttendeeAction,
   isSMSAction,
   isSMSOrWhatsappAction,
-  isTextMessageToAttendeeAction,
   isWhatsappAction,
 } from "../lib/actionHelperFunctions";
 import { DYNAMIC_TEXT_VARIABLES } from "../lib/constants";
@@ -79,9 +78,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     { enabled: !!teamId }
   );
 
+  const { data: _verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({ teamId });
+
   const timeFormat = getTimeFormatStringFromUserTimeFormat(props.user.timeFormat);
 
   const verifiedNumbers = _verifiedNumbers?.map((number) => number.phoneNumber) || [];
+  const verifiedEmails = _verifiedEmails?.map((verified) => verified.email) || [];
   const [isAdditionalInputsDialogOpen, setIsAdditionalInputsDialogOpen] = useState(false);
 
   const [verificationCode, setVerificationCode] = useState("");
@@ -118,10 +120,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
 
   const [showTimeSectionAfter, setShowTimeSectionAfter] = useState(
     form.getValues("trigger") === WorkflowTriggerEvents.AFTER_EVENT
-  );
-
-  const [isRequiresConfirmationNeeded, setIsRequiresConfirmationNeeded] = useState(
-    isTextMessageToAttendeeAction(step?.action)
   );
 
   const { data: actionOptions } = trpc.viewer.workflows.getWorkflowActionOptions.useQuery();
@@ -177,9 +175,15 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       (number: string) => number === form.getValues(`steps.${step.stepNumber - 1}.sendTo`)
     );
 
+  const getEmailVerificationStatus = () =>
+    !!step &&
+    !!verifiedEmails.find((email: string) => email === form.getValues(`steps.${step.stepNumber - 1}.sendTo`));
+
   const [numberVerified, setNumberVerified] = useState(getNumberVerificationStatus());
+  const [emailVerified, setEmailVerified] = useState(getEmailVerificationStatus());
 
   useEffect(() => setNumberVerified(getNumberVerificationStatus()), [verifiedNumbers.length]);
+  useEffect(() => setEmailVerified(getEmailVerificationStatus()), [verifiedEmails.length]);
 
   const addVariableBody = (variable: string) => {
     if (step) {
@@ -236,6 +240,36 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
     },
   });
 
+  const sendEmailVerificationCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
+    onSuccess() {
+      showToast(t("email_sent"), "success");
+    },
+    onError: () => {
+      showToast(t("email_not_sent"), "error");
+    },
+  });
+
+  const verifyEmailCodeMutation = trpc.viewer.workflows.verifyEmailCode.useMutation({
+    onSuccess: (isVerified) => {
+      showToast(isVerified ? t("verified_successfully") : t("wrong_code"), "success");
+      setEmailVerified(true);
+      if (
+        step &&
+        form?.formState?.errors?.steps &&
+        form.formState.errors.steps[step.stepNumber - 1]?.sendTo &&
+        isVerified
+      ) {
+        form.clearErrors(`steps.${step.stepNumber - 1}.sendTo`);
+      }
+      utils.viewer.workflows.getVerifiedEmails.invalidate();
+    },
+    onError: (err) => {
+      if (err.message === "invalid_code") {
+        showToast(t("code_provided_invalid"), "error");
+        setEmailVerified(false);
+      }
+    },
+  });
   /* const testActionMutation = trpc.viewer.workflows.testAction.useMutation({
     onSuccess: async () => {
       showToast(t("notification_sent"), "success");
@@ -345,7 +379,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
       value: step.action,
       needsTeamsUpgrade: false,
-      needsOrgsUpgrade: false,
     };
 
     const selectedTemplate = { label: t(`${step.template.toLowerCase()}`), value: step.template };
@@ -463,12 +496,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                               setIsEmailSubjectNeeded(true);
                             }
 
-                            if (isTextMessageToAttendeeAction(val.value)) {
-                              setIsRequiresConfirmationNeeded(true);
-                            } else {
-                              setIsRequiresConfirmationNeeded(false);
-                            }
-
                             if (
                               form.getValues(`steps.${step.stepNumber - 1}.template`) ===
                               WorkflowTemplates.REMINDER
@@ -541,20 +568,11 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                           label: string;
                           value: WorkflowActions;
                           needsTeamsUpgrade: boolean;
-                          needsOrgsUpgrade: boolean;
-                        }) => option.needsTeamsUpgrade || option.needsOrgsUpgrade}
+                        }) => option.needsTeamsUpgrade}
                       />
                     );
                   }}
                 />
-                {isRequiresConfirmationNeeded ? (
-                  <div className="text-attention mb-3 mt-2 flex">
-                    <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
-                    <p className="text-sm">{t("requires_confirmation_mandatory")}</p>
-                  </div>
-                ) : (
-                  <></>
-                )}
               </div>
               {isPhoneNumberNeeded && (
                 <div className="bg-muted mt-2 rounded-md p-4 pt-0">
@@ -650,10 +668,12 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                   {isSenderIsNeeded ? (
                     <>
                       <div className="pt-4">
-                        <div className="flex">
+                        <div className="flex items-center">
                           <Label>{t("sender_id")}</Label>
                           <Tooltip content={t("sender_id_info")}>
-                            <Icon name="info" className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            <span>
+                              <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                            </span>
                           </Tooltip>
                         </div>
                         <Input
@@ -706,12 +726,94 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
               )}
               {isEmailAddressNeeded && (
                 <div className="bg-muted mt-5 rounded-md p-4">
-                  <EmailField
-                    required
-                    disabled={props.readOnly}
-                    label={t("email_address")}
-                    {...form.register(`steps.${step.stepNumber - 1}.sendTo`)}
-                  />
+                  <Label>{t("email_address")}</Label>
+                  <div className="block sm:flex">
+                    <Controller
+                      name={`steps.${step.stepNumber - 1}.sendTo`}
+                      render={({ field: { value, onChange } }) => (
+                        <EmailField
+                          required
+                          containerClassName="w-full"
+                          className="h-10 min-w-fit sm:rounded-r-none sm:rounded-bl-md sm:rounded-tl-md"
+                          placeholder={t("email_address")}
+                          value={value}
+                          disabled={props.readOnly}
+                          onChange={(val) => {
+                            const isAlreadyVerified = !!verifiedEmails
+                              ?.concat([])
+                              .find((email) => email === val.target.value);
+                            setEmailVerified(isAlreadyVerified);
+                            onChange(val);
+                          }}
+                        />
+                      )}
+                    />
+                    <Button
+                      color="secondary"
+                      disabled={emailVerified || props.readOnly || false}
+                      className={classNames(
+                        "-ml-[3px] h-[40px] min-w-fit sm:block sm:rounded-bl-none sm:rounded-tl-none",
+                        emailVerified ? "hidden" : "mt-3 sm:mt-0"
+                      )}
+                      onClick={() => {
+                        const email = form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "";
+                        sendEmailVerificationCodeMutation.mutate({
+                          email,
+                          isVerifyingEmail: true,
+                        });
+                      }}>
+                      {t("send_code")}
+                    </Button>
+                  </div>
+
+                  {form.formState.errors.steps &&
+                    form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                      <p className="mt-1 text-xs text-red-500">
+                        {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                      </p>
+                    )}
+
+                  {emailVerified ? (
+                    <div className="mt-1">
+                      <Badge variant="green">{t("email_verified")}</Badge>
+                    </div>
+                  ) : (
+                    !props.readOnly && (
+                      <>
+                        <div className="mt-3 flex">
+                          <TextField
+                            className="rounded-r-none border-r-transparent"
+                            placeholder="Verification code"
+                            disabled={props.readOnly}
+                            value={verificationCode}
+                            onChange={(e) => {
+                              setVerificationCode(e.target.value);
+                            }}
+                            required
+                          />
+                          <Button
+                            color="secondary"
+                            className="-ml-[3px] h-[36px] min-w-fit py-0 sm:block sm:rounded-bl-none sm:rounded-tl-none "
+                            disabled={verifyEmailCodeMutation.isPending || props.readOnly}
+                            onClick={() => {
+                              verifyEmailCodeMutation.mutate({
+                                code: verificationCode,
+                                email: form.getValues(`steps.${step.stepNumber - 1}.sendTo`) || "",
+                                teamId,
+                              });
+                            }}>
+                            {t("verify")}
+                          </Button>
+                        </div>
+                        {form.formState.errors.steps &&
+                          form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo && (
+                            <p className="mt-1 text-xs text-red-500">
+                              {form.formState?.errors?.steps[step.stepNumber - 1]?.sendTo?.message || ""}
+                            </p>
+                          )}
+                      </>
+                    )
+                  )}
                 </div>
               )}
               <div className="mt-5">

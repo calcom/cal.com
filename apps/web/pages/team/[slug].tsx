@@ -12,8 +12,9 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
@@ -162,11 +163,12 @@ function TeamPage({
       </div>
     );
 
-  const profileImageSrc = getPlaceholderAvatar(team.logoUrl || team.parent?.logoUrl, team.name);
+  const profileImageSrc = getOrgOrTeamAvatar(team);
 
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(currentOrgDomain)}
         title={teamName}
         description={teamName}
         meeting={{

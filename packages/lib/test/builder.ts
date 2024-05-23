@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
+import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -31,7 +31,9 @@ export const buildPerson = (person?: Partial<Person>): Person => {
   };
 };
 
-export const buildBooking = (booking?: Partial<Booking>): Booking => {
+export const buildBooking = (
+  booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
+): Booking & { references?: Partial<BookingReference>[] } => {
   const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),
@@ -117,6 +119,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
     bookingFields: [],
     parentId: null,
     profileId: null,
@@ -239,6 +242,7 @@ type UserPayload = Prisma.UserGetPayload<{
     receiveMonthlyDigestEmail: true;
     movedToProfileId: true;
     isPlatformManaged: true;
+    smsLockState: true;
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
@@ -246,6 +250,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
 ): UserPayload & { priority: number | null } => {
   return {
     locked: false,
+    smsLockState: "UNLOCKED",
     name: faker.name.firstName(),
     email: faker.internet.email(),
     timeZone: faker.address.timeZone(),

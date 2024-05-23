@@ -77,3 +77,5 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+
+export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";

@@ -83,10 +83,10 @@ type UserCredentialType = {
 };
 
 export async function patchHandler(req: NextApiRequest) {
-  const { userId, isAdmin, query, body } = req;
+  const { userId, isSystemWideAdmin, query, body } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const parsedBody = schemaDestinationCalendarEditBodyParams.parse(body);
-  const assignedUserId = isAdmin ? parsedBody.userId || userId : userId;
+  const assignedUserId = isSystemWideAdmin ? parsedBody.userId || userId : userId;
 
   validateIntegrationInput(parsedBody);
   const destinationCalendarObject: DestinationCalendarType = await getDestinationCalendar(id, prisma);

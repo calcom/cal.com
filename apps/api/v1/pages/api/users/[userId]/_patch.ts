@@ -95,14 +95,15 @@ import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validation
  *         description: Insufficient permissions to access resource.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const query = schemaQueryUserId.parse(req.query);
   // Here we only check for ownership of the user if the user is not admin, otherwise we let ADMIN's edit any user
-  if (!isAdmin && query.userId !== req.userId) throw new HttpError({ statusCode: 403, message: "Forbidden" });
+  if (!isSystemWideAdmin && query.userId !== req.userId)
+    throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
   const body = await schemaUserEditBodyParams.parseAsync(req.body);
   // disable role or branding changes unless admin.
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     if (body.role) body.role = undefined;
     if (body.hideBranding) body.hideBranding = undefined;
   }

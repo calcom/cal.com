@@ -356,7 +356,8 @@ if (isSAMLLoginEnabled) {
           return null;
         }
 
-        const { id, firstName, lastName, email } = userInfo;
+        const { id, firstName, lastName } = userInfo;
+        const email = userInfo.email.toLowerCase();
         let user = !email
           ? undefined
           : await UserRepository.findByEmailAndIncludeProfilesAndPassword({ email });
@@ -858,7 +859,7 @@ export const AUTH_OPTIONS: AuthOptions = {
               where: { email: existingUserWithEmail.email },
               // also update email to the IdP email
               data: {
-                email: user.email,
+                email: user.email.toLowerCase(),
                 identityProvider: idP,
                 identityProviderId: account.providerAccountId,
               },
@@ -871,6 +872,19 @@ export const AUTH_OPTIONS: AuthOptions = {
             }
           } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
             return "/auth/error?error=use-password-login";
+          } else if (
+            existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
+            idP === IdentityProvider.SAML
+          ) {
+            await prisma.user.update({
+              where: { email: existingUserWithEmail.email },
+              // also update email to the IdP email
+              data: {
+                email: user.email.toLowerCase(),
+                identityProvider: idP,
+                identityProviderId: account.providerAccountId,
+              },
+            });
           }
 
           return "/auth/error?error=use-identity-login";
