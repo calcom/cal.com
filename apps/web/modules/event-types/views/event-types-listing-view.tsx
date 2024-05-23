@@ -16,7 +16,7 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -109,13 +109,10 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-  const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
-    avatar: orgBranding
-      ? `${orgBranding.fullDomain}${item.teamId ? "/team" : ""}/${item.profile.slug}/avatar.png`
-      : item.profile.image ?? `${WEBAPP_URL + (item.teamId && "/team")}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
