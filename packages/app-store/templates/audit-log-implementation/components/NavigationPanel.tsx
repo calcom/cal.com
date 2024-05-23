@@ -1,6 +1,6 @@
 import { VerticalTabs } from "@calcom/ui";
 
-import { getAppSettingsOptions } from "../lib/utils";
+import { getAppSettingsOptions } from "../lib";
 
 export const NavigationPanel = (props: { credentialId: number }) => {
   const appSettingsOptions = getAppSettingsOptions(props.credentialId);
