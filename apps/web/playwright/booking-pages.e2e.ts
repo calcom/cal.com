@@ -19,9 +19,9 @@ import {
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
 test.describe.configure({ mode: "parallel", timeout: 100000 });
-// test.afterEach(async ({ users }) => {
-//   await users.deleteAll();
-// });
+test.afterEach(async ({ users }) => {
+  await users.deleteAll();
+});
 
 test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const name = "Test User";
