@@ -1,28 +1,20 @@
-import { loginUser } from "../../fixtures/regularBookings";
 import { test } from "../../lib/fixtures";
 
 const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
 
-test.describe("Check analytics Apps", () => {
-  test.beforeEach(async ({ page, users }) => {
-    await loginUser(users);
-    await page.goto("/apps/");
-  });
+test.describe.configure({ mode: "parallel" });
+test.afterEach(({ users }) => users.deleteAll());
 
-  test("Check analytics Apps", async ({ appsPage, page }) => {
+test.describe("Check analytics Apps ", () => {
+  test("Check analytics Apps by skipping the configure step", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    await page.goto("/apps/");
     await appsPage.goToAppsCategory("analytics");
-    await appsPage.installApp("fathom");
-    await appsPage.goBackToAppsPage();
-    await appsPage.installApp("matomo");
-    await appsPage.goBackToAppsPage();
-    await appsPage.installApp("plausible");
-    await appsPage.goBackToAppsPage();
-    await appsPage.installApp("ga4");
-    await appsPage.goBackToAppsPage();
-    await appsPage.installApp("gtm");
-    await appsPage.goBackToAppsPage();
-    await appsPage.installApp("metapixel");
-    await appsPage.goBackToAppsPage();
+    for (const app of ALL_APPS) {
+      await appsPage.installAppSkipConfigure(app);
+      await appsPage.goBackToAppsPage();
+    }
     await page.goto("/event-types");
     await appsPage.goToEventType("30 min");
     await appsPage.goToAppsTab();
@@ -31,5 +23,21 @@ test.describe("Check analytics Apps", () => {
       await appsPage.activeApp(app);
     }
     await appsPage.verifyAppsInfo(6);
+  });
+
+  test("Check analytics Apps using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    for (const app of ALL_APPS) {
+      await page.goto("/apps/categories/analytics");
+      await appsPage.installApp(app, eventTypesIds);
+    }
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+    }
   });
 });
