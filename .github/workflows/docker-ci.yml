@@ -3,13 +3,14 @@ name:  Docker CI
 
 on:
 # # enable when merged to upstream repo
-#   push:
-#     branches:
-#       - main
-    
-#   pull_request:
-#     branches:
-#       - main
+  # push:
+  #   branches:
+  #     - main
+
+  # pull_request_target: 
+  #   branches:
+  #     - main
+
   
   workflow_dispatch:
 
@@ -376,69 +377,76 @@ jobs:
 # NEXT JOB #######################################################################  
 #update docker compose image tag and  kubernetes manifest "image tag "in a seperate repo
 
-  # tag-manifest-update-compose:
-  #   name: Tag kubernetes manifest and update compose
-  #   needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
-  #   runs-on: ubuntu-latest
-
-  #   permissions:
-  #     contents: write 
+  tag-manifest-update-compose:
+    name: Tag kubernetes manifest and update compose
+    needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write 
     
-  #   steps:
-      
-  #     - name: Checkout repository
-  #       uses: actions/checkout@v4
-  #       with:
-  #         persist-credentials: false
-  #         # fetch-depth: 0
-  #         ref: ${{github.event.repository.default_branch}}
-      
-  #     - name: Extract parameters
-  #       run: |
-  #         yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com::${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
- 
-  #     - name: Configure git
-  #       run: |
-  #         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-  #         git config --local user.name "github-actions[bot]"
+    steps:
+    
+      - name: Set default values for manifest tag
+        run: |
+          echo "PUSH_MANIFEST_TAG='false'" >> $GITHUB_ENV
+          echo "ENABLE_PREVIEW='false'" >> $GITHUB_ENV
+          echo "REMOTE_REPO=''" >> $GITHUB_ENV
+          echo "REMOTE_WORKFLOW=''" >> $GITHUB_ENV
+          echo "PREVIEW_WORKFLOW=''" >> $GITHUB_ENV
 
-  #     - name: Commit changes
-  #       run: |
-  #         git add .
-  #         git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+          ref: ${{ github.ref }}
 
-  #     - name: Pull the latest changes and rebase
-  #       run: |
-  #         git pull origin --rebase
+      - name: Update compose manifest
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        run: |
+          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
 
-     
-  #     - name: Push changes
-  #       uses: ad-m/github-push-action@master
-  #       with:
-  #         github_token: ${{ secrets.RELEASE_MAIN }}
-  #         branch: ${{ github.ref }} 
+      - name: Configure git
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
 
-      # - name: Trigger workflow in remote repository for pull requests
-      #   if: github.event_name == 'pull_request'
-      #   env:
-      #     GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
-      #   run: |
-      #     gh api \
-      #       -X POST \
-      #       -H "Accept: application/vnd.github.v3+json" \
-      #       /repos/${{ github.repository_owner }}/REPO_NAME/actions/workflows/WORKFLOW_NAME.yaml/dispatches \
-      #       -f ref=main \
-      #       -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
+      - name: Commit changes
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        run: |
+          git add .
+          git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
+
+      - name: Push changes
+        if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.base_ref == 'refs/heads/main')
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.RELEASE_MAIN }}
+          branch: ${{ github.ref }}
+
+      - name: Trigger workflow in remote repository for pull requests
+        if: github.event_name == 'pull_request' && env.PUSH_MANIFEST_TAG == 'true' && env.ENABLE_PREVIEW == 'true' 
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
+        run: |
+          gh api \
+            -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.PREVIEW_WORKFLOW}}/dispatches \
+            -f ref=main \
+            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" 
            
 
-      # - name: Trigger workflow in remote repository for other events
-      #   if: github.event_name != 'pull_request'
-      #   env:
-      #     GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
-      #   run: |
-      #     gh api \
-      #       -X POST \
-      #       -H "Accept: application/vnd.github.v3+json" \
-      #       /repos/${{ github.repository_owner }}/REPO_NAME/actions/workflows/WORKFLOW_NAME.yaml/dispatches \
-      #       -f ref=main \
-      #       -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
+      - name: Trigger workflow in remote repository for other events
+        if: github.event_name != 'pull_request' && env.PUSH_MANIFEST_TAG == 'true' 
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
+        run: |
+          gh api \
+            -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.REMOTE_WORKFLOW}}/dispatches \
+            -f ref=main \
+            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" 
