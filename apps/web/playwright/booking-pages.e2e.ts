@@ -18,7 +18,7 @@ import {
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };
-test.describe.configure({ mode: "parallel", timeout: 100000 });
+test.describe.configure({ mode: "parallel" });
 test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
