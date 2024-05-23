@@ -17,3 +17,7 @@ export const appKeysSchema = z.object({
 export type AppKeys = z.infer<typeof appKeysSchema>;
 
 export const appDataSchema = z.object({});
+
+export const credentialSettingsSchema = z.object({
+  disabledEvents: z.array(z.string()),
+});
