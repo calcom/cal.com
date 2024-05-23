@@ -238,10 +238,15 @@ export function AvailabilitySettings({
   });
 
   useEffect(() => {
-    const subscription = form.watch((value) => handleSubmit(value as AvailabilityFormValues), {
-      ...schedule,
-      schedule: schedule.availability || [],
-    });
+    const subscription = form.watch(
+      (value, { name }) => {
+        if (!!name && name.split(".")[0] !== "schedule") handleSubmit(value as AvailabilityFormValues);
+      },
+      {
+        ...schedule,
+        schedule: schedule.availability || [],
+      }
+    );
     return () => subscription.unsubscribe();
   }, [form.watch]);
 
@@ -479,6 +484,7 @@ export function AvailabilitySettings({
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
                     weekStart={
                       ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
                         weekStart
