@@ -50,7 +50,7 @@ jobs:
 
   integration-test:
     name: Tests
-    needs: [changes, lint]
+    needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
