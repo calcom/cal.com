@@ -41,6 +41,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   useEffect(() => {
+    // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
     sdkActionManager?.fire("navigatedToBooker", {});
   }, []);
 
