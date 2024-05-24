@@ -116,7 +116,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 timeRangeField: className?.timeRangeField,
               }}
             />
-            {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
+            {!disabled && <div className="block">{CopyButton}</div>}
           </div>
         )}
       </>
