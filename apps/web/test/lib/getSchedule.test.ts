@@ -90,8 +90,10 @@ describe("getSchedule", () => {
 
   describe("Round robin lead skip - CRM", async () => {
     test("correctly get slots for event with only round robin hosts", async () => {
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
 
       const crmCredential = {
         id: 1,
