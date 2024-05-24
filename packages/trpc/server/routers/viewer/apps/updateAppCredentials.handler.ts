@@ -21,7 +21,6 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
   const credential = await prisma.credential.findFirst({
     where: {
       id: input.credentialId,
-      userId: user.id,
     },
   });
   // Check if credential exists

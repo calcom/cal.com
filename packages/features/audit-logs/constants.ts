@@ -62,15 +62,15 @@ export function getDefaultAppSettings(credentialId: number): AppSettingOptionEnt
     {
       name: "Credentials",
       href: "/apps/installed/auditLogs",
-      icon: "bar-chart",
+      icon: "fingerprint",
     },
     {
-      name: "Logs",
+      name: "Trigger Events",
       href: getHref("/apps/installed/auditLogs", {
         credentialId: credentialId.toString(),
-        activeOption: "logs",
+        activeOption: "triggers",
       }),
-      icon: "bar-chart",
+      icon: "circle-power",
     },
   ];
 }
