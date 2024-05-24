@@ -232,16 +232,6 @@ export async function handleConfirmation(args: {
             slug: true,
             bookingFields: true,
             schedulingType: true,
-            hosts: {
-              select: {
-                isFixed: true,
-                user: {
-                  select: {
-                    email: true,
-                  },
-                },
-              },
-            },
             owner: {
               select: {
                 hideBranding: true,
