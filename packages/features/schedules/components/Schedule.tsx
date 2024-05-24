@@ -12,7 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { GroupBase, Props } from "react-select";
 
-import type { AvailabilityFormValues } from "@calcom/atoms/availability";
+import type { AvailabilityFormValues } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
