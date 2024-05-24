@@ -262,26 +262,26 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
   }
 
   if (userId) {
-    const activeOnUserWorkflows = await prisma.workflow.findMany({
+    const activeOnAllUserWorkflows = await prisma.workflow.findMany({
       where: {
         userId,
-        isActiveOnAll: true,
+        isActiveOnAll: true, // what about managed event type?
       },
       select: workflowSelect,
     });
-    allworkflows.push(...activeOnUserWorkflows);
+    allworkflows.push(...activeOnAllUserWorkflows);
   } else if (teamId) {
-    const activeOnTeamWorkflows = await prisma.workflow.findMany({
+    const activeOnAllTeamWorkflows = await prisma.workflow.findMany({
       where: {
         teamId,
-        isActiveOnAll: true,
+        isActiveOnAll: true, // what about managed event types
       },
       select: workflowSelect,
     });
-    allworkflows.push(...activeOnTeamWorkflows);
+    allworkflows.push(...activeOnAllTeamWorkflows);
   }
 
-  // now we need to remove all the duplicate workflows from activeOnWorkflows
+  // remove all the duplicate workflows from activeOnWorkflows
   const seen = new Set();
 
   const workflows = allworkflows.filter((workflow) => {
