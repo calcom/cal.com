@@ -63,16 +63,11 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
 
-  if (
-    eventNameObj.bookingFields?.name &&
-    typeof eventNameObj.bookingFields.name === "object" &&
-    !Array.isArray(eventNameObj.bookingFields.name) &&
-    eventNameObj.bookingFields.name.firstName
-  ) {
-    dynamicEventName = dynamicEventName.replaceAll(
-      "{Scheduler first name}",
-      eventNameObj.bookingFields.name.firstName.toString()
-    );
+  const { bookingFields } = eventNameObj || {};
+  const { name } = bookingFields || {};
+
+  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.firstName === "string") {
+    dynamicEventName = dynamicEventName.replaceAll("{Scheduler first name}", name.firstName.toString());
   }
 
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
