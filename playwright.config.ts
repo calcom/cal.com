@@ -1,7 +1,6 @@
 import type { Frame, PlaywrightTestConfig } from "@playwright/test";
 import { devices, expect } from "@playwright/test";
 import dotEnv from "dotenv";
-import * as os from "os";
 import * as path from "path";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -80,10 +79,10 @@ const config: PlaywrightTestConfig = {
   retries: process.env.CI ? 2 : 0,
   // While debugging it should be focussed mode
   // eslint-disable-next-line turbo/no-undeclared-env-vars
-  workers: process.env.PWDEBUG ? 1 : os.cpus().length,
+  workers: 1, //process.env.PWDEBUG ? 1 : os.cpus().length,
   timeout: DEFAULT_TEST_TIMEOUT,
   maxFailures: headless ? 10 : undefined,
-  fullyParallel: true,
+  fullyParallel: false,
   reporter: [
     [process.env.CI ? "github" : "list"],
     ["@deploysentinel/playwright"],
