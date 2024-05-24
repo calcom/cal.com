@@ -20,5 +20,6 @@
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?around.co\\/[a-zA-Z0-9]*",
       "organizerInputPlaceholder": "https://www.around.co/rick"
     }
-  }
+  },
+  "isOAuth": false
 }
