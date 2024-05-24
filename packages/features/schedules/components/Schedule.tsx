@@ -102,27 +102,22 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
         </div>
       </div>
       <>
-        {watchDayRange ? (
-          <>
-            {watchDayRange.length > 0 && (
-              <div className="flex sm:gap-2">
-                <DayRanges
-                  userTimeFormat={userTimeFormat}
-                  labels={labels}
-                  control={control}
-                  name={name}
-                  disabled={disabled}
-                  className={{
-                    dayRanges: className?.dayRanges,
-                    timeRangeField: className?.timeRangeField,
-                  }}
-                />
-                {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
-              </div>
-            )}
-          </>
-        ) : (
-          <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
+        {!watchDayRange && <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />}
+        {watchDayRange.length > 0 && (
+          <div className="flex sm:gap-2">
+            <DayRanges
+              userTimeFormat={userTimeFormat}
+              labels={labels}
+              control={control}
+              name={name}
+              disabled={disabled}
+              className={{
+                dayRanges: className?.dayRanges,
+                timeRangeField: className?.timeRangeField,
+              }}
+            />
+            {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
+          </div>
         )}
       </>
     </div>
