@@ -1,31 +1,14 @@
-import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
-import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
-import {
-  BookingField,
-  IntervalLimits,
-  RecurringEvent,
-} from "@/ee/event-types/inputs/update-event-type.input";
-import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
-import {
-  IsArray,
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsInt,
-  IsJSON,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateNested,
-} from "class-validator";
+import { ApiProperty as DocsProperty } from "@nestjs/swagger";
+import { IsBoolean, IsInt, IsOptional, IsString, Min } from "class-validator";
 
 import {
   CREATE_EVENT_DESCRIPTION_EXAMPLE,
   CREATE_EVENT_LENGTH_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
+  ValidateBookingFields,
+  ValidateLocations,
 } from "@calcom/platform-types";
-import { Location } from "@calcom/platform-types";
+import { Location, BookingField } from "@calcom/platform-types";
 
 export class EventTypeOutput {
   @IsInt()
@@ -33,197 +16,45 @@ export class EventTypeOutput {
   id!: number;
 
   @IsInt()
+  @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
-  length!: number;
-
-  @IsString()
-  slug!: string;
+  lengthInMinutes!: number;
 
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
   title!: string;
 
+  @IsOptional()
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })
-  description!: string | null;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  hidden!: boolean;
-
-  @ValidateNested({ each: true })
-  @IsArray()
-  locations!: Location[] | null;
-
-  @IsInt()
-  @ApiHideProperty()
-  @IsOptional()
-  position?: number;
-
-  @IsInt()
-  @ApiHideProperty()
-  offsetStart!: number;
-
-  @IsInt()
-  @ApiHideProperty()
-  userId!: number | null;
-
-  @IsInt()
-  @ApiHideProperty()
-  @IsOptional()
-  profileId?: number | null;
-
-  @IsInt()
-  @ApiHideProperty()
-  teamId!: number | null;
-
-  @IsString()
-  @ApiHideProperty()
-  eventName!: string | null;
-
-  @IsInt()
-  @ApiHideProperty()
-  @IsOptional()
-  parentId?: number | null;
+  description?: string | null;
 
   @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => BookingField)
-  @ApiHideProperty()
-  bookingFields!: BookingField[] | null;
+  @ValidateLocations()
+  locations?: Location[];
 
-  @IsString()
-  @ApiHideProperty()
-  timeZone!: string | null;
-
-  @IsEnum(PeriodType)
-  @ApiHideProperty()
-  periodType!: PeriodType | null;
-
-  @IsDate()
-  @ApiHideProperty()
-  periodStartDate!: Date | null;
-
-  @IsDate()
-  @ApiHideProperty()
-  periodEndDate!: Date | null;
-
-  @IsInt()
-  @ApiHideProperty()
-  periodDays!: number | null;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  periodCountCalendarDays!: boolean | null;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  lockTimeZoneToggleOnBookingPage!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  requiresConfirmation!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  requiresBookerEmailVerification!: boolean;
-
-  @ValidateNested()
-  @Type(() => RecurringEvent)
   @IsOptional()
-  @ApiHideProperty()
-  recurringEvent!: RecurringEvent | null;
+  @ValidateBookingFields()
+  bookingFields?: BookingField[];
 
   @IsBoolean()
-  @ApiHideProperty()
-  disableGuests!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  hideCalendarNotes!: boolean;
-
-  @IsInt()
-  @ApiHideProperty()
-  minimumBookingNotice!: number;
-
-  @IsInt()
-  @ApiHideProperty()
-  beforeEventBuffer!: number;
-
-  @IsInt()
-  @ApiHideProperty()
-  afterEventBuffer!: number;
-
-  @IsInt()
-  @ApiHideProperty()
-  seatsPerTimeSlot!: number | null;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  onlyShowFirstAvailableSlot!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  seatsShowAttendees!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  seatsShowAvailabilityCount!: boolean;
-
-  @IsEnum(SchedulingType)
-  @ApiHideProperty()
-  schedulingType!: SchedulingType | null;
-
-  @IsInt()
-  @ApiHideProperty()
   @IsOptional()
-  scheduleId?: number | null;
-
-  @IsNumber()
-  @ApiHideProperty()
-  price!: number;
-
-  @IsString()
-  @ApiHideProperty()
-  currency!: string;
+  disableGuests?: boolean;
 
   @IsInt()
-  @ApiHideProperty()
-  slotInterval!: number | null;
-
-  @IsJSON()
-  @ApiHideProperty()
-  metadata!: Record<string, any> | null;
-
-  @IsString()
-  @ApiHideProperty()
-  successRedirectUrl!: string | null;
-
-  @ValidateNested()
-  @Type(() => IntervalLimits)
   @IsOptional()
-  @ApiHideProperty()
-  bookingLimits!: IntervalLimits;
-
-  @ValidateNested()
-  @Type(() => IntervalLimits)
-  @ApiHideProperty()
-  durationLimits!: IntervalLimits;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  isInstantEvent!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  assignAllTeamMembers!: boolean;
-
-  @IsBoolean()
-  @ApiHideProperty()
-  useEventTypeDestinationCalendarEmail!: boolean;
+  slotInterval?: number | null;
 
   @IsInt()
-  @ApiHideProperty()
-  secondaryEmailId!: number | null;
+  @Min(0)
+  @IsOptional()
+  minimumBookingNotice?: number;
+
+  @IsInt()
+  @IsOptional()
+  beforeEventBuffer?: number;
+
+  @IsInt()
+  @IsOptional()
+  afterEventBuffer?: number;
 }

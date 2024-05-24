@@ -24,7 +24,7 @@ export class OutputEventTypesService {
 
     return {
       id,
-      length,
+      lengthInMinutes: length,
       title,
       description,
       locations,

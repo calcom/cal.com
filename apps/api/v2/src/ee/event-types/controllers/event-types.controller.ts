@@ -79,6 +79,9 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
+      // todo(lauris): will remove once updating this handler
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       data: eventType,
     };
   }
@@ -96,6 +99,9 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
+      // todo(lauris): will remove once updating this handler
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       data: eventTypes as GetEventTypesData,
     };
   }
@@ -152,6 +158,9 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
+      // todo(lauris): will remove once updating this handler
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       data: eventType,
     };
   }

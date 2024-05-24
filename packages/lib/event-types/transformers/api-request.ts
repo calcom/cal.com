@@ -100,9 +100,26 @@ function transformSelectOptions(options: string[]) {
     value: option,
   }));
 }
+
+const FieldTypeEnum = z.enum([
+  "number",
+  "boolean",
+  "address",
+  "name",
+  "text",
+  "textarea",
+  "email",
+  "phone",
+  "multiemail",
+  "select",
+  "multiselect",
+  "checkbox",
+  "radio",
+]);
+
 const CommonFieldsSchema = z.object({
-  name: z.string(), // You'll need to handle the slugify operation prior to validation or within your application logic
-  type: z.string(),
+  name: z.string(),
+  type: FieldTypeEnum,
   label: z.string(),
   sources: z.array(
     z.object({

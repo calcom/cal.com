@@ -1,7 +1,6 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
-import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
 import { InputEventTypesService } from "@/ee/event-types/services/input-event-types.service";
 import { OutputEventTypesService } from "@/ee/event-types/services/output-event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -98,7 +97,7 @@ export class EventTypesService {
     }
 
     this.checkUserOwnsEventType(user.id, eventType.eventType);
-    return eventType as { eventType: EventTypeOutput };
+    return eventType;
   }
 
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {

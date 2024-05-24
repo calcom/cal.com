@@ -810,16 +810,6 @@
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -862,14 +852,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
-                }
-              }
-            }
+            "description": "Returns the default schedule"
           }
         },
         "tags": [
@@ -2087,8 +2070,9 @@
             "type": "number",
             "example": 1
           },
-          "length": {
+          "lengthInMinutes": {
             "type": "number",
+            "minimum": 1,
             "example": 60
           },
           "title": {
@@ -2100,24 +2084,40 @@
             "nullable": true,
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
-          "slug": {
-            "type": "string"
-          },
           "locations": {
-            "nullable": true,
             "type": "array",
             "items": {
               "type": "object"
             }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "number",
+            "nullable": true
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
           }
         },
         "required": [
           "id",
-          "length",
-          "title",
-          "description",
-          "slug",
-          "locations"
+          "lengthInMinutes",
+          "title"
         ]
       },
       "CreateEventTypeOutput": {
@@ -2847,15 +2847,17 @@
             ],
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "object"
             }
           },
           "startTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "09:00"
           },
           "endTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "10:00"
           }
         },
@@ -2874,10 +2876,12 @@
           },
           "startTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "12:00"
           },
           "endTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "13:00"
           }
         },
@@ -2885,57 +2889,6 @@
           "date",
           "startTime",
           "endTime"
-        ]
-      },
-      "CreateScheduleInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
         ]
       },
       "ScheduleOutput": {
@@ -3021,26 +2974,6 @@
           "data"
         ]
       },
-      "GetDefaultScheduleOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "GetScheduleOutput": {
         "type": "object",
         "properties": {
@@ -3098,48 +3031,62 @@
       "UpdateScheduleInput": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
           "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
+            "type": "string"
           },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput"
-            }
+          "name": {
+            "type": "string"
           },
           "isDefault": {
-            "type": "boolean",
-            "example": true
+            "type": "boolean"
           },
-          "overrides": {
+          "schedule": {
             "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
             ],
-            "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput"
-            }
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dateOverrides": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
           }
-        }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule"
+        ]
       },
       "UpdateScheduleOutput": {
         "type": "object",

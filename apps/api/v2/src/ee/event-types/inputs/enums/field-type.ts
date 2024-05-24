@@ -1,8 +1,8 @@
-export enum BaseField {
+export enum BaseFieldEnum {
+  name = "name",
   number = "number",
   boolean = "boolean",
   address = "address",
-  name = "name",
   text = "text",
   textarea = "textarea",
   email = "email",
@@ -14,3 +14,5 @@ export enum BaseField {
   radio = "radio",
   radioInput = "radioInput",
 }
+
+export type BaseFieldType = keyof typeof BaseFieldEnum;

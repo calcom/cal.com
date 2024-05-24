@@ -1,11 +1,12 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn } from "class-validator";
+import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
 const bookingFields = [
+  "name",
   "email",
   "phone",
   "address",
@@ -20,6 +21,23 @@ const bookingFields = [
   "boolean",
 ] as const;
 
+export class NameField {
+  @IsIn(bookingFields)
+  type!: "name";
+
+  @IsString()
+  @DocsProperty()
+  label!: string;
+
+  @IsBoolean()
+  @DocsProperty()
+  required!: boolean;
+
+  @IsString()
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
+}
 export class EmailField {
   @IsIn(bookingFields)
   type!: "email";
@@ -33,8 +51,9 @@ export class EmailField {
   required!: boolean;
 
   @IsString()
+  @IsOptional()
   @DocsProperty()
-  placeholder!: string;
+  placeholder?: string;
 }
 
 export class PhoneField {
@@ -50,8 +69,9 @@ export class PhoneField {
   required!: boolean;
 
   @IsString()
+  @IsOptional()
   @DocsProperty()
-  placeholder!: string;
+  placeholder?: string;
 }
 
 export class AddressField {
@@ -67,8 +87,10 @@ export class AddressField {
   required!: boolean;
 
   @IsString()
+  @IsOptional()
+  @DocsProperty()
   @DocsProperty({ example: "e.g., 1234 Main St" })
-  placeholder!: string;
+  placeholder?: string;
 }
 
 export class TextField {
@@ -85,7 +107,9 @@ export class TextField {
 
   @IsString()
   @DocsProperty({ example: "e.g., Enter text here" })
-  placeholder!: string;
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
 }
 
 export class NumberField {
@@ -102,7 +126,9 @@ export class NumberField {
 
   @IsString()
   @DocsProperty({ example: "e.g., 100" })
-  placeholder!: string;
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
 }
 
 export class TextAreaField {
@@ -119,7 +145,9 @@ export class TextAreaField {
 
   @IsString()
   @DocsProperty({ example: "e.g., Detailed description here..." })
-  placeholder!: string;
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
 }
 
 export class SelectField {
@@ -136,7 +164,9 @@ export class SelectField {
 
   @IsString()
   @DocsProperty({ example: "Select..." })
-  placeholder!: string;
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
 
   @IsArray()
   @DocsProperty({ type: [String], example: ["Option 1", "Option 2"] })
@@ -174,7 +204,9 @@ export class MultiEmailField {
 
   @IsString()
   @DocsProperty({ example: "e.g., example@example.com" })
-  placeholder!: string;
+  @IsOptional()
+  @DocsProperty()
+  placeholder?: string;
 }
 
 export class CheckboxGroupField {
@@ -225,6 +257,7 @@ export class BooleanField {
 }
 
 export type BookingField =
+  | NameField
   | EmailField
   | PhoneField
   | AddressField
@@ -241,6 +274,7 @@ export type BookingField =
 @ValidatorConstraint({ async: true })
 class BookingFieldValidator implements ValidatorConstraintInterface {
   private classTypeMap: { [key: string]: new () => BookingField } = {
+    name: NameField,
     email: EmailField,
     phone: PhoneField,
     address: AddressField,

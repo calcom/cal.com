@@ -52,14 +52,13 @@ function getResponseEventTypeLocations(
         return phoneLocation;
       }
       default: {
-        const originalType = reverseIntegrationsMapping[location.type];
-        if (!originalType) {
+        const integrationType = reverseIntegrationsMapping[location.type];
+        if (!integrationType) {
           throw new Error(`Unsupported integration type '${location.type}'.`);
         }
-        const integrationType = location.type.split(":")[1];
         const integration: IntegrationLocation = {
           type: "integration",
-          integration: reverseIntegrationsMapping[integrationType],
+          integration: integrationType,
         };
         return integration;
       }
@@ -75,26 +74,101 @@ function getResponseEventTypeBookingFields(
   }
 
   return transformedBookingFields.map((field) => {
-    const baseField = {
-      type: field.type,
-      label: field.label,
-      required: field.required,
-      placeholder: field.placeholder || "", // Ensure placeholder is not undefined
-    };
-
-    if (
-      field.type === "select" ||
-      field.type === "multiselect" ||
-      field.type === "checkbox" ||
-      field.type === "radio"
-    ) {
-      return {
-        ...baseField,
-        options: field.options?.map((option) => option.value),
-      };
+    switch (field.type) {
+      case "name":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "email":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "phone":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "address":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "text":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "number":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "textarea":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "multiemail":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+        };
+      case "boolean":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+        };
+      case "select":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          placeholder: field.placeholder,
+          options: field.options?.map((option) => option.value) || [],
+        };
+      case "multiselect":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          options: field.options?.map((option) => option.value) || [],
+        };
+      case "checkbox":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          options: field.options?.map((option) => option.value) || [],
+        };
+      case "radio":
+        return {
+          type: field.type,
+          label: field.label,
+          required: field.required,
+          options: field.options?.map((option) => option.value) || [],
+        };
+      default:
+        throw new Error(`Unsupported booking field type '${field.type}'.`);
     }
-
-    return baseField;
   });
 }
 

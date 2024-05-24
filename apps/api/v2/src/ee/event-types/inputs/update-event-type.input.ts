@@ -1,5 +1,5 @@
 import { Editable } from "@/ee/event-types/inputs/enums/editable";
-import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
+import { BaseFieldEnum, BaseFieldType } from "@/ee/event-types/inputs/enums/field-type";
 import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
 import { Type } from "class-transformer";
 import {
@@ -74,7 +74,7 @@ class OptionsInput {
 
 class VariantField {
   @IsString()
-  type!: BaseField;
+  type!: BaseFieldEnum;
 
   @IsString()
   name!: string;
@@ -107,8 +107,8 @@ class VariantsConfig {
 }
 
 export class BookingField {
-  @IsEnum(BaseField)
-  type!: BaseField;
+  @IsEnum(BaseFieldEnum)
+  type!: BaseFieldType;
 
   @IsString()
   name!: string;
