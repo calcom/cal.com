@@ -58,7 +58,7 @@ const createSelfHostedInstance = async ({ input, ctx }: GetOptions) => {
 
   // Ensure admin
   if (ctx.user.role !== "ADMIN") {
-    console.warning(`${ctx.user.username} just tried to create a license key without permission`);
+    console.warn(`${ctx.user.username} just tried to create a license key without permission`);
     throw new Error("You do not have permission to do this.");
   }
 
