@@ -38,7 +38,9 @@ export class AccessTokenStrategy extends PassportStrategy(BaseStrategy, "access-
       }
 
       if (requestOrigin && !client.redirectUris.some((uri) => uri.startsWith(requestOrigin))) {
-        throw new UnauthorizedException("Invalid request origin");
+        throw new UnauthorizedException(
+          `Invalid request origin - please open https://app.cal.com/settings/platform and add the origin '${requestOrigin}' to the 'Redirect uris' of your OAuth client.`
+        );
       }
 
       const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
