@@ -260,10 +260,10 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         const roomId = res.id;
         const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
 
+        if (!allTranscripts.data.length) return [];
+
         const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
-
         const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
-
         const accessLinks = await Promise.all(allTranscriptsAccessLink);
 
         return Promise.resolve(accessLinks);
