@@ -8,15 +8,12 @@ import {
   useOAuthClients,
   useGetOAuthClientManagedUsers,
 } from "@lib/hooks/settings/platform/oauth-clients/useOAuthClients";
-import {
-  useDeleteOAuthClient,
-  useCheckTeamBilling,
-} from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
-import useMeQuery from "@lib/hooks/useMeQuery";
+import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
 import { ManagedUserList } from "@components/settings/platform/dashboard/managed-user-list";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
+import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import { PlatformPricing } from "@components/settings/platform/pricing/platform-pricing";
 
 const queryClient = new QueryClient();
@@ -25,17 +22,15 @@ export default function Platform() {
   const [initialClientId, setInitialClientId] = useState("");
   const [initialClientName, setInitialClientName] = useState("");
 
-  const { data: user, isLoading } = useMeQuery();
   const { data, isLoading: isOAuthClientLoading, refetch: refetchClients } = useOAuthClients();
   const {
     isLoading: isManagedUserLoading,
     data: managedUserData,
     refetch: refetchManagedUsers,
   } = useGetOAuthClientManagedUsers(initialClientId);
-  const { data: userBillingData } = useCheckTeamBilling(user?.organizationId);
 
-  const isPlatformUser = user?.organization.isPlatform;
-  const isPaidUser = userBillingData?.valid;
+  const { isUserLoading, isUserBillingDataLoading, isPlatformUser, isPaidUser, userBillingData, userOrgId } =
+    useGetUserAttributes();
 
   const { mutateAsync, isPending: isDeleting } = useDeleteOAuthClient({
     onSuccess: () => {
@@ -54,9 +49,13 @@ export default function Platform() {
     setInitialClientName(data[0]?.name);
   }, [data]);
 
-  if (isLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
+  if (isUserLoading || isOAuthClientLoading) return <div className="m-5">Loading...</div>;
 
-  if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={user?.organizationId} />;
+  if (isUserBillingDataLoading && !userBillingData) {
+    return <div className="m-5">Loading...</div>;
+  }
+
+  if (isPlatformUser && !isPaidUser) return <PlatformPricing teamId={userOrgId} />;
 
   if (isPlatformUser) {
     return (
@@ -90,7 +89,13 @@ export default function Platform() {
 
   return (
     <div>
-      <Shell hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
+      <Shell
+        // we want to hide org banner and have different sidebar tabs for platform clients
+        // hence we pass isPlatformUser boolean as prop
+        isPlatformUser={true}
+        hideHeadingOnMobile
+        withoutMain={false}
+        SidebarContainer={<></>}>
         You are not subscribed to a Platform plan.
       </Shell>
     </div>

@@ -250,7 +250,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
       ) : (
         <div className="w-full">
           <div className="">
-            <TextField className="flex-1" disabled value={stripeCheckoutUrl} EndIcon="clipboard" />
+            <TextField className="flex-1" disabled value={stripeCheckoutUrl} />
           </div>
 
           <div className="mt-4 flex gap-2 [&>*]:flex-1 [&>*]:justify-center">

@@ -77,6 +77,7 @@ export const useGetOAuthClientManagedUsers = (clientId: string) => {
         headers: { "Content-type": "application/json" },
       }).then((res) => res.json());
     },
+    enabled: Boolean(clientId),
   });
 
   return { isLoading, error, data: response?.data, refetch };
