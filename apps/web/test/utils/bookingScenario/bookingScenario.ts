@@ -170,26 +170,25 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts) {
-      for (const host of eventType.hosts) {
-        const data: Prisma.HostCreateInput = {
-          eventType: {
-            connect: {
-              id: eventType.id,
-            },
+    if (!eventType.hosts?.length) continue;
+    for (const host of eventType.hosts) {
+      const data: Prisma.HostCreateInput = {
+        eventType: {
+          connect: {
+            id: eventType.id,
           },
-          isFixed: host.isFixed ?? false,
-          user: {
-            connect: {
-              id: host.userId,
-            },
+        },
+        isFixed: host.isFixed ?? false,
+        user: {
+          connect: {
+            id: host.userId,
           },
-        };
+        },
+      };
 
-        await prismock.host.create({
-          data,
-        });
-      }
+      await prismock.host.create({
+        data,
+      });
     }
   }
 }
