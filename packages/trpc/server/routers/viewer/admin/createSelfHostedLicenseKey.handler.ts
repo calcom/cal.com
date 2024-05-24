@@ -62,7 +62,7 @@ const createSelfHostedInstance = async ({ input, ctx }: GetOptions) => {
     throw new Error("You do not have permission to do this.");
   }
 
-  const request = await fetchWithSignature(`${privateApiUrl}/api/license`, input, signatureToken, {
+  const request = await fetchWithSignature(`${privateApiUrl}/v1/license`, input, signatureToken, {
     method: "POST",
   });
 
