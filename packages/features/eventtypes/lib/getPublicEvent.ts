@@ -8,6 +8,7 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
@@ -199,7 +200,7 @@ export const getPublicEvent = async (
         ),
         ...(orgDetails
           ? {
-              image: orgDetails?.logoUrl,
+              image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
               name: orgDetails?.name,
               username: org,
             }
@@ -295,6 +296,19 @@ export const getPublicEvent = async (
     });
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
+
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+  if (org) {
+    orgDetails = await prisma.team.findFirstOrThrow({
+      where: {
+        slug: org,
+      },
+      select: {
+        logoUrl: true,
+        name: true,
+      },
+    });
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -323,7 +337,15 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      ...(orgDetails
+        ? {
+            image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+            name: orgDetails?.name,
+            username: org,
+          }
+        : {}),
     },
+
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
