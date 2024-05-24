@@ -1,4 +1,5 @@
 import * as crypto from "crypto";
+import { z } from "zod";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
@@ -66,8 +67,11 @@ const createSelfHostedInstance = async ({ input, ctx }: GetOptions) => {
   });
 
   const data = await request.json();
+  const schema = z.object({
+    stripeCheckoutUrl: z.string(),
+  });
 
-  return data as { stripeCheckoutUrl: string };
+  return schema.parse(data);
 };
 
 export default createSelfHostedInstance;

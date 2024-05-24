@@ -16,7 +16,7 @@ export const CreateANewLicenseKeyForm = () => {
   if (session.data?.user.role !== "ADMIN") {
     return null;
   }
-  // @ts-expect-error session cannt be null due to the early return
+  // @ts-expect-error session can't be null due to the early return
   return <CreateANewLicenseKeyFormChild session={session} />;
 };
 
@@ -42,6 +42,7 @@ interface FormValues {
 const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionContextValue, "data"> }) => {
   const { t } = useLocale();
   const [serverErrorMessage, setServerErrorMessage] = useState<string | null>(null);
+  const [stripeCheckoutUrl, setStripeCheckoutUrl] = useState<string | null>(null);
   const isAdmin = session.data.user.role === UserPermissionRole.ADMIN;
   const newLicenseKeyFormMethods = useForm<FormValues>({
     defaultValues: {
@@ -55,14 +56,9 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
   });
 
   const mutation = trpc.viewer.admin.createSelfHostedLicense.useMutation({
-    onSuccess: async () => {
-      showToast(
-        `Created: We have sent a stripe checkout link to ${newLicenseKeyFormMethods.getValues(
-          "billingEmail"
-        )}`,
-        "success"
-      );
-      newLicenseKeyFormMethods.reset();
+    onSuccess: async (values) => {
+      showToast(`Success: We have created a stripe payment URL for this billing email`, "success");
+      setStripeCheckoutUrl(values.stripeCheckoutUrl);
     },
     onError: async (err) => {
       setServerErrorMessage(err.message);
@@ -82,40 +78,93 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
 
   return (
     <>
-      <Form
-        form={newLicenseKeyFormMethods}
-        className="space-y-5"
-        id="createOrg"
-        handleSubmit={(values) => {
-          mutation.mutate(values);
-        }}>
-        <div>
-          {serverErrorMessage && (
-            <div className="mb-5">
-              <Alert severity="error" message={serverErrorMessage} />
-            </div>
-          )}
+      {!stripeCheckoutUrl ? (
+        <Form
+          form={newLicenseKeyFormMethods}
+          className="space-y-5"
+          id="createOrg"
+          handleSubmit={(values) => {
+            mutation.mutate(values);
+          }}>
+          <div>
+            {serverErrorMessage && (
+              <div className="mb-5">
+                <Alert severity="error" message={serverErrorMessage} />
+              </div>
+            )}
 
-          <div className="mb-5">
+            <div className="mb-5">
+              <Controller
+                name="billingPeriod"
+                control={newLicenseKeyFormMethods.control}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <Label htmlFor="billingPeriod">Billing Period</Label>
+                    <ToggleGroup
+                      isFullWidth
+                      id="billingPeriod"
+                      defaultValue={value}
+                      onValueChange={(e) => onChange(e)}
+                      options={[
+                        {
+                          value: "MONTHLY",
+                          label: "Monthly",
+                        },
+                        {
+                          value: "ANNUALLY",
+                          label: "Annually",
+                        },
+                      ]}
+                    />
+                  </>
+                )}
+              />
+            </div>
+
             <Controller
-              name="billingPeriod"
+              name="billingEmail"
+              control={newLicenseKeyFormMethods.control}
+              rules={{
+                required: t("must_enter_billing_email"),
+              }}
+              render={({ field: { value, onChange } }) => (
+                <div className="flex">
+                  <TextField
+                    containerClassName="w-full"
+                    placeholder="john@acme.com"
+                    name="billingEmail"
+                    disabled={!isAdmin}
+                    label="Billing Email for Customer"
+                    defaultValue={value}
+                    onChange={onChange}
+                    autoComplete="off"
+                  />
+                </div>
+              )}
+            />
+          </div>
+          <div>
+            <Controller
+              name="billingType"
               control={newLicenseKeyFormMethods.control}
               render={({ field: { value, onChange } }) => (
                 <>
-                  <Label htmlFor="billingPeriod">Billing Period</Label>
+                  <Label htmlFor="bookingType">Booking Type</Label>
                   <ToggleGroup
                     isFullWidth
-                    id="billingPeriod"
+                    id="bookingType"
                     defaultValue={value}
                     onValueChange={(e) => onChange(e)}
                     options={[
                       {
-                        value: "MONTHLY",
-                        label: "Monthly",
+                        value: "PER_BOOKING",
+                        label: "Per Booking",
+                        tooltip: "Configure pricing on a per booking basis",
                       },
                       {
-                        value: "ANNUALLY",
-                        label: "Annually",
+                        value: "PER_USER",
+                        label: "Per User",
+                        tooltip: "Configure pricing on a per user basis",
                       },
                     ]}
                   />
@@ -124,132 +173,98 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
             />
           </div>
 
-          <Controller
-            name="billingEmail"
-            control={newLicenseKeyFormMethods.control}
-            rules={{
-              required: t("must_enter_billing_email"),
-            }}
-            render={({ field: { value, onChange } }) => (
-              <div className="flex">
-                <TextField
-                  containerClassName="w-full"
-                  placeholder="john@acme.com"
-                  name="billingEmail"
-                  disabled={!isAdmin}
-                  label="Billing Email for Customer"
-                  defaultValue={value}
-                  onChange={onChange}
-                  autoComplete="off"
-                />
-              </div>
-            )}
-          />
-        </div>
-        <div>
-          <Controller
-            name="billingType"
-            control={newLicenseKeyFormMethods.control}
-            render={({ field: { value, onChange } }) => (
-              <>
-                <Label htmlFor="bookingType">Booking Type</Label>
-                <ToggleGroup
-                  isFullWidth
-                  id="bookingType"
-                  defaultValue={value}
-                  onValueChange={(e) => onChange(e)}
-                  options={[
-                    {
-                      value: "PER_BOOKING",
-                      label: "Per Booking",
-                      tooltip: "Configure pricing on a per booking basis",
-                    },
-                    {
-                      value: "PER_USER",
-                      label: "Per User",
-                      tooltip: "Configure pricing on a per user basis",
-                    },
-                  ]}
-                />
-              </>
-            )}
-          />
-        </div>
-
-        <div className="flex flex-wrap gap-2 [&>*]:flex-1">
-          <Controller
-            name="entityCount"
-            control={newLicenseKeyFormMethods.control}
-            rules={{
-              required: "Must enter a total of billable users",
-            }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                className="mt-2"
-                name="entityCount"
-                label="Total entities included"
-                placeholder="100"
-                defaultValue={value}
-                onChange={(event) => onChange(+event.target.value)}
-              />
-            )}
-          />
-          <Controller
-            name="entityPrice"
-            control={newLicenseKeyFormMethods.control}
-            rules={{
-              required: "Must enter fixed price per user",
-            }}
-            render={({ field: { value, onChange } }) => (
-              <TextField
-                className="mt-2"
-                name="entityPrice"
-                label="Fixed price per entity"
-                addOnSuffix="$"
-                defaultValue={value / 100}
-                onChange={(event) => onChange(+event.target.value * 100)}
-              />
-            )}
-          />
-        </div>
-
-        <div>
-          <Controller
-            name="overages"
-            control={newLicenseKeyFormMethods.control}
-            rules={{
-              required: "Must enter overages",
-            }}
-            render={({ field: { value, onChange } }) => (
-              <>
+          <div className="flex flex-wrap gap-2 [&>*]:flex-1">
+            <Controller
+              name="entityCount"
+              control={newLicenseKeyFormMethods.control}
+              rules={{
+                required: "Must enter a total of billable users",
+              }}
+              render={({ field: { value, onChange } }) => (
                 <TextField
                   className="mt-2"
-                  placeholder="Acme"
-                  name="overages"
+                  name="entityCount"
+                  label="Total entities included"
+                  placeholder="100"
+                  defaultValue={value}
+                  onChange={(event) => onChange(+event.target.value)}
+                />
+              )}
+            />
+            <Controller
+              name="entityPrice"
+              control={newLicenseKeyFormMethods.control}
+              rules={{
+                required: "Must enter fixed price per user",
+              }}
+              render={({ field: { value, onChange } }) => (
+                <TextField
+                  className="mt-2"
+                  name="entityPrice"
+                  label="Fixed price per entity"
                   addOnSuffix="$"
-                  label="Overages"
-                  disabled={!isAdmin}
                   defaultValue={value / 100}
                   onChange={(event) => onChange(+event.target.value * 100)}
-                  autoComplete="off"
                 />
-              </>
-            )}
-          />
-        </div>
+              )}
+            />
+          </div>
 
-        <div className="flex space-x-2 rtl:space-x-reverse">
-          <Button
-            disabled={newLicenseKeyFormMethods.formState.isSubmitting}
-            color="primary"
-            type="submit"
-            form="createOrg"
-            loading={mutation.isPending}
-            className="w-full justify-center">
-            {t("continue")} - {calculateMonthlyPrice()}
-          </Button>
+          <div>
+            <Controller
+              name="overages"
+              control={newLicenseKeyFormMethods.control}
+              rules={{
+                required: "Must enter overages",
+              }}
+              render={({ field: { value, onChange } }) => (
+                <>
+                  <TextField
+                    className="mt-2"
+                    placeholder="Acme"
+                    name="overages"
+                    addOnSuffix="$"
+                    label="Overages"
+                    disabled={!isAdmin}
+                    defaultValue={value / 100}
+                    onChange={(event) => onChange(+event.target.value * 100)}
+                    autoComplete="off"
+                  />
+                </>
+              )}
+            />
+          </div>
+
+          <div className="flex space-x-2 rtl:space-x-reverse">
+            <Button
+              disabled={newLicenseKeyFormMethods.formState.isSubmitting}
+              color="primary"
+              type="submit"
+              form="createOrg"
+              loading={mutation.isPending}
+              className="w-full justify-center">
+              {t("continue")} - {calculateMonthlyPrice()}
+            </Button>
+          </div>
+        </Form>
+      ) : (
+        <div className="w-full">
+          <div className="">
+            <TextField className="flex-1" disabled value={stripeCheckoutUrl} EndIcon="clipboard" />
+          </div>
+
+          <div className="mt-4 flex gap-2 [&>*]:flex-1 [&>*]:justify-center">
+            <Button
+              color="secondary"
+              onClick={() => {
+                newLicenseKeyFormMethods.reset();
+                setStripeCheckoutUrl(null);
+              }}>
+              Back
+            </Button>
+          </div>
         </div>
-      </Form>
+      )}
     </>
   );
 };
