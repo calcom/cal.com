@@ -211,6 +211,8 @@ export const getPublicEvent = async (
         fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
+        teamSlug: null,
+        logoUrl: null,
       },
       isInstantEvent: false,
     };
@@ -339,9 +341,8 @@ export const getPublicEvent = async (
         null,
       ...(orgDetails
         ? {
-            image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+            logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
             name: orgDetails?.name,
-            username: org,
           }
         : {}),
     },

@@ -32,7 +32,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
   const orgOrTeamAvatarItem =
-    isDynamic || (!profile.image && !entity.image)
+    isDynamic || (!profile.image && !entity.logoUrl)
       ? []
       : [
           {
@@ -42,7 +42,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
               : entity.teamSlug
               ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
               : getBookerBaseUrlSync(entity.orgSlug),
-            image: entity.image ?? profile.image ?? "",
+            image: entity.logoUrl ?? profile.image ?? "",
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
           },
