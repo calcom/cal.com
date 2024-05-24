@@ -80,14 +80,14 @@ import { schemaCreateScheduleBodyParams, schemaSchedulePublic } from "~/lib/vali
  */
 
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const body = schemaCreateScheduleBodyParams.parse(req.body);
   let args: Prisma.ScheduleCreateArgs = { data: { ...body, userId } };
 
   /* If ADMIN we create the schedule for selected user */
-  if (isAdmin && body.userId) args = { data: { ...body, userId: body.userId } };
+  if (isSystemWideAdmin && body.userId) args = { data: { ...body, userId: body.userId } };
 
-  if (!isAdmin && body.userId)
+  if (!isSystemWideAdmin && body.userId)
     throw new HttpError({ statusCode: 403, message: "ADMIN required for `userId`" });
 
   // We create default availabilities for the schedule

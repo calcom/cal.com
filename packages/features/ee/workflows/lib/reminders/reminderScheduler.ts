@@ -1,6 +1,10 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import { isSMSAction, isWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import {
+  isSMSAction,
+  isSMSOrWhatsappAction,
+  isWhatsappAction,
+} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -47,12 +51,14 @@ const processWorkflowStep = async (
     seatReferenceUid,
   }: ProcessWorkflowStepParams
 ) => {
-  if (isSMSAction(step.action)) {
+  if (isSMSOrWhatsappAction(step.action)) {
     await checkSMSRateLimit({
       identifier: `sms:${workflow.teamId ? "team:" : "user:"}${workflow.teamId || workflow.userId}`,
       rateLimitingType: "sms",
     });
+  }
 
+  if (isSMSAction(step.action)) {
     const sendTo = step.action === WorkflowActions.SMS_ATTENDEE ? smsReminderNumber : step.sendTo;
     await scheduleSMSReminder({
       evt,
@@ -72,13 +78,20 @@ const processWorkflowStep = async (
       isVerificationPending: step.numberVerificationPending,
       seatReferenceUid,
     });
-  } else if (step.action === WorkflowActions.EMAIL_ATTENDEE || step.action === WorkflowActions.EMAIL_HOST) {
+  } else if (
+    step.action === WorkflowActions.EMAIL_ATTENDEE ||
+    step.action === WorkflowActions.EMAIL_HOST ||
+    step.action === WorkflowActions.EMAIL_ADDRESS
+  ) {
     let sendTo: string[] = [];
     const schedulingType = evt.eventType.schedulingType;
     const isTeamEvent =
       schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
 
     switch (step.action) {
+      case WorkflowActions.EMAIL_ADDRESS:
+        sendTo = [step.sendTo || ""];
+        break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
         if (isTeamEvent && evt.team?.members) {

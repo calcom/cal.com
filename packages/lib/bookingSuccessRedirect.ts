@@ -47,14 +47,20 @@ export const useBookingSuccessRedirect = () => {
     successRedirectUrl,
     query,
     booking,
+    forwardParamsSuccessRedirect,
   }: {
     successRedirectUrl: EventType["successRedirectUrl"];
+    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
+      if (!forwardParamsSuccessRedirect) {
+        window.parent.location.href = url.toString();
+        return;
+      }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
       const newSearchParams = getNewSeachParams({
         query: {

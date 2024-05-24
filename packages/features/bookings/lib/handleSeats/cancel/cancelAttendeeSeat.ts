@@ -7,6 +7,8 @@ import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/l
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
@@ -130,9 +132,9 @@ async function cancelAttendeeSeat(
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
     }).catch((e) => {
-      console.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}`,
-        e
+      logger.error(
+        `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CANCELLED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
       );
     })
   );
