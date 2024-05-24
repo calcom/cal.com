@@ -444,7 +444,8 @@ function FieldEditDialog({
   const [firstRender, setFirstRender] = useState(true);
 
   return (
-    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
+      <div className="fadeIn fixed inset-0 z-50 bg-neutral-800 bg-opacity-70 transition-opacity dark:bg-opacity-70" />
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
         <Form id="form-builder" form={fieldForm} handleSubmit={handleSubmit}>
           <div className="h-auto max-h-[85vh] overflow-auto px-8 pb-7 pt-8">
