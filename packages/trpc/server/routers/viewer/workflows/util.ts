@@ -239,11 +239,6 @@ export async function isAuthorizedToAddActiveOnIds(
               id: true,
             },
           },
-          team: {
-            include: {
-              members: true,
-            },
-          },
           children: true,
         },
       });
@@ -306,7 +301,7 @@ async function getRemindersFromRemovedTeams(
                 parentId: null, // children managed event types are handled above with team event types
               },
             },
-            //if user is part of removed team make sure they are not
+            //if user is part of removed team make sure they are not part of an still active team
             NOT: {
               booking: {
                 user: {
@@ -363,7 +358,7 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
   >[] = [];
 
   removedEventTypes.forEach((eventTypeId) => {
-    const reminderToDelete = prisma.workflowReminder.findMany({
+    const remindersToDelete = prisma.workflowReminder.findMany({
       where: {
         booking: {
           eventTypeId: eventTypeId,
@@ -381,7 +376,7 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
       },
     });
 
-    remindersToDeletePromise.push(reminderToDelete);
+    remindersToDeletePromise.push(remindersToDelete);
   });
 
   const remindersToDelete = (await Promise.all(remindersToDeletePromise)).flat();
