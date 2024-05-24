@@ -25,6 +25,7 @@ export type AppPageProps = {
   isGlobal?: AppType["isGlobal"];
   logo: string;
   slug: string;
+  dirName: string | undefined;
   variant: string;
   body: React.ReactNode;
   categories: string[];
@@ -72,6 +73,7 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
+  dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
   const router = useRouter();

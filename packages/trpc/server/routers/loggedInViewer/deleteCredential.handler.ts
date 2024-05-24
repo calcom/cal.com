@@ -25,6 +25,21 @@ type DeleteCredentialOptions = {
   input: TDeleteCredentialInputSchema;
 };
 
+type App = {
+  slug: string;
+  categories: AppCategories[];
+  dirName: string;
+} | null;
+
+const isVideoOrConferencingApp = (app: App) =>
+  app?.categories.includes(AppCategories.video) || app?.categories.includes(AppCategories.conferencing);
+
+const getRemovedIntegrationNameFromAppSlug = (slug: string) =>
+  slug === "msteams" ? "office365_video" : slug.split("-")[0];
+
+const locationsSchema = z.array(z.object({ type: z.string() }));
+type TlocationsSchema = z.infer<typeof locationsSchema>;
+
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
   const { user } = ctx;
   const { id, teamId } = input;
@@ -80,40 +95,38 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
   for (const eventType of eventTypes) {
-    if (eventType.locations) {
-      // If it's a video, replace the location with Cal video
-      if (
-        credential.app?.categories.includes(AppCategories.video) ||
-        credential.app?.categories.includes(AppCategories.conferencing)
-      ) {
-        // Find the user's event types
+    // If it's a video, replace the location with Cal video
+    if (eventType.locations && isVideoOrConferencingApp(credential.app)) {
+      // Find the user's event types
 
-        // Look for integration name from app slug
-        const integrationQuery =
-          credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
+      const integrationQuery = getRemovedIntegrationNameFromAppSlug(credential.app?.slug ?? "");
 
-        // Check if the event type uses the deleted integration
+      // Check if the event type uses the deleted integration
 
-        // To avoid type errors, need to stringify and parse JSON to use array methods
-        const locationsSchema = z.array(z.object({ type: z.string() }));
-        const locations = locationsSchema.parse(eventType.locations);
+      // To avoid type errors, need to stringify and parse JSON to use array methods
+      const locations = locationsSchema.parse(eventType.locations);
 
-        const updatedLocations = locations.map((location: { type: string }) => {
-          if (location.type.includes(integrationQuery)) {
-            return { type: DailyLocationType };
-          }
-          return location;
-        });
+      const doesDailyVideoAlreadyExists = locations.some((location) =>
+        location.type.includes(DailyLocationType)
+      );
 
-        await prisma.eventType.update({
-          where: {
-            id: eventType.id,
-          },
-          data: {
-            locations: updatedLocations,
-          },
-        });
-      }
+      const updatedLocations: TlocationsSchema = locations.reduce((acc: TlocationsSchema, location) => {
+        if (location.type.includes(integrationQuery)) {
+          if (!doesDailyVideoAlreadyExists) acc.push({ type: DailyLocationType });
+        } else {
+          acc.push(location);
+        }
+        return acc;
+      }, []);
+
+      await prisma.eventType.update({
+        where: {
+          id: eventType.id,
+        },
+        data: {
+          locations: updatedLocations,
+        },
+      });
     }
 
     // If it's a calendar, remove the destination calendar from the event type
