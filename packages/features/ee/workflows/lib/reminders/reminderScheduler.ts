@@ -1,5 +1,3 @@
-import type { WorkflowsOnEventTypes } from "@prisma/client";
-
 import {
   isSMSAction,
   isSMSOrWhatsappAction,
@@ -204,6 +202,75 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     orgId,
   } = args;
   if (isNotConfirmed) return;
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+
+  if (!workflows.length) return;
+
+  for (const workflow of workflows) {
+    if (workflow.steps.length === 0) continue;
+
+    const isNotBeforeOrAfterEvent =
+      workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
+      workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
+
+    if (
+      isNotBeforeOrAfterEvent &&
+      // Check if the trigger is not a new event without a reschedule and is the first recurring event.
+      !(
+        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
+        !isRescheduleEvent &&
+        isFirstRecurringEvent
+      ) &&
+      // Check if the trigger is not a rescheduled event that is rescheduled.
+      !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
+    ) {
+      continue;
+    }
+    for (const step of workflow.steps) {
+      await processWorkflowStep(workflow, step, {
+        calendarEvent: evt,
+        emailAttendeeSendToOverride,
+        smsReminderNumber,
+        hideBranding,
+        seatReferenceUid,
+      });
+    }
+  }
+};
+
+const reminderMethods: { [x: string]: (id: number, referenceId: string | null) => void } = {
+  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
+  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
+  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
+};
+
+export const cancelWorkflowReminders = async (
+  workflowReminders: { method: WorkflowMethods; id: number; referenceId: string | null }[]
+) => {
+  await Promise.all(
+    workflowReminders.map((reminder) => {
+      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
+    })
+  );
+};
+
+export interface SendCancelledRemindersArgs {
+  eventTypeWorkflows: Workflow[];
+  smsReminderNumber: string | null;
+  evt: ExtendedCalendarEvent;
+  hideBranding?: boolean;
+  userId?: number | null;
+  teamId?: number | null;
+  orgId?: number | null;
+}
+
+const getAllWorkflows = async (
+  eventTypeWorkflows: Workflow[],
+  userId?: number | null,
+  teamId?: number | null,
+  orgId?: number | null
+) => {
   const allworkflows = eventTypeWorkflows;
 
   if (orgId) {
@@ -290,74 +357,17 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     return !duplicate;
   });
 
+  return workflows;
+};
+
+export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
+  const { eventTypeWorkflows, smsReminderNumber, evt, hideBranding, userId, teamId, orgId } = args;
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+
   if (!workflows.length) return;
 
   for (const workflow of workflows) {
-    if (workflow.steps.length === 0) continue;
-
-    const isNotBeforeOrAfterEvent =
-      workflow.trigger !== WorkflowTriggerEvents.BEFORE_EVENT &&
-      workflow.trigger !== WorkflowTriggerEvents.AFTER_EVENT;
-
-    if (
-      isNotBeforeOrAfterEvent &&
-      // Check if the trigger is not a new event without a reschedule and is the first recurring event.
-      !(
-        workflow.trigger === WorkflowTriggerEvents.NEW_EVENT &&
-        !isRescheduleEvent &&
-        isFirstRecurringEvent
-      ) &&
-      // Check if the trigger is not a rescheduled event that is rescheduled.
-      !(workflow.trigger === WorkflowTriggerEvents.RESCHEDULE_EVENT && isRescheduleEvent)
-    ) {
-      continue;
-    }
-    for (const step of workflow.steps) {
-      await processWorkflowStep(workflow, step, {
-        calendarEvent: evt,
-        emailAttendeeSendToOverride,
-        smsReminderNumber,
-        hideBranding,
-        seatReferenceUid,
-      });
-    }
-  }
-};
-
-const reminderMethods: { [x: string]: (id: number, referenceId: string | null) => void } = {
-  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
-  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
-  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
-};
-
-export const cancelWorkflowReminders = async (
-  workflowReminders: { method: WorkflowMethods; id: number; referenceId: string | null }[]
-) => {
-  await Promise.all(
-    workflowReminders.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
-    })
-  );
-};
-
-export interface SendCancelledRemindersArgs {
-  workflows: (WorkflowsOnEventTypes & {
-    workflow: Workflow & {
-      steps: WorkflowStep[];
-    };
-  })[];
-  smsReminderNumber: string | null;
-  evt: ExtendedCalendarEvent;
-  hideBranding?: boolean;
-}
-
-export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { workflows, smsReminderNumber, evt, hideBranding } = args;
-  if (!workflows.length) return;
-
-  for (const workflowRef of workflows) {
-    const { workflow } = workflowRef;
-
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {

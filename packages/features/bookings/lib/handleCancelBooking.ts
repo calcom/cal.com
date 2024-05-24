@@ -8,7 +8,10 @@ import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import {
+  sendCancelledReminders,
+  workflowSelect,
+} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -54,6 +57,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           timeFormat: true,
           name: true,
           destinationCalendar: true,
+          profiles: {
+            select: {
+              organizationId: true,
+            },
+          },
         },
       },
       location: true,
@@ -71,6 +79,8 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       eventType: {
         select: {
           slug: true,
+          userId: true,
+          teamId: true,
           owner: {
             select: {
               id: true,
@@ -100,11 +110,9 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             },
           },
           workflows: {
-            include: {
+            select: {
               workflow: {
-                include: {
-                  steps: true,
-                },
+                select: workflowSelect,
               },
             },
           },
@@ -320,7 +328,10 @@ async function handler(req: CustomRequest) {
   if (bookingToDelete.eventType?.workflows) {
     //this also needs to add org workflows
     await sendCancelledReminders({
-      workflows: bookingToDelete.eventType?.workflows,
+      eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
+      userId: bookingToDelete.eventType.userId,
+      teamId: bookingToDelete.eventType.teamId,
+      orgId: bookingToDelete.user.profiles[0].organizationId,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {
         ...evt,
