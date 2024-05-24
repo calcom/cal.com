@@ -32,7 +32,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
   const orgOrTeamAvatarItem =
-    isDynamic || (!profile.image && entity.image)
+    isDynamic || (!profile.image && !entity.image)
       ? []
       : [
           {
