@@ -119,9 +119,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         switch (reminder.workflowStep.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
-            const hosts = reminder.booking.eventType?.hosts
-              ?.filter((host) => !host.isFixed)
-              .map((host) => host.user.email);
+            const hosts = reminder.booking.attendees
+              .filter((attendee) =>
+                reminder.booking?.eventType?.hosts?.some((host) => host.user.email === attendee.email)
+              )
+              .map((host) => host.email);
             const schedulingType = reminder.booking.eventType?.schedulingType;
 
             if (

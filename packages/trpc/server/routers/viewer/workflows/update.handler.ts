@@ -306,7 +306,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               schedulingType: true,
               hosts: {
                 select: {
-                  isFixed: true,
                   user: {
                     select: {
                       email: true,
@@ -368,9 +367,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
                   const schedulingType = bookingInfo.eventType.schedulingType;
-                  const hosts = bookingInfo.eventType.hosts
-                    ?.filter((host) => !host.isFixed)
-                    .map((host) => host.user.email);
+                  const hosts = bookingInfo.attendees
+                    .filter((attendee) =>
+                      bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                    )
+                    .map((host) => host.email);
                   if (
                     hosts &&
                     (schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -571,7 +572,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 schedulingType: true,
                 hosts: {
                   select: {
-                    isFixed: true,
                     user: {
                       select: {
                         email: true,
@@ -626,9 +626,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = [bookingInfo.organizer?.email];
                 const schedulingType = bookingInfo.eventType.schedulingType;
-                const hosts = bookingInfo.eventType.hosts
-                  ?.filter((host) => !host.isFixed)
-                  .map((host) => host.user.email);
+                const hosts = bookingInfo.attendees
+                  .filter((attendee) =>
+                    bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                  )
+                  .map((host) => host.email);
                 if (
                   hosts &&
                   (schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -745,7 +747,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   schedulingType: true,
                   hosts: {
                     select: {
-                      isFixed: true,
                       user: {
                         select: {
                           email: true,
@@ -801,9 +802,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
                   const schedulingType = bookingInfo.eventType.schedulingType;
-                  const hosts = bookingInfo.eventType.hosts
-                    ?.filter((host) => !host.isFixed)
-                    .map((host) => host.user.email);
+                  const hosts = bookingInfo.attendees
+                    .filter((attendee) =>
+                      bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                    )
+                    .map((host) => host.email);
                   if (
                     hosts &&
                     (schedulingType === SchedulingType.ROUND_ROBIN ||

@@ -21,7 +21,7 @@ type ExtendedCalendarEvent = CalendarEvent & {
   eventType: {
     slug?: string;
     schedulingType?: SchedulingType | null;
-    hosts?: { user: { email: string }; isFixed: boolean }[];
+    hosts?: { user: { email: string } }[];
   };
 };
 
@@ -99,9 +99,8 @@ const processWorkflowStep = async (
         const schedulingType = evt.eventType.schedulingType;
         const isTeamEvent =
           schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
-        const hosts = evt.eventType.hosts?.filter((host) => !host.isFixed).map((host) => host.user.email);
-        if (isTeamEvent && hosts) {
-          sendTo = sendTo.concat(hosts);
+        if (isTeamEvent && evt.team?.members) {
+          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
         }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:
