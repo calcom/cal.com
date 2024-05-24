@@ -172,16 +172,22 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
     if (eventType.hosts) {
       for (const host of eventType.hosts) {
-        await prismock.host.create({
-          data: {
-            eventTypeId: eventType.id,
-            isFixed: host.isFixed ?? false,
-            user: {
-              connect: {
-                id: host.id,
-              },
+        const data: Prisma.HostCreateInput = {
+          eventType: {
+            connect: {
+              id: eventType.id,
             },
           },
+          isFixed: host.isFixed ?? false,
+          user: {
+            connect: {
+              id: host.userId,
+            },
+          },
+        };
+
+        await prismock.host.create({
+          data,
         });
       }
     }

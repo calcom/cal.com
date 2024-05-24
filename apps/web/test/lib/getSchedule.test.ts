@@ -127,11 +127,11 @@ describe("getSchedule", () => {
             length: 60,
             hosts: [
               {
-                id: 101,
+                userId: 101,
                 isFixed: false,
               },
               {
-                id: 102,
+                userId: 102,
                 isFixed: false,
               },
             ],
@@ -265,15 +265,15 @@ describe("getSchedule", () => {
             length: 60,
             hosts: [
               {
-                id: 101,
+                userId: 101,
                 isFixed: true,
               },
               {
-                id: 102,
+                userId: 102,
                 isFixed: false,
               },
               {
-                id: 103,
+                userId: 103,
                 isFixed: false,
               },
             ],
