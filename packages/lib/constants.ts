@@ -152,3 +152,8 @@ export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 2;
+/**
+ * The maximum number of days we should check for if we don't find all required bookable days
+ * Counter start from current day and we would like to not go beyond 2 months(max days possible) from current day.
+ */
+export const ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK = 30 + 31;

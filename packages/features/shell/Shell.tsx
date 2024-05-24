@@ -84,6 +84,7 @@ import {
   type IconName,
 } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
+import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
 import FreshChatProvider from "../ee/support/lib/freshchat/FreshChatProvider";
@@ -251,11 +252,10 @@ const Layout = (props: LayoutProps) => {
         <Toaster position="bottom-right" />
       </div>
 
-      {/* todo: only run this if timezone is different */}
       <TimezoneChangeDialog />
 
       <div className="flex min-h-screen flex-col">
-        {banners && (
+        {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
             <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
@@ -382,6 +382,7 @@ interface UserDropdownProps {
 }
 
 function UserDropdown({ small }: UserDropdownProps) {
+  const { isPlatformUser } = useGetUserAttributes();
   const { t } = useLocale();
   const { data: user } = useMeQuery();
   const utils = trpc.useUtils();
@@ -470,33 +471,42 @@ function UserDropdown({ small }: UserDropdownProps) {
               <HelpMenuItem onHelpItemSelect={() => onHelpItemSelect()} />
             ) : (
               <>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/profile">
-                    {t("my_profile")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={
-                      <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
-                    }
-                    href="/settings/my-account/general">
-                    {t("my_settings")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <DropdownItem
-                    type="button"
-                    CustomStartIcon={<Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />}
-                    href="/settings/my-account/out-of-office">
-                    {t("out_of_office")}
-                  </DropdownItem>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
+                {!isPlatformUser && (
+                  <>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="user" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/profile">
+                        {t("my_profile")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/general">
+                        {t("my_settings")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <DropdownItem
+                        type="button"
+                        CustomStartIcon={
+                          <Icon name="moon" className="text-default h-4 w-4" aria-hidden="true" />
+                        }
+                        href="/settings/my-account/out-of-office">
+                        {t("out_of_office")}
+                      </DropdownItem>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+
                 <DropdownMenuItem>
                   <DropdownItem
                     CustomStartIcon={<Discord className="text-default h-4 w-4" />}
@@ -520,11 +530,17 @@ function UserDropdown({ small }: UserDropdownProps) {
                     {t("help")}
                   </DropdownItem>
                 </DropdownMenuItem>
-                <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
-                  <DropdownItem StartIcon="download" target="_blank" rel="noreferrer" href={DESKTOP_APP_LINK}>
-                    {t("download_desktop_app")}
-                  </DropdownItem>
-                </DropdownMenuItem>
+                {!isPlatformUser && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="download"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={DESKTOP_APP_LINK}>
+                      {t("download_desktop_app")}
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
 
                 <DropdownMenuSeparator />
 
@@ -909,6 +925,11 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);
 
+  const sidebarStylingAttributes = {
+    maxHeight: `calc(100vh - ${bannersHeight}px)`,
+    top: `${bannersHeight}px`,
+  };
+
   const bottomNavItems: NavigationItemType[] = [
     {
       name: "view_public_page",
@@ -935,7 +956,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
   return (
     <div className="relative">
       <aside
-        style={{ maxHeight: `calc(100vh - ${bannersHeight}px)`, top: `${bannersHeight}px` }}
+        style={!isPlatformUser ? sidebarStylingAttributes : {}}
         className="bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">

@@ -135,7 +135,6 @@ export const Handler = async ({ ctx, input }: Options) => {
       id: true,
       uid: true,
       status: true,
-      scheduledJobs: true,
     },
   });
 
