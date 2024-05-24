@@ -39,6 +39,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       id: true,
       userId: true,
+      isActiveOnAll,
       team: {
         select: {
           isOrganization: true,
@@ -84,20 +85,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   };
 
   let newActiveOn: number[] = [];
-  let activeOnEventTypes: {
-    id: number;
-    children: {
-      id: number;
-    }[];
-  }[] = [];
+
   const removedActiveOn: number[] = [];
 
   let activeOnWithChildren: number[] = [];
 
   if (!isOrg) {
     // activeOn are event types ids
-    activeOnEventTypes = await ctx.prisma.eventType.findMany({
-      where,
+
+    const activeOnEventTypes = await ctx.prisma.eventType.findMany({
+      where: {
+        ...(userWorkflow.teamId && { parentId: null }), //all children managed event types are added after
+        ...where,
+      },
       select: {
         id: true,
         children: {
@@ -112,25 +112,49 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       .map((eventType) => [eventType.id].concat(eventType.children.map((child) => child.id)))
       .flat();
 
-    const oldActiveOnEventTypes = await ctx.prisma.workflowsOnEventTypes.findMany({
-      where: {
-        workflowId: id,
-      },
-      select: {
-        eventTypeId: true,
-        eventType: {
-          include: {
-            children: true,
+    let oldActiveOnEventTypes: { id: number; children: { id: number }[] }[];
+    if (userWorkflow.isActiveOnAll) {
+      oldActiveOnEventTypes = await ctx.prisma.eventType.findMany({
+        where: {
+          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }),
+        },
+        select: {
+          id: true,
+          children: {
+            select: {
+              id: true,
+            },
           },
         },
-      },
-    });
+      });
+    } else {
+      oldActiveOnEventTypes = (
+        await ctx.prisma.workflowsOnEventTypes.findMany({
+          where: {
+            workflowId: id,
+          },
+          select: {
+            eventTypeId: true,
+            eventType: {
+              select: {
+                children: {
+                  select: {
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
+        })
+      ).map((eventTypeRel) => {
+        return { id: eventTypeRel.eventTypeId, children: eventTypeRel.eventType.children };
+      });
+    }
 
-    const oldActiveOnEventTypeIds = oldActiveOnEventTypes
-      .map((eventTypeRel) =>
-        [eventTypeRel.eventType.id].concat(eventTypeRel.eventType.children.map((child) => child.id))
-      )
-      .flat();
+    const oldActiveOnEventTypeIds = oldActiveOnEventTypes.flatMap((eventType) => [
+      eventType.id,
+      ...eventType.children.map((child) => child.id),
+    ]);
 
     //todo: code was changed, make sure this still works as it should
     newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnEventTypeIds.includes(eventTypeId));
@@ -142,14 +166,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
     );
 
-    //maybe I can call this after the if once and put it all into removedActiveOn
     await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg);
-
-    // todo: where was that used?
-    // if (userWorkflow.teamId) {
-    //   //all children managed event types are added after
-    //   where.parentId = null;
-    // }
 
     //update active on
     await ctx.prisma.workflowsOnEventTypes.deleteMany({
@@ -166,30 +183,35 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         eventTypeId,
       })),
     }); // make sure that this is enough instead of the code below
-
-    // await Promise.all(
-    //   activeOnEventTypes.map((eventType) =>
-    //     ctx.prisma.workflowsOnEventTypes.createMany({
-    //       data: eventType.children.map((chEventType) => ({
-    //         workflowId: id,
-    //         eventTypeId: chEventType.id,
-    //       })),
-    //     })
-    //   )
-    // );
   } else {
     // activeOn are team ids
 
-    const oldActiveOnTeams = await ctx.prisma.workflowsOnTeams.findMany({
-      where: {
-        workflowId: id,
-      },
-      select: {
-        teamId: true,
-      },
-    });
-
-    const oldActiveOnTeamIds = oldActiveOnTeams.map((teamRel) => teamRel.teamId);
+    let oldActiveOnTeamIds: number[];
+    if (userWorkflow.isActiveOnAll) {
+      oldActiveOnTeamIds = (
+        await ctx.prisma.team.findMany({
+          where: {
+            parent: {
+              id: userWorkflow.teamId || 0, // teamId is never undefined because of the isOrg check before
+            },
+          },
+          select: {
+            id: true,
+          },
+        })
+      ).map((team) => team.id);
+    } else {
+      oldActiveOnTeamIds = (
+        await ctx.prisma.workflowsOnTeams.findMany({
+          where: {
+            workflowId: id,
+          },
+          select: {
+            teamId: true,
+          },
+        })
+      ).map((teamRel) => teamRel.teamId);
+    }
 
     newActiveOn = activeOn.filter((teamId) => !oldActiveOnTeamIds.includes(teamId));
 
@@ -197,7 +219,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
 
-    //maybe call it together?
     await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg, activeOn);
 
     //update active on
