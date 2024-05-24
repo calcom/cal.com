@@ -60,12 +60,14 @@ export const availableTriggerTargets = {
 export function getDefaultAppSettings(credentialId: number): AppSettingOptionEntry[] {
   return [
     {
-      name: DefaultAppSettingsOptions.CREDENTIALS,
+      key: DefaultAppSettingsOptions.CREDENTIALS,
+      name: "Credentials",
       href: "/apps/installed/auditLogs",
       icon: "fingerprint",
     },
     {
-      name: DefaultAppSettingsOptions.TRIGGERS,
+      kay: DefaultAppSettingsOptions.TRIGGERS,
+      name: "Triggers",
       href: getHref("/apps/installed/auditLogs", {
         credentialId: credentialId.toString(),
         activeOption: "triggers",

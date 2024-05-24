@@ -43,7 +43,8 @@ export enum DefaultAppSettingsOptions {
 }
 
 export type AppSettingOptionEntry = {
-  name: DefaultAppSettingsOptions;
+  key: DefaultAppSettingsOptions;
+  name: string;
   href: string;
   icon: IconName;
 }[];
