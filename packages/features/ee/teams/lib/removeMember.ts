@@ -1,6 +1,7 @@
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
+import { deleteAllReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { TRPCError } from "@trpc/server";
 
@@ -36,6 +37,20 @@ const removeMember = async ({
     }),
   ]);
 
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      isOrganization: true,
+      organizationSettings: true,
+      id: true,
+      metadata: true,
+      activeOrgWorkflows: true,
+      parentId: true,
+    },
+  });
+
+  if (!team) throw new TRPCError({ code: "NOT_FOUND" });
+
   if (isOrg) {
     log.debug("Removing a member from the organization");
 
@@ -51,18 +66,7 @@ const removeMember = async ({
       },
     });
 
-    const orgInfo = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        isOrganization: true,
-        organizationSettings: true,
-        id: true,
-        metadata: true,
-      },
-    });
-    const orgMetadata = orgInfo?.organizationSettings;
-
-    if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
+    if (!foundUser) throw new TRPCError({ code: "NOT_FOUND" });
 
     // Delete all sub-team memberships where this team is the organization
     await prisma.membership.deleteMany({
@@ -78,7 +82,7 @@ const removeMember = async ({
 
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: userToDeleteMembershipOf.id,
-      organizationId: orgInfo.id,
+      organizationId: team.id,
     });
 
     if (
@@ -101,15 +105,76 @@ const removeMember = async ({
       }),
       ProfileRepository.delete({
         userId: membership.userId,
-        organizationId: orgInfo.id,
+        organizationId: team.id,
       }),
     ]);
+
+    // cancel/delete all workflowReminders of that user that come from org workflows
+    if (team.parentId) {
+      const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
+        where: {
+          workflowStep: {
+            workflow: {
+              teamId: team.id,
+            },
+          },
+          booking: {
+            eventType: {
+              userId: memberId,
+            },
+          },
+        },
+        select: {
+          id: true,
+          referenceId: true,
+          method: true,
+        },
+      });
+
+      deleteAllReminders(workflowRemindersToDelete);
+    }
   }
 
   // Deleted managed event types from this team from this member
   await prisma.eventType.deleteMany({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
+
+  // cancel/delete all workflowReminders of that user that come from that team (org teams only)
+  if (team.parentId) {
+    const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
+      where: {
+        OR: [
+          {
+            workflowStep: {
+              workflowId: {
+                in: team.activeOrgWorkflows.map((workflowRel) => workflowRel.workflowId),
+              },
+            },
+          },
+          {
+            workflowStep: {
+              workflow: {
+                isActiveOnAll: true,
+              },
+            },
+          },
+        ],
+        booking: {
+          eventType: {
+            userId: memberId,
+          },
+        },
+      },
+      select: {
+        is: true,
+        referenceId: true,
+        method: true,
+      },
+    });
+
+    deleteAllReminders(workflowRemindersToDelete);
+  }
 
   return { membership };
 };
