@@ -41,5 +41,7 @@
   "managed_auditLog_event_dialog_title": "You're disabling an audit logging event.",
   "managed_auditLog_event_dialog_confirm_button": "Confirm",
   "go_back": "Cancel",
-  "settings_have_been_updated": "Settings have been successfully updated."
+  "settings_have_been_updated": "Settings have been successfully updated.",
+  "credentials": "Credentials",
+  "triggers": "Trigger Events"
 }

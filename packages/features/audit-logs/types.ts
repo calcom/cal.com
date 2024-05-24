@@ -37,8 +37,13 @@ export const AuditLogTriggerEvents = {
   BOOKING_PAID: "BOOKING_PAID",
 } as const;
 
+export enum DefaultAppSettingsOptions {
+  "CREDENTIALS" = "credentials",
+  "TRIGGERS" = "triggers",
+}
+
 export type AppSettingOptionEntry = {
-  name: string;
+  name: DefaultAppSettingsOptions;
   href: string;
   icon: IconName;
 }[];
