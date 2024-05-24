@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
@@ -16,16 +17,19 @@ export const CredentialsForm = ({
   updateAppCredentialsMutation: any;
   credentialId: number;
 }) => {
+  const [loading, setLoading] = useState(false);
   return (
     <Form
       form={form}
-      className="flex w-[80%] flex-col justify-between space-y-4"
+      className="flex w-[100%] flex-col justify-between space-y-4"
       handleSubmit={async (values) => {
         try {
+          setLoading(true);
           updateAppCredentialsMutation({
             credentialId: credentialId,
             key: values,
           });
+          setLoading(false);
         } catch (e) {
           console.log(e);
         }
@@ -33,7 +37,7 @@ export const CredentialsForm = ({
       <Controller
         name="endpoint"
         control={form.control}
-        render={({ field: { onBlur, onChange, value }, fieldState }) => (
+        render={({ field: { onBlur, onChange, value } }) => (
           <div className="col-span-4 col-start-2 row-start-1 flex flex-row items-end space-x-5">
             <InputField
               required
@@ -42,8 +46,7 @@ export const CredentialsForm = ({
               value={value}
               name="Endpoint"
               className="mb-1"
-              data-dirty={fieldState.isDirty}
-              containerClassName="w-[100%] data-[dirty=true]:w-[90%] duration-300"
+              containerClassName="w-[100%]"
             />
           </div>
         )}
@@ -51,7 +54,7 @@ export const CredentialsForm = ({
       <Controller
         name="projectId"
         control={form.control}
-        render={({ field: { onBlur, onChange, value }, fieldState }) => (
+        render={({ field: { onBlur, onChange, value } }) => (
           <div className="col-span-4 col-start-2 row-start-2 flex flex-row items-end space-x-5">
             <InputField
               required
@@ -60,8 +63,7 @@ export const CredentialsForm = ({
               value={value}
               name="Project ID"
               className="mb-1"
-              data-dirty={fieldState.isDirty}
-              containerClassName="w-[100%] data-[dirty=true]:w-[90%] duration-300"
+              containerClassName="w-[100%]"
             />
           </div>
         )}
@@ -69,8 +71,7 @@ export const CredentialsForm = ({
       <Controller
         name="apiKey"
         control={form.control}
-        render={({ field: { onBlur, onChange, value }, formState }) => {
-          console.log({ d: formState.isDirty });
+        render={({ field: { onBlur, onChange, value } }) => {
           return (
             <div className="col-span-4 col-start-2 row-start-3 flex flex-row items-end space-x-5">
               <PasswordField
@@ -84,6 +85,7 @@ export const CredentialsForm = ({
               <Button
                 data-dirty={form.formState.isDirty}
                 className="mb-1 data-[dirty=false]:hidden"
+                loading={loading}
                 type="submit">
                 Submit
               </Button>
