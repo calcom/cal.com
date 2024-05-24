@@ -31,7 +31,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       className={classNames(
         "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
         (alreadyInstalled || loading) && "cursor-not-allowed",
-        selected && "bg-muted animate-pulse"
+        selected && loading && "bg-muted animate-pulse"
       )}
       data-testid={testId}
       onClick={() => {
