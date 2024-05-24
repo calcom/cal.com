@@ -589,8 +589,8 @@ async function scheduleBookingReminders(
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
           case WorkflowActions.EMAIL_ADDRESS:
-            await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
-            sendTo = step.sendTo || "";
+            await verifyEmailSender(step.sendTo || "", userId, teamId, prisma);
+            sendTo = [step.sendTo || ""];
         }
 
         await scheduleEmailReminder({

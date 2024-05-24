@@ -325,32 +325,34 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   // handle added workflow steps
-  const addedSteps = steps
-    .filter((step) => step.id <= 0)
-    .map(async (s) => {
-      if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
-      }
+  const addedSteps = await Promise.all(
+    steps
+      .filter((step) => step.id <= 0)
+      .map(async (newStep) => {
+        if (isSMSOrWhatsappAction(newStep.action) && !hasPaidPlan) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
+        }
 
-      if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
-        await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
-      }
+        if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
+          await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+        }
 
-      const {
-        id: _stepId,
-        senderName,
-        ...stepToAdd
-      } = {
-        sender: getSender({
-          action: s.action,
-          sender: s.sender || null,
-          senderName: s.senderName,
-        }),
-        ...s,
-      };
+        const {
+          id: _stepId,
+          senderName,
+          ...stepToAdd
+        } = {
+          sender: getSender({
+            action: newStep.action,
+            sender: newStep.sender || null,
+            senderName: newStep.senderName,
+          }),
+          ...newStep,
+        };
 
-      return stepToAdd;
-    });
+        return stepToAdd;
+      })
+  );
 
   if (addedSteps.length) {
     //create new steps

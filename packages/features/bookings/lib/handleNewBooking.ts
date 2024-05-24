@@ -2383,7 +2383,7 @@ async function handler(
 
   try {
     await scheduleWorkflowReminders({
-      eventTypeWorkflows, // only eventtype workflows
+      eventTypeWorkflows, // only event type workflows
       userId: eventType.userId ?? undefined,
       orgId: organizerOrganizationId,
       teamId: eventType.team?.id,
