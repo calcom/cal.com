@@ -18,7 +18,11 @@ import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./wha
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
-  eventType: { slug?: string; schedulingType?: SchedulingType | null };
+  eventType: {
+    slug?: string;
+    schedulingType?: SchedulingType | null;
+    hosts?: { user: { email: string }; isFixed: boolean }[];
+  };
 };
 
 type ProcessWorkflowStepParams = {
@@ -84,9 +88,6 @@ const processWorkflowStep = async (
     step.action === WorkflowActions.EMAIL_ADDRESS
   ) {
     let sendTo: string[] = [];
-    const schedulingType = evt.eventType.schedulingType;
-    const isTeamEvent =
-      schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
 
     switch (step.action) {
       case WorkflowActions.EMAIL_ADDRESS:
@@ -94,8 +95,13 @@ const processWorkflowStep = async (
         break;
       case WorkflowActions.EMAIL_HOST:
         sendTo = [evt.organizer?.email || ""];
-        if (isTeamEvent && evt.team?.members) {
-          sendTo = sendTo.concat(evt.team.members.map((member) => member.email));
+
+        const schedulingType = evt.eventType.schedulingType;
+        const isTeamEvent =
+          schedulingType === SchedulingType.ROUND_ROBIN || schedulingType === SchedulingType.COLLECTIVE;
+        const hosts = evt.eventType.hosts?.filter((host) => !host.isFixed).map((host) => host.user.email);
+        if (isTeamEvent && hosts) {
+          sendTo = sendTo.concat(hosts);
         }
         break;
       case WorkflowActions.EMAIL_ATTENDEE:

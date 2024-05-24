@@ -131,6 +131,14 @@ export async function handleConfirmation(args: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       schedulingType: SchedulingType | null;
+      hosts:
+        | {
+            isFixed: boolean;
+            user: {
+              email: string;
+            };
+          }[]
+        | undefined;
       owner: {
         hideBranding?: boolean | null;
       } | null;
@@ -177,6 +185,16 @@ export async function handleConfirmation(args: {
               slug: true,
               bookingFields: true,
               schedulingType: true,
+              hosts: {
+                select: {
+                  isFixed: true,
+                  user: {
+                    select: {
+                      email: true,
+                    },
+                  },
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
@@ -232,6 +250,16 @@ export async function handleConfirmation(args: {
             slug: true,
             bookingFields: true,
             schedulingType: true,
+            hosts: {
+              select: {
+                isFixed: true,
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
+              },
+            },
             owner: {
               select: {
                 hideBranding: true,
@@ -270,7 +298,11 @@ export async function handleConfirmation(args: {
       const evtOfBooking = {
         ...evt,
         metadata: { videoCallUrl: meetingUrl },
-        eventType: { slug: eventTypeSlug, schedulingType: updatedBookings[index].eventType?.schedulingType },
+        eventType: {
+          slug: eventTypeSlug,
+          schedulingType: updatedBookings[index].eventType?.schedulingType,
+          hosts: updatedBookings[index].eventType?.hosts,
+        },
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();

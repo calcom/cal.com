@@ -2371,7 +2371,7 @@ async function handler(
   const evtWithMetadata = {
     ...evt,
     metadata,
-    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType },
+    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
   };
 
   await scheduleMandatoryReminder(

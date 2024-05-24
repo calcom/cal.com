@@ -27,7 +27,14 @@ type PartialBooking =
       | "attendees"
       | "userPrimaryEmail"
       | "smsReminderNumber"
-    > & { eventType: (Partial<EventType> & { team: { parentId?: number } }) | null } & {
+    > & {
+      eventType:
+        | (Partial<EventType> & {
+            team: { parentId?: number };
+            hosts: { user: { email: string }; isFixed: boolean }[] | undefined;
+          })
+        | null;
+    } & {
       user: Partial<User> | null;
     })
   | null;
@@ -159,6 +166,16 @@ export const select: Prisma.WorkflowReminderSelect = {
           bookingFields: true,
           title: true,
           slug: true,
+          hosts: {
+            select: {
+              user: {
+                select: {
+                  email: true,
+                },
+              },
+              isFixed: true,
+            },
+          },
           recurringEvent: true,
           team: {
             select: {

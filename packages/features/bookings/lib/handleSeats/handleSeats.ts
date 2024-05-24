@@ -105,7 +105,14 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: {
           ...evt,
-          ...{ metadata, eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType } },
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
+            },
+          },
         },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
