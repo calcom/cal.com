@@ -5,7 +5,7 @@ import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-typ
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
-import { GetEventTypesData, GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
+import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
@@ -33,7 +33,6 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { getPublicEvent } from "@calcom/platform-libraries";
-import { getEventTypesByViewer } from "@calcom/platform-libraries";
 import { CreateEventTypeInput } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -71,7 +70,7 @@ export class EventTypesController {
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput> {
-    const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
+    const eventType = await this.eventTypesService.getUserEventType(user.id, Number(eventTypeId));
 
     if (!eventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
@@ -79,9 +78,6 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      // todo(lauris): will remove once updating this handler
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       data: eventType,
     };
   }
@@ -90,19 +86,11 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
   async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
-    const eventTypes = await getEventTypesByViewer({
-      id: user.id,
-      profile: {
-        upId: `usr-${user.id}`,
-      },
-    });
+    const eventTypes = await this.eventTypesService.getUserEventTypes(user.id);
 
     return {
       status: SUCCESS_STATUS,
-      // todo(lauris): will remove once updating this handler
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      data: eventTypes as GetEventTypesData,
+      data: eventTypes,
     };
   }
 
@@ -158,9 +146,6 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      // todo(lauris): will remove once updating this handler
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
       data: eventType,
     };
   }

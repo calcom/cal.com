@@ -6,7 +6,7 @@ import { TransformedLocationsSchema, BookingFieldsSchema } from "@calcom/platfor
 
 @Injectable()
 export class OutputEventTypesService {
-  async getResponseEventType(databaseEventType: EventType) {
+  getResponseEventType(databaseEventType: EventType) {
     const {
       id,
       length,
@@ -24,6 +24,7 @@ export class OutputEventTypesService {
 
     return {
       id,
+      ownerId: databaseEventType.userId,
       lengthInMinutes: length,
       title,
       description,

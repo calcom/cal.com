@@ -44,6 +44,14 @@ export class EventTypesRepository {
     });
   }
 
+  async getUserEventTypes(userId: number) {
+    return this.dbRead.prisma.eventType.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
   async getUserEventTypeForAtom(
     user: UserWithProfile,
     isUserOrganizationAdmin: boolean,

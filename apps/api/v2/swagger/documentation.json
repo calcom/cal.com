@@ -2140,17 +2140,6 @@
           "data"
         ]
       },
-      "Data": {
-        "type": "object",
-        "properties": {
-          "eventType": {
-            "$ref": "#/components/schemas/EventTypeOutput"
-          }
-        },
-        "required": [
-          "eventType"
-        ]
-      },
       "GetEventTypeOutput": {
         "type": "object",
         "properties": {
@@ -2163,40 +2152,12 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/Data"
+            "$ref": "#/components/schemas/EventTypeOutput"
           }
         },
         "required": [
           "status",
           "data"
-        ]
-      },
-      "EventTypeGroup": {
-        "type": "object",
-        "properties": {
-          "eventTypes": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeOutput"
-            }
-          }
-        },
-        "required": [
-          "eventTypes"
-        ]
-      },
-      "GetEventTypesData": {
-        "type": "object",
-        "properties": {
-          "eventTypeGroups": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EventTypeGroup"
-            }
-          }
-        },
-        "required": [
-          "eventTypeGroups"
         ]
       },
       "GetEventTypesOutput": {
@@ -2211,7 +2172,10 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/GetEventTypesData"
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput"
+            }
           }
         },
         "required": [
