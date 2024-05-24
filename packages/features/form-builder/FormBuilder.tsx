@@ -7,7 +7,9 @@ import type { z } from "zod";
 import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { md } from "@calcom/lib/markdownIt";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import turndown from "@calcom/lib/turndownService";
 import {
   Badge,
   BooleanToggleGroupField,
@@ -24,6 +26,7 @@ import {
   Label,
   SelectField,
   showToast,
+  Editor,
   Switch,
 } from "@calcom/ui";
 
@@ -438,6 +441,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
+  const [firstRender, setFirstRender] = useState(true);
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
@@ -483,16 +487,36 @@ function FieldEditDialog({
                       }
                       label={t("identifier")}
                     />
-                    <InputField
-                      {...fieldForm.register("label")}
-                      // System fields have a defaultLabel, so there a label is not required
-                      required={
-                        !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
-                      }
-                      placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                      containerClassName="mt-6"
-                      label={t("label")}
-                    />
+                    <div>
+                      {fieldForm.getValues("type") === "boolean" ? (
+                        <div className="mt-6">
+                          <Label>{t("label")}</Label>
+                          <Editor
+                            getText={() => md.render(fieldForm.getValues("label") || "")}
+                            setText={(value: string) => {
+                              fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+                              console.log(turndown(value));
+                            }}
+                            excludedToolbarItems={["blockType", "bold", "italic"]}
+                            disableLists
+                            firstRender={firstRender}
+                            setFirstRender={setFirstRender}
+                            placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                          />
+                        </div>
+                      ) : (
+                        <InputField
+                          {...fieldForm.register("label")}
+                          // System fields have a defaultLabel, so there a label is not required
+                          required={
+                            !["system", "system-but-optional"].includes(fieldForm.getValues("editable") || "")
+                          }
+                          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+                          containerClassName="mt-6"
+                          label={t("label")}
+                        />
+                      )}
+                    </div>
                     {fieldType?.isTextType ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
