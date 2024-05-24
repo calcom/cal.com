@@ -70,6 +70,10 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     dynamicEventName = dynamicEventName.replaceAll("{Scheduler first name}", name.firstName.toString());
   }
 
+  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
+    dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
+  }
+
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
   });
@@ -115,6 +119,7 @@ export const validateCustomEventName = (
     "{Location}",
     "{Organiser first name}",
     "{Scheduler first name}",
+    "{Scheduler last name}",
     //allowed for fallback reasons
     "{LOCATION}",
     "{HOST/ATTENDEE}",
