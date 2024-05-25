@@ -88,6 +88,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isPast = new Date(booking.endTime) < new Date();
+  const hasStarted = new Date(booking.startTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -172,7 +173,30 @@ function BookingListItem(booking: BookingItemProps) {
       icon: "x" as const,
     },
     {
-      id: "edit_booking",
+      id: "edit_booking_started",
+      label: t("edit"),
+      actions: [
+        {
+          id: "reschedule_request",
+          icon: "send" as const,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("send_reschedule_request"),
+          onClick: () => {
+            setIsOpenRescheduleDialog(true);
+          },
+        },
+        {
+          id: "change_location",
+          label: t("edit_location"),
+          onClick: () => {
+            setIsOpenLocationDialog(true);
+          },
+          icon: "map-pin" as const,
+        },
+      ],
+    },
+    {
+      id: "edit_booking_upcoming",
       label: t("edit"),
       actions: [
         {
@@ -217,11 +241,18 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   if (isTabRecurring && isRecurring) {
-    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking_upcoming");
   }
 
   if (isPast && isPending && !isConfirmed) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  // handle filter for edit actions based on start date
+  if (hasStarted) {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking_upcoming");
+  } else {
+    bookedActions = bookedActions.filter((action) => action.id !== "edit_booking_started");
   }
 
   const RequestSentMessage = () => {

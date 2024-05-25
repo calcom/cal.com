@@ -29,7 +29,7 @@ test.describe("Reschedule Tests", async () => {
     await user.apiLogin();
     await page.goto("/bookings/upcoming");
 
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    await page.locator('[data-testid="edit_booking_upcoming"]').nth(0).click();
 
     await page.locator('[data-testid="reschedule_request"]').click();
 
@@ -240,6 +240,141 @@ test.describe("Reschedule Tests", async () => {
     const newBooking = await prisma.booking.findFirst({ where: { fromReschedule: booking?.uid } });
     expect(newBooking).not.toBeNull();
     expect(newBooking?.status).toBe(BookingStatus.ACCEPTED);
+  });
+
+  test("Atendee should be able to see Reschedule button on booking page if booking has not started", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().add(1, "hour").toDate();
+    const endTime = dayjs().add(2, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    await page.goto(`/booking/${booking.uid}`);
+
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+
+    await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+
+    await booking.delete();
+  });
+
+  test("Atendee should not be able to see Reschedule button on booking page if booking has ended", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().subtract(2, "hour").toDate();
+    const endTime = dayjs().subtract(1, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    await page.goto(`/booking/${booking.uid}`);
+
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+
+    // TODO: check if can be canceled
+    await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+
+    await booking.delete();
+  });
+
+  test("Atendee should not be able to see Reschedule button on booking page if booking is happening", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().subtract(1, "hour").toDate();
+    const endTime = dayjs().add(1, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    await page.goto(`/booking/${booking.uid}`);
+
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeHidden();
+
+    await expect(page.locator('[data-testid="cancel"]')).toBeVisible();
+
+    await booking.delete();
+  });
+
+  test("Atendee should be able to reschedule booking if booking has not started", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().add(1, "hour").toDate();
+    const endTime = dayjs().add(2, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    await page.goto(`/booking/${booking.uid}`);
+
+    await expect(page.locator('[data-testid="reschedule-link"]')).toBeVisible();
+
+    await page.locator('[data-testid="reschedule-link"]').click();
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    await expect(page).toHaveURL(/.*booking/);
+
+    await booking.delete();
+  });
+
+  test("Atendee should not be able to reschedule booking if booking has ended", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().subtract(2, "hour").toDate();
+    const endTime = dayjs().subtract(1, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    // Simulate user staying on the page for a while and then trying to reschedule
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    // check if alert with error message is visible
+    await page.waitForSelector('[data-testid="booking-fail"]', { timeout: 10000, state: "visible" });
+
+    await booking.delete();
+  });
+
+  test("Atendee should not be able to reschedule booking if booking is happening", async ({
+    page,
+    users,
+    bookings,
+  }) => {
+    const user = await users.create();
+    const eventType = user.eventTypes[0];
+    const startTime = dayjs().subtract(1, "hour").toDate();
+    const endTime = dayjs().add(1, "hour").toDate();
+    const booking = await bookings.create(user.id, user.username, eventType.id, {}, startTime, endTime);
+
+    // Simulate user staying on the page for a while and then trying to reschedule
+    await page.goto(`/reschedule/${booking.uid}`);
+
+    await selectFirstAvailableTimeSlotNextMonth(page);
+
+    await page.locator('[data-testid="confirm-reschedule-button"]').click();
+
+    // check if alert with error message is visible
+    await page.waitForSelector('[data-testid="booking-fail"]', { timeout: 10000, state: "visible" });
+
+    await booking.delete();
   });
 
   test("Should be able to book slot that overlaps with original rescheduled booking", async ({

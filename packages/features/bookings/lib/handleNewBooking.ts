@@ -507,6 +507,35 @@ async function getOriginalRescheduledBooking(uid: string, seatsEventType?: boole
   });
 }
 
+//checks if booking can be rescheduled
+function checkIfRescheduleAllowed(booking: Awaited<ReturnType<typeof getOriginalRescheduledBooking>>) {
+  //check if the booking was found
+  if (!booking) {
+    throw new HttpError({
+      statusCode: 404,
+      message: ErrorCode.CouldNotFoundOriginalBooking,
+    });
+  }
+
+  // check if the last rescheduled booking has already started
+  const now = dayjs();
+  if (dayjs(booking.startTime).isBefore(now)) {
+    //in this case we should not allow rescheduling
+    throw new HttpError({
+      statusCode: 400,
+      message: ErrorCode.StartedBookingsCannotBeRescheduled,
+    });
+  }
+
+  //check if the booking was canceled
+  if (booking.status === BookingStatus.CANCELLED && !booking.rescheduled) {
+    throw new HttpError({
+      statusCode: 403,
+      message: ErrorCode.CancelledBookingsCannotBeRescheduled,
+    });
+  }
+}
+
 export async function getBookingData<T extends z.ZodType>({
   req,
   eventType,
@@ -1182,16 +1211,9 @@ async function handler(
       rescheduleUid,
       !!eventType.seatsPerTimeSlot
     );
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
-    }
 
-    if (
-      originalRescheduledBooking.status === BookingStatus.CANCELLED &&
-      !originalRescheduledBooking.rescheduled
-    ) {
-      throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
-    }
+    // throws http error if booking cannot be rescheduled
+    checkIfRescheduleAllowed(originalRescheduledBooking);
   }
 
   let luckyUserResponse;

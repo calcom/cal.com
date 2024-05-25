@@ -275,6 +275,15 @@ paths:
                 properties:
                   message:
                     type: string
+        "400" :
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
         "500":
           description: Internal Server Error
           content:
@@ -631,7 +640,7 @@ paths:
                   type: string
                 role:
                   type: string
-                  
+
     parameters:
       - schema:
           type: string

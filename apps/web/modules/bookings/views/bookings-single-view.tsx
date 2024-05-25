@@ -122,6 +122,13 @@ export default function Success(props: PageProps) {
   } = querySchema.parse(routerQuery);
   const attendeeTimeZone = bookingInfo?.attendees.find((attendee) => attendee.email === email)?.timeZone;
 
+  //check if booking has not already started
+  const hasNotStarted = () => {
+    const now = dayjs();
+    const started = !!date && dayjs(date).isAfter(now);
+    return started;
+  };
+
   const isFeedbackMode = !!(noShow || rating);
   const tz = props.tz ? props.tz : isSuccessBookingPage && attendeeTimeZone ? attendeeTimeZone : timeZone();
 
@@ -660,7 +667,7 @@ export default function Success(props: PageProps) {
                             </span>
 
                             <>
-                              {!props.recurringBookings && (
+                              {!props.recurringBookings && hasNotStarted() && (
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
