@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
@@ -42,7 +43,11 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
 
   const titleText = document.querySelector("title")?.textContent;
   const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+  const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
+  const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
   expect(titleText).toContain(name);
+  expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
     "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
