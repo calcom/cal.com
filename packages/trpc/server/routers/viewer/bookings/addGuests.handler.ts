@@ -34,7 +34,20 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       },
     });
 
-    const guestsFullDetails = guests.map((guest) => {
+    const currentGuests = await prisma.booking.findFirstOrThrow({
+      where: {
+        id: bookingId,
+      },
+      select: {
+        attendees: true,
+      },
+    });
+
+    const uniqueGuests = guests.filter(
+      (guest) => !currentGuests.attendees.some((attendee) => guest === attendee.email)
+    );
+
+    const guestsFullDetails = uniqueGuests.map((guest) => {
       return {
         name: "",
         email: guest,
