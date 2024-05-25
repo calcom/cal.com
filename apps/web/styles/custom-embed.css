@@ -1,0 +1,106 @@
+/* Pedro EMBED Yinflow stylesheet (version 3) */
+.w-6 {
+  width: 6rem !important;
+}
+
+.h-6 {
+  height: 6rem !important;
+}
+
+p.text-subtle.mt-2.text-sm.font-semibold {
+  font-size: 31px;
+  font-family:
+    Syne Variablefont Wght,
+    sans-serif;
+  font-weight: bold;
+  color: #06c6a3;
+  margin-left: 120px !important;
+  padding-top: 30px !important;
+}
+
+h1.text-text.text-xl.font-semibold.my-2 {
+  font-size: 17px;
+  font-family:
+    Syne Variablefont Wght,
+    sans-serif;
+  color: #598392;
+  margin-left: 120px !important;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.\[--booker-meta-width\:340px\] {
+  --booker-meta-width: 650px;
+}
+
+.mt-auto.px-5.py-3 {
+  display: none !important;
+}
+
+.cal-embed {
+  border: 0px;
+  min-height: 300px;
+  margin: 0 auto;
+  width: 100%;
+  height: 400px !important;
+  min-height: 300px;
+  max-height: 460px;
+}
+
+.p-6 {
+  padding: 0.8rem !important;
+}
+
+ul.flex.items-center.border-muted {
+  position: absolute;
+}
+
+.relative.z-10.mb-8.break-words.max-w-full.max-h-\[180px\].scroll-bar.pr-4 {
+  margin-left: 120px !important;
+  margin-top: 20px;
+}
+
+.space-y-4.font-medium.rtl\:-mr-2 {
+  margin-left: 120px !important;
+}
+
+span.min-w-32.current-timezone.before\:bg-subtle.-mt-\[2px\].flex.h-6.max-w-full.items-center.justify-start.before\:absolute.before\:inset-0.before\:bottom-\[-3px\].before\:left-\[-30px\].before\:top-\[-3px\].before\:w-\[calc\(100\%_\+_35px\)\].before\:rounded-md.before\:py-3.before\:opacity-0.before\:transition-opacity {
+  height: 1.5rem !important;
+}
+
+.lucide-clock {
+  color: #08c6a3;
+}
+
+.lucide-globe {
+  color: #08c6a3;
+}
+
+.lucide-credit-card {
+  color: #08c6a3;
+}
+
+.lucide-calendar {
+  color: #08c6a3;
+}
+
+.min-h-9.border-default.bg-default.relative.inline-flex.gap-0\.5.rounded-md.border.p-1.rtl\:flex-row-reverse {
+  display: none;
+}
+
+button.whitespace-nowrap.inline-flex.items-center.text-sm.font-medium.relative.rounded-md.transition.disabled\:cursor-not-allowed.text-emphasis.border.border-default.bg-default.hover\:bg-muted.hover\:border-emphasis.focus-visible\:bg-subtle.focus-visible\:outline-none.focus-visible\:ring-2.focus-visible\:ring-empthasis.disabled\:border-subtle.disabled\:bg-opacity-30.disabled\:text-muted.disabled\:hover\:bg-opacity-30.disabled\:hover\:text-muted.disabled\:hover\:border-subtle.disabled\:hover\:bg-default.h-9.px-4.py-2\.5.capitalize.ltr\:ml-2.rtl\:mr-2 {
+  display: none;
+}
+
+span.bg-emphasis.item-center.relative.inline-flex.aspect-square.justify-center.rounded-full.align-top.overflow-hidden.border-subtle.w-6.h-6.min-w-6.min-h-6 {
+  pointer-events: none;
+}
+
+.flex.items-center.gap-5.rtl\:flex-grow {
+  gap: 80px;
+}
+
+.flex.items-start.justify-start.text-sm.text-text.cursor-pointer.\[\&_\.current-timezone\:before\]\:focus-within\:opacity-100.\[\&_\.current-timezone\:before\]\:hover\:opacity-100 {
+  display: none;
+}
+/* Pedro EMBED Yinflow stylesheet (version 3) */

@@ -1,0 +1,70 @@
+server {
+    server_name agenda.yinflow.life api.agenda.yinflow.life;
+    return 301 https://$host$request_uri;
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/agenda.yinflow.life/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/agenda.yinflow.life/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+}
+
+server {
+    listen 443 ssl;
+    server_name agenda.yinflow.life;
+
+#    ssl_certificate /etc/letsencrypt/live/agenda.yinflow.life/fullchain.pem;
+#    ssl_certificate_key /etc/letsencrypt/live/agenda.yinflow.life/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+#server {
+#    listen 443 ssl;
+#    server_name api.agenda.yinflow.life;
+
+#    ssl_certificate /etc/letsencrypt/live/api.agenda.yinflow.life/fullchain.pem;
+#    ssl_certificate_key /etc/letsencrypt/live/api.agenda.yinflow.life/privkey.pem;
+#    include /etc/letsencrypt/options-ssl-nginx.conf;
+#    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+#    location / {
+#        proxy_pass http://localhost:3003;
+#        proxy_http_version 1.1;
+#        proxy_set_header Upgrade $http_upgrade;
+#        proxy_set_header Connection 'upgrade';
+#        proxy_set_header Host $host;
+#        proxy_cache_bypass $http_upgrade;
+#    }
+#}
+
+#server {
+#    if ($host = api.agenda.yinflow.life) {
+#        return 301 https://$host$request_uri;
+#    } # managed by Certbot
+
+
+#    if ($host = agenda.yinflow.life) {
+#        return 301 https://$host$request_uri;
+#    } # managed by Certbot
+
+
+#    listen 80;
+#    server_name agenda.yinflow.life api.agenda.yinflow.life;
+#    return 404; # managed by Certbot
+
+
+
+
+#}
