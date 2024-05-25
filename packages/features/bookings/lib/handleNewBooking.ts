@@ -705,7 +705,7 @@ async function createBooking({
   const createBookingObj = {
     include: {
       user: {
-        select: { email: true, name: true, timeZone: true, username: true },
+        select: { email: true, name: true, timeZone: true, username: true, timeFormat: true, locale: true },
       },
       attendees: true,
       payment: true,
@@ -1588,6 +1588,7 @@ async function handler(
     teamId,
   };
 
+  let isHostConfirmationEmailsDisabled = false;
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1634,6 +1635,9 @@ async function handler(
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+        differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+        hostEmailDisabled: isHostConfirmationEmailsDisabled,
+        type: eventType.slug,
       };
     }
   }
@@ -2084,7 +2088,6 @@ async function handler(
         }
       }
       if (noEmail !== true) {
-        let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
         const workflows = eventType.workflows.map((workflow) => workflow.workflow);
@@ -2111,15 +2114,6 @@ async function handler(
           })
         );
 
-        if (
-          // Send only one email to attendee
-          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
-          eventType.differentRoundRobinRecurringHosts &&
-          req.body.currentRecurringIndex > 0
-        ) {
-          isAttendeeConfirmationEmailDisabled = true;
-        }
-
         await sendScheduledEmails(
           {
             ...evt,
@@ -2128,7 +2122,7 @@ async function handler(
             customInputs,
           },
           eventNameObject,
-          isHostConfirmationEmailsDisabled,
+          isHostConfirmationEmailsDisabled && eventType.differentRoundRobinRecurringHosts,
           isAttendeeConfirmationEmailDisabled
         );
       }
@@ -2263,6 +2257,9 @@ async function handler(
       message: "Payment required",
       paymentUid: payment?.uid,
       paymentId: payment?.id,
+      differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+      hostEmailDisabled: isHostConfirmationEmailsDisabled,
+      type: eventType.slug,
     };
   }
 
@@ -2397,6 +2394,8 @@ async function handler(
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
     differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+    hostEmailDisabled: isHostConfirmationEmailsDisabled,
+    type: eventType.slug,
   };
 }
 

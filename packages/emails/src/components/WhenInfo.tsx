@@ -41,12 +41,12 @@ export function WhenInfo(props: {
 }) {
   const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat, isOrganizer } = props;
 
-  function getRecipientStart(format: string) {
-    return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
+  function getRecipientStart(format: string, time: string) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
   }
 
-  function getRecipientEnd(format: string) {
-    return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
+  function getRecipientEnd(format: string, time: string) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
   }
 
   const recurringInfo = getRecurringWhen({
@@ -68,8 +68,24 @@ export function WhenInfo(props: {
             {recurringEvent?.count && !props.calEvent.differentRoundRobinRecurringHosts
               ? `${t("starting")} `
               : ""}
-            {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
-            <span style={{ color: "#4B5563" }}>({timeZone})</span>
+            {props.calEvent.differentRoundRobinRecurringHosts && isOrganizer ? (
+              <>
+                {props.calEvent.multiTimes?.map((time) => (
+                  <>
+                    {getRecipientStart(`dddd, LL | ${timeFormat}`, time.startTime)} -{" "}
+                    {getRecipientEnd(timeFormat, time.endTime)}{" "}
+                    <span style={{ color: "#4B5563" }}>({timeZone})</span>
+                    <br />
+                  </>
+                ))}
+              </>
+            ) : (
+              <>
+                {getRecipientStart(`dddd, LL | ${timeFormat}`, props.calEvent.startTime)} -{" "}
+                {getRecipientEnd(timeFormat, props.calEvent.endTime)}{" "}
+                <span style={{ color: "#4B5563" }}>({timeZone})</span>
+              </>
+            )}
           </span>
         }
         withSpacer

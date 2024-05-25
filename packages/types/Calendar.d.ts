@@ -169,6 +169,10 @@ export interface CalendarEvent {
     members: TeamMember[];
     id: number;
   };
+  multiTimes?: {
+    startTime: string;
+    endTime: string;
+  }[];
   location?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;

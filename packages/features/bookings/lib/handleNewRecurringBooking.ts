@@ -1,9 +1,34 @@
 import type { NextApiRequest } from "next";
 
+import dayjs from "@calcom/dayjs";
+import { sendScheduledEmails } from "@calcom/emails";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+import { getTranslation } from "@calcom/lib/server";
+import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { SchedulingType } from "@calcom/prisma/client";
-import type { AppsStatus } from "@calcom/types/Calendar";
+import type { AppsStatus, CalendarEvent } from "@calcom/types/Calendar";
+
+function groupEventsByUser(events: BookingResponse[]) {
+  const groupedEvents: {
+    user: string;
+    bookings: BookingResponse[];
+  }[] = [];
+
+  events.forEach((event) => {
+    const existingUserGroup = groupedEvents.find((group) => group.user === event.user.name);
+    if (existingUserGroup) {
+      existingUserGroup.bookings.push(event);
+    } else {
+      groupedEvents.push({
+        user: event.user.name || "",
+        bookings: [event],
+      });
+    }
+  });
+
+  return groupedEvents;
+}
 
 export const handleNewRecurringBooking = async (
   req: NextApiRequest & { userId?: number }
@@ -24,7 +49,7 @@ export const handleNewRecurringBooking = async (
   const isRoundRobin = firstBooking.schedulingType === SchedulingType.ROUND_ROBIN;
 
   let luckyUsers = undefined;
-  const differentRoundRobinRecurringHosts = undefined;
+  let differentRoundRobinRecurringHosts = undefined;
 
   if (isRoundRobin) {
     const recurringEventReq: NextApiRequest & { userId?: number } = req;
@@ -42,6 +67,8 @@ export const handleNewRecurringBooking = async (
 
     const firstBookingResult = await handleNewBooking(recurringEventReq);
     luckyUsers = firstBookingResult.luckyUsers;
+    differentRoundRobinRecurringHosts = firstBookingResult.differentRoundRobinRecurringHosts;
+    createdBookings.push(firstBookingResult);
   }
 
   for (let key = isRoundRobin ? 1 : 0; key < data.length; key++) {
@@ -74,8 +101,7 @@ export const handleNewRecurringBooking = async (
       thirdPartyRecurringEventId,
       numSlotsToCheckForAvailability,
       currentRecurringIndex: key,
-      // send email for each booking if we have different hosts for each.
-      noEmail: isRoundRobin && differentRoundRobinRecurringHosts ? false : key !== 0,
+      noEmail: key !== 0,
       luckyUsers,
     };
 
@@ -96,6 +122,38 @@ export const handleNewRecurringBooking = async (
         }
       }
     }
+  }
+
+  if (differentRoundRobinRecurringHosts) {
+    const userBookings = groupEventsByUser(createdBookings);
+    userBookings.forEach(async (user) => {
+      if (!user.bookings) return;
+
+      const booking = user.bookings[0];
+      const organizer = booking.user;
+
+      if (!organizer && booking.hostEmailDisabled) return;
+
+      const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+      const evt: CalendarEvent = {
+        multiTimes: user.bookings.map((booking) => ({
+          startTime: dayjs(booking.startTime).utc().format(),
+          endTime: dayjs(booking.endTime).utc().format(),
+        })),
+        title: booking.title || "",
+        startTime: dayjs(booking.startTime).utc().format(),
+        endTime: dayjs(booking.endTime).utc().format(),
+        organizer: {
+          name: organizer.name || "Nameless",
+          email: booking.userPrimaryEmail || "",
+          timeZone: organizer.timeZone || "",
+          language: { locale: organizer.locale ?? "en", translate: tOrganizer },
+          timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
+        },
+        ...booking,
+      };
+      await sendScheduledEmails(evt, undefined, booking.hostEmailDisabled, true);
+    });
   }
   return createdBookings;
 };

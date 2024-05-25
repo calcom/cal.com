@@ -56,7 +56,7 @@ export const BaseScheduledEmail = (
       title={t(
         props.title
           ? props.title
-          : props.calEvent.recurringEvent?.count
+          : props.calEvent.recurringEvent?.count || props.calEvent.differentRoundRobinRecurringHosts
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled"
       )}
