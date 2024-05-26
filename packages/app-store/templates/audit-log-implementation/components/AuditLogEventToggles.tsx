@@ -62,7 +62,7 @@ export const AuditLogEventToggles = ({
   }
 
   return (
-    <div className="flex w-[80%] flex-col justify-between space-y-4">
+    <>
       <ManagedAuditLogEventDialog
         isPending={false}
         actionKey={actionKey}
@@ -112,6 +112,6 @@ export const AuditLogEventToggles = ({
           ))}
         </ul>
       </div>
-    </div>
+    </>
   );
 };
