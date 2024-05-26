@@ -2122,7 +2122,7 @@ async function handler(
             customInputs,
           },
           eventNameObject,
-          isHostConfirmationEmailsDisabled && eventType.differentRoundRobinRecurringHosts,
+          isHostConfirmationEmailsDisabled || eventType.differentRoundRobinRecurringHosts,
           isAttendeeConfirmationEmailDisabled
         );
       }

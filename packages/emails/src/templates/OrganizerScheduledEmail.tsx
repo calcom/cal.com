@@ -20,7 +20,7 @@ export const OrganizerScheduledEmail = (
     subject = "confirmed_event_type_subject";
   }
 
-  if (props.calEvent.recurringEvent?.count && !props.calEvent.differentRoundRobinRecurringHosts) {
+  if (props.calEvent.recurringEvent?.count || props.calEvent.differentRoundRobinRecurringHosts) {
     title = "new_event_scheduled_recurring";
   } else if (props.newSeat) {
     title = "new_seat_title";

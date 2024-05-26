@@ -65,9 +65,7 @@ export function WhenInfo(props: {
         }
         description={
           <span data-testid="when">
-            {recurringEvent?.count && !props.calEvent.differentRoundRobinRecurringHosts
-              ? `${t("starting")} `
-              : ""}
+            {recurringEvent?.count ? `${t("starting")} ` : ""}
             {props.calEvent.differentRoundRobinRecurringHosts && isOrganizer ? (
               <>
                 {props.calEvent.multiTimes?.map((time) => (
