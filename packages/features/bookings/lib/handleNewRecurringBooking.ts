@@ -132,10 +132,23 @@ export const handleNewRecurringBooking = async (
       const booking = user.bookings[0];
       const organizer = booking.user;
 
-      if (!organizer && booking.hostEmailDisabled) return;
+      if (!organizer || booking.hostEmailDisabled || !booking.attendees) return;
 
       const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+      const attendeePromises = booking.attendees.map(async (attendee) => {
+        const tAttendee = await getTranslation(attendee.locale ?? "en", "common");
+        return {
+          ...attendee,
+          language: { locale: attendee.locale ?? "en", translate: tAttendee },
+        };
+      });
+      const attendees = await Promise.all(attendeePromises);
+
       const evt: CalendarEvent = {
+        ...booking,
+        responses: null,
+        customInputs: null,
+        attendees,
         multiTimes: user.bookings.map((booking) => ({
           startTime: dayjs(booking.startTime).utc().format(),
           endTime: dayjs(booking.endTime).utc().format(),
@@ -150,7 +163,6 @@ export const handleNewRecurringBooking = async (
           language: { locale: organizer.locale ?? "en", translate: tOrganizer },
           timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
         },
-        ...booking,
       };
       await sendScheduledEmails(evt, undefined, booking.hostEmailDisabled, true);
     });
