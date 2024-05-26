@@ -42,7 +42,7 @@ export enum DefaultAppSettingsOptions {
   "TRIGGERS" = "triggers",
 }
 
-export type AppSettingOptionEntry = {
+export type DefaultAppSettingOptionEntry = {
   key: DefaultAppSettingsOptions;
   name: string;
   href: string;
