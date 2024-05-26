@@ -65,10 +65,16 @@ done
 # Now move the contents
 mv tmp/* $SUBMODULE_PATH/ # Move the submodule to the submodule path
 
+echo "TMP Moved"
+
 # clean up
 rm -rf tmp # remove the tmp folder
 
+echo "TMP Removed"
+
 git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
+
+echo "Git Diff Done"
 
 echo "✅ - Build can proceed"
 exit 1
