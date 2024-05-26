@@ -2,7 +2,7 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider  = "postgres"
+  provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DATABASE_DIRECT_URL")
 }
