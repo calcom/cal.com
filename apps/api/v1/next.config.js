@@ -1,8 +1,6 @@
 const { withAxiom } = require("next-axiom");
-const { withSentryConfig } = require("@sentry/nextjs");
 
-const plugins = [withAxiom];
-const nextConfig = {
+module.exports = withAxiom({
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/core",
@@ -47,22 +45,6 @@ const nextConfig = {
           source: "/v:version/:rest*",
           destination: "/api/v:version/:rest*",
         },
-        {
-          source: "/api/v2",
-          destination: `${process.env.NEXT_PUBLIC_API_V2_ROOT_URL}/health`,
-        },
-        {
-          source: "/api/v2/health",
-          destination: `${process.env.NEXT_PUBLIC_API_V2_ROOT_URL}/health`,
-        },
-        {
-          source: "/api/v2/docs/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_V2_ROOT_URL}/docs/:path*`,
-        },
-        {
-          source: "/api/v2/:path*",
-          destination: `${process.env.NEXT_PUBLIC_API_V2_ROOT_URL}/api/v2/:path*`,
-        },
         // This redirects requests to api/v*/ to /api/ passing version as a query parameter.
         {
           source: "/api/v:version/:rest*",
@@ -84,15 +66,4 @@ const nextConfig = {
       ],
     };
   },
-};
-
-if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-  };
-
-  plugins.push(withSentryConfig);
-}
-
-module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
+});
