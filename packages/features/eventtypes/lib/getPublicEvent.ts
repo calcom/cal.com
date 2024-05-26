@@ -7,13 +7,14 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
@@ -86,11 +87,13 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
   },
   successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
   workflows: {
     include: {
       workflow: {
@@ -163,6 +166,19 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
+    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+    if (org) {
+      orgDetails = await prisma.team.findFirstOrThrow({
+        where: {
+          slug: org,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      });
+    }
+
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
@@ -174,18 +190,20 @@ export const getPublicEvent = async (
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
-        username: users[0].username,
-        name: users[0].name,
         weekStart: users[0].weekStart,
-        image: getUserAvatarUrl({
-          avatarUrl: users[0].avatarUrl,
-        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
         bookerLayouts: bookerLayoutsSchema.parse(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
+        ...(orgDetails
+          ? {
+              image: orgDetails?.logoUrl,
+              name: orgDetails?.name,
+              username: org,
+            }
+          : {}),
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
@@ -335,11 +353,10 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: team
-      ? undefined
+      ? getOrgOrTeamAvatar(team)
       : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : getPlaceholderAvatar(team.logoUrl, team.name),
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,

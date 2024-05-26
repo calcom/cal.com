@@ -1,6 +1,7 @@
 import type { TFunction } from "next-i18next";
 import { useEffect } from "react";
 
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -37,6 +38,7 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
 
 export const EventDuration = ({ event }: { event: PublicEvent }) => {
   const { t } = useLocale();
+  const isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
     state.setSelectedDuration,
@@ -52,7 +54,7 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
       setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
-  if (!event?.metadata?.multipleDuration && !isDynamicEvent)
+  if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
     return <>{getDurationFormatted(event.length, t)}</>;
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
@@ -63,6 +65,8 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
         .filter((dur) => state !== "booking" || dur === selectedDuration)
         .map((duration) => (
           <Badge
+            data-testId={`multiple-choice-${duration}mins`}
+            data-active={selectedDuration === duration ? "true" : "false"}
             variant="gray"
             className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
             size="md"

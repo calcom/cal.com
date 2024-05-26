@@ -3,6 +3,7 @@ import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebh
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { WebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 export async function handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
@@ -15,9 +16,9 @@ export async function handleWebhookTrigger(args: {
     const promises = subscribers.map((sub) =>
       sendPayload(sub.secret, args.eventTrigger, new Date().toISOString(), sub, args.webhookData).catch(
         (e) => {
-          console.error(
-            `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}`,
-            e
+          logger.error(
+            `Error executing webhook for event: ${args.eventTrigger}, URL: ${sub.subscriberUrl}, bookingId: ${args.webhookData.bookingId}, bookingUid: ${args.webhookData.uid}`,
+            safeStringify(e)
           );
         }
       )

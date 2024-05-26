@@ -2,6 +2,7 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
 import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
+import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -22,7 +23,7 @@ export class EventTypesService {
     private readonly dbWrite: PrismaWriteService
   ) {}
 
-  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput) {
+  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput): Promise<EventTypeOutput> {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { eventType } = await createEventType({
@@ -34,7 +35,7 @@ export class EventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
-    return eventType;
+    return eventType as EventTypeOutput;
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput) {
@@ -88,7 +89,7 @@ export class EventTypesService {
     }
 
     this.checkUserOwnsEventType(user.id, eventType.eventType);
-    return eventType;
+    return eventType as { eventType: EventTypeOutput };
   }
 
   async getEventTypesPublicByUsername(username: string): Promise<EventTypesPublic> {
@@ -126,9 +127,13 @@ export class EventTypesService {
       },
     });
 
-    const { eventType } = await this.getUserEventTypeForAtom(user, eventTypeId);
+    const eventType = await this.getUserEventTypeForAtom(user, eventTypeId);
 
-    return eventType;
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+
+    return eventType.eventType;
   }
 
   async checkCanUpdateEventType(userId: number, eventTypeId: number) {

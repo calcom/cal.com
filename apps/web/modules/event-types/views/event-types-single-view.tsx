@@ -265,6 +265,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
+      forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       secondaryEmailId: eventType?.secondaryEmailId || -1,
