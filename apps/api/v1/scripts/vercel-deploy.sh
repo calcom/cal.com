@@ -55,9 +55,15 @@ git checkout $COMMIT                                                          # 
 # move the submodule from tmp to the submodule path
 cd ..                     # go folder up
 rm -rf tmp/.git           # remove .git
-rsync -av --delete tmp/ $SUBMODULE_PATH/
+# Remove existing files/directories in $SUBMODULE_PATH that also exist in tmp
+for item in tmp/*; do
+  if [ -e "$SUBMODULE_PATH/$(basename $item)" ]; then
+    rm -rf "$SUBMODULE_PATH/$(basename $item)"
+  fi
+done
 
-# mv tmp/* $SUBMODULE_PATH/ # move the submodule to the submodule path
+# Now move the contents
+mv tmp/* $SUBMODULE_PATH/ # Move the submodule to the submodule path
 
 # clean up
 rm -rf tmp # remove the tmp folder
