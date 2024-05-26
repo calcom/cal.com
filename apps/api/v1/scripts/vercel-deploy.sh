@@ -1,7 +1,7 @@
 # github submodule repo addresses without https:// prefix
 BRANCH_TO_CLONE="main"
-SUBMODULE_GITHUB="github.com/yinflowltda/agenda-yinflow/apps/api"
-SUBMODULE_PATH=apps/api
+SUBMODULE_GITHUB="github.com/yinflowltda/agenda-yinflow/"
+SUBMODULE_PATH=apps/api/v1
 COMMIT=$VERCEL_GIT_COMMIT_SHA
 
 if [ "$VERCEL_GIT_COMMIT_SHA" == "" ]; then
