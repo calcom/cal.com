@@ -72,7 +72,7 @@ rm -rf tmp # remove the tmp folder
 
 echo "TMP Removed"
 
-git diff --quiet HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
+git diff HEAD^ HEAD ':!/apps/docs/*' ':!/apps/website/*' ':!/apps/web/*' ':!/apps/swagger/*' ':!/apps/console/*'
 
 echo "Git Diff Done"
 
