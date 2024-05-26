@@ -3,7 +3,7 @@ const connect = require("connect");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const apiProxyV1 = createProxyMiddleware({
-  target: "https://agenda-yinflow-api.vercel.app",
+  target: "https://agenda-yinflow-api.vercel.app:3003",
 });
 
 const apiProxyV2 = createProxyMiddleware({
