@@ -55,7 +55,13 @@ git checkout $COMMIT                                                          # 
 # move the submodule from tmp to the submodule path
 cd ..                     # go folder up
 rm -rf tmp/.git           # remove .git
-rsync -avh --recursive --delete-after tmp/ $SUBMODULE_PATH/ # mv tmp/* $SUBMODULE_PATH/ # move the submodule to the submodule path
+for item in tmp/*; do
+  if [ -e "$SUBMODULE_PATH/$(basename $item)" ]; then
+    rm -rf "$SUBMODULE_PATH/$(basename $item)"
+  fi
+done
+
+# rsync -avh --recursive --delete-after tmp/ $SUBMODULE_PATH/ # mv tmp/* $SUBMODULE_PATH/ # move the submodule to the submodule path
 
 
 # clean up
