@@ -34,7 +34,7 @@ git config --global advice.detachedHead false
 rm -rf ..?* .[!.]* * || true
 
 # checkout the current commit
-git clone $BRANCH_TO_CLONE https://$GITHUB_ACCESS_TOKEN@github.com/calcom/cal.com.git .
+git clone -b $BRANCH_TO_CLONE https://$GITHUB_ACCESS_TOKEN@github.com/yinflowltda/agenda-yinflow.git .
 
 echo "Cloned"
 
