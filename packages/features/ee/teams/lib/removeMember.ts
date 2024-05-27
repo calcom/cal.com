@@ -167,7 +167,7 @@ const removeMember = async ({
         },
       },
       select: {
-        is: true,
+        id: true,
         referenceId: true,
         method: true,
       },

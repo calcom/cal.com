@@ -331,7 +331,7 @@ async function handler(req: CustomRequest) {
       eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
       userId: bookingToDelete.eventType.userId,
       teamId: bookingToDelete.eventType.teamId,
-      orgId: bookingToDelete.user.profiles[0].organizationId,
+      orgId: bookingToDelete.user.profiles[0]?.organizationId,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {
         ...evt,
