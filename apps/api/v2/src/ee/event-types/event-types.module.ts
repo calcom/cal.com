@@ -7,12 +7,18 @@ import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UsersModule } from "@/modules/users/users.module";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, MembershipsModule, TokensModule, UsersModule, SelectedCalendarsModule],
-  providers: [EventTypesRepository, EventTypesService, InputEventTypesService, OutputEventTypesService],
+  imports: [PrismaModule, MembershipsModule, TokensModule, SelectedCalendarsModule],
+  providers: [
+    EventTypesRepository,
+    EventTypesService,
+    InputEventTypesService,
+    OutputEventTypesService,
+    UsersRepository,
+  ],
   controllers: [EventTypesController],
   exports: [EventTypesService, EventTypesRepository],
 })

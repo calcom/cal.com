@@ -53,6 +53,29 @@ export class EventTypesService {
     }
   }
 
+  async getEventTypeByUsernameAndSlug(username: string, eventTypeSlug: string) {
+    const user = await this.usersRepository.findByUsername(username);
+    if (!user) {
+      return null;
+    }
+
+    const eventType = await this.eventTypesRepository.getUserEventTypeBySlug(user.id, eventTypeSlug);
+
+    if (!eventType) {
+      return null;
+    }
+
+    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
+  }
+
+  async getEventTypesByUsername(username: string) {
+    const user = await this.usersRepository.findByUsername(username);
+    if (!user) {
+      return [];
+    }
+    return this.getUserEventTypes(user.id);
+  }
+
   async getUserToCreateEvent(user: UserWithProfile) {
     const organizationId = user.movedToProfile?.organizationId || user.organizationId;
     const isOrgAdmin = organizationId
@@ -81,7 +104,6 @@ export class EventTypesService {
 
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
-    console.log("asap eventTypes", JSON.stringify(eventTypes, null, 2));
 
     return eventTypes.map((eventType) =>
       this.outputEventTypesService.getResponseEventType(userId, eventType)

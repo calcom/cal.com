@@ -15,5 +15,5 @@ export class GetEventTypeOutput {
   })
   @ValidateNested()
   @Type(() => EventTypeOutput)
-  data!: EventTypeOutput;
+  data!: EventTypeOutput | null;
 }
