@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -167,6 +168,7 @@ function TeamPage({
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(currentOrgDomain)}
         title={teamName}
         description={teamName}
         meeting={{

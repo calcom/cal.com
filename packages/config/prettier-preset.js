@@ -11,6 +11,8 @@ module.exports = {
   importOrder: [
     // Mocks must be at the top as they contain vi.mock calls
     "(.*)/__mocks__/(.*)",
+    // bookingScenario contains prismock that must be imported asap
+    "(.*)bookingScenario(.*)",
     "<THIRD_PARTY_MODULES>",
     "^@(calcom|ee)/(.*)$",
     "^@lib/(.*)$",
