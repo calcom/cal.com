@@ -2,6 +2,7 @@ import { defineWorkspace } from "vitest/config";
 
 const packagedEmbedTestsOnly = process.argv.includes("--packaged-embed-tests-only");
 const timeZoneDependentTestsOnly = process.argv.includes("--timeZoneDependentTestsOnly");
+const integrationTestsOnly = process.argv.includes("--integrationTestsOnly");
 // eslint-disable-next-line turbo/no-undeclared-env-vars
 const envTZ = process.env.TZ;
 if (timeZoneDependentTestsOnly && !envTZ) {
@@ -18,8 +19,41 @@ const workspaces = packagedEmbedTestsOnly
         },
       },
     ]
+  : integrationTestsOnly
+  ? [
+      {
+        test: {
+          name: `IntegrationTests`,
+          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
+          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
+      },
+    ]
   : // It doesn't seem to be possible to fake timezone per test, so we rerun the entire suite with different TZ. See https://github.com/vitest-dev/vitest/issues/1575#issuecomment-1439286286
-  timeZoneDependentTestsOnly
+  integrationTestsOnly
+  ? [
+      {
+        test: {
+          name: `IntegrationTests`,
+          include: ["packages/**/*.integration-test.ts", "apps/**/*.integration-test.ts"],
+          // TODO: Ignore the api until tests are fixed
+          exclude: ["**/node_modules/**/*", "packages/embeds/**/*"],
+          setupFiles: ["setupVitest.ts"],
+        },
+        resolve: {
+          alias: {
+            "~": new URL("./apps/api/v1", import.meta.url).pathname,
+          },
+        },
+      },
+    ]
+  : timeZoneDependentTestsOnly
   ? [
       {
         test: {
@@ -110,6 +144,15 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
           setupFiles: [],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          environment: "jsdom",
+          name: "@calcom/web/modules/views",
+          include: ["apps/web/modules/**/*.{test,spec}.tsx"],
+          setupFiles: ["apps/web/modules/test-setup.ts"],
         },
       },
     ];

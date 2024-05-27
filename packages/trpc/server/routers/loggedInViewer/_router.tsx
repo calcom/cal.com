@@ -1,5 +1,5 @@
 import authedProcedure from "../../procedures/authedProcedure";
-import { router } from "../../trpc";
+import { importHandler, router } from "../../trpc";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
@@ -21,6 +21,10 @@ import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
 import { ZUpdateProfileInputSchema } from "./updateProfile.schema";
 import { ZUpdateUserDefaultConferencingAppInputSchema } from "./updateUserDefaultConferencingApp.schema";
 import { ZWorkflowOrderInputSchema } from "./workflowOrder.schema";
+
+const NAMESPACE = "loggedInViewer";
+
+const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 type AppsRouterHandlerCache = {
   me?: typeof import("./me.handler").meHandler;
@@ -190,6 +194,14 @@ export const loggedInViewerRouter = router({
     }
 
     return UNSTABLE_HANDLER_CACHE.updateProfile({ ctx, input });
+  }),
+
+  unlinkConnectedAccount: authedProcedure.mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("unlinkConnectedAccount"),
+      () => import("./unlinkConnectedAccount.handler")
+    );
+    return handler(opts);
   }),
 
   eventTypeOrder: authedProcedure.input(ZEventTypeOrderInputSchema).mutation(async ({ ctx, input }) => {

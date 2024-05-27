@@ -86,6 +86,7 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -230,6 +231,7 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -260,6 +262,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
