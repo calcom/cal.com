@@ -258,34 +258,30 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
-          if (reminder.workflowStep.action !== WorkflowActions.EMAIL_ADDRESS) {
-            sendEmailPromises.push(
-              sendSendgridMail(
-                {
-                  to: sendTo,
-                  subject: emailContent.emailSubject,
-                  html: emailContent.emailBody,
-                  batchId: batchId,
-                  sendAt: dayjs(reminder.scheduledDate).unix(),
-                  replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
-                  attachments: reminder.workflowStep.includeCalendarEvent
-                    ? [
-                        {
-                          content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString(
-                            "base64"
-                          ),
-                          filename: "event.ics",
-                          type: "text/calendar; method=REQUEST",
-                          disposition: "attachment",
-                          contentId: uuidv4(),
-                        },
-                      ]
-                    : undefined,
-                },
-                { sender: reminder.workflowStep.sender }
-              )
-            );
-          }
+          sendEmailPromises.push(
+            sendSendgridMail(
+              {
+                to: sendTo,
+                subject: emailContent.emailSubject,
+                html: emailContent.emailBody,
+                batchId: batchId,
+                sendAt: dayjs(reminder.scheduledDate).unix(),
+                replyTo: reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email,
+                attachments: reminder.workflowStep.includeCalendarEvent
+                  ? [
+                      {
+                        content: Buffer.from(getiCalEventAsString(reminder.booking) || "").toString("base64"),
+                        filename: "event.ics",
+                        type: "text/calendar; method=REQUEST",
+                        disposition: "attachment",
+                        contentId: uuidv4(),
+                      },
+                    ]
+                  : undefined,
+              },
+              { sender: reminder.workflowStep.sender }
+            )
+          );
 
           await prisma.workflowReminder.update({
             where: {
