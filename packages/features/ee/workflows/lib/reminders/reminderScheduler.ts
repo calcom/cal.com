@@ -28,6 +28,7 @@ type ProcessWorkflowStepParams = {
   seatReferenceUid?: string;
 };
 
+// create a types file for these, they are used in a lot of different places (workflows/lib/types.ts)
 export type Workflow = {
   id: number;
   trigger: WorkflowTriggerEvents;
@@ -271,7 +272,7 @@ const getAllWorkflows = async (
   teamId?: number | null,
   orgId?: number | null
 ) => {
-  const allworkflows = eventTypeWorkflows;
+  const allWorkflows = eventTypeWorkflows;
 
   if (orgId) {
     if (userId) {
@@ -297,7 +298,7 @@ const getAllWorkflows = async (
       const orgTeamWorkflows = teamsWithWorkflows
         .map((team) => team.activeOrgWorkflows.map((worklfowRel) => worklfowRel.workflow))
         .flat();
-      allworkflows.push(...orgTeamWorkflows);
+      allWorkflows.push(...orgTeamWorkflows);
     } else if (teamId) {
       const teamWithWorkflows = await prisma.team.findFirst({
         where: {
@@ -315,7 +316,7 @@ const getAllWorkflows = async (
       });
       const orgTeamWorkflows =
         teamWithWorkflows?.activeOrgWorkflows.map((workflowRel) => workflowRel.workflow) || [];
-      allworkflows.push(...orgTeamWorkflows);
+      allWorkflows.push(...orgTeamWorkflows);
     }
 
     const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
@@ -325,7 +326,7 @@ const getAllWorkflows = async (
       },
       select: workflowSelect,
     });
-    allworkflows.push(...activeOnAllOrgWorkflows);
+    allWorkflows.push(...activeOnAllOrgWorkflows);
   }
 
   if (userId) {
@@ -336,7 +337,7 @@ const getAllWorkflows = async (
       },
       select: workflowSelect,
     });
-    allworkflows.push(...activeOnAllUserWorkflows);
+    allWorkflows.push(...activeOnAllUserWorkflows);
   } else if (teamId) {
     const activeOnAllTeamWorkflows = await prisma.workflow.findMany({
       where: {
@@ -345,13 +346,13 @@ const getAllWorkflows = async (
       },
       select: workflowSelect,
     });
-    allworkflows.push(...activeOnAllTeamWorkflows);
+    allWorkflows.push(...activeOnAllTeamWorkflows);
   }
 
-  // remove all the duplicate workflows from activeOnWorkflows
+  // remove all the duplicate workflows from allWorkflows
   const seen = new Set();
 
-  const workflows = allworkflows.filter((workflow) => {
+  const workflows = allWorkflows.filter((workflow) => {
     const duplicate = seen.has(workflow.id);
     seen.add(workflow.id);
     return !duplicate;

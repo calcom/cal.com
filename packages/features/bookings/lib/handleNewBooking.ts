@@ -2373,6 +2373,7 @@ async function handler(
 
   const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
+  // if org workflow exists I don't need mandatory reminders
   await scheduleMandatoryReminder(
     evtWithMetadata,
     eventTypeWorkflows,
@@ -2383,7 +2384,7 @@ async function handler(
 
   try {
     await scheduleWorkflowReminders({
-      eventTypeWorkflows, // only event type workflows
+      eventTypeWorkflows,
       userId: eventType.userId ?? undefined,
       orgId: organizerOrganizationId,
       teamId: eventType.team?.id,

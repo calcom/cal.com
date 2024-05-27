@@ -468,7 +468,6 @@ async function handler(req: CustomRequest) {
 
     //Workflows - cancel all reminders for cancelled bookings
     for (const reminder of booking.workflowReminders) {
-      //this should already take care of org workflows
       if (reminder.method === WorkflowMethods.EMAIL) {
         workflowReminderPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
       } else if (reminder.method === WorkflowMethods.SMS) {

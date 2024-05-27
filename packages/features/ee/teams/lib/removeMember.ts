@@ -110,29 +110,28 @@ const removeMember = async ({
     ]);
 
     // cancel/delete all workflowReminders of that user that come from org workflows
-    if (team.parentId) {
-      const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
-        where: {
-          workflowStep: {
-            workflow: {
-              teamId: team.id,
-            },
-          },
-          booking: {
-            eventType: {
-              userId: memberId,
-            },
+    // todo: don't delete reminder if user is still part of another team that is active on this workflow
+    const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
+      where: {
+        workflowStep: {
+          workflow: {
+            teamId: team.id,
           },
         },
-        select: {
-          id: true,
-          referenceId: true,
-          method: true,
+        booking: {
+          eventType: {
+            userId: memberId,
+          },
         },
-      });
+      },
+      select: {
+        id: true,
+        referenceId: true,
+        method: true,
+      },
+    });
 
-      deleteAllReminders(workflowRemindersToDelete);
-    }
+    deleteAllReminders(workflowRemindersToDelete);
   }
 
   // Deleted managed event types from this team from this member

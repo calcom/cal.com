@@ -63,7 +63,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     ? user.teams
     : user.teams.filter((membership) => !membership.team.isOrganization);
 
-  const nonOrgTeams = teams.map((membership) => ({
+  const formattedTeams = teams.map((membership) => ({
     ...membership,
     team: {
       ...membership.team,
@@ -81,7 +81,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       }),
       readOnly: false,
     },
-    ...nonOrgTeams.map((membership) => ({
+    ...formattedTeams.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,

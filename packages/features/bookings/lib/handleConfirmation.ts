@@ -131,6 +131,9 @@ export async function handleConfirmation(args: {
     user: {
       id: number;
       username: string | null;
+      profiles: {
+        organizationId?: number | null;
+      }[];
     } | null;
     eventType: {
       userId: number | null;
@@ -200,6 +203,11 @@ export async function handleConfirmation(args: {
             select: {
               id: true,
               username: true,
+              profiles: {
+                select: {
+                  organizationId: true,
+                },
+              },
             },
           },
           description: true,
@@ -260,6 +268,11 @@ export async function handleConfirmation(args: {
           select: {
             id: true,
             username: true,
+            profiles: {
+              select: {
+                organizationId: true,
+              },
+            },
           },
         },
         uid: true,
@@ -276,13 +289,6 @@ export async function handleConfirmation(args: {
     });
     updatedBookings.push(updatedBooking);
   }
-
-  const organizerOrganizationProfile = await prisma.profile.findFirst({
-    where: {
-      userId: updatedBookings[0].user?.id || 0,
-      username: updatedBookings[0].user?.username || "",
-    },
-  });
 
   //Workflows - set reminders for confirmed events
   try {
@@ -311,7 +317,7 @@ export async function handleConfirmation(args: {
         eventTypeWorkflows,
         teamId: updatedBookings[index]?.eventType?.teamId,
         userId: updatedBookings[index]?.eventType?.userId,
-        orgId: organizerOrganizationProfile?.organizationId,
+        orgId: updatedBookings[index]?.user?.profiles[0]?.organizationId,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
