@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { performance } from "@calcom/lib/server/perfObserver";
 
-// hey world
+// hey world, we rockin
 
 let isCold = true;
 
