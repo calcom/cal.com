@@ -265,7 +265,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin, body } = req;
+  const { userId, isSystemWideAdmin, body } = req;
 
   const {
     hosts = [],
@@ -291,7 +291,7 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isAdmin && parsedBody.userId) {
+  if (isSystemWideAdmin && parsedBody.userId) {
     data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
   }
 
@@ -311,18 +311,18 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaEventTypeCreateBodyParams.parse(req.body);
   /* Non-admin users can only create event types for themselves */
-  if (!isAdmin && body.userId)
+  if (!isSystemWideAdmin && body.userId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `userId`",
     });
   if (
     body.teamId &&
-    !isAdmin &&
-    !(await canUserAccessTeamWithRole(req.userId, isAdmin, body.teamId, {
+    !isSystemWideAdmin &&
+    !(await canUserAccessTeamWithRole(req.userId, isSystemWideAdmin, body.teamId, {
       in: [MembershipRole.OWNER, MembershipRole.ADMIN],
     }))
   )
@@ -331,7 +331,7 @@ async function checkPermissions(req: NextApiRequest) {
       message: "ADMIN required for `teamId`",
     });
   /* Admin users are required to pass in a userId or teamId */
-  if (isAdmin && !body.userId && !body.teamId)
+  if (isSystemWideAdmin && !body.userId && !body.teamId)
     throw new HttpError({ statusCode: 400, message: "`userId` or `teamId` required" });
 }
 

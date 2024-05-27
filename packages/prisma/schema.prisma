@@ -36,9 +36,10 @@ enum SchedulingType {
 }
 
 enum PeriodType {
-  UNLIMITED @map("unlimited")
-  ROLLING   @map("rolling")
-  RANGE     @map("range")
+  UNLIMITED      @map("unlimited")
+  ROLLING        @map("rolling")
+  ROLLING_WINDOW @map("rolling_window")
+  RANGE          @map("range")
 }
 
 model Host {
@@ -125,6 +126,7 @@ model EventType {
   metadata                             Json?
   /// @zod.custom(imports.successRedirectUrl)
   successRedirectUrl                   String?
+  forwardParamsSuccessRedirect         Boolean?                  @default(true)
   workflows                            WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                        Json?
@@ -298,6 +300,7 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
+  verifiedEmails       VerifiedEmail[]
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
@@ -377,6 +380,7 @@ model Team {
   brandColor            String?
   darkBrandColor        String?
   verifiedNumbers       VerifiedNumber[]
+  verifiedEmails        VerifiedEmail[]
   bannerUrl             String?
   parentId              Int?
   parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
@@ -522,17 +526,17 @@ enum BookingStatus {
 }
 
 model Booking {
-  id                    Int                  @id @default(autoincrement())
-  uid                   String               @unique
+  id                    Int                        @id @default(autoincrement())
+  uid                   String                     @unique
   // (optional) UID based on slot start/end time & email against duplicates
-  idempotencyKey        String?              @unique
-  user                  User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  idempotencyKey        String?                    @unique
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId                Int?
   // User's email at the time of booking
   /// @zod.email()
   userPrimaryEmail      String?
   references            BookingReference[]
-  eventType             EventType?           @relation(fields: [eventTypeId], references: [id])
+  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id])
   eventTypeId           Int?
   title                 String
   description           String?
@@ -543,12 +547,12 @@ model Booking {
   endTime               DateTime
   attendees             Attendee[]
   location              String?
-  createdAt             DateTime             @default(now())
+  createdAt             DateTime                   @default(now())
   updatedAt             DateTime?
-  status                BookingStatus        @default(ACCEPTED)
-  paid                  Boolean              @default(false)
+  status                BookingStatus              @default(ACCEPTED)
+  paid                  Boolean                    @default(false)
   payment               Payment[]
-  destinationCalendar   DestinationCalendar? @relation(fields: [destinationCalendarId], references: [id])
+  destinationCalendar   DestinationCalendar?       @relation(fields: [destinationCalendarId], references: [id])
   destinationCalendarId Int?
   cancellationReason    String?
   rejectionReason       String?
@@ -559,17 +563,18 @@ model Booking {
   recurringEventId      String?
   smsReminderNumber     String?
   workflowReminders     WorkflowReminder[]
-  scheduledJobs         String[]
+  scheduledJobs         String[] // scheduledJobs is deprecated, please use scheduledTriggers instead
   seatsReferences       BookingSeat[]
   /// @zod.custom(imports.bookingMetadataSchema)
   metadata              Json?
-  isRecorded            Boolean              @default(false)
-  iCalUID               String?              @default("")
-  iCalSequence          Int                  @default(0)
+  isRecorded            Boolean                    @default(false)
+  iCalUID               String?                    @default("")
+  iCalSequence          Int                        @default(0)
   instantMeetingToken   InstantMeetingToken?
   rating                Int?
   ratingFeedback        String?
   noShowHost            Boolean?
+  scheduledTriggers     WebhookScheduledTriggers[]
 
   @@index([eventTypeId])
   @@index([userId])
@@ -995,6 +1000,7 @@ model WorkflowReminder {
   cancelled           Boolean?
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
+  retryCount          Int             @default(0)
 
   @@index([bookingUid])
   @@index([workflowStepId])
@@ -1005,14 +1011,17 @@ model WorkflowReminder {
 
 model WebhookScheduledTriggers {
   id            Int       @id @default(autoincrement())
-  jobName       String
+  jobName       String? // jobName is deprecated, not needed when webhook and booking is set
   subscriberUrl String
   payload       String
   startAfter    DateTime
   retryCount    Int       @default(0)
   createdAt     DateTime? @default(now())
+  appId         String?
   webhookId     String?
   webhook       Webhook?  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  bookingId     Int?
+  booking       Booking?  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
 }
 
 enum WorkflowTemplates {
@@ -1051,6 +1060,18 @@ model VerifiedNumber {
   teamId      Int?
   team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model VerifiedEmail {
+  id     Int    @id @default(autoincrement())
+  userId Int?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email  String
 
   @@index([userId])
   @@index([teamId])

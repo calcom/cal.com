@@ -1,8 +1,9 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { JSDOM } from "jsdom";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
@@ -14,7 +15,18 @@ import {
   testName,
 } from "../lib/testUtils";
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
+import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 import { acceptTeamOrOrgInvite, inviteExistingUserToOrganization } from "./lib/inviteUser";
+
+function getOrgOrigin(orgSlug: string | null) {
+  if (!orgSlug) {
+    throw new Error("orgSlug is required");
+  }
+
+  let orgOrigin = WEBAPP_URL.replace("://app", `://${orgSlug}`);
+  orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
+  return orgOrigin;
+}
 
 test.describe("Bookings", () => {
   test.afterEach(({ orgs, users }) => {
@@ -187,6 +199,7 @@ test.describe("Bookings", () => {
         }
       );
     });
+
     test.describe("User Event with same slug as another user's", () => {
       test("booking is created for first user when first user is booked", async ({ page, users, orgs }) => {
         const org = await orgs.create({
@@ -250,6 +263,55 @@ test.describe("Bookings", () => {
           }
         );
       });
+    });
+
+    test("check SSR and OG ", async ({ page, users, orgs }) => {
+      const name = "Test User";
+      const org = await orgs.create({
+        name: "TestOrg",
+      });
+
+      const user = await users.create({
+        name,
+        organizationId: org.id,
+        roleInOrganization: MembershipRole.MEMBER,
+      });
+
+      const firstEventType = await user.getFirstEventAsOwner();
+      const calLink = `/${user.username}/${firstEventType.slug}`;
+      await doOnOrgDomain(
+        {
+          orgSlug: org.slug,
+          page,
+        },
+        async () => {
+          const [response] = await Promise.all([
+            // This promise resolves to the main resource response
+            page.waitForResponse(
+              (response) => response.url().includes(`${calLink}`) && response.status() === 200
+            ),
+
+            // Trigger the page navigation
+            page.goto(`${calLink}`),
+          ]);
+          const ssrResponse = await response.text();
+          const document = new JSDOM(ssrResponse).window.document;
+          const orgOrigin = getOrgOrigin(org.slug);
+          const titleText = document.querySelector("title")?.textContent;
+          const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute("content");
+          const ogUrl = document.querySelector('meta[property="og:url"]')?.getAttribute("content");
+          const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
+          expect(titleText).toContain(name);
+          expect(ogUrl).toEqual(`${orgOrigin}${calLink}`);
+          expect(canonicalLink).toEqual(`${orgOrigin}${calLink}`);
+          // Verify that there is correct URL that would generate the awesome OG image
+          expect(ogImage).toContain(
+            "/_next/image?w=1200&q=100&url=%2Fapi%2Fsocial%2Fog%2Fimage%3Ftype%3Dmeeting%26title%3D"
+          );
+          // Verify Organizer Name in the URL
+          expect(ogImage).toContain("meetingProfileName%3DTest%2520User%26");
+        }
+      );
     });
   });
 
@@ -380,11 +442,11 @@ test.describe("Bookings", () => {
 
       await test.step("Booking through old link redirects to new link on org domain", async () => {
         const event = await userOutsideOrganization.getFirstEventAsOwner();
-        await expectRedirectToOrgDomain({
+        await gotoPathAndExpectRedirectToOrgDomain({
           page,
           org,
-          eventSlug: `/${usernameOutsideOrg}/${event.slug}`,
-          expectedEventSlug: `/${usernameInOrg}/${event.slug}`,
+          path: `/${usernameOutsideOrg}/${event.slug}`,
+          expectedPath: `/${usernameInOrg}/${event.slug}`,
         });
         // As the redirection correctly happens, the booking would work too which we have verified in previous step. But we can't test that with org domain as that domain doesn't exist.
       });
@@ -462,40 +524,4 @@ async function bookTeamEvent({
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
   await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
-}
-
-async function expectRedirectToOrgDomain({
-  page,
-  org,
-  eventSlug,
-  expectedEventSlug,
-}: {
-  page: Page;
-  org: { slug: string | null };
-  eventSlug: string;
-  expectedEventSlug: string;
-}) {
-  if (!org.slug) {
-    throw new Error("Org slug is not defined");
-  }
-  page.goto(eventSlug).catch((e) => {
-    console.log("Expected navigation error to happen");
-  });
-
-  const orgSlug = org.slug;
-
-  const orgRedirectUrl = await new Promise(async (resolve) => {
-    page.on("request", (request) => {
-      if (request.isNavigationRequest()) {
-        const requestedUrl = request.url();
-        console.log("Requested navigation to", requestedUrl);
-        // Resolve on redirection to org domain
-        if (requestedUrl.includes(orgSlug)) {
-          resolve(requestedUrl);
-        }
-      }
-    });
-  });
-
-  expect(orgRedirectUrl).toContain(`${getOrgFullOrigin(org.slug)}${expectedEventSlug}`);
 }

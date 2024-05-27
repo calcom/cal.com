@@ -38,7 +38,6 @@ import { metadata } from "../_metadata";
 import { getGoogleAppKeys } from "./getGoogleAppKeys";
 
 const log = logger.getSubLogger({ prefix: ["app-store/googlecalendar/lib/CalendarService"] });
-
 interface GoogleCalError extends Error {
   code?: number;
 }
@@ -47,13 +46,13 @@ const ONE_MINUTE_MS = 60 * 1000;
 const CACHING_TIME = ONE_MINUTE_MS;
 
 /** Expand the start date to the start of the month */
-function getTimeMin(timeMin: string) {
+export function getTimeMin(timeMin: string) {
   const dateMin = new Date(timeMin);
   return new Date(dateMin.getFullYear(), dateMin.getMonth(), 1, 0, 0, 0, 0).toISOString();
 }
 
 /** Expand the end date to the end of the month */
-function getTimeMax(timeMax: string) {
+export function getTimeMax(timeMax: string) {
   const dateMax = new Date(timeMax);
   return new Date(dateMax.getFullYear(), dateMax.getMonth() + 1, 0, 0, 0, 0, 0).toISOString();
 }
@@ -522,7 +521,6 @@ export default class GoogleCalendarService implements Calendar {
   }): Promise<EventBusyDate[] | null> {
     const calendar = await this.authedCalendar();
     const calendarCacheEnabled = await getFeatureFlag(prisma, "calendar-cache");
-
     let freeBusyResult: calendar_v3.Schema$FreeBusyResponse = {};
     if (!calendarCacheEnabled) {
       this.log.warn("Calendar Cache is disabled - Skipping");
@@ -601,7 +599,7 @@ export default class GoogleCalendarService implements Calendar {
     dateTo: string,
     selectedCalendars: IntegrationCalendar[]
   ): Promise<EventBusyDate[]> {
-    this.log.debug("Getting availability");
+    this.log.debug("Getting availability", safeStringify({ dateFrom, dateTo, selectedCalendars }));
     const calendar = await this.authedCalendar();
     const selectedCalendarIds = selectedCalendars
       .filter((e) => e.integration === this.integrationName)
