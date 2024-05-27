@@ -656,6 +656,7 @@
   "default_duration": "Khoảng thời gian mặc định",
   "default_duration_no_options": "Vui lòng chọn trước tiên những khoảng thời gian khả dụng",
   "multiple_duration_mins": "{{count}}$t(minute_timeUnit)",
+  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Phút",
   "round_robin": "Round Robin",
   "round_robin_description": "Luân phiên những cuộc họp giữa các thành viên trong nhóm.",
