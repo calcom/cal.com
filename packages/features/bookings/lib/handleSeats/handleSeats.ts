@@ -60,7 +60,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 
@@ -120,6 +119,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,
+      attendeeSeatId: resultBooking?.seatReferenceUid,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()

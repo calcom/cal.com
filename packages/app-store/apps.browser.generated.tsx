@@ -32,6 +32,7 @@ export const EventTypeAddonMap = {
   "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
+  posthog: dynamic(() => import("./posthog/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
   "booking-pages-tag": dynamic(() =>
@@ -40,4 +41,17 @@ export const EventTypeAddonMap = {
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
+};
+export const EventTypeSettingsMap = {
+  alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
+  basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppSettingsInterface")),
+  fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
+  ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
+  giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
+  gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
+  metapixel: dynamic(() => import("./metapixel/components/EventTypeAppSettingsInterface")),
+  paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
+  plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
+  qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
+  stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppSettingsInterface")),
 };
