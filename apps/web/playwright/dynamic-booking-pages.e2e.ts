@@ -33,7 +33,7 @@ test("dynamic booking", async ({ page, users }) => {
   await test.step("can reschedule a booking", async () => {
     // Logged in
     await page.goto("/bookings/upcoming");
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    await page.locator('[data-testid="edit_booking_upcoming"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -90,16 +90,6 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   badgeLocator = await page.getByTestId(badgeByDurationTestId(15));
   activeState = await badgeLocator.getAttribute("data-active");
   expect(activeState).toEqual("false");
-});
-// eslint-disable-next-line playwright/no-skipped-test
-test.skip("it contains the right event details", async ({ page }) => {
-  const response = await page.goto(`http://acme.cal.local:3000/owner1+member1`);
-  expect(response?.status()).toBe(200);
-
-  expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
-  expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain("Acme Inc");
-
-  expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
 });
 
 test.describe("Organization:", () => {

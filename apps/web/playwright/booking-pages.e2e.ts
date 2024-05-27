@@ -1,6 +1,7 @@
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 
+import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
@@ -109,15 +110,19 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await bookFirstEvent(page);
   });
 
-  test("can reschedule a booking", async ({ page, users, bookings }) => {
+  test("can reschedule a booking if booking has not started", async ({ page, users, bookings }) => {
     const [pro] = users.get();
     const [eventType] = pro.eventTypes;
-    await bookings.create(pro.id, pro.username, eventType.id);
+    const startTime = dayjs().add(2, "day").add(1, "hour").toDate();
+    const endTime = dayjs().add(2, "day").add(2, "hour").toDate();
+    await bookings.create(pro.id, pro.username, eventType.id, {}, startTime, endTime);
 
     await pro.apiLogin();
     await page.goto("/bookings/upcoming");
     await page.waitForSelector('[data-testid="bookings"]');
-    await page.locator('[data-testid="edit_booking"]').nth(0).click();
+    await page.waitForSelector('[data-testid="edit_booking_started"]', { timeout: 10000, state: "hidden" });
+    await page.waitForSelector('[data-testid="edit_booking_upcoming"]', { timeout: 10000, state: "visible" });
+    await page.locator('[data-testid="edit_booking_upcoming"]').nth(0).click();
     await page.locator('[data-testid="reschedule"]').click();
     await page.waitForURL((url) => {
       const bookingId = url.searchParams.get("rescheduleUid");
@@ -129,6 +134,20 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.waitForURL((url) => {
       return url.pathname.startsWith("/booking");
     });
+  });
+
+  test("can reschedule a booking if booking is happening", async ({ page, users, bookings }) => {
+    const [pro] = users.get();
+    const [eventType] = pro.eventTypes;
+    const startTime = dayjs().subtract(1, "hour").toDate();
+    const endTime = dayjs().add(1, "hour").toDate();
+    await bookings.create(pro.id, pro.username, eventType.id, {}, startTime, endTime);
+
+    await pro.apiLogin();
+    await page.goto("/bookings/upcoming");
+    await page.waitForSelector('[data-testid="today-bookings"]'); // test id for today's bookings
+    await page.waitForSelector('[data-testid="edit_booking_started"]', { timeout: 10000, state: "visible" });
+    await page.waitForSelector('[data-testid="edit_booking_upcoming"]', { timeout: 10000, state: "hidden" });
   });
 
   test("it redirects when a rescheduleUid does not match the current event type", async ({
