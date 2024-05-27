@@ -11,11 +11,11 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
+  // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
   paymentId: z.string(),
   subscriptionId: z.string(),
   subscriptionItemId: z.string(),
-  orgSeats: z.number().nullable().optional(),
-  orgPricePerSeat: z.number().nullable().optional(),
+  orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
 
 /** Used to prevent double charges for the same team */
@@ -181,7 +181,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }
 };
 
-const getTeamWithPaymentMetadata = async (teamId: number) => {
+export const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
     select: { metadata: true, members: true, isOrganization: true },

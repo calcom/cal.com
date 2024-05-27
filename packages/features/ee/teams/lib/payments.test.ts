@@ -1,18 +1,30 @@
 import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect, it, vi, beforeAll, afterAll } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 
-import { purchaseTeamOrOrgSubscription, updateQuantitySubscriptionFromStripe } from "./payments";
+import {
+  getTeamWithPaymentMetadata,
+  purchaseTeamOrOrgSubscription,
+  updateQuantitySubscriptionFromStripe,
+} from "./payments";
 
-beforeAll(() => {
+beforeEach(async () => {
   vi.stubEnv("STRIPE_ORG_MONTHLY_PRICE_ID", "STRIPE_ORG_MONTHLY_PRICE_ID");
   vi.stubEnv("STRIPE_TEAM_MONTHLY_PRICE_ID", "STRIPE_TEAM_MONTHLY_PRICE_ID");
+  vi.resetAllMocks();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await prismock.reset();
 });
 
-afterAll(() => {
+afterEach(async () => {
   vi.unstubAllEnvs();
+  vi.resetAllMocks();
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  await prismock.reset();
 });
 
 vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
@@ -20,6 +32,12 @@ vi.mock("@calcom/app-store/stripepayment/lib/customer", () => {
     getStripeCustomerIdFromUserId: function () {
       return "CUSTOMER_ID";
     },
+  };
+});
+
+vi.mock("@calcom/lib/constant", () => {
+  return {
+    MINIMUM_NUMBER_OF_ORG_SEATS: 30,
   };
 });
 
@@ -47,6 +65,7 @@ vi.mock("@calcom/app-store/stripepayment/lib/server", () => {
 
 describe("purchaseTeamOrOrgSubscription", () => {
   it("should use `seatsToChargeFor` to create price", async () => {
+    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
     const user = await prismock.user.create({
       data: {
         name: "test",
@@ -58,12 +77,15 @@ describe("purchaseTeamOrOrgSubscription", () => {
       url: "SESSION_URL",
     });
 
-    mockStripeCheckoutSessionRetrieve({
-      currency: "USD",
-      product: {
-        id: "PRODUCT_ID",
+    mockStripeCheckoutSessionRetrieve(
+      {
+        currency: "USD",
+        product: {
+          id: "PRODUCT_ID",
+        },
       },
-    });
+      [FAKE_PAYMENT_ID]
+    );
 
     mockStripeCheckoutPricesRetrieve({
       id: "PRICE_ID",
@@ -79,6 +101,9 @@ describe("purchaseTeamOrOrgSubscription", () => {
     const team = await prismock.team.create({
       data: {
         name: "test",
+        metadata: {
+          paymentId: FAKE_PAYMENT_ID,
+        },
       },
     });
 
@@ -108,78 +133,275 @@ describe("purchaseTeamOrOrgSubscription", () => {
 });
 
 describe("updateQuantitySubscriptionFromStripe", () => {
-  it("should not update subscription when team members are less than metadata.orgSeats", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
-    const FAKE_SUB_ID = "FAKE_SUB_ID";
-    const organization = await createOrgWithMembersAndPaymentData({
-      paymentId: FAKE_PAYMENT_ID,
-      subscriptionId: FAKE_SUB_ID,
-      subscriptionItemId: FAKE_SUBITEM_ID,
-      membersInTeam: 2,
-      orgSeats: 5,
+  describe("For an organization", () => {
+    it("should not update subscription when team members are less than metadata.orgSeats", async () => {
+      const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
+      const consoleInfoSpy = vi.spyOn(console, "info");
+
+      const organization = await createOrgWithMembersAndPaymentData({
+        paymentId: FAKE_PAYMENT_ID,
+        subscriptionId: FAKE_SUB_ID,
+        subscriptionItemId: FAKE_SUBITEM_ID,
+        membersInTeam: 2,
+        orgSeats: 5,
+      });
+
+      mockStripeCheckoutSessionRetrieve(
+        {
+          payment_status: "paid",
+        },
+        [FAKE_PAYMENT_ID]
+      );
+
+      mockStripeSubscriptionsRetrieve(
+        {
+          items: {
+            data: [
+              {
+                id: "FAKE_SUBITEM_ID",
+                quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
+              },
+            ],
+          },
+        },
+        [FAKE_SUB_ID]
+      );
+
+      const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
+
+      await updateQuantitySubscriptionFromStripe(organization.id);
+      // Ensure that we reached the flow we are expecting to
+      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
+
+      // orgSeats is more than the current number of members - So, no update in stripe
+      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
     });
 
-    mockStripeSubscriptionsRetrieve({
-      items: {
-        data: [
+    it("should update subscription when team members are more than metadata.orgSeats", async () => {
+      const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
+      const membersInTeam = 4;
+      const organization = await createOrgWithMembersAndPaymentData({
+        paymentId: FAKE_PAYMENT_ID,
+        subscriptionId: FAKE_SUB_ID,
+        subscriptionItemId: FAKE_SUBITEM_ID,
+        membersInTeam,
+        orgSeats: 3,
+      });
+
+      mockStripeCheckoutSessionRetrieve(
+        {
+          payment_status: "paid",
+        },
+        [FAKE_PAYMENT_ID]
+      );
+
+      mockStripeSubscriptionsRetrieve(
+        {
+          items: {
+            data: [
+              {
+                id: FAKE_SUBITEM_ID,
+                quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
+              },
+            ],
+          },
+        },
+        [FAKE_SUB_ID]
+      );
+
+      const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
+
+      await updateQuantitySubscriptionFromStripe(organization.id);
+
+      // orgSeats is more than the current number of members - So, no update in stripe
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(FAKE_SUB_ID, {
+        items: [
           {
-            id: "FAKE_SUBITEM_ID",
+            quantity: membersInTeam,
+            id: FAKE_SUBITEM_ID,
           },
         ],
-      },
+      });
     });
 
-    const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
+    it("should not update subscription when team members are less than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+      const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
+      const membersInTeam = 2;
+      const consoleInfoSpy = vi.spyOn(console, "info");
 
-    await updateQuantitySubscriptionFromStripe(organization.id);
+      const organization = await createOrgWithMembersAndPaymentData({
+        paymentId: FAKE_PAYMENT_ID,
+        subscriptionId: FAKE_SUB_ID,
+        subscriptionItemId: FAKE_SUBITEM_ID,
+        membersInTeam,
+        orgSeats: null,
+      });
 
-    // orgSeats is more than the current number of members - So, no update in stripe
-    expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+      mockStripeSubscriptionsRetrieve(
+        {
+          items: {
+            data: [
+              {
+                id: "FAKE_SUBITEM_ID",
+                quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
+              },
+            ],
+          },
+        },
+        [FAKE_SUB_ID]
+      );
+
+      mockStripeCheckoutSessionRetrieve(
+        {
+          payment_status: "paid",
+        },
+        [FAKE_PAYMENT_ID]
+      );
+
+      const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
+
+      await updateQuantitySubscriptionFromStripe(organization.id);
+      // Ensure that we reached the flow we are expecting to
+      expect(consoleInfoSpy.mock.calls[0][0]).toContain("has less members");
+      // orgSeats is more than the current number of members - So, no update in stripe
+      expect(mockedSubscriptionsUpdate).not.toHaveBeenCalled();
+    });
+
+    it("should update subscription when team members are more than MINIMUM_NUMBER_OF_ORG_SEATS(if metadata.orgSeats is null)", async () => {
+      const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
+      const FAKE_SUB_ID = "FAKE_SUB_ID";
+      const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
+      const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
+      const membersInTeam = 35;
+      const organization = await createOrgWithMembersAndPaymentData({
+        paymentId: FAKE_PAYMENT_ID,
+        subscriptionId: FAKE_SUB_ID,
+        subscriptionItemId: FAKE_SUBITEM_ID,
+        membersInTeam,
+        orgSeats: null,
+      });
+
+      mockStripeCheckoutSessionRetrieve(
+        {
+          payment_status: "paid",
+        },
+        [FAKE_PAYMENT_ID]
+      );
+
+      mockStripeSubscriptionsRetrieve(
+        {
+          items: {
+            data: [
+              {
+                id: FAKE_SUBITEM_ID,
+                quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
+              },
+            ],
+          },
+        },
+        [FAKE_SUB_ID]
+      );
+
+      const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
+
+      await updateQuantitySubscriptionFromStripe(organization.id);
+
+      // orgSeats is more than the current number of members - So, no update in stripe
+      expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(FAKE_SUB_ID, {
+        items: [
+          {
+            quantity: membersInTeam,
+            id: FAKE_SUBITEM_ID,
+          },
+        ],
+      });
+    });
+  });
+});
+
+describe("getTeamWithPaymentMetadata", () => {
+  it("should error if paymentId is not set", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          subscriptionId: "FAKE_SUB_ID",
+          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+        },
+      },
+    });
+    expect(() => getTeamWithPaymentMetadata(team.id)).rejects.toThrow();
   });
 
-  it("should update subscription when team members are more than metadata.orgSeats", async () => {
-    const FAKE_PAYMENT_ID = "FAKE_PAYMENT_ID";
-    const FAKE_SUB_ID = "FAKE_SUB_ID";
-    const FAKE_SUBITEM_ID = "FAKE_SUBITEM_ID";
-    const FAKE_SUBSCRIPTION_QTY_IN_STRIPE = 1000;
-    const membersInTeam = 4;
-    const organization = await createOrgWithMembersAndPaymentData({
-      paymentId: FAKE_PAYMENT_ID,
-      subscriptionId: FAKE_SUB_ID,
-      subscriptionItemId: FAKE_SUBITEM_ID,
-      membersInTeam,
-      orgSeats: 3,
-    });
-
-    mockStripeCheckoutSessionRetrieve({
-      payment_status: "paid",
-    });
-
-    mockStripeSubscriptionsRetrieve({
-      items: {
-        data: [
-          {
-            id: FAKE_SUBITEM_ID,
-            quantity: FAKE_SUBSCRIPTION_QTY_IN_STRIPE,
-          },
-        ],
+  it("should error if subscriptionId is not set", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+        },
       },
     });
+    expect(() => getTeamWithPaymentMetadata(team.id)).rejects.toThrow();
+  });
 
-    const mockedSubscriptionsUpdate = mockStripeSubscriptionsUpdate(null);
-
-    await updateQuantitySubscriptionFromStripe(organization.id);
-
-    // orgSeats is more than the current number of members - So, no update in stripe
-    expect(mockedSubscriptionsUpdate).toHaveBeenCalledWith(FAKE_SUB_ID, {
-      items: [
-        {
-          quantity: 4,
-          id: FAKE_SUBITEM_ID,
+  it("should error if subscriptionItemId is not set", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "FAKE_SUB_ID",
         },
-      ],
+      },
     });
+    expect(() => getTeamWithPaymentMetadata(team.id)).rejects.toThrow();
+  });
+
+  it("should parse successfully if orgSeats is not set in metadata", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "FAKE_SUB_ID",
+          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+        },
+      },
+    });
+    const teamWithPaymentData = await getTeamWithPaymentMetadata(team.id);
+    expect(teamWithPaymentData.metadata.orgSeats).toBeUndefined();
+  });
+
+  it("should parse successfully if orgSeats is set in metadata", async () => {
+    const team = await prismock.team.create({
+      data: {
+        isOrganization: true,
+        name: "TestTeam",
+        metadata: {
+          orgSeats: 5,
+          paymentId: "FAKE_PAY_ID",
+          subscriptionId: "FAKE_SUB_ID",
+          subscriptionItemId: "FAKE_SUB_ITEM_ID",
+        },
+      },
+    });
+    const teamWithPaymentData = await getTeamWithPaymentMetadata(team.id);
+    expect(teamWithPaymentData.metadata.orgSeats).toEqual(5);
   });
 });
 
@@ -193,7 +415,7 @@ async function createOrgWithMembersAndPaymentData({
   paymentId: string;
   subscriptionId: string;
   subscriptionItemId: string;
-  orgSeats: number;
+  orgSeats?: number | null;
   membersInTeam: number;
 }) {
   const organization = await prismock.team.create({
@@ -252,12 +474,14 @@ function mockStripeCheckoutPricesRetrieve(data) {
   );
 }
 
-function mockStripeCheckoutSessionRetrieve(data) {
-  return vi.mocked(stripe.checkout.sessions.retrieve).mockImplementation(
-    async () =>
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      //@ts-ignore
-      new Promise((resolve) => resolve(data))
+function mockStripeCheckoutSessionRetrieve(data, expectedArgs) {
+  return vi.mocked(stripe.checkout.sessions.retrieve).mockImplementation(async (sessionId) =>
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      const conditionMatched = expectedArgs[0] === sessionId;
+      return new Promise((resolve) => resolve(conditionMatched ? data : null));
+    }
   );
 }
 
@@ -269,11 +493,14 @@ function mockStripeCheckoutSessionsCreate(data) {
   );
 }
 
-function mockStripeSubscriptionsRetrieve(data) {
+function mockStripeSubscriptionsRetrieve(data, expectedArgs) {
   return vi.mocked(stripe.subscriptions.retrieve).mockImplementation(
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
-    async () => new Promise((resolve) => resolve(data))
+    async (subscriptionId) => {
+      const conditionMatched = expectedArgs ? expectedArgs[0] === subscriptionId : true;
+      return new Promise((resolve) => resolve(conditionMatched ? data : undefined));
+    }
   );
 }
 
