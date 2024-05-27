@@ -136,6 +136,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
+  metadata?: any;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -169,13 +170,24 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts && eventType.hosts.length > 0) {
-      await prismock.host.createMany({
-        data: eventType.hosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: eventType.id,
-          isFixed: host.isFixed ?? false,
-        })),
+    if (!eventType.hosts?.length) continue;
+    for (const host of eventType.hosts) {
+      const data: Prisma.HostCreateInput = {
+        eventType: {
+          connect: {
+            id: eventType.id,
+          },
+        },
+        isFixed: host.isFixed ?? false,
+        user: {
+          connect: {
+            id: host.userId,
+          },
+        },
+      };
+
+      await prismock.host.create({
+        data,
       });
     }
   }
@@ -195,6 +207,7 @@ export async function addEventTypesToDb(
     destinationCalendar?: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
+    metadata?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -862,6 +875,23 @@ export const TestData = {
       timeZone: Timezones["+5:30"],
     },
     /**
+     * Has an overlap with IstMorningShift and IstEveningShift
+     */
+    IstMidShift: {
+      name: "12:30AM to 8PM in India - 7:00AM to 14:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T12:30:00.000Z"),
+          endTime: new Date("1970-01-01T20:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
      * Has an overlap with IstMorningShift from 5PM to 6PM IST(11:30AM to 12:30PM GMT)
      */
     IstEveningShift: {
@@ -1470,6 +1500,7 @@ export function mockCrmApp(
     getContacts?: {
       id: string;
       email: string;
+      ownerEmail;
     }[];
   }
 ) {
@@ -1480,6 +1511,7 @@ export function mockCrmApp(
   let contactsQueried: {
     id: string;
     email: string;
+    ownerEmail: string;
   }[] = [];
   const eventsCreated: boolean[] = [];
   const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
@@ -1490,24 +1522,32 @@ export function mockCrmApp(
       lib: {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
-        CrmService: () => ({
-          createContact: () => {
+        CrmService: class {
+          constructor() {
+            log.debug("Create CrmSerive");
+          }
+
+          createContact() {
             if (crmData?.createContacts) {
               contactsCreated = crmData.createContacts;
               return Promise.resolve(crmData?.createContacts);
             }
-          },
-          getContacts: () => {
+          }
+
+          getContacts(email: string) {
             if (crmData?.getContacts) {
               contactsQueried = crmData?.getContacts;
-              return Promise.resolve(crmData?.getContacts);
+              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+
+              return Promise.resolve(contactsOfEmail);
             }
-          },
-          createEvent: () => {
+          }
+
+          createEvent() {
             eventsCreated.push(true);
             return Promise.resolve({});
-          },
-        }),
+          }
+        },
       },
     });
 

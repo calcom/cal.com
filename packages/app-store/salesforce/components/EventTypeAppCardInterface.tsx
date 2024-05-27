@@ -36,7 +36,13 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
               label={t("skip_rr_assignment_label")}
               labelOnLeading
               checked={isRoundRobinLeadSkipEnabled}
-              onCheckedChange={(checked) => setAppData("roundRobinLeadSkip", checked)}
+              onCheckedChange={(checked) => {
+                setAppData("roundRobinLeadSkip", checked);
+                if (checked) {
+                  // temporary solution, enabled should always be already set
+                  setAppData("enabled", checked);
+                }
+              }}
             />
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
