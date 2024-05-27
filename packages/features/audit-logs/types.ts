@@ -2,13 +2,13 @@ import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementati
 import type { IconName } from "@calcom/ui";
 
 export interface AuditLogsManager {
-  reportEvent(event: AuditLogEvent): void;
+  reportEvent(event: AuditLogEvent): Promise<void>;
 }
 
 export type AuditLogEvent = {
   action: string;
   actor: {
-    id: string;
+    id: number;
     name?: string;
   };
   target: {
@@ -26,7 +26,7 @@ export type AuditLogEvent = {
   };
 };
 
-export const AuditLogTriggerEvents = {
+export const AuditLogTriggerEventsBooking = {
   BOOKING_CREATED: "BOOKING_CREATED",
   BOOKING_MODIFIED: "BOOKING_MODIFIED",
   BOOKING_RESCHEDULED: "BOOKING_RESCHEDULED",
@@ -36,6 +36,15 @@ export const AuditLogTriggerEvents = {
   PAYMENT_INITIATED: "BOOKING_PAYMENT_INITIATED",
   BOOKING_PAID: "BOOKING_PAID",
 } as const;
+
+export const AuditLogTriggerEventsAdmin = {
+  updateAppCredentials: "APP_CREDENTIALS_UPDATED",
+} as const;
+
+export const AuditLogTriggerEvents = {
+  ...AuditLogTriggerEventsAdmin,
+  ...AuditLogTriggerEventsBooking,
+};
 
 export enum DefaultAppSettingsOptions {
   "CREDENTIALS" = "credentials",

@@ -65,7 +65,7 @@ export async function handleAuditLogTrigger({
         return;
       }
 
-      auditLogManager.reportEvent(event);
+      await auditLogManager.reportEvent(event);
     }
   } catch (error) {
     logger.error("Error while sending audit log", error);
