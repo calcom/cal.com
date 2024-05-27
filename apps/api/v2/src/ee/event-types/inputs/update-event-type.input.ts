@@ -275,11 +275,11 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // parentId?: number;
 
-  // @IsOptional()
-  // @IsArray()
-  // @ValidateNested({ each: true })
-  // @Type(() => BookingField)
-  // bookingFields?: BookingField[];
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BookingField)
+  bookingFields?: BookingField[];
 
   // @IsString()
   // @IsOptional()
@@ -322,26 +322,28 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // recurringEvent?: RecurringEvent;
 
-  // @IsBoolean()
-  // @IsOptional()
-  // disableGuests?: boolean;
+  @IsBoolean()
+  @IsOptional()
+  disableGuests?: boolean;
 
   // @IsBoolean()
   // @IsOptional()
   // hideCalendarNotes?: boolean;
 
-  // @IsInt()
-  // @Min(0)
-  // @IsOptional()
-  // minimumBookingNotice?: number;
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  minimumBookingNotice?: number;
 
-  // @IsInt()
-  // @IsOptional()
-  // beforeEventBuffer?: number;
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  beforeEventBuffer?: number;
 
-  // @IsInt()
-  // @IsOptional()
-  // afterEventBuffer?: number;
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  afterEventBuffer?: number;
 
   // @IsInt()
   // @IsOptional()
@@ -375,9 +377,10 @@ export class UpdateEventTypeInput {
   // @IsOptional()
   // currency?: string;
 
-  // @IsInt()
-  // @IsOptional()
-  // slotInterval?: number;
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  slotInterval?: number;
 
   // @IsString()
   // @IsOptional()

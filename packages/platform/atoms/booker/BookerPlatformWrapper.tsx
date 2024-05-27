@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -21,13 +22,18 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
+import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import { useGetBookingForReschedule } from "../hooks/useGetBookingForReschedule";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
 import { usePublicEvent } from "../hooks/usePublicEvent";
@@ -43,6 +49,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
   name?: string;
   username: string | string[];
   entity?: BookerProps["entity"];
+  handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -57,6 +64,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
+  const { clientId } = useAtomsContext();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
@@ -65,13 +73,13 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
-  const { data: booking } = useGetBookingForReschedule({
+  useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
     },
   });
-
+  const queryClient = useQueryClient();
   const username = useMemo(() => {
     return formatUsername(props.username);
   }, [props.username]);
@@ -86,6 +94,14 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       setOrg(null);
       setSelectedMonth(null);
       setSelectedDuration(null);
+      if (props.rescheduleUid) {
+        // clean booking data from cache
+        queryClient.removeQueries({
+          queryKey: [BOOKING_RESCHEDULE_KEY, props.rescheduleUid],
+          exact: true,
+        });
+        setBookingData(null);
+      }
     };
   }, []);
 
@@ -175,7 +191,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.data?.email,
+    sessionEmail:
+      session?.data?.email && clientId
+        ? session.data.email.replace(`+${clientId}`, "")
+        : session?.data?.email,
     sessionUsername: session?.data?.username,
     sessionName: session?.data?.username,
     hasSession,
@@ -255,7 +274,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
     metadata: {},
-    handleBooking: createBooking,
+    handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,

@@ -4,7 +4,6 @@ on:
   pull_request_target:
     branches:
       - main
-  merge_group:
   workflow_dispatch:
 
 concurrency:
@@ -20,9 +19,9 @@ jobs:
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -35,13 +34,6 @@ jobs:
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
-  test:
-    name: Unit tests
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/unit-tests.yml
-    secrets: inherit
-
   lint:
     name: Linters
     needs: [changes]
@@ -49,71 +41,22 @@ jobs:
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
-  build:
-    name: Production build
+  unit-test:
+    name: Tests
     needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/production-build.yml
+    uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  build-api-v1:
-    name: Production build
+  integration-test:
+    name: Tests
     needs: [changes]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/api-v1-production-build.yml
-    secrets: inherit
-
-  build-api-v2:
-    name: Production build
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/api-v2-production-build.yml
-    secrets: inherit
-
-  build-without-database:
-    name: Production build (without database)
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
-
-  e2e:
-    name: E2E tests
-    needs: [changes, lint, build, build-api-v1, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e.yml
-    secrets: inherit
-
-  e2e-app-store:
-    name: E2E App Store tests
-    needs: [changes, lint, build, build-api-v1, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-app-store.yml
-    secrets: inherit
-
-  e2e-embed:
-    name: E2E embeds tests
-    needs: [changes, lint, build, build-api-v1, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-embed.yml
-    secrets: inherit
-
-  e2e-embed-react:
-    name: E2E React embeds tests
-    needs: [changes, lint, build, build-api-v1, build-api-v2]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-embed-react.yml
-    secrets: inherit
-
-  analyze:
-    name: Analyze Build
-    needs: [changes, build]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/nextjs-bundle-analysis.yml
+    uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, unit-test, integration-test]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:

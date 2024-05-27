@@ -69,6 +69,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       schedulingType: true,
+      title: true,
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
