@@ -41,8 +41,12 @@ const getLocationFromType = (
   type: EventLocationType["type"],
   locationOptions: Pick<EventTypeSetupProps, "locationOptions">["locationOptions"]
 ) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { t } = useLocale();
   for (const locationOption of locationOptions) {
-    const option = locationOption.options.find((option) => option.value === type);
+    const option = locationOption.options.find(
+      (option) => option.value === type || option.label === t("organizer_default_conferencing_app")
+    );
     if (option) {
       return option;
     }
