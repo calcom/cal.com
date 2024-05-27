@@ -299,9 +299,9 @@ export const getPublicEvent = async (
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
 
-  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
   if (org) {
-    orgDetails = await prisma.team.findFirstOrThrow({
+    orgDetails = await prisma.team.findFirst({
       where: {
         slug: org,
       },
