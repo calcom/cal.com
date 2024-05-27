@@ -8,7 +8,7 @@ import {
   ValidateBookingFields,
   ValidateLocations,
 } from "@calcom/platform-types";
-import { Location, BookingField } from "@calcom/platform-types";
+import type { Location, BookingField } from "@calcom/platform-types";
 
 export class EventTypeOutput {
   @IsInt()

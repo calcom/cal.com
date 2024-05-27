@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useEventTypeById, useIsPlatform } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge, Dialog, DialogContent } from "@calcom/ui";
 
@@ -28,11 +28,7 @@ const PlatformBookEventFormWrapper = ({
   const { data } = useEventTypeById(eventId);
 
   return (
-    <BookEventFormWrapperComponent
-      child={children}
-      eventLength={data?.eventType.length}
-      onCancel={onCancel}
-    />
+    <BookEventFormWrapperComponent child={children} eventLength={data?.lengthInMinutes} onCancel={onCancel} />
   );
 };
 

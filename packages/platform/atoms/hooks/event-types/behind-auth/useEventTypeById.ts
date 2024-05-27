@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { EventType as AtomEventType } from "@calcom/platform-libraries";
+import type { EventTypeOutput } from "@calcom/platform-types";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../../../lib/http";
@@ -13,9 +13,9 @@ export const useEventTypeById = (id: number | null) => {
   return useQuery({
     queryKey: [QUERY_KEY, id],
     queryFn: () => {
-      return http?.get<ApiResponse<AtomEventType>>(pathname).then((res) => {
+      return http?.get<ApiResponse<EventTypeOutput>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<AtomEventType>).data;
+          return (res.data as ApiSuccessResponse<EventTypeOutput>).data;
         }
         throw new Error(res.data.error.message);
       });

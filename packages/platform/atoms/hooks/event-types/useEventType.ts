@@ -3,7 +3,7 @@ import { shallow } from "zustand/shallow";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { PublicEventType } from "@calcom/platform-libraries";
+import type { EventTypeOutput } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
@@ -24,7 +24,7 @@ export const useEventType = (username: string, eventSlug: string) => {
     queryKey: [QUERY_KEY, stateUsername ?? username, stateEventSlug ?? eventSlug],
     queryFn: () => {
       return http
-        .get<ApiResponse<PublicEventType>>(
+        .get<ApiResponse<EventTypeOutput>>(
           `/${V2_ENDPOINTS.users}/${requestUsername}/event-types/${requestEventSlug}`
         )
         .then((res) => {

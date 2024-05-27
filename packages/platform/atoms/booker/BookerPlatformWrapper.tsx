@@ -117,7 +117,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   if (isDynamic && props.duration && event.data) {
     // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
     // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
-    event.data.length = props.duration;
+    event.data.lengthInMinutes = props.duration;
   }
 
   const bookerLayout = useBookerLayout(event.data);
