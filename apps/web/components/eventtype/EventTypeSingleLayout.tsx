@@ -323,7 +323,7 @@ function EventTypeSingleLayout({
               <div
                 className={classNames(
                   "sm:hover:bg-muted hidden cursor-pointer items-center rounded-md",
-                  formMethods.watch("hidden") ? "px-2" : "",
+                  formMethods.watch("hidden") ? "pl-2" : "",
                   "lg:flex"
                 )}>
                 {formMethods.watch("hidden") && (
