@@ -41,12 +41,9 @@ export const updateCredentialSettingsHandler = async ({ ctx, input }: UpdateAppC
     eventToExecute: { toBeDisabled: boolean; event: string }
   ) {
     const disabledEvents: Set<string> = new Set(currentSettings.disabledEvents);
-    console.log({ disabledEvents, eventToExecute });
 
     if (eventToExecute.toBeDisabled) disabledEvents.add(eventToExecute.event);
     else disabledEvents.delete(eventToExecute.event);
-
-    console.log({ disabledEvents });
 
     return {
       disabledEvents,
@@ -57,8 +54,6 @@ export const updateCredentialSettingsHandler = async ({ ctx, input }: UpdateAppC
     { disabledEvents: (credential.settings as { disabledEvents: string[] }).disabledEvents },
     { toBeDisabled, event }
   );
-
-  console.log({ updatedSettings }, "ASDFASDFASD", Array.from(updatedSettings.disabledEvents));
 
   const updated = await prisma.credential.update({
     where: {
