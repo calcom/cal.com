@@ -18097,6 +18097,7 @@ __metadata:
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1
+    debug: ^4.3.4
     dotenv-checker: ^1.1.5
     eslint: ^8.34.0
     husky: ^8.0.0

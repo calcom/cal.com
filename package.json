@@ -111,6 +111,7 @@
   "dependencies": {
     "@daily-co/daily-js": "^0.59.0",
     "city-timezones": "^1.2.1",
+    "debug": "^4.3.4",
     "eslint": "^8.34.0",
     "turbo": "^1.10.1"
   },
