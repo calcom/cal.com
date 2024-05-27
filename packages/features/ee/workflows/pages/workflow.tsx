@@ -124,6 +124,10 @@ function WorkflowPage() {
     }
   );
 
+  const { data: verifiedEmails } = trpc.viewer.workflows.getVerifiedEmails.useQuery({
+    teamId: workflow?.team?.id,
+  });
+
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
@@ -244,6 +248,18 @@ function WorkflowPage() {
                 (step.action === WorkflowActions.SMS_NUMBER ||
                   step.action === WorkflowActions.WHATSAPP_NUMBER) &&
                 !verifiedNumbers?.find((verifiedNumber) => verifiedNumber.phoneNumber === step.sendTo)
+              ) {
+                isVerified = false;
+
+                form.setError(`steps.${step.stepNumber - 1}.sendTo`, {
+                  type: "custom",
+                  message: t("not_verified"),
+                });
+              }
+
+              if (
+                step.action === WorkflowActions.EMAIL_ADDRESS &&
+                !verifiedEmails?.find((verifiedEmail) => verifiedEmail.email === step.sendTo)
               ) {
                 isVerified = false;
 

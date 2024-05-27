@@ -21,5 +21,6 @@
   },
   "isTemplate": false,
   "__createdUsingCli": true,
-  "__template": "booking-pages-tag"
+  "__template": "booking-pages-tag",
+  "isOAuth": false
 }
