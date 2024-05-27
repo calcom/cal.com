@@ -16,6 +16,9 @@ export class EventTypeOutput {
   id!: number;
 
   @IsInt()
+  ownerId!: number;
+
+  @IsInt()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
   lengthInMinutes!: number;

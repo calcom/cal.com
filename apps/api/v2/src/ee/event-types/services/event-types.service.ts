@@ -40,7 +40,7 @@ export class EventTypesService {
       },
     });
 
-    return this.outputEventTypesService.getResponseEventType(eventType);
+    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput) {
@@ -76,14 +76,16 @@ export class EventTypesService {
     }
 
     this.checkUserOwnsEventType(userId, eventType);
-    return this.outputEventTypesService.getResponseEventType(eventType);
+    return this.outputEventTypesService.getResponseEventType(userId, eventType);
   }
 
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
     console.log("asap eventTypes", JSON.stringify(eventTypes, null, 2));
 
-    return eventTypes.map((eventType) => this.outputEventTypesService.getResponseEventType(eventType));
+    return eventTypes.map((eventType) =>
+      this.outputEventTypesService.getResponseEventType(userId, eventType)
+    );
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {
@@ -148,7 +150,7 @@ export class EventTypesService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    return this.outputEventTypesService.getResponseEventType(eventType);
+    return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
   async checkCanUpdateEventType(userId: number, eventTypeId: number) {
