@@ -1,3 +1,5 @@
+import { auditLogMiddleware } from "@calcom/features/audit-logs/lib/trpc-plugin";
+
 import captureErrorsMiddleware from "../middlewares/captureErrorsMiddleware";
 import perfMiddleware from "../middlewares/perfMiddleware";
 import { isAdminMiddleware, isAuthed, isOrgAdminMiddleware } from "../middlewares/sessionMiddleware";
@@ -28,6 +30,10 @@ const authedProcedure = procedure.use(captureErrorsMiddleware).use(perfMiddlewar
 /*export const authedRateLimitedProcedure = ({ intervalInMs, limit }: IRateLimitOptions) =>
 authedProcedure.use(isRateLimitedByUserIdMiddleware({ intervalInMs, limit }));*/
 export const authedAdminProcedure = publicProcedure.use(captureErrorsMiddleware).use(isAdminMiddleware);
+export const authedAdminProcedureWithAuditLogger = publicProcedure
+  .use(captureErrorsMiddleware)
+  .use(isAdminMiddleware)
+  .use(auditLogMiddleware);
 export const authedOrgAdminProcedure = publicProcedure.use(captureErrorsMiddleware).use(isOrgAdminMiddleware);
 
 export default authedProcedure;

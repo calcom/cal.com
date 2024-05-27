@@ -1,4 +1,7 @@
-import authedProcedure, { authedAdminProcedure } from "../../../procedures/authedProcedure";
+import authedProcedure, {
+  authedAdminProcedure,
+  authedAdminProcedureWithAuditLogger,
+} from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
@@ -89,7 +92,7 @@ export const appsRouter = router({
     });
   }),
 
-  updateAppCredentials: authedProcedure
+  updateAppCredentials: authedAdminProcedureWithAuditLogger
     .input(ZUpdateAppCredentialsInputSchema)
     .mutation(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.updateAppCredentials) {
