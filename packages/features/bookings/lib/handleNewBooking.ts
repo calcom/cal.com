@@ -1703,6 +1703,7 @@ async function handler(
       changedOrganizer,
     });
 
+    // update original rescheduled booking (no seats event)
     if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
       const description = originalRescheduledBooking.description || "";
 
