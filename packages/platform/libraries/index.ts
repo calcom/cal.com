@@ -5,7 +5,6 @@ import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooki
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
-import { WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -49,12 +48,14 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
-  transformWorkingHoursForAtom,
-  transformAvailabilityForAtom,
-  transformDateOverridesForAtom,
-  transformApiScheduleAvailability,
-  transformApiScheduleOverrides,
-} from "@calcom/lib/schedules/transformers";
+  transformWorkingHoursForClient,
+  transformAvailabilityForClient,
+  transformDateOverridesForClient,
+} from "@calcom/lib/schedules/client/transformers";
+export type {
+  ScheduleWithAvailabilities,
+  ScheduleWithAvailabilitiesForWeb,
+} from "@calcom/lib/schedules/client/transformers";
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -76,4 +77,5 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
-export { WEBAPP_URL_FOR_OAUTH };
+
+export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
