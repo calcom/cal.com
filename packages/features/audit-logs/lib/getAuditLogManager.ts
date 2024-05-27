@@ -24,11 +24,11 @@ export async function getAuditLogManager(credential: Credential): Promise<AuditL
   }
 
   const appImportFn = auditLogImplementations[credential.appId as keyof typeof auditLogImplementations];
-  const auditLogsManager = appImportFn ? await appImportFn() : null;
+  let auditLogsManager = appImportFn ? await appImportFn() : null;
 
   if (!auditLogsManager) {
     log.error(`Couldn't get manager for ${credential.appId}. Assigning generic manager.`);
-    return;
+    auditLogsManager = await auditLogImplementations.genericImplementation();
   }
 
   if (!("zod" in auditLogsManager) || !("appKeysSchema" in auditLogsManager.zod)) {
