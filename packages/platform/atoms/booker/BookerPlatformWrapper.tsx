@@ -22,6 +22,7 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { useEventType } from "../hooks/event-types/useEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
@@ -36,7 +37,6 @@ import {
 } from "../hooks/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
-import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
@@ -112,11 +112,13 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const event = usePublicEvent({
-    username,
-    eventSlug: props.eventSlug,
-    isDynamic,
-  });
+  const event = useEventType(username, props.eventSlug);
+
+  if (isDynamic && props.duration && event.data) {
+    // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
+    // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
+    event.data.length = props.duration;
+  }
 
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({

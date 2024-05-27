@@ -6,9 +6,9 @@ import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
-export const QUERY_KEY = "get-public-events";
-export const useEventTypesPublic = (username: string) => {
-  const pathname = `/${V2_ENDPOINTS.eventTypes}/${username}/public`;
+export const QUERY_KEY = "use-event-types";
+export const useEventTypes = (username: string) => {
+  const pathname = `/${V2_ENDPOINTS.users}/${username}/event-types`;
 
   return useQuery({
     queryKey: [QUERY_KEY, username],

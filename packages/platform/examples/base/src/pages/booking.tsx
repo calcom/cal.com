@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { Booker, useEventTypesPublic } from "@calcom/atoms";
+import { Booker } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -13,7 +13,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
   const [eventTypeSlug, setEventTypeSlug] = useState<string | null>(null);
   const [eventTypeDuration, setEventTypeDuration] = useState<number | null>(null);
   const router = useRouter();
-  const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypesPublic(props.calUsername);
+  const { isLoading: isLoadingEvents, data: eventTypes } = useEventTypes(props.calUsername);
   const rescheduleUid = (router.query.rescheduleUid as string) ?? "";
   const eventTypeSlugQueryParam = (router.query.eventTypeSlug as string) ?? "";
 

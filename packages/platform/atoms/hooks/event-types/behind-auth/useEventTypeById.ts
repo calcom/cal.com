@@ -4,11 +4,11 @@ import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventType as AtomEventType } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import http from "../../lib/http";
+import http from "../../../lib/http";
 
-export const QUERY_KEY = "get-event-by-id";
-export const useGetEventTypeById = (id: number | null) => {
-  const pathname = `/${V2_ENDPOINTS.eventTypes}/${id}?for=atom`;
+export const QUERY_KEY = "use-event-by-id";
+export const useEventTypeById = (id: number | null) => {
+  const pathname = `/${V2_ENDPOINTS.eventTypes}/${id}`;
 
   return useQuery({
     queryKey: [QUERY_KEY, id],
