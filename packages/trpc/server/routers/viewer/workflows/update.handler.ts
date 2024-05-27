@@ -1,10 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import {
-  isSMSOrWhatsappAction,
-  isTextMessageToAttendeeAction,
-  isTextMessageToSpecificNumber,
-} from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import { isSMSOrWhatsappAction } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -41,6 +37,45 @@ type UpdateOptions = {
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
+};
+
+const verifyEmailSender = async (
+  email: string,
+  userId: number,
+  teamId: number | null,
+  prisma: PrismaClient
+) => {
+  const verifiedEmail = await prisma.verifiedEmail.findFirst({
+    where: {
+      email,
+      OR: [{ userId }, { teamId }],
+    },
+  });
+
+  if (!verifiedEmail) {
+    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  }
+
+  if (teamId) {
+    if (!verifiedEmail.teamId) {
+      await prisma.verifiedEmail.update({
+        where: {
+          id: verifiedEmail.id,
+        },
+        data: {
+          teamId,
+        },
+      });
+    } else if (verifiedEmail.teamId !== teamId) {
+      await prisma.verifiedEmail.create({
+        data: {
+          email,
+          userId,
+          teamId,
+        },
+      });
+    }
+  }
 };
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
@@ -83,8 +118,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     isTeamsPlan = !!hasTeamPlan;
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
-
-  const hasOrgsPlan = IS_SELF_HOSTED || (ctx.user.profile?.organizationId ?? null);
 
   const where: Prisma.EventTypeWhereInput = {};
   where.id = {
@@ -303,8 +336,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             };
             if (
               step.action === WorkflowActions.EMAIL_HOST ||
-              step.action === WorkflowActions.EMAIL_ATTENDEE /*||
-                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+              step.action === WorkflowActions.EMAIL_ATTENDEE ||
+              step.action === WorkflowActions.EMAIL_ADDRESS
             ) {
               let sendTo: string[] = [];
 
@@ -315,8 +348,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
-                /*case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";*/
+                case WorkflowActions.EMAIL_ADDRESS:
+                  await verifyEmailSender(step.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+                  sendTo = [step.sendTo || ""];
+                  break;
               }
 
               await scheduleEmailReminder({
@@ -427,33 +462,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
       // check if step that require team plan already existed before
-      if (
-        !hasPaidPlan &&
-        !isTextMessageToSpecificNumber(oldStep.action) &&
-        isTextMessageToSpecificNumber(newStep.action)
-      ) {
+      if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
       }
-      // check if step that require org already existed before
-      if (
-        !hasOrgsPlan &&
-        !isTextMessageToAttendeeAction(oldStep.action) &&
-        isTextMessageToAttendeeAction(newStep.action)
-      ) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan required" });
-      }
       const requiresSender =
-        newStep.action === WorkflowActions.SMS_NUMBER || newStep.action === WorkflowActions.WHATSAPP_NUMBER;
+        newStep.action === WorkflowActions.SMS_NUMBER ||
+        newStep.action === WorkflowActions.WHATSAPP_NUMBER ||
+        newStep.action === WorkflowActions.EMAIL_ADDRESS;
+
+      if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
+        await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+      }
       await ctx.prisma.workflowStep.update({
         where: {
           id: oldStep.id,
         },
         data: {
           action: newStep.action,
-          sendTo: requiresSender /*||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
-            ? newStep.sendTo
-            : null,
+          sendTo: requiresSender ? newStep.sendTo : null,
           stepNumber: newStep.stepNumber,
           workflowId: newStep.workflowId,
           reminderBody: newStep.reminderBody,
@@ -540,8 +566,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           };
           if (
             newStep.action === WorkflowActions.EMAIL_HOST ||
-            newStep.action === WorkflowActions.EMAIL_ATTENDEE /*||
-                newStep.action === WorkflowActions.EMAIL_ADDRESS*/
+            newStep.action === WorkflowActions.EMAIL_ATTENDEE ||
+            newStep.action === WorkflowActions.EMAIL_ADDRESS
           ) {
             let sendTo: string[] = [];
 
@@ -552,8 +578,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                 break;
-              /*case WorkflowActions.EMAIL_ADDRESS:
-                    sendTo = newStep.sendTo || "";*/
+              case WorkflowActions.EMAIL_ADDRESS:
+                sendTo = newStep.sendTo ? [newStep.sendTo] : [];
+                break;
             }
 
             await scheduleEmailReminder({
@@ -613,11 +640,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //added steps
   const addedSteps = steps.map((s) => {
     if (s.id <= 0) {
-      if (isSMSOrWhatsappAction(s.action) && !isTextMessageToAttendeeAction(s.action) && !hasPaidPlan) {
+      if (isSMSOrWhatsappAction(s.action) && !hasPaidPlan) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
-      }
-      if (!hasOrgsPlan && isTextMessageToAttendeeAction(s.action)) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "Enterprise plan require" });
       }
       const { id: _stepId, ...stepToAdd } = s;
       return stepToAdd;
@@ -632,6 +656,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           sender: newStep.sender || null,
           senderName: senderName,
         });
+        if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
+          await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+        }
         const createdStep = await ctx.prisma.workflowStep.create({
           data: { ...newStep, numberVerificationPending: false },
         });
@@ -686,8 +713,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
             if (
               step.action === WorkflowActions.EMAIL_ATTENDEE ||
-              step.action === WorkflowActions.EMAIL_HOST /*||
-                  step.action === WorkflowActions.EMAIL_ADDRESS*/
+              step.action === WorkflowActions.EMAIL_HOST ||
+              step.action === WorkflowActions.EMAIL_ADDRESS
             ) {
               let sendTo: string[] = [];
 
@@ -698,8 +725,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
                   break;
-                /*case WorkflowActions.EMAIL_ADDRESS:
-                      sendTo = step.sendTo || "";*/
+                case WorkflowActions.EMAIL_ADDRESS:
+                  sendTo = step.sendTo ? [step.sendTo] : [];
+                  break;
               }
 
               await scheduleEmailReminder({

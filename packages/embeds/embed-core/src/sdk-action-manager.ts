@@ -56,6 +56,11 @@ export type EventDataMap = {
     };
     eventType: unknown;
   };
+  routed: {
+    actionType: "customPageMessage" | "externalRedirectUrl" | "eventTypeRedirectUrl";
+    actionValue: string;
+  };
+  navigatedToBooker: Record<string, never>;
   "*": Record<string, unknown>;
   __routeChanged: Record<string, never>;
   __windowLoadComplete: Record<string, never>;

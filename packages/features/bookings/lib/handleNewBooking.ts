@@ -11,19 +11,20 @@ import type { Logger } from "tslog";
 import { v5 as uuidv5 } from "uuid";
 import z from "zod";
 
+import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import type { LocationObject } from "@calcom/app-store/locations";
 import {
-  getLocationValueForDB,
   MeetLocationType,
   OrganizerDefaultConferencingAppType,
+  getLocationValueForDB,
 } from "@calcom/app-store/locations";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -52,10 +53,18 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
-import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import {
+  deleteWebhookScheduledTriggers,
+  scheduleTrigger,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  isPrismaObjOrUndefined,
+  parseBookingLimit,
+  parseDurationLimit,
+  parseRecurringEvent,
+} from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -79,9 +88,9 @@ import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
+  EventTypeMetaDataSchema,
   bookingCreateSchemaLegacyPropsForApi,
   customInputSchema,
-  EventTypeMetaDataSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 import type {
@@ -192,6 +201,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      minimumBookingNotice: true,
       userId: true,
       price: true,
       currency: true,
@@ -225,6 +235,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       timeZone: true,
       schedule: {
         select: {
+          id: true,
           availability: true,
           timeZone: true,
         },
@@ -290,7 +301,6 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
         usernameList: dynamicUserList,
         orgSlug: isValidOrgDomain ? currentOrgDomain : null,
       });
-
       return users;
     }
     const hosts = eventType.hosts || [];
@@ -356,24 +366,25 @@ export async function ensureAvailableUsers(
     });
   }
 
-  for (const user of eventType.users) {
-    const { dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
-      {
+  (
+    await getUsersAvailability({
+      users: eventType.users,
+      query: {
         ...input,
-        userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
         dateFrom: startDateTimeUtc.format(),
         dateTo: endDateTimeUtc.format(),
       },
-      {
-        user,
+      initialData: {
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
-        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter((b) => b.userId === user.id),
-      }
-    );
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      },
+    })
+  ).forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+    const user = eventType.users[index];
 
     log.debug(
       "calendarBusyTimes==>>>",
@@ -389,7 +400,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     let foundConflict = false;
@@ -416,7 +427,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     try {
@@ -428,7 +439,8 @@ export async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
     }
-  }
+  });
+
   if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
@@ -700,6 +712,7 @@ async function createBooking({
       newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
     }
   }
+
   const createBookingObj = {
     include: {
       user: {
@@ -902,10 +915,24 @@ type BookingDataSchemaGetter =
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
 async function handler(
-  req: NextApiRequest & { userId?: number | undefined },
+  req: NextApiRequest & {
+    userId?: number | undefined;
+    platformClientId?: string;
+    platformRescheduleUrl?: string;
+    platformCancelUrl?: string;
+    platformBookingUrl?: string;
+    platformBookingLocation?: string;
+  },
   bookingDataSchemaGetter: BookingDataSchemaGetter = getBookingDataSchema
 ) {
-  const { userId } = req;
+  const {
+    userId,
+    platformClientId,
+    platformCancelUrl,
+    platformBookingUrl,
+    platformRescheduleUrl,
+    platformBookingLocation,
+  } = req;
 
   // handle dynamic user
   let eventType =
@@ -993,13 +1020,18 @@ async function handler(
 
   let timeOutOfBounds = false;
   try {
-    timeOutOfBounds = isOutOfBounds(reqBody.start, {
-      periodType: eventType.periodType,
-      periodDays: eventType.periodDays,
-      periodEndDate: eventType.periodEndDate,
-      periodStartDate: eventType.periodStartDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-    });
+    timeOutOfBounds = isOutOfBounds(
+      reqBody.start,
+      {
+        periodType: eventType.periodType,
+        periodDays: eventType.periodDays,
+        periodEndDate: eventType.periodEndDate,
+        periodStartDate: eventType.periodStartDate,
+        periodCountCalendarDays: eventType.periodCountCalendarDays,
+        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+      },
+      eventType.minimumBookingNotice
+    );
   } catch (error) {
     loggerWithEventDetails.warn({
       message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
@@ -1399,9 +1431,13 @@ async function handler(
 
   // Organizer or user owner of this event type it's not listed as a team member.
   const teamMemberPromises = users.slice(1).map(async (user) => {
+    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
     // push to teamDestinationCalendars if it's a team event but collective only
     if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push(user.destinationCalendar);
+      teamDestinationCalendars.push({
+        ...user.destinationCalendar,
+        externalId: processExternalId(user.destinationCalendar),
+      });
     }
 
     return {
@@ -1490,7 +1526,7 @@ async function handler(
     responses: reqBody.calEventResponses || null,
     userFieldsResponses: reqBody.calEventUserFieldsResponses || null,
     attendees: attendeesList,
-    location: bookingLocation, // Will be processed by the EventManager later.
+    location: platformBookingLocation ?? bookingLocation, // Will be processed by the EventManager later.
     conferenceCredentialId,
     destinationCalendar,
     hideCalendarNotes: eventType.hideCalendarNotes,
@@ -1503,6 +1539,10 @@ async function handler(
     schedulingType: eventType.schedulingType,
     iCalUID,
     iCalSequence,
+    platformClientId,
+    platformRescheduleUrl,
+    platformCancelUrl,
+    platformBookingUrl,
   };
 
   if (req.body.thirdPartyRecurringEventId) {
@@ -1747,18 +1787,22 @@ async function handler(
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
-    const newDestinationCalendar = evt.destinationCalendar;
-
-    evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+    // If organizer is changed in RR event then we need to delete the previous host destination calendar events
+    const previousHostDestinationCalendar = originalRescheduledBooking?.destinationCalendar
       ? [originalRescheduledBooking?.destinationCalendar]
-      : originalRescheduledBooking?.user?.destinationCalendar
-      ? [originalRescheduledBooking?.user.destinationCalendar]
-      : evt.destinationCalendar;
+      : [];
 
     if (changedOrganizer) {
       evt.title = getEventName(eventNameObject);
       // location might changed and will be new created in eventManager.create (organizer default location)
       evt.videoCallData = undefined;
+      // To prevent "The requested identifier already exists" error while updating event, we need to remove iCalUID
+      evt.iCalUID = undefined;
+    } else {
+      // In case of rescheduling, we need to keep the previous host destination calendar
+      evt.destinationCalendar = originalRescheduledBooking?.destinationCalendar
+        ? [originalRescheduledBooking?.destinationCalendar]
+        : evt.destinationCalendar;
     }
 
     const updateManager = await eventManager.reschedule(
@@ -1766,7 +1810,7 @@ async function handler(
       originalRescheduledBooking.uid,
       undefined,
       changedOrganizer,
-      newDestinationCalendar
+      previousHostDestinationCalendar
     );
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
@@ -1829,7 +1873,11 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+            ? googleCalResult.updatedEvent[0]?.hangoutLink
+            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
@@ -1838,32 +1886,35 @@ async function handler(
             // Add google_meet to referencesToCreate in the same index as google_calendar
             updateManager.referencesToCreate[googleCalIndex] = {
               ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
             };
 
             // Also create a new referenceToCreate with type video for google_meet
             updateManager.referencesToCreate.push({
               type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
               uid: googleCalResult.uid,
               credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
             });
           }
         }
-
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0]?.updatedEvent[0]
+          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
-          results[0].createdEvent?.url ||
+          createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
+          getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
       }
 
@@ -2223,38 +2274,49 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
-        }
+    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const scheduleTriggerPromises = [];
+
+    if (rescheduleUid && originalRescheduledBooking) {
+      //delete all scheduled triggers for meeting ended and meeting started of booking
+      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
+        booking: originalRescheduledBooking,
       });
+    }
 
-      subscribersMeetingStarted.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      for (const subscriber of subscribersMeetingEnded) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
             booking,
-            subscriber.subscriberUrl,
+            subscriberUrl: subscriber.subscriberUrl,
             subscriber,
-            WebhookTriggerEvents.MEETING_STARTED
-          );
-        }
-      });
-    } catch (error) {
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
+      }
+
+      for (const subscriber of subscribersMeetingStarted) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
+      }
+    }
+
+    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
-        "Error while running scheduledJobs for booking",
+        "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
       );
-    }
+    });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
@@ -2326,7 +2388,6 @@ async function handler(
       isFirstRecurringEvent: true,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
-      eventTypeRequiresConfirmation: eventType.requiresConfirmation,
     });
   } catch (error) {
     loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));

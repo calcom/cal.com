@@ -1,22 +1,27 @@
 "use client";
 
+import type { DailyCall } from "@daily-co/daily-js";
 import DailyIframe from "@daily-co/daily-js";
+import { DailyProvider } from "@daily-co/daily-react";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { ChevronRight } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
+
+import { CalAiTranscribe } from "~/videos/ai/ai-transcribe";
 
 import { type PageProps } from "./videos-single-view.getServerSideProps";
 
 export default function JoinCall(props: PageProps) {
   const { t } = useLocale();
-  const { meetingUrl, meetingPassword, booking } = props;
+  const { meetingUrl, meetingPassword, booking, hasTeamPlan } = props;
+  const [daily, setDaily] = useState<DailyCall | null>(null);
 
   useEffect(() => {
     const callFrame = DailyIframe.createFrame({
@@ -42,8 +47,22 @@ export default function JoinCall(props: PageProps) {
       },
       url: meetingUrl,
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
+      ...(hasTeamPlan && {
+        customTrayButtons: {
+          transcription: {
+            label: "Cal.ai",
+            tooltip: "Transcription powered by AI",
+            iconPath: `${WEBAPP_URL}/sparkles.svg`,
+            iconPathDarkMode: `${WEBAPP_URL}/sparkles.svg`,
+          },
+        },
+      }),
     });
+
+    setDaily(callFrame);
+
     callFrame.join();
+
     return () => {
       callFrame.destroy();
     };
@@ -67,30 +86,35 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:title" content={`${APP_NAME} Video`} />
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
-      <div style={{ zIndex: 2, position: "relative" }}>
-        {booking?.user?.organization?.calVideoLogo ? (
-          <img
-            className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
-            src={booking.user.organization.calVideoLogo}
-            alt="My Org Logo"
-            style={{
-              top: 32,
-              left: 32,
-            }}
-          />
-        ) : (
-          <img
-            className="fixed z-10 hidden sm:inline-block"
-            src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
-            alt="Logo"
-            style={{
-              top: 32,
-              left: 32,
-            }}
-          />
-        )}
-      </div>
-      <VideoMeetingInfo booking={booking} />
+      <DailyProvider callObject={daily}>
+        <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 60, width: "100%" }}>
+          <CalAiTranscribe />
+        </div>
+        <div style={{ zIndex: 2, position: "relative" }}>
+          {booking?.user?.organization?.calVideoLogo ? (
+            <img
+              className="min-w-16 min-h-16 fixed z-10 hidden aspect-square h-16 w-16 rounded-full sm:inline-block"
+              src={booking.user.organization.calVideoLogo}
+              alt="My Org Logo"
+              style={{
+                top: 32,
+                left: 32,
+              }}
+            />
+          ) : (
+            <img
+              className="fixed z-10 hidden h-5 sm:inline-block"
+              src={`${WEBSITE_URL}/cal-logo-word-dark.svg`}
+              alt="Logo"
+              style={{
+                top: 47,
+                left: 20,
+              }}
+            />
+          )}
+        </div>
+        <VideoMeetingInfo booking={booking} />
+      </DailyProvider>
     </>
   );
 }
@@ -231,7 +255,8 @@ export function VideoMeetingInfo(props: VideoMeetingInfo) {
             aria-label={`${open ? "close" : "open"} booking description sidebar`}
             className="h-20 w-6 rounded-r-md border border-l-0 border-gray-300/20 bg-black/60 text-white shadow-sm backdrop-blur-lg"
             onClick={() => setOpen(!open)}>
-            <ChevronRight
+            <Icon
+              name="chevron-right"
               aria-hidden
               className={classNames(open && "rotate-180", "w-5 transition-all duration-300 ease-in-out")}
             />

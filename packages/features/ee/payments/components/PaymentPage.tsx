@@ -9,8 +9,8 @@ import { useEffect, useState } from "react";
 import { getSuccessPageLocationMessage } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { PayIcon } from "@calcom/features/bookings/components/event-meta/PayIcon";
 import { Price } from "@calcom/features/bookings/components/event-meta/Price";
-import { getPayIcon } from "@calcom/features/bookings/components/event-meta/getPayIcon";
 import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -76,7 +76,6 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
   }, [isEmbed]);
 
   const eventName = props.booking.title;
-  const PayIcon = getPayIcon(paymentAppData.currency);
 
   return (
     <div className="h-screen">
@@ -103,7 +102,7 @@ const PaymentPage: FC<PaymentPageProps> = (props) => {
                 aria-labelledby="modal-headline">
                 <div>
                   <div className="bg-success mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-                    <PayIcon className="h-8 w-8 text-green-600" />
+                    <PayIcon currency={paymentAppData.currency} className="h-8 w-8 text-green-600" />
                   </div>
 
                   <div className="mt-3 text-center sm:mt-5">

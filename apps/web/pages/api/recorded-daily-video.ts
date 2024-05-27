@@ -6,7 +6,7 @@ import { z } from "zod";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -15,7 +15,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getSubLogger({ prefix: ["recorded-daily-video"] });
+const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
 const schema = z
   .object({
@@ -80,7 +80,10 @@ const triggerWebhook = async ({
       ...evt,
       downloadLink,
     }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+      log.error(
+        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
+      );
     })
   );
   await Promise.all(promises);
@@ -116,7 +119,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const response = schema.safeParse(req.body);
 
   log.debug(
-    "Recording Request Body:",
+    "Daily video recording webhook Request Body:",
     safeStringify({
       response,
     })
@@ -144,12 +147,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
     if (!bookingReference || !bookingReference.bookingId) {
       log.error(
-        "bookingReference:",
+        "bookingReference not found error:",
         safeStringify({
           bookingReference,
+          room_name,
+          recording_id,
         })
       );
-      return res.status(404).send({ message: "Booking reference not found" });
+      return res.status(200).send({ message: "Booking reference not found" });
     }
 
     const booking = await prisma.booking.findUniqueOrThrow({

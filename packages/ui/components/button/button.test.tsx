@@ -1,9 +1,7 @@
 /* eslint-disable playwright/missing-playwright-await */
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { vi } from "vitest";
-
-import { Plus } from "@calcom/ui/components/icon";
 
 import { Button, buttonClasses } from "./Button";
 
@@ -138,43 +136,43 @@ describe("Tests for Button component", () => {
     expect(button.tagName).toBe("BUTTON");
   });
 
-  test("Should render StartIcon and Plus icon if is fab variant", () => {
+  test("Should render StartIcon and Plus icon if is fab variant", async () => {
     render(
-      <Button variant="fab" StartIcon={Plus} data-testid="start-icon">
+      <Button variant="fab" StartIcon="plus" data-testid="start-icon">
         Test Button
       </Button>
     );
-    expect(screen.getByTestId("start-icon")).toBeInTheDocument();
-    expect(screen.getByTestId("plus")).toBeInTheDocument();
+    expect(await screen.findByTestId("start-icon")).toBeInTheDocument();
+    expect(await screen.findByTestId("plus")).toBeInTheDocument();
   });
 
-  test("Should render just StartIcon if is not fab variant", () => {
+  test("Should render just StartIcon if is not fab variant", async () => {
     render(
-      <Button StartIcon={Plus} data-testid="start-icon">
+      <Button StartIcon="plus" data-testid="start-icon">
         Test Button
       </Button>
     );
-    expect(screen.getByTestId("start-icon")).toBeInTheDocument();
+    expect(await screen.findByTestId("start-icon")).toBeInTheDocument();
     expect(screen.queryByTestId("plus")).not.toBeInTheDocument();
   });
 
-  test("Should render EndIcon and Plus icon if is fab variant", () => {
+  test("Should render EndIcon and Plus icon if is fab variant", async () => {
     render(
-      <Button variant="fab" EndIcon={Plus} data-testid="end-icon">
+      <Button variant="fab" EndIcon="plus" data-testid="end-icon">
         Test Button
       </Button>
     );
-    expect(screen.getByTestId("end-icon")).toBeInTheDocument();
-    expect(screen.getByTestId("plus")).toBeInTheDocument();
+    expect(await screen.findByTestId("end-icon")).toBeInTheDocument();
+    expect(await screen.findByTestId("plus")).toBeInTheDocument();
   });
 
-  test("Should render just EndIcon if is not fab variant", () => {
+  test("Should render just EndIcon if is not fab variant", async () => {
     render(
-      <Button EndIcon={Plus} data-testid="end-icon">
+      <Button EndIcon="plus" data-testid="end-icon">
         Test Button
       </Button>
     );
-    expect(screen.getByTestId("end-icon")).toBeInTheDocument();
+    expect(await screen.findByTestId("end-icon")).toBeInTheDocument();
     expect(screen.queryByTestId("plus")).not.toBeInTheDocument();
   });
 

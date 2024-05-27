@@ -4,22 +4,24 @@ import { v4 as uuid } from "uuid";
 
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import type { CurrentSeats } from "@calcom/core/getUserAvailability";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
+import { isDateOutOfBounds, isTimeOutOfBounds, calculatePeriodLimits } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
@@ -30,6 +32,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
+import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
 export const checkIfIsAvailable = ({
   time,
@@ -169,6 +172,7 @@ export async function getEventType(
       metadata: true,
       schedule: {
         select: {
+          id: true,
           availability: {
             select: {
               date: true,
@@ -296,7 +300,23 @@ function applyOccupiedSeatsToCurrentSeats(currentSeats: CurrentSeats, occupiedSe
   return currentSeats;
 }
 
-export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
+export interface IGetAvailableSlots {
+  slots: Record<
+    string,
+    {
+      time: string;
+      attendees?: number | undefined;
+      bookingUid?: string | undefined;
+      away?: boolean | undefined;
+      fromUser?: IFromUser | undefined;
+      toUser?: IToUser | undefined;
+      reason?: string | undefined;
+      emoji?: string | undefined;
+    }[]
+  >;
+}
+
+export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
     ? {
         currentOrgDomain: input.orgSlug,
@@ -319,6 +339,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     logger.settings.minLevel = 2;
   }
 
+  const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
+  const startTimeAsIsoString = input.startTime;
+  const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
+
+  // If startTime is already sent in the past, we don't need to adjust it.
+  // We assume that the client is already sending startTime as per their requirement.
+  // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
+  const startTimeAdjustedForRollingWindowComputation =
+    isStartTimeInPast || !isRollingWindowPeriodType
+      ? startTimeAsIsoString
+      : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
+
   const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
@@ -335,7 +367,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   };
 
-  const startTime = getStartTime(input.startTime, input.timeZone);
+  const startTime = getStartTime(startTimeAdjustedForRollingWindowComputation, input.timeZone);
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -439,52 +471,54 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     });
   }
 
+  const users = usersWithCredentials.map((currentUser) => {
+    return {
+      ...currentUser,
+      currentBookings: currentBookingsAllUsers
+        .filter((b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email))
+        .map((bookings) => {
+          const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
+          return bookingWithoutAttendees;
+        }),
+    };
+  });
+
   /* We get all users working hours and busy slots */
-  const allUsersAvailability = await Promise.all(
-    usersWithCredentials.map(async (currentUser) => {
-      const {
-        busy,
-        dateRanges,
-        currentSeats: _currentSeats,
-        timeZone,
-      } = await getUserAvailability(
-        {
-          userId: currentUser.id,
-          username: currentUser.username || "",
-          dateFrom: startTime.format(),
-          dateTo: endTime.format(),
-          eventTypeId: eventType.id,
-          afterEventBuffer: eventType.afterEventBuffer,
-          beforeEventBuffer: eventType.beforeEventBuffer,
-          duration: input.duration || 0,
-          returnDateOverrides: false,
-        },
-        {
-          user: currentUser,
-          eventType,
-          currentSeats,
-          rescheduleUid: input.rescheduleUid,
-          currentBookings: currentBookingsAllUsers
-            .filter(
-              (b) => b.userId === currentUser.id || b.attendees?.some((a) => a.email === currentUser.email)
-            )
-            .map((bookings) => {
-              const { attendees: _attendees, ...bookingWithoutAttendees } = bookings;
-              return bookingWithoutAttendees;
-            }),
-          busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers.filter(
-            (b) => b.userId === currentUser.id
-          ),
-        }
-      );
+  const allUsersAvailability = (
+    await getUsersAvailability({
+      users,
+      query: {
+        dateFrom: startTime.format(),
+        dateTo: endTime.format(),
+        eventTypeId: eventType.id,
+        afterEventBuffer: eventType.afterEventBuffer,
+        beforeEventBuffer: eventType.beforeEventBuffer,
+        duration: input.duration || 0,
+        returnDateOverrides: false,
+      },
+      initialData: {
+        eventType,
+        currentSeats,
+        rescheduleUid: input.rescheduleUid,
+        busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
+      },
+    })
+  ).map(
+    (
+      { busy, dateRanges, oooExcludedDateRanges, currentSeats: _currentSeats, timeZone, datesOutOfOffice },
+      index
+    ) => {
+      const currentUser = users[index];
       if (!currentSeats && _currentSeats) currentSeats = _currentSeats;
       return {
         timeZone,
         dateRanges,
+        oooExcludedDateRanges,
         busy,
         user: currentUser,
+        datesOutOfOffice,
       };
-    })
+    }
   );
 
   const availabilityCheckProps = {
@@ -492,20 +526,16 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     currentSeats,
   };
 
-  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
-    !isTimeOutOfBounds(_time, {
-      periodType: eventType.periodType,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodDays: eventType.periodDays,
-    });
-
   const getSlotsTime = 0;
   const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
   const checkForAvailabilityCount = 0;
   const aggregatedAvailability = getAggregatedAvailability(allUsersAvailability, eventType.schedulingType);
+
+  const isTeamEvent =
+    eventType.schedulingType === SchedulingType.COLLECTIVE ||
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
+    allUsersAvailability.length > 1;
 
   const timeSlots = getSlots({
     inviteeDate: startTime,
@@ -516,6 +546,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
   let availableTimeSlots: typeof timeSlots = [];
@@ -604,7 +635,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
       );
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
   // fr-CA uses YYYY-MM-DD
   const formatter = new Intl.DateTimeFormat("fr-CA", {
     year: "numeric",
@@ -613,7 +643,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     timeZone: input.timeZone,
   });
 
-  const computedAvailableSlots = availableTimeSlots.reduce(
+  const slotsMappedToDate = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
@@ -648,16 +678,78 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions) {
     Object.create(null)
   );
 
+  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+
+  const availableDates = Object.keys(slotsMappedToDate);
+  const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
+  loggerWithEventDetails.debug(safeStringify({ availableDates }));
+
+  const periodLimits = calculatePeriodLimits({
+    periodType: eventType.periodType,
+    periodDays: eventType.periodDays,
+    periodCountCalendarDays: eventType.periodCountCalendarDays,
+    periodStartDate: eventType.periodStartDate,
+    periodEndDate: eventType.periodEndDate,
+    allDatesWithBookabilityStatus,
+    utcOffset: input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0,
+  });
+
+  let foundALimitViolation = false;
+  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
+    (withinBoundsSlotsMappedToDate, [date, slots]) => {
+      // Computation Optimization: If a limit violation has been found, we just consider all slots to be out of bounds beyond that date.
+      // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
+      if (foundALimitViolation && doesRangeStartFromToday(eventType.periodType)) {
+        return withinBoundsSlotsMappedToDate;
+      }
+      const isDateWithinBound = !isDateOutOfBounds({ dateString: date, periodLimits });
+      if (isDateWithinBound) {
+        // TODO: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
+        withinBoundsSlotsMappedToDate[date] = slots.filter(
+          (slot) =>
+            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+        );
+      } else {
+        foundALimitViolation = true;
+      }
+      return withinBoundsSlotsMappedToDate;
+    },
+    {} as typeof slotsMappedToDate
+  );
+
   loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
   loggerWithEventDetails.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
+
+  // We only want to run this on single targeted events and not dynamic
+  if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
+    try {
+      await handleNotificationWhenNoSlots({
+        eventDetails: {
+          username: input.usernameList?.[0],
+          startTime: startTime,
+          eventSlug: eventType.slug,
+        },
+        orgDetails,
+      });
+    } catch (e) {
+      loggerWithEventDetails.error(
+        `Something has went wrong. Upstash could be down and we have caught the error to not block availability:
+ ${e}`
+      );
+    }
+  }
 
   return {
-    slots: computedAvailableSlots,
+    slots: withinBoundsSlotsMappedToDate,
   };
+}
+
+function doesRangeStartFromToday(periodType: PeriodType) {
+  return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
 }
 
 async function getUserIdFromUsername(
@@ -688,4 +780,21 @@ async function getTeamIdFromSlug(
     },
   });
   return team?.id;
+}
+
+export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
+  const availableDatesSet = new Set(availableDates);
+  const firstDate = dayjs(availableDates[0]);
+  const lastDate = dayjs(availableDates[availableDates.length - 1]);
+  const allDates: Record<string, { isBookable: boolean }> = {};
+
+  let currentDate = firstDate;
+  while (currentDate <= lastDate) {
+    allDates[currentDate.format("YYYY-MM-DD")] = {
+      isBookable: availableDatesSet.has(currentDate.format("YYYY-MM-DD")),
+    };
+
+    currentDate = currentDate.add(1, "day");
+  }
+  return allDates;
 }

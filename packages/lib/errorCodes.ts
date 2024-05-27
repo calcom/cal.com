@@ -13,4 +13,7 @@ export enum ErrorCode {
   NotEnoughAvailableSeats = "not_enough_available_seats_error",
   AvailabilityNotFoundInSchedule = "availability_not_found_in_schedule_error",
   CancelledBookingsCannotBeRescheduled = "cancelled_bookings_cannot_be_rescheduled",
+  UnableToSubscribeToThePlatform = "unable_to_subscribe_to_the_platform",
+  UpdatingOauthClientError = "updating_oauth_client_error",
+  CreatingOauthClientError = "creating_oauth_client_error",
 }

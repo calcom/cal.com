@@ -12,7 +12,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useInitialFormValues } from "./useInitialFormValues";
 
 export interface IUseBookingForm {
-  event: useEventReturnType;
+  event: useEventReturnType["data"];
   sessionEmail?: string | null;
   sessionName?: string | null;
   sessionUsername?: string | null;
@@ -42,9 +42,9 @@ export const useBookingForm = ({
 
   const bookingFormSchema = z
     .object({
-      responses: event?.data
+      responses: event
         ? getBookingResponsesSchema({
-            bookingFields: event.data.bookingFields,
+            bookingFields: event.bookingFields,
             view: rescheduleUid ? "reschedule" : "booking",
           })
         : // Fallback until event is loaded.
@@ -62,7 +62,7 @@ export const useBookingForm = ({
   const isRescheduling = !!rescheduleUid && !!bookingData;
 
   const { initialValues, key } = useInitialFormValues({
-    eventType: event.data,
+    eventType: event,
     rescheduleUid,
     isRescheduling,
     email: sessionEmail,
@@ -101,7 +101,7 @@ export const useBookingForm = ({
 
     // It shouldn't be possible that this method is fired without having event data,
     // but since in theory (looking at the types) it is possible, we still handle that case.
-    if (!event?.data) {
+    if (!event) {
       bookingForm.setError("globalError", { message: t("error_booking_event") });
       return;
     }
