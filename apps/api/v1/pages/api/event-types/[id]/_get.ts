@@ -87,7 +87,7 @@ async function checkPermissions<T extends BaseEventTypeCheckPermissions>(
   req: NextApiRequest,
   eventType: (T & Partial<Omit<T, keyof BaseEventTypeCheckPermissions>>) | null
 ) {
-  if (req.isAdmin) return true;
+  if (req.isSystemWideAdmin) return true;
   if (eventType?.teamId) {
     req.query.teamId = String(eventType.teamId);
     await canAccessTeamEventOrThrow(req, {

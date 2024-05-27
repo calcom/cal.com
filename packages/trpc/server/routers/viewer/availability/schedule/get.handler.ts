@@ -1,7 +1,8 @@
+import type { ScheduleWithAvailabilitiesForWeb } from "@calcom/lib";
 import {
-  transformAvailabilityForAtom,
-  transformDateOverridesForAtom,
-  transformWorkingHoursForAtom,
+  transformAvailabilityForClient,
+  transformDateOverridesForClient,
+  transformWorkingHoursForClient,
 } from "@calcom/lib";
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
@@ -19,7 +20,7 @@ type GetOptions = {
   input: TGetInputSchema;
 };
 
-export const getHandler = async ({ ctx, input }: GetOptions) => {
+export const getHandler = async ({ ctx, input }: GetOptions): Promise<ScheduleWithAvailabilitiesForWeb> => {
   const { user } = ctx;
 
   const schedule = await prisma.schedule.findUnique({
@@ -65,11 +66,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     id: schedule.id,
     name: schedule.name,
     isManaged: schedule.userId !== user.id,
-    workingHours: transformWorkingHoursForAtom(schedule),
+    workingHours: transformWorkingHoursForClient(schedule),
     schedule: schedule.availability,
-    availability: transformAvailabilityForAtom(schedule),
+    availability: transformAvailabilityForClient(schedule),
     timeZone,
-    dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
+    dateOverrides: transformDateOverridesForClient(schedule, timeZone),
     isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
     isLastSchedule: schedulesCount <= 1,
     readOnly: schedule.userId !== user.id && !input.isManagedEventType,
