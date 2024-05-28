@@ -1502,7 +1502,7 @@ export function mockCrmApp(
     getContacts?: {
       id: string;
       email: string;
-      ownerEmail;
+      ownerEmail: string;
     }[];
   }
 ) {
