@@ -1,4 +1,4 @@
-import cache from "memory-cache";
+import * as cache from "memory-cache";
 
 import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 
@@ -8,7 +8,7 @@ import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 class LicenseKeyService {
   private readonly baseUrl: string;
   private readonly licenseKey: string;
-  private readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
+  public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
 
   // Private constructor to prevent direct instantiation
   private constructor(baseUrl: string, licenseKey: string) {
@@ -25,12 +25,14 @@ class LicenseKeyService {
 
     const licenseKey = await getDeploymentKey(prisma);
 
-    return new LicenseKeyService(baseUrl, licenseKey);
+    // It is thrown if no baseUrl is set - just weird ctor logic
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return new LicenseKeyService(baseUrl!, licenseKey);
   }
 
   async incrementUsage() {
     try {
-      const response = await fetch(`${this.baseUrl}/usage/increment/${key}`, {
+      const response = await fetch(`${this.baseUrl}/usage/increment/${this.licenseKey}`, {
         method: "POST",
         mode: "cors",
       });
