@@ -24,7 +24,6 @@ vi.mock("@calcom/prisma");
 vi.mock("~/lib/utils/isAdmin", () => ({
   isAdminGuard: vi.fn(),
 }));
-vi.mock("../../../../../../tests/libs/__mocks__/prismaMock");
 
 describe("Verify API key", () => {
   let service: LicenseKeyService;
