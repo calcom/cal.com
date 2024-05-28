@@ -1,4 +1,3 @@
-import setDefaultConferencingApp from "_utils/setDefaultConferencingApp";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
@@ -7,6 +6,7 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const state = decodeOAuthState(req);
