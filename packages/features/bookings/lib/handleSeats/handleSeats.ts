@@ -128,6 +128,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,
+      attendeeSeatId: resultBooking?.seatReferenceUid,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
