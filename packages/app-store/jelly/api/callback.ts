@@ -1,3 +1,4 @@
+import setDefaultConferencingApp from "_utils/setDefaultConferencingApp";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
@@ -5,8 +6,10 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const state = decodeOAuthState(req);
   const userId = req.session?.user.id;
   if (!userId) {
     return res.status(404).json({ message: "No user found" });
@@ -53,6 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     { access_token: responseBody.access_token },
     req
   );
+  if (state?.defaultInstall) {
+    setDefaultConferencingApp(userId, "jelly", "jelly_conferencing");
+  }
 
   res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "jelly" }));
 }
