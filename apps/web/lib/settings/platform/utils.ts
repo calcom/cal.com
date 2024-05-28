@@ -1,3 +1,5 @@
+import type { IconName } from "@calcom/ui";
+
 type IndividualPlatformPlan = {
   plan: string;
   description: string;
@@ -6,7 +8,7 @@ type IndividualPlatformPlan = {
 };
 
 type HelpCardInfo = {
-  icon: string;
+  icon: IconName;
   variant: "basic" | "ProfileCard" | "SidebarCard" | null;
   title: string;
   description: string;
