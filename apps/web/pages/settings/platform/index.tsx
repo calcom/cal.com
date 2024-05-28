@@ -2,7 +2,7 @@ import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
 import Shell from "@calcom/features/shell/Shell";
-import { Card, Icon, showToast } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
 
 import {
   useOAuthClients,
@@ -11,6 +11,7 @@ import {
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import { ManagedUserList } from "@components/settings/platform/dashboard/managed-user-list";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -68,46 +69,7 @@ export default function Platform() {
             withoutMain={false}
             subtitle="Manage everything related to platform."
             isPlatformUser={true}>
-            <>
-              <div className="grid-col-1 mb-4 grid gap-2 md:grid-cols-3">
-                <div>
-                  <Card
-                    icon={<Icon name="rocket" className="h-5 w-5 text-green-700" />}
-                    variant="basic"
-                    title="Try our Platform Starter Kit"
-                    description="If you are building a marketplace or platform from scratch, our Platform Starter Kit has everything you need."
-                    actionButton={{
-                      href: `https://experts.cal.com`,
-                      child: "Try the Demo",
-                    }}
-                  />
-                </div>
-                <div>
-                  <Card
-                    icon={<Icon name="github" className="h-5 w-5 text-orange-700" />}
-                    variant="basic"
-                    title="Get the Source code"
-                    description="Our Platform Starter Kit is being used in production by Cal.com itself. You can find the ready-to-rock source code on GitHub."
-                    actionButton={{
-                      href: `https://github.com/calcom/examples`,
-                      child: "GitHub",
-                    }}
-                  />
-                </div>
-                <div>
-                  <Card
-                    icon={<Icon name="calendar-check-2" className="h-5 w-5 text-red-700" />}
-                    variant="basic"
-                    title="Contact us"
-                    description="Book our engineering team for a 15 minute onboarding call and debug a problem. Please come prepared with questions."
-                    actionButton={{
-                      href: `https://i.cal.com/platform`,
-                      child: "Schedule a call",
-                    }}
-                  />
-                </div>
-              </div>
-            </>
+            <HelpCards />
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
             <ManagedUserList
               oauthClients={data}
