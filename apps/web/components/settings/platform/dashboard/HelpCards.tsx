@@ -10,7 +10,7 @@ export const HelpCards = () => {
           return (
             <div key={card.title}>
               <Card
-                icon={<Icon name="rocket" className="h-5 w-5 text-green-700" />}
+                icon={<Icon name={card.icon} className="h-5 w-5 text-green-700" />}
                 variant={card.variant}
                 title={card.title}
                 description={card.description}
