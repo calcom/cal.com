@@ -3,13 +3,12 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
+import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
-
-import LicenseKeyService from "~/ee/common/server/LicenseKeyService";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
