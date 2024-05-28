@@ -122,7 +122,7 @@ export class BillingController {
       await this.billingService.setSubscriptionForTeam(
         teamId,
         subscription,
-        PlatformPlan[plan as keyof typeof PlatformPlan]
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
 
       return {
