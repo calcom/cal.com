@@ -412,7 +412,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
+    team: (
+      <EventTeamTab
+        teamMembers={teamMembers}
+        team={team}
+        eventType={eventType}
+        updateEventType={() => handleSubmit(formMethods.getValues())}
+      />
+    ),
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
@@ -549,7 +556,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       length,
       ...input
     } = dirtyValues;
-    if (!Number(length)) throw new Error(t("event_setup_length_error"));
+    if (length && !Number(length)) throw new Error(t("event_setup_length_error"));
 
     if (bookingLimits) {
       const isValid = validateIntervalLimitOrder(bookingLimits);

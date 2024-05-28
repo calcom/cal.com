@@ -118,7 +118,7 @@ const AddMembersWithSwitch = ({
   placeholder?: string;
   containerClassName?: string;
   setMemberInviteModal?: Dispatch<SetStateAction<boolean>>;
-  handleEmailInvite?: (email: string) => void;
+  handleEmailInvite?: (email: string, isFixed: boolean) => void;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -166,7 +166,7 @@ const AddMembersWithSwitch = ({
                   e.preventDefault();
                   setMemberInviteModal(true);
                   setNoOptionLeft(false);
-                  handleEmailInvite(emails);
+                  handleEmailInvite(emails, isFixed);
                 }
               }
             }}

@@ -105,7 +105,7 @@ const FixedHosts = ({
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
-  handleEmailInvite: (email: string) => void;
+  handleEmailInvite: (email: string, isFixed: boolean) => void;
   setMemberInviteModal: Dispatch<SetStateAction<boolean>>;
   isRoundRobinEvent?: boolean;
 }) => {
@@ -212,7 +212,7 @@ const RoundRobinHosts = ({
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
   setMemberInviteModal: Dispatch<SetStateAction<boolean>>;
-  handleEmailInvite: (email: string) => void;
+  handleEmailInvite: (email: string, isFixed: boolean) => void;
 } & Pick<EventTypeSetupProps, "team">) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
@@ -291,10 +291,12 @@ const Hosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   team,
+  updateEventType,
 }: {
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
+  updateEventType?: () => void;
 } & Pick<EventTypeSetupProps, "team">) => {
   const { t, i18n } = useLocale();
   const {
@@ -315,6 +317,7 @@ const Hosts = ({
   const utils = trpc.useUtils();
   const [showMemberInviteModal, setShowMemberInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState<undefined | string>(undefined);
+  const [isFixed, setIsFixed] = useState(true);
   const session = useSession();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
   const { data: orgMembersNotInThisTeam } = trpc.viewer.organizations.getMembers.useQuery(
@@ -329,8 +332,9 @@ const Hosts = ({
 
   const orgId = session.data?.user.org?.id;
 
-  const handleEmailInvite = (email: string) => {
+  const handleEmailInvite = (email: string, isFixed: boolean) => {
     setInviteEmail(email);
+    setIsFixed(isFixed);
   };
 
   useEffect(() => {
@@ -420,6 +424,13 @@ const Hosts = ({
                         await utils.viewer.eventTypes.get.invalidate({ id: getValues("id") });
                         await utils.viewer.organizations.getMembers.invalidate();
                         setShowMemberInviteModal(false);
+                        const updatedEventType: EventTypeSetupProps = await utils.viewer.eventTypes.get.fetch(
+                          { id: getValues("id") }
+                        );
+
+                        const members = updatedEventType.team?.members;
+                        const hosts = getValues("hosts");
+                        const newHosts: Host[] = [];
 
                         if (Array.isArray(data.usernameOrEmail)) {
                           showToast(
@@ -429,6 +440,18 @@ const Hosts = ({
                             "success"
                           );
                           resetFields();
+
+                          const membersToAdd = members?.filter(
+                            (member) =>
+                              data.usernameOrEmail.includes(member.user.username || "") ||
+                              data.usernameOrEmail.includes(member.user.email)
+                          );
+
+                          if (!membersToAdd) return;
+
+                          membersToAdd.forEach((member) =>
+                            newHosts.push({ isFixed: isFixed, userId: member.user.id, priority: 2 })
+                          );
                         } else {
                           showToast(
                             t("email_invite_team", {
@@ -436,7 +459,22 @@ const Hosts = ({
                             }),
                             "success"
                           );
+                          const memberToAdd = members?.find(
+                            (member) =>
+                              member.user.username === data.usernameOrEmail ||
+                              member.user.email === data.usernameOrEmail
+                          );
+
+                          if (!memberToAdd) return;
+                          newHosts.push({
+                            isFixed: isFixed,
+                            userId: memberToAdd.user.id,
+                            priority: 2,
+                          });
                         }
+
+                        setValue("hosts", [...newHosts, ...hosts], { shouldDirty: true });
+                        updateEventType && updateEventType();
                       },
                       onError: (error) => {
                         showToast(error.message, "error");
@@ -457,7 +495,10 @@ export const EventTeamTab = ({
   team,
   teamMembers,
   eventType,
-}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
+  updateEventType,
+}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType"> & {
+  updateEventType?: () => void;
+}) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -540,6 +581,7 @@ export const EventTeamTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={allMembers}
             team={team}
+            updateEventType={updateEventType}
           />
         </>
       )}
