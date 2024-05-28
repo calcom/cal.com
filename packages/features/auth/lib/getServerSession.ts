@@ -3,12 +3,13 @@ import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from 
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
+
+import LicenseKeyService from "~/ee/common/server/LicenseKeyService";
 
 const log = logger.getSubLogger({ prefix: ["getServerSession"] });
 /**
@@ -65,7 +66,8 @@ export async function getServerSession(options: {
     return null;
   }
 
-  const hasValidLicense = await checkLicense(prisma);
+  const licenseKeyService = await LicenseKeyService.create();
+  const hasValidLicense = await licenseKeyService.checkLicense();
 
   let upId = token.upId;
 

@@ -7,7 +7,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -27,6 +26,8 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+
+import LicenseKeyService from "~/ee/common/server/LicenseKeyService";
 
 import { ErrorCode } from "./ErrorCode";
 import { isPasswordValid } from "./isPasswordValid";
@@ -622,7 +623,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const hasValidLicense = await checkLicense(prisma);
+      const licenseKeyService = await LicenseKeyService.create();
+      const hasValidLicense = await licenseKeyService.checkLicense();
+
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,

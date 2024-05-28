@@ -5,5 +5,5 @@ export async function getDeploymentKey(prisma: PrismaClient) {
     where: { id: 1 },
     select: { licenseKey: true },
   });
-  return deployment?.licenseKey || process.env.CALCOM_LICENSE_KEY || "";
+  return process.env.CALCOM_LICENSE_KEY || deployment?.licenseKey || "";
 }

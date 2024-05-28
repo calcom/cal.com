@@ -27,7 +27,7 @@ async function checkLicense(
    * to our private-api
    * const url = `${CONSOLE_URL}/api/license?key=${schemaLicenseKey.parse(licenseKey)}`;
    */
-  const url = `${process.env.CALCOM_PRIVATE_API_ROUTE}/api/license/${schemaLicenseKey.parse(licenseKey)}`;
+  const url = `${process.env.CALCOM_PRIVATE_API_ROUTE}/v1/license/${schemaLicenseKey.parse(licenseKey)}`;
   const cachedResponse = cache.get(url);
   if (cachedResponse) {
     return cachedResponse;
