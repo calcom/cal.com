@@ -587,7 +587,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_ATTENDEE",
                 template: "REMINDER",
-                activeOnTeams: [1],
+                activeOnTeams: [2],
               },
             ],
             eventTypes: [

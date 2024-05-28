@@ -300,22 +300,21 @@ const getAllWorkflows = async (
         .flat();
       allWorkflows.push(...orgTeamWorkflows);
     } else if (teamId) {
-      const teamWithWorkflows = await prisma.team.findFirst({
+      const teamWorkflows = await prisma.workflowsOnTeams.findMany({
         where: {
-          id: teamId,
+          teamId: teamId,
         },
         select: {
-          activeOrgWorkflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
-              },
-            },
+          workflow: {
+            select: workflowSelect,
           },
+          team: true,
         },
       });
-      const orgTeamWorkflows =
-        teamWithWorkflows?.activeOrgWorkflows.map((workflowRel) => workflowRel.workflow) || [];
+
+      const orgTeamWorkflows = teamWorkflows.length
+        ? teamWorkflows.map((workflowRel) => workflowRel.workflow)
+        : [];
       allWorkflows.push(...orgTeamWorkflows);
     }
 

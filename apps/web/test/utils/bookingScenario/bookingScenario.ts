@@ -469,7 +469,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
         },
       });
       if (workflows) {
-        // Create the activeOn or activeOnTeams records
+        //activate event types and teams on workflows
         if (isOrg && workflow.activeOnTeams) {
           await Promise.all(
             workflow.activeOnTeams.map((id) =>
