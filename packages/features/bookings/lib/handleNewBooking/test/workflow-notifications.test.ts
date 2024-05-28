@@ -541,8 +541,7 @@ describe("handleNewBooking", () => {
     );
   });
   describe("Org Workflows", () => {
-    test("should send workflow email on team even type when team is active on workflow", async ({
-      sms,
+    test("should trigger workflow when a new team event is booked team and this team is active on workflow", async ({
       emails,
     }) => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
@@ -641,13 +640,12 @@ describe("handleNewBooking", () => {
         body: mockBookingData,
       });
 
-      const createdBooking = await handleNewBooking(req);
+      await handleNewBooking(req);
 
-      // expectWorkflowToBeTriggered({
-      //   // emailsToReceive: [organizer.email].concat(otherTeamMembers.map(member => member.email)),
-      //   emailsToReceive: [organizer.email],
-      //   emails,
-      // });
+      expectWorkflowToBeTriggered({
+        emailsToReceive: ["booker@example.com"],
+        emails,
+      });
     });
   });
 });
