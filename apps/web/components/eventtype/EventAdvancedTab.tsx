@@ -65,6 +65,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     bookingFields[name] = `${name} input`;
   });
 
+  const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
+  const isSplit = (nameBookingField && nameBookingField.variant === "firstAndLastName") ?? false;
+
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
@@ -564,6 +567,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
+          isNameFieldSplit={isSplit}
           event={eventNameObject}
         />
       )}
