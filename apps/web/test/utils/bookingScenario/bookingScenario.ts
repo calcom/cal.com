@@ -46,7 +46,8 @@ type InputWorkflow = {
   userId?: number | null;
   teamId?: number | null;
   name?: string;
-  activeEventTypeId?: number;
+  activeOn?: number[];
+  activeOnTeams?: number[];
   trigger: WorkflowTriggerEvents;
   action: WorkflowActions;
   template: WorkflowTemplates;
@@ -430,32 +431,69 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 }
 
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  await prismock.$transaction(
-    workflows.map((workflow) => {
-      return prismock.workflow.create({
+  await Promise.all(
+    workflows.map(async (workflow) => {
+      const team = await prismock.team.findFirst({
+        where: {
+          id: workflow.teamId ?? 0,
+        },
+      });
+
+      if (workflow.teamId && !team) {
+        throw new Error(`Team with ID ${workflow.teamId} not found`);
+      }
+
+      const isOrg = team?.isOrganization;
+
+      // Create the workflow first
+      const createdWorkflow = await prismock.workflow.create({
         data: {
           userId: workflow.userId,
           teamId: workflow.teamId,
           trigger: workflow.trigger,
           name: workflow.name ? workflow.name : "Test Workflow",
           steps: {
-            create: {
-              stepNumber: 1,
-              action: workflow.action,
-              template: workflow.template,
-              numberVerificationPending: false,
-              includeCalendarEvent: false,
-            },
-          },
-          activeOn: {
-            create: workflow.activeEventTypeId ? { eventTypeId: workflow.activeEventTypeId } : undefined,
+            create: [
+              {
+                stepNumber: 1,
+                action: workflow.action,
+                template: workflow.template,
+                numberVerificationPending: false,
+                includeCalendarEvent: false,
+              },
+            ],
           },
         },
         include: {
-          activeOn: true,
           steps: true,
         },
       });
+      if (workflows) {
+        // Create the activeOn or activeOnTeams records
+        if (isOrg && workflow.activeOnTeams) {
+          await Promise.all(
+            workflow.activeOnTeams.map((id) =>
+              prismock.workflowsOnTeams.create({
+                data: {
+                  workflowId: createdWorkflow.id,
+                  teamId: id,
+                },
+              })
+            )
+          );
+        } else if (workflow.activeOn) {
+          await Promise.all(
+            workflow.activeOn.map((id) =>
+              prismock.workflowsOnEventTypes.create({
+                data: {
+                  workflowId: createdWorkflow.id,
+                  eventTypeId: id,
+                },
+              })
+            )
+          );
+        }
+      }
     })
   );
 }
@@ -641,6 +679,7 @@ export async function createOrganization(orgData: {
     data: {
       name: orgData.name,
       slug: orgData.slug,
+      isOrganization: true,
       metadata: {
         ...(orgData.metadata || {}),
         isOrganization: true,
