@@ -10,7 +10,7 @@ import { showToast } from "@calcom/ui";
 
 import { AvailabilitySettings } from "../AvailabilitySettings";
 
-export const WebAvailabilitySettingsWrapper = () => {
+export const AvailabilitySettingsWebWrapper = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
