@@ -14,5 +14,6 @@
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "basic",
-  "scope": "ZohoBigin.modules.events.ALL,ZohoBigin.modules.contacts.ALL"
+  "scope": "ZohoBigin.modules.events.ALL,ZohoBigin.modules.contacts.ALL",
+  "isOAuth": true
 }

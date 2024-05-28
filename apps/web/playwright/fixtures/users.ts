@@ -1,4 +1,5 @@
 import type { Page, WorkerInfo } from "@playwright/test";
+import { expect } from "@playwright/test";
 import type Prisma from "@prisma/client";
 import type { Team } from "@prisma/client";
 import { Prisma as PrismaType } from "@prisma/client";
@@ -33,6 +34,30 @@ const userIncludes = PrismaType.validator<PrismaType.UserInclude>()({
   credentials: true,
   routingForms: true,
 });
+
+type InstallStripeParamsSkipTrue = {
+  eventTypeIds?: number[];
+  skip: true;
+};
+
+type InstallStripeParamsSkipFalse = {
+  skip: false;
+  eventTypeIds: number[];
+};
+type InstallStripeParamsUnion = InstallStripeParamsSkipTrue | InstallStripeParamsSkipFalse;
+type InstallStripeTeamPramas = InstallStripeParamsUnion & {
+  page: Page;
+  teamId: number;
+};
+type InstallStripePersonalPramas = InstallStripeParamsUnion & {
+  page: Page;
+};
+
+type InstallStripeParams = InstallStripeParamsUnion & {
+  redirectUrl: string;
+  buttonSelector: string;
+  page: Page;
+};
 
 const userWithEventTypes = PrismaType.validator<PrismaType.UserArgs>()({
   include: userIncludes,
@@ -650,6 +675,12 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
           userId: user.id,
         },
       }),
+    getUserEventsAsOwner: async () =>
+      prisma.eventType.findMany({
+        where: {
+          userId: user.id,
+        },
+      }),
     getFirstTeamEvent: async (teamId: number) => {
       return prisma.eventType.findFirstOrThrow({
         where: {
@@ -657,12 +688,15 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
         },
       });
     },
-    getPaymentCredential: async () => getPaymentCredential(store.page),
     setupEventWithPrice: async (eventType: Pick<Prisma.EventType, "id">, slug: string) =>
       setupEventWithPrice(eventType, slug, store.page),
     bookAndPayEvent: async (eventType: Pick<Prisma.EventType, "slug">) =>
       bookAndPayEvent(user, eventType, store.page),
     makePaymentUsingStripe: async () => makePaymentUsingStripe(store.page),
+    installStripePersonal: async (params: InstallStripeParamsUnion) =>
+      installStripePersonal({ page: store.page, ...params }),
+    installStripeTeam: async (params: InstallStripeParamsUnion & { teamId: number }) =>
+      installStripeTeam({ page: store.page, ...params }),
     // ths is for developemnt only aimed to inject debugging messages in the metadata field of the user
     debug: async (message: string | Record<string, JSONValue>) => {
       await prisma.user.update({
@@ -908,18 +942,49 @@ export async function makePaymentUsingStripe(page: Page) {
   await page.click('button:has-text("Pay now")');
 }
 
-export async function getPaymentCredential(page: Page) {
+const installStripePersonal = async (params: InstallStripePersonalPramas) => {
+  const redirectUrl = `apps/installation/event-types?slug=stripe`;
+  const buttonSelector = '[data-testid="install-app-button-personal"]';
+  await installStripe({ redirectUrl, buttonSelector, ...params });
+};
+
+const installStripeTeam = async ({ teamId, ...params }: InstallStripeTeamPramas) => {
+  const redirectUrl = `apps/installation/event-types?slug=stripe&teamId=${teamId}`;
+  const buttonSelector = `[data-testid="install-app-button-team${teamId}"]`;
+  await installStripe({ redirectUrl, buttonSelector, ...params });
+};
+const installStripe = async ({
+  page,
+  skip,
+  eventTypeIds,
+  redirectUrl,
+  buttonSelector,
+}: InstallStripeParams) => {
   await page.goto("/apps/stripe");
-
   /** We start the Stripe flow */
-  await Promise.all([
-    page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*"),
-    page.click('[data-testid="install-app-button"]'),
-  ]);
+  await page.click('[data-testid="install-app-button"]');
+  await page.click(buttonSelector);
 
-  await Promise.all([
-    page.waitForURL("/apps/installed/payment?hl=stripe"),
-    /** We skip filling Stripe forms (testing mode only) */
-    page.click('[id="skip-account-app"]'),
-  ]);
-}
+  await page.waitForURL("https://connect.stripe.com/oauth/v2/authorize?*");
+  /** We skip filling Stripe forms (testing mode only) */
+  await page.click('[id="skip-account-app"]');
+  await page.waitForURL(redirectUrl);
+  if (skip) {
+    await page.click('[data-testid="set-up-later"]');
+    return;
+  }
+  for (const id of eventTypeIds) {
+    await page.click(`[data-testid="select-event-type-${id}"]`);
+  }
+  await page.click(`[data-testid="save-event-types"]`);
+  for (let index = 0; index < eventTypeIds.length; index++) {
+    await page.locator('[data-testid="stripe-price-input"]').nth(index).fill(`1${index}`);
+  }
+  await page.click(`[data-testid="configure-step-save"]`);
+  await page.waitForURL(`event-types`);
+  for (let index = 0; index < eventTypeIds.length; index++) {
+    await page.goto(`event-types/${eventTypeIds[index]}?tabName=apps`);
+    await expect(page.getByTestId(`stripe-app-switch`)).toBeChecked();
+    await expect(page.getByTestId(`stripe-price-input`)).toHaveValue(`1${index}`);
+  }
+};

@@ -48,3 +48,16 @@ export const EventTypeAddonMap = {
   "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
   zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
 };
+export const EventTypeSettingsMap = {
+  alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),
+  basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppSettingsInterface")),
+  fathom: dynamic(() => import("./fathom/components/EventTypeAppSettingsInterface")),
+  ga4: dynamic(() => import("./ga4/components/EventTypeAppSettingsInterface")),
+  giphy: dynamic(() => import("./giphy/components/EventTypeAppSettingsInterface")),
+  gtm: dynamic(() => import("./gtm/components/EventTypeAppSettingsInterface")),
+  metapixel: dynamic(() => import("./metapixel/components/EventTypeAppSettingsInterface")),
+  paypal: dynamic(() => import("./paypal/components/EventTypeAppSettingsInterface")),
+  plausible: dynamic(() => import("./plausible/components/EventTypeAppSettingsInterface")),
+  qr_code: dynamic(() => import("./qr_code/components/EventTypeAppSettingsInterface")),
+  stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppSettingsInterface")),
+};
