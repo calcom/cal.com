@@ -74,13 +74,11 @@ export default function Platform() {
                   <Card
                     icon={<Icon name="rocket" className="h-5 w-5 text-green-700" />}
                     variant="basic"
-                    title={t("Try our Platform Starter Kit")}
-                    description={t(
-                      "If you are building a marketplace or platform from scratch, our Platform Starter Kit has everything you need."
-                    )}
+                    title="Try our Platform Starter Kit"
+                    description="If you are building a marketplace or platform from scratch, our Platform Starter Kit has everything you need."
                     actionButton={{
                       href: `https://experts.cal.com`,
-                      child: t("Try the Demo"),
+                      child: "Try the Demo",
                     }}
                   />
                 </div>
@@ -88,10 +86,8 @@ export default function Platform() {
                   <Card
                     icon={<Icon name="github" className="h-5 w-5 text-orange-700" />}
                     variant="basic"
-                    title={t("Get the Source code")}
-                    description={t(
-                      "Our Platform Starter Kit is being used in production by Cal.com itself. You can find the ready-to-rock source code on GitHub."
-                    )}
+                    title="Get the Source code"
+                    description="Our Platform Starter Kit is being used in production by Cal.com itself. You can find the ready-to-rock source code on GitHub."
                     actionButton={{
                       href: `https://github.com/calcom/examples`,
                       child: "GitHub",
@@ -103,9 +99,7 @@ export default function Platform() {
                     icon={<Icon name="calendar-check-2" className="h-5 w-5 text-red-700" />}
                     variant="basic"
                     title="Contact us"
-                    description={t(
-                      "Book our engineering team for a 15 minute onboarding call and debug a problem. Please come prepared with questions."
-                    )}
+                    description="Book our engineering team for a 15 minute onboarding call and debug a problem. Please come prepared with questions."
                     actionButton={{
                       href: `https://i.cal.com/platform`,
                       child: "Schedule a call",
