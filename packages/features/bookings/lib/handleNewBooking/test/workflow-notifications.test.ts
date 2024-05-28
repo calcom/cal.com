@@ -543,7 +543,7 @@ describe("handleNewBooking", () => {
   describe("Org Workflows", () => {
     test("should send workflow email on team even type when team is active on workflow", async ({
       sms,
-      email,
+      emails,
     }) => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const org = await createOrganization({
@@ -642,6 +642,12 @@ describe("handleNewBooking", () => {
       });
 
       const createdBooking = await handleNewBooking(req);
+
+      // expectWorkflowToBeTriggered({
+      //   // emailsToReceive: [organizer.email].concat(otherTeamMembers.map(member => member.email)),
+      //   emailsToReceive: [organizer.email],
+      //   emails,
+      // });
     });
   });
 });

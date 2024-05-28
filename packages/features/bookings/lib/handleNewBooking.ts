@@ -177,7 +177,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           credentials: {
             select: credentialForCalendarServiceSelect,
           },
-          profiles: true,
           ...userSelect.select,
         },
       },
@@ -186,11 +185,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           id: true,
           name: true,
-          parent: {
-            select: {
-              id: true,
-            },
-          },
+          parentId: true,
         },
       },
       bookingFields: true,
@@ -226,6 +221,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
+          profiles: true,
         },
       },
       workflows: {
@@ -1377,7 +1373,7 @@ async function handler(
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
 
   const isManagedEventType = !!eventType.parentId;
-
+  console.log(`team here: ${JSON.stringify(eventType.team)}`);
   // use host default
   if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
@@ -2391,7 +2387,7 @@ async function handler(
     await scheduleWorkflowReminders({
       eventTypeWorkflows,
       userId: eventType.userId ?? undefined,
-      orgId: eventType.team ? eventType.team.parent.id : eventType.user.profiles[0]?.organizationId,
+      orgId: eventType.team ? eventType.team.parentId : eventType.owner?.profiles[0]?.organizationId,
       teamId: eventType.team?.id,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,

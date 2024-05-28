@@ -452,22 +452,27 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
           teamId: workflow.teamId,
           trigger: workflow.trigger,
           name: workflow.name ? workflow.name : "Test Workflow",
-          steps: {
-            create: [
-              {
-                stepNumber: 1,
-                action: workflow.action,
-                template: workflow.template,
-                numberVerificationPending: false,
-                includeCalendarEvent: false,
-              },
-            ],
-          },
         },
         include: {
           steps: true,
         },
       });
+
+      await prismock.workflowStep.create({
+        data: {
+          stepNumber: 1,
+          action: workflow.action,
+          template: workflow.template,
+          numberVerificationPending: false,
+          includeCalendarEvent: false,
+          workflow: {
+            connect: {
+              id: createdWorkflow.id,
+            },
+          },
+        },
+      });
+
       if (workflows) {
         //activate event types and teams on workflows
         if (isOrg && workflow.activeOnTeams) {
