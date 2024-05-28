@@ -276,33 +276,16 @@ const getAllWorkflows = async (
 
   if (orgId) {
     if (userId) {
-      const teamsWithWorkflows = await prisma.team.findMany({
+      const orgUserWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
-          members: {
-            some: {
-              userId,
-              accepted: true,
-            },
-          },
-        },
-        select: {
-          activeOrgWorkflows: {
-            select: {
-              workflow: {
-                select: workflowSelect,
+          team: {
+            members: {
+              some: {
+                userId: userId,
+                accepted: true,
               },
             },
           },
-        },
-      });
-      const orgTeamWorkflows = teamsWithWorkflows
-        .map((team) => team.activeOrgWorkflows.map((worklfowRel) => worklfowRel.workflow))
-        .flat();
-      allWorkflows.push(...orgTeamWorkflows);
-    } else if (teamId) {
-      const teamWorkflows = await prisma.workflowsOnTeams.findMany({
-        where: {
-          teamId: teamId,
         },
         select: {
           workflow: {
@@ -312,9 +295,21 @@ const getAllWorkflows = async (
         },
       });
 
-      const orgTeamWorkflows = teamWorkflows.length
-        ? teamWorkflows.map((workflowRel) => workflowRel.workflow)
-        : [];
+      const orgUserWorkflows = orgUserWorkflowsRel.map((workflowRel) => workflowRel.workflow) ?? [];
+      allWorkflows.push(...orgUserWorkflows);
+    } else if (teamId) {
+      const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
+        where: {
+          teamId: teamId,
+        },
+        select: {
+          workflow: {
+            select: workflowSelect,
+          },
+        },
+      });
+
+      const orgTeamWorkflows = orgTeamWorkflowsRel?.map((workflowRel) => workflowRel.workflow) ?? [];
       allWorkflows.push(...orgTeamWorkflows);
     }
 

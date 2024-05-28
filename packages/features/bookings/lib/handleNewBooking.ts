@@ -39,6 +39,7 @@ import {
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/getOrgIdFromMemberOrTeamId";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -221,7 +222,6 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       owner: {
         select: {
           hideBranding: true,
-          profiles: true,
         },
       },
       workflows: {
@@ -2383,11 +2383,13 @@ async function handler(
     evt.attendeeSeatId
   );
 
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUser.id, teamId: eventType.team?.id });
+
   try {
     await scheduleWorkflowReminders({
       eventTypeWorkflows,
-      userId: eventType.userId ?? undefined,
-      orgId: eventType.team ? eventType.team.parentId : eventType.owner?.profiles[0]?.organizationId,
+      userId: organizerUser.id ?? undefined,
+      orgId: orgId,
       teamId: eventType.team?.id,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,

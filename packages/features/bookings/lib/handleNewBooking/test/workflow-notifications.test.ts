@@ -573,6 +573,16 @@ describe("handleNewBooking", () => {
               parentId: org.id,
             },
           },
+          {
+            membership: {
+              accepted: true,
+            },
+            team: {
+              id: 1,
+              name: "Team 1",
+              slug: "team-1",
+            },
+          },
         ],
         schedules: [TestData.schedules.IstMorningShift],
       });
@@ -645,6 +655,122 @@ describe("handleNewBooking", () => {
       expectWorkflowToBeTriggered({
         emailsToReceive: ["booker@example.com"],
         emails,
+      });
+    });
+
+    test("should trigger workflow when a new user event is booked and the user is part of an org team that is active on a workflow", async ({
+      sms,
+    }) => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+      });
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        defaultScheduleId: null,
+        organizationId: org.id,
+        teams: [
+          {
+            membership: {
+              accepted: true,
+            },
+            team: {
+              id: 2,
+              name: "Team 1",
+              slug: "team-1",
+              parentId: org.id,
+            },
+          },
+          {
+            membership: {
+              accepted: true,
+            },
+            team: {
+              id: 1,
+              name: "Test Org",
+              slug: "testorg",
+            },
+          },
+        ],
+        schedules: [TestData.schedules.IstMorningShift],
+      });
+
+      await createBookingScenario(
+        getScenarioData(
+          {
+            workflows: [
+              {
+                teamId: 1,
+                trigger: "NEW_EVENT",
+                action: "SMS_ATTENDEE",
+                template: "REMINDER",
+                activeOnTeams: [2],
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer: {
+              ...organizer,
+              username: "organizer",
+            },
+            apps: [TestData.apps["daily-video"]],
+          },
+          { id: org.id }
+        )
+      );
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          // Try booking the first available free timeslot in both the users' schedules
+          start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+            smsReminderNumber: "000",
+          },
+        },
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      await handleNewBooking(req);
+
+      expectSMSWorkflowToBeTriggered({
+        sms,
+        toNumber: "000",
       });
     });
   });
