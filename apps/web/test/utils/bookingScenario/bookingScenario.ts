@@ -95,6 +95,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       id: number;
       name: string;
       slug: string;
+      parentId?: number;
     };
   }[];
   schedules: {
@@ -493,8 +494,17 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
 
 async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
+  const teamsWithParentId = teams.map((team) => ({
+    ...team,
+    parentId: team.parentId,
+    parent: {
+      connect: {
+        id: team.parentId,
+      },
+    },
+  }));
   await prismock.team.createMany({
-    data: teams,
+    data: teamsWithParentId,
   });
   const addedTeams = await prismock.team.findMany({
     where: {
@@ -1061,6 +1071,10 @@ export function getScenarioData(
       return {
         ...eventType,
         teamId: eventType.teamId || null,
+        team: {
+          id: eventType.teamId,
+          parentId: org ? org.id : null,
+        },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
       };

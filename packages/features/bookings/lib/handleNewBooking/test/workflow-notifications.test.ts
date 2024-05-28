@@ -10,6 +10,7 @@ import {
   BookingLocations,
   getDate,
   Timezones,
+  createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
 import {
@@ -538,5 +539,100 @@ describe("handleNewBooking", () => {
       },
       timeout
     );
+  });
+  describe("Org Workflows", () => {
+    test("should send workflow email on team even type when team is active on workflow", async ({
+      sms,
+      email,
+    }) => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const org = await createOrganization({
+        name: "Test Org",
+        slug: "testorg",
+      });
+
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        defaultScheduleId: null,
+        organizationId: org.id,
+        teams: [
+          {
+            membership: {
+              accepted: true,
+            },
+            team: {
+              id: 2,
+              name: "Team 1",
+              slug: "team-1",
+              parentId: org.id,
+            },
+          },
+        ],
+        schedules: [TestData.schedules.IstMorningShift],
+      });
+
+      await createBookingScenario(
+        getScenarioData(
+          {
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 15,
+                schedulingType: SchedulingType.COLLECTIVE,
+                length: 15,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                teamId: 2,
+              },
+            ],
+            organizer: {
+              ...organizer,
+              username: "organizer",
+            },
+            apps: [TestData.apps["daily-video"]],
+          },
+          { id: org.id }
+        )
+      );
+      mockSuccessfulVideoMeetingCreation({
+        metadataLookupKey: "dailyvideo",
+        videoMeetingData: {
+          id: "MOCK_ID",
+          password: "MOCK_PASS",
+          url: `http://mock-dailyvideo.example.com/meeting-1`,
+        },
+      });
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          // Try booking the first available free timeslot in both the users' schedules
+          start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
+          end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: BookingLocations.CalVideo },
+          },
+        },
+      });
+
+      const { req } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      const createdBooking = await handleNewBooking(req);
+    });
   });
 });
