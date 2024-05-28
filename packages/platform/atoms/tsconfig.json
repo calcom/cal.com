@@ -43,5 +43,5 @@
     "../../trpc",
     "../../app-store"
   ],
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build", "node_modules", "**/*WebWrapper.tsx"]
 }

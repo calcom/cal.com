@@ -13,7 +13,7 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-type PlatformAvailabilitySettingsWrapperProps = {
+type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
@@ -26,7 +26,7 @@ type PlatformAvailabilitySettingsWrapperProps = {
   disableEditableHeading?: boolean;
 };
 
-export const PlatformAvailabilitySettingsWrapper = ({
+export const AvailabilitySettingsPlatformWrapper = ({
   id,
   customClassNames,
   onDeleteError,
@@ -34,7 +34,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   onUpdateError,
   onUpdateSuccess,
   disableEditableHeading = false,
-}: PlatformAvailabilitySettingsWrapperProps) => {
+}: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
   const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
   const { data: me } = useMe();
