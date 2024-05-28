@@ -57,7 +57,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     req
   );
   if (state?.defaultInstall) {
-    setDefaultConferencingApp(userId, "jelly", "jelly_conferencing");
+    setDefaultConferencingApp(userId, "jelly");
   }
 
   res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "jelly" }));
