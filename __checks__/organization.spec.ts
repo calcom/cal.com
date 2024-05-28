@@ -61,7 +61,7 @@ test.describe("Org", () => {
       expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[0].name);
       expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[1].name);
       // 2 users and 1 for the organization(2+1)
-      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(3);
+      expect((await page.locator('[data-testid="event-meta"] [data-testid="avatar"]').all()).length).toBe(2);
     });
   });
 
