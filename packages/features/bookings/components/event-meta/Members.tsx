@@ -2,6 +2,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
@@ -22,7 +23,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const username = useBookerStore((state) => state.username);
   const isDynamic = !!(username && username.indexOf("+") > -1);
   const isEmbed = useIsEmbed();
-  const showMembers = !!schedulingType && schedulingType !== SchedulingType.ROUND_ROBIN;
+  const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
@@ -30,23 +31,29 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
+  const orgOrTeamAvatarItem =
+    isDynamic || (!profile.image && !entity.logoUrl)
+      ? []
+      : [
+          {
+            // We don't want booker to be able to see the list of other users or teams inside the embed
+            href: isEmbed
+              ? null
+              : entity.teamSlug
+              ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+              : getBookerBaseUrlSync(entity.orgSlug),
+            image: entity.logoUrl ?? profile.image ?? "",
+            alt: entity.name ?? profile.name ?? "",
+            title: entity.name ?? profile.name ?? "",
+          },
+        ];
   return (
     <>
       <AvatarGroup
         size="sm"
         className="border-muted"
         items={[
-          ...(isDynamic && !profile.image
-            ? []
-            : [
-                {
-                  // We don't want booker to be able to see the list of other users or teams inside the embed
-                  href: isEmbed ? null : getBookerBaseUrlSync(entity.orgSlug),
-                  image: profile.image || "",
-                  alt: profile.name || "",
-                  title: profile.name || "",
-                },
-              ]),
+          ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
             href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
               user.profile?.username
