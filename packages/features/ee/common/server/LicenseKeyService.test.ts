@@ -56,7 +56,7 @@ describe("LicenseKeyService", () => {
 
       const response = await service.incrementUsage();
       expect(response).toEqual(mockResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/usage/increment/${licenseKey}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/license/usage/increment/${licenseKey}`, {
         method: "POST",
         mode: "cors",
       });

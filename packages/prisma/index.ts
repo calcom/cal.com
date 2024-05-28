@@ -4,6 +4,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
+import { usageTrackingExtention } from "./extensions/usage-tracking";
 import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
@@ -34,6 +35,7 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
+  .$extends(usageTrackingExtention())
   .$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;

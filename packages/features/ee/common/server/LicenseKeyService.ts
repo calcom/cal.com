@@ -32,9 +32,8 @@ class LicenseKeyService {
 
   async incrementUsage() {
     try {
-      const response = await fetch(`${this.baseUrl}/usage/increment/${this.licenseKey}`, {
+      const response = await fetch(`${this.baseUrl}/v1/license/usage/increment/${this.licenseKey}`, {
         method: "POST",
-        mode: "cors",
       });
       return await response.json();
     } catch (error) {
@@ -47,7 +46,7 @@ class LicenseKeyService {
     /** We skip for E2E testing */
     if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
     /** We check first on env */
-    const url = `${process.env.CALCOM_PRIVATE_API_ROUTE}/v1/license/${this.licenseKey}`;
+    const url = `${this.baseUrl}/v1/license/${this.licenseKey}`;
     const cachedResponse = cache.get(url);
     if (cachedResponse) {
       return cachedResponse;
