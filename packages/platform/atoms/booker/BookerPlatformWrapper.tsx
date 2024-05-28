@@ -52,6 +52,8 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
     guests?: string[];
     name?: string;
     email?: string;
+    notes?: string;
+    rescheduleReason?: string;
   } & Record<string, string | string[]>;
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
