@@ -2,10 +2,11 @@ import type { AuditLogsManager } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-
-import type { Credential } from ".prisma/client";
+import type { Credential } from "@calcom/prisma/client";
 
 const auditLogImplementations = {
+  // Manually add your Audit Log Implementation
+  // [slug: string]: function that imports entire app
   // example: () => import("./example"),
   genericImplementation: () => import("@calcom/app-store/templates/audit-log-implementation"),
 };

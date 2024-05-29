@@ -1,6 +1,7 @@
 import { AuditLogBookingTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
-import { DefaultAppSettingsOptions, type AppSettingOptionEntry } from "./types";
+import type { DefaultAppSettingOptionEntry } from "./types";
+import { DefaultAppSettingsOptions } from "./types";
 import { getHref } from "./utils";
 
 export const availableTriggerEvents: { [key: string]: string | any } = {
@@ -57,7 +58,7 @@ export const availableTriggerTargets = {
   // },
 };
 
-export function getDefaultAppSettings(credentialId: number): AppSettingOptionEntry[] {
+export function getDefaultAppSettings(credentialId: number): DefaultAppSettingOptionEntry[] {
   return [
     {
       key: DefaultAppSettingsOptions.CREDENTIALS,
