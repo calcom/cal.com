@@ -47,6 +47,13 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
   expect(titleText).toContain(name);
   expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  const avatarLocators = await page.locator('[data-testid="avatar-href"]').all();
+  expect(avatarLocators.length).toBe(1);
+
+  for (const avatarLocator of avatarLocators) {
+    expect(await avatarLocator.getAttribute("href")).toEqual(`${WEBAPP_URL}/${user.username}?redirect=false`);
+  }
+
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
