@@ -112,7 +112,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
     try {
-      await sendAddGuestsEmails(evt);
+      await sendAddGuestsEmails(evt, guests);
     } catch (err) {
       console.log("Error sending AddGuestsEmails");
     }

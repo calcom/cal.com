@@ -424,7 +424,7 @@ export const sendLocationChangeEmails = async (calEvent: CalendarEvent) => {
 
   await Promise.all(emailsToSend);
 };
-export const sendAddGuestsEmails = async (calEvent: CalendarEvent) => {
+export const sendAddGuestsEmails = async (calEvent: CalendarEvent, newGuests: string[]) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
@@ -440,7 +440,11 @@ export const sendAddGuestsEmails = async (calEvent: CalendarEvent) => {
 
   emailsToSend.push(
     ...calendarEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee));
+      if (newGuests.includes(attendee.email)) {
+        return sendEmail(() => new AttendeeScheduledEmail(calendarEvent, attendee));
+      } else {
+        return sendEmail(() => new AttendeeAddGuestsEmail(calendarEvent, attendee));
+      }
     })
   );
 
