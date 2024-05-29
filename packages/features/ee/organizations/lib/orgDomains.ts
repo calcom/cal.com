@@ -110,9 +110,10 @@ export function subdomainSuffix() {
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
-export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
+export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
   if (!slug)
     return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+
   const orgFullOrigin = `${
     options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;

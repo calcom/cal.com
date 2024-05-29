@@ -94,7 +94,7 @@ const OtherTeamProfileView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [teamError]
