@@ -11,6 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -336,6 +337,23 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       appId: credential.appId,
       userId: teamId ? undefined : ctx.user.id,
       teamId,
+    });
+  }
+
+  let metadata = userMetadata.parse(user.metadata);
+
+  if (credential.app?.slug === metadata?.defaultConferencingApp?.appSlug) {
+    metadata = {
+      ...metadata,
+      defaultConferencingApp: undefined,
+    };
+    await prisma.user.update({
+      where: {
+        id: user.id,
+      },
+      data: {
+        metadata,
+      },
     });
   }
 
