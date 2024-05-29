@@ -1,5 +1,7 @@
 import type { NextApiRequest } from "next";
 
+import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
+import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
