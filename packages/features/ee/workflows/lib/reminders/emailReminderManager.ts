@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
   WorkflowActions,
@@ -380,7 +381,11 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   }
 };
 
-export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
+export const deleteScheduledEmailReminder = async (
+  reminderId: number,
+  referenceId: string | null,
+  prisma: PrismaClient
+) => {
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({

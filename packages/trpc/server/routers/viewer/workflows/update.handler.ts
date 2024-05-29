@@ -16,7 +16,7 @@ import {
   upsertSmsReminderFieldForBooking,
   deleteRemindersFromRemovedActiveOn,
   isAuthorizedToAddActiveOnIds,
-  deleteAllReminders,
+  deleteAllWorkflowReminders,
   scheduleWorkflowNotifications,
   verifyEmailSender,
 } from "./util";
@@ -219,7 +219,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
 
-    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg, activeOn);
+    await deleteRemindersFromRemovedActiveOn(
+      removedActiveOn,
+      userWorkflow.steps,
+      isOrg,
+      ctx.prisma,
+      activeOn
+    );
 
     //update active on
     await ctx.prisma.workflowsOnTeams.deleteMany({
@@ -283,7 +289,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //step was deleted
     if (!newStep) {
       // cancel all workflow reminders from deleted steps
-      await deleteAllReminders(remindersFromStep);
+      await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
 
       await ctx.prisma.workflowStep.delete({
         where: {
@@ -328,7 +334,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       // cancel all notifications of edited step
-      await deleteAllReminders(remindersFromStep);
+      await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
 
       // schedule notifications for edited steps
       await scheduleWorkflowNotifications(

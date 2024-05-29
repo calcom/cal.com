@@ -1,7 +1,7 @@
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
-import { deleteAllReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { TRPCError } from "@trpc/server";
 
@@ -131,7 +131,7 @@ const removeMember = async ({
       },
     });
 
-    deleteAllReminders(workflowRemindersToDelete);
+    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
   }
 
   // Deleted managed event types from this team from this member
@@ -172,7 +172,7 @@ const removeMember = async ({
       },
     });
 
-    deleteAllReminders(workflowRemindersToDelete);
+    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
   }
 
   return { membership };

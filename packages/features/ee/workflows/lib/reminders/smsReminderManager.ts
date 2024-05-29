@@ -3,6 +3,7 @@ import { SENDER_ID } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import type { TimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
 import { WorkflowTemplates, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 import { WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -242,7 +243,11 @@ export const scheduleSMSReminder = async (args: ScheduleTextReminderArgs) => {
   }
 };
 
-export const deleteScheduledSMSReminder = async (reminderId: number, referenceId: string | null) => {
+export const deleteScheduledSMSReminder = async (
+  reminderId: number,
+  referenceId: string | null,
+  prisma: PrismaClient
+) => {
   try {
     if (referenceId) {
       await twilio.cancelSMS(referenceId);

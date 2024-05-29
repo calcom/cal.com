@@ -20,8 +20,9 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import { prisma, type PrismaClient } from "@calcom/prisma";
+import type { PrismaClient } from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -33,6 +34,8 @@ import {
 } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
+
+const log = logger.getSubLogger({ prefix: ["workflow"] });
 
 const bookingSelect = {
   userPrimaryEmail: true,
@@ -264,6 +267,7 @@ export async function isAuthorizedToAddActiveOnIds(
 async function getRemindersFromRemovedTeams(
   removedTeams: number[],
   workflowSteps: WorkflowStep[],
+  prisma: PrismaClient,
   activeOn?: number[]
 ) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
@@ -348,7 +352,11 @@ async function getRemindersFromRemovedTeams(
   return remindersToDelete;
 }
 
-async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
+async function getRemindersFromRemovedEventTypes(
+  removedEventTypes: number[],
+  workflowSteps: WorkflowStep[],
+  prisma: PrismaClient
+) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
       id: number;
@@ -356,12 +364,21 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
       method: string;
     }[]
   >[] = [];
-
+  const allRemindres = await prisma.workflowReminder.findMany({
+    select: {
+      booking: {
+        select: {
+          eventTypeId: true,
+        },
+      },
+    },
+  });
+  console.log(`all reminders here ${JSON.stringify(allRemindres)}`);
   removedEventTypes.forEach((eventTypeId) => {
     const remindersToDelete = prisma.workflowReminder.findMany({
       where: {
         booking: {
-          eventTypeId: eventTypeId,
+          eventTypeId,
         },
         workflowStepId: {
           in: workflowSteps.map((step) => {
@@ -383,34 +400,46 @@ async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], wo
   return remindersToDelete;
 }
 
-export async function deleteAllReminders(
-  remindersToDelete: {
-    id: number;
-    referenceId: string | null;
-    method: string;
-  }[]
+export async function deleteAllWorkflowReminders(
+  remindersToDelete:
+    | {
+        id: number;
+        referenceId: string | null;
+        method: string;
+      }[]
+    | null,
+  prisma: PrismaClient
 ) {
+  if (!remindersToDelete) return Promise.resolve();
+
+  const deleteRemindersPromise = [];
+
   for (const reminder of remindersToDelete) {
     if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      deleteRemindersPromise.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId, prisma));
     } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      deleteRemindersPromise.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId, prisma));
     } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+      deleteRemindersPromise.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId, prisma));
     }
   }
+
+  await Promise.all(deleteRemindersPromise).catch((error) => {
+    log.error("An error occurred when deleting workflow reminders", error);
+  });
 }
 
 export async function deleteRemindersFromRemovedActiveOn(
   removedActiveOnIds: number[],
   workflowSteps: WorkflowStep[],
   isOrg: boolean,
+  prisma: PrismaClient,
   activeOnIds?: number[]
 ) {
   const remindersToDelete = !isOrg
-    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
-    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
-  await deleteAllReminders(remindersToDelete);
+    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps, prisma)
+    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, prisma, activeOnIds);
+  await deleteAllWorkflowReminders(remindersToDelete, prisma);
 }
 
 export async function scheduleWorkflowNotifications(

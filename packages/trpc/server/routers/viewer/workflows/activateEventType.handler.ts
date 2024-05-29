@@ -1,25 +1,20 @@
-import {
-  deleteScheduledEmailReminder,
-  scheduleEmailReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import {
-  deleteScheduledSMSReminder,
-  scheduleSMSReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import {
-  deleteScheduledWhatsappReminder,
-  scheduleWhatsappReminder,
-} from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
+import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { scheduleSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import { scheduleWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
-import { MembershipRole, WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
+import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
-import { removeSmsReminderFieldForBooking, upsertSmsReminderFieldForBooking } from "./util";
+import {
+  deleteAllWorkflowReminders,
+  removeSmsReminderFieldForBooking,
+  upsertSmsReminderFieldForBooking,
+} from "./util";
 
 type ActivateEventTypeOptions = {
   ctx: {
@@ -113,15 +108,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    remindersToDelete.forEach((reminder) => {
-      if (reminder.method === WorkflowMethods.EMAIL) {
-        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-      } else if (reminder.method === WorkflowMethods.SMS) {
-        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
-      }
-    });
+    await deleteAllWorkflowReminders(remindersToDelete, prisma);
 
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {
