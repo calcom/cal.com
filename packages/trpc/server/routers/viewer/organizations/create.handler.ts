@@ -77,7 +77,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
 
   if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE && !isPlatform) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: `You need to have minimum of ${ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE} published teams to create an organization`,
+    });
   }
 
   let orgOwner = await prisma.user.findUnique({
