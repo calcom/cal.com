@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 import LicenseKeyService from "./LicenseKeyService";
+import { createSignature, generateNonce } from "./private-api-utils";
 
 // Mock dependencies
 vi.mock("memory-cache", () => ({
@@ -16,6 +17,15 @@ vi.mock("@calcom/lib/constants", () => ({
 vi.mock("../../deployment/lib/getDeploymentKey", () => ({
   getDeploymentKey: vi.fn(),
 }));
+
+vi.mock("./private-api-utils", () => ({
+  generateNonce: vi.fn(),
+  createSignature: vi.fn(),
+}));
+
+const BASE_HEADERS = {
+  "Content-Type": "application/json",
+};
 
 describe("LicenseKeyService", () => {
   let service: LicenseKeyService;
@@ -54,9 +64,18 @@ describe("LicenseKeyService", () => {
         json: vi.fn().mockResolvedValue(mockResponse),
       } as any);
 
+      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
+      vi.mocked(createSignature).mockReturnValue("mocked-signature");
+
       const response = await service.incrementUsage();
       expect(response).toEqual(mockResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment/${licenseKey}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment`, {
+        headers: {
+          ...BASE_HEADERS,
+          nonce: "mocked-nonce",
+          signature: "mocked-signature",
+          "x-cal-license-key": "test-license-key",
+        },
         method: "POST",
         mode: "cors",
       });
@@ -65,7 +84,21 @@ describe("LicenseKeyService", () => {
     it("should throw an error if the API call fails", async () => {
       const fetchSpy = vi.spyOn(global, "fetch").mockRejectedValue(new Error("API Failure"));
 
+      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
+      vi.mocked(createSignature).mockReturnValue("mocked-signature");
+
       await expect(service.incrementUsage()).rejects.toThrow("API Failure");
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment`, {
+        body: undefined,
+        headers: {
+          ...BASE_HEADERS,
+          nonce: "mocked-nonce",
+          signature: "mocked-signature",
+          "x-cal-license-key": "test-license-key",
+        },
+        method: "POST",
+        mode: "cors",
+      });
     });
   });
 
@@ -93,19 +126,42 @@ describe("LicenseKeyService", () => {
         json: vi.fn().mockResolvedValue(mockResponse),
       } as any);
 
+      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
+      vi.mocked(createSignature).mockReturnValue("mocked-signature");
+
       const result = await service.checkLicense();
       expect(result).toBe(true);
-      expect(fetchSpy).toHaveBeenCalledWith(url, { mode: "cors" });
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
+        body: undefined,
+        headers: {
+          ...BASE_HEADERS,
+          nonce: "mocked-nonce",
+          signature: "mocked-signature",
+          "x-cal-license-key": "test-license-key",
+        },
+        mode: "cors",
+      });
     });
 
     it("should return false if API call fails", async () => {
       const url = `${baseUrl}/v1/license/${licenseKey}`;
       vi.mocked(cache.get).mockReturnValue(null);
+      vi.mocked(generateNonce).mockReturnValue("mocked-nonce");
+      vi.mocked(createSignature).mockReturnValue("mocked-signature");
       const fetchSpy = vi.spyOn(global, "fetch").mockRejectedValue(new Error("API Failure"));
 
       const result = await service.checkLicense();
       expect(result).toBe(false);
-      expect(fetchSpy).toHaveBeenCalledWith(url, { mode: "cors" });
+      expect(fetchSpy).toHaveBeenCalledWith(url, {
+        body: undefined,
+        headers: {
+          ...BASE_HEADERS,
+          nonce: "mocked-nonce",
+          signature: "mocked-signature",
+          "x-cal-license-key": "test-license-key",
+        },
+        mode: "cors",
+      });
     });
   });
 });

@@ -4,6 +4,7 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 
 import { prisma } from "../../../../prisma";
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
+import { generateNonce, createSignature } from "./private-api-utils";
 
 class LicenseKeyService {
   private readonly baseUrl: string;
@@ -30,11 +31,45 @@ class LicenseKeyService {
     return new LicenseKeyService(baseUrl!, licenseKey);
   }
 
+  private async fetch({
+    url,
+    body,
+    options = {},
+  }: {
+    url: string;
+    body?: Record<string, unknown>;
+    options?: RequestInit;
+  }): Promise<Response> {
+    const nonce = generateNonce();
+    const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
+    if (!signatureToken) {
+      throw new Error("CALCOM_SIGNATURE_TOKEN needs to be set");
+    }
+    const signature = createSignature(body || {}, nonce, signatureToken);
+
+    const headers = {
+      ...options.headers,
+      "Content-Type": "application/json",
+      nonce: nonce,
+      signature: signature,
+      "x-cal-license-key": this.licenseKey,
+    };
+
+    return await fetch(url, {
+      ...options,
+      headers: headers,
+      body: JSON.stringify(body),
+    });
+  }
+
   async incrementUsage() {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/license/usage/increment/${this.licenseKey}`, {
-        method: "POST",
-        mode: "cors",
+      const response = await this.fetch({
+        url: `${this.baseUrl}/v1/license/usage/increment`,
+        options: {
+          method: "POST",
+          mode: "cors",
+        },
       });
       return await response.json();
     } catch (error) {
@@ -53,7 +88,7 @@ class LicenseKeyService {
       return cachedResponse;
     } else {
       try {
-        const response = await fetch(url, { mode: "cors" });
+        const response = await this.fetch({ url: url, options: { mode: "cors" } });
         const data = await response.json();
         cache.put(url, data.stauts, this.CACHING_TIME);
         return data.status;
