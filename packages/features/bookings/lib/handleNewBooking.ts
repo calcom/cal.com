@@ -38,7 +38,7 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
+import { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -87,12 +87,7 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import {
-  AuditLogTriggerTargets,
-  BookingStatus,
-  SchedulingType,
-  WebhookTriggerEvents,
-} from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
   EventTypeMetaDataSchema,
@@ -2249,19 +2244,20 @@ async function handler(
       teamId,
     };
 
-    await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.PAYMENT_INITIATED,
-        actor: {
-          id: userId?.toString() || "0",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId,
-      teamId,
-    });
+    // await handleAuditLogTrigger({
+    //   event: {
+    //     action: AuditLogTriggerEvents.PAYMENT_INITIATED,
+    //     actor: {
+    //       id: userId ?? -1,
+    //       name: responses.fullName,
+    //     },
+    //     target: {
+    //       name: AuditLogTriggerTargets.BOOKING,
+    //     },
+    //   },
+    //   userId,
+    //   teamId,
+    // });
 
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2343,17 +2339,10 @@ async function handler(
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.BOOKING_CREATED,
-        actor: {
-          id: booking.userId?.toString() || "0",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId,
-      teamId,
+      req,
+      bookingData: webhookData,
+      action: AuditLogTriggerEvents.BOOKING_CREATED,
+      crud: CRUD.CREATE,
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2361,19 +2350,19 @@ async function handler(
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-    await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.BOOKING_REQUESTED,
-        actor: {
-          id: booking.userId?.toString() || "0",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId,
-      teamId,
-    });
+    //   await handleAuditLogTrigger({
+    //     event: {
+    //       action: AuditLogTriggerEvents.BOOKING_REQUESTED,
+    //       actor: {
+    //         id: booking.userId || 0,
+    //       },
+    //       target: {
+    //         name: AuditLogTriggerTargets.BOOKING,
+    //       },
+    //     },
+    //     userId,
+    //     teamId,
+    //   });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values
