@@ -1,12 +1,10 @@
 import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { AuditLogTriggerTargets, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -52,20 +50,6 @@ export async function handleBookingRequested(args: {
     const webhookPayload = getWebhookPayloadForBooking({
       booking,
       evt,
-    });
-
-    await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.BOOKING_PAID,
-        actor: {
-          id: booking.userId?.toString() || "0",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId: booking.userId,
-      teamId: booking.eventType?.teamId,
     });
 
     const promises = subscribersBookingRequested.map((sub) =>

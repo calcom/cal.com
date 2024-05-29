@@ -3,11 +3,9 @@ import { z } from "zod";
 import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
-import { AuditLogTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -132,20 +130,20 @@ export const paymentsRouter = router({
           eventTypeId: booking.eventTypeId || 0,
           triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         };
-        await handleAuditLogTrigger({
-          event: {
-            action: AuditLogTriggerEvents.BOOKING_PAID,
-            actor: {
-              id: ctx.user.id || "0",
-              name: ctx.user.name || "",
-            },
-            target: {
-              name: AuditLogTriggerTargets.BOOKING,
-            },
-          },
-          userId,
-          teamId,
-        });
+        // await handleAuditLogTrigger({
+        //   event: {
+        //     action: AuditLogTriggerEvents.BOOKING_PAID,
+        //     actor: {
+        //       id: ctx.user.id || "0",
+        //       name: ctx.user.name || "",
+        //     },
+        //     target: {
+        //       name: AuditLogTriggerTargets.BOOKING,
+        //     },
+        //   },
+        //   userId,
+        //   teamId,
+        // });
 
         const subscribers = await getWebhooks(subscriberOptions);
 

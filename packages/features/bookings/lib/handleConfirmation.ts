@@ -4,8 +4,6 @@ import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -16,7 +14,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { AuditLogTriggerTargets, BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -302,20 +300,20 @@ export async function handleConfirmation(args: {
       },
     });
 
-    await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.BOOKING_CREATED,
-        actor: {
-          id: user.credentials[0].userId?.toString() || "0",
-          name: user.username || "",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId: user.credentials[0].userId,
-      teamId,
-    });
+    // await handleAuditLogTrigger({
+    //   event: {
+    //     action: AuditLogTriggerEvents.BOOKING_CREATED,
+    //     actor: {
+    //       id: user.credentials[0].userId ?? 0,
+    //       name: user.username || "",
+    //     },
+    //     target: {
+    //       name: AuditLogTriggerTargets.BOOKING,
+    //     },
+    //   },
+    //   userId: user.credentials[0].userId,
+    //   teamId,
+    // });
 
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
     const subscribersBookingCreated = await getWebhooks({
@@ -395,20 +393,20 @@ export async function handleConfirmation(args: {
     await Promise.all(promises);
 
     if (paid) {
-      await handleAuditLogTrigger({
-        event: {
-          action: AuditLogTriggerEvents.BOOKING_PAID,
-          actor: {
-            id: user.credentials[0].userId?.toString() || "0",
-            name: user.username || "",
-          },
-          target: {
-            name: AuditLogTriggerTargets.BOOKING,
-          },
-        },
-        userId: user.credentials[0].userId,
-        teamId,
-      });
+      // await handleAuditLogTrigger({
+      //   event: {
+      //     action: AuditLogTriggerEvents.BOOKING_PAID,
+      //     actor: {
+      //       id: user.credentials[0].userId || 0,
+      //       name: user.username || "",
+      //     },
+      //     target: {
+      //       name: AuditLogTriggerTargets.BOOKING,
+      //     },
+      //   },
+      //   userId: user.credentials[0].userId,
+      //   teamId,
+      // });
 
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({

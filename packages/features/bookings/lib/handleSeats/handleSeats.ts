@@ -1,13 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import dayjs from "@calcom/dayjs";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
-import { AuditLogTriggerTargets, BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import { createLoggerWithEventDetails } from "../handleNewBooking";
 import createNewSeat from "./create/createNewSeat";
@@ -135,18 +133,18 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
     };
 
-    await handleAuditLogTrigger({
-      event: {
-        action: AuditLogTriggerEvents.BOOKING_MODIFIED,
-        actor: {
-          id: seatedBooking.userId?.toString() || "0",
-        },
-        target: {
-          name: AuditLogTriggerTargets.BOOKING,
-        },
-      },
-      userId: seatedBooking.userId,
-    });
+    // await handleAuditLogTrigger({
+    //   event: {
+    //     action: AuditLogTriggerEvents.BOOKING_MODIFIED,
+    //     actor: {
+    //       id: seatedBooking.userId?.toString() || "0",
+    //     },
+    //     target: {
+    //       name: AuditLogTriggerTargets.BOOKING,
+    //     },
+    //   },
+    //   userId: seatedBooking.userId,
+    // });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }

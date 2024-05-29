@@ -10,8 +10,6 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -25,7 +23,6 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -302,20 +299,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     teamId,
   };
 
-  await handleAuditLogTrigger({
-    event: {
-      action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-      actor: {
-        id: ctx.user.id || "0",
-        name: ctx.user.name || "",
-      },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
-    },
-    userId,
-    teamId,
-  });
+  // await handleAuditLogTrigger({
+  //   event: {
+  //     action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+  //     actor: {
+  //       id: ctx.user.id || "0",
+  //       name: ctx.user.name || "",
+  //     },
+  //     target: {
+  //       name: AuditLogTriggerTargets.BOOKING,
+  //     },
+  //   },
+  //   userId,
+  //   teamId,
+  // });
 
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>

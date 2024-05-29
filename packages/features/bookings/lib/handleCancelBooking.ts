@@ -1,5 +1,4 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
-import { AuditLogTriggerEvents } from "audit-logs/types";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -7,7 +6,6 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -26,7 +24,6 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
@@ -199,21 +196,24 @@ async function handler(req: CustomRequest) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
-  const userName = bookingToDelete.eventType?.hosts.filter((host) => host.user.id === userId)[0].user.name;
-
-  await handleAuditLogTrigger({
-    event: {
-      action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-      actor: {
-        id: userId?.toString() || "0",
-        name: userName || "",
-      },
-      target: {
-        name: AuditLogTriggerTargets.BOOKING,
-      },
-    },
-    userId,
-  });
+  // // I'm trying to get a clean log.
+  // // X actor cancelled booking
+  // await handleAuditLogTrigger({
+  //   event: {
+  //     action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+  //     actor: {
+  //       id: userId ?? 0,
+  //     },
+  //     target: {
+  //       name: AuditLogTriggerTargets.BOOKING,
+  //       fields: {
+  //         ...bookingToDelete,
+  //       },
+  //     },
+  //   },
+  //   userId: triggerForUser ? bookingToDelete.userId : null,
+  //   teamId: !triggerForUser ? teamId : null,
+  // });
 
   const webhooks = await getWebhooks(subscriberOptions);
 

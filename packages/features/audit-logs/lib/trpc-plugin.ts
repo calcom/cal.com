@@ -1,6 +1,3 @@
-import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
-import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import type { UserFromSession } from "@calcom/trpc/server/middlewares/sessionMiddleware";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -11,18 +8,18 @@ export const auditLogMiddleware = experimental_trpcMiddleware<{
 }>().create(async (opts) => {
   const { user }: { user: UserFromSession } = opts.ctx;
 
-  await handleAuditLogTrigger({
-    event: {
-      action: AuditLogTriggerEvents[opts.path as keyof typeof AuditLogTriggerEvents],
-      actor: {
-        id: user.id,
-      },
-      target: {
-        name: AuditLogTriggerTargets.APPS,
-      },
-    },
-    userId: user.id,
-  });
+  // await handleAuditLogTrigger({
+  //   event: {
+  //     action: AuditLogTriggerEvents[opts.path as keyof typeof AuditLogTriggerEvents],
+  //     actor: {
+  //       id: user.id,
+  //     },
+  //     target: {
+  //       name: AuditLogTriggerTargets.APPS,
+  //     },
+  //   },
+  //   userId: user.id,
+  // });
 
   return opts.next({ ctx: { user: user } });
 });
