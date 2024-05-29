@@ -2,7 +2,7 @@ import { useTranscription } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { TRANSCRIPTION_STARTED_ICON, TRANSCRIPTION_STOPPED_ICON } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const CalAiTranscribe = () => {
@@ -29,8 +29,8 @@ export const CalAiTranscribe = () => {
       transcription: {
         label: "Stop",
         tooltip: "Stop transcription",
-        iconPath: `${WEBAPP_URL}/sparkles-red.svg`,
-        iconPathDarkMode: `${WEBAPP_URL}/sparkles-red.svg`,
+        iconPath: TRANSCRIPTION_STARTED_ICON,
+        iconPathDarkMode: TRANSCRIPTION_STARTED_ICON,
       },
     });
   });
@@ -40,8 +40,8 @@ export const CalAiTranscribe = () => {
       transcription: {
         label: "Cal.ai",
         tooltip: "Transcription powered by AI",
-        iconPath: `${WEBAPP_URL}/sparkles`,
-        iconPathDarkMode: `${WEBAPP_URL}/sparkles`,
+        iconPath: TRANSCRIPTION_STOPPED_ICON,
+        iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
       },
     });
   });
@@ -82,7 +82,7 @@ export const CalAiTranscribe = () => {
   return (
     <>
       <div
-        id="cal-ai-thing"
+        id="cal-ai-transcription"
         style={{
           textShadow: "0 0 20px black, 0 0 20px black, 0 0 20px black",
         }}
