@@ -41,7 +41,7 @@ env:
 jobs:
   e2e-embed:
     timeout-minutes: 20
-    name: E2E Embed React (${{ matrix.shard }}/${{ strategy.job-total }})
+    name: E2E Embed React
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
@@ -62,9 +62,6 @@ jobs:
           - 5432:5432
     strategy:
       fail-fast: false
-      matrix:
-        ## There aren't many tests for embed-react. So, just start with 2 shards. Increase if needed.
-        shard: [1, 2]
 
     steps:
       - uses: docker/login-action@v3
@@ -79,11 +76,11 @@ jobs:
       - uses: ./.github/actions/cache-build
       - name: Run Tests
         run: |
-          yarn e2e:embed-react --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+          yarn e2e:embed-react
           yarn workspace @calcom/embed-react packaged:tests
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: embed-react-results-${{ matrix.shard }}_${{ strategy.job-total }}
+          name: embed-react-results
           path: test-results
