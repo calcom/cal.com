@@ -44,13 +44,22 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
   const mutation = useMutation<
     AddAppMutationData,
     Error,
-    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
+    | {
+        type?: App["type"];
+        variant?: string;
+        slug?: string;
+        isOmniInstall?: boolean;
+        teamId?: number;
+        defaultInstall?: boolean;
+      }
+    | ""
   >({
     ...options,
     mutationFn: async (variables) => {
       let type: string | null | undefined;
       let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
+      const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
       if (variables === "") {
         type = _type;
       } else {
@@ -76,6 +85,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(defaultInstall && { defaultInstall }),
       };
 
       const stateStr = encodeURIComponent(JSON.stringify(state));
