@@ -34,6 +34,7 @@ class LicenseKeyService {
     try {
       const response = await fetch(`${this.baseUrl}/v1/license/usage/increment/${this.licenseKey}`, {
         method: "POST",
+        mode: "cors",
       });
       return await response.json();
     } catch (error) {
@@ -54,8 +55,8 @@ class LicenseKeyService {
       try {
         const response = await fetch(url, { mode: "cors" });
         const data = await response.json();
-        cache.put(url, data.valid, this.CACHING_TIME);
-        return data.valid;
+        cache.put(url, data.stauts, this.CACHING_TIME);
+        return data.status;
       } catch (error) {
         return false;
       }

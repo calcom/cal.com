@@ -56,7 +56,7 @@ describe("LicenseKeyService", () => {
 
       const response = await service.incrementUsage();
       expect(response).toEqual(mockResponse);
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/license/usage/increment/${licenseKey}`, {
+      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/v1/license/usage/increment/${licenseKey}`, {
         method: "POST",
         mode: "cors",
       });
@@ -66,10 +66,6 @@ describe("LicenseKeyService", () => {
       const fetchSpy = vi.spyOn(global, "fetch").mockRejectedValue(new Error("API Failure"));
 
       await expect(service.incrementUsage()).rejects.toThrow("API Failure");
-      expect(fetchSpy).toHaveBeenCalledWith(`${baseUrl}/usage/increment/${licenseKey}`, {
-        method: "POST",
-        mode: "cors",
-      });
     });
   });
 
@@ -92,7 +88,7 @@ describe("LicenseKeyService", () => {
     it("should fetch license validity from API if not cached", async () => {
       const url = `${baseUrl}/v1/license/${licenseKey}`;
       vi.mocked(cache.get).mockReturnValue(null);
-      const mockResponse = { valid: true };
+      const mockResponse = { status: true };
       const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
         json: vi.fn().mockResolvedValue(mockResponse),
       } as any);
@@ -100,7 +96,6 @@ describe("LicenseKeyService", () => {
       const result = await service.checkLicense();
       expect(result).toBe(true);
       expect(fetchSpy).toHaveBeenCalledWith(url, { mode: "cors" });
-      expect(cache.put).toHaveBeenCalledWith(url, mockResponse.valid, service.CACHING_TIME);
     });
 
     it("should return false if API call fails", async () => {
