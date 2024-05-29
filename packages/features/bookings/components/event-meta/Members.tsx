@@ -25,6 +25,10 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   const isEmbed = useIsEmbed();
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
+  const isTeamEvent =
+    schedulingType === SchedulingType.ROUND_ROBIN ||
+    schedulingType === SchedulingType.COLLECTIVE ||
+    schedulingType === SchedulingType.MANAGED;
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
@@ -32,9 +36,8 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
   const orgOrTeamAvatarItem =
-    isDynamic || (!profile.image && !entity.logoUrl)
-      ? []
-      : [
+    !isDynamic && (entity.logoUrl || (isTeamEvent && profile.image))
+      ? [
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
             href: isEmbed
@@ -46,7 +49,8 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
             alt: entity.name ?? profile.name ?? "",
             title: entity.name ?? profile.name ?? "",
           },
-        ];
+        ]
+      : [];
   return (
     <>
       <AvatarGroup
