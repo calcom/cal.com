@@ -428,29 +428,12 @@ const Hosts = ({
                           { id: getValues("id") }
                         );
 
-                        const members = updatedEventType.team?.members;
-                        const hosts = getValues("hosts");
-                        const newHosts: Host[] = [];
-
                         if (Array.isArray(data.usernameOrEmail)) {
                           showToast(
                             t("email_invite_team_bulk", {
                               userCount: data.usernameOrEmail.length,
                             }),
                             "success"
-                          );
-                          resetFields();
-
-                          const membersToAdd = members?.filter(
-                            (member) =>
-                              data.usernameOrEmail.includes(member.user.username || "") ||
-                              data.usernameOrEmail.includes(member.user.email)
-                          );
-
-                          if (!membersToAdd) return;
-
-                          membersToAdd.forEach((member) =>
-                            newHosts.push({ isFixed: isFixed, userId: member.user.id, priority: 2 })
                           );
                         } else {
                           showToast(
@@ -459,20 +442,24 @@ const Hosts = ({
                             }),
                             "success"
                           );
-                          const memberToAdd = members?.find(
-                            (member) =>
-                              member.user.username === data.usernameOrEmail ||
-                              member.user.email === data.usernameOrEmail
-                          );
-
-                          if (!memberToAdd) return;
-                          newHosts.push({
-                            isFixed: isFixed,
-                            userId: memberToAdd.user.id,
-                            priority: 2,
-                          });
                         }
 
+                        resetFields();
+
+                        const members = updatedEventType.team?.members;
+                        const hosts = getValues("hosts");
+                        const newHosts: Host[] = [];
+                        const membersToAdd = members?.filter((member) =>
+                          member.user.username
+                            ? data.usernameOrEmail.includes(member.user.username)
+                            : false || data.usernameOrEmail.includes(member.user.email)
+                        );
+
+                        if (!membersToAdd) return;
+
+                        membersToAdd.forEach((member) =>
+                          newHosts.push({ isFixed: isFixed, userId: member.user.id, priority: 2 })
+                        );
                         setValue("hosts", [...newHosts, ...hosts], { shouldDirty: true });
                         updateEventType && updateEventType();
                       },
