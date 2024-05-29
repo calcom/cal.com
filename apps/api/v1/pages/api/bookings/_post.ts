@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
-import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
-import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
 
 import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
@@ -218,7 +218,15 @@ async function handler(req: NextApiRequest) {
     req.userId = requestedUserId || userId;
   }
 
-  return await handleNewBooking(req, getBookingDataSchemaForApi);
+  try {
+    return await handleNewBooking(req, getBookingDataSchemaForApi);
+  } catch (error) {
+    if (error.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: error.message });
+    }
+
+    throw error;
+  }
 }
 
 export default defaultResponder(handler);
