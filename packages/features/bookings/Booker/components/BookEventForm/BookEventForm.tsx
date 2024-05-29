@@ -1,14 +1,13 @@
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { useBookerStore } from "../../store";
 import type { useEventReturnType } from "../../utils/event";
@@ -27,6 +26,7 @@ type BookEventFormProps = {
   bookingForm: UseBookingFormReturnType["bookingForm"];
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
+  isPlatform?: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,6 +41,7 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: useEventReturnType;
   rescheduleUid: string | null;
@@ -68,7 +69,7 @@ export const BookEventForm = ({
       <EmptyScreen
         headline={t("timeslot_missing_title")}
         description={t("timeslot_missing_description")}
-        Icon={Calendar}
+        Icon="calendar"
         buttonText={t("timeslot_missing_cta")}
         buttonOnClick={onCancel}
       />
@@ -111,19 +112,27 @@ export const BookEventForm = ({
             />
           </div>
         )}
-        {IS_CALCOM && (
+        {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
-            <Trans i18nKey="signing_up_terms">
-              By proceeding, you agree to our{" "}
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-                <a>Terms</a>
-              </Link>{" "}
-              and{" "}
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-                <a>Privacy Policy</a>
-              </Link>
-              .
-            </Trans>
+            <Trans
+              i18nKey="signing_up_terms"
+              components={[
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="terms"
+                  href={`${WEBSITE_URL}/terms`}
+                  target="_blank">
+                  Terms
+                </Link>,
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="privacy"
+                  href={`${WEBSITE_URL}/privacy`}
+                  target="_blank">
+                  Privacy Policy.
+                </Link>,
+              ]}
+            />
           </div>
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
@@ -172,11 +181,11 @@ const getError = (
   t: TFunction,
   responseVercelIdHeader: string | null
 ) => {
-  if (globalError) return globalError.message;
+  if (globalError) return globalError?.message;
 
   const error = dataError;
 
-  return error.message ? (
+  return error?.message ? (
     <>
       {responseVercelIdHeader ?? ""} {t(error.message)}
     </>

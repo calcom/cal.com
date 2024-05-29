@@ -4,7 +4,7 @@ import { TITLE_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import type { bookingResponse } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-export default function getLabelValueMapFromResponses(calEvent: CalendarEvent) {
+export default function getLabelValueMapFromResponses(calEvent: CalendarEvent, isOrganizer = false) {
   const { customInputs, userFieldsResponses, responses, eventTypeId } = calEvent;
 
   const isDynamicEvent = !eventTypeId;
@@ -16,7 +16,7 @@ export default function getLabelValueMapFromResponses(calEvent: CalendarEvent) {
     }
 
     for (const [, value] of Object.entries(userFieldsResponses)) {
-      if (!value.label) {
+      if (!value.label || (!isOrganizer && value.isHidden)) {
         continue;
       }
       labelValueMap[value.label] = value.value;

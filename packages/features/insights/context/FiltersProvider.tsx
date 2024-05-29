@@ -21,7 +21,7 @@ const querySchema = z.object({
 
 export function FiltersProvider({ children }: { children: React.ReactNode }) {
   // searchParams to get initial values from query params
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const searchParams = useCompatSearchParams();
   const router = useRouter();
   const pathname = usePathname();

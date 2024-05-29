@@ -1,6 +1,4 @@
-import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -20,6 +18,7 @@ import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
+import cx from "@calcom/lib/classNames";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,15 +29,15 @@ import {
   Button,
   Badge,
   CheckboxField,
+  Icon,
   Label,
   SelectField,
   SettingsToggle,
-  showToast,
   Switch,
   TextField,
   Tooltip,
+  showToast,
 } from "@calcom/ui";
-import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -65,6 +64,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   formMethods.getValues().bookingFields.forEach(({ name }) => {
     bookingFields[name] = `${name} input`;
   });
+
+  const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
+  const isSplit = (nameBookingField && nameBookingField.variant === "firstAndLastName") ?? false;
 
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
@@ -148,96 +150,92 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
        * This will fallback to each user selected destination calendar.
        */}
       <div className="border-subtle space-y-6 rounded-lg border p-6">
-        {displayDestinationCalendarSelector && (
-          <div className="flex flex-col">
-            <div className="flex justify-between">
-              <div>
-                <Label className="text-emphasis mb-0 font-medium">{t("add_to_calendar")}</Label>
-              </div>
-              <Link
-                href="/apps/categories/calendar"
-                target="_blank"
-                className="hover:text-emphasis text-default text-sm">
-                {t("add_another_calendar")}
-              </Link>
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+          {displayDestinationCalendarSelector && (
+            <div className="flex w-full flex-col">
+              <Label className="text-emphasis mb-0 font-medium">{t("add_to_calendar")}</Label>
+              <Controller
+                name="destinationCalendar"
+                render={({ field: { onChange, value } }) => (
+                  <DestinationCalendarSelector
+                    value={value ? value.externalId : undefined}
+                    onChange={onChange}
+                    hidePlaceholder
+                    hideAdvancedText
+                  />
+                )}
+              />
+              <p className="text-subtle text-sm">{t("select_which_cal")}</p>
             </div>
-            <Controller
-              name="destinationCalendar"
-              render={({ field: { onChange, value } }) => (
-                <DestinationCalendarSelector
-                  value={value ? value.externalId : undefined}
-                  onChange={onChange}
-                  hidePlaceholder
-                  hideAdvancedText
-                />
-              )}
+          )}
+          <div className="w-full">
+            <TextField
+              label={t("event_name_in_calendar")}
+              type="text"
+              {...shouldLockDisableProps("eventName")}
+              placeholder={eventNamePlaceholder}
+              {...formMethods.register("eventName")}
+              addOnSuffix={
+                <Button
+                  color="minimal"
+                  size="sm"
+                  aria-label="edit custom name"
+                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                  onClick={() => setShowEventNameTip((old) => !old)}>
+                  <Icon name="pencil" className="h-4 w-4" />
+                </Button>
+              }
             />
-            <p className="text-subtle text-sm">{t("select_which_cal")}</p>
           </div>
-        )}
-        <div className="w-full">
-          <TextField
-            label={t("event_name_in_calendar")}
-            type="text"
-            {...shouldLockDisableProps("eventName")}
-            placeholder={eventNamePlaceholder}
-            {...formMethods.register("eventName")}
-            addOnSuffix={
-              <Button
-                color="minimal"
-                size="sm"
-                {...(shouldLockDisableProps("eventName").disabled ? { disabled: true } : {})}
-                aria-label="edit custom name"
-                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                onClick={() => setShowEventNameTip((old) => !old)}>
-                <Edit className="h-4 w-4" />
-              </Button>
-            }
-          />
         </div>
-        {displayDestinationCalendarSelector && (
-          <div className="w-full">
-            <Switch
-              tooltip={t("reconnect_calendar_to_use")}
-              label={
-                <>
-                  {t("display_add_to_calendar_organizer")}
-                  <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
-                </>
-              }
-              checked={useEventTypeDestinationCalendarEmail}
-              onCheckedChange={(val) => {
-                setUseEventTypeDestinationCalendarEmail(val);
-                formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
-                if (val) {
-                  showToast(t("reconnect_calendar_to_use"), "warning");
+        <div className="space-y-2">
+          {displayDestinationCalendarSelector && (
+            <div className="w-full">
+              <Switch
+                tooltip={t("if_enabled_email_address_as_organizer")}
+                label={
+                  <>
+                    {t("display_add_to_calendar_organizer")}
+                    <Icon
+                      name="info"
+                      className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                    />
+                  </>
                 }
-              }}
-            />
-          </div>
-        )}
-        {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && (
-          <div className="w-full">
-            <SelectField
-              label={t("send_event_details_to")}
-              placeholder={
-                selectedSecondaryEmailId === -1 && (
-                  <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
-                    <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
-                  </span>
-                )
-              }
-              onChange={(option) =>
-                formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
-              }
-              value={verifiedSecondaryEmails.find(
-                (secondaryEmail) =>
-                  selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
-              )}
-              options={verifiedSecondaryEmails}
-            />
-          </div>
-        )}
+                checked={useEventTypeDestinationCalendarEmail}
+                onCheckedChange={(val) => {
+                  setUseEventTypeDestinationCalendarEmail(val);
+                  formMethods.setValue("useEventTypeDestinationCalendarEmail", val, { shouldDirty: true });
+                  if (val) {
+                    showToast(t("reconnect_calendar_to_use"), "warning");
+                  }
+                }}
+              />
+            </div>
+          )}
+          {!useEventTypeDestinationCalendarEmail && verifiedSecondaryEmails.length > 0 && !team && (
+            <div className={cx("flex w-full flex-col", displayDestinationCalendarSelector && "pl-11")}>
+              <SelectField
+                placeholder={
+                  selectedSecondaryEmailId === -1 && (
+                    <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
+                      <Badge variant="blue">{t("default")}</Badge> {user?.email || ""}
+                    </span>
+                  )
+                }
+                onChange={(option) =>
+                  formMethods.setValue("secondaryEmailId", option?.value, { shouldDirty: true })
+                }
+                value={verifiedSecondaryEmails.find(
+                  (secondaryEmail) =>
+                    selectedSecondaryEmailId !== -1 && secondaryEmail.value === selectedSecondaryEmailId
+                )}
+                options={verifiedSecondaryEmails}
+              />
+              <p className="text-subtle mt-2 text-sm">{t("display_email_as_organizer")}</p>
+            </div>
+          )}
+        </div>
       </div>
       <BookerLayoutSelector fallbackToUserSettings isDark={selectedThemeIsDark} isOuterBorder={true} />
       <div className="border-subtle space-y-6 rounded-lg border p-6">
@@ -326,6 +324,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   type="text"
                   {...formMethods.register("successRedirectUrl")}
                 />
+
+                <div className="mt-4">
+                  <Controller
+                    name="forwardParamsSuccessRedirect"
+                    render={({ field: { value, onChange } }) => (
+                      <CheckboxField
+                        description={t("forward_params_redirect")}
+                        disabled={successRedirectUrlLocked.disabled}
+                        onChange={(e) => onChange(e)}
+                        checked={value}
+                      />
+                    )}
+                  />
+                </div>
                 <div
                   className={classNames(
                     "p-1 text-sm text-orange-600",
@@ -355,7 +367,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             target="_blank"
             rel="noreferrer"
             href="https://cal.com/docs/core-features/event-types/single-use-private-links">
-            <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
+            <Icon name="info" className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
         {...shouldLockDisableProps("hashedLink")}
@@ -396,7 +408,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                           showToast(t("enabled_after_update_description"), "warning");
                         }
                       }}>
-                      <Copy className="h-4 w-4" />
+                      <Icon name="copy" className="h-4 w-4" />
                     </Button>
                   </Tooltip>
                 }
@@ -555,6 +567,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
+          isNameFieldSplit={isSplit}
           event={eventNameObject}
         />
       )}

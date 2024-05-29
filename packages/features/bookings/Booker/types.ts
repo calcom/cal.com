@@ -18,14 +18,21 @@ export interface BookerProps {
   username: string;
   orgBannerUrl?: string | null;
 
+  /*
+    all custom classnames related to booker styling go here
+  */
+  customClassNames?: CustomClassNames;
+
   /**
    * Whether is a team or org, we gather basic info from both
    */
   entity: {
+    considerUnpublished: boolean;
     isUnpublished?: boolean;
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
+    logoUrl?: string | null;
   };
 
   /**
@@ -45,11 +52,6 @@ export interface BookerProps {
   selectedDate?: Date;
 
   hideBranding?: boolean;
-  /**
-   * Sets the Booker component to the away state.
-   * This is NOT revalidated by calling the API.
-   */
-  isAway?: boolean;
   /**
    * If false and the current username indicates a dynamic booking,
    * the Booker will immediately show an error.
@@ -87,7 +89,7 @@ export interface BookerProps {
   isInstantMeeting?: boolean;
 }
 
-export type WrappedBookerProps = {
+export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
   bookingUid: string | null;
@@ -103,14 +105,50 @@ export type WrappedBookerProps = {
   bookings: UseBookingsReturnType;
   slots: UseSlotsReturnType;
   calendars: UseCalendarsReturnType;
-  verifyEmail: UseVerifyEmailReturnType;
   bookerForm: UseBookingFormReturnType;
   event: useEventReturnType;
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
+  verifyEmail: UseVerifyEmailReturnType;
+  customClassNames?: CustomClassNames;
+};
+
+export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
+  isPlatform: true;
+  verifyCode: undefined;
+  customClassNames?: CustomClassNames;
+};
+export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
+  isPlatform: false;
   verifyCode: UseVerifyCodeReturnType;
 };
+
+export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
+
+export type CustomClassNames = {
+  bookerContainer?: string;
+  eventMetaCustomClassNames?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassNames?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassNames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
+    availableTimes?: string;
+  };
+};

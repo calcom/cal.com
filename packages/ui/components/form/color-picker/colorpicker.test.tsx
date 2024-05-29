@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { act } from "react-dom/test-utils";
 import { vi } from "vitest";
@@ -8,7 +8,10 @@ import { Button } from "../../button";
 import ColorPicker from "./colorpicker";
 
 vi.mock("@calcom/ui", async () => {
-  return { Button: ({ tooltip, ...rest }: ButtonProps) => <Button {...rest}>{tooltip}</Button> };
+  return {
+    Icon: () => <svg data-testid="dummy-icon" />,
+    Button: ({ tooltip, ...rest }: ButtonProps) => <Button {...rest}>{tooltip}</Button>,
+  };
 });
 
 describe("Tests for ColorPicker component", () => {
