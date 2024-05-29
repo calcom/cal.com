@@ -2,28 +2,33 @@ import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementati
 import type { IconName } from "@calcom/ui";
 
 export interface AuditLogsManager {
-  reportEvent(event: AuditLogEvent): Promise<void>;
+  reportEvent(event: AuditLogEvent): Promise<string | undefined | void>;
 }
 
+export enum CRUD {
+  CREATE = "c",
+  DELETE = "d",
+  UPDATE = "u",
+  READ = "r",
+}
 export type AuditLogEvent = {
   action: string;
+  crud?: CRUD;
   actor: {
-    id: number;
+    id?: number | string;
     name?: string;
+    fields?: any;
   };
   target: {
+    id?: number | string;
     name?: string;
     type?: string;
-    fields?: {
-      [key: string]: string;
-    };
+    fields?: any;
   };
   description?: string;
   is_failure?: boolean;
   is_anonymous?: boolean;
-  fields?: {
-    [key: string]: string;
-  };
+  fields?: any;
 };
 
 export const AuditLogTriggerEventsBooking = {
