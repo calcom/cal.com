@@ -42,6 +42,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         isOmniInstall?: boolean;
         teamId?: number;
         returnTo?: string;
+        defaultInstall?: boolean;
       }
     | ""
   >({
@@ -50,6 +51,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       let type: string | null | undefined;
       let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
+      const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
       if (variables === "") {
         type = _type;
       } else {
@@ -76,6 +78,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(defaultInstall && { defaultInstall }),
       };
 
       const stateStr = encodeURIComponent(JSON.stringify(state));
