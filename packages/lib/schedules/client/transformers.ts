@@ -37,8 +37,11 @@ export function transformAvailabilityForClient(schedule: ScheduleWithAvailabilit
 
 export function transformDateOverridesForClient(schedule: ScheduleWithAvailabilities, timeZone: string) {
   return schedule.availability.reduce((acc, override) => {
-    // only iff future date override
-    if (!override.date || dayjs.tz(override.date, timeZone).isBefore(dayjs(), "day")) {
+    // only if future date override
+    const currentUtcOffset = dayjs().tz(timeZone).utcOffset();
+    const currentTimeInTz = dayjs().utc().add(currentUtcOffset, "minute");
+
+    if (!override.date || dayjs(override.date).isBefore(currentTimeInTz, "day")) {
       return acc;
     }
     const newValue = {

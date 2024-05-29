@@ -88,6 +88,29 @@ test.describe("Availablity", () => {
     await expect(await page.getByTitle(deleteButtonTitle).isVisible()).toBe(false);
   });
 
+  test("Can create date override on current day in a negative timezone", async ({ page }) => {
+    await page.getByTestId("schedules").first().click();
+    // set time zone to New York
+    await page
+      .locator("#availability-form div")
+      .filter({ hasText: "TimezoneEurope/London" })
+      .locator("svg")
+      .click();
+    await page.locator("[id=timeZone-lg-viewport]").fill("New");
+    await page.getByTestId("select-option-America/New_York").click();
+
+    // Add override for today
+    await page.getByTestId("add-override").click();
+    await page.locator('[id="modal-title"]').waitFor();
+    await page.locator('[data-testid="day"][data-disabled="false"]').first().click();
+    await page.getByTestId("add-override-submit-btn").click();
+    await page.getByTestId("dialog-rejection").click();
+
+    await page.locator('[form="availability-form"][type="submit"]').click();
+    await page.reload();
+    await expect(page.locator('[data-testid="date-overrides-list"] > li')).toHaveCount(1);
+  });
+
   test("Schedule listing", async ({ page }) => {
     await test.step("Can add a new schedule", async () => {
       await page.getByTestId("new-schedule").click();
