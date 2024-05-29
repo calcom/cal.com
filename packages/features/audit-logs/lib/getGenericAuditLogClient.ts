@@ -12,7 +12,7 @@ export function getGenericAuditLogClient(
       endpoint: endpoint,
     },
     reportEvent: (event: AuditLogEvent) => {
-      console.log({ event });
+      console.log({ ...event });
     },
   };
 }
