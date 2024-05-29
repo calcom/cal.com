@@ -55,6 +55,7 @@ export const schemaBookingReadPublic = Booking.extend({
       timeZone: true,
       locale: true,
     })
+    .optional()
     .nullable(),
   payment: z
     .array(
