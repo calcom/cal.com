@@ -222,8 +222,9 @@ async function handler(req: NextApiRequest) {
 
   try {
     return await handleNewBooking(req, getBookingDataSchemaForApi);
-  } catch (error) {
-    if (error.message === ErrorCode.NoAvailableUsersFound) {
+  } catch (error: unknown) {
+    const knownError = error as Error;
+    if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
       throw new HttpError({ statusCode: 400, message: error.message });
     }
 
