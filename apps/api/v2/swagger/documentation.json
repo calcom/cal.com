@@ -2104,17 +2104,20 @@
             "type": "boolean"
           },
           "slotInterval": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "minimumBookingNotice": {
             "type": "number",
             "minimum": 0
           },
           "beforeEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "afterEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           }
         },
         "required": [
@@ -2798,6 +2801,12 @@
               "$ref": "#/components/schemas/EventTypeLocation"
             }
           },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingField"
+            }
+          },
           "disableGuests": {
             "type": "boolean"
           },
@@ -2806,13 +2815,16 @@
             "minimum": 0
           },
           "beforeEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "afterEventBuffer": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           },
           "slotInterval": {
-            "type": "number"
+            "type": "number",
+            "minimum": 0
           }
         }
       },

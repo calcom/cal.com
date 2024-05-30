@@ -9,8 +9,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "yarn vite build && sed -i'' -e 's/const CACHE = new lruCache\\.LRUCache({ max: 1e3 });/const CACHE = new lruCache({ max: 1e3 });/g' ./dist/index.cjs",
-    "build:watch": "yarn vite build --watch"
+    "build": "yarn vite build",
+    "build:watch": "yarn vite build --watch",
+    "publish": "rm -rf dist && yarn build && npm publish --access public"
   },
   "dependencies": {
     "@calcom/core": "*",

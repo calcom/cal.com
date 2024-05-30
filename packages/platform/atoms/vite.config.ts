@@ -13,7 +13,6 @@ export default defineConfig({
       "@calcom/dayjs",
       "@calcom/platform-constants",
       "@calcom/platform-types",
-      "@calcom/platform-libraries",
       "@calcom/platform-utils",
     ],
   },
@@ -49,7 +48,6 @@ export default defineConfig({
       "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
       "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
-      "@calcom/platform-libraries": path.resolve(__dirname, "../libraries/index.ts"),
       "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
       "@calcom/web/public/static/locales/en/common.json": path.resolve(
         __dirname,

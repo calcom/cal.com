@@ -3857,7 +3857,7 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
-    "@calcom/platform-libraries": "*"
+    "@calcom/platform-libraries": 0.0.2
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -4010,6 +4010,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
+    "@calcom/platform-libraries": 0.0.2
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-slot": ^1.0.2
     "@radix-ui/react-toast": ^1.1.5
@@ -4799,7 +4800,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries@*, @calcom/platform-libraries@workspace:packages/platform/libraries":
+"@calcom/platform-libraries@npm:0.0.2":
+  version: 0.0.2
+  resolution: "@calcom/platform-libraries@npm:0.0.2"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries@workspace:packages/platform/libraries":
   version: 0.0.0-use.local
   resolution: "@calcom/platform-libraries@workspace:packages/platform/libraries"
   dependencies:
@@ -5240,6 +5252,7 @@ __metadata:
     "@calcom/embed-snippet": "workspace:*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
+    "@calcom/platform-types": "*"
     "@calcom/prisma": "*"
     "@calcom/trpc": "*"
     "@calcom/tsconfig": "*"
@@ -5488,6 +5501,7 @@ __metadata:
     react-live-chat-loader: ^2.8.1
     react-markdown: ^9.0.1
     react-merge-refs: 1.1.0
+    react-parallax-tilt: ^1.7.226
     react-resize-detector: ^9.1.0
     react-twemoji: ^0.3.0
     react-twitter-embed: ^4.0.4
@@ -9191,11 +9205,11 @@ __metadata:
   linkType: hard
 
 "@mux/mux-player-react@npm:*":
-  version: 2.5.0
-  resolution: "@mux/mux-player-react@npm:2.5.0"
+  version: 2.7.0
+  resolution: "@mux/mux-player-react@npm:2.7.0"
   dependencies:
-    "@mux/mux-player": 2.5.0
-    "@mux/playback-core": 0.23.0
+    "@mux/mux-player": 2.7.0
+    "@mux/playback-core": 0.24.0
     prop-types: ^15.7.2
   peerDependencies:
     "@types/react": ^17.0.0 || ^18
@@ -9206,40 +9220,40 @@ __metadata:
       optional: true
     "@types/react-dom":
       optional: true
-  checksum: 9b2854793a47928d964fbbd46d4c2e659d1dea29993bf74febcdbd3dfd2729abdb9d9d926e67113376ea7a9d99da9c275705d702996503deade6d35128e7f6ac
+  checksum: 15ea8a8b9b2c82252e0647c22f8a1fbe7a04efaf1eb7aa61d10e4665b3dad45057c97c47cd04b8da42d02aad8288555feb9de98a8b9059b730420a8d12cada73
   languageName: node
   linkType: hard
 
-"@mux/mux-player@npm:2.5.0":
-  version: 2.5.0
-  resolution: "@mux/mux-player@npm:2.5.0"
+"@mux/mux-player@npm:2.7.0":
+  version: 2.7.0
+  resolution: "@mux/mux-player@npm:2.7.0"
   dependencies:
-    "@mux/mux-video": 0.18.0
-    "@mux/playback-core": 0.23.0
+    "@mux/mux-video": 0.19.0
+    "@mux/playback-core": 0.24.0
     media-chrome: ~3.2.1
-  checksum: 566bcb3372fb0f6ac4e37ce82707d565693681d010a7ae6d9890ae6b74320d8464af7bb1f8582709a7263c2e09e9e58137c2caf5f2c2eb3db91a137fb625d064
+  checksum: d3254c5d82f42d26e4ec3c27e50b6438a7dc74863381ddd9003bdc92947f6db4fc45b8caee21de9125aa80e71536268426d7159617dbace739de99f8f0ed259f
   languageName: node
   linkType: hard
 
-"@mux/mux-video@npm:0.18.0":
-  version: 0.18.0
-  resolution: "@mux/mux-video@npm:0.18.0"
+"@mux/mux-video@npm:0.19.0":
+  version: 0.19.0
+  resolution: "@mux/mux-video@npm:0.19.0"
   dependencies:
-    "@mux/playback-core": 0.23.0
+    "@mux/playback-core": 0.24.0
     castable-video: ~1.0.6
     custom-media-element: ~1.2.3
     media-tracks: ~0.3.0
-  checksum: a6a8137cfbfd04304f11434cc8e2eff3c1f3e72fd758cd4b2bf4eea4ce29a29525116a491e4be3ce4c995eba483704a5020ab4db5960017b22c5a913bfb04279
+  checksum: 342d6f29fc60a9ea9694a8d794f679306e194f5de5d5cf85ed67391dce8d70330c9d78ee2681aee0e332ab1d2583a8a0174addf1182d0cf1c08fb85a01da849d
   languageName: node
   linkType: hard
 
-"@mux/playback-core@npm:0.23.0":
-  version: 0.23.0
-  resolution: "@mux/playback-core@npm:0.23.0"
+"@mux/playback-core@npm:0.24.0":
+  version: 0.24.0
+  resolution: "@mux/playback-core@npm:0.24.0"
   dependencies:
     hls.js: ~1.5.8
     mux-embed: ~5.2.0
-  checksum: c5bee62359ee79094ceca839972a7ecbcaf7339cb68ab5f404bbb6b3b7e25d1066c69bc4d92aa9912af5fa6d6a0e4eabe745e3589fffcc92f8b78171a6af58eb
+  checksum: b9783c05b1c009fb296a84de61d7b693fd81996bd35ef26aca7342a09eee476e4d8840fde1ef89273b01db2d4f3b57692101ae7bcc4cb5b15d4d6786bd0ba961
   languageName: node
   linkType: hard
 
@@ -10563,6 +10577,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:5.14.0":
+  version: 5.14.0
+  resolution: "@prisma/debug@npm:5.14.0"
+  checksum: 523934576f882aa91d6c0df59b103216fdd2705ab93c55ef804fc02e6affd3b87c6adfa71d4f595b54c1247fa85b94c5dcff4b9b7c394780a9f2c0df7f70daf8
+  languageName: node
+  linkType: hard
+
 "@prisma/debug@npm:5.3.1":
   version: 5.3.1
   resolution: "@prisma/debug@npm:5.3.1"
@@ -10739,11 +10760,11 @@ __metadata:
   linkType: hard
 
 "@prisma/generator-helper@npm:^5.9.1":
-  version: 5.11.0
-  resolution: "@prisma/generator-helper@npm:5.11.0"
+  version: 5.14.0
+  resolution: "@prisma/generator-helper@npm:5.14.0"
   dependencies:
-    "@prisma/debug": 5.11.0
-  checksum: 7f921e22e113672385449f7f5f282f84ad3bef143884a49051dd0baa0b2b8ffc50f0a79897907b9819710149e5e590522b74c5c43b6cdd59327f087e4814e459
+    "@prisma/debug": 5.14.0
+  checksum: 34eab007f5cfcb0677dfdb95fd0614fff1a519d1400b2f25d15502af0866255bb7b29055c7a94922c2ec7fb0d14ff2335835e6e75ab6ddfbd214f8dc8b2253ba
   languageName: node
   linkType: hard
 
@@ -20493,11 +20514,11 @@ __metadata:
   linkType: hard
 
 "castable-video@npm:~1.0.6":
-  version: 1.0.6
-  resolution: "castable-video@npm:1.0.6"
+  version: 1.0.9
+  resolution: "castable-video@npm:1.0.9"
   dependencies:
-    custom-media-element: ~1.2.2
-  checksum: 873ea75b35c594ed3755bacedd33628c070c751e34e0a64e42f98a4e9e0fda7f988ecac0ec723a4f7a25f332ba4650d4686e826614d81663554b9b31298cc648
+    custom-media-element: ~1.3.1
+  checksum: 85600d7a257458e3ea4771a056209abada26e6a7a97e42b03402e78acd0c622923d9a55d58332937693346433c4264f578a4bfc0a49f7817cd83dd65ffe7d877
   languageName: node
   linkType: hard
 
@@ -22565,10 +22586,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"custom-media-element@npm:~1.2.2, custom-media-element@npm:~1.2.3":
+"custom-media-element@npm:~1.2.3":
   version: 1.2.3
   resolution: "custom-media-element@npm:1.2.3"
   checksum: da43680c35c870cd80ea02b9fce3efe25e9502c7088de5ab0e47ef2734aa9ce7e147c95f78a10abd4c13c47a81eae4712a7651ad18f87e023bc371082ba09842
+  languageName: node
+  linkType: hard
+
+"custom-media-element@npm:~1.3.1":
+  version: 1.3.1
+  resolution: "custom-media-element@npm:1.3.1"
+  checksum: d8dd50cca0e93746182e4c06290f5d96d7bf0b76d6d97fb2edbf74fd8245285e5e1c40a83f8b752aad8e9a140aff0f1a2fbbb7385c6e9f6c8d05053fd2aefeb1
   languageName: node
   linkType: hard
 
@@ -28329,9 +28357,9 @@ __metadata:
   linkType: hard
 
 "hls.js@npm:~1.5.8":
-  version: 1.5.8
-  resolution: "hls.js@npm:1.5.8"
-  checksum: 93781b38859ce852952244e9671d536a73acb93a20cfbc3a68e372056d024789e48c7d67354b6b9ac35acab4a161d0d15adcf64279a0832f46465233cdbc8be0
+  version: 1.5.9
+  resolution: "hls.js@npm:1.5.9"
+  checksum: cc98c40079df0a4b454954bd551696487573235109fb39261fc7b6728ae1fb187391a703dbed404174aef384a6eb115c82e2cd0ded99cbbb86cba0e0b6f99a2b
   languageName: node
   linkType: hard
 
@@ -28954,9 +28982,9 @@ __metadata:
   linkType: hard
 
 "immer@npm:^10.0.3":
-  version: 10.0.4
-  resolution: "immer@npm:10.0.4"
-  checksum: 8c69cad9adde7296b6857aadc0837b792840d46d5b5759002cfc168abe58815bd5b944a9533a03df4738d6ce3dc918cc0a88437324fd71e1fcbd2e77273c39f0
+  version: 10.1.1
+  resolution: "immer@npm:10.1.1"
+  checksum: 07c67970b7d22aded73607193d84861bf786f07d47f7d7c98bb10016c7a88f6654ad78ae1e220b3c623695b133aabbf24f5eb8d9e8060cff11e89ccd81c9c10b
   languageName: node
   linkType: hard
 
@@ -33698,16 +33726,16 @@ __metadata:
   linkType: hard
 
 "media-chrome@npm:~3.2.1":
-  version: 3.2.1
-  resolution: "media-chrome@npm:3.2.1"
-  checksum: 0e7d8a6850d0c4844be7b7975bcf80886aad5f2ae3cff1081aa5a7b7920ddf9f15b2da4df875f83ffb5f083d3fc1d337a8ac204317e40391f8311eb7f2f58c5e
+  version: 3.2.3
+  resolution: "media-chrome@npm:3.2.3"
+  checksum: 073757ff6952045052f9c63fbb688ac8ff9f54787f5e26eaa52f47d72a8c53df65a1b62a30e2c7d90631c8c59a0ec2b960e746ab3e6dca389a3f936b42c858f2
   languageName: node
   linkType: hard
 
 "media-tracks@npm:~0.3.0":
-  version: 0.3.0
-  resolution: "media-tracks@npm:0.3.0"
-  checksum: 217880bdf566cd070f22fce2cba132cd602ae2838a20f1c75aeb5f928edda283133d474b1f427deb2758cd9b64911f88eb6380921662566bbeb7051adbb81629
+  version: 0.3.2
+  resolution: "media-tracks@npm:0.3.2"
+  checksum: c08ea931ded4e6b3db7e0fd47259622448d9d0e965795610953f32a2d6a52bc0025870f051c2c7934c823d4b1675dac736e428445e7cbcba4326b45bb59969cb
   languageName: node
   linkType: hard
 
@@ -35066,9 +35094,9 @@ __metadata:
   linkType: hard
 
 "mux-embed@npm:~5.2.0":
-  version: 5.2.0
-  resolution: "mux-embed@npm:5.2.0"
-  checksum: c90f6e216a8239ef15534b26feb2299cbac51dff82766e23c89be6e30bf4348fe711fb092968b607fd45d1b509e75882efc2e12e0b34039483c1bf1b7c6690bb
+  version: 5.2.1
+  resolution: "mux-embed@npm:5.2.1"
+  checksum: ec34d3e003e2520be6d1386ca2383daa198a1fa3a469ca3f06c11a742d6ab136eef4944c37e8f2dcaa0585e1b0a6dfc119e3cf2302c7eb0e7f2ebc7c1fc95fbd
   languageName: node
   linkType: hard
 
@@ -39620,15 +39648,15 @@ __metadata:
   linkType: hard
 
 "react-intersection-observer@npm:^9.4.3":
-  version: 9.8.2
-  resolution: "react-intersection-observer@npm:9.8.2"
+  version: 9.10.2
+  resolution: "react-intersection-observer@npm:9.10.2"
   peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: 0e77226cf458499959773da9db9e00ae33a6eb95c2fa1ec3f506bbcba00955c1c27d2320fba8cdd740cadb1c7d6cc396386cbd9c359298cff196cac660dbee49
+  checksum: fea1104ae5515f01b6c13f8f8259bf04e44fc624e8ff5aecb1b24cca25cc04b62f7551586acd838a2c475d55fb07d9c042a412f90cd4c8e39ff4575d5a5a76ac
   languageName: node
   linkType: hard
 
@@ -39735,6 +39763,16 @@ __metadata:
     react: ^16.3.2
     react-dom: ^16.3.2
   checksum: d115e76c0ee3b26792a82cd9c4b5b3c6f90f15b1e5ca6f617e7985d324bb5e6b61c09588d9b2156701555c3917cf262523ce1607c2ea26fd95ed15a8d52b5ec7
+  languageName: node
+  linkType: hard
+
+"react-parallax-tilt@npm:^1.7.226":
+  version: 1.7.227
+  resolution: "react-parallax-tilt@npm:1.7.227"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: 07a1ef95e56d35a40942976f7e9960d985f50a3330d626884b8ef75860bac1bea4c40b09b610a44c0aaa200603845ffe4975deda56c540cc364b8a26feef703d
   languageName: node
   linkType: hard
 

@@ -11,6 +11,7 @@
     "publish": "rm -rf dist && yarn build && npm publish --access public"
   },
   "devDependencies": {
+    "@calcom/platform-libraries": "0.0.2",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@types/node": "^20.3.1",
     "@types/react": "18.0.26",
