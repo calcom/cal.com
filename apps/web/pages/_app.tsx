@@ -1,6 +1,7 @@
 import type { IncomingMessage } from "http";
 import type { AppContextType } from "next/dist/shared/lib/utils";
-import React from "react";
+import { useRouter, usePathname } from "next/navigation";
+import React, { useEffect } from "react";
 
 import { trpc } from "@calcom/trpc/react";
 
@@ -9,7 +10,17 @@ import type { AppProps } from "@lib/app-providers";
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
+  const router = useRouter();
   const { Component, pageProps } = props;
+  const pathName = usePathname();
+
+  const isPlatformUser = pageProps?.session?.isPlatformUser;
+
+  useEffect(() => {
+    if (isPlatformUser === true && pathName && !pathName.startsWith("/settings/platform")) {
+      return router.replace("/settings/platform");
+    }
+  }, [isPlatformUser, pathName, router]);
 
   if (Component.PageWrapper !== undefined) return Component.PageWrapper(props);
   return <Component {...pageProps} />;

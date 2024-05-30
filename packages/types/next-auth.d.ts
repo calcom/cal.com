@@ -14,6 +14,7 @@ declare module "next-auth" {
     profileId?: number | null;
     upId: string;
     user: User;
+    isPlatformUser: boolean;
   }
 
   interface User extends Omit<DefaultUser, "id"> {

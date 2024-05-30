@@ -58,6 +58,13 @@ export async function getServerSession(options: {
     where: {
       email: token.email.toLowerCase(),
     },
+    include: {
+      organization: {
+        select: {
+          isPlatform: true,
+        },
+      },
+    },
   });
 
   if (!userFromDb) {
@@ -103,6 +110,7 @@ export async function getServerSession(options: {
       profile: user.profile,
     },
     profileId: token.profileId,
+    isPlatformUser: userFromDb.organization?.isPlatform ?? false,
     upId,
   };
 
