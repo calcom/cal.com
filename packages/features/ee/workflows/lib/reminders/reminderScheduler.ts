@@ -250,7 +250,12 @@ const reminderMethods: {
 };
 
 export const cancelWorkflowReminders = async (
-  workflowReminders: { method: WorkflowMethods; id: number; referenceId: string | null }[]
+  workflowReminders: {
+    method: WorkflowMethods;
+    id: number;
+    referenceId: string | null;
+    prisma: PrismaClient;
+  }[]
 ) => {
   await Promise.all(
     workflowReminders.map((reminder) => {
