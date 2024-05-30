@@ -1421,6 +1421,7 @@
   "add_dynamic_variables": "Add dynamic text variables",
   "event_name_info": "The event type name",
   "event_date_info": "The event date",
+  "event_duration_info": "Then event duration",
   "event_time_info": "The event start time",
   "event_type_not_found": "EventType not Found",
   "location_variable": "Location",

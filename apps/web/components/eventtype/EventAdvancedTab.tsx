@@ -74,6 +74,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     eventName: formMethods.getValues("eventName"),
     host: formMethods.getValues("users")[0]?.name || "Nameless",
     bookingFields: bookingFields,
+    eventDuration: formMethods.getValues("length"),
     t,
   };
 

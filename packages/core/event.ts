@@ -23,6 +23,7 @@ export type EventNameObjectType = {
   teamName?: string | null;
   host: string;
   location?: string;
+  eventDuration?: number;
   bookingFields?: Prisma.JsonObject;
   t: TFunction;
 };
@@ -62,6 +63,13 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
+
+  if (eventNameObj.eventDuration) {
+    dynamicEventName = dynamicEventName.replaceAll(
+      "{Event duration}",
+      `${String(eventNameObj.eventDuration)}min`
+    );
+  }
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};
@@ -120,6 +128,7 @@ export const validateCustomEventName = (
     "{Organiser first name}",
     "{Scheduler first name}",
     "{Scheduler last name}",
+    "{Event duration}",
     //allowed for fallback reasons
     "{LOCATION}",
     "{HOST/ATTENDEE}",
