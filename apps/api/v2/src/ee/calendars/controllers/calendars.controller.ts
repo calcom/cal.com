@@ -1,6 +1,8 @@
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
+import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
+import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -17,6 +19,7 @@ import {
   HttpStatus,
   HttpCode,
   Req,
+  Param,
   Headers,
   Redirect,
   BadRequestException,
@@ -27,7 +30,12 @@ import { Request } from "express";
 import { z } from "zod";
 
 import { OFFICE_365_CALENDAR_TYPE, APPS_READ } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  CALENDARS,
+  GOOGLE_CALENDAR,
+  MICROSOFT_OUTLOOK_CALENDAR,
+} from "@calcom/platform-constants";
 import { CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
@@ -38,6 +46,8 @@ import { CalendarBusyTimesInput } from "@calcom/platform-types";
 export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
+    private readonly outlookService: OutlookService,
+    private readonly googleCalendarService: GoogleCalendarService,
     private readonly tokensRepository: TokensRepository,
     private readonly credentialRepository: CredentialsRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
@@ -82,20 +92,24 @@ export class CalendarsController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get("/office365/connect")
+  @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
   async redirect(
     @Req() req: Request,
-    @Headers("Authorization") authorization: string
-  ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: Promise<string> } }> {
-    const accessToken = authorization.replace("Bearer ", "");
-    const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = this.calendarsService.getOffice365CalendarRedirectUrl(accessToken, origin ?? "");
-
-    return {
-      status: SUCCESS_STATUS,
-      data: { authUrl: redirectUrl },
-    };
+    @Headers("Authorization") authorization: string,
+    @Param("calendar") calendar: string
+  ): Promise<{ status: string; data: { authUrl: string } }> {
+    switch (calendar) {
+      case MICROSOFT_OUTLOOK_CALENDAR:
+        return await this.outlookService.connect(authorization, req);
+      case GOOGLE_CALENDAR:
+        return await this.googleCalendarService.connect(authorization, req);
+      default:
+        throw new BadRequestException(
+          "Invalid calendar type, available calendars are: ",
+          CALENDARS.join(", ")
+        );
+    }
   }
 
   @Get("/office365/save")
