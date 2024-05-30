@@ -132,6 +132,10 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
+  team?: {
+    id?: number | null;
+    parentId?: number | null;
+  };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
