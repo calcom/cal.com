@@ -26,6 +26,13 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false
   },
+  "watchOptions": {
+    "watchFile": "fixedPollingInterval",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true,
+    "excludeDirectories": ["**/node_modules", "dist"]
+  },
   "exclude": ["./dist", "./node_modules", "next-i18next.config.js"],
   "include": ["./**/*.ts", "../../../packages/types/*.d.ts"]
 }
