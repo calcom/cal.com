@@ -17,30 +17,17 @@ type AnalyticApp = Omit<AppMeta, "appData"> & {
   };
 };
 
-// Setup listener for all events to push to analytics apps
-if (typeof window !== "undefined") {
-  sdkActionManager?.on("*", (event) => {
-    const { type: name, ...data } = event.detail;
-    // Don't push internal events to analytics apps
-    // They are meant for internal use like helping embed make some decisions
-    if (name.startsWith("__")) {
-      return;
-    }
+const getPushEventScript = ({ tag, appId }: { tag: Tag; appId: string }) => {
+  if (!tag.pushEventScript) {
+    return tag.pushEventScript;
+  }
 
-    Object.entries(window).forEach(([prop, value]) => {
-      if (!prop.startsWith(PushEventPrefix) || typeof value !== "function") {
-        return;
-      }
-      // Find the pushEvent if defined by the analytics app
-      const pushEvent = window[prop as keyof typeof window];
-
-      pushEvent({
-        name,
-        data,
-      });
-    });
-  });
-}
+  return {
+    ...tag.pushEventScript,
+    // In case of complex pushEvent implementations, we could think about exporting a pushEvent function from the analytics app maybe but for now this should suffice
+    content: tag.pushEventScript?.content?.replace("$pushEvent", `${PushEventPrefix}_${appId}`),
+  };
+};
 
 function getAnalyticsApps(eventType: Parameters<typeof getEventTypeAppData>[0]) {
   return Object.entries(appStoreMetadata).reduce(
@@ -68,18 +55,40 @@ function getAnalyticsApps(eventType: Parameters<typeof getEventTypeAppData>[0]) 
   );
 }
 
+export function handleEvent(event: { detail: Record<string, unknown> & { type: string } }) {
+  const { type: name, ...data } = event.detail;
+  // Don't push internal events to analytics apps
+  // They are meant for internal use like helping embed make some decisions
+  if (name.startsWith("__")) {
+    return false;
+  }
+
+  Object.entries(window).forEach(([prop, value]) => {
+    if (!prop.startsWith(PushEventPrefix) || typeof value !== "function") {
+      return;
+    }
+    // Find the pushEvent if defined by the analytics app
+    const pushEvent = window[prop as keyof typeof window];
+
+    pushEvent({
+      name,
+      data,
+    });
+  });
+
+  return true;
+}
+
 export default function BookingPageTagManager({
   eventType,
 }: {
   eventType: Parameters<typeof getEventTypeAppData>[0];
 }) {
   const analyticsApps = getAnalyticsApps(eventType);
-
   return (
     <>
       {Object.entries(analyticsApps).map(([appId, { meta: app, eventTypeAppData }]) => {
         const tag = app.appData.tag;
-
         const parseValue = <T extends string | undefined>(val: T): T => {
           if (!val) {
             return val;
@@ -114,6 +123,7 @@ export default function BookingPageTagManager({
 
           return (
             <Script
+              data-testid={`cal-analytics-app-${appId}`}
               src={parseValue(script.src)}
               id={`${appId}-${index}`}
               key={`${appId}-${index}`}
@@ -130,14 +140,8 @@ export default function BookingPageTagManager({
   );
 }
 
-const getPushEventScript = ({ tag, appId }: { tag: Tag; appId: string }) => {
-  if (!tag.pushEventScript) {
-    return tag.pushEventScript;
-  }
-
-  return {
-    ...tag.pushEventScript,
-    // In case of complex pushEvent implementations, we could think about exporting a pushEvent function from the analytics app maybe but for now this should suffice
-    content: tag.pushEventScript?.content?.replace("$pushEvent", `${PushEventPrefix}_${appId}`),
-  };
-};
+if (typeof window !== "undefined") {
+  // Attach listener outside React as it has to be attached only once per page load
+  // Setup listener for all events to push to analytics apps
+  sdkActionManager?.on("*", handleEvent);
+}
