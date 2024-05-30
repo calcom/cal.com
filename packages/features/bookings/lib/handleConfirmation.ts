@@ -4,6 +4,8 @@ import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { CRUD } from "@calcom/features/audit-logs/types";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -14,7 +16,7 @@ import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AuditLogBookingTriggerEvents, BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -300,21 +302,6 @@ export async function handleConfirmation(args: {
       },
     });
 
-    // await handleAuditLogTrigger({
-    //   event: {
-    //     action: AuditLogTriggerEvents.BOOKING_CREATED,
-    //     actor: {
-    //       id: user.credentials[0].userId ?? 0,
-    //       name: user.username || "",
-    //     },
-    //     target: {
-    //       name: AuditLogTriggerTargets.BOOKING,
-    //     },
-    //   },
-    //   userId: user.credentials[0].userId,
-    //   teamId,
-    // });
-
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
     const subscribersBookingCreated = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
@@ -390,24 +377,27 @@ export async function handleConfirmation(args: {
       })
     );
 
+    await handleAuditLogTrigger({
+      req: {
+        source_ip: "127.0.0.0",
+        userId: booking.userId,
+      },
+      bookingData: {
+        ...evt,
+        ...eventTypeInfo,
+        bookingId,
+        eventTypeId: booking.eventType?.id,
+        status: "ACCEPTED",
+        smsReminderNumber: booking.smsReminderNumber || undefined,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+      },
+      action: AuditLogBookingTriggerEvents.BOOKING_CONFIRMED,
+      crud: CRUD.CREATE,
+    });
+
     await Promise.all(promises);
 
     if (paid) {
-      // await handleAuditLogTrigger({
-      //   event: {
-      //     action: AuditLogTriggerEvents.BOOKING_PAID,
-      //     actor: {
-      //       id: user.credentials[0].userId || 0,
-      //       name: user.username || "",
-      //     },
-      //     target: {
-      //       name: AuditLogTriggerTargets.BOOKING,
-      //     },
-      //   },
-      //   userId: user.credentials[0].userId,
-      //   teamId,
-      // });
-
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
         userId: triggerForUser ? booking.userId : null,
@@ -461,6 +451,24 @@ export async function handleConfirmation(args: {
           );
         })
       );
+
+      await handleAuditLogTrigger({
+        req: {},
+        bookingData: {
+          ...evt,
+          ...eventTypeInfo,
+          bookingId,
+          eventTypeId: booking.eventType?.id,
+          status: "ACCEPTED",
+          smsReminderNumber: booking.smsReminderNumber || undefined,
+          paymentId: bookingWithPayment?.payment?.[0].id,
+          metadata: {
+            ...(paid ? paymentMetadata : {}),
+          },
+        },
+        action: AuditLogBookingTriggerEvents.BOOKING_PAID,
+        crud: CRUD.UPDATE,
+      });
 
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
