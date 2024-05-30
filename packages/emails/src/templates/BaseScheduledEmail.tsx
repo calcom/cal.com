@@ -89,7 +89,7 @@ export const BaseScheduledEmail = (
         timeZone={timeZone}
         locale={locale}
       />
-      <WhoInfo calEvent={props.calEvent} t={t} />
+      <WhoInfo calEvent={props.calEvent} t={t} isOrganizer={!!props.isOrganizer} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />
