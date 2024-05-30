@@ -4,7 +4,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import type { TDeleteInputSchema } from "./delete.schema";
-import { isAuthorized, removeSmsReminderFieldForBooking } from "./util";
+import { deleteAllWorkflowReminders, isAuthorized, removeSmsReminderFieldForBooking } from "./util";
 
 type DeleteOptions = {
   ctx: {

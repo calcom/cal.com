@@ -166,7 +166,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
     );
 
-    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg);
+    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma);
 
     //update active on
     await ctx.prisma.workflowsOnEventTypes.deleteMany({

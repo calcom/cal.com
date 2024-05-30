@@ -5,6 +5,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
+import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { TimeUnit, WorkflowTemplates } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -240,7 +241,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
   }
 };
 
-const reminderMethods: { [x: string]: (id: number, referenceId: string | null) => void } = {
+const reminderMethods: {
+  [x: string]: (id: number, referenceId: string | null, prisma: PrismaClient) => void;
+} = {
   [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
   [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
   [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,

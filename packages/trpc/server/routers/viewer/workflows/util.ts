@@ -22,7 +22,7 @@ import { removeBookingField, upsertBookingField } from "@calcom/features/eventty
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import type { PrismaClient } from "@calcom/prisma";
+import { prisma, type PrismaClient } from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
