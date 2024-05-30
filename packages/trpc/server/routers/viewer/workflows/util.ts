@@ -398,6 +398,14 @@ async function getRemindersFromRemovedEventTypes(
   return remindersToDelete;
 }
 
+const reminderMethods: {
+  [x: string]: (id: number, referenceId: string | null, prisma: PrismaClient) => void;
+} = {
+  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
+  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
+  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
+};
+
 export async function deleteAllWorkflowReminders(
   remindersToDelete:
     | {
@@ -410,19 +418,11 @@ export async function deleteAllWorkflowReminders(
 ) {
   if (!remindersToDelete) return Promise.resolve();
 
-  const deleteRemindersPromise = [];
-
-  for (const reminder of remindersToDelete) {
-    if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteRemindersPromise.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId, prisma));
-    } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteRemindersPromise.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId, prisma));
-    } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteRemindersPromise.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId, prisma));
-    }
-  }
-
-  await Promise.all(deleteRemindersPromise).catch((error) => {
+  await Promise.all(
+    remindersToDelete.map((reminder) => {
+      return reminderMethods[reminder.method](reminder.id, reminder.referenceId, prisma);
+    })
+  ).catch((error) => {
     log.error("An error occurred when deleting workflow reminders", error);
   });
 }

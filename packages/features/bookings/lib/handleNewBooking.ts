@@ -48,7 +48,6 @@ import {
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import {
-  cancelWorkflowReminders,
   scheduleWorkflowReminders,
   workflowSelect,
 } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -1777,15 +1776,8 @@ async function handler(
   //this is the actual rescheduling logic
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
-    try {
-      // cancel workflow reminders from previous rescheduled booking
-      await cancelWorkflowReminders(originalRescheduledBooking.workflowReminders);
-    } catch (error) {
-      loggerWithEventDetails.error(
-        "Error while canceling scheduled workflow reminders",
-        JSON.stringify({ error })
-      );
-    }
+    // cancel workflow reminders from previous rescheduled booking
+    await deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders, prisma);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 

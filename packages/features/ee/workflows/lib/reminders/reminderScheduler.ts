@@ -5,16 +5,15 @@ import {
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import type { PrismaClient } from "@calcom/prisma";
 import prisma from "@calcom/prisma";
 import type { TimeUnit, WorkflowTemplates } from "@calcom/prisma/enums";
-import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
-import { deleteScheduledEmailReminder, scheduleEmailReminder } from "./emailReminderManager";
+import { scheduleEmailReminder } from "./emailReminderManager";
 import type { ScheduleTextReminderAction } from "./smsReminderManager";
-import { deleteScheduledSMSReminder, scheduleSMSReminder } from "./smsReminderManager";
-import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./whatsappReminderManager";
+import { scheduleSMSReminder } from "./smsReminderManager";
+import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
@@ -239,29 +238,6 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
       });
     }
   }
-};
-
-const reminderMethods: {
-  [x: string]: (id: number, referenceId: string | null, prisma: PrismaClient) => void;
-} = {
-  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
-  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
-  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
-};
-
-export const cancelWorkflowReminders = async (
-  workflowReminders: {
-    method: WorkflowMethods;
-    id: number;
-    referenceId: string | null;
-    prisma: PrismaClient;
-  }[]
-) => {
-  await Promise.all(
-    workflowReminders.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
-    })
-  );
 };
 
 export interface SendCancelledRemindersArgs {
