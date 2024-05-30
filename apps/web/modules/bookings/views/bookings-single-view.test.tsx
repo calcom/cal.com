@@ -11,6 +11,13 @@ import { HeadSeo } from "@calcom/ui";
 
 import Success from "./bookings-single-view";
 
+vi.mock("@calcom/lib/constants", async () => {
+  return {
+    WEBAPP_URL: "http://localhost:3000",
+    APP_NAME: "Cal.com",
+  };
+});
+
 function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof Success>>) {
   return {
     eventType: {
