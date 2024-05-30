@@ -157,3 +157,11 @@ export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 2;
  * Counter start from current day and we would like to not go beyond 2 months(max days possible) from current day.
  */
 export const ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK = 30 + 31;
+
+export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/sparkles-red.svg`
+  : `https://app.cal.com/sparkles-red.svg`;
+
+export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/sparkles.svg`
+  : `https://app.cal.com/sparkles.svg`;
