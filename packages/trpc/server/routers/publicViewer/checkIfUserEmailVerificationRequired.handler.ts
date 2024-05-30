@@ -1,15 +1,9 @@
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import logger from "@calcom/lib/logger";
 
 import type { TUserEmailVerificationRequiredSchema } from "./checkIfUserEmailVerificationRequired.schema";
 
 const log = logger.getSubLogger({ prefix: ["checkIfUserEmailVerificationRequired"] });
-
-// Function to extract base email
-const extractBaseEmail = (email: string): string => {
-  const [localPart, domain] = email.split("@");
-  const baseLocalPart = localPart.split("+")[0];
-  return `${baseLocalPart}@${domain}`;
-};
 
 export const userWithEmailHandler = async ({ input }: { input: TUserEmailVerificationRequiredSchema }) => {
   const { userSessionEmail, email } = input;

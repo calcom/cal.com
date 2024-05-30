@@ -68,6 +68,7 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -1404,7 +1405,8 @@ async function handler(
 
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
-    if (blacklistedGuestEmails.some((e) => e === guest)) {
+    const baseGuestEmail = extractBaseEmail(guest);
+    if (blacklistedGuestEmails.some((e) => e === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
