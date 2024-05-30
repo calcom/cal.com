@@ -71,7 +71,6 @@ import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
-import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -1169,6 +1168,7 @@ async function handler(
   //this gets the original rescheduled booking
   if (rescheduleUid) {
     // rescheduleUid can be bookingUid and bookingSeatUid
+    // if rescheduled by seat then reassign otherwise use bookingUid
     bookingSeat = await prisma.bookingSeat.findUnique({
       where: {
         referenceUid: rescheduleUid,
@@ -1598,12 +1598,10 @@ async function handler(
     teamId,
   };
 
-  const sourceIp = getIP(req);
-
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
+    console.log("IM HEREEEEAFDFWDASDFASDFWQERWERQWERWQE");
     const newBooking = await handleSeats({
-      sourceIp,
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
@@ -2337,7 +2335,9 @@ async function handler(
     await handleAuditLogTrigger({
       req,
       bookingData: webhookData,
-      action: AuditLogTriggerEvents.BOOKING_CREATED,
+      action: rescheduleUid
+        ? AuditLogTriggerEvents.BOOKING_RESCHEDULED
+        : AuditLogTriggerEvents.BOOKING_CREATED,
       crud: CRUD.CREATE,
     });
   } else {
