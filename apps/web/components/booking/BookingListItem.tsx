@@ -12,9 +12,9 @@ import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -57,7 +57,6 @@ type BookingItemProps = BookingItem & {
 };
 
 function BookingListItem(booking: BookingItemProps) {
-  const bookerUrl = useBookerUrl();
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
 
   const {
@@ -179,7 +178,7 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: "clock" as const,
           label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
+          href: `${WEBAPP_URL}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
           }`,
         },

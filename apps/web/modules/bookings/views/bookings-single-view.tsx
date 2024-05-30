@@ -31,7 +31,7 @@ import {
   SystemField,
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -664,7 +664,9 @@ export default function Success(props: PageProps) {
                                 <span className="text-default inline">
                                   <span className="underline" data-testid="reschedule-link">
                                     <Link
-                                      href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}
+                                      href={`${WEBAPP_URL}/reschedule/${
+                                        seatReferenceUid || bookingInfo?.uid
+                                      }`}
                                       legacyBehavior>
                                       {t("reschedule")}
                                     </Link>
@@ -867,7 +869,7 @@ export default function Success(props: PageProps) {
                         description={t("no_show_description")}
                         buttonRaw={
                           !props.recurringBookings ? (
-                            <Button href={`/reschedule/${seatReferenceUid || bookingInfo?.uid}`}>
+                            <Button href={`${WEBAPP_URL}/reschedule/${seatReferenceUid || bookingInfo?.uid}`}>
                               {t("reschedule")}
                             </Button>
                           ) : undefined
