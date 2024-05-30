@@ -6,6 +6,8 @@ import { DailyLocationType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -315,6 +317,18 @@ async function handler(req: CustomRequest) {
   };
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
+
+  handleAuditLogTrigger({
+    req,
+    bookingData: {
+      ...evt,
+      ...eventTypeInfo,
+      status: "CANCELLED",
+      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+    },
+    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+    crud: CRUD.UPDATE,
+  });
 
   // If it's just an attendee of a booking then just remove them from that booking
   const result = await cancelAttendeeSeat(req, dataForWebhooks);

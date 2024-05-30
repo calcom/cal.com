@@ -4,6 +4,8 @@ import appStore from "@calcom/app-store";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import type { LocationObject } from "@calcom/app-store/locations";
 import { sendDeclinedEmails } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { CRUD } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -15,7 +17,13 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  AuditLogBookingTriggerEvents,
+  BookingStatus,
+  MembershipRole,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService, PaymentApp } from "@calcom/types/PaymentService";
 
@@ -251,6 +259,7 @@ export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) =
       ...user,
       credentials,
     };
+
     const conferenceCredentialId = getLocationValueForDB(
       booking.location ?? "",
       (booking.eventType?.locations as LocationObject[]) || []
@@ -396,20 +405,15 @@ export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) =
       smsReminderNumber: booking.smsReminderNumber || undefined,
     };
 
-    // await handleAuditLogTrigger({
-    //   event: {
-    //     action: AuditLogTriggerEvents.BOOKING_REJECTED,
-    //     actor: {
-    //       id: ctx.user.id || "0",
-    //       name: ctx.user.name || "",
-    //     },
-    //     target: {
-    //       name: AuditLogTriggerTargets.BOOKING,
-    //     },
-    //   },
-    //   userId: ctx.user.id,
-    //   teamId,
-    // });
+    await handleAuditLogTrigger({
+      req: {
+        source_ip: sourceIp,
+        userId: ctx.user.id,
+      },
+      bookingData: webhookData,
+      action: AuditLogBookingTriggerEvents.BOOKING_REJECTED,
+      crud: CRUD.UPDATE,
+    });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
