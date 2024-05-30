@@ -18,9 +18,9 @@ export const PlatformBillingCard = ({
   handleSubscribe,
 }: PlatformBillingCardProps) => {
   return (
-    <div className="border-subtle w-auto rounded-md border p-5 lg:w-[350px]">
+    <div className="border-subtle mx-4 w-auto rounded-md border p-5 ">
       <div className="pb-5">
-        <h1 className="pb-3 text-xl font-semibold">{plan}</h1>
+        <h1 className="pb-3 pt-3 text-xl font-semibold">{plan}</h1>
         <p className="pb-5 text-base">{description}</p>
         <h1 className="text-3xl font-semibold">
           {pricing && (

@@ -30,7 +30,7 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
-    enable_transcription_storage: z.boolean(),
+    enable_transcription_storage: z.boolean().default(false),
   }),
 });
 
@@ -169,17 +169,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       },
     });
 
-    // Check if organizer has subscribed to Cal.ai
-
-    const isCalAiSubscribed = await prisma.credential.findMany({
-      where: {
-        userId: event.organizer.id,
-        type: "cal-ai_automation",
-        invalid: false,
-        paymentStatus: "active",
-      },
-    });
-
     return {
       privacy: "public",
       properties: {
@@ -189,10 +178,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_chat: true,
         exp: exp,
         enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
-        enable_transcription_storage: !!isCalAiSubscribed,
-        permissions: {
-          canAdmin: ["transcription"],
-        },
+        enable_transcription_storage: !!hasTeamPlan,
+        ...(!!hasTeamPlan && {
+          permissions: {
+            canAdmin: ["transcription"],
+          },
+        }),
       },
     };
   };
@@ -269,10 +260,10 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         const roomId = res.id;
         const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
 
+        if (!allTranscripts.data.length) return [];
+
         const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
-
         const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
-
         const accessLinks = await Promise.all(allTranscriptsAccessLink);
 
         return Promise.resolve(accessLinks);
