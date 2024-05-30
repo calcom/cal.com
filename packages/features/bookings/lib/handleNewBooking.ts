@@ -1405,8 +1405,8 @@ async function handler(
 
   const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
-    const baseGuestEmail = extractBaseEmail(guest);
-    if (blacklistedGuestEmails.some((e) => e === baseGuestEmail)) {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
       guestsRemoved.push(guest);
       return guestArray;
     }
