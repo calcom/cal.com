@@ -546,11 +546,6 @@ async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team
     const teamsWithParentId = {
       ...team,
       parentId: team.parentId,
-      parent: {
-        connect: {
-          id: team.parentId,
-        },
-      },
     };
     await prismock.team.upsert({
       where: {

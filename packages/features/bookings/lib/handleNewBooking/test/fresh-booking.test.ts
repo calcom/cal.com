@@ -119,7 +119,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -291,7 +291,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -454,7 +454,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -609,7 +609,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -730,7 +730,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -895,7 +895,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -1446,7 +1446,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -1572,7 +1572,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -1696,7 +1696,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -1828,7 +1828,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -2035,7 +2035,7 @@ describe("handleNewBooking", () => {
               trigger: "NEW_EVENT",
               action: "EMAIL_HOST",
               template: "REMINDER",
-              activeEventTypeId: 1,
+              activeOn: [1],
             },
           ],
           eventTypes: [
@@ -2141,7 +2141,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -2300,7 +2300,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
