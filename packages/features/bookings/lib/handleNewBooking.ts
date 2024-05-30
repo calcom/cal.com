@@ -1398,7 +1398,16 @@ async function handler(
     },
   ];
 
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const guestsRemoved = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
+    if (blacklistedGuestEmails.some((e) => e === guest)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1413,6 +1422,8 @@ async function handler(
     });
     return guestArray;
   }, [] as Invitee);
+
+  log.info("Removed guests from the booking", guestsRemoved);
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
