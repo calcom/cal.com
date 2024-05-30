@@ -1,6 +1,7 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -341,6 +342,28 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               }
             );
           }
+        });
+      }
+    } else if (
+      (appStoreMetadata[credential.app?.slug as keyof typeof appStoreMetadata].extendsFeature = "EventType")
+    ) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
+        await prisma.eventType.update({
+          where: {
+            id: eventType.id,
+          },
+          data: {
+            hidden: true,
+            metadata: {
+              ...metadata,
+              apps: {
+                ...metadata?.apps,
+                [appSlug]: undefined,
+              },
+            },
+          },
         });
       }
     }
