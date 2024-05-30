@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
@@ -25,7 +26,7 @@ export default function CreateOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast(ErrorCode.CreatingOauthClientError, "error");
     },
   });
 

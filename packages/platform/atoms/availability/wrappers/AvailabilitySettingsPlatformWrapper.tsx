@@ -13,7 +13,7 @@ import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
 import type { AvailabilityFormValues } from "../types";
 
-type PlatformAvailabilitySettingsWrapperProps = {
+type AvailabilitySettingsPlatformWrapperProps = {
   id?: string;
   labels?: {
     tooltips: Partial<ScheduleLabelsType>;
@@ -23,16 +23,18 @@ type PlatformAvailabilitySettingsWrapperProps = {
   onUpdateError?: (err: ApiErrorResponse) => void;
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
+  disableEditableHeading?: boolean;
 };
 
-export const PlatformAvailabilitySettingsWrapper = ({
+export const AvailabilitySettingsPlatformWrapper = ({
   id,
   customClassNames,
   onDeleteError,
   onDeleteSuccess,
   onUpdateError,
   onUpdateSuccess,
-}: PlatformAvailabilitySettingsWrapperProps) => {
+  disableEditableHeading = false,
+}: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useClientSchedule(id);
   const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
   const { data: me } = useMe();
@@ -91,6 +93,7 @@ export const PlatformAvailabilitySettingsWrapper = ({
   return (
     <AtomsWrapper>
       <AvailabilitySettings
+        disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
           userSchedule.id && handleDelete(userSchedule.id);
         }}
