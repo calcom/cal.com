@@ -6,7 +6,6 @@ import type { BookingReference, Attendee, Booking, Membership } from "@prisma/cl
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
-import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 import type { z } from "zod";
@@ -19,7 +18,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
+import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -28,6 +27,7 @@ import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
+import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
 logger.settings.minLevel = 0;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
@@ -653,6 +653,8 @@ export async function createOrganization(orgData: {
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
  * - `fromDate` starts incrementing from this date (default: today)
+ *  @deprecated Stop using this function as it is not timezone aware and can return wrong date depending on the time of the day and timezone. Instead
+ *  use vi.setSystemTime to fix the date and time and then use hardcoded days instead of dynamic date calculation.
  */
 export const getDate = (
   param: {
@@ -763,6 +765,15 @@ export function getGoogleCalendarCredential() {
   });
 }
 
+export function getGoogleMeetCredential() {
+  return getMockedCredential({
+    metadataLookupKey: "googlevideo",
+    key: {
+      scope: "",
+    },
+  });
+}
+
 export function getAppleCalendarCredential() {
   return getMockedCredential({
     metadataLookupKey: "applecalendar",
@@ -803,6 +814,7 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
+      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
@@ -890,6 +902,17 @@ export const TestData = {
         redirect_uris: ["http://localhost:3000/auth/callback"],
       },
     },
+    "google-meet": {
+      ...appStoreMetadata.googlevideo,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      keys: {
+        expiry_date: Infinity,
+        client_id: "client_id",
+        client_secret: "client_secret",
+        redirect_uris: ["http://localhost:3000/auth/callback"],
+      },
+    },
     "daily-video": {
       ...appStoreMetadata.dailyvideo,
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -952,6 +975,7 @@ export function getOrganizer({
   teams,
   organizationId,
   metadata,
+  smsLockState,
 }: {
   name: string;
   email: string;
@@ -965,6 +989,7 @@ export function getOrganizer({
   weekStart?: WeekDays;
   teams?: InputUser["teams"];
   metadata?: userMetadataType;
+  smsLockState?: SMSLockState;
 }) {
   return {
     ...TestData.users.example,
@@ -981,6 +1006,7 @@ export function getOrganizer({
     organizationId,
     profiles: [],
     metadata,
+    smsLockState,
   };
 }
 
@@ -1081,6 +1107,12 @@ export function mockNoTranslations() {
   });
 }
 
+export const enum BookingLocations {
+  CalVideo = "integrations:daily",
+  ZoomVideo = "integrations:zoom",
+  GoogleMeet = "integrations:google:meet",
+}
+
 /**
  * @param metadataLookupKey
  * @param calendarData Specify uids and other data to be faked to be returned by createEvent and updateEvent
@@ -1161,6 +1193,7 @@ export function mockCalendar(
               log.silly("mockCalendar.updateEvent", JSON.stringify({ uid, event, externalCalendarId }));
               // eslint-disable-next-line prefer-rest-params
               updateEventCalls.push(rest);
+              const isGoogleMeetLocation = event.location === BookingLocations.GoogleMeet;
               return Promise.resolve({
                 type: app.type,
                 additionalInfo: {},
@@ -1172,6 +1205,9 @@ export function mockCalendar(
                 // Password and URL seems useless for CalendarService, plan to remove them if that's the case
                 password: "MOCK_PASSWORD",
                 url: "https://UNUSED_URL",
+                location: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                hangoutLink: isGoogleMeetLocation ? "https://UNUSED_URL" : undefined,
+                conferenceData: isGoogleMeetLocation ? event.conferenceData : undefined,
               });
             },
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1484,19 +1520,16 @@ export function getMockBookingAttendee(
   };
 }
 
-export const enum BookingLocations {
-  CalVideo = "integrations:daily",
-  ZoomVideo = "integrations:zoom",
-}
-
 const getMockAppStatus = ({
   slug,
   failures,
   success,
+  overrideName,
 }: {
   slug: string;
   failures: number;
   success: number;
+  overrideName?: string;
 }) => {
   const foundEntry = Object.entries(appStoreMetadata).find(([, app]) => {
     return app.slug === slug;
@@ -1506,7 +1539,7 @@ const getMockAppStatus = ({
   }
   const foundApp = foundEntry[1];
   return {
-    appName: foundApp.slug,
+    appName: overrideName ?? foundApp.slug,
     type: foundApp.type,
     failures,
     success,
@@ -1517,6 +1550,6 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
   return getMockAppStatus({ slug, failures: 1, success: 0 });
 };
 
-export const getMockPassingAppStatus = ({ slug }: { slug: string }) => {
-  return getMockAppStatus({ slug, failures: 0, success: 1 });
+export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
+  return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
 };

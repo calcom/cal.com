@@ -65,6 +65,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     bookingFields[name] = `${name} input`;
   });
 
+  const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
+  const isSplit = (nameBookingField && nameBookingField.variant === "firstAndLastName") ?? false;
+
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
@@ -321,6 +324,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   type="text"
                   {...formMethods.register("successRedirectUrl")}
                 />
+
+                <div className="mt-4">
+                  <Controller
+                    name="forwardParamsSuccessRedirect"
+                    render={({ field: { value, onChange } }) => (
+                      <CheckboxField
+                        description={t("forward_params_redirect")}
+                        disabled={successRedirectUrlLocked.disabled}
+                        onChange={(e) => onChange(e)}
+                        checked={value}
+                      />
+                    )}
+                  />
+                </div>
                 <div
                   className={classNames(
                     "p-1 text-sm text-orange-600",
@@ -550,6 +567,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
+          isNameFieldSplit={isSplit}
           event={eventNameObject}
         />
       )}

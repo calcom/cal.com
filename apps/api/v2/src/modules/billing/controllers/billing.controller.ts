@@ -46,7 +46,7 @@ export class BillingController {
 
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-  @Roles(["OWNER", "ADMIN"])
+  @Roles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
     @Param("teamId") teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
@@ -104,16 +104,25 @@ export class BillingController {
 
     if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
       const subscription = event.data.object as Stripe.Subscription;
+      if (!subscription.metadata?.teamId) {
+        return {
+          status: "success",
+        };
+      }
+
       const teamId = Number.parseInt(subscription.metadata.teamId);
       const plan = subscription.metadata.plan;
       if (!plan || !teamId) {
-        throw new Error("Invalid webhook received.");
+        this.logger.log("Webhook received but not pertaining to Platform, discarding.");
+        return {
+          status: "success",
+        };
       }
 
       await this.billingService.setSubscriptionForTeam(
         teamId,
         subscription,
-        PlatformPlan[plan as keyof typeof PlatformPlan]
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
 
       return {
@@ -121,6 +130,8 @@ export class BillingController {
       };
     }
 
-    throw new BadRequestException(`Unhandled event type ${event.type}`);
+    return {
+      status: "success",
+    };
   }
 }

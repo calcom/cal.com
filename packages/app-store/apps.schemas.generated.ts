@@ -25,6 +25,7 @@ import { appDataSchema as office365video_zod_ts } from "./office365video/zod";
 import { appDataSchema as paypal_zod_ts } from "./paypal/zod";
 import { appDataSchema as pipedrive_crm_zod_ts } from "./pipedrive-crm/zod";
 import { appDataSchema as plausible_zod_ts } from "./plausible/zod";
+import { appDataSchema as posthog_zod_ts } from "./posthog/zod";
 import { appDataSchema as qr_code_zod_ts } from "./qr_code/zod";
 import { appDataSchema as routing_forms_zod_ts } from "./routing-forms/zod";
 import { appDataSchema as salesforce_zod_ts } from "./salesforce/zod";
@@ -66,6 +67,7 @@ export const appDataSchemas = {
   paypal: paypal_zod_ts,
   "pipedrive-crm": pipedrive_crm_zod_ts,
   plausible: plausible_zod_ts,
+  posthog: posthog_zod_ts,
   qr_code: qr_code_zod_ts,
   "routing-forms": routing_forms_zod_ts,
   salesforce: salesforce_zod_ts,

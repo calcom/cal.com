@@ -99,6 +99,10 @@ const tabs: VerticalTabItemProps[] = [
         name: "directory_sync",
         href: "/settings/organizations/dsync",
       },
+      {
+        name: "admin_api",
+        href: "/settings/organizations/admin-api",
+      },
     ],
   },
   {
@@ -312,6 +316,12 @@ const TeamListCollapsible = () => {
                   <VerticalTabItem
                     name={t("members")}
                     href={`/settings/teams/${team.id}/members`}
+                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                    disableChevron
+                  />
+                  <VerticalTabItem
+                    name={t("event_types_page_title")}
+                    href={`/event-types?teamIds=${team.id}`}
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
@@ -576,7 +586,6 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-
                                 <>
                                   {/* TODO: enable appearance edit */}
                                   {/* <VerticalTabItem

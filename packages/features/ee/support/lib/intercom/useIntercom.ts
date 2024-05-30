@@ -48,6 +48,9 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
@@ -59,7 +62,7 @@ export const useIntercom = () => {
         sum_of_bookings: data?.sumOfBookings,
         sum_of_calendars: data?.sumOfCalendars,
         sum_of_teams: data?.sumOfTeams,
-        has_org: !data?.organizationId,
+        has_orgs_plan: !!data?.organizationId,
         organization: data?.organization?.slug,
         sum_of_event_types: data?.sumOfEventTypes,
         sum_of_team_event_types: data?.sumOfTeamEventTypes,
@@ -88,6 +91,9 @@ export const useIntercom = () => {
         user_name: data?.username,
         link: `${WEBSITE_URL}/${data?.username}`,
         admin_link: `${WEBAPP_URL}/settings/admin/users/${data?.id}/edit`,
+        impersonate_user: `${WEBAPP_URL}/settings/admin/impersonation?username=${
+          data?.email ?? data?.username
+        }`,
         identity_provider: data?.identityProvider,
         timezone: data?.timeZone,
         locale: data?.locale,
@@ -99,7 +105,7 @@ export const useIntercom = () => {
         sum_of_bookings: data?.sumOfBookings,
         sum_of_calendars: data?.sumOfCalendars,
         sum_of_teams: data?.sumOfTeams,
-        has_org: !data?.organizationId,
+        has_orgs_plan: !!data?.organizationId,
         organization: data?.organization?.slug,
         sum_of_event_types: data?.sumOfEventTypes,
         sum_of_team_event_types: data?.sumOfTeamEventTypes,

@@ -38,6 +38,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
             id: true,
           },
         },
+        hosts: true,
         team: true,
         workflows: true,
         webhooks: true,
@@ -70,6 +71,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       users,
       locations,
       team,
+      hosts,
       recurringEvent,
       bookingLimits,
       durationLimits,
@@ -99,6 +101,14 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       locations: locations ?? undefined,
       team: team ? { connect: { id: team.id } } : undefined,
       users: users ? { connect: users.map((user) => ({ id: user.id })) } : undefined,
+      hosts: hosts
+        ? {
+            createMany: {
+              data: hosts.map(({ eventTypeId: _, ...rest }) => rest),
+            },
+          }
+        : undefined,
+
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
