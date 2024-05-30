@@ -8,6 +8,7 @@ import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 import { ZSubmitRatingInputSchema } from "./submitRating.schema";
+import { ZUserWithEmailInputSchema } from "./userWithEmail.schema";
 
 const NAMESPACE = "publicViewer";
 
@@ -55,5 +56,9 @@ export const publicViewerRouter = router({
       () => import("./ssoConnections.handler")
     );
     return handler();
+  }),
+  userWithEmail: publicProcedure.input(ZUserWithEmailInputSchema).query(async (opts) => {
+    const handler = await importHandler(namespaced("userWithEmail"), () => import("./userWithEmail.handler"));
+    return handler(opts);
   }),
 });
