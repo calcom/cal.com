@@ -235,6 +235,7 @@ export default function Success(props: PageProps) {
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   const isLoggedIn = session?.user;
+  const isOrganizer = session?.user?.id === bookingInfo.user.id;
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
@@ -492,7 +493,9 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                          {(isRoundRobin && !eventType.differentRoundRobinRecurringHosts) || isOrganizer
+                            ? bookingInfo.title
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">

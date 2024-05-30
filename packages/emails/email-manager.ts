@@ -101,7 +101,12 @@ export const sendScheduledEmails = async (
                 ...formattedCalEvent,
                 ...(formattedCalEvent.hideCalendarNotes && { additionalNotes: undefined }),
                 ...(eventNameObject && {
-                  title: getEventName({ ...eventNameObject, t: attendee.language.translate }),
+                  title: getEventName({
+                    ...eventNameObject,
+                    t: attendee.language.translate,
+                    ...(formattedCalEvent.differentRoundRobinRecurringHosts &&
+                      formattedCalEvent.team && { teamName: formattedCalEvent.team.name }),
+                  }),
                 }),
               },
               attendee
