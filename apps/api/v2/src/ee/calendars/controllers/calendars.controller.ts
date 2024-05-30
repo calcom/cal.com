@@ -7,9 +7,6 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -46,10 +43,7 @@ export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
-    private readonly googleCalendarService: GoogleCalendarService,
-    private readonly tokensRepository: TokensRepository,
-    private readonly credentialRepository: CredentialsRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly googleCalendarService: GoogleCalendarService
   ) {}
 
   @UseGuards(AccessTokenGuard)
