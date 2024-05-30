@@ -32,6 +32,7 @@ export interface BookerProps {
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
+    logoUrl?: string | null;
   };
 
   /**

@@ -43,10 +43,10 @@ export async function deleteHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isAdmin, userId, query } = req;
+  const { isSystemWideAdmin, userId, query } = req;
   const userId_teamId = membershipIdSchema.parse(query);
   // Admin User can do anything including deletion of Admin Team Member in any team
-  if (isAdmin) {
+  if (isSystemWideAdmin) {
     return;
   }
 

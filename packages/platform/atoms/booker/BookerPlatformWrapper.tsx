@@ -22,6 +22,7 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
@@ -42,12 +43,18 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
-  firstName?: string;
-  lastName?: string;
-  guests?: string[];
-  name?: string;
   username: string | string[];
   entity?: BookerProps["entity"];
+  // values for the booking form and booking fields
+  defaultFormValues?: {
+    firstName?: string;
+    lastName?: string;
+    guests?: string[];
+    name?: string;
+    email?: string;
+    notes?: string;
+    rescheduleReason?: string;
+  } & Record<string, string | string[]>;
   handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
@@ -63,6 +70,7 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> &
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
+  const { clientId } = useAtomsContext();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
   const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
@@ -71,7 +79,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   const bookingData = useBookerStore((state) => state.bookingData);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
-  const { data: booking } = useGetBookingForReschedule({
+  useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
@@ -137,12 +145,17 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const { data: session } = useMe();
   const hasSession = !!session;
+  const { name: defaultName, guests: defaultGuests, ...restFormValues } = props.defaultFormValues ?? {};
   const prefillFormParams = useMemo(() => {
     return {
-      name: props.name ?? null,
-      guests: props.guests ?? [],
+      name: defaultName ?? null,
+      guests: defaultGuests ?? [],
     };
-  }, [props.name, props.guests]);
+  }, [defaultName, defaultGuests]);
+
+  const extraOptions = useMemo(() => {
+    return restFormValues;
+  }, [restFormValues]);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -189,11 +202,14 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.data?.email,
+    sessionEmail:
+      session?.data?.email && clientId
+        ? session.data.email.replace(`+${clientId}`, "")
+        : session?.data?.email,
     sessionUsername: session?.data?.username,
     sessionName: session?.data?.username,
     hasSession,
-    extraOptions: {},
+    extraOptions: extraOptions ?? {},
     prefillFormParams: prefillFormParams,
   });
   const {
@@ -309,7 +325,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
         onOverlaySwitchStateChange={function (state: boolean): void {
           throw new Error("Function not implemented.");
         }}
-        extraOptions={{}}
+        extraOptions={extraOptions ?? {}}
         bookings={{
           handleBookEvent: () => {
             handleBookEvent();
