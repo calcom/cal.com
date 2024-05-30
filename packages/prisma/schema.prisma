@@ -710,6 +710,7 @@ enum AuditLogBookingTriggerEvents {
   BOOKING_REQUESTED
   BOOKING_CANCELLED
   BOOKING_REJECTED
+  BOOKING_CONFIRMED
 }
 
 enum AuditLogTriggerTargets {
