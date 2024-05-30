@@ -31,9 +31,10 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
-  const orgAvatarItem =
-    entity.orgSlug && !(isDynamic && !profile.image)
-      ? [
+  const orgOrTeamAvatarItem =
+    isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
+      ? []
+      : [
           {
             // We don't want booker to be able to see the list of other users or teams inside the embed
             href: isEmbed
@@ -41,12 +42,11 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
               : entity.teamSlug
               ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
               : getBookerBaseUrlSync(entity.orgSlug),
-            image: profile.image || "",
-            alt: profile.name || "",
-            title: profile.name || "",
+            image: entity.logoUrl ?? profile.image ?? "",
+            alt: entity.name ?? profile.name ?? "",
+            title: entity.name ?? profile.name ?? "",
           },
-        ]
-      : [];
+        ];
 
   return (
     <>
@@ -54,7 +54,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
         size="sm"
         className="border-muted"
         items={[
-          ...orgAvatarItem,
+          ...orgOrTeamAvatarItem,
           ...shownUsers.map((user) => ({
             href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
               user.profile?.username

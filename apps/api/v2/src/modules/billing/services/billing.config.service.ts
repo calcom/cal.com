@@ -11,7 +11,7 @@ export class BillingConfigService {
     const planKeys = Object.keys(PlatformPlan).filter((key) => isNaN(Number(key)));
     for (const key of planKeys) {
       this.config.set(
-        PlatformPlan[key as keyof typeof PlatformPlan],
+        PlatformPlan[key.toUpperCase() as keyof typeof PlatformPlan],
         process.env[`STRIPE_PRICE_ID_${key}`] ?? ""
       );
     }
