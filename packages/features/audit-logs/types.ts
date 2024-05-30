@@ -20,12 +20,12 @@ export type AuditLogEvent = {
   action: string;
   crud?: CRUD;
   actor: {
-    id?: number | string;
+    id: string;
     name?: string;
     fields?: any;
   };
   target: {
-    id?: number | string;
+    id: string;
     name?: string;
     type?: string;
     fields?: any;
@@ -43,8 +43,9 @@ export const AuditLogTriggerEventsBooking = {
   BOOKING_REQUESTED: "BOOKING_REQUESTED",
   BOOKING_CANCELLED: "BOOKING_CANCELLED",
   BOOKING_REJECTED: "BOOKING_REJECTED",
-  PAYMENT_INITIATED: "BOOKING_PAYMENT_INITIATED",
+  BOOKING_PAYMENT_INITIATED: "BOOKING_PAYMENT_INITIATED",
   BOOKING_PAID: "BOOKING_PAID",
+  BOOKING_CONFIRMED: "BOOKING_CONFIRMED",
 } as const;
 
 export const AuditLogTriggerEventsAdmin = {
@@ -66,7 +67,7 @@ export type DefaultAppSettingOptionEntry = {
   name: string;
   href: string;
   icon: IconName;
-}[];
+};
 
 export type GenericAuditLogClient = {
   credentials: AppKeys;
