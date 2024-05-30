@@ -42,7 +42,7 @@ describe("handleNewBooking", () => {
 
   describe("Recurring EventType:", () => {
     describe("User event type:", () => {
-      test.skip(
+      test(
         `should create successful bookings for the number of slots requested
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
@@ -252,7 +252,7 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test.skip(
+      test(
         `should fail recurring booking if second slot is already booked`,
         async ({}) => {
           const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
@@ -379,7 +379,7 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test.skip(
+      test(
         `should create successful bookings for the number of slots requested even if the third slot is already booked as long as first two slots are free
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
@@ -594,7 +594,7 @@ describe("handleNewBooking", () => {
         timeout
       );
 
-      test.skip(
+      test(
         `should create successful bookings for the number of slots requested even if the last slot is already booked as long as first two slots are free
           1. Should create the same number of bookings as requested slots in the database
           2. Should send emails for the first booking only to the booker as well as organizer
@@ -810,7 +810,7 @@ describe("handleNewBooking", () => {
       );
     });
     describe("Round robin event type:", () => {
-      test.skip("should when when a fixed host is not available on the second slot", async () => {
+      test("should when when a fixed host is not available on the second slot", async () => {
         const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
           .handleRecurringEventBooking;
         const booker = getBooker({
@@ -983,7 +983,7 @@ describe("handleNewBooking", () => {
         expect(error.message).toBe(ErrorCode.NoAvailableUsersFound);
       });
 
-      test.skip("should create successfully bookings that are all assigned to the next available least recently booked user", async () => {
+      test("should create successfully bookings that are all assigned to the next available least recently booked user", async () => {
         const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
           .handleRecurringEventBooking;
         const booker = getBooker({
@@ -1174,7 +1174,7 @@ describe("handleNewBooking", () => {
         expect(allSameHosts(assignedUserIds2)).toBe(true);
       });
 
-      test.skip(`should create bookings that are all assigned to the least recently booked user that is available on the first two slots,
+      test(`should create bookings that are all assigned to the least recently booked user that is available on the first two slots,
             if the least recently booked user is not available on the second slot`, async () => {
         const handleRecurringEventBooking = (await import("@calcom/web/pages/api/book/recurring-event"))
           .handleRecurringEventBooking;
