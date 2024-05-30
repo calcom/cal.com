@@ -198,25 +198,6 @@ async function handler(req: CustomRequest) {
     length: bookingToDelete?.eventType?.length || null,
   };
 
-  // // I'm trying to get a clean log.
-  // // X actor cancelled booking
-  // await handleAuditLogTrigger({
-  //   event: {
-  //     action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-  //     actor: {
-  //       id: userId ?? 0,
-  //     },
-  //     target: {
-  //       name: AuditLogTriggerTargets.BOOKING,
-  //       fields: {
-  //         ...bookingToDelete,
-  //       },
-  //     },
-  //   },
-  //   userId: triggerForUser ? bookingToDelete.userId : null,
-  //   teamId: !triggerForUser ? teamId : null,
-  // });
-
   const webhooks = await getWebhooks(subscriberOptions);
 
   const organizer = await prisma.user.findFirstOrThrow({
