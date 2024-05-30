@@ -4,8 +4,6 @@
 .env
 !packages/prisma/.env
 
-./packages/app-store/test/**
-
 # dependencies
 node_modules
 .pnp
@@ -98,26 +96,3 @@ apps/auth
 !.yarn/releases
 !.yarn/sdks
 !.yarn/versions
-packages/app-store/test/api/add.ts
-packages/app-store/test/api/index.ts
-packages/app-store/test/api/ping.ts
-packages/app-store/test/api/viewerToken.ts
-packages/app-store/test/components/AppSettingsInterface.tsx
-packages/app-store/test/components/AuditLogEventToggles.tsx
-packages/app-store/test/components/AuditLogViewer.tsx
-packages/app-store/test/components/AuditSystemStatus.tsx
-packages/app-store/test/components/CredentialsForm.tsx
-packages/app-store/test/components/ManagedAuditLogEventDialog.tsx
-packages/app-store/test/components/NavigationPanel.tsx
-packages/app-store/test/config.json
-packages/app-store/test/DESCRIPTION.md
-packages/app-store/test/index.ts
-packages/app-store/test/lib/AuditLogManager.ts
-packages/app-store/test/lib/index.ts
-packages/app-store/test/lib/utils.ts
-packages/app-store/test/package.json
-packages/app-store/test/static/1.jpeg
-packages/app-store/test/static/2.jpeg
-packages/app-store/test/static/3.jpeg
-packages/app-store/test/static/icon.svg
-packages/app-store/test/zod.ts
