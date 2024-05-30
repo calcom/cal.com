@@ -1,8 +1,10 @@
 import requestIp from "request-ip";
 import type { WebhookDataType } from "webhooks/lib/sendPayload";
+import { z } from "zod";
 
 import { getAuditLogManager } from "@calcom/features/audit-logs/lib/getAuditLogManager";
-import type { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
+import { CRUD, getValues } from "@calcom/features/audit-logs/types";
+import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { AppCategories, AuditLogTriggerTargets } from "@calcom/prisma/enums";
@@ -46,26 +48,90 @@ export async function handleAuditLogTrigger({
   // 3. Get relevant user and team ids.
   // 4. Get credentials for all relevant ids.
   // 5. Loop through credentials and report respectively.
-  const detectedIp = requestIp.getClientIp(req);
+  let detectedIp;
+
+  if (!req.source_ip) {
+    detectedIp = requestIp.getClientIp(req);
+  } else {
+    detectedIp = req.source_ip;
+  }
+
+  const bookingsSchema = z.object({
+    crud: z.nativeEnum(CRUD),
+    action: z.enum(getValues(AuditLogTriggerEvents)),
+    description: getRetracedStringParser("No description provided"),
+    actor: z.object({
+      id: getRetracedStringParser("-1"),
+      name: getRetracedStringParser("Not provided."),
+      fields: z.object({
+        additionalNotes: getRetracedStringParser("Not provided."),
+        email: getRetracedStringParser("Not provided"),
+      }),
+    }),
+    target: z.object({
+      id: getRetracedStringParser("Not found."),
+      name: getRetracedStringParser("No host name."),
+      fields: z.object({
+        email: getRetracedStringParser("Not provided."),
+        username: getRetracedStringParser("Not provided."),
+        name: getRetracedStringParser("Not provided."),
+        timezone: getRetracedStringParser("Not provided."),
+      }),
+      type: z.enum(getValues(AuditLogTriggerTargets)),
+    }),
+    fields: z.object({
+      title: getRetracedStringParser("Not provided."),
+      bookerUrl: getRetracedStringParser("Not provided."),
+      startTime: getRetracedStringParser("Not provided."),
+      endTime: getRetracedStringParser("Not provided."),
+      bookingType: getRetracedStringParser("Not provided."),
+      bookingTypeId: getRetracedStringParser("Not provided."),
+      description: getRetracedStringParser("Not provided."),
+      location: getRetracedStringParser("Not provided."),
+      conferenceCredentialId: getRetracedStringParser("Not provided."),
+      iCalUID: getRetracedStringParser("Not provided."),
+      eventTitle: getRetracedStringParser("Not provided."),
+      length: getRetracedStringParser("Not provided."),
+      bookingId: getRetracedStringParser("Not provided."),
+      status: getRetracedStringParser("Not provided."),
+      smsReminderNumber: getRetracedStringParser("Not provided."),
+      rejectionReason: getRetracedStringParser("Not provided."),
+    }),
+    is_anonymous: z.boolean(),
+    is_failure: z.boolean(),
+    group: z.object({
+      id: getRetracedStringParser("Not provided."),
+      name: getRetracedStringParser("Not provided."),
+    }),
+    created: z.date(),
+    source_ip: z
+      .string()
+      .trim()
+      .transform((value) => (value.length <= 1 ? "Not provided." : value)),
+  });
+
+  function getRetracedStringParser(message: string) {
+    return z.coerce
+      .string()
+      .trim()
+      .transform((value) => (value.length <= 1 ? message : value));
+  }
+
   const event = {
     crud: crud,
     action: action,
     description: bookingData.title,
     actor: {
-      id: req.userId.toString() ?? "Booker not signed in",
-      name: (bookingData.responses?.name.value as string) ?? "Missing name",
+      id: req.userId,
+      name: bookingData.responses?.name.value,
       fields: {
-        additionalNotes: bookingData.additionalNotes
-          ? bookingData.additionalNotes.length > 1
-            ? bookingData.additionalNotes
-            : "No notes"
-          : "No notes",
-        email: bookingData.responses?.email.value ?? "No email provided",
+        additionalNotes: bookingData.additionalNotes,
+        email: bookingData.responses?.email.value,
       },
     },
     target: {
-      id: bookingData.organizer.id?.toString() ?? "Organizer ID not found.",
-      name: bookingData?.organizer?.username ?? "Organizer username not found.",
+      id: bookingData.organizer.id,
+      name: bookingData?.organizer?.username,
       fields: {
         email: bookingData.organizer.email,
         username: bookingData.organizer.username,
@@ -80,21 +146,17 @@ export async function handleAuditLogTrigger({
       startTime: bookingData.startTime,
       endTime: bookingData.endTime,
       bookingType: bookingData.type,
-      bookingTypeId: bookingData.eventTypeId?.toString() ?? "No event type ID",
-      description: bookingData.description
-        ? bookingData.description.length > 1
-          ? bookingData.description
-          : "No description provided."
-        : "No description provided.",
-      location: bookingData.location ?? "No location provided.",
-      conferenceCredentialId:
-        bookingData.conferenceCredentialId?.toString() ?? "No conference credential ID provided.",
+      bookingTypeId: bookingData.eventTypeId,
+      description: bookingData.description,
+      location: bookingData.location,
+      conferenceCredentialId: bookingData.conferenceCredentialId,
       iCalUID: bookingData.iCalUID,
       eventTitle: bookingData.eventTitle,
-      length: bookingData.length?.toString() ?? "No length provided.",
-      bookingId: bookingData.bookingId?.toString() ?? "No booking ID provided.",
-      status: bookingData.status ?? "No status provided.",
-      smsReminderNumber: bookingData.smsReminderNumber ?? "No SMS reminder number given.",
+      length: bookingData.length,
+      bookingId: bookingData.bookingId,
+      status: bookingData.status,
+      smsReminderNumber: bookingData.smsReminderNumber,
+      rejectionReason: bookingData.rejectionReason,
     },
     is_anonymous: req.userId === -1 ? true : false,
     is_failure: false,
@@ -106,9 +168,10 @@ export async function handleAuditLogTrigger({
     source_ip: detectedIp === "::1" ? "127.0.0.1" : detectedIp,
   };
 
+  const parsedSchema = bookingsSchema.parse(event);
+
   // Next step is to create a zod pipeline that does what I'm doing above.
   // Lets start by parsing zod schemas.
-
   const userIds = [req.userId as number];
 
   const firstClause = getFirstClause(userIds, null);
@@ -138,7 +201,7 @@ export async function handleAuditLogTrigger({
         return;
       }
 
-      await auditLogManager.reportEvent(event);
+      await auditLogManager.reportEvent(parsedSchema);
     }
   } catch (error) {
     logger.error("Error while sending audit log", error);
