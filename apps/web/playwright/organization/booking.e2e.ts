@@ -184,10 +184,7 @@ test.describe("Bookings", () => {
       });
 
       const event = await user.getFirstEventAsOwner();
-      await page.goto(`/${user.username}/${event.slug}`);
-
-      // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextPages}`)).toBeVisible();
+      await expectPageToBeNotFound({ page, url: `/${user.username}/${event.slug}` });
 
       await doOnOrgDomain(
         {
