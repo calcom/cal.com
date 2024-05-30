@@ -10,7 +10,6 @@ import { test } from "../lib/fixtures";
 import {
   bookTimeSlot,
   doOnOrgDomain,
-  NotFoundPageTextPages,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "../lib/testUtils";
@@ -520,5 +519,5 @@ async function bookTeamEvent({
 
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.locator(`text=${NotFoundPageTextPages}`)).toBeVisible();
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
