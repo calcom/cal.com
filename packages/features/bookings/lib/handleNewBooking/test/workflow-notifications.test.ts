@@ -579,8 +579,8 @@ describe("handleNewBooking", () => {
             },
             team: {
               id: 1,
-              name: "Team 1",
-              slug: "team-1",
+              name: "Test Org",
+              slug: "testorg",
             },
           },
         ],

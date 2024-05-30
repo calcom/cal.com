@@ -294,11 +294,26 @@ async function getRemindersFromRemovedTeams(
             // user bookings
             booking: {
               user: {
-                teams: {
-                  some: {
-                    teamId: teamId, //user is part of removed team
+                AND: [
+                  // user is part of team that got removed
+                  {
+                    teams: {
+                      some: {
+                        teamId: teamId,
+                      },
+                    },
                   },
-                },
+                  // and user is not part of any team were the workflow is still active on
+                  {
+                    teams: {
+                      none: {
+                        teamId: {
+                          in: activeOn,
+                        },
+                      },
+                    },
+                  },
+                ],
               },
               eventType: {
                 teamId: null,
@@ -306,22 +321,6 @@ async function getRemindersFromRemovedTeams(
               },
             },
             //if user is part of removed team make sure they are not part of an still active team
-            NOT: {
-              booking: {
-                user: {
-                  teams: {
-                    some: {
-                      teamId: {
-                        in: activeOn,
-                      },
-                    },
-                  },
-                },
-                eventType: {
-                  teamId: null,
-                },
-              },
-            },
           },
         ],
         workflowStepId: {
@@ -373,7 +372,6 @@ async function getRemindersFromRemovedEventTypes(
       },
     },
   });
-  console.log(`all reminders here ${JSON.stringify(allRemindres)}`);
   removedEventTypes.forEach((eventTypeId) => {
     const remindersToDelete = prisma.workflowReminder.findMany({
       where: {

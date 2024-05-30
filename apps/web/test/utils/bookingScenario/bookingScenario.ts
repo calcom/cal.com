@@ -537,18 +537,30 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
 
 async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
-  const teamsWithParentId = teams.map((team) => ({
-    ...team,
-    parentId: team.parentId,
-    parent: {
-      connect: {
-        id: team.parentId,
+
+  for (const team of teams) {
+    const teamsWithParentId = {
+      ...team,
+      parentId: team.parentId,
+      parent: {
+        connect: {
+          id: team.parentId,
+        },
       },
-    },
-  }));
-  await prismock.team.createMany({
-    data: teamsWithParentId,
-  });
+    };
+    await prismock.team.upsert({
+      where: {
+        id: teamsWithParentId.id,
+      },
+      update: {
+        ...teamsWithParentId,
+      },
+      create: {
+        ...teamsWithParentId,
+      },
+    });
+  }
+
   const addedTeams = await prismock.team.findMany({
     where: {
       id: {
@@ -679,6 +691,7 @@ export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
+  withTeam?: boolean;
 }) {
   const org = await prismock.team.create({
     data: {
@@ -691,6 +704,21 @@ export async function createOrganization(orgData: {
       },
     },
   });
+  if (orgData.withTeam) {
+    const team = await prismock.team.create({
+      data: {
+        name: "Org Team",
+        slug: "org-team",
+        isOrganization: false,
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+    });
+  }
+
   return org;
 }
 
