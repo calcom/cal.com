@@ -2,12 +2,11 @@ import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/ema
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
-
-import { getOrgIdFromMemberOrTeamId } from "./handleNewBooking";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
 

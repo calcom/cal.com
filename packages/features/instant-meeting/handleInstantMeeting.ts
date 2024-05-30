@@ -12,12 +12,12 @@ import {
   getBookingData,
   getCustomInputsResponses,
   getEventTypesFromDB,
-  getOrgIdFromMemberOrTeamId,
 } from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";

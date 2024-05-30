@@ -1,8 +1,8 @@
 import type { App_RoutingForms_Form, User } from "@prisma/client";
 
-import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";

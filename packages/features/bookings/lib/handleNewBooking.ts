@@ -69,6 +69,7 @@ import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -2559,47 +2560,3 @@ export const findUsersByUsername = async ({
     };
   });
 };
-
-export async function getOrgIdFromMemberOrTeamId(args: { memberId?: number | null; teamId?: number | null }) {
-  const userId = args.memberId ?? 0;
-  const teamId = args.teamId ?? 0;
-
-  const orgId = await prisma.team.findFirst({
-    where: {
-      OR: [
-        {
-          AND: [
-            {
-              members: {
-                some: {
-                  userId,
-                },
-              },
-            },
-            {
-              isOrganization: true,
-            },
-          ],
-        },
-        {
-          AND: [
-            {
-              children: {
-                some: {
-                  id: teamId,
-                },
-              },
-            },
-            {
-              isOrganization: true,
-            },
-          ],
-        },
-      ],
-    },
-    select: {
-      id: true,
-    },
-  });
-  return orgId?.id;
-}

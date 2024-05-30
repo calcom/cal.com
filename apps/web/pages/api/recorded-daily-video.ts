@@ -5,9 +5,9 @@ import { z } from "zod";
 
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import { getOrgIdFromMemberOrTeamId } from "@calcom/features/bookings/lib/handleNewBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
