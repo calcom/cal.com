@@ -149,12 +149,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   const webhookPromises = [];
   webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
 
-  //cancel workflow reminders of previous booking
-  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders, prisma);
-
   await Promise.all(webhookPromises).catch((error) => {
     log.error("Error while deleting scheduled webhook triggers", JSON.stringify({ error }));
   });
+
+  //cancel workflow reminders of previous booking
+  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders, prisma);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?

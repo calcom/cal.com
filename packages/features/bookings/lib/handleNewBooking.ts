@@ -1373,7 +1373,7 @@ async function handler(
   const tAttendees = await getTranslation(attendeeLanguage ?? "en", "common");
 
   const isManagedEventType = !!eventType.parentId;
-  console.log(`team here: ${JSON.stringify(eventType.team)}`);
+
   // use host default
   if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);

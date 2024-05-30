@@ -1,4 +1,5 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
+import { getOrgIdFromMemberOrTeamId } from "bookings/lib/getOrgIdFromMemberOrTeamId";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -55,11 +56,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           timeFormat: true,
           name: true,
           destinationCalendar: true,
-          profiles: {
-            select: {
-              organizationId: true,
-            },
-          },
         },
       },
       location: true,
@@ -78,7 +74,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
         select: {
           slug: true,
           userId: true,
-          teamId: true,
           owner: {
             select: {
               id: true,
@@ -322,14 +317,16 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: bookingToDelete.user.id, teamId });
+
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
     //this also needs to add org workflows
     await sendCancelledReminders({
       eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
       userId: bookingToDelete.eventType.userId,
-      teamId: bookingToDelete.eventType.teamId,
-      orgId: bookingToDelete.user.profiles[0]?.organizationId,
+      teamId,
+      orgId,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {
         ...evt,

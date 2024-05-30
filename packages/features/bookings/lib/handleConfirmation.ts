@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import { getOrgIdFromMemberOrTeamId } from "bookings/lib/getOrgIdFromMemberOrTeamId";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
@@ -290,6 +291,10 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const teamId = updatedBookings[0]?.eventType?.teamId;
+  const userId = updatedBookings[0]?.eventType?.userId;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
@@ -315,9 +320,9 @@ export async function handleConfirmation(args: {
 
       await scheduleWorkflowReminders({
         eventTypeWorkflows,
-        teamId: updatedBookings[index]?.eventType?.teamId,
-        userId: updatedBookings[index]?.eventType?.userId,
-        orgId: updatedBookings[index]?.user?.profiles[0]?.organizationId,
+        teamId,
+        userId,
+        orgId,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
