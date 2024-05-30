@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const ZUserWithEmailInputSchema = z.object({
-  userEmail: z.string().optional(),
+  userSessionEmail: z.string().optional(),
   email: z.string(),
 });
 

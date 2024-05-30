@@ -1,6 +1,7 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
+import { ZUserWithEmailInputSchema } from "./checkIfUserExistWithEmail.schema";
 import { i18nInputSchema } from "./i18n.schema";
 import { ZNoShowInputSchema } from "./noShow.schema";
 import { event } from "./procedures/event";
@@ -8,7 +9,6 @@ import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 import { ZSubmitRatingInputSchema } from "./submitRating.schema";
-import { ZUserWithEmailInputSchema } from "./userWithEmail.schema";
 
 const NAMESPACE = "publicViewer";
 
@@ -57,8 +57,11 @@ export const publicViewerRouter = router({
     );
     return handler();
   }),
-  userWithEmail: publicProcedure.input(ZUserWithEmailInputSchema).query(async (opts) => {
-    const handler = await importHandler(namespaced("userWithEmail"), () => import("./userWithEmail.handler"));
+  checkIfUserExistWithEmail: publicProcedure.input(ZUserWithEmailInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("checkIfUserExistWithEmail"),
+      () => import("./checkIfUserExistWithEmail.handler")
+    );
     return handler(opts);
   }),
 });

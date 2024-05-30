@@ -36,10 +36,16 @@ export const useVerifyEmail = ({
     },
   });
 
-  const { data: userWithEmail } = trpc.viewer.public.userWithEmail.useQuery({
-    userEmail: session?.user.email || "",
-    email: debouncedEmail,
-  });
+  const { data: isLoggedInUserEmailSameAsAttendeeEmail } =
+    trpc.viewer.public.checkIfUserExistWithEmail.useQuery(
+      {
+        userSessionEmail: session?.user.email || "",
+        email: debouncedEmail,
+      },
+      {
+        enabled: !!debouncedEmail,
+      }
+    );
 
   const handleVerifyEmail = () => {
     onVerifyEmail?.();
@@ -52,7 +58,8 @@ export const useVerifyEmail = ({
   };
 
   const renderConfirmNotVerifyEmailButtonCond =
-    (!requiresBookerEmailVerification && (email === session?.user.email || userWithEmail)) ||
+    (!requiresBookerEmailVerification &&
+      (email === session?.user.email || isLoggedInUserEmailSameAsAttendeeEmail)) ||
     (email && verifiedEmail && verifiedEmail === email);
 
   return {
