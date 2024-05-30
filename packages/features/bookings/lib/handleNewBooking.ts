@@ -1402,7 +1402,7 @@ async function handler(
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
     : [];
 
-  const guestsRemoved = [];
+  const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
     if (blacklistedGuestEmails.some((e) => e === guest)) {
       guestsRemoved.push(guest);
