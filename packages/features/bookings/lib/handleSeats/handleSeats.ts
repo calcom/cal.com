@@ -133,19 +133,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,
     };
 
-    // await handleAuditLogTrigger({
-    //   event: {
-    //     action: AuditLogTriggerEvents.BOOKING_MODIFIED,
-    //     actor: {
-    //       id: seatedBooking.userId?.toString() || "0",
-    //     },
-    //     target: {
-    //       name: AuditLogTriggerTargets.BOOKING,
-    //     },
-    //   },
-    //   userId: seatedBooking.userId,
-    // });
-
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
