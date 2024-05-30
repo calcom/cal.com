@@ -71,6 +71,7 @@ import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getIP from "@calcom/lib/getIP";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -1597,9 +1598,12 @@ async function handler(
     teamId,
   };
 
+  const sourceIp = getIP(req);
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
+      sourceIp,
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
       eventType,
@@ -2244,20 +2248,12 @@ async function handler(
       teamId,
     };
 
-    // await handleAuditLogTrigger({
-    //   event: {
-    //     action: AuditLogTriggerEvents.PAYMENT_INITIATED,
-    //     actor: {
-    //       id: userId ?? -1,
-    //       name: responses.fullName,
-    //     },
-    //     target: {
-    //       name: AuditLogTriggerTargets.BOOKING,
-    //     },
-    //   },
-    //   userId,
-    //   teamId,
-    // });
+    await handleAuditLogTrigger({
+      req,
+      bookingData: webhookData,
+      action: AuditLogTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      crud: CRUD.CREATE,
+    });
 
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2350,19 +2346,12 @@ async function handler(
     subscriberOptions.triggerEvent = eventTrigger;
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
-    //   await handleAuditLogTrigger({
-    //     event: {
-    //       action: AuditLogTriggerEvents.BOOKING_REQUESTED,
-    //       actor: {
-    //         id: booking.userId || 0,
-    //       },
-    //       target: {
-    //         name: AuditLogTriggerTargets.BOOKING,
-    //       },
-    //     },
-    //     userId,
-    //     teamId,
-    //   });
+    await handleAuditLogTrigger({
+      req,
+      bookingData: webhookData,
+      action: AuditLogTriggerEvents.BOOKING_REQUESTED,
+      crud: CRUD.CREATE,
+    });
   }
 
   // Avoid passing referencesToCreate with id unique constrain values
