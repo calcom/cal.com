@@ -863,8 +863,6 @@ model App {
   Webhook     Webhook[]
   ApiKey      ApiKey[]
   enabled     Boolean         @default(false)
-  /// @zod.custom(imports.RoutingFormSettings)
-  settings    Json?
 
   @@index([enabled])
 }
