@@ -107,6 +107,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
@@ -376,7 +377,7 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {!team.parentId && (
                                     <img
-                                      src={getPlaceholderAvatar(team.logo, team?.name as string)}
+                                      src={getPlaceholderAvatar(team.logoUrl, team.name)}
                                       className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={team.name || "Team logo"}
                                     />
@@ -401,6 +402,12 @@ const SettingsSidebarContainer = ({
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/teams/${team.id}/members`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                <VerticalTabItem
+                                  name={t("event_types_page_title")}
+                                  href={`/event-types?teamIds=${team.id}`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
@@ -523,7 +530,7 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {!otherTeam.parentId && (
                                     <img
-                                      src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
                                       className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />

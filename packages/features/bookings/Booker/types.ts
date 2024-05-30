@@ -32,6 +32,7 @@ export interface BookerProps {
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
+    logoUrl?: string | null;
   };
 
   /**
@@ -51,11 +52,6 @@ export interface BookerProps {
   selectedDate?: Date;
 
   hideBranding?: boolean;
-  /**
-   * Sets the Booker component to the away state.
-   * This is NOT revalidated by calling the API.
-   */
-  isAway?: boolean;
   /**
    * If false and the current username indicates a dynamic booking,
    * the Booker will immediately show an error.

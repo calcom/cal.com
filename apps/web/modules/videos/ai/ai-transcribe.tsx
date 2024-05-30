@@ -1,12 +1,11 @@
 import { useTranscription } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
-import { Toaster } from "react-hot-toast";
 
+import { TRANSCRIPTION_STARTED_ICON, TRANSCRIPTION_STOPPED_ICON } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { showToast } from "@calcom/ui";
 
-export const CalAiTransctibe = () => {
+export const CalAiTranscribe = () => {
   const daily = useDaily();
   const { t } = useLocale();
 
@@ -26,11 +25,25 @@ export const CalAiTransctibe = () => {
   );
 
   useDailyEvent("transcription-started", (ev) => {
-    showToast(t("transcription_enabled"), "success");
+    daily?.updateCustomTrayButtons({
+      transcription: {
+        label: "Stop",
+        tooltip: "Stop transcription",
+        iconPath: TRANSCRIPTION_STARTED_ICON,
+        iconPathDarkMode: TRANSCRIPTION_STARTED_ICON,
+      },
+    });
   });
 
   useDailyEvent("transcription-stopped", (ev) => {
-    showToast(t("transcription_stopped"), "success");
+    daily?.updateCustomTrayButtons({
+      transcription: {
+        label: "Cal.ai",
+        tooltip: "Transcription powered by AI",
+        iconPath: TRANSCRIPTION_STOPPED_ICON,
+        iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+      },
+    });
   });
 
   useDailyEvent("custom-button-click", (ev) => {
@@ -68,9 +81,11 @@ export const CalAiTransctibe = () => {
 
   return (
     <>
-      <Toaster position="bottom-right" />
       <div
-        id="cal-ai-thing"
+        id="cal-ai-transcription"
+        style={{
+          textShadow: "0 0 20px black, 0 0 20px black, 0 0 20px black",
+        }}
         ref={transcriptRef}
         className="max-h-full overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
         {transcript

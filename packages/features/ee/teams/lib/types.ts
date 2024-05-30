@@ -13,6 +13,6 @@ export interface PendingMember {
   id?: number;
   username: string | null;
   role: MembershipRole;
-  avatar: string | null;
+  avatarUrl?: string | null;
   sendInviteEmail?: boolean;
 }

@@ -7,12 +7,15 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { isRecurringEvent, parseRecurringEvent } from "@calcom/lib";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import {
   BookerLayouts,
@@ -85,11 +88,13 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
           slug: true,
           name: true,
           bannerUrl: true,
+          logoUrl: true,
         },
       },
     },
   },
   successRedirectUrl: true,
+  forwardParamsSuccessRedirect: true,
   workflows: {
     include: {
       workflow: {
@@ -162,6 +167,19 @@ export const getPublicEvent = async (
     const disableBookingTitle = !defaultEvent.isDynamic;
     const unPublishedOrgUser = users.find((user) => user.profile?.organization?.slug === null);
 
+    let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined;
+    if (org) {
+      orgDetails = await prisma.team.findFirstOrThrow({
+        where: {
+          slug: org,
+        },
+        select: {
+          logoUrl: true,
+          name: true,
+        },
+      });
+    }
+
     return {
       ...defaultEvent,
       bookingFields: getBookingFieldsWithSystemFields({ ...defaultEvent, disableBookingTitle }),
@@ -173,25 +191,28 @@ export const getPublicEvent = async (
       })),
       locations: privacyFilteredLocations(locations),
       profile: {
-        username: users[0].username,
-        name: users[0].name,
         weekStart: users[0].weekStart,
-        image: getUserAvatarUrl({
-          ...users[0],
-          profile: users[0].profile,
-        }),
         brandColor: users[0].brandColor,
         darkBrandColor: users[0].darkBrandColor,
         theme: null,
         bookerLayouts: bookerLayoutsSchema.parse(
           firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
         ),
+        ...(orgDetails
+          ? {
+              image: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+              name: orgDetails?.name,
+              username: org,
+            }
+          : {}),
       },
       entity: {
         considerUnpublished: !fromRedirectOfNonOrgLink && unPublishedOrgUser !== undefined,
         fromRedirectOfNonOrgLink,
         orgSlug: org,
         name: unPublishedOrgUser?.profile?.organization?.name ?? null,
+        teamSlug: null,
+        logoUrl: null,
       },
       isInstantEvent: false,
     };
@@ -277,6 +298,19 @@ export const getPublicEvent = async (
     });
     eventWithUserProfiles.schedule = eventOwnerDefaultSchedule;
   }
+
+  let orgDetails: Pick<Team, "logoUrl" | "name"> | undefined | null;
+  if (org) {
+    orgDetails = await prisma.team.findFirst({
+      where: {
+        slug: org,
+      },
+      select: {
+        logoUrl: true,
+        name: true,
+      },
+    });
+  }
   return {
     ...eventWithUserProfiles,
     bookerLayouts: bookerLayoutsSchema.parse(eventMetaData?.bookerLayouts || null),
@@ -305,7 +339,14 @@ export const getPublicEvent = async (
           eventWithUserProfiles.team?.parent?.name ||
           eventWithUserProfiles.team?.name) ??
         null,
+      ...(orgDetails
+        ? {
+            logoUrl: getPlaceholderAvatar(orgDetails?.logoUrl, orgDetails?.name),
+            name: orgDetails?.name,
+          }
+        : {}),
     },
+
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
@@ -335,22 +376,10 @@ function getProfileFromEvent(event: Event) {
     name: profile.name,
     weekStart,
     image: team
-      ? undefined
-      : // TODO: There must be a better way to do this, maybe a prisma middleware?
-        // This should come pre-proccessed from the database IMO instead of replacing everywhere
-        getUserAvatarUrl({
-          username: username || "",
-          profile: {
-            id: nonTeamprofile?.id || null,
-            username: username || null,
-            organizationId: nonTeamprofile?.organization?.id || null,
-            organization: nonTeamprofile?.organization
-              ? { ...nonTeamprofile?.organization, requestedSlug: null }
-              : null,
-          },
+      ? getOrgOrTeamAvatar(team)
+      : getUserAvatarUrl({
           avatarUrl: nonTeamprofile?.avatarUrl,
         }),
-    logo: !team ? undefined : team.logoUrl,
     brandColor: profile.brandColor,
     darkBrandColor: profile.darkBrandColor,
     theme: profile.theme,

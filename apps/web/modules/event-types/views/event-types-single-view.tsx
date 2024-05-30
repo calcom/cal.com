@@ -265,6 +265,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
+      forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       secondaryEmailId: eventType?.secondaryEmailId || -1,
@@ -767,7 +768,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

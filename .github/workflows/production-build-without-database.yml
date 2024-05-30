@@ -1,5 +1,4 @@
-name: Production Build (without database)
-
+name: Production Builds
 on:
   workflow_call:
 
@@ -32,15 +31,16 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
   NEXT_PUBLIC_API_V2_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_URL }}
   NEXT_PUBLIC_API_V2_ROOT_URL: ${{ secrets.CI_NEXT_PUBLIC_API_V2_ROOT_URL }}
+  NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED: ${{ vars.CI_NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED }}
 
 
 jobs:
   build:
-    name: Build
-    runs-on: ubuntu-latest
+    name: Web App
+    runs-on: buildjet-4vcpu-ubuntu-2204
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-build

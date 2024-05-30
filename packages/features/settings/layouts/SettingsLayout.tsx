@@ -3,7 +3,7 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState, useMemo } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
@@ -99,11 +99,21 @@ const tabs: VerticalTabItemProps[] = [
         name: "directory_sync",
         href: "/settings/organizations/dsync",
       },
+      {
+        name: "admin_api",
+        href: "/settings/organizations/admin-api",
+      },
     ],
   },
   {
     name: "teams",
     href: "/teams",
+    icon: "users",
+    children: [],
+  },
+  {
+    name: "other_teams",
+    href: "/settings/organizations/teams/other",
     icon: "users",
     children: [],
   },
@@ -119,6 +129,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
@@ -135,41 +146,60 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
+const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
+  const isOrgAdminOrOwner =
+    orgBranding?.role === MembershipRole.ADMIN || orgBranding?.role === MembershipRole.OWNER;
 
-  tabs.map((tab) => {
-    if (tab.href === "/settings/my-account") {
-      tab.name = user?.name || "my_account";
-      tab.icon = undefined;
-      tab.avatar = getUserAvatarUrl(user);
-    } else if (tab.href === "/settings/organizations") {
-      tab.name = orgBranding?.name || "organization";
-      tab.avatar = `${orgBranding?.fullDomain}/org/${orgBranding?.slug}/avatar.png`;
-    } else if (
-      tab.href === "/settings/security" &&
-      user?.identityProvider === IdentityProvider.GOOGLE &&
-      !user?.twoFactorEnabled &&
-      !user?.passwordAdded
-    ) {
-      tab.children = tab?.children?.filter(
-        (childTab) => childTab.href !== "/settings/security/two-factor-auth"
-      );
-    }
-    return tab;
-  });
+  const processTabsMemod = useMemo(() => {
+    const processedTabs = tabs.map((tab) => {
+      if (tab.href === "/settings/my-account") {
+        return {
+          ...tab,
+          name: user?.name || "my_account",
+          icon: undefined,
+          avatar: getUserAvatarUrl(user),
+        };
+      } else if (tab.href === "/settings/organizations") {
+        const newArray = (tab?.children ?? []).filter(
+          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+        );
+        return {
+          ...tab,
+          children: newArray,
+          name: orgBranding?.name || "organization",
+          avatar: getPlaceholderAvatar(orgBranding?.logoUrl, orgBranding?.name),
+        };
+      } else if (
+        tab.href === "/settings/security" &&
+        user?.identityProvider === IdentityProvider.GOOGLE &&
+        !user?.twoFactorEnabled &&
+        !user?.passwordAdded
+      ) {
+        const filtered = tab?.children?.filter(
+          (childTab) => childTab.href !== "/settings/security/two-factor-auth"
+        );
+        return { ...tab, children: filtered };
+      }
+      return tab;
+    });
 
-  // check if name is in adminRequiredKeys
-  return tabs.filter((tab) => {
-    if (organizationRequiredKeys.includes(tab.name)) return !!session.data?.user?.org;
+    // check if name is in adminRequiredKeys
+    return processedTabs.filter((tab) => {
+      if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
+      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
 
-    if (isAdmin) return true;
-    return !adminRequiredKeys.includes(tab.name);
-  });
+      if (isAdmin) return true;
+      return !adminRequiredKeys.includes(tab.name);
+    });
+  }, [isAdmin, orgBranding, isOrgAdminOrOwner, user]);
+
+  return processTabsMemod;
 };
 
 const BackButtonInSidebar = ({ name }: { name: string }) => {
@@ -195,32 +225,12 @@ interface SettingsSidebarContainerProps {
   bannersHeight?: number;
 }
 
-const SettingsSidebarContainer = ({
-  className = "",
-  navigationIsOpenedOnMobile,
-  bannersHeight,
-}: SettingsSidebarContainerProps) => {
-  const searchParams = useCompatSearchParams();
+const TeamListCollapsible = () => {
+  const { data: teams } = trpc.viewer.teams.list.useQuery();
   const { t } = useLocale();
-  const tabsWithPermissions = useTabs();
   const [teamMenuState, setTeamMenuState] =
     useState<{ teamId: number | undefined; teamMenuOpen: boolean }[]>();
-  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
-    {
-      teamId: number | undefined;
-      teamMenuOpen: boolean;
-    }[]
-  >();
-  const { data: teams } = trpc.viewer.teams.list.useQuery();
-  const session = useSession();
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
-
-  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
-
+  const searchParams = useCompatSearchParams();
   useEffect(() => {
     if (teams) {
       const teamStates = teams?.map((team) => ({
@@ -236,6 +246,147 @@ const SettingsSidebarContainer = ({
       }, 100);
     }
   }, [searchParams?.get("id"), teams]);
+
+  return (
+    <>
+      {teams &&
+        teamMenuState &&
+        teams.map((team, index: number) => {
+          if (!teamMenuState[index]) {
+            return null;
+          }
+          if (teamMenuState.some((teamState) => teamState.teamId === team.id))
+            return (
+              <Collapsible
+                className="cursor-pointer"
+                key={team.id}
+                open={teamMenuState[index].teamMenuOpen}
+                onOpenChange={() =>
+                  setTeamMenuState([
+                    ...teamMenuState,
+                    (teamMenuState[index] = {
+                      ...teamMenuState[index],
+                      teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                    }),
+                  ])
+                }>
+                <CollapsibleTrigger asChild>
+                  <div
+                    className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
+                    onClick={() =>
+                      setTeamMenuState([
+                        ...teamMenuState,
+                        (teamMenuState[index] = {
+                          ...teamMenuState[index],
+                          teamMenuOpen: !teamMenuState[index].teamMenuOpen,
+                        }),
+                      ])
+                    }>
+                    <div className="me-3">
+                      {teamMenuState[index].teamMenuOpen ? (
+                        <Icon name="chevron-down" className="h-4 w-4" />
+                      ) : (
+                        <Icon name="chevron-right" className="h-4 w-4" />
+                      )}
+                    </div>
+                    {!team.parentId && (
+                      <img
+                        src={getPlaceholderAvatar(team.logoUrl, team.name)}
+                        className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
+                        alt={team.name || "Team logo"}
+                      />
+                    )}
+                    <p className="w-1/2 truncate leading-normal">{team.name}</p>
+                    {!team.accepted && (
+                      <Badge className="ms-3" variant="orange">
+                        Inv.
+                      </Badge>
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-0.5">
+                  {team.accepted && (
+                    <VerticalTabItem
+                      name={t("profile")}
+                      href={`/settings/teams/${team.id}/profile`}
+                      textClassNames="px-3 text-emphasis font-medium text-sm"
+                      disableChevron
+                    />
+                  )}
+                  <VerticalTabItem
+                    name={t("members")}
+                    href={`/settings/teams/${team.id}/members`}
+                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                    disableChevron
+                  />
+                  <VerticalTabItem
+                    name={t("event_types_page_title")}
+                    href={`/event-types?teamIds=${team.id}`}
+                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                    disableChevron
+                  />
+                  {(team.role === MembershipRole.OWNER ||
+                    team.role === MembershipRole.ADMIN ||
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore this exists wtf?
+                    (team.isOrgAdmin && team.isOrgAdmin)) && (
+                    <>
+                      {/* TODO */}
+                      {/* <VerticalTabItem
+                name={t("general")}
+                href={`${WEBAPP_URL}/settings/my-account/appearance`}
+                textClassNames="px-3 text-emphasis font-medium text-sm"
+                disableChevron
+              /> */}
+                      <VerticalTabItem
+                        name={t("appearance")}
+                        href={`/settings/teams/${team.id}/appearance`}
+                        textClassNames="px-3 text-emphasis font-medium text-sm"
+                        disableChevron
+                      />
+                      {/* Hide if there is a parent ID */}
+                      {!team.parentId ? (
+                        <>
+                          <VerticalTabItem
+                            name={t("billing")}
+                            href={`/settings/teams/${team.id}/billing`}
+                            textClassNames="px-3 text-emphasis font-medium text-sm"
+                            disableChevron
+                          />
+                        </>
+                      ) : null}
+                    </>
+                  )}
+                </CollapsibleContent>
+              </Collapsible>
+            );
+        })}
+    </>
+  );
+};
+
+const SettingsSidebarContainer = ({
+  className = "",
+  navigationIsOpenedOnMobile,
+  bannersHeight,
+}: SettingsSidebarContainerProps) => {
+  const searchParams = useCompatSearchParams();
+  const { t } = useLocale();
+  const tabsWithPermissions = useTabs();
+  const [otherTeamMenuState, setOtherTeamMenuState] = useState<
+    {
+      teamId: number | undefined;
+      teamMenuOpen: boolean;
+    }[]
+  >();
+  const session = useSession();
+  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
+
+  const { data: otherTeams } = trpc.viewer.organizations.listOtherTeams.useQuery(undefined, {
+    enabled: !!session.data?.user?.org,
+  });
 
   // Same as above but for otherTeams
   useEffect(() => {
@@ -257,17 +408,6 @@ const SettingsSidebarContainer = ({
 
   const isOrgAdminOrOwner =
     currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
-
-  if (isOrgAdminOrOwner) {
-    const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
-
-    tabsWithPermissions.splice(teamsIndex + 1, 0, {
-      name: "other_teams",
-      href: "/settings/organizations/teams/other",
-      icon: "users",
-      children: [],
-    });
-  }
 
   return (
     <nav
@@ -299,7 +439,7 @@ const SettingsSidebarContainer = ({
                         <img
                           className="h-4 w-4 rounded-full ltr:mr-3 rtl:ml-3"
                           src={tab?.avatar}
-                          alt="User Avatar"
+                          alt="Organization Logo"
                         />
                       )}
                       <Skeleton
@@ -331,7 +471,7 @@ const SettingsSidebarContainer = ({
 
               {tab.name === "teams" && (
                 <React.Fragment key={tab.href}>
-                  <div className={`${!tab.children?.length ? "mb-3" : ""}`}>
+                  <div data-testid="tab-teams" className={`${!tab.children?.length ? "mb-3" : ""}`}>
                     <Link href={tab.href}>
                       <div className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-default group flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-sm font-medium leading-none">
                         {tab && tab.icon && (
@@ -349,112 +489,7 @@ const SettingsSidebarContainer = ({
                         </Skeleton>
                       </div>
                     </Link>
-                    {teams &&
-                      teamMenuState &&
-                      teams.map((team, index: number) => {
-                        if (!teamMenuState[index]) {
-                          return null;
-                        }
-                        if (teamMenuState.some((teamState) => teamState.teamId === team.id))
-                          return (
-                            <Collapsible
-                              className="cursor-pointer"
-                              key={team.id}
-                              open={teamMenuState[index].teamMenuOpen}
-                              onOpenChange={() =>
-                                setTeamMenuState([
-                                  ...teamMenuState,
-                                  (teamMenuState[index] = {
-                                    ...teamMenuState[index],
-                                    teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                                  }),
-                                ])
-                              }>
-                              <CollapsibleTrigger asChild>
-                                <div
-                                  className="hover:bg-subtle [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis text-default flex h-9 w-full flex-row items-center rounded-md px-2 py-[10px]  text-left text-sm font-medium leading-none"
-                                  onClick={() =>
-                                    setTeamMenuState([
-                                      ...teamMenuState,
-                                      (teamMenuState[index] = {
-                                        ...teamMenuState[index],
-                                        teamMenuOpen: !teamMenuState[index].teamMenuOpen,
-                                      }),
-                                    ])
-                                  }>
-                                  <div className="me-3">
-                                    {teamMenuState[index].teamMenuOpen ? (
-                                      <Icon name="chevron-down" className="h-4 w-4" />
-                                    ) : (
-                                      <Icon name="chevron-right" className="h-4 w-4" />
-                                    )}
-                                  </div>
-                                  {!team.parentId && (
-                                    <img
-                                      src={getPlaceholderAvatar(team.logo, team?.name as string)}
-                                      className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
-                                      alt={team.name || "Team logo"}
-                                    />
-                                  )}
-                                  <p className="w-1/2 truncate leading-normal">{team.name}</p>
-                                  {!team.accepted && (
-                                    <Badge className="ms-3" variant="orange">
-                                      Inv.
-                                    </Badge>
-                                  )}
-                                </div>
-                              </CollapsibleTrigger>
-                              <CollapsibleContent className="space-y-0.5">
-                                {team.accepted && (
-                                  <VerticalTabItem
-                                    name={t("profile")}
-                                    href={`/settings/teams/${team.id}/profile`}
-                                    textClassNames="px-3 text-emphasis font-medium text-sm"
-                                    disableChevron
-                                  />
-                                )}
-                                <VerticalTabItem
-                                  name={t("members")}
-                                  href={`/settings/teams/${team.id}/members`}
-                                  textClassNames="px-3 text-emphasis font-medium text-sm"
-                                  disableChevron
-                                />
-                                {(team.role === MembershipRole.OWNER ||
-                                  team.role === MembershipRole.ADMIN ||
-                                  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-                                  // @ts-ignore this exists wtf?
-                                  (team.isOrgAdmin && team.isOrgAdmin)) && (
-                                  <>
-                                    {/* TODO */}
-                                    {/* <VerticalTabItem
-                                name={t("general")}
-                                href={`${WEBAPP_URL}/settings/my-account/appearance`}
-                                textClassNames="px-3 text-emphasis font-medium text-sm"
-                                disableChevron
-                              /> */}
-                                    <VerticalTabItem
-                                      name={t("appearance")}
-                                      href={`/settings/teams/${team.id}/appearance`}
-                                      textClassNames="px-3 text-emphasis font-medium text-sm"
-                                      disableChevron
-                                    />
-                                    {/* Hide if there is a parent ID */}
-                                    {!team.parentId ? (
-                                      <>
-                                        <VerticalTabItem
-                                          name={t("billing")}
-                                          href={`/settings/teams/${team.id}/billing`}
-                                          textClassNames="px-3 text-emphasis font-medium text-sm"
-                                          disableChevron
-                                        />
-                                      </>
-                                    ) : null}
-                                  </>
-                                )}
-                              </CollapsibleContent>
-                            </Collapsible>
-                          );
-                      })}
+                    <TeamListCollapsible />
                     {(!currentOrg || (currentOrg && currentOrg?.user?.role !== "MEMBER")) && (
                       <VerticalTabItem
                         name={t("add_a_team")}
@@ -530,7 +565,7 @@ const SettingsSidebarContainer = ({
                                   </div>
                                   {!otherTeam.parentId && (
                                     <img
-                                      src={getPlaceholderAvatar(otherTeam.logo, otherTeam?.name as string)}
+                                      src={getPlaceholderAvatar(otherTeam.logoUrl, otherTeam.name)}
                                       className="h-[16px] w-[16px] self-start rounded-full stroke-[2px] ltr:mr-2 rtl:ml-2 md:mt-0"
                                       alt={otherTeam.name || "Team logo"}
                                     />
@@ -551,7 +586,6 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-
                                 <>
                                   {/* TODO: enable appearance edit */}
                                   {/* <VerticalTabItem

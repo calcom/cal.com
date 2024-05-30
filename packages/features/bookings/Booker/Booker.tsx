@@ -24,7 +24,7 @@ import { LargeCalendar } from "./components/LargeCalendar";
 import { OverlayCalendar } from "./components/OverlayCalendar/OverlayCalendar";
 import { RedirectToInstantMeetingModal } from "./components/RedirectToInstantMeetingModal";
 import { BookerSection } from "./components/Section";
-import { Away, NotFound } from "./components/Unavailable";
+import { NotFound } from "./components/Unavailable";
 import { fadeInLeft, getBookerSizeClassNames, useBookerResizeAnimation } from "./config";
 import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
@@ -133,6 +133,14 @@ const BookerComponent = ({
     onToggleCalendar,
   } = calendars;
 
+  const scrolledToTimeslotsOnce = useRef(false);
+  const scrollToTimeSlots = () => {
+    if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
+      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+      scrolledToTimeslotsOnce.current = true;
+    }
+  };
+
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
@@ -140,6 +148,10 @@ const BookerComponent = ({
     return setBookerState("booking");
   }, [event, selectedDate, selectedTimeslot, setBookerState]);
 
+  const slot = getQueryParam("slot");
+  useEffect(() => {
+    setSelectedTimeslot(slot || null);
+  }, [slot, setSelectedTimeslot]);
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
@@ -310,20 +322,14 @@ const BookerComponent = ({
                 )}
               </BookerSection>
             )}
-            <StickyOnDesktop
-              key="meta"
-              className={classNames(
-                "relative z-10 flex [grid-area:meta]",
-                // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
-                layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
-              )}>
+            <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
                 {!hideEventTypeDetails && orgBannerUrl && !isPlatform && (
                   <img
                     loading="eager"
-                    className="-mb-9 h-28 max-h-28 rounded-tl-md sm:max-h-24"
+                    className="-mb-9 ltr:rounded-tl-md rtl:rounded-tr-md"
                     alt="org banner"
                     src={orgBannerUrl}
                   />
@@ -341,8 +347,8 @@ const BookerComponent = ({
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3 ">
-                      <DatePicker event={event} schedule={schedule} />
+                    <div className="mt-auto px-5 py-3">
+                      <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
                     </div>
                   )}
               </BookerSection>
@@ -375,6 +381,7 @@ const BookerComponent = ({
                 }}
                 event={event}
                 schedule={schedule}
+                scrollToTimeSlots={scrollToTimeSlots}
               />
             </BookerSection>
 
@@ -466,8 +473,6 @@ const BookerComponent = ({
 };
 
 export const Booker = (props: BookerProps & WrappedBookerProps) => {
-  if (props.isAway) return <Away />;
-
   return (
     <LazyMotion strict features={loadFramerFeatures}>
       <BookerComponent {...props} />

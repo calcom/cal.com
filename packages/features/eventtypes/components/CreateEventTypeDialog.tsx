@@ -222,7 +222,7 @@ export default function CreateEventTypeDialog({
                   required
                   addOnLeading={
                     <Tooltip
-                      content={`${urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
+                      content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
                       <span className="max-w-24 md:max-w-56">
                         {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
                       </span>

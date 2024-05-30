@@ -12,6 +12,7 @@ import type {
 import { Controller, useFieldArray, useFormContext } from "react-hook-form";
 import type { GroupBase, Props } from "react-select";
 
+import type { AvailabilityFormValues } from "@calcom/atoms/availability/types";
 import type { ConfigType } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { defaultDayRange as DEFAULT_DAY_RANGE } from "@calcom/lib/availability";
@@ -47,6 +48,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   name,
   weekday,
   control,
+  handleSubmit,
   CopyButton,
   disabled,
   labels,
@@ -56,6 +58,7 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
   name: ArrayPath<TFieldValues>;
   weekday: string;
   control: Control<TFieldValues>;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   CopyButton: JSX.Element;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
@@ -68,13 +71,13 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
     scheduleContainer?: string;
   };
 }) => {
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, getValues } = useFormContext();
   const watchDayRange = watch(name);
 
   return (
     <div
       className={classNames(
-        "mb-4 flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:px-0",
+        "flex w-full flex-col gap-4 last:mb-0 sm:flex-row sm:gap-6 sm:px-0",
         className?.scheduleDay
       )}
       data-testid={weekday}>
@@ -91,8 +94,10 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
                 disabled={!watchDayRange || disabled}
                 defaultChecked={watchDayRange && watchDayRange.length > 0}
                 checked={watchDayRange && !!watchDayRange.length}
+                data-testid={`${weekday}-switch`}
                 onCheckedChange={(isChecked) => {
                   setValue(name, (isChecked ? [DEFAULT_DAY_RANGE] : []) as TFieldValues[typeof name]);
+                  handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                 }}
               />
             </div>
@@ -101,23 +106,23 @@ export const ScheduleDay = <TFieldValues extends FieldValues>({
         </div>
       </div>
       <>
-        {watchDayRange ? (
-          <div className="flex sm:ml-2">
+        {!watchDayRange && <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />}
+        {watchDayRange.length > 0 && (
+          <div className="flex sm:gap-2">
             <DayRanges
               userTimeFormat={userTimeFormat}
               labels={labels}
               control={control}
               name={name}
               disabled={disabled}
+              handleSubmit={handleSubmit}
               className={{
                 dayRanges: className?.dayRanges,
                 timeRangeField: className?.timeRangeField,
               }}
             />
-            {!!watchDayRange.length && !disabled && <div className="block">{CopyButton}</div>}
+            {!disabled && <div className="block">{CopyButton}</div>}
           </div>
-        ) : (
-          <SkeletonText className="ml-1 mt-2.5 h-6 w-48" />
         )}
       </>
     </div>
@@ -128,10 +133,12 @@ const CopyButton = ({
   getValuesFromDayRange,
   weekStart,
   labels,
+  handleSubmit,
 }: {
   getValuesFromDayRange: string;
   weekStart: number;
   labels?: ScheduleLabelsType;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
   const [open, setOpen] = useState(false);
@@ -160,6 +167,7 @@ const CopyButton = ({
           onClick={(selected) => {
             selected.forEach((day) => setValue(`${fieldArrayName}.${day}`, getValues(getValuesFromDayRange)));
             setOpen(false);
+            handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
           }}
           onCancel={() => setOpen(false)}
         />
@@ -176,6 +184,7 @@ const Schedule = <
   control: Control<TFieldValues>;
   weekStart?: number;
   disabled?: boolean;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   labels?: ScheduleLabelsType;
   userTimeFormat?: number | null;
 }) => {
@@ -191,6 +200,7 @@ export const ScheduleComponent = <
 >({
   name,
   control,
+  handleSubmit,
   disabled,
   weekStart = 0,
   labels,
@@ -199,6 +209,7 @@ export const ScheduleComponent = <
 }: {
   name: TPath;
   control: Control<TFieldValues>;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
   weekStart?: number;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
@@ -214,7 +225,7 @@ export const ScheduleComponent = <
   const { i18n } = useLocale();
 
   return (
-    <div className={classNames("p-4", className?.schedule)}>
+    <div className={classNames("flex flex-col gap-4 p-2 sm:p-4", className?.schedule)}>
       {/* First iterate for each day */}
       {weekdayNames(i18n.language, weekStart, "long").map((weekday, num) => {
         const weekdayIndex = (num + weekStart) % 7;
@@ -234,8 +245,14 @@ export const ScheduleComponent = <
             key={weekday}
             weekday={weekday}
             control={control}
+            handleSubmit={handleSubmit}
             CopyButton={
-              <CopyButton weekStart={weekStart} labels={labels} getValuesFromDayRange={dayRangeName} />
+              <CopyButton
+                weekStart={weekStart}
+                labels={labels}
+                getValuesFromDayRange={dayRangeName}
+                handleSubmit={handleSubmit}
+              />
             }
           />
         );
@@ -251,6 +268,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
   labels,
   userTimeFormat,
   className,
+  handleSubmit,
 }: {
   name: ArrayPath<TFieldValues>;
   control?: Control<TFieldValues>;
@@ -261,6 +279,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     dayRanges?: string;
     timeRangeField?: string;
   };
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
   const { getValues } = useFormContext();
@@ -270,17 +289,20 @@ export const DayRanges = <TFieldValues extends FieldValues>({
     name,
   });
 
+  if (!fields.length) return null;
+
   return (
-    <div className={classNames("", className?.dayRanges)}>
+    <div className={classNames("flex flex-col gap-2", className?.dayRanges)}>
       {fields.map((field, index: number) => (
         <Fragment key={field.id}>
-          <div className="mb-2 flex last:mb-0">
+          <div className="flex gap-1 last:mb-0 sm:gap-2">
             <Controller
               name={`${name}.${index}`}
               render={({ field }) => (
                 <TimeRangeField
                   className={className?.timeRangeField}
                   userTimeFormat={userTimeFormat}
+                  handleSubmit={handleSubmit}
                   {...field}
                 />
               )}
@@ -290,7 +312,7 @@ export const DayRanges = <TFieldValues extends FieldValues>({
                 disabled={disabled}
                 data-testid="add-time-availability"
                 tooltip={labels?.addTime ?? t("add_time_availability")}
-                className="text-default mx-2 "
+                className="text-default"
                 type="button"
                 color="minimal"
                 variant="icon"
@@ -304,16 +326,23 @@ export const DayRanges = <TFieldValues extends FieldValues>({
 
                   if (slotRange?.append) {
                     append(slotRange.append);
+                    handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                   }
 
                   if (slotRange?.prepend) {
                     prepend(slotRange.prepend);
+                    handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
                   }
                 }}
               />
             )}
             {index !== 0 && (
-              <RemoveTimeButton index={index} remove={remove} className="text-default mx-2 border-none" />
+              <RemoveTimeButton
+                index={index}
+                remove={remove}
+                handleSubmit={handleSubmit}
+                className="text-default mx-2 border-none"
+              />
             )}
           </div>
         </Fragment>
@@ -328,14 +357,17 @@ const RemoveTimeButton = ({
   disabled,
   className,
   labels,
+  handleSubmit,
 }: {
   index: number | number[];
   remove: UseFieldArrayRemove;
   className?: string;
   disabled?: boolean;
   labels?: ScheduleLabelsType;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
 }) => {
   const { t } = useLocale();
+  const { getValues } = useFormContext();
   return (
     <Button
       disabled={disabled}
@@ -343,7 +375,10 @@ const RemoveTimeButton = ({
       variant="icon"
       color="destructive"
       StartIcon="trash"
-      onClick={() => remove(index)}
+      onClick={() => {
+        remove(index);
+        handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
+      }}
       className={className}
       tooltip={labels?.deleteTime ?? t("delete")}
     />
@@ -356,29 +391,40 @@ const TimeRangeField = ({
   onChange,
   disabled,
   userTimeFormat,
-}: { className?: string; disabled?: boolean; userTimeFormat: number | null } & ControllerRenderProps) => {
+  handleSubmit,
+}: {
+  className?: string;
+  disabled?: boolean;
+  userTimeFormat: number | null;
+  handleSubmit?: (data: AvailabilityFormValues) => Promise<void>;
+} & ControllerRenderProps) => {
+  const { getValues } = useFormContext();
   // this is a controlled component anyway given it uses LazySelect, so keep it RHF agnostic.
   return (
-    <div className={classNames("flex flex-row gap-1", className)}>
+    <div className={classNames("flex flex-row gap-2 sm:gap-3", className)}>
       <LazySelect
         userTimeFormat={userTimeFormat}
-        className="inline-block w-[100px]"
+        className="block w-[90px] sm:w-[100px]"
         isDisabled={disabled}
         value={value.start}
+        menuPlacement="bottom"
         max={value.end}
         onChange={(option) => {
           onChange({ ...value, start: new Date(option?.value as number) });
+          handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
-      <span className="text-default mx-2 w-2 self-center"> - </span>
+      <span className="text-default w-2 self-center"> - </span>
       <LazySelect
         userTimeFormat={userTimeFormat}
-        className="inline-block w-[100px] rounded-md"
+        className="block w-[90px] rounded-md sm:w-[100px]"
         isDisabled={disabled}
         value={value.end}
         min={value.start}
+        menuPlacement="bottom"
         onChange={(option) => {
           onChange({ ...value, end: new Date(option?.value as number) });
+          handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
     </div>
@@ -390,6 +436,7 @@ const LazySelect = ({
   min,
   max,
   userTimeFormat,
+  menuPlacement,
   ...props
 }: Omit<Props<IOption, false, GroupBase<IOption>>, "value"> & {
   value: ConfigType;
@@ -411,6 +458,7 @@ const LazySelect = ({
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
       }}
+      menuPlacement={menuPlacement}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
       onMenuClose={() => filter({ current: value })}
       components={{ DropdownIndicator: () => null, IndicatorSeparator: () => null }}

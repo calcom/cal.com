@@ -28,7 +28,7 @@ type TeamQuery = Prisma.TeamGetPayload<{
       select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
     };
     name: true;
-    logo: true;
+    logoUrl: true;
     members: {
       select: {
         role: true;
@@ -72,7 +72,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
           select: credentialForCalendarServiceSelect,
         },
         name: true,
-        logo: true,
+        logoUrl: true,
         members: {
           where: {
             userId: user.id,
@@ -88,7 +88,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
               select: credentialForCalendarServiceSelect,
             },
             name: true,
-            logo: true,
+            logoUrl: true,
             members: {
               where: {
                 userId: user.id,
@@ -111,7 +111,10 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         if (team?.parent) {
           const { parent, ...filteredTeam } = team;
           filteredTeams.push(filteredTeam);
-          parentTeams.push(parent);
+          // Only add parent team if it's not already in teamsQuery
+          if (!teamsQuery.some((t) => t.id === parent.id)) {
+            parentTeams.push(parent);
+          }
         }
       });
     }
@@ -150,7 +153,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
             return {
               teamId: team.id,
               name: team.name,
-              logo: team.logo,
+              logoUrl: team.logoUrl,
               credentialId: c.id,
               isAdmin:
                 team.members[0].role === MembershipRole.ADMIN ||

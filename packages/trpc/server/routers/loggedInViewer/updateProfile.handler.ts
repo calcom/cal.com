@@ -19,7 +19,6 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -74,13 +73,8 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
 
-  const unlinkConnectedAccount = input?.unlinkConnectedAccount || false;
-  delete input.unlinkConnectedAccount;
-
   const data: Prisma.UserUpdateInput = {
     ...rest,
-    // DO NOT OVERWRITE AVATAR.
-    avatar: undefined,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
@@ -182,38 +176,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  if (unlinkConnectedAccount) {
-    // Unlink the account
-    const CalComAdapter = (await import("@calcom/features/auth/lib/next-auth-custom-adapter")).default;
-    const calcomAdapter = CalComAdapter(prisma);
-    // If it fails to delete, don't stop because the users login data might not be present
-    try {
-      await calcomAdapter.unlinkAccount({
-        provider: user.identityProvider.toLocaleLowerCase(),
-        providerAccountId: user.identityProviderId || "",
-      });
-    } catch {}
-    // Only validate if we're changing email
-    data.identityProvider = IdentityProvider.CAL;
-    data.identityProviderId = null;
-  }
-
-  // if defined AND a base 64 string, upload and set the avatar URL
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
-    const avatar = await resizeBase64Image(input.avatar);
+  // if defined AND a base 64 string, upload and update the avatar URL
+  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
     data.avatarUrl = await uploadAvatar({
-      avatar,
+      avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
     });
-    // as this is still used in the backwards compatible endpoint, we also write it here
-    // to ensure no data loss.
-    data.avatar = avatar;
   }
-  // Unset avatar url if avatar is empty string.
-  if ("" === input.avatar) {
-    data.avatarUrl = null;
-    data.avatar = null;
-  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({
       where: {
@@ -373,9 +343,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-
-  // don't return avatar, we don't need it anymore.
-  delete input.avatar;
 
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails
