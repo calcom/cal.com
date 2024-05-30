@@ -1423,7 +1423,9 @@ async function handler(
     return guestArray;
   }, [] as Invitee);
 
-  log.info("Removed guests from the booking", guestsRemoved);
+  if (guestsRemoved.length > 0) {
+    log.info("Removed guests from the booking", guestsRemoved);
+  }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
