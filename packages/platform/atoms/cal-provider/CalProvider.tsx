@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { VERSION_2024_04_15 } from "@calcom/platform-constants";
 
+import http from "../lib/http";
 import { BaseCalProvider } from "./BaseCalProvider";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,10 @@ export function CalProvider({
   onTimezoneChange,
   version = VERSION_2024_04_15,
 }: CalProviderProps) {
+  useEffect(() => {
+    http.setVersionHeader(version);
+  }, [version]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider

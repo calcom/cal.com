@@ -17,8 +17,9 @@ import {
   VERSION_2024_04_15,
   API_VERSIONS_ENUM,
   CAL_API_VERSION_HEADER,
+  X_CAL_CLIENT_ID,
+  X_CAL_SECRET_KEY,
 } from "@calcom/platform-constants";
-import { X_CAL_CLIENT_ID, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 
