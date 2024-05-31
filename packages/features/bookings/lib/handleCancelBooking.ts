@@ -1,5 +1,4 @@
 import type { Prisma, WorkflowReminder } from "@prisma/client";
-import { getOrgIdFromMemberOrTeamId } from "bookings/lib/getOrgIdFromMemberOrTeamId";
 import type { NextApiRequest } from "next";
 
 import { FAKE_DAILY_CREDENTIAL } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
@@ -32,6 +31,7 @@ import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/w
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
+import { getOrgIdFromMemberOrTeamId } from "./getOrgIdFromMemberOrTeamId";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
 
 const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });

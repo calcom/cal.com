@@ -1,5 +1,4 @@
 import type { Prisma } from "@prisma/client";
-import { getOrgIdFromMemberOrTeamId } from "bookings/lib/getOrgIdFromMemberOrTeamId";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
@@ -27,6 +26,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "../../ee/workflows/lib/allowDisablingStandardEmails";
+import { getOrgIdFromMemberOrTeamId } from "./getOrgIdFromMemberOrTeamId";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
