@@ -68,13 +68,15 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
+export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
+
 export const EventTypeMetaDataSchema = z
   .object({
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
     multipleDuration: z.number().array().optional(),
     giphyThankYouPage: z.string().optional(),
-    apps: z.object(appDataSchemas).partial().optional(),
+    apps: EventTypeAppMetadataSchema.optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
@@ -229,6 +231,7 @@ export const bookingCreateBodySchema = z.object({
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
   orgSlug: z.string().optional(),
+  teamMemberEmail: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -275,6 +278,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
+    teamMemberEmail: z.string().optional(),
   })
 );
 

@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import type z from "zod";
 
+import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -26,6 +28,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -314,6 +317,57 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  teamMember?: string | undefined;
+}
+
+async function getCRMContactOwnerForRRLeadSkip(
+  bookerEmail: string,
+  apps?: z.infer<typeof EventTypeAppMetadataSchema>
+) {
+  if (!apps) return;
+  const crm = await getCRMManagerWithRRLeadSkip(apps);
+
+  if (!crm) return;
+
+  const contact = await crm.getContacts(bookerEmail, true);
+  if (contact?.length) {
+    return contact[0].ownerEmail;
+  }
+}
+
+async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
+  let crmRoundRobinLeadSkip;
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof apps];
+    if (
+      app.enabled &&
+      typeof app.appCategories === "object" &&
+      app.appCategories.some((category: string) => category === "crm") &&
+      app.roundRobinLeadSkip
+    ) {
+      crmRoundRobinLeadSkip = app;
+      break;
+    }
+  }
+
+  if (crmRoundRobinLeadSkip) {
+    const crmCredential = await prisma.credential.findUnique({
+      where: {
+        id: crmRoundRobinLeadSkip.credentialId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    if (crmCredential) {
+      return new CrmManager(crmCredential);
+    }
+  }
+  return;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -376,13 +430,36 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
-    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-    ...user,
-  }));
-  // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  let teamMember: string | undefined;
+
+  const hosts =
+    eventType.hosts?.length && eventType.schedulingType
+      ? eventType.hosts
+      : eventType.users.map((user) => {
+          return {
+            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            user: user,
+          };
+        });
+
+  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
+      input.bookerEmail,
+      eventType?.metadata?.apps
+    );
+    const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
+
+    if (contactOwnerHost) {
+      teamMember = contactOwnerHost.user.email;
+      const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
+
+      usersWithCredentials = usersWithCredentials.filter(
+        (user) => user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || user.isFixed)
+      );
+      usersWithCredentials.push({ ...contactOwnerHost.user, isFixed: true });
+    }
   }
 
   const durationToUse = input.duration || 0;
@@ -745,6 +822,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: withinBoundsSlotsMappedToDate,
+    teamMember,
   };
 }
 

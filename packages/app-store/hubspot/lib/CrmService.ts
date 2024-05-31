@@ -12,15 +12,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM, ContactCreateInput, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
@@ -28,11 +22,11 @@ import type { HubspotToken } from "../api/callback";
 
 const hubspotClient = new hubspot.Client();
 
-interface CustomPlublicObjectInput extends SimplePublicObjectInput {
+interface CustomPublicObjectInput extends SimplePublicObjectInput {
   id?: string;
 }
 
-export default class HubspotCalendarService implements Calendar {
+export default class HubspotCalendarService implements CRM {
   private url = "";
   private integrationName = "";
   private auth: Promise<{ getToken: () => Promise<HubspotToken | void | never[]> }>;
@@ -47,56 +41,6 @@ export default class HubspotCalendarService implements Calendar {
 
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
   }
-
-  private hubspotContactCreate = async (attendees: Person[]) => {
-    const simplePublicObjectInputs: SimplePublicObjectInput[] = attendees.map((attendee) => {
-      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-      return {
-        properties: {
-          firstname,
-          lastname,
-          email: attendee.email,
-        },
-      };
-    });
-    return Promise.all(
-      simplePublicObjectInputs.map((contact) =>
-        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
-          // If multiple events are created, subsequent events may fail due to
-          // contact was created by previous event creation, so we introduce a
-          // fallback taking advantage of the error message providing the contact id
-          if (error.body.message.includes("Contact already exists. Existing ID:")) {
-            const split = error.body.message.split("Contact already exists. Existing ID: ");
-            return { id: split[1] };
-          } else {
-            throw error;
-          }
-        })
-      )
-    );
-  };
-
-  private hubspotContactSearch = async (event: CalendarEvent) => {
-    const publicObjectSearchRequest: PublicObjectSearchRequest = {
-      filterGroups: event.attendees.map((attendee) => ({
-        filters: [
-          {
-            value: attendee.email,
-            propertyName: "email",
-            operator: "EQ",
-          },
-        ],
-      })),
-      sorts: ["hs_object_id"],
-      properties: ["hs_object_id", "email"],
-      limit: 10,
-      after: 0,
-    };
-
-    return await hubspotClient.crm.contacts.searchApi
-      .doSearch(publicObjectSearchRequest)
-      .then((apiResponse) => apiResponse.results);
-  };
 
   private getHubspotMeetingBody = (event: CalendarEvent): string => {
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
@@ -211,7 +155,7 @@ export default class HubspotCalendarService implements Calendar {
     };
   };
 
-  async handleMeetingCreation(event: CalendarEvent, contacts: CustomPlublicObjectInput[]) {
+  async handleMeetingCreation(event: CalendarEvent, contacts: Contact[]) {
     const contactIds: { id?: string }[] = contacts.map((contact) => ({ id: contact.id }));
     const meetingEvent = await this.hubspotCreateMeeting(event);
     if (meetingEvent) {
@@ -234,49 +178,11 @@ export default class HubspotCalendarService implements Calendar {
     return Promise.reject("Something went wrong when creating a meeting in HubSpot");
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent> {
     const auth = await this.auth;
     await auth.getToken();
-    const contacts = await this.hubspotContactSearch(event);
-    if (contacts.length) {
-      if (contacts.length == event.attendees.length) {
-        // All attendees do exist in HubSpot
-        this.log.debug("contact:search:all", { event, contacts });
-        return await this.handleMeetingCreation(event, contacts);
-      } else {
-        // Some attendees don't exist in HubSpot
-        // Get the existing contacts' email to filter out
-        this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.properties.email);
-        this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts = event.attendees.filter(
-          (attendee) => !existingContacts.includes(attendee.email)
-        );
-        this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in HubSpot that were not present in the previous contact search
-        const createContacts = await this.hubspotContactCreate(nonExistingContacts);
-        this.log.debug("contact:created", { createContacts });
-        // Continue with meeting creation and association only when all contacts are present in HubSpot
-        if (createContacts.length) {
-          this.log.debug("contact:creation:ok");
-          return await this.handleMeetingCreation(
-            event,
-            createContacts.concat(contacts) as SimplePublicObjectInput[]
-          );
-        }
-        return Promise.reject("Something went wrong when creating non-existing attendees in HubSpot");
-      }
-    } else {
-      this.log.debug("contact:search:none", { event, contacts });
-      const createContacts = await this.hubspotContactCreate(event.attendees);
-      this.log.debug("contact:created", { createContacts });
-      if (createContacts.length) {
-        this.log.debug("contact:creation:ok");
-        return await this.handleMeetingCreation(event, createContacts as SimplePublicObjectInput[]);
-      }
-    }
-    return Promise.reject("Something went wrong when searching/creating the attendees in HubSpot");
+
+    return await this.handleMeetingCreation(event, contacts);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -292,15 +198,75 @@ export default class HubspotCalendarService implements Calendar {
     return await this.hubspotDeleteMeeting(uid);
   }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
+  async getContacts(emails: string | string[]): Promise<Contact[]> {
+    const auth = await this.auth;
+    await auth.getToken();
+
+    const emailArray = Array.isArray(emails) ? emails : [emails];
+
+    const publicObjectSearchRequest: PublicObjectSearchRequest = {
+      filterGroups: emailArray.map((attendeeEmail) => ({
+        filters: [
+          {
+            value: attendeeEmail,
+            propertyName: "email",
+            operator: "EQ",
+          },
+        ],
+      })),
+      sorts: ["hs_object_id"],
+      properties: ["hs_object_id", "email"],
+      limit: 10,
+      after: 0,
+    };
+
+    const contacts = await hubspotClient.crm.contacts.searchApi
+      .doSearch(publicObjectSearchRequest)
+      .then((apiResponse) => apiResponse.results);
+
+    return contacts.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.properties.email,
+      };
+    });
   }
 
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
+    const auth = await this.auth;
+    await auth.getToken();
+
+    const simplePublicObjectInputs = contactsToCreate.map((attendee) => {
+      const [firstname, lastname] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+      return {
+        properties: {
+          firstname,
+          lastname,
+          email: attendee.email,
+        },
+      };
+    });
+    const createdContacts = await Promise.all(
+      simplePublicObjectInputs.map((contact) =>
+        hubspotClient.crm.contacts.basicApi.create(contact).catch((error) => {
+          // If multiple events are created, subsequent events may fail due to
+          // contact was created by previous event creation, so we introduce a
+          // fallback taking advantage of the error message providing the contact id
+          if (error.body.message.includes("Contact already exists. Existing ID:")) {
+            const split = error.body.message.split("Contact already exists. Existing ID: ");
+            return { id: split[1], properties: contact.properties };
+          } else {
+            throw error;
+          }
+        })
+      )
+    );
+
+    return createdContacts.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.properties.email,
+      };
+    });
   }
 }

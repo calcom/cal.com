@@ -5,14 +5,9 @@ import CloseCom from "@calcom/lib/CloseCom";
 import { getCustomActivityTypeInstanceData } from "@calcom/lib/CloseComeUtils";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
-import type {
-  Calendar,
-  CalendarEvent,
-  EventBusyDate,
-  IntegrationCalendar,
-  NewCalendarEventType,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM, ContactCreateInput, CrmEvent, Contact } from "@calcom/types/CrmService";
 
 const apiKeySchema = z.object({
   encrypted: z.string(),
@@ -51,7 +46,7 @@ const calComCustomActivityFields: CloseComFieldOptions = [
  * Close.com as part of this integration, a new generic Lead will be created in order
  * to assign every contact created by this process, and it is named "From Cal.com"
  */
-export default class CloseComCalendarService implements Calendar {
+export default class CloseComCRMService implements CRM {
   private integrationName = "";
   private closeCom: CloseCom;
   private log: typeof logger;
@@ -91,7 +86,7 @@ export default class CloseComCalendarService implements Calendar {
     return this.closeCom.activity.custom.delete(uid);
   };
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
+  async createEvent(event: CalendarEvent): Promise<CrmEvent> {
     const customActivityTypeInstanceData = await getCustomActivityTypeInstanceData(
       event,
       calComCustomActivityFields,
@@ -110,27 +105,76 @@ export default class CloseComCalendarService implements Calendar {
       additionalInfo: {
         customActivityTypeInstanceData,
       },
+      success: true,
     });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async updateEvent(uid: string, event: CalendarEvent): Promise<any> {
-    return await this.closeComUpdateCustomActivity(uid, event);
+  async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
+    const updatedEvent = await this.closeComUpdateCustomActivity(uid, event);
+    return {
+      id: updatedEvent.id,
+    };
   }
 
   async deleteEvent(uid: string): Promise<void> {
-    return await this.closeComDeleteCustomActivity(uid);
+    await this.closeComDeleteCustomActivity(uid);
   }
 
-  async getAvailability(
-    _dateFrom: string,
-    _dateTo: string,
-    _selectedCalendars: IntegrationCalendar[]
-  ): Promise<EventBusyDate[]> {
-    return Promise.resolve([]);
+  async getContacts(emails: string | string[]): Promise<Contact[]> {
+    const contactsQuery = await this.closeCom.contact.search({
+      emails: Array.isArray(emails) ? emails : [emails],
+    });
+
+    return contactsQuery.data.map((contact) => {
+      return {
+        id: contact.id,
+        email: contact.emails[0].email,
+        name: contact.name,
+      };
+    });
   }
 
-  async listCalendars(_event?: CalendarEvent): Promise<IntegrationCalendar[]> {
-    return Promise.resolve([]);
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
+    // In Close.com contacts need to be attached to a lead
+    // Assume all attendees in an event belong under a lead
+
+    const contacts = [];
+
+    // Create main lead
+    const lead = await this.closeCom.lead.create({
+      contactName: contactsToCreate[0].name,
+      contactEmail: contactsToCreate[0].email,
+    });
+
+    contacts.push({
+      id: lead.contacts[0].id,
+      email: lead.contacts[0].emails[0].email,
+    });
+
+    // Check if we need to crate more contacts under the lead
+    if (contactsToCreate.length > 1) {
+      const createContactPromise = [];
+      for (const contact of contactsToCreate) {
+        createContactPromise.push(
+          this.closeCom.contact.create({
+            leadId: lead.id,
+            person: {
+              email: contact.email,
+              name: contact.name,
+            },
+          })
+        );
+        const createdContacts = await Promise.all(createContactPromise);
+        for (const createdContact of createdContacts) {
+          contacts.push({
+            id: createdContact.id,
+            email: createdContact.emails[0].email,
+          });
+        }
+      }
+    }
+
+    return contacts;
   }
 }

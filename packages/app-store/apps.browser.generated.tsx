@@ -23,17 +23,21 @@ export const AppSettingsComponentsMap = {
 export const EventTypeAddonMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppCardInterface")),
   basecamp3: dynamic(() => import("./basecamp3/components/EventTypeAppCardInterface")),
+  closecom: dynamic(() => import("./closecom/components/EventTypeAppCardInterface")),
   fathom: dynamic(() => import("./fathom/components/EventTypeAppCardInterface")),
   ga4: dynamic(() => import("./ga4/components/EventTypeAppCardInterface")),
   giphy: dynamic(() => import("./giphy/components/EventTypeAppCardInterface")),
   gtm: dynamic(() => import("./gtm/components/EventTypeAppCardInterface")),
+  hubspot: dynamic(() => import("./hubspot/components/EventTypeAppCardInterface")),
   matomo: dynamic(() => import("./matomo/components/EventTypeAppCardInterface")),
   metapixel: dynamic(() => import("./metapixel/components/EventTypeAppCardInterface")),
   "mock-payment-app": dynamic(() => import("./mock-payment-app/components/EventTypeAppCardInterface")),
   paypal: dynamic(() => import("./paypal/components/EventTypeAppCardInterface")),
+  "pipedrive-crm": dynamic(() => import("./pipedrive-crm/components/EventTypeAppCardInterface")),
   plausible: dynamic(() => import("./plausible/components/EventTypeAppCardInterface")),
   posthog: dynamic(() => import("./posthog/components/EventTypeAppCardInterface")),
   qr_code: dynamic(() => import("./qr_code/components/EventTypeAppCardInterface")),
+  salesforce: dynamic(() => import("./salesforce/components/EventTypeAppCardInterface")),
   stripepayment: dynamic(() => import("./stripepayment/components/EventTypeAppCardInterface")),
   "booking-pages-tag": dynamic(() =>
     import("./templates/booking-pages-tag/components/EventTypeAppCardInterface")
@@ -41,6 +45,8 @@ export const EventTypeAddonMap = {
   "event-type-app-card": dynamic(() =>
     import("./templates/event-type-app-card/components/EventTypeAppCardInterface")
   ),
+  "zoho-bigin": dynamic(() => import("./zoho-bigin/components/EventTypeAppCardInterface")),
+  zohocrm: dynamic(() => import("./zohocrm/components/EventTypeAppCardInterface")),
 };
 export const EventTypeSettingsMap = {
   alby: dynamic(() => import("./alby/components/EventTypeAppSettingsInterface")),

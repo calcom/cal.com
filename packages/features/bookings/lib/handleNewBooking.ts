@@ -1329,7 +1329,12 @@ async function handler(
         loggerWithEventDetails
       );
       const luckyUsers: typeof users = [];
-      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      const luckyUserPool: IsFixedAwareUser[] = [];
+      const fixedUserPool: IsFixedAwareUser[] = [];
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
+
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -1339,6 +1344,17 @@ async function handler(
           luckyUserPool: luckyUserPool.map((user) => user.id),
         })
       );
+
+      if (reqBody.teamMemberEmail) {
+        // If requested user is not a fixed host, assign the lucky user as the team member
+        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
+          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
+          if (teamMember) {
+            luckyUsers.push(teamMember);
+          }
+        }
+      }
+
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -1386,13 +1402,11 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (
-        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-      ) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
+      users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
@@ -1409,7 +1423,10 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  const [organizerUser] = users;
+  // If the team member is requested then they should be the organizer
+  const organizerUser = reqBody.teamMemberEmail
+    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -1506,29 +1523,31 @@ async function handler(
   const teamDestinationCalendars: DestinationCalendar[] = [];
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users.slice(1).map(async (user) => {
-    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-    // push to teamDestinationCalendars if it's a team event but collective only
-    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push({
-        ...user.destinationCalendar,
-        externalId: processExternalId(user.destinationCalendar),
-      });
-    }
+  const teamMemberPromises = users
+    .filter((user) => user.email !== organizerUser.email)
+    .map(async (user) => {
+      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
+      // push to teamDestinationCalendars if it's a team event but collective only
+      if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+        teamDestinationCalendars.push({
+          ...user.destinationCalendar,
+          externalId: processExternalId(user.destinationCalendar),
+        });
+      }
 
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      name: user.name ?? "",
-      firstName: "",
-      lastName: "",
-      timeZone: user.timeZone,
-      language: {
-        translate: await getTranslation(user.locale ?? "en", "common"),
-        locale: user.locale ?? "en",
-      },
-    };
-  });
+      return {
+        id: user.id,
+        email: user.email ?? "",
+        name: user.name ?? "",
+        firstName: "",
+        lastName: "",
+        timeZone: user.timeZone,
+        language: {
+          translate: await getTranslation(user.locale ?? "en", "common"),
+          locale: user.locale ?? "en",
+        },
+      };
+    });
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];

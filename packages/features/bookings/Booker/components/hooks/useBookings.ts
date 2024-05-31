@@ -25,6 +25,7 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
+  teamMemberEmail?: string;
 }
 
 export interface IUseBookingLoadingStates {
@@ -39,7 +40,7 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
@@ -229,6 +230,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookingForm,
     hashedLink,
     metadata,
+    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,

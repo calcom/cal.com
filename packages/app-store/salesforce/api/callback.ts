@@ -15,6 +15,7 @@ let consumer_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code === undefined && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -40,8 +41,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const salesforceTokenInfo = await conn.oauth2.requestToken(code as string);
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, salesforceTokenInfo, req);
-
-  const state = decodeOAuthState(req);
 
   if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
     return res.redirect(state.appOnboardingRedirectUrl);

@@ -8,14 +8,9 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
-import type {
-  Calendar,
-  CalendarEvent,
-  IntegrationCalendar,
-  NewCalendarEventType,
-  Person,
-} from "@calcom/types/Calendar";
+import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { CRM, Contact, CrmEvent } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import type { ParseRefreshTokenResponse } from "../../_utils/oauth/parseRefreshTokenResponse";
@@ -38,6 +33,13 @@ const sfApiErrors = {
   INVALID_EVENTWHOIDS: "INVALID_FIELD: No such column 'EventWhoIds' on sobject of type Event",
 };
 
+type ContactRecord = {
+  Id: string;
+  Email: string;
+  OwnerId: string;
+  [key: string]: any;
+};
+
 const salesforceTokenSchema = z.object({
   id: z.string(),
   issued_at: z.string(),
@@ -48,7 +50,7 @@ const salesforceTokenSchema = z.object({
   token_type: z.string(),
 });
 
-export default class SalesforceCalendarService implements Calendar {
+export default class SalesforceCRMService implements CRM {
   private integrationName = "";
   private conn: Promise<jsforce.Connection>;
   private log: typeof logger;
@@ -89,7 +91,6 @@ export default class SalesforceCalendarService implements Calendar {
           refresh_token: credentialKey.refresh_token,
         }),
       });
-
       if (!response.ok) {
         const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
         throw new Error(message);
@@ -118,37 +119,14 @@ export default class SalesforceCalendarService implements Calendar {
     });
   };
 
-  private salesforceContactCreate = async (attendees: Person[]) => {
+  private getSalesforceUserFromEmail = async (email: string) => {
     const conn = await this.conn;
-    const createdContacts = await Promise.all(
-      attendees.map(async (attendee) => {
-        const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
-        return await conn
-          .sobject("Contact")
-          .create({
-            FirstName,
-            LastName: LastName || "",
-            Email: attendee.email,
-          })
-          .then((result) => {
-            if (result.success) {
-              return { Id: result.id, Email: attendee.email };
-            }
-          });
-      })
-    );
-    return createdContacts.filter(
-      (contact): contact is Omit<ContactSearchResult, "attributes"> => contact !== undefined
-    );
+    return await conn.query(`SELECT Id, Email FROM User WHERE Email = '${email}'`);
   };
 
-  private salesforceContactSearch = async (event: CalendarEvent) => {
+  private getSalesforceUserFromOwnerId = async (ownerId: string) => {
     const conn = await this.conn;
-    const search: ContactSearchResult[] = await conn.sobject("Contact").find(
-      event.attendees.map((att) => ({ Email: att.email })),
-      ["Id", "Email"]
-    );
-    return search;
+    return await conn.query(`SELECT Id, Email FROM User WHERE Id = '${ownerId}'`);
   };
 
   private getSalesforceEventBody = (event: CalendarEvent): string => {
@@ -178,12 +156,9 @@ export default class SalesforceCalendarService implements Calendar {
     });
   };
 
-  private salesforceCreateEvent = async (
-    event: CalendarEvent,
-    contacts: Omit<ContactSearchResult, "attributes">[]
-  ) => {
+  private salesforceCreateEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const createdEvent = await this.salesforceCreateEventApiCall(event, {
-      EventWhoIds: contacts.map((contact) => contact.Id),
+      EventWhoIds: contacts.map((contact) => contact.id),
     }).catch(async (reason) => {
       if (reason === sfApiErrors.INVALID_EVENTWHOIDS) {
         this.calWarnings.push(
@@ -224,7 +199,7 @@ export default class SalesforceCalendarService implements Calendar {
     return await conn.sobject("Event").delete(uid);
   };
 
-  async handleEventCreation(event: CalendarEvent, contacts: Omit<ContactSearchResult, "attributes">[]) {
+  async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const sfEvent = await this.salesforceCreateEvent(event, contacts);
     if (sfEvent.success) {
       this.log.debug("event:creation:ok", { sfEvent });
@@ -243,51 +218,23 @@ export default class SalesforceCalendarService implements Calendar {
     });
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const contacts = await this.salesforceContactSearch(event);
-    if (contacts.length) {
-      if (contacts.length == event.attendees.length) {
-        // All attendees do exist in Salesforce
-        this.log.debug("contact:search:all", { event, contacts });
-        return await this.handleEventCreation(event, contacts);
-      } else {
-        // Some attendees don't exist in Salesforce
-        // Get the existing contacts' email to filter out
-        this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.Email);
-        this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts = event.attendees.filter(
-          (attendee) => !existingContacts.includes(attendee.email)
-        );
-        this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in Salesforce that were not present in the previous contact search
-        const createContacts = await this.salesforceContactCreate(nonExistingContacts);
-        this.log.debug("contact:created", { createContacts });
-        // Continue with event creation and association only when all contacts are present in Salesforce
-        if (createContacts.length) {
-          this.log.debug("contact:creation:ok");
-          return await this.handleEventCreation(event, createContacts.concat(contacts));
-        }
-        return Promise.reject({
-          calError: "Something went wrong when creating non-existing attendees in Salesforce",
-        });
-      }
-    } else {
-      this.log.debug("contact:search:none", { event, contacts });
-      const createContacts = await this.salesforceContactCreate(event.attendees);
-      this.log.debug("contact:created", { createContacts });
-      if (createContacts.length) {
-        this.log.debug("contact:creation:ok");
-        return await this.handleEventCreation(event, createContacts);
-      }
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<CrmEvent> {
+    const sfEvent = await this.salesforceCreateEvent(event, contacts);
+    if (sfEvent.success) {
+      return Promise.resolve({
+        uid: sfEvent.id,
+        id: sfEvent.id,
+        type: "salesforce_other_calendar",
+        password: "",
+        url: "",
+        additionalInfo: { contacts, sfEvent, calWarnings: this.calWarnings },
+      });
     }
-    return Promise.reject({
-      calError: "Something went wrong when searching/creating the attendees in Salesforce",
-    });
+    this.log.debug("event:creation:notOk", { event, sfEvent, contacts });
+    return Promise.reject("Something went wrong when creating an event in Salesforce");
   }
 
-  async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
+  async updateEvent(uid: string, event: CalendarEvent): Promise<CrmEvent> {
     const updatedEvent = await this.salesforceUpdateEvent(uid, event);
     if (updatedEvent.success) {
       return Promise.resolve({
@@ -303,7 +250,7 @@ export default class SalesforceCalendarService implements Calendar {
     }
   }
 
-  async deleteEvent(uid: string) {
+  public async deleteEvent(uid: string) {
     const deletedEvent = await this.salesforceDeleteEvent(uid);
     if (deletedEvent.success) {
       Promise.resolve();
@@ -312,11 +259,72 @@ export default class SalesforceCalendarService implements Calendar {
     }
   }
 
-  async getAvailability(_dateFrom: string, _dateTo: string, _selectedCalendars: IntegrationCalendar[]) {
-    return Promise.resolve([]);
+  async getContacts(email: string | string[], includeOwner?: boolean) {
+    const conn = await this.conn;
+    const emails = Array.isArray(email) ? email : [email];
+    const soql = `SELECT Id, Email, OwnerId FROM Contact WHERE Email IN ('${emails.join("','")}')`;
+    const results = await conn.query(soql);
+
+    if (!results || !results.records.length) return [];
+
+    const records = results.records as ContactRecord[];
+
+    if (includeOwner) {
+      const ownerIds: Set<string> = new Set();
+      records.forEach((record) => {
+        ownerIds.add(record.OwnerId);
+      });
+
+      const ownersQuery = (await Promise.all(
+        Array.from(ownerIds).map(async (ownerId) => {
+          return this.getSalesforceUserFromOwnerId(ownerId);
+        })
+      )) as { records: ContactRecord[] }[];
+      const contactsWithOwners = records.map((record) => {
+        const ownerEmail = ownersQuery.find((user) => user.records[0].Id === record.OwnerId)?.records[0]
+          .Email;
+        return { id: record.Id, email: record.Email, ownerId: record.OwnerId, ownerEmail };
+      });
+      return contactsWithOwners;
+    }
+
+    return records
+      ? records.map((record) => ({
+          id: record.Id,
+          email: record.Email,
+        }))
+      : [];
   }
 
-  async listCalendars(_event?: CalendarEvent) {
-    return Promise.resolve([]);
+  async createContacts(contactsToCreate: { email: string; name: string }[], organizerEmail?: string) {
+    const conn = await this.conn;
+
+    // See if the organizer exists in the CRM
+    let organizerId: string;
+    if (organizerEmail) {
+      const userQuery = await this.getSalesforceUserFromEmail(organizerEmail);
+      if (userQuery) {
+        organizerId = (userQuery.records[0] as { Email: string; Id: string }).Id;
+      }
+    }
+    const createdContacts = await Promise.all(
+      contactsToCreate.map(async (attendee) => {
+        const [FirstName, LastName] = attendee.name ? attendee.name.split(" ") : [attendee.email, ""];
+        return await conn
+          .sobject("Contact")
+          .create({
+            FirstName,
+            LastName: LastName || "-",
+            Email: attendee.email,
+            ...(organizerId && { OwnerId: organizerId }),
+          })
+          .then((result) => {
+            if (result.success) {
+              return { id: result.id, email: attendee.email };
+            }
+          });
+      })
+    );
+    return createdContacts.filter((contact): contact is Contact => contact !== undefined);
   }
 }
