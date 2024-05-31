@@ -42,21 +42,7 @@ import {
   DropdownItem,
 } from "@calcom/ui";
 
-import {
-  Ban,
-  Check,
-  Clock,
-  CreditCard,
-  Eye,
-  MapPin,
-  RefreshCcw,
-  Send,
-  Clipboard,
-  X,
-  EyeOff,
-  Mail,
-} from "@calcom/ui/components/icon";
-
+// import { Eye, Clipboard, EyeOff, Mail } from "@calcom/ui/components/icon";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -530,6 +516,8 @@ function BookingListItem(booking: BookingItemProps) {
                   attendees={booking.attendees}
                   user={booking.user}
                   currentEmail={userEmail}
+                  bookingUid={booking.uid}
+                  isPast={isPast}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -676,13 +664,30 @@ type AttendeeProps = {
   email: string;
 };
 
-const Attendee = ({ email, name }: AttendeeProps) => {
+type NoShowProps = {
+  bookingUid: string;
+  isPast: boolean;
+};
+
+const Attendee = ({ email, name, bookingUid, isPast }: AttendeeProps & NoShowProps) => {
   const { t } = useLocale();
   const [noShow, setNoShow] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+    onSuccess: async () => {
+      noShow
+        ? showToast("Attendee marked as No Show", "success")
+        : showToast("Attendee unmarked as No Show", "Success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
 
   function toggleNoShow(noShow: boolean, event: React.MouseEvent<HTMLButtonElement>) {
     // TODO: backend call to update noShow status peer attendee
-
+    // noShowMutation.mutate({ bookingUid, attendeeEmails });
     // TODO: optimistically update UI, likely without useState
     setNoShow(!noShow);
     event.preventDefault();
@@ -690,14 +695,14 @@ const Attendee = ({ email, name }: AttendeeProps) => {
   }
 
   return (
-    <Dropdown>
+    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 hover:text-blue-500">
           {noShow ? (
             <s>
-              {name || email} <EyeOff className="inline h-4" />
+              {name || email} <Icon name="eye-off" className="inline h-4" />
             </s>
           ) : (
             <>{name || email}</>
@@ -708,27 +713,41 @@ const Attendee = ({ email, name }: AttendeeProps) => {
         {/* TODO: figure out how to close the dropdown after clicking, since we are stopping propagation due to the <Link> */}
         <DropdownMenuItem className="focus:outline-none">
           {/* TODO: add subject: title */}
-          <DropdownItem StartIcon={Mail} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
+          <DropdownItem
+            StartIcon="mail"
+            href={`mailto:${email}`}
+            onClick={(e) => {
+              setOpenDropdown(false);
+              e.stopPropagation();
+            }}>
             <a href={`mailto:${email}`}>{t("email")}</a>
           </DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem className="focus:outline-none">
-          {/* TODO: add copy to clipboard functionality */}
-          <DropdownItem StartIcon={Clipboard} href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
-            <a href={`mailto:${email}`}>{t("copy_to_clipboard")}</a>
+          <DropdownItem
+            StartIcon="clipboard"
+            onClick={(e) => {
+              e.preventDefault();
+              navigator.clipboard.writeText(email);
+              setOpenDropdown(false);
+              showToast(t("email_copied"), "success");
+            }}>
+            {t("copy_to_clipboard")}
           </DropdownItem>
         </DropdownMenuItem>
-        <DropdownMenuItem className="focus:outline-none">
-          {noShow ? (
-            <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon={Eye}>
-              {t("unmark_as_no_show")}
-            </DropdownItem>
-          ) : (
-            <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon={EyeOff}>
-              {t("mark_as_no_show")}
-            </DropdownItem>
-          )}
-        </DropdownMenuItem>
+        {isPast && (
+          <DropdownMenuItem className="focus:outline-none">
+            {noShow ? (
+              <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon="eye">
+                {t("unmark_as_no_show")}
+              </DropdownItem>
+            ) : (
+              <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon="eye-off">
+                {t("mark_as_no_show")}
+              </DropdownItem>
+            )}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </Dropdown>
   );
@@ -738,21 +757,26 @@ const DisplayAttendees = ({
   attendees,
   user,
   currentEmail,
+  bookingUid,
+  isPast,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
+  bookingUid: string;
+  isPast: boolean;
 }) => {
   const { t } = useLocale();
   return (
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} />
+      <Attendee {...attendees[0]} bookingUid={bookingUid} isPast={isPast} />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
           {attendees.length > 2 ? (
+            // instead of Tooltip here, we do MARK AS NO SHOW dropdown as shared by Ciaran
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
@@ -762,7 +786,7 @@ const DisplayAttendees = ({
               <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} />
+            <Attendee {...attendees[1]} bookingUid={bookingUid} isPast={isPast} />
           )}
         </>
       )}
