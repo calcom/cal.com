@@ -15,6 +15,7 @@ import { appKeysSchema } from "../zod";
 import { AuditLogEventToggles } from "./AuditLogEventToggles";
 import { AuditSystemStatus } from "./AuditSystemStatus";
 import { CredentialsForm } from "./CredentialsForm";
+import { GeneralSettings } from "./GeneralSettings";
 import { NavigationPanel } from "./NavigationPanel";
 
 export default function AppSettings(props: { credentialId: number }) {
@@ -117,6 +118,10 @@ function renderPanel(
           onChange={onChange}
         />
       );
+    }
+
+    case DefaultAppSettingsOptions.GENERAL: {
+      return <GeneralSettings />;
     }
 
     // DefaultAppSettingsOptions.CREDENTIALS
