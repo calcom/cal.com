@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.1.4",
+  "version": "4.1.7",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -18,7 +18,11 @@
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
+
     "docker-start-web": "prisma migrate deploy --schema /app/packages/prisma/schema.prisma  && node /app/apps/web/server.js"
+
+
+    "translate-locales": "ts-node scripts/check-missing-translations.ts"
 
   },
   "engines": {
