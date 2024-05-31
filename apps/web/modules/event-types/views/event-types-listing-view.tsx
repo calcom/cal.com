@@ -955,6 +955,7 @@ const EventTypesPage: React.FC & {
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
+  const router = useRouter();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
@@ -967,6 +968,13 @@ const EventTypesPage: React.FC & {
     if (searchParams?.get("openIntercom") === "true") {
       open();
     }
+    /**
+     * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
+     * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
+     */
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    localStorage.removeItem("onBoardingRedirect");
+    redirectUrl && router.push(redirectUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
