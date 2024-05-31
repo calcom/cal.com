@@ -32,6 +32,7 @@ type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: 
 
 export type Tag = {
   scripts: AppScript[];
+  pushEventScript?: AppScript;
 };
 
 export interface InstallAppButtonProps {
