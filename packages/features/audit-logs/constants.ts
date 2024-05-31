@@ -1,6 +1,6 @@
 import { AuditLogBookingTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
-import type { DefaultAppSettingOptionEntry } from "./types";
+import type { DefaultAppSettingOptionEntry, GeneralSettingsOption } from "./types";
 import { DefaultAppSettingsOptions } from "./types";
 import { getHref } from "./utils";
 
@@ -67,13 +67,32 @@ export function getDefaultAppSettings(credentialId: number): DefaultAppSettingOp
       icon: "fingerprint",
     },
     {
-      kay: DefaultAppSettingsOptions.TRIGGERS,
+      key: DefaultAppSettingsOptions.TRIGGERS,
       name: "Triggers",
       href: getHref("/apps/installed/auditLogs", {
         credentialId: credentialId.toString(),
         activeOption: "triggers",
       }),
       icon: "circle-power",
+    },
+    {
+      key: DefaultAppSettingsOptions.GENERAL,
+      name: "General",
+      href: getHref("/apps/installed/auditLogs", {
+        credentialId: credentialId.toString(),
+        activeOption: "general",
+      }),
+      icon: "wrench",
+    },
+  ];
+}
+
+export function getDefaultGeneralSettingsOptions(): GeneralSettingsOption[] {
+  return [
+    {
+      name: "Reset event toggles",
+      description: "Will turn on all event reporting.",
+      button: "Reset",
     },
   ];
 }
