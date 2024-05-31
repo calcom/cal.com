@@ -60,6 +60,7 @@ export const AuditLogTriggerEvents = {
 export enum DefaultAppSettingsOptions {
   "CREDENTIALS" = "credentials",
   "TRIGGERS" = "triggers",
+  "GENERAL" = "general",
 }
 
 export type DefaultAppSettingOptionEntry = {
@@ -67,6 +68,13 @@ export type DefaultAppSettingOptionEntry = {
   name: string;
   href: string;
   icon: IconName;
+};
+
+export type GeneralSettingsOption = {
+  name: string;
+  description: string;
+  button: string;
+  component?: React.ReactNode;
 };
 
 export type GenericAuditLogClient = {
