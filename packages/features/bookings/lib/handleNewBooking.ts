@@ -920,7 +920,7 @@ const checkIfBookerEmailIsBlocked = async ({
   loggedInUserId,
 }: {
   bookerEmail: string;
-  loggedInUserId: number;
+  loggedInUserId?: number;
 }) => {
   const baseEmail = extractBaseEmail(bookerEmail);
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
