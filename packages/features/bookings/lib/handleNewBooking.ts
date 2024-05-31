@@ -69,6 +69,7 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -914,6 +915,65 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
+const checkIfBookerEmailIsBlocked = async ({
+  bookerEmail,
+  loggedInUserId,
+}: {
+  bookerEmail: string;
+  loggedInUserId?: number;
+}) => {
+  const baseEmail = extractBaseEmail(bookerEmail);
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const blacklistedEmail = blacklistedGuestEmails.find(
+    (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
+  );
+
+  if (!blacklistedEmail) {
+    return false;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          email: baseEmail,
+          emailVerified: {
+            not: null,
+          },
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: baseEmail,
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+  }
+
+  if (user.id !== loggedInUserId) {
+    throw new HttpError({
+      statusCode: 403,
+      message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+    });
+  }
+};
+
 async function handler(
   req: NextApiRequest & {
     userId?: number | undefined;
@@ -975,6 +1035,8 @@ async function handler(
   } = bookingData;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
+
+  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
@@ -1399,7 +1461,17 @@ async function handler(
     },
   ];
 
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1414,6 +1486,10 @@ async function handler(
     });
     return guestArray;
   }, [] as Invitee);
+
+  if (guestsRemoved.length > 0) {
+    log.info("Removed guests from the booking", guestsRemoved);
+  }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
