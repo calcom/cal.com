@@ -11,23 +11,19 @@ import { useAppCredential } from "../context/CredentialContext";
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
 export const AuditLogEventToggles = () => {
-  const { value, onChange, data, credentialId } = useAppCredential();
-  const [isOpen, setOpen] = useState(false);
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
+  const { value, onChange, data, credentialId } = useAppCredential();
+
+  // Select related
   const [actionKey, setActionKey] = useState({ checked: true, action: "" });
-
-  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.settings.disabledEvents));
-
   function handleUpdate(checked: boolean, action: string) {
     setOpen(true);
     setActionKey({ checked, action });
   }
 
-  function handleOpenChange() {
-    setOpen((isOpen) => !isOpen);
-  }
-
+  // Toggle related
+  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.settings.disabledEvents));
   const updateCredentialSettingsMutation = trpc.viewer.appsRouter.updateCredentialSettings.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
@@ -51,6 +47,13 @@ export const AuditLogEventToggles = () => {
       newDisabledEvents.delete(actionKey.action);
       setDisabledEvents(newDisabledEvents);
     }
+  }
+
+  // ManagedAuditLogEventDialog Related
+  const [isOpen, setOpen] = useState(false);
+
+  function handleOpenChange() {
+    setOpen((isOpen) => !isOpen);
   }
 
   return (
