@@ -2408,6 +2408,8 @@
   "disconnect_account_hint": "Disconnecting your connected account will change the way you log in. You will only be able to login to your account using email + password",
   "cookie_consent_checkbox": "I consent to our privacy policy and cookie usage",
   "make_a_call": "Make a Call",
+  "skip_rr_assignment_label": "Skip round robin assignment if contact exists in Salesforce",
+  "skip_rr_description": "URL must contain the contacts email as a parameter ex. ?email=contactEmail",
   "select_account_header": "Select Account",
   "select_account_description": "Install {{appName}} on your personal account or on a team account.",
   "select_event_types_header": "Select Event Types",
