@@ -404,6 +404,38 @@
         ]
       }
     },
+    "/v2/oauth-clients/{clientId}/managed-users": {
+      "get": {
+        "operationId": "OAuthClientsController_getOAuthClientManagedUsersById",
+        "summary": "",
+        "description": "⚠️ First, this endpoint requires `Cookie: next-auth.session-token=eyJhbGciOiJ` header. Log into Cal web app using owner of organization that was created after visiting `/settings/organizations/new`, refresh swagger docs, and the cookie will be added to requests automatically to pass the NextAuthGuard.\nSecond, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetManagedUsersOutput"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuth - development only"
+        ]
+      }
+    },
     "/v2/oauth/{clientId}/authorize": {
       "post": {
         "operationId": "OAuthFlowController_authorize",
@@ -722,6 +754,7 @@
             "required": false,
             "in": "query",
             "schema": {
+              "nullable": true,
               "type": "string"
             }
           }
@@ -1650,11 +1683,25 @@
           },
           "timeFormat": {
             "type": "number",
-            "example": 12
+            "example": 12,
+            "enum": [
+              12,
+              24
+            ],
+            "description": "Must be 12 or 24"
           },
           "weekStart": {
             "type": "string",
-            "example": "Sunday"
+            "example": "Monday",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
           },
           "timeZone": {
             "type": "string",
@@ -1730,20 +1777,36 @@
       "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
+          "timeFormat": {
+            "type": "number",
+            "example": 12,
+            "enum": [
+              12,
+              24
+            ],
+            "description": "Must be 12 or 24"
+          },
+          "weekStart": {
+            "type": "string",
+            "example": "Monday",
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
+          },
           "email": {
             "type": "string"
           },
           "name": {
             "type": "string"
           },
-          "timeFormat": {
-            "type": "number"
-          },
           "defaultScheduleId": {
             "type": "number"
-          },
-          "weekStart": {
-            "type": "string"
           },
           "timeZone": {
             "type": "string"
@@ -2036,6 +2099,25 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "number",
+            "minimum": 0
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "minimum": 0
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "minimum": 0
           }
         },
         "required": [
@@ -2718,6 +2800,31 @@
             "items": {
               "$ref": "#/components/schemas/EventTypeLocation"
             }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BookingField"
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number",
+            "minimum": 0
+          },
+          "afterEventBuffer": {
+            "type": "number",
+            "minimum": 0
+          },
+          "slotInterval": {
+            "type": "number",
+            "minimum": 0
           }
         }
       },
@@ -4225,6 +4332,9 @@
           },
           "responses": {
             "$ref": "#/components/schemas/Response"
+          },
+          "orgSlug": {
+            "type": "string"
           },
           "locationUrl": {
             "type": "string"
