@@ -38,10 +38,11 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
 
   if (data && data?.key) {
     return {
-      apiKey: (data.key as Prisma.JsonObject).apiKey,
-      endpoint: (data.key as Prisma.JsonObject).endpoint,
-      projectId: (data.key as Prisma.JsonObject).projectId,
+      apiKey: (data.key as Prisma.JsonObject).apiKey as string | undefined,
+      endpoint: (data.key as Prisma.JsonObject).endpoint as string | undefined,
+      projectId: (data.key as Prisma.JsonObject).projectId as string | undefined,
       settings: data.settings,
+      isInvalid: data.invalid,
     };
   } else return {};
 };

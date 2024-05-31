@@ -4,7 +4,7 @@ import type { DefaultAppSettingOptionEntry, GeneralSettingsOption } from "./type
 import { DefaultAppSettingsOptions } from "./types";
 import { getHref } from "./utils";
 
-export const availableTriggerEvents: { [key: string]: string | any } = {
+export const availableTriggerEvents: { [key: string]: string } = {
   booking: {
     ...AuditLogBookingTriggerEvents,
   },

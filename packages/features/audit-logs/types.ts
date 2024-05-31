@@ -70,12 +70,13 @@ export type DefaultAppSettingOptionEntry = {
   icon: IconName;
 };
 
-export type GeneralSettingsOption = {
+export interface GeneralSettingsOption {
   name: string;
   description: string;
   button: string;
-  component?: React.ReactNode;
-};
+  component?: (option: any) => JSX.Element;
+  toggle?: boolean;
+}
 
 export type GenericAuditLogClient = {
   credentials: AppKeys;
