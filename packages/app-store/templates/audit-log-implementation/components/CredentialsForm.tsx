@@ -1,23 +1,27 @@
 import { useState } from "react";
-import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
-import { Form, PasswordField, InputField, Button } from "@calcom/ui";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc";
+import { Form, PasswordField, InputField, Button, showToast } from "@calcom/ui";
 
-export const CredentialsForm = ({
-  form,
-  updateAppCredentialsMutation,
-  credentialId,
-}: {
-  form: UseFormReturn<{
-    apiKey: string;
-    projectId: string;
-    endpoint: string;
-  }>;
-  updateAppCredentialsMutation: any;
-  credentialId: number;
-}) => {
+import { useAppCredential } from "../context/CredentialContext";
+
+export const CredentialsForm = () => {
+  const { credentialId, form } = useAppCredential();
   const [loading, setLoading] = useState(false);
+
+  const { t } = useLocale();
+  const updateAppCredentialsMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
+    onSuccess: () => {
+      showToast(t("keys_have_been_saved"), "success");
+      form.reset(form.getValues());
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   return (
     <Form
       form={form}
@@ -25,7 +29,7 @@ export const CredentialsForm = ({
       handleSubmit={async (values) => {
         try {
           setLoading(true);
-          updateAppCredentialsMutation({
+          updateAppCredentialsMutation.mutate({
             credentialId: credentialId,
             key: values,
           });

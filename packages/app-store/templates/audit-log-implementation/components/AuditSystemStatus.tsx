@@ -1,40 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { Label } from "@calcom/ui";
 
-import { Label, showToast } from "@calcom/ui";
+import { useAppCredential } from "../context/CredentialContext";
 
-import appConfig from "../config.json";
+export const AuditSystemStatus = () => {
+  const { status, statusLoading: isLoading } = useAppCredential();
 
-export const AuditSystemStatus = ({ credentialId }: { credentialId: number }) => {
-  const { data: checkStatus, isLoading } = useQuery({
-    queryKey: ["ping", credentialId.toString()],
-    queryFn: async () => {
-      const response = await fetch(`/api/integrations/${appConfig.slug}/ping`, {
-        method: "post",
-        headers: { "Content-type": "application/json" },
-        body: JSON.stringify({
-          credentialId,
-        }),
-      });
-
-      if (response.status === 200) {
-        showToast("Ping successful. Audit Logging integration is healthy.", "success");
-      } else {
-        showToast("Ping failed. Please ensure your credentials are valid.", "error");
-      }
-
-      return {
-        status: response.status,
-        message: response.statusText,
-        lastCheck: new Date().toLocaleString(),
-      };
-    },
-  });
-
-  if (isLoading || !checkStatus || typeof checkStatus === "undefined") {
+  if (isLoading || !status || typeof status === "undefined") {
     <div className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border" />;
   }
 
-  const credentialIsValid = checkStatus?.status === 200;
+  const credentialIsValid = status?.status === 200;
 
   return (
     <div className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border">
@@ -54,7 +29,7 @@ export const AuditSystemStatus = ({ credentialId }: { credentialId: number }) =>
         <Label className="mb-0 text-[11px]">
           {credentialIsValid ? "System Operational" : "Credential Invalid"}
         </Label>
-        <p className="text-[8px]">{checkStatus?.lastCheck}</p>
+        <p className="text-[8px]">{status?.lastCheck}</p>
       </div>
     </div>
   );

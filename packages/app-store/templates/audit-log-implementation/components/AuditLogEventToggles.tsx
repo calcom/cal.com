@@ -7,26 +7,17 @@ import { trpc } from "@calcom/trpc";
 import { Badge, Switch, Select } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
-import type { CredentialSettings } from "../zod";
+import { useAppCredential } from "../context/CredentialContext";
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
-export const AuditLogEventToggles = ({
-  value,
-  onChange,
-  credentialId,
-  settings,
-}: {
-  value: { label: string; value: AuditLogTriggerTargets; key: string };
-  onChange(key: string | undefined): void;
-  settings: CredentialSettings;
-  credentialId: number;
-}) => {
+export const AuditLogEventToggles = () => {
+  const { value, onChange, data, credentialId } = useAppCredential();
   const [isOpen, setOpen] = useState(false);
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
   const [actionKey, setActionKey] = useState({ checked: true, action: "" });
 
-  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(settings.disabledEvents));
+  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.settings.disabledEvents));
 
   function handleUpdate(checked: boolean, action: string) {
     setOpen(true);

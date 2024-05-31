@@ -9,6 +9,7 @@ const auditLogImplementations = {
   // [slug: string]: function that imports entire app
   // example: () => import("./example"),
   genericImplementation: () => import("@calcom/app-store/templates/audit-log-implementation"),
+  // test: () => import("@calcom/app-store/test"),
 };
 
 const log = logger.getSubLogger({ prefix: ["[lib] auditLogManagerClient"] });

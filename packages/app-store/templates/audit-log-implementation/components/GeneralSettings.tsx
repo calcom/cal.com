@@ -1,4 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
+import React from "react";
 
 import type { GeneralSettingsOption } from "@calcom/features/audit-logs/types";
 import { Button } from "@calcom/ui";
@@ -9,8 +10,12 @@ export const GeneralSettings = () => {
   const generalSettingsOptions = getGeneralSettingsOptions();
   return (
     <div className="flex h-[100%] w-[100%] flex-col space-y-4">
-      {generalSettingsOptions.map(
-        (option, key) => option.component ?? <GeneralSettingsOptionCard option={option} key={key} />
+      {generalSettingsOptions.map((option, key) =>
+        option.component ? (
+          <React.Fragment key={key}>{option.component(option)}</React.Fragment>
+        ) : (
+          <GeneralSettingsOptionCard option={option} key={key} />
+        )
       )}
     </div>
   );
