@@ -64,9 +64,11 @@ import {
   parseRecurringEvent,
 } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -1027,6 +1029,7 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
+        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
       },
       eventType.minimumBookingNotice
     );
@@ -1396,7 +1399,17 @@ async function handler(
     },
   ];
 
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1411,6 +1424,10 @@ async function handler(
     });
     return guestArray;
   }, [] as Invitee);
+
+  if (guestsRemoved.length > 0) {
+    log.info("Removed guests from the booking", guestsRemoved);
+  }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));

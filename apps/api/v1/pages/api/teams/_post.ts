@@ -80,12 +80,12 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { body, userId, isAdmin } = req;
+  const { body, userId, isSystemWideAdmin } = req;
   const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
-  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
+  const effectiveUserId = isSystemWideAdmin && ownerId ? ownerId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -162,11 +162,11 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isAdmin && body.ownerId)
+  if (!isSystemWideAdmin && body.ownerId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `ownerId`",
