@@ -14,7 +14,7 @@ import {
   isAuthorized,
   removeSmsReminderFieldForBooking,
   upsertSmsReminderFieldForBooking,
-  deleteRemindersFromRemovedActiveOn,
+  deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
   deleteAllWorkflowReminders,
   scheduleWorkflowNotifications,
@@ -39,7 +39,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       id: true,
       userId: true,
-      isActiveOnAll,
+      isActiveOnAll: true,
+      trigger: true,
       team: {
         select: {
           isOrganization: true,
@@ -166,7 +167,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
     );
 
-    await deleteRemindersFromRemovedActiveOn(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma);
+    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma);
 
     //update active on
     await ctx.prisma.workflowsOnEventTypes.deleteMany({
@@ -219,13 +220,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
 
-    await deleteRemindersFromRemovedActiveOn(
-      removedActiveOn,
-      userWorkflow.steps,
-      isOrg,
-      ctx.prisma,
-      activeOn
-    );
+    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma, activeOn);
 
     //update active on
     await ctx.prisma.workflowsOnTeams.deleteMany({
@@ -246,18 +241,63 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     .filter((activeOnRel) => activeOn.includes(activeOnRel.teamId))
     .map((activeOnRel) => activeOnRel.teamId);
 
-  // schedule reminders for all new activeOn
-  await scheduleWorkflowNotifications(
-    newActiveOn,
-    isOrg,
-    userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-    time,
-    timeUnit,
-    trigger,
-    user.id,
-    userWorkflow.teamId,
-    exsitingActiveOn
-  );
+  if (userWorkflow.trigger !== trigger) {
+    //if trigger changed, delete all reminders from old steps and create new one from all activeOn
+
+    if (!isOrg) {
+      console.log("handle trigger change");
+      await deleteRemindersOfActiveOnIds(
+        userWorkflow.activeOn.map((activeOn) => activeOn.eventTypeId),
+        userWorkflow.steps,
+        isOrg,
+        ctx.prisma
+      );
+      //create new reminders for old steps (newActiveOn are already correctly scheduled)
+      await scheduleWorkflowNotifications(
+        activeOn,
+        isOrg,
+        userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        user.id,
+        userWorkflow.teamId,
+        exsitingActiveOn
+      );
+    } else {
+      await deleteRemindersOfActiveOnIds(
+        userWorkflow.activeOnTeams.map((activeOn) => activeOn.teamId),
+        userWorkflow.steps,
+        isOrg,
+        ctx.prisma
+      );
+      //create new reminders for old steps (newActiveOn are already correctly scheduled)
+      await scheduleWorkflowNotifications(
+        activeOn,
+        isOrg,
+        userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+        time,
+        timeUnit,
+        trigger,
+        user.id,
+        userWorkflow.teamId,
+        exsitingActiveOn
+      );
+    }
+  } else {
+    // if trigger didn't change, only schedule reminders for all new activeOn
+    await scheduleWorkflowNotifications(
+      newActiveOn,
+      isOrg,
+      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      time,
+      timeUnit,
+      trigger,
+      user.id,
+      userWorkflow.teamId,
+      exsitingActiveOn
+    );
+  }
 
   // handle deleted and edited workflow steps
   userWorkflow.steps.map(async ({ numberVerificationPending, ...oldStep }) => {

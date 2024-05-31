@@ -427,7 +427,7 @@ export async function deleteAllWorkflowReminders(
   });
 }
 
-export async function deleteRemindersFromRemovedActiveOn(
+export async function deleteRemindersOfActiveOnIds(
   removedActiveOnIds: number[],
   workflowSteps: WorkflowStep[],
   isOrg: boolean,
