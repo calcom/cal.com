@@ -89,7 +89,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       };
 
       const stateStr = encodeURIComponent(JSON.stringify(state));
-      const searchParams = `?state=${stateStr}${teamId ? `&teamId=${teamId}` : ""}`;
+      const searchParams = generateSearchParamString({ stateStr, teamId, returnTo });
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
@@ -123,3 +123,25 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 }
 
 export default useAddAppMutation;
+const generateSearchParamString = ({
+  stateStr,
+  teamId,
+  returnTo,
+}: {
+  stateStr: string;
+  teamId?: number;
+  returnTo?: string;
+}) => {
+  const url = new URL("https://example.com"); // Base URL can be anything since we only care about the search params
+
+  url.searchParams.append("state", stateStr);
+  if (teamId !== undefined) {
+    url.searchParams.append("teamId", teamId.toString());
+  }
+  if (returnTo) {
+    url.searchParams.append("returnTo", returnTo);
+  }
+
+  // Return the search string part of the URL
+  return url.search;
+};

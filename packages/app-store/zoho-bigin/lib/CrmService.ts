@@ -5,14 +5,13 @@ import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import type {
-  Calendar,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
-  Person,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { Contact, ContactCreateInput, CRM } from "@calcom/types/CrmService";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import refreshOAuthTokens from "../../_utils/oauth/refreshOAuthTokens";
@@ -30,10 +29,11 @@ export type BiginToken = {
 };
 
 export type BiginContact = {
+  id: string;
   email: string;
 };
 
-export default class BiginCalendarService implements Calendar {
+export default class BiginCrmService implements CRM {
   private readonly integrationName = "zoho-bigin";
   private readonly auth: { getToken: () => Promise<BiginToken> };
   private log: typeof logger;
@@ -119,20 +119,20 @@ export default class BiginCalendarService implements Calendar {
    * Creates Zoho Bigin Contact records for every attendee added in event bookings.
    * Returns the results of all contact creation operations.
    */
-  private async createContacts(attendees: Person[]) {
+  async createContacts(contactsToCreate: ContactCreateInput[]) {
     const token = await this.auth.getToken();
-    const contacts = attendees.map((attendee) => {
-      const nameParts = attendee.name.split(" ");
+    const contacts = contactsToCreate.map((contact) => {
+      const nameParts = contact.name.split(" ");
       const firstName = nameParts[0];
       const lastName = nameParts.length > 1 ? nameParts.slice(1).join(" ") : "-";
       return {
         First_Name: firstName,
         Last_Name: lastName,
-        Email: attendee.email,
+        Email: contact.email,
       };
     });
 
-    return axios({
+    const response = await axios({
       method: "post",
       url: token.api_domain + this.contactsSlug,
       headers: {
@@ -141,26 +141,42 @@ export default class BiginCalendarService implements Calendar {
       },
       data: JSON.stringify({ data: contacts }),
     });
+
+    return response
+      ? response.data.map((contact: BiginContact) => {
+          return {
+            id: contact.id,
+            email: contact.email,
+          };
+        })
+      : [];
   }
 
   /***
    * Finds existing Zoho Bigin Contact record based on email address. Returns a list of contacts objects that matched.
    */
-  private async contactSearch(event: CalendarEvent) {
+  async getContacts(emails: string | string[]) {
     const token = await this.auth.getToken();
-    const searchCriteria = `(${event.attendees
-      .map((attendee) => `(Email:equals:${encodeURI(attendee.email)})`)
-      .join("or")})`;
+    const emailsArray = Array.isArray(emails) ? emails : [emails];
 
-    return await axios({
+    const searchCriteria = `(${emailsArray.map((email) => `(Email:equals:${encodeURI(email)})`).join("or")})`;
+
+    const response = await axios({
       method: "get",
       url: `${token.api_domain}${this.contactsSlug}/search?criteria=${searchCriteria}`,
       headers: {
         authorization: `Zoho-oauthtoken ${token.access_token}`,
       },
-    })
-      .then((data) => data.data)
-      .catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+    }).catch((e) => this.log.error("Error searching contact:", JSON.stringify(e), e.response?.data));
+
+    return response
+      ? response.data.map((contact: BiginContact) => {
+          return {
+            id: contact.id,
+            email: contact.email,
+          };
+        })
+      : [];
   }
 
   /***
@@ -192,7 +208,7 @@ export default class BiginCalendarService implements Calendar {
   /***
    * Handles orchestrating the creation of new events in Zoho Bigin.
    */
-  async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
+  async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const meetingEvent = await this.createBiginEvent(event);
     if (meetingEvent.data && meetingEvent.data.length && meetingEvent.data[0].status === "success") {
       this.log.debug("event:creation:ok", { meetingEvent });
@@ -216,26 +232,8 @@ export default class BiginCalendarService implements Calendar {
    * Creates contacts and event records for new bookings.
    * Initially creates all new attendees as contacts, then creates the event.
    */
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    const contacts = (await this.contactSearch(event))?.data || [];
-
-    const existingContacts = contacts.map((contact: BiginContact) => contact.email);
-    const newContacts: Person[] = event.attendees.filter(
-      (attendee) => !existingContacts.includes(attendee.email)
-    );
-
-    if (newContacts.length === 0) {
-      return await this.handleEventCreation(event, event.attendees);
-    }
-
-    const createContacts = await this.createContacts(newContacts);
-    if (createContacts.data?.data[0].status === "success") {
-      return await this.handleEventCreation(event, event.attendees);
-    }
-
-    return Promise.reject({
-      calError: "Something went wrong when creating non-existing attendees in Zoho Bigin",
-    });
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
+    return await this.handleEventCreation(event, contacts);
   }
 
   /***
