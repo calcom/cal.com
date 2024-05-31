@@ -1,12 +1,13 @@
-import { describe, test, expect, vi } from "vitest";
-
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import {
   createCredentials,
   addTeamsToDb,
   addEventTypesToDb,
   addUsersToDb,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
+import { describe, test, expect, vi } from "vitest";
+
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 // vi.mock("@calcom/lib/server/repository/user", () => {
 //   return {
