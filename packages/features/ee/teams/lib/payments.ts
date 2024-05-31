@@ -4,7 +4,6 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
-import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -12,9 +11,11 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
+  // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
   paymentId: z.string(),
   subscriptionId: z.string(),
   subscriptionItemId: z.string(),
+  orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
 
 /** Used to prevent double charges for the same team */
@@ -180,7 +181,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }
 };
 
-const getTeamWithPaymentMetadata = async (teamId: number) => {
+export const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
     select: { metadata: true, members: true, isOrganization: true },
@@ -211,7 +212,10 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
      **/
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId } = team.metadata;
+    const { subscriptionId, subscriptionItemId, orgSeats } = team.metadata;
+    // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
+    // We can't go below this quantity for subscription
+    const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
     const membershipCount = team.members.length;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
@@ -219,9 +223,9 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (team.isOrganization && membershipCount < ORGANIZATION_MIN_SEATS) {
+    if (team.isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
       console.info(
-        `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
+        `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
       );
       return;
     }
