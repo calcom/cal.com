@@ -2471,14 +2471,14 @@ async function handler(
     evt.attendeeSeatId
   );
 
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUser.id, teamId: eventType.team?.id });
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUser.id, teamId });
 
   try {
     await scheduleWorkflowReminders({
       eventTypeWorkflows,
       userId: organizerUser.id ?? undefined,
       orgId: orgId,
-      teamId: eventType.team?.id,
+      teamId,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,

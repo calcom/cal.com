@@ -259,7 +259,21 @@ const getAllWorkflows = async (
   const allWorkflows = eventTypeWorkflows;
 
   if (orgId) {
-    if (userId) {
+    if (teamId) {
+      const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
+        where: {
+          teamId: teamId,
+        },
+        select: {
+          workflow: {
+            select: workflowSelect,
+          },
+        },
+      });
+
+      const orgTeamWorkflows = orgTeamWorkflowsRel?.map((workflowRel) => workflowRel.workflow) ?? [];
+      allWorkflows.push(...orgTeamWorkflows);
+    } else if (userId) {
       const orgUserWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
           team: {
@@ -281,20 +295,6 @@ const getAllWorkflows = async (
 
       const orgUserWorkflows = orgUserWorkflowsRel.map((workflowRel) => workflowRel.workflow) ?? [];
       allWorkflows.push(...orgUserWorkflows);
-    } else if (teamId) {
-      const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
-        where: {
-          teamId: teamId,
-        },
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-        },
-      });
-
-      const orgTeamWorkflows = orgTeamWorkflowsRel?.map((workflowRel) => workflowRel.workflow) ?? [];
-      allWorkflows.push(...orgTeamWorkflows);
     }
 
     const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
@@ -307,16 +307,7 @@ const getAllWorkflows = async (
     allWorkflows.push(...activeOnAllOrgWorkflows);
   }
 
-  if (userId) {
-    const activeOnAllUserWorkflows = await prisma.workflow.findMany({
-      where: {
-        userId,
-        isActiveOnAll: true, // what about managed event type?
-      },
-      select: workflowSelect,
-    });
-    allWorkflows.push(...activeOnAllUserWorkflows);
-  } else if (teamId) {
+  if (teamId) {
     const activeOnAllTeamWorkflows = await prisma.workflow.findMany({
       where: {
         teamId,
@@ -325,6 +316,15 @@ const getAllWorkflows = async (
       select: workflowSelect,
     });
     allWorkflows.push(...activeOnAllTeamWorkflows);
+  } else if (userId) {
+    const activeOnAllUserWorkflows = await prisma.workflow.findMany({
+      where: {
+        userId,
+        isActiveOnAll: true, // what about managed event type?
+      },
+      select: workflowSelect,
+    });
+    allWorkflows.push(...activeOnAllUserWorkflows);
   }
 
   // remove all the duplicate workflows from allWorkflows
