@@ -63,7 +63,7 @@ const CreateNewTeamPage = () => {
 };
 export const LayoutWrapper = (page: React.ReactElement) => {
   return (
-    <WizardLayout currentStep={1} maxSteps={2}>
+    <WizardLayout currentStep={1} maxSteps={3}>
       {page}
     </WizardLayout>
   );

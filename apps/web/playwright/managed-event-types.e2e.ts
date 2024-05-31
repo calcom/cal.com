@@ -38,8 +38,10 @@ test.describe("Managed Event Types", () => {
       await page.getByTestId("invite-new-member-button").click();
       // wait for the second member to be added to the pending-member-list.
       await page.getByTestId("pending-member-list").locator("li:nth-child(2)").waitFor();
-      // and publish
       await page.locator("[data-testid=publish-button]").click();
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+      // and publish
+      await page.locator("[data-testid=finish-button]").click();
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
       // Going to create an event type
       await page.goto("/event-types");

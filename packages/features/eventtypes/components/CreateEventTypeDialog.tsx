@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { classNames } from "@calcom/lib";
+import { TeamEventAssignmentSection } from "@calcom/features/ee/teams/components/TeamEventAssignmentSection";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -18,7 +18,6 @@ import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
 import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
-  Alert,
   Button,
   Dialog,
   DialogClose,
@@ -26,7 +25,6 @@ import {
   DialogFooter,
   Editor,
   Form,
-  RadioGroup as RadioArea,
   showToast,
   TextField,
   Tooltip,
@@ -235,7 +233,7 @@ export default function CreateEventTypeDialog({
                 )}
               </div>
             )}
-            {!teamId && (
+            {!teamId ? (
               <>
                 <Editor
                   getText={() => md.render(form.getValues("description") || "")}
@@ -259,56 +257,8 @@ export default function CreateEventTypeDialog({
                   />
                 </div>
               </>
-            )}
-
-            {teamId && (
-              <div className="mb-4">
-                <label htmlFor="schedulingType" className="text-default block text-sm font-bold">
-                  {t("assignment")}
-                </label>
-                {form.formState.errors.schedulingType && (
-                  <Alert
-                    className="mt-1"
-                    severity="error"
-                    message={form.formState.errors.schedulingType.message}
-                  />
-                )}
-                <RadioArea.Group
-                  onValueChange={(val: SchedulingType) => {
-                    form.setValue("schedulingType", val);
-                  }}
-                  className={classNames("mt-1 flex gap-4", isAdmin && "flex-col")}>
-                  <RadioArea.Item
-                    {...register("schedulingType")}
-                    value={SchedulingType.COLLECTIVE}
-                    className={classNames("w-full text-sm", !isAdmin && "w-1/2")}
-                    classNames={{ container: classNames(isAdmin && "w-full") }}>
-                    <strong className="mb-1 block">{t("collective")}</strong>
-                    <p>{t("collective_description")}</p>
-                  </RadioArea.Item>
-                  <RadioArea.Item
-                    {...register("schedulingType")}
-                    value={SchedulingType.ROUND_ROBIN}
-                    className={classNames("text-sm", !isAdmin && "w-1/2")}
-                    classNames={{ container: classNames(isAdmin && "w-full") }}>
-                    <strong className="mb-1 block">{t("round_robin")}</strong>
-                    <p>{t("round_robin_description")}</p>
-                  </RadioArea.Item>
-                  <>
-                    {isAdmin && (
-                      <RadioArea.Item
-                        {...register("schedulingType")}
-                        value={SchedulingType.MANAGED}
-                        className={classNames("text-sm", !isAdmin && "w-1/2")}
-                        classNames={{ container: classNames(isAdmin && "w-full") }}
-                        data-testid="managed-event-type">
-                        <strong className="mb-1 block">{t("managed_event")}</strong>
-                        <p>{t("managed_event_description")}</p>
-                      </RadioArea.Item>
-                    )}
-                  </>
-                </RadioArea.Group>
-              </div>
+            ) : (
+              <TeamEventAssignmentSection isAdmin={isAdmin} form={form} />
             )}
           </div>
           <DialogFooter showDivider>

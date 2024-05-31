@@ -64,8 +64,13 @@ test.describe("Teams", () => {
       await prisma.user.delete({ where: { email: inviteeEmail } });
     });
 
-    await test.step("Can finish team creation", async () => {
+    await test.step("Can finish team invitation", async () => {
       await page.getByTestId("publish-button").click();
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
+    });
+
+    await test.step("Can finish team creation", async () => {
+      await page.getByTestId("finish-button").click();
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 

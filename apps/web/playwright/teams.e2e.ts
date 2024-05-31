@@ -220,6 +220,9 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
       await page.waitForURL(/\/settings\/teams\/(\d+)\/onboard-members.*$/i);
       // Click text=Continue
       await page.locator("[data-testid=publish-button]").click();
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/event-type*$/i);
+      // Click text = Finish
+      await page.locator("[data-testid=finish-button]").click();
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 

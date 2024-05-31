@@ -200,13 +200,13 @@ export const AddNewTeamMembersForm = ({
         className="w-full justify-center"
         disabled={publishTeamMutation.isPending}
         onClick={() => {
-          let uri = `/settings/teams/${teamId}/profile`;
+          let uri = `/settings/teams/${teamId}/event-type`;
           if (isOrg) {
             uri = `/settings/organizations/${teamId}/add-teams`;
           }
           router.push(uri);
         }}>
-        {isOrg ? t("continue") : t("finish")}
+        {t("continue")}
       </Button>
     </>
   );
