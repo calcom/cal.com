@@ -155,9 +155,9 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
 
   test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
     const [pro] = users.get();
-
-    const response = await page.waitForResponse(`${pro.username}/invalid-event-type`);
-    expect(response.status()).toBe(404);
+    const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
+    const response = await page.goto(unexistingPageUrl.href);
+    expect(response?.status()).toBe(404);
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
