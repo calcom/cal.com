@@ -172,7 +172,7 @@ export async function handleAuditLogTrigger({
 
   // Next step is to create a zod pipeline that does what I'm doing above.
   // Lets start by parsing zod schemas.
-  const userIds = [req.userId as number];
+  const userIds = [req.userId as number, bookingData.organizer.id as number];
 
   const firstClause = getFirstClause(userIds, null);
   try {
@@ -192,8 +192,7 @@ export async function handleAuditLogTrigger({
     for (const credential of credentials) {
       const settings = credential.settings as { disabledEvents: string[] | undefined };
 
-      if (event.target.name && settings.disabledEvents && settings.disabledEvents.includes(event.action))
-        continue;
+      if (settings.disabledEvents && settings.disabledEvents.includes(event.action)) continue;
 
       const auditLogManager = await getAuditLogManager(credential);
 
