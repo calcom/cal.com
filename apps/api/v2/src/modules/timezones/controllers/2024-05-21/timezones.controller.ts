@@ -2,7 +2,7 @@ import { TimezonesService } from "@/modules/timezones/services/timezones.service
 import { Controller, Get } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
-import type { CityTimezones } from "@calcom/platform-libraries";
+import type { CityTimezones } from "@calcom/platform-libraries-0.0.2";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({

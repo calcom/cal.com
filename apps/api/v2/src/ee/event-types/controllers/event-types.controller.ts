@@ -33,8 +33,8 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getPublicEvent } from "@calcom/platform-libraries";
-import { getEventTypesByViewer } from "@calcom/platform-libraries";
+import { getPublicEvent } from "@calcom/platform-libraries-0.0.2";
+import { getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({

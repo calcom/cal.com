@@ -14,8 +14,8 @@ import {
 import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 
-import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { getBusyCalendarTimes } from "@calcom/platform-libraries";
+import { getConnectedDestinationCalendars } from "@calcom/platform-libraries-0.0.2";
+import { getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.2";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
