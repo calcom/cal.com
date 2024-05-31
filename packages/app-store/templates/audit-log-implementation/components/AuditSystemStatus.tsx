@@ -6,7 +6,16 @@ export const AuditSystemStatus = () => {
   const { status, statusLoading: isLoading } = useAppCredential();
 
   if (isLoading || !status || typeof status === "undefined") {
-    <div className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border" />;
+    return (
+      <div className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border">
+        <div className="flex flex-row items-center justify-center border-r-[1px]">
+          <svg className="h-5 w-5 animate-spin bg-lime-600" viewBox="0 0 24 24" />
+        </div>
+        <div className="col-span-2 flex w-[100%] flex-col items-center justify-center">
+          <Label className="mb-0 text-[11px]">Checking System</Label>
+        </div>
+      </div>
+    );
   }
 
   const credentialIsValid = status?.status === 200;
