@@ -4,8 +4,12 @@ import { classNames } from "@calcom/lib";
 
 const Table = React.forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
   ({ className, ...props }, ref) => (
-    <div className="w-full overflow-auto">
-      <table ref={ref} className={classNames("w-full caption-bottom text-sm", className)} {...props} />
+    <div className="w-full overflow-auto md:overflow-visible">
+      <table
+        ref={ref}
+        className={classNames("border-subtle w-full caption-bottom border text-sm", className)}
+        {...props}
+      />
     </div>
   )
 );
@@ -13,7 +17,11 @@ Table.displayName = "Table";
 
 const TableHeader = React.forwardRef<HTMLTableSectionElement, React.HTMLAttributes<HTMLTableSectionElement>>(
   ({ className, ...props }, ref) => (
-    <thead ref={ref} className={classNames("[&_tr]:bg-subtle [&_tr]:border-b", className)} {...props} />
+    <thead
+      ref={ref}
+      className={classNames("[&_tr]:bg-subtle md:z-10 [&_tr]:border-b", className)}
+      {...props}
+    />
   )
 );
 TableHeader.displayName = "TableHeader";
@@ -36,7 +44,10 @@ const TableRow = React.forwardRef<HTMLTableRowElement, React.HTMLAttributes<HTML
   ({ className, ...props }, ref) => (
     <tr
       ref={ref}
-      className={classNames("hover:muted data-[state=selected]:bg-muted border-subtle border-b", className)}
+      className={classNames(
+        "hover:bg-muted data-[state=selected]:bg-subtle border-subtle border-b",
+        className
+      )}
       {...props}
     />
   )
@@ -48,7 +59,7 @@ const TableHead = React.forwardRef<HTMLTableCellElement, React.ThHTMLAttributes<
     <th
       ref={ref}
       className={classNames(
-        "text-default h-12 px-4 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0",
+        "text-default h-12 px-2 text-left align-middle font-medium [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}
@@ -61,7 +72,7 @@ const TableCell = React.forwardRef<HTMLTableCellElement, React.TdHTMLAttributes<
   ({ className, ...props }, ref) => (
     <td
       ref={ref}
-      className={classNames("text-default p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
+      className={classNames("text-default px-2 py-2.5 align-middle [&:has([role=checkbox])]:pr-0", className)}
       {...props}
     />
   )

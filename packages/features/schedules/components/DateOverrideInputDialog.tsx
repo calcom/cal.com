@@ -3,10 +3,8 @@ import { useForm } from "react-hook-form";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { classNames } from "@calcom/lib";
 import { yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { WorkingHours } from "@calcom/types/schedule";
 import {
   Dialog,
@@ -15,6 +13,7 @@ import {
   DialogHeader,
   DialogClose,
   Switch,
+  showToast,
   Form,
   Button,
 } from "@calcom/ui";
@@ -23,21 +22,21 @@ import DatePicker from "../../calendars/DatePicker";
 import type { TimeRange } from "./Schedule";
 import { DayRanges } from "./Schedule";
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
 const DateOverrideForm = ({
   value,
   workingHours,
   excludedDates,
   onChange,
-  onClose = noop,
+  userTimeFormat,
+  weekStart,
 }: {
   workingHours?: WorkingHours[];
   onChange: (newValue: TimeRange[]) => void;
   excludedDates: string[];
   value?: TimeRange[];
   onClose?: () => void;
+  userTimeFormat: number | null;
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const [browsingDate, setBrowsingDate] = useState<Dayjs>();
   const { t, i18n, isLocaleReady } = useLocale();
@@ -86,21 +85,22 @@ const DateOverrideForm = ({
 
   const form = useForm({
     values: {
-      range: value
-        ? value.map((range) => ({
-            start: new Date(
-              dayjs
-                .utc()
-                .hour(range.start.getUTCHours())
-                .minute(range.start.getUTCMinutes())
-                .second(0)
-                .format()
-            ),
-            end: new Date(
-              dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
-            ),
-          }))
-        : defaultRanges,
+      range:
+        value && value[0].start.valueOf() !== value[0].end.valueOf()
+          ? value.map((range) => ({
+              start: new Date(
+                dayjs
+                  .utc()
+                  .hour(range.start.getUTCHours())
+                  .minute(range.start.getUTCMinutes())
+                  .second(0)
+                  .format()
+              ),
+              end: new Date(
+                dayjs.utc().hour(range.end.getUTCHours()).minute(range.end.getUTCMinutes()).second(0).format()
+              ),
+            }))
+          : defaultRanges,
     },
   });
 
@@ -132,23 +132,19 @@ const DateOverrideForm = ({
             ? selectedDates.map((date) => {
                 return {
                   start: date.utc(true).startOf("day").toDate(),
-                  end: date.utc(true).startOf("day").add(1, "day").toDate(),
+                  end: date.utc(true).startOf("day").toDate(),
                 };
               })
             : datesInRanges
         );
-        onClose();
+        setSelectedDates([]);
       }}
-      className="p-6 sm:flex sm:p-0 md:flex-col lg:flex-col xl:flex-row">
-      <div
-        className={classNames(
-          selectedDates[0] && "sm:border-subtle w-full sm:border-r sm:pr-6",
-          "sm:p-4 md:p-8"
-        )}>
+      className="p-6 sm:flex sm:p-0 xl:flex-row">
+      <div className="sm:border-subtle w-full sm:border-r sm:p-4 sm:pr-6 md:p-8">
         <DialogHeader title={t("date_overrides_dialog_title")} />
         <DatePicker
           excludedDates={excludedDates}
-          weekStart={0}
+          weekStart={weekStart}
           selected={selectedDates}
           onChange={(day) => {
             if (day) onDateChange(day);
@@ -160,39 +156,48 @@ const DateOverrideForm = ({
           locale={isLocaleReady ? i18n.language : "en"}
         />
       </div>
-      {selectedDates[0] && (
-        <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
-          <div className="mb-4 flex-grow space-y-4">
-            <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
-            <div>
-              {datesUnavailable ? (
-                <p className="text-subtle border-default rounded border p-2 text-sm">
-                  {t("date_overrides_unavailable")}
-                </p>
-              ) : (
-                <DayRanges name="range" />
-              )}
+      <div className="relative mt-8 flex w-full flex-col sm:mt-0 sm:p-4 md:p-8">
+        {selectedDates[0] ? (
+          <>
+            <div className="mb-4 flex-grow space-y-4">
+              <p className="text-medium text-emphasis text-sm">{t("date_overrides_dialog_which_hours")}</p>
+              <div>
+                {datesUnavailable ? (
+                  <p className="text-subtle border-default rounded border p-2 text-sm">
+                    {t("date_overrides_unavailable")}
+                  </p>
+                ) : (
+                  <DayRanges name="range" userTimeFormat={userTimeFormat} />
+                )}
+              </div>
+              <Switch
+                label={t("date_overrides_mark_all_day_unavailable_one")}
+                checked={datesUnavailable}
+                onCheckedChange={setDatesUnavailable}
+                data-testid="date-override-mark-unavailable"
+              />
             </div>
-            <Switch
-              label={t("date_overrides_mark_all_day_unavailable_one")}
-              checked={datesUnavailable}
-              onCheckedChange={setDatesUnavailable}
-              data-testid="date-override-mark-unavailable"
-            />
+            <div className="mt-4 flex flex-row-reverse sm:mt-0">
+              <Button
+                className="ml-2"
+                color="primary"
+                type="submit"
+                onClick={() => {
+                  showToast(t("date_successfully_added"), "success", 500);
+                }}
+                disabled={selectedDates.length === 0}
+                data-testid="add-override-submit-btn">
+                {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
+              </Button>
+              <DialogClose />
+            </div>
+          </>
+        ) : (
+          <div className="bottom-7 right-8 flex flex-row-reverse sm:absolute">
+            <DialogClose />
           </div>
-          <div className="mt-4 flex flex-row-reverse sm:mt-0">
-            <Button
-              className="ml-2"
-              color="primary"
-              type="submit"
-              disabled={selectedDates.length === 0}
-              data-testid="add-override-submit-btn">
-              {value ? t("date_overrides_update_btn") : t("date_overrides_add_btn")}
-            </Button>
-            <DialogClose onClick={onClose} />
-          </div>
-        </div>
-      )}
+        )}
+      </div>
     </Form>
   );
 };
@@ -200,6 +205,8 @@ const DateOverrideForm = ({
 const DateOverrideInputDialog = ({
   Trigger,
   excludedDates = [],
+  userTimeFormat,
+  weekStart = 0,
   ...passThroughProps
 }: {
   workingHours: WorkingHours[];
@@ -207,24 +214,21 @@ const DateOverrideInputDialog = ({
   Trigger: React.ReactNode;
   onChange: (newValue: TimeRange[]) => void;
   value?: TimeRange[];
+  userTimeFormat: number | null;
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const [open, setOpen] = useState(false);
-  {
-    /* enableOverflow is used to allow overflow when there are too many overrides to show on mobile.
-       ref:- https://github.com/calcom/cal.com/pull/6215
-      */
-  }
-  const enableOverflow = isMobile;
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{Trigger}</DialogTrigger>
 
-      <DialogContent enableOverflow={enableOverflow} size="md" className="p-0 md:w-auto">
+      <DialogContent enableOverflow={true} size="md" className="p-0">
         <DateOverrideForm
           excludedDates={excludedDates}
+          weekStart={weekStart}
           {...passThroughProps}
           onClose={() => setOpen(false)}
+          userTimeFormat={userTimeFormat}
         />
       </DialogContent>
     </Dialog>

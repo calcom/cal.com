@@ -1,29 +1,30 @@
 import { useEffect } from "react";
 import type { z } from "zod";
 
-import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import type {
-  TextLikeComponentProps,
   SelectLikeComponentProps,
+  TextLikeComponentProps,
 } from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
+import Widgets from "@calcom/app-store/routing-forms/components/react-awesome-query-builder/widgets";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
-  PhoneInput,
   AddressInput,
   Button,
-  Label,
-  Group,
-  RadioField,
-  EmailField,
-  Tooltip,
-  InputField,
   CheckboxField,
+  EmailField,
+  Group,
+  Icon,
+  InfoBadge,
+  InputField,
+  Label,
+  PhoneInput,
+  RadioField,
+  Tooltip,
 } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
 
 import { ComponentForField } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
-import type { FieldType, variantsConfigSchema, fieldSchema } from "./schema";
+import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
 
 export const isValidValueProp: Record<Component["propsType"], (val: unknown) => boolean> = {
@@ -255,17 +256,15 @@ export const Components: Record<FieldType, Component> = {
                       placeholder={placeholder}
                       label={<></>}
                       required
+                      onClickAddon={() => {
+                        value.splice(index, 1);
+                        setValue(value);
+                      }}
                       addOnSuffix={
                         !readOnly ? (
                           <Tooltip content="Remove email">
-                            <button
-                              className="m-1 disabled:hover:cursor-not-allowed"
-                              type="button"
-                              onClick={() => {
-                                value.splice(index, 1);
-                                setValue(value);
-                              }}>
-                              <X width={12} className="text-default" />
+                            <button className="m-1" type="button">
+                              <Icon name="x" width={12} className="text-default" />
                             </button>
                           </Tooltip>
                         ) : null
@@ -279,7 +278,7 @@ export const Components: Record<FieldType, Component> = {
                   data-testid="add-another-guest"
                   type="button"
                   color="minimal"
-                  StartIcon={UserPlus}
+                  StartIcon="user-plus"
                   className="my-2.5"
                   onClick={() => {
                     value.push("");
@@ -298,7 +297,7 @@ export const Components: Record<FieldType, Component> = {
               data-testid="add-guests"
               color="minimal"
               variant="button"
-              StartIcon={UserPlus}
+              StartIcon="user-plus"
               onClick={() => {
                 value.push("");
                 setValue(value);
@@ -397,6 +396,22 @@ export const Components: Record<FieldType, Component> = {
         }
       }, [options, setValue, value]);
 
+      const { t } = useLocale();
+
+      const getCleanLabel = (option: { label: string; value: string }): string | JSX.Element => {
+        if (!option.label) {
+          return "";
+        }
+
+        return option.label.search(/^https?:\/\//) !== -1 ? (
+          <a href={option.label} target="_blank">
+            <span className="underline">{option.label}</span>
+          </a>
+        ) : (
+          option.label
+        );
+      };
+
       return (
         <div>
           <div>
@@ -419,18 +434,26 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">{option.label ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">{getCleanLabel(option) ?? ""}</span>
+                      <span>
+                        {option.value === "phone" && (
+                          <InfoBadge content={t("number_in_international_format")} />
+                        )}
+                      </span>
                     </label>
                   );
                 })
               ) : (
                 // Show option itself as label because there is just one option
                 <>
-                  <Label>
+                  <Label className="flex">
                     {options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
+                    {options[0].value === "phone" && (
+                      <InfoBadge content={t("number_in_international_format")} />
+                    )}
                   </Label>
                 </>
               )}
@@ -466,10 +489,11 @@ export const Components: Record<FieldType, Component> = {
   },
   boolean: {
     propsType: propsTypes.boolean,
-    factory: ({ readOnly, label, value, setValue }) => {
+    factory: ({ readOnly, name, label, value, setValue }) => {
       return (
         <div className="flex">
           <CheckboxField
+            name={name}
             onChange={(e) => {
               if (e.target.checked) {
                 setValue(true);

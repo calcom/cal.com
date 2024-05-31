@@ -1,5 +1,7 @@
 import type { TFunction } from "next-i18next";
 
+import { APP_NAME } from "@calcom/lib/constants";
+
 import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
 
@@ -19,12 +21,12 @@ export default class SlugReplacementEmail extends BaseEmail {
     this.t = t;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.email,
       subject: this.t("email_subject_slug_replacement", { slug: this.slug }),
-      html: renderEmail("SlugReplacementEmail", {
+      html: await renderEmail("SlugReplacementEmail", {
         slug: this.slug,
         name: this.name,
         teamName: this.teamName || "",

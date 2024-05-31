@@ -1,0 +1,24 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/calendar-cache-cleanup",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/tasks/cron",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/tasks/cleanup",
+      "schedule": "0 0 * * *"
+    }
+  ],
+  "functions": {
+    "pages/api/trpc/public/[trpc].ts": {
+      "memory": 768
+    },
+    "pages/api/trpc/slots/[trpc].ts": {
+      "memory": 768
+    }
+  }
+}

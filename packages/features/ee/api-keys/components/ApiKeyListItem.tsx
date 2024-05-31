@@ -11,8 +11,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  showToast,
 } from "@calcom/ui";
-import { MoreHorizontal, Edit2, Trash } from "@calcom/ui/components/icon";
 
 export type TApiKeys = RouterOutputs["viewer"]["apiKeys"]["list"][number];
 
@@ -26,7 +26,7 @@ const ApiKeyListItem = ({
   onEditClick: () => void;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const isExpired = apiKey?.expiresAt ? apiKey.expiresAt < new Date() : null;
   const neverExpires = apiKey?.expiresAt === null;
@@ -34,22 +34,31 @@ const ApiKeyListItem = ({
   const deleteApiKey = trpc.viewer.apiKeys.delete.useMutation({
     async onSuccess() {
       await utils.viewer.apiKeys.list.invalidate();
+      showToast(t("api_key_deleted"), "success");
+    },
+    onError(err) {
+      console.log(err);
+      showToast(t("something_went_wrong"), "error");
     },
   });
 
   return (
     <div
       key={apiKey.id}
-      className={classNames("flex w-full justify-between p-4", lastItem ? "" : "border-subtle border-b")}>
+      className={classNames(
+        "flex w-full justify-between px-4 py-4 sm:px-6",
+        lastItem ? "" : "border-subtle border-b"
+      )}>
       <div>
-        <p className="font-medium"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
-        <div className="flex items-center space-x-3.5">
+        <div className="flex gap-1">
+          <p className="text-sm font-semibold"> {apiKey?.note ? apiKey.note : t("api_key_no_note")}</p>
           {!neverExpires && isExpired && <Badge variant="red">{t("expired")}</Badge>}
           {!isExpired && <Badge variant="green">{t("active")}</Badge>}
-          <p className="text-default text-xs">
-            {" "}
+        </div>
+        <div className="mt-1 flex items-center space-x-3.5">
+          <p className="text-default text-sm">
             {neverExpires ? (
-              <div className="text-subtle flex flex-row space-x-3">{t("api_key_never_expires")}</div>
+              <div className="flex flex-row space-x-3">{t("api_key_never_expires")}</div>
             ) : (
               `${isExpired ? t("expired") : t("expires")} ${dayjs(apiKey?.expiresAt?.toString()).fromNow()}`
             )}
@@ -59,24 +68,26 @@ const ApiKeyListItem = ({
       <div>
         <Dropdown>
           <DropdownMenuTrigger asChild>
-            <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+            <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
           </DropdownMenuTrigger>
 
           <DropdownMenuContent>
             <DropdownMenuItem>
-              <DropdownItem type="button" onClick={onEditClick} StartIcon={Edit2}>
+              <DropdownItem type="button" onClick={onEditClick} StartIcon="pencil">
                 {t("edit") as string}
               </DropdownItem>
             </DropdownMenuItem>
             <DropdownMenuItem>
               <DropdownItem
                 type="button"
+                color="destructive"
+                disabled={deleteApiKey.isPending}
                 onClick={() =>
                   deleteApiKey.mutate({
                     id: apiKey.id,
                   })
                 }
-                StartIcon={Trash}>
+                StartIcon="trash">
                 {t("delete") as string}
               </DropdownItem>
             </DropdownMenuItem>

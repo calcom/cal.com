@@ -91,7 +91,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     attendeeInputType: "attendeeAddress",
     attendeeInputPlaceholder: "enter_address",
     defaultValueVariable: "attendeeAddress",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {
@@ -103,7 +103,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
     // HACK:
     variable: "locationAddress",
     defaultValueVariable: "address",
-    iconUrl: "/map-pin.svg",
+    iconUrl: "/map-pin-dark.svg",
     category: "in person",
   },
   {
@@ -162,6 +162,7 @@ const translateAbleKeys = [
   "attendee_phone_number",
   "link_meeting",
   "organizer_phone_number",
+  "organizer_default_conferencing_app",
 ];
 
 export type LocationObject = {
@@ -345,6 +346,7 @@ export const getLocationValueForDB = (
 ) => {
   let bookingLocation = bookingLocationTypeOrValue;
   let conferenceCredentialId = undefined;
+
   eventLocations.forEach((location) => {
     if (location.type === bookingLocationTypeOrValue) {
       const eventLocationType = getEventLocationType(bookingLocationTypeOrValue);
@@ -361,6 +363,11 @@ export const getLocationValueForDB = (
       bookingLocation = location[eventLocationType.defaultValueVariable] || bookingLocation;
     }
   });
+
+  if (bookingLocation.trim().length === 0) {
+    bookingLocation = DailyLocationType;
+  }
+
   return { bookingLocation, conferenceCredentialId };
 };
 
@@ -402,8 +409,9 @@ export function getSuccessPageLocationMessage(
     if (bookingStatus === BookingStatus.CANCELLED || bookingStatus === BookingStatus.REJECTED) {
       locationToDisplay == t("web_conference");
     } else if (isConfirmed) {
-      locationToDisplay =
-        getHumanReadableLocationValue(location, t) + ": " + t("meeting_url_in_confirmation_email");
+      locationToDisplay = `${getHumanReadableLocationValue(location, t)}: ${t(
+        "meeting_url_in_confirmation_email"
+      )}`;
     } else {
       locationToDisplay = t("web_conferencing_details_to_follow");
     }
@@ -425,4 +433,13 @@ export const getTranslatedLocation = (
     : locationKey;
 
   return translatedLocation;
+};
+
+export const getOrganizerInputLocationTypes = () => {
+  const result: DefaultEventLocationType["type"] | EventLocationTypeFromApp["type"][] = [];
+
+  const locations = locationsTypes.filter((location) => !!location.organizerInputType);
+  locations?.forEach((l) => result.push(l.type));
+
+  return result;
 };

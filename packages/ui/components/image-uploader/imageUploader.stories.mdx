@@ -22,6 +22,11 @@ Below are the props for `Image uploader`
 
 <Canvas>
   <Story
+    parameters={{
+      nextjs: {
+        appDirectory: true,
+      },
+    }}
     name="ImageUploader"
     play={({ canvasElement }) => {
       const darkVariantContainer = canvasElement.querySelector("#dark-variant");

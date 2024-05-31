@@ -1,4 +1,6 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
+
+import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "..";
 import BaseEmail from "./_base-email";
@@ -28,15 +30,15 @@ export default class DisabledAppEmail extends BaseEmail {
     this.eventTypeId = eventTypeId;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `Cal.com <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: this.email,
       subject:
         this.title && this.eventTypeId
           ? this.t("disabled_app_affects_event_type", { appName: this.appName, eventType: this.title })
           : this.t("admin_has_disabled", { appName: this.appName }),
-      html: renderEmail("DisabledAppEmail", {
+      html: await renderEmail("DisabledAppEmail", {
         title: this.title,
         appName: this.appName,
         eventTypeId: this.eventTypeId,

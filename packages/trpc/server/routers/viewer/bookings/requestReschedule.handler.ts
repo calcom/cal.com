@@ -12,10 +12,13 @@ import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/remind
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
@@ -35,11 +38,11 @@ type RequestRescheduleOptions = {
   };
   input: TRequestRescheduleInputSchema;
 };
-
+const log = logger.getSubLogger({ prefix: ["requestRescheduleHandler"] });
 export const requestRescheduleHandler = async ({ ctx, input }: RequestRescheduleOptions) => {
   const { user } = ctx;
   const { bookingId, rescheduleReason: cancellationReason } = input;
-
+  log.debug("Started", safeStringify({ bookingId, cancellationReason, user }));
   const bookingToReschedule = await prisma.booking.findFirstOrThrow({
     select: {
       id: true,
@@ -50,7 +53,16 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       startTime: true,
       endTime: true,
       eventTypeId: true,
-      eventType: true,
+      userPrimaryEmail: true,
+      eventType: {
+        include: {
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
+        },
+      },
       location: true,
       attendees: true,
       references: true,
@@ -59,9 +71,9 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       dynamicGroupSlugRef: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
       workflowReminders: true,
       responses: true,
+      iCalUID: true,
     },
     where: {
       uid: bookingId,
@@ -77,7 +89,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     throw new TRPCError({ code: "FORBIDDEN", message: "Booking to reschedule doesn't have an owner" });
   }
 
-  if (!bookingToReschedule.eventType) {
+  if (!bookingToReschedule.eventType && !bookingToReschedule.dynamicEventSlugRef) {
     throw new TRPCError({ code: "FORBIDDEN", message: "EventType not found for current booking." });
   }
 
@@ -97,6 +109,12 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     if (userTeamIds.indexOf(bookingToReschedule?.eventType?.teamId) === -1) {
       throw new TRPCError({ code: "FORBIDDEN", message: "User isn't a member on the team" });
     }
+    log.debug(
+      "Request reschedule for team booking",
+      safeStringify({
+        teamId: bookingToReschedule.eventType?.teamId,
+      })
+    );
   }
   if (!bookingBelongsToTeam && bookingToReschedule.userId !== user.id) {
     throw new TRPCError({ code: "FORBIDDEN", message: "User isn't owner of the current booking" });
@@ -109,7 +127,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     event = await prisma.eventType.findFirstOrThrow({
       select: {
         title: true,
-        users: true,
         schedulingType: true,
         recurringEvent: true,
       },
@@ -131,19 +148,22 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   // delete scheduled jobs of previous booking
-  // FIXME: async fn off into the ether
-  cancelScheduledJobs(bookingToReschedule);
+  const webhookWorkflowPromises = [];
+  webhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
 
   //cancel workflow reminders of previous booking
-  // FIXME: more async fns off into the ether
-  bookingToReschedule.workflowReminders.forEach((reminder) => {
+  for (const reminder of bookingToReschedule.workflowReminders) {
     if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
     } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+      webhookWorkflowPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
     }
+  }
+
+  await Promise.all(webhookWorkflowPromises).catch((error) => {
+    log.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
   });
 
   const [mainAttendee] = bookingToReschedule.attendees;
@@ -163,11 +183,19 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const userTranslation = await getTranslation(user.locale ?? "en", "common");
   const [userAsPeopleType] = usersToPeopleType([user], userTranslation);
+  const organizer = {
+    ...userAsPeopleType,
+    email: bookingToReschedule?.userPrimaryEmail ?? userAsPeopleType.email,
+  };
 
   const builder = new CalendarEventBuilder();
+  const eventType = bookingToReschedule.eventType;
   builder.init({
     title: bookingToReschedule.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    bookerUrl: eventType?.team
+      ? await getBookerBaseUrl(eventType.team.parentId)
+      : await getBookerBaseUrl(user.profile?.organizationId ?? null),
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     startTime: bookingToReschedule.startTime.toISOString(),
     endTime: bookingToReschedule.endTime.toISOString(),
     attendees: usersToPeopleType(
@@ -175,14 +203,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
       tAttendees
     ),
-    organizer: userAsPeopleType,
+    organizer,
+    iCalUID: bookingToReschedule.iCalUID,
   });
 
   const director = new CalendarEventDirector();
   director.setBuilder(builder);
   director.setExistingBooking(bookingToReschedule);
   cancellationReason && director.setCancellationReason(cancellationReason);
-  if (event) {
+  if (Object.keys(event).length) {
     await director.buildForRescheduleEmail();
   } else {
     await director.buildWithoutEventTypeForRescheduleEmail();
@@ -190,7 +219,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   // Handling calendar and videos cancellation
   // This can set previous time as available, until virtual calendar is done
-  const credentials = await getUsersCredentials(user.id);
+  const credentials = await getUsersCredentials(user);
   const credentialsMap = new Map();
   credentials.forEach((credential) => {
     credentialsMap.set(credential.type, credential);
@@ -205,14 +234,20 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       if (!bookingRef.uid) return;
 
       if (bookingRef.type.endsWith("_calendar")) {
-        const calendar = await getCalendar(credentialsMap.get(bookingRef.type));
+        const calendar = await getCalendar(
+          credentials.find((cred) => cred.id === bookingRef?.credentialId) || null
+        );
         return calendar?.deleteEvent(bookingRef.uid, builder.calendarEvent, bookingRef.externalCalendarId);
       } else if (bookingRef.type.endsWith("_video")) {
-        return deleteMeeting(credentialsMap.get(bookingRef.type), bookingRef.uid);
+        return deleteMeeting(
+          credentials.find((cred) => cred?.id === bookingRef?.credentialId) || null,
+          bookingRef.uid
+        );
       }
     })
   );
 
+  log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
   await sendRequestRescheduleEmail(builder.calendarEvent, {
     rescheduleLink: builder.rescheduleLink,
@@ -220,7 +255,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,
-    type: event && event.title ? event.title : bookingToReschedule.title,
+    type: event && event.slug ? event.slug : bookingToReschedule.title,
     description: bookingToReschedule?.description || "",
     customInputs: isPrismaObjOrUndefined(bookingToReschedule.customInputs),
     ...getCalEventResponses({
@@ -229,7 +264,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     }),
     startTime: bookingToReschedule?.startTime ? dayjs(bookingToReschedule.startTime).format() : "",
     endTime: bookingToReschedule?.endTime ? dayjs(bookingToReschedule.endTime).format() : "",
-    organizer: userAsPeopleType,
+    organizer,
     attendees: usersToPeopleType(
       // username field doesn't exists on attendee but could be in the future
       bookingToReschedule.attendees as unknown as PersonAttendeeCommonFields[],
@@ -241,6 +276,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       ? [bookingToReschedule?.destinationCalendar]
       : [],
     cancellationReason: `Please reschedule. ${cancellationReason}`, // TODO::Add i18-next for this
+    iCalUID: bookingToReschedule?.iCalUID,
   };
 
   // Send webhook
@@ -268,7 +304,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       ...evt,
       smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
     }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+      log.error(
+        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
+      );
     })
   );
   await Promise.all(promises);

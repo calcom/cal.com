@@ -3,6 +3,7 @@ import { router } from "@calcom/trpc/server/trpc";
 
 import { ZProjectMutationInputSchema } from "./projectMutation.schema";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const UNSTABLE_HANDLER_CACHE: any = {};
 
 const appBasecamp3 = router({

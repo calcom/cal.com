@@ -44,7 +44,7 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
         // preferWidgets: field.type === "textarea" ? ["textarea"] : [],
       };
     } else {
-      throw new Error("Unsupported field type:" + field.type);
+      throw new Error(`Unsupported field type:${field.type}`);
     }
   });
 

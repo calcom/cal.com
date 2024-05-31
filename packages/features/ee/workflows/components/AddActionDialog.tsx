@@ -18,13 +18,13 @@ import {
   DialogFooter,
   EmailField,
   Form,
+  Icon,
   Input,
   Label,
   PhoneInput,
   Select,
   Tooltip,
 } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
 import { onlyLettersNumbersSpaces } from "../pages/workflow";
@@ -39,7 +39,6 @@ interface IAddActionDialog {
     senderId?: string,
     senderName?: string
   ) => void;
-  setKYCVerificationDialogOpen: () => void;
 }
 
 interface ISelectActionOption {
@@ -57,7 +56,7 @@ type AddActionFormValues = {
 
 export const AddActionDialog = (props: IAddActionDialog) => {
   const { t } = useLocale();
-  const { isOpenDialog, setIsOpenDialog, addAction, setKYCVerificationDialogOpen } = props;
+  const { isOpenDialog, setIsOpenDialog, addAction } = props;
   const [isPhoneNumberNeeded, setIsPhoneNumberNeeded] = useState(false);
   const [isSenderIdNeeded, setIsSenderIdNeeded] = useState(false);
   const [isEmailAddressNeeded, setIsEmailAddressNeeded] = useState(false);
@@ -137,7 +136,7 @@ export const AddActionDialog = (props: IAddActionDialog) => {
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
-      <DialogContent type="creation" title={t("add_action")}>
+      <DialogContent enableOverflow type="creation" title={t("add_action")}>
         <div className="-mt-3 space-x-3">
           <Form
             form={form}
@@ -167,18 +166,17 @@ export const AddActionDialog = (props: IAddActionDialog) => {
                     <Select
                       isSearchable={false}
                       className="text-sm"
+                      menuPlacement="bottom"
                       defaultValue={actionOptions[0]}
                       onChange={handleSelectAction}
                       options={actionOptions.map((option) => ({
                         ...option,
-                        verificationAction: () => setKYCVerificationDialogOpen(),
                       }))}
                       isOptionDisabled={(option: {
                         label: string;
                         value: WorkflowActions;
-                        needsUpgrade: boolean;
-                        needsVerification: boolean;
-                      }) => option.needsUpgrade || option.needsVerification}
+                        needsTeamsUpgrade: boolean;
+                      }) => option.needsTeamsUpgrade}
                     />
                   );
                 }}
@@ -219,10 +217,12 @@ export const AddActionDialog = (props: IAddActionDialog) => {
             {isSenderIdNeeded && (
               <>
                 <div className="mt-5">
-                  <div className="flex">
+                  <div className="flex items-center">
                     <Label>{t("sender_id")}</Label>
                     <Tooltip content={t("sender_id_info")}>
-                      <Info className="ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                      <span>
+                        <Icon name="info" className="mb-2 ml-2 mr-1 mt-0.5 h-4 w-4 text-gray-500" />
+                      </span>
                     </Tooltip>
                   </div>
                   <Input type="text" placeholder={SENDER_ID} maxLength={11} {...form.register(`senderId`)} />

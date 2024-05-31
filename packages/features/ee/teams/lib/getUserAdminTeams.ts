@@ -7,13 +7,13 @@ export type UserAdminTeams = (Prisma.TeamGetPayload<{
   select: {
     id: true;
     name: true;
-    logo: true;
+    logoUrl: true;
     credentials?: true;
     parent?: {
       select: {
         id: true;
         name: true;
-        logo: true;
+        logoUrl: true;
         credentials: true;
       };
     };
@@ -45,22 +45,23 @@ const getUserAdminTeams = async ({
     select: {
       id: true,
       name: true,
-      logo: true,
+      logoUrl: true,
       ...(includeCredentials && { credentials: true }),
       ...(getParentInfo && {
         parent: {
           select: {
             id: true,
             name: true,
-            logo: true,
+            logoUrl: true,
             credentials: true,
           },
         },
       }),
     },
-    orderBy: {
-      orgUsers: { _count: "desc" },
-    },
+    // FIXME - OrgNewSchema: Fix this orderBy
+    // orderBy: {
+    //   orgUsers: { _count: "desc" },
+    // },
   });
 
   if (teams.length && getUserInfo) {
@@ -71,7 +72,7 @@ const getUserAdminTeams = async ({
       select: {
         id: true,
         name: true,
-        avatar: true,
+        avatarUrl: true,
         ...(includeCredentials && { credentials: true }),
       },
     });
@@ -80,9 +81,10 @@ const getUserAdminTeams = async ({
       const userObject = {
         id: user.id,
         name: user.name || "me",
-        logo: user?.avatar === "" ? null : user?.avatar,
+        logoUrl: user?.avatarUrl, // bit ugly, no?
         isUser: true,
-        ...(includeCredentials && { credentials: user.credentials }),
+        credentials: includeCredentials ? user.credentials : [],
+        parent: null,
       };
       teams.unshift(userObject);
     }

@@ -1,21 +1,21 @@
 import { z } from "zod";
 
-import * as trpcNext from "@calcom/trpc/server/adapters/next";
-import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-
 import type { AnyRouter } from "@trpc/server";
+import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
+
+import { createContext as createTrpcContext } from "./createContext";
 
 /**
  * Creates an API handler executed by Next.js.
  */
 export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
-  return trpcNext.createNextApiHandler({
+  return _createNextApiHandler({
     router,
     /**
      * @link https://trpc.io/docs/context
      */
-    createContext: ({ req, res }) => {
-      return createTrpcContext({ req, res });
+    createContext: (opts) => {
+      return createTrpcContext(opts);
     },
     /**
      * @link https://trpc.io/docs/error-handling
@@ -64,7 +64,7 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
         const cacheRules = {
           session: "no-cache",
 
-          i18n: `max-age=${ONE_YEAR_IN_SECONDS}`,
+          i18n: process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`,

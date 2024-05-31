@@ -5,8 +5,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Label } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
+import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -97,7 +96,7 @@ export const FormBuilderField = ({
                     <div
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
-                      <Info className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
                       <p>{t(message || "invalid_input")}</p>
                     </div>
                   );
@@ -126,6 +125,8 @@ const WithLabel = ({
   readOnly: boolean;
   children: React.ReactNode;
 }) => {
+  const { t } = useLocale();
+
   return (
     <div>
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
@@ -133,11 +134,12 @@ const WithLabel = ({
       {/* Component itself managing it's label should remove these checks */}
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
-          <Label className="!mb-0">
+          <Label className="!mb-0 flex">
             <span>{field.label}</span>
             <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
+            {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
           </Label>
         </div>
       )}
@@ -149,7 +151,7 @@ const WithLabel = ({
 /**
  * Ensures that `labels` and `placeholders`, wherever they are, are set properly. If direct values are not set, default values from fieldTypeConfig are used.
  */
-function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
   let noLabel = false;
   let hidden = !!field.hidden;
   if (field.type === "radioInput") {
@@ -311,6 +313,9 @@ export const ComponentForField = ({
     if (!field.optionsInputs) {
       throw new Error("Field optionsInputs is not defined");
     }
+
+    const options = field.options;
+
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
@@ -320,7 +325,7 @@ export const ComponentForField = ({
           value={value as { value: string; optionValue: string }}
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
-          options={field.options}
+          options={options}
           required={field.required}
         />
       </WithLabel>

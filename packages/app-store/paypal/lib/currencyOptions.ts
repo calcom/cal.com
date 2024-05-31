@@ -24,4 +24,38 @@ export const currencyOptions = [
   { label: "Swedish krona", value: "SEK" },
   { label: "Swiss franc", value: "CHF" },
   { label: "Thai baht", value: "THB" },
-];
+] as const;
+
+type CurrencyCode = (typeof currencyOptions)[number]["value"];
+
+export const currencySymbols: Record<CurrencyCode, string> = {
+  USD: "$",
+  AUD: "$",
+  BRL: "R$",
+  CAD: "$",
+  CNY: "¥",
+  CZK: "Kč",
+  DKK: "kr",
+  EUR: "€",
+  HKD: "$",
+  HUF: "Ft",
+  ILS: "₪",
+  JPY: "¥",
+  MYR: "RM",
+  MXN: "$",
+  TWD: "$",
+  NZD: "$",
+  NOK: "kr",
+  PHP: "₱",
+  PLN: "zł",
+  GBP: "£",
+  RUB: "₽",
+  SGD: "$",
+  SEK: "kr",
+  CHF: "Fr",
+  THB: "฿",
+};
+
+export function isAcceptedCurrencyCode(currencyCode: string): currencyCode is CurrencyCode {
+  return Object.keys(currencySymbols).includes(currencyCode);
+}

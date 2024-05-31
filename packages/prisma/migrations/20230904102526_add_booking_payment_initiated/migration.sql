@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "WebhookTriggerEvents" ADD VALUE 'BOOKING_PAYMENT_INITIATED';

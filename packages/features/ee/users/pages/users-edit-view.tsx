@@ -1,3 +1,5 @@
+"use client";
+
 import { usePathname, useRouter } from "next/navigation";
 import { z } from "zod";
 
@@ -28,7 +30,7 @@ const UsersEditView = ({ userId }: { userId: number }) => {
   const router = useRouter();
   const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
   const { user } = data;
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.users.update.useMutation({
     onSuccess: async () => {
       Promise.all([utils.viewer.users.list.invalidate(), utils.viewer.users.get.invalidate()]);

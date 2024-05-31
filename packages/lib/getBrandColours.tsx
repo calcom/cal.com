@@ -1,7 +1,9 @@
 import { useBrandColors } from "@calcom/embed-core/embed-iframe";
 
-const BRAND_COLOR = "#292929";
-const DARK_BRAND_COLOR = "#fafafa";
+import { DEFAULT_DARK_BRAND_COLOR, DEFAULT_LIGHT_BRAND_COLOR } from "./constants";
+
+const BRAND_COLOR = DEFAULT_LIGHT_BRAND_COLOR;
+const DARK_BRAND_COLOR = DEFAULT_DARK_BRAND_COLOR;
 
 type Rgb = {
   r: number;
@@ -30,6 +32,15 @@ export function isValidHexCode(hexColor: string): boolean {
 
   return isHexColor;
 }
+
+// credit : https://github.com/validatorjs/validator.js/blob/master/src/lib/isHexColor.js
+const getValidHEX = (hex: string, defaultHex: string): string => {
+  const hexColor = /^#?([0-9A-F]{3}|[0-9A-F]{4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(hex.replace("##", "#"));
+  if (hexColor) {
+    return hex;
+  }
+  return defaultHex;
+};
 
 function hexToRgb(hex: string): Rgb {
   const sanitizedHex = hex.replace("##", "#");
@@ -174,8 +185,8 @@ const useGetBrandingColours = ({
 
   darkVal = normalizeHexCode(darkVal, true);
 
-  const lightColourMap = createColorMap(lightVal);
-  const darkColourMap = createColorMap(darkVal);
+  const lightColourMap = createColorMap(getValidHEX(lightVal, BRAND_COLOR));
+  const darkColourMap = createColorMap(getValidHEX(darkVal, DARK_BRAND_COLOR));
 
   const theme = {
     light: {

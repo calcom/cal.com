@@ -1,8 +1,7 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { List } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Icon, List } from "@calcom/ui";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
 import { StepConnectionLoader } from "../components/StepConnectionLoader";
@@ -13,7 +12,7 @@ interface ConnectedAppStepProps {
 
 const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
   const { nextStep } = props;
-  const { data: queryConnectedVideoApps, isLoading } = trpc.viewer.integrations.useQuery({
+  const { data: queryConnectedVideoApps, isPending } = trpc.viewer.integrations.useQuery({
     variant: "conferencing",
     onlyInstalled: false,
     sortByMostPopular: true,
@@ -26,7 +25,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
 
   return (
     <>
-      {!isLoading && (
+      {!isPending && (
         <List className="bg-default  border-subtle divide-subtle scroll-bar mx-1 max-h-[45vh] divide-y !overflow-y-scroll rounded-md border p-0 sm:mx-0">
           {queryConnectedVideoApps?.items &&
             queryConnectedVideoApps?.items.map((item) => {
@@ -48,18 +47,18 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
         </List>
       )}
 
-      {isLoading && <StepConnectionLoader />}
+      {isPending && <StepConnectionLoader />}
       <button
         type="button"
         data-testid="save-video-button"
         className={classNames(
-          "text-inverted mt-8 flex w-full flex-row justify-center rounded-md border border-black bg-black p-2 text-center text-sm",
+          "text-inverted border-inverted bg-inverted mt-8 flex w-full flex-row justify-center rounded-md border p-2 text-center text-sm",
           !hasAnyInstalledVideoApps ? "cursor-not-allowed opacity-20" : ""
         )}
         disabled={!hasAnyInstalledVideoApps}
         onClick={() => nextStep()}>
         {t("next_step_text")}
-        <ArrowRight className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
+        <Icon name="arrow-right" className="ml-2 h-4 w-4 self-center" aria-hidden="true" />
       </button>
     </>
   );

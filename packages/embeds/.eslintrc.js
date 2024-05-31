@@ -1,3 +1,4 @@
+/** @type {import("eslint").Linter.Config} */
 module.exports = {
   extends: ["../../.eslintrc.js"],
   rules: {
@@ -9,4 +10,12 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["embed-core/playwright/**/*"],
+      rules: {
+        "no-restricted-imports": "off",
+      },
+    },
+  ],
 };

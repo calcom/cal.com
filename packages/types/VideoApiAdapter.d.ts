@@ -24,6 +24,10 @@ export type VideoApiAdapter =
       getRecordings?(roomName: string): Promise<GetRecordingsResponseSchema>;
 
       getRecordingDownloadLink?(recordingId: string): Promise<GetAccessLinkResponseSchema>;
+
+      createInstantCalVideoRoom?(endTime: string): Promise<VideoCallData>;
+
+      getAllTranscriptsAccessLinkFromRoomName?(roomName: string): Promise<Array<string>>;
     }
   | undefined;
 

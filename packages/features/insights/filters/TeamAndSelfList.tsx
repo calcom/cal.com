@@ -8,8 +8,7 @@ import {
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { AnimatedPopover, Avatar, Divider } from "@calcom/ui";
-import { Layers, User } from "@calcom/ui/components/icon";
+import { AnimatedPopover, Avatar, Divider, Icon } from "@calcom/ui";
 
 import { useFilterContext } from "../context/provider";
 
@@ -22,9 +21,20 @@ export const TeamAndSelfList = () => {
   const { data, isSuccess } = trpc.viewer.insights.teamListForUser.useQuery(undefined, {
     // Teams don't change that frequently
     refetchOnWindowFocus: false,
+    trpc: {
+      context: {
+        skipBatch: true,
+      },
+    },
   });
 
   useEffect(() => {
+    const isInitialSetupAlready = !!(
+      filter.initialConfig?.teamId ||
+      filter.initialConfig?.userId ||
+      filter.initialConfig?.isAll
+    );
+    if (isInitialSetupAlready) return;
     if (isSuccess && session.data?.user.id) {
       // We have a team?
       if (data[0]?.id && data && data?.length > 0) {
@@ -42,6 +52,7 @@ export const TeamAndSelfList = () => {
       } else if (session.data?.user.id) {
         // default to user
         setConfigFilters({
+          selectedUserId: session.data?.user.id,
           initialConfig: {
             teamId: null,
             userId: session.data?.user.id,
@@ -49,19 +60,8 @@ export const TeamAndSelfList = () => {
           },
         });
       }
-    } else if (session.data?.user.id) {
-      setConfigFilters({
-        selectedUserId: session.data?.user.id,
-        selectedTeamId: null,
-        isAll: false,
-        initialConfig: {
-          teamId: null,
-          userId: session.data?.user.id,
-          isAll: false,
-        },
-      });
     }
-  }, [data, session.data?.user.id]);
+  }, [data, session.data?.user.id, filter.initialConfig, isSuccess, setConfigFilters]);
 
   const getTextPopover = () => {
     if (isAll) {
@@ -86,7 +86,7 @@ export const TeamAndSelfList = () => {
         {isSuccess && data?.length > 0 && data[0].isOrg && (
           <FilterCheckboxField
             id="all"
-            icon={<Layers className="h-4 w-4" />}
+            icon={<Icon name="layers" className="h-4 w-4" />}
             checked={isAll}
             onChange={(e) => {
               setConfigFilters({
@@ -96,7 +96,7 @@ export const TeamAndSelfList = () => {
                 isAll: true,
               });
             }}
-            label={t("insights_all_org_filter")}
+            label={t("all")}
           />
         )}
 
@@ -129,8 +129,8 @@ export const TeamAndSelfList = () => {
             }}
             icon={
               <Avatar
-                alt={team?.name || ""}
-                imageSrc={getPlaceholderAvatar(team.logo, team?.name as string)}
+                alt={team.name || ""}
+                imageSrc={getPlaceholderAvatar(team.logoUrl, team.name)}
                 size="xs"
               />
             }
@@ -140,7 +140,7 @@ export const TeamAndSelfList = () => {
 
         <FilterCheckboxField
           id="yours"
-          icon={<User className="h-4 w-4" />}
+          icon={<Icon name="user" className="h-4 w-4" />}
           checked={selectedUserId === session.data?.user.id}
           onChange={(e) => {
             if (e.target.checked) {

@@ -4,6 +4,7 @@ import { authenticator } from "otplib";
 
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { totpAuthenticatorCheck } from "@calcom/lib/totp";
+import { prisma } from "@calcom/prisma";
 
 import { test } from "./lib/fixtures";
 
@@ -23,7 +24,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
@@ -40,6 +41,8 @@ test.describe("2FA Tests", async () => {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       await fillOtp({ page, secret: "123456", noRetry: true });
       await expect(page.locator('[data-testid="error-submitting-code"]')).toBeVisible();
+
+      await removeOtpInput(page);
 
       await fillOtp({
         page,
@@ -61,7 +64,7 @@ test.describe("2FA Tests", async () => {
 
     await test.step("Login with 2FA enabled", async () => {
       await user.login();
-      const userWith2FaSecret = await prisma?.user.findFirst({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },
@@ -93,7 +96,7 @@ test.describe("2FA Tests", async () => {
       const user = await users.create();
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const userPassword = user.username!;
-      await user.login();
+      await user.apiLogin();
 
       // expects the home page for an authorized user
       await page.goto("/settings/security/two-factor-auth");
@@ -138,7 +141,7 @@ test.describe("2FA Tests", async () => {
       await page.click(`[data-testid=two-factor-switch][data-state="checked"]`);
       await page.fill('input[name="password"]', userPassword);
 
-      const userWith2FaSecret = await prisma?.user.findFirst({
+      const userWith2FaSecret = await prisma.user.findFirst({
         where: {
           id: user.id,
         },
@@ -161,6 +164,14 @@ test.describe("2FA Tests", async () => {
   });
 });
 
+async function removeOtpInput(page: Page) {
+  await page.locator('input[name="2fa6"]').waitFor({ state: "visible", timeout: 30_000 });
+
+  // Remove one OTP input
+  await page.locator('input[name="2fa6"]').focus();
+  await page.keyboard.press("Backspace");
+}
+
 async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; noRetry?: boolean }) {
   let token = authenticator.generate(secret);
   if (!noRetry && !totpAuthenticatorCheck(token, secret)) {
@@ -168,6 +179,7 @@ async function fillOtp({ page, secret, noRetry }: { page: Page; secret: string; 
     // Maybe token was just about to expire, try again just once more
     token = authenticator.generate(secret);
   }
+  await page.locator('input[name="2fa1"]').waitFor({ state: "visible", timeout: 60_000 });
   await page.fill('input[name="2fa1"]', token[0]);
   await page.fill('input[name="2fa2"]', token[1]);
   await page.fill('input[name="2fa3"]', token[2]);

@@ -11,7 +11,7 @@ type GetOptions = {
   input: TListMembersSchema;
 };
 
-export const listPaginatedHandler = async ({ input }: GetOptions) => {
+const listPaginatedHandler = async ({ input }: GetOptions) => {
   const { cursor, limit, searchTerm } = input;
 
   const getTotalUsers = await prisma.user.count();
@@ -44,12 +44,12 @@ export const listPaginatedHandler = async ({ input }: GetOptions) => {
     },
     select: {
       id: true,
+      locked: true,
       email: true,
       username: true,
       name: true,
       timeZone: true,
       role: true,
-      organizationId: true,
     },
   });
 
@@ -67,3 +67,5 @@ export const listPaginatedHandler = async ({ input }: GetOptions) => {
     },
   };
 };
+
+export default listPaginatedHandler;

@@ -5,7 +5,7 @@
   "type": "whatsapp_video",
   "logo": "icon.svg",
   "url": "https://cal.com/",
-  "variant": "conferencing",
+  "variant": "messaging",
   "categories": ["messaging"],
   "publisher": "Cal.com, Inc.",
   "email": "support@cal.com",
@@ -19,5 +19,6 @@
       "organizerInputPlaceholder": "https://wa.me/send?phone=1234567890",
       "urlRegExp": "^http(s)?:\\/\\/(www\\.)?wa.me\\/[a-zA-Z0-9]*"
     }
-  }
+  },
+  "isAuth": false
 }

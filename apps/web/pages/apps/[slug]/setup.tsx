@@ -1,15 +1,18 @@
-import type { GetStaticPaths, InferGetStaticPropsType } from "next";
+"use client";
+
+import type { InferGetServerSidePropsType } from "next";
 import { useSession } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { AppSetupPage } from "@calcom/app-store/_pages/setup";
-import { getStaticProps } from "@calcom/app-store/_pages/setup/_getStaticProps";
+import { getServerSideProps } from "@calcom/app-store/_pages/setup/_getServerSideProps";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { HeadSeo } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
-export default function SetupInformation(props: InferGetStaticPropsType<typeof getStaticProps>) {
-  const searchParams = useSearchParams();
+export default function SetupInformation(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const searchParams = useCompatSearchParams();
   const router = useRouter();
   const slug = searchParams?.get("slug") as string;
   const { status } = useSession();
@@ -36,11 +39,4 @@ export default function SetupInformation(props: InferGetStaticPropsType<typeof g
 
 SetupInformation.PageWrapper = PageWrapper;
 
-export const getStaticPaths: GetStaticPaths = async () => {
-  return {
-    paths: [],
-    fallback: "blocking",
-  };
-};
-
-export { getStaticProps };
+export { getServerSideProps };

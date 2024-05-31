@@ -173,7 +173,6 @@ const EnableTwoFactorModal = ({ onEnable, onCancel, open, onOpenChange }: Enable
             <div className="mb-4">
               <PasswordField
                 label={t("password")}
-                type="password"
                 name="password"
                 id="password"
                 required

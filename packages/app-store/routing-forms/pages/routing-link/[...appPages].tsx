@@ -1,27 +1,30 @@
+"use client";
+
 import Head from "next/head";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import classNames from "@calcom/lib/classNames";
 import useGetBrandingColours from "@calcom/lib/getBrandColours";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { trpc } from "@calcom/trpc/react";
-import type { AppGetServerSidePropsContext, AppPrisma } from "@calcom/types/AppGetServerSideProps";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
 
 import FormInputFields from "../../components/FormInputFields";
+import { getAbsoluteEventTypeRedirectUrl } from "../../getEventTypeRedirectUrl";
 import getFieldIdentifier from "../../lib/getFieldIdentifier";
-import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
+import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
-import type { Response, Route } from "../../types/types";
+import type { NonRouterRoute, Response } from "../../types/types";
+import { getServerSideProps } from "./getServerSideProps";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
 const useBrandColors = ({
@@ -39,7 +42,7 @@ const useBrandColors = ({
 };
 
 function RoutingForm({ form, profile, ...restProps }: Props) {
-  const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
+  const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
@@ -55,7 +58,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{ action: Route["action"]; response: Response }>();
+  const decidedActionWithFormResponseRef = useRef<{ action: NonRouterRoute["action"]; response: Response }>();
   const router = useRouter();
 
   const onSubmit = (response: Response) => {
@@ -95,12 +98,22 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
       const decidedAction = decidedActionWithFormResponse.action;
-
+      sdkActionManager?.fire("routed", {
+        actionType: decidedAction.type,
+        actionValue: decidedAction.value,
+      });
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
       } else if (decidedAction.type === "eventTypeRedirectUrl") {
-        await router.push(`/${decidedAction.value}?${allURLSearchParams}`);
+        const eventTypeUrlWithResolvedVariables = substituteVariables(decidedAction.value, response, fields);
+        router.push(
+          getAbsoluteEventTypeRedirectUrl({
+            form,
+            eventTypeRedirectUrl: eventTypeUrlWithResolvedVariables,
+            allURLSearchParams,
+          })
+        );
       } else if (decidedAction.type === "externalRedirectUrl") {
         window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
       }
@@ -141,7 +154,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis  mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (
@@ -152,7 +165,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
                     <div className="mt-4 flex justify-end space-x-2 rtl:space-x-reverse">
                       <Button
                         className="dark:bg-darkmodebrand dark:text-darkmodebrandcontrast dark:hover:border-darkmodebrandcontrast dark:border-transparent"
-                        loading={responseMutation.isLoading}
+                        loading={responseMutation.isPending}
                         type="submit"
                         color="primary">
                         {t("submit")}
@@ -232,76 +245,15 @@ export default function RoutingLink(props: inferSSRProps<typeof getServerSidePro
 
 RoutingLink.isBookingPage = true;
 
-export const getServerSideProps = async function getServerSideProps(
-  context: AppGetServerSidePropsContext,
-  prisma: AppPrisma
-) {
-  const { params } = context;
-  if (!params) {
-    return {
-      notFound: true,
-    };
-  }
-  const formId = params.appPages[0];
-  if (!formId || params.appPages.length > 2) {
-    return {
-      notFound: true,
-    };
-  }
-  const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req.headers.host ?? "");
-
-  const isEmbed = params.appPages[1] === "embed";
-
-  const form = await prisma.app_RoutingForms_Form.findFirst({
-    where: {
-      id: formId,
-      user: {
-        organization: isValidOrgDomain
-          ? {
-              slug: currentOrgDomain,
-            }
-          : null,
-      },
-    },
-    include: {
-      user: {
-        select: {
-          username: true,
-          theme: true,
-          brandColor: true,
-          darkBrandColor: true,
-        },
-      },
-    },
-  });
-
-  if (!form || form.disabled) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {
-      isEmbed,
-      themeBasis: form.user.username,
-      profile: {
-        theme: form.user.theme,
-        brandColor: form.user.brandColor,
-        darkBrandColor: form.user.darkBrandColor,
-      },
-      form: await getSerializableForm({ form }),
-    },
-  };
-};
+export { getServerSideProps };
 
 const usePrefilledResponse = (form: Props["form"]) => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const prefillResponse: Response = {};
 
   // Prefill the form from query params
   form.fields?.forEach((field) => {
-    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean);
+    const valuesFromQuery = searchParams?.getAll(getFieldIdentifier(field)).filter(Boolean) ?? [];
     // We only want to keep arrays if the field is a multi-select
     const value = valuesFromQuery.length > 1 ? valuesFromQuery : valuesFromQuery[0];
 

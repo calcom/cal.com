@@ -6,20 +6,10 @@ import type { Prisma } from "@prisma/client";
  * Also there may be a better place to save this.
  */
 export type CredentialPayload = Prisma.CredentialGetPayload<{
-  select: {
-    id: true;
-    appId: true;
-    type: true;
-    userId: true;
-    teamId: true;
-    key: true;
-    invalid: true;
-  };
+  select: typeof import("@calcom/prisma/selects/credential").credentialForCalendarServiceSelect;
 }>;
 
 export type CredentialFrontendPayload = Omit<CredentialPayload, "key"> & {
   /** We should type error if keys are leaked to the frontend */
   key?: never;
 };
-
-export type CredentialWithAppName = CredentialPayload & { appName: string };

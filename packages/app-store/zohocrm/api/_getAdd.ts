@@ -3,8 +3,8 @@ import { stringify } from "querystring";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 
-import { encodeOAuthState } from "../../_utils/encodeOAuthState";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
+import { encodeOAuthState } from "../../_utils/oauth/encodeOAuthState";
 
 let client_id = "";
 
@@ -17,7 +17,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const params = {
     client_id,
     response_type: "code",
-    redirect_uri: WEBAPP_URL + "/api/integrations/zohocrm/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/zohocrm/callback`,
     scope: ["ZohoCRM.modules.ALL", "ZohoCRM.users.READ", "AaaServer.profile.READ"],
     access_type: "offline",
     state,

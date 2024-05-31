@@ -6,6 +6,18 @@ import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+function getRandomRatingFeedback() {
+  const feedbacks = [
+    "Great chat!",
+    "Okay-ish",
+    "Quite Poor",
+    "Excellent chat!",
+    "Could be better",
+    "Wonderful!",
+  ];
+  return feedbacks[Math.floor(Math.random() * feedbacks.length)];
+}
+
 const shuffle = (
   booking: any,
   year: number,
@@ -62,6 +74,10 @@ const shuffle = (
     console.log("This should not happen");
   }
 
+  booking.rating = Math.floor(Math.random() * 5) + 1; // Generates a random rating from 1 to 5
+  booking.ratingFeedback = getRandomRatingFeedback(); // Random feedback from a predefined list
+  booking.noShowHost = Math.random() < 0.5;
+
   return booking;
 };
 
@@ -78,7 +94,11 @@ async function main() {
     insightsAdmin = await prisma.user.create({
       data: {
         email: "insights@example.com",
-        password: await hashPassword("insightsinsightsinsights...!"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsinsightsinsights...!"),
+          },
+        },
         name: "Insights Admin",
         role: "ADMIN",
         username: "insights-admin",
@@ -102,7 +122,11 @@ async function main() {
     insightsUser = await prisma.user.create({
       data: {
         email: "insightsuser@example.com",
-        password: await hashPassword("insightsuser"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsuser"),
+          },
+        },
         name: "Insights User",
         role: "USER",
         username: "insights-user",
@@ -415,7 +439,11 @@ async function createPerformanceData() {
       const email = `insightsuser${timestamp}@example.com`;
       const insightsUser = {
         email,
-        password: await hashPassword("insightsuser"),
+        password: {
+          create: {
+            hash: await hashPassword("insightsuser"),
+          },
+        },
         name: `Insights User ${timestamp}`,
         username: `insights-user-${timestamp}`,
         completedOnboarding: true,

@@ -1,9 +1,12 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
+import { ZBulkUpdateToDefaultAvailabilityInputSchema } from "./bulkUpdateDefaultAvailability.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZScheduleDuplicateSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
+import { ZGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 
 type ScheduleRouterHandlerCache = {
@@ -12,6 +15,9 @@ type ScheduleRouterHandlerCache = {
   delete?: typeof import("./delete.handler").deleteHandler;
   update?: typeof import("./update.handler").updateHandler;
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
+  getScheduleByUserId?: typeof import("./getScheduleByUserId.handler").getScheduleByUserIdHandler;
+  getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
+  bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: ScheduleRouterHandlerCache = {};
@@ -98,4 +104,57 @@ export const scheduleRouter = router({
       input,
     });
   }),
+
+  getScheduleByUserId: authedProcedure.input(ZGetByUserIdInputSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByUserId) {
+      UNSTABLE_HANDLER_CACHE.getScheduleByUserId = await import("./getScheduleByUserId.handler").then(
+        (mod) => mod.getScheduleByUserIdHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByUserId) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getScheduleByUserId({
+      ctx,
+      input,
+    });
+  }),
+  getScheduleByEventSlug: authedProcedure.input(ZGetByEventSlugInputSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
+      UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug = await import(
+        "./getScheduleByEventTypeSlug.handler"
+      ).then((mod) => mod.getScheduleByEventSlugHandler);
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug({
+      ctx,
+      input,
+    });
+  }),
+  bulkUpdateToDefaultAvailability: authedProcedure
+    .input(ZBulkUpdateToDefaultAvailabilityInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
+        UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability = await import(
+          "./bulkUpdateDefaultAvailability.handler"
+        ).then((mod) => mod.bulkUpdateToDefaultAvailabilityHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability({
+        ctx,
+        input,
+      });
+    }),
 });

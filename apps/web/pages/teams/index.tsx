@@ -1,34 +1,34 @@
-import type { GetServerSidePropsContext } from "next";
+"use client";
 
-import { getLayout } from "@calcom/features/MainLayout";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { TeamsListing } from "@calcom/features/ee/teams/components";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
-import { ssrInit } from "@server/lib/ssr";
+export { getServerSideProps } from "@lib/teams/getServerSideProps";
 
 function Teams() {
   const { t } = useLocale();
   const [user] = trpc.viewer.me.useSuspenseQuery();
 
   return (
-    <ShellMain
+    <Shell
+      withoutMain={false}
       heading={t("teams")}
+      title="Teams"
+      description="Create and manage teams to use collaborative features."
       hideHeadingOnMobile
       subtitle={t("create_manage_teams_collaborative")}
       CTA={
         (!user.organizationId || user.organization.isOrgAdmin) && (
           <Button
+            data-testid="new-team-btn"
             variant="fab"
-            StartIcon={Plus}
+            StartIcon="plus"
             type="button"
             href={`${WEBAPP_URL}/settings/teams/new?returnTo=${WEBAPP_URL}/teams`}>
             {t("new")}
@@ -36,33 +36,10 @@ function Teams() {
         )
       }>
       <TeamsListing />
-    </ShellMain>
+    </Shell>
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssr = await ssrInit(context);
-  await ssr.viewer.me.prefetch();
-  const session = await getServerSession({ req: context.req, res: context.res });
-  const token = context.query?.token;
-  const resolvedUrl = context.resolvedUrl;
-
-  const callbackUrl = token ? getSafeRedirectUrl(`${WEBAPP_URL}${resolvedUrl}`) : null;
-
-  if (!session) {
-    return {
-      redirect: {
-        destination: callbackUrl ? `/auth/login?callbackUrl=${callbackUrl}&teamInvite=true` : "/auth/login",
-        permanent: false,
-      },
-      props: {},
-    };
-  }
-
-  return { props: { trpcState: ssr.dehydrate() } };
-};
-
 Teams.requiresLicense = false;
 Teams.PageWrapper = PageWrapper;
-Teams.getLayout = getLayout;
 export default Teams;

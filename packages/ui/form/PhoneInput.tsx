@@ -17,21 +17,14 @@ export type PhoneInputProps = {
   onChange: (value: string) => void;
 };
 
-function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputProps) {
-  useEffect(() => {
-    if (!rest.value) {
-      return;
-    }
-    const formattedValue = rest.value.trim().replace(/^\+?/, "+");
-    onChange(formattedValue);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
+function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
   const defaultCountry = useDefaultCountry();
+
   return (
     <PhoneInput
       {...rest}
-      country={rest.value ? undefined : defaultCountry}
+      value={value ? value.trim().replace(/^\+?/, "+") : undefined}
+      country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
       inputProps={{
@@ -40,7 +33,7 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
         placeholder: rest.placeholder,
       }}
       onChange={(value) => {
-        onChange("+" + value);
+        onChange(`+${value}`);
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -68,11 +61,15 @@ function BasePhoneInput({ name, className = "", onChange, ...rest }: PhoneInputP
 
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState("us");
-  trpc.viewer.public.countryCode.useQuery(undefined, {
+  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
     retry: false,
-    onSuccess: (data) => {
+  });
+
+  useEffect(
+    function refactorMeWithoutEffect() {
+      const data = query.data;
       if (!data?.countryCode) {
         return;
       }
@@ -81,7 +78,8 @@ const useDefaultCountry = () => {
         ? setDefaultCountry(data.countryCode.toLowerCase())
         : setDefaultCountry(navigator.language.split("-")[1]?.toLowerCase() || "us");
     },
-  });
+    [query.data]
+  );
 
   return defaultCountry;
 };

@@ -1,18 +1,28 @@
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import dynamic from "next/dynamic";
 
-import type { PublicEvent } from "../../types";
+import { formatPrice } from "@calcom/lib/price";
 
-export const EventPrice = ({ event }: { event: PublicEvent }) => {
-  const stripeAppData = getPaymentAppData(event);
+import type { EventPrice } from "../../types";
 
-  if (stripeAppData.price === 0) return null;
+const AlbyPriceComponent = dynamic(
+  () => import("@calcom/app-store/alby/components/AlbyPriceComponent").then((m) => m.AlbyPriceComponent),
+  {
+    ssr: false,
+  }
+);
 
-  return (
-    <>
-      {Intl.NumberFormat("en", {
-        style: "currency",
-        currency: stripeAppData.currency.toUpperCase(),
-      }).format(stripeAppData.price / 100.0)}
-    </>
+export const Price = ({ price, currency, displayAlternateSymbol = true }: EventPrice) => {
+  if (price === 0) return null;
+
+  const formattedPrice = formatPrice(price, currency);
+
+  return currency !== "BTC" ? (
+    <>{formattedPrice}</>
+  ) : (
+    <AlbyPriceComponent
+      displaySymbol={displayAlternateSymbol}
+      price={price}
+      formattedPrice={formattedPrice}
+    />
   );
 };

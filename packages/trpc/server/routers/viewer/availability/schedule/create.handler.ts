@@ -54,6 +54,8 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     },
   };
 
+  data.timeZone = user.timeZone;
+
   const schedule = await prisma.schedule.create({
     data,
   });

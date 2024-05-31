@@ -8,12 +8,14 @@ const sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
 const send = async ({
   subject,
   to,
+  cc,
   from,
   text,
   html,
 }: {
   subject: string;
-  to: string;
+  to: string | string[];
+  cc?: string | string[];
   from: string;
   text: string;
   html?: string;
@@ -22,9 +24,10 @@ const send = async ({
 
   const msg = {
     to,
+    cc,
     from: {
       email: from,
-      name: "Cal AI",
+      name: "Cal.ai",
     },
     text,
     html,

@@ -5,13 +5,14 @@ import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const { client_id, client_secret, user_agent } = await getAppKeysFromSlug("basecamp3");
 
-  const redirectUri = WEBAPP_URL + "/api/integrations/basecamp3/callback";
+  const redirectUri = `${WEBAPP_URL}/api/integrations/basecamp3/callback`;
 
   const params = new URLSearchParams({
     type: "web_server",
@@ -85,6 +86,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     },
   });
+
+  const state = decodeOAuthState(req);
+
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
+  }
 
   res.redirect(getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug }));
 }

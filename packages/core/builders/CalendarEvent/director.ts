@@ -1,7 +1,11 @@
-import { Booking } from "@prisma/client";
+import type { Booking } from "@prisma/client";
 
-import { CalendarEventBuilder } from "./builder";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
+import type { CalendarEventBuilder } from "./builder";
+
+const log = logger.getSubLogger({ prefix: ["builders", "CalendarEvent", "director"] });
 export class CalendarEventDirector {
   private builder!: CalendarEventBuilder;
   private existingBooking!: Partial<Booking>;
@@ -44,6 +48,10 @@ export class CalendarEventDirector {
       this.builder.setDescription(this.builder.eventType.description);
       this.builder.setNotes(this.existingBooking.description);
       this.builder.buildRescheduleLink(this.existingBooking, this.builder.eventType);
+      log.debug(
+        "buildForRescheduleEmail",
+        safeStringify({ existingBooking: this.existingBooking, builder: this.builder })
+      );
     } else {
       throw new Error("buildForRescheduleEmail.missing.params.required");
     }

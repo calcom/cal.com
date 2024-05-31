@@ -2,21 +2,28 @@ import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@pri
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
+import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
-import { isEventTypeOwnerKYCVerified } from "@calcom/features/ee/workflows/lib/isEventTypeOwnerKYCVerified";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
-const log = logger.getChildLogger({ prefix: ["[handleConfirmation] book:user"] });
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "../../ee/workflows/lib/allowDisablingStandardEmails";
+
+const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
 export async function handleConfirmation(args: {
   user: EventManagerUser & { username: string | null };
@@ -32,10 +39,20 @@ export async function handleConfirmation(args: {
       length: number;
       price: number;
       requiresConfirmation: boolean;
+      metadata?: Prisma.JsonValue;
       title: string;
+      team?: {
+        parentId: number | null;
+      } | null;
       teamId?: number | null;
       parentId?: number | null;
+      workflows?: {
+        workflow: Workflow & {
+          steps: WorkflowStep[];
+        };
+      }[];
     } | null;
+    metadata?: Prisma.JsonValue;
     eventTypeId: number | null;
     smsReminderNumber: string | null;
     userId: number | null;
@@ -46,6 +63,7 @@ export async function handleConfirmation(args: {
   const eventManager = new EventManager(user);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
+  const metadata: AdditionalInformation = {};
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -53,10 +71,8 @@ export async function handleConfirmation(args: {
       message: "Booking failed",
     };
 
-    log.error(`Booking ${user.username} failed`, error, results);
+    log.error(`Booking ${user.username} failed`, safeStringify({ error, results }));
   } else {
-    const metadata: AdditionalInformation = {};
-
     if (results.length) {
       // TODO: Handle created event metadata more elegantly
       metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
@@ -64,13 +80,39 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      await sendScheduledEmails({ ...evt, additionalInformation: metadata });
+      const eventType = booking.eventType;
+      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+      let isHostConfirmationEmailsDisabled = false;
+      let isAttendeeConfirmationEmailDisabled = false;
+
+      const workflows = eventType?.workflows?.map((workflow) => workflow.workflow);
+
+      if (workflows) {
+        isHostConfirmationEmailsDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.host || false;
+        isAttendeeConfirmationEmailDisabled =
+          eventTypeMetadata?.disableStandardEmails?.confirmation?.attendee || false;
+
+        if (isHostConfirmationEmailsDisabled) {
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+        }
+
+        if (isAttendeeConfirmationEmailDisabled) {
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
+        }
+      }
+
+      await sendScheduledEmails(
+        { ...evt, additionalInformation: metadata },
+        undefined,
+        isHostConfirmationEmailsDisabled,
+        isAttendeeConfirmationEmailDisabled
+      );
     } catch (error) {
       log.error(error);
     }
   }
   let updatedBookings: {
-    scheduledJobs: string[];
     id: number;
     description: string | null;
     location: string | null;
@@ -87,18 +129,8 @@ export async function handleConfirmation(args: {
     eventType: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
-      team: {
-        metadata: Prisma.JsonValue;
-      } | null;
       owner: {
         hideBranding?: boolean | null;
-        metadata: Prisma.JsonValue;
-        teams: {
-          accepted: boolean;
-          team: {
-            metadata: Prisma.JsonValue;
-          };
-        }[];
       } | null;
       workflows: (WorkflowsOnEventTypes & {
         workflow: Workflow & {
@@ -107,6 +139,9 @@ export async function handleConfirmation(args: {
       })[];
     } | null;
   }[] = [];
+
+  const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -129,31 +164,19 @@ export async function handleConfirmation(args: {
             create: scheduleResult.referencesToCreate,
           },
           paid,
+          metadata: {
+            ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
+            videoCallUrl: meetingUrl,
+          },
         },
         select: {
           eventType: {
             select: {
               slug: true,
               bookingFields: true,
-              team: {
-                select: {
-                  metadata: true,
-                },
-              },
               owner: {
                 select: {
                   hideBranding: true,
-                  metadata: true,
-                  teams: {
-                    select: {
-                      accepted: true,
-                      team: {
-                        select: {
-                          metadata: true,
-                        },
-                      },
-                    },
-                  },
                 },
               },
               workflows: {
@@ -177,7 +200,6 @@ export async function handleConfirmation(args: {
           smsReminderNumber: true,
           customInputs: true,
           id: true,
-          scheduledJobs: true,
         },
       })
     );
@@ -196,31 +218,19 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
+        metadata: {
+          ...(typeof booking.metadata === "object" ? booking.metadata : {}),
+          videoCallUrl: meetingUrl,
+        },
       },
       select: {
         eventType: {
           select: {
             slug: true,
             bookingFields: true,
-            team: {
-              select: {
-                metadata: true,
-              },
-            },
             owner: {
               select: {
                 hideBranding: true,
-                metadata: true,
-                teams: {
-                  select: {
-                    accepted: true,
-                    team: {
-                      select: {
-                        metadata: true,
-                      },
-                    },
-                  },
-                },
               },
             },
             workflows: {
@@ -244,41 +254,38 @@ export async function handleConfirmation(args: {
         location: true,
         customInputs: true,
         id: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);
   }
 
-  const isKYCVerified = isEventTypeOwnerKYCVerified(updatedBookings[0].eventType);
-
   //Workflows - set reminders for confirmed events
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
-      if (updatedBookings[index].eventType?.workflows) {
-        const evtOfBooking = evt;
-        evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
-        evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-        evtOfBooking.uid = updatedBookings[index].uid;
-        const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-
-        const isFirstBooking = index === 0;
-        const videoCallUrl =
-          bookingMetadataSchema.parse(updatedBookings[index].metadata || {})?.videoCallUrl || "";
-
-        await scheduleWorkflowReminders({
-          workflows: updatedBookings[index]?.eventType?.workflows || [],
-          smsReminderNumber: updatedBookings[index].smsReminderNumber,
-          calendarEvent: {
-            ...evtOfBooking,
-            ...{ metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } },
-          },
-          isFirstRecurringEvent: isFirstBooking,
-          hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-          eventTypeRequiresConfirmation: true,
-          isKYCVerified,
-        });
-      }
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const evtOfBooking = {
+        ...evt,
+        metadata: { videoCallUrl: meetingUrl },
+        eventType: { slug: eventTypeSlug },
+      };
+      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+      evtOfBooking.uid = updatedBookings[index].uid;
+      const isFirstBooking = index === 0;
+      await scheduleMandatoryReminder(
+        evtOfBooking,
+        updatedBookings[index]?.eventType?.workflows || [],
+        false,
+        !!updatedBookings[index].eventType?.owner?.hideBranding,
+        evt.attendeeSeatId
+      );
+      await scheduleWorkflowReminders({
+        workflows: updatedBookings[index]?.eventType?.workflows || [],
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: evtOfBooking,
+        isFirstRecurringEvent: isFirstBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+      });
     }
   } catch (error) {
     // Silently fail
@@ -301,6 +308,12 @@ export async function handleConfirmation(args: {
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
     });
+    const subscribersMeetingStarted = await getWebhooks({
+      userId: triggerForUser ? booking.userId : null,
+      eventTypeId: booking.eventTypeId,
+      triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+      teamId: booking.eventType?.teamId,
+    });
     const subscribersMeetingEnded = await getWebhooks({
       userId: triggerForUser ? booking.userId : null,
       eventTypeId: booking.eventTypeId,
@@ -308,11 +321,34 @@ export async function handleConfirmation(args: {
       teamId: booking.eventType?.teamId,
     });
 
-    subscribersMeetingEnded.forEach((subscriber) => {
+    const scheduleTriggerPromises: Promise<unknown>[] = [];
+
+    subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber);
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
       });
     });
+    subscribersMeetingEnded.forEach((subscriber) => {
+      updatedBookings.forEach((booking) => {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
+      });
+    });
+
+    await Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
       eventTitle: booking.eventType?.title,
@@ -331,10 +367,11 @@ export async function handleConfirmation(args: {
         eventTypeId: booking.eventType?.id,
         status: "ACCEPTED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       }).catch((e) => {
-        console.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
-          e
+        log.error(
+          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+          safeStringify(e)
         );
       })
     );
@@ -389,9 +426,9 @@ export async function handleConfirmation(args: {
             ...(paid ? paymentMetadata : {}),
           },
         }).catch((e) => {
-          console.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}`,
-            e
+          log.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+            safeStringify(e)
           );
         })
       );

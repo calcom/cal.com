@@ -13,17 +13,36 @@ export interface ICity {
   timezone: string;
 }
 
-export function TimezoneSelect({
-  className,
-  classNames: timezoneClassNames,
-  components,
-  variant = "default",
-  ...props
-}: SelectProps & { variant?: "default" | "minimal" }) {
-  const [cities, setCities] = useState<ICity[]>([]);
-  const { data, isLoading } = trpc.viewer.public.cityTimezones.useQuery(undefined, {
+export type TimezoneSelectProps = SelectProps & {
+  variant?: "default" | "minimal";
+  timezoneSelectCustomClassname?: string;
+};
+export function TimezoneSelect(props: TimezoneSelectProps) {
+  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(undefined, {
     trpc: { context: { skipBatch: true } },
   });
+
+  return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
+}
+
+export type TimezoneSelectComponentProps = SelectProps & {
+  variant?: "default" | "minimal";
+  isPending: boolean;
+  data: ICity[] | undefined;
+  timezoneSelectCustomClassname?: string;
+};
+export function TimezoneSelectComponent({
+  className,
+  classNames: timezoneClassNames,
+  timezoneSelectCustomClassname,
+  components,
+  variant = "default",
+  data,
+  isPending,
+  value,
+  ...props
+}: TimezoneSelectComponentProps) {
+  const [cities, setCities] = useState<ICity[]>([]);
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
   };
@@ -36,9 +55,10 @@ export function TimezoneSelect({
 
   return (
     <BaseSelect
-      className={className}
-      isLoading={isLoading}
-      isDisabled={isLoading}
+      value={value}
+      className={`${className} ${timezoneSelectCustomClassname}`}
+      isLoading={isPending}
+      isDisabled={isPending}
       {...reactSelectProps}
       timezones={{
         ...(data ? addCitiesToDropdown(data) : {}),

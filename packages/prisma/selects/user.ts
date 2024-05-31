@@ -13,13 +13,21 @@ export const availabilityUserSelect = Prisma.validator<Prisma.UserSelect>()({
   // Relationships
   schedules: {
     select: {
-      availability: true,
+      availability: {
+        select: {
+          date: true,
+          startTime: true,
+          endTime: true,
+          days: true,
+        },
+      },
       timeZone: true,
       id: true,
     },
   },
   availability: true,
   selectedCalendars: true,
+  travelSchedules: true,
 });
 
 export const baseUserSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -44,7 +52,6 @@ export const userSelect = Prisma.validator<Prisma.UserArgs>()({
     brandColor: true,
     darkBrandColor: true,
     metadata: true,
-    organizationId: true,
     ...availabilityUserSelect,
   },
 });

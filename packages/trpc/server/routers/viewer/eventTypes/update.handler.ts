@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
-import { stripeDataSchema } from "@calcom/app-store/stripepayment/lib/server";
+import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
@@ -18,14 +18,26 @@ import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinati
 import type { TUpdateInputSchema } from "./update.schema";
 import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
 
+type SessionUser = NonNullable<TrpcSessionUser>;
+type User = {
+  id: SessionUser["id"];
+  username: SessionUser["username"];
+  profile: {
+    id: SessionUser["profile"]["id"] | null;
+  };
+  selectedCalendars: SessionUser["selectedCalendars"];
+};
+
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: User;
     res?: NextApiResponse | GetServerSidePropsContext["res"];
     prisma: PrismaClient;
   };
   input: TUpdateInputSchema;
 };
+
+export type UpdateEventTypeReturn = Awaited<ReturnType<typeof updateHandler>>;
 
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const {
@@ -39,6 +51,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     recurringEvent,
     users,
     children,
+    assignAllTeamMembers,
     hosts,
     id,
     hashedLink,
@@ -47,12 +60,23 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     userId,
     bookingFields,
     offsetStart,
+    secondaryEmailId,
+    aiPhoneCallConfig,
     ...rest
   } = input;
 
   const eventType = await ctx.prisma.eventType.findUniqueOrThrow({
     where: { id },
     select: {
+      title: true,
+      aiPhoneCallConfig: {
+        select: {
+          generalPrompt: true,
+          beginMessage: true,
+          enabled: true,
+          llmId: true,
+        },
+      },
       children: {
         select: {
           userId: true,
@@ -65,9 +89,33 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
       team: {
         select: {
-          name: true,
           id: true,
+          name: true,
+          slug: true,
           parentId: true,
+          parent: {
+            select: {
+              slug: true,
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  name: true,
+                  id: true,
+                  email: true,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -196,10 +244,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => ({
-        ...host,
-        isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
-      })),
+      create: hosts.map((host) => {
+        const { ...rest } = host;
+        return {
+          ...rest,
+          isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
+          priority: host.priority ?? 2, // default to medium priority
+        };
+      }),
     };
   }
 
@@ -241,43 +293,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (input.metadata?.apps?.stripe?.price) {
-    data.price = input.metadata?.apps?.stripe?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        type: {
-          equals: "stripe_payment",
-        },
-      },
-      select: {
-        type: true,
-        key: true,
-      },
-    });
-
-    if (paymentCredential?.type === "stripe_payment") {
-      const { default_currency } = stripeDataSchema.parse(paymentCredential.key);
-      data.currency = default_currency;
-    }
-  }
-
-  if (input.metadata?.apps?.paypal?.price) {
-    data.price = input.metadata?.apps?.paypal?.price;
-    const paymentCredential = await ctx.prisma.credential.findFirst({
-      where: {
-        userId: ctx.user.id,
-        type: {
-          equals: "paypal_payment",
-        },
-      },
-      select: {
-        type: true,
-        key: true,
-      },
-    });
-    if (paymentCredential?.type === "paypal_payment" && input.metadata?.apps?.paypal?.currency) {
-      data.currency = input.metadata?.apps?.paypal?.currency.toLowerCase();
+  for (const appKey in input.metadata?.apps) {
+    const app = input.metadata?.apps[appKey as keyof typeof appDataSchemas];
+    // There should only be one enabled payment app in the metadata
+    if (app.enabled && app.price && app.currency) {
+      data.price = app.price;
+      data.currency = app.currency;
+      break;
     }
   }
 
@@ -320,6 +342,58 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
+  data.assignAllTeamMembers = assignAllTeamMembers ?? false;
+
+  // Validate the secondary email
+  if (secondaryEmailId) {
+    const secondaryEmail = await ctx.prisma.secondaryEmail.findUnique({
+      where: {
+        id: secondaryEmailId,
+        userId: ctx.user.id,
+      },
+    });
+    // Make sure the secondary email id belongs to the current user and its a verified one
+    if (secondaryEmail && secondaryEmail.emailVerified) {
+      data.secondaryEmail = {
+        connect: {
+          id: secondaryEmailId,
+        },
+      };
+      // Delete the data if the user selected his original email to send the events to, which means the value coming will be -1
+    } else if (secondaryEmailId === -1) {
+      data.secondaryEmail = {
+        disconnect: true,
+      };
+    }
+  }
+
+  if (aiPhoneCallConfig) {
+    if (aiPhoneCallConfig.enabled) {
+      await ctx.prisma.aIPhoneCallConfiguration.upsert({
+        where: {
+          eventTypeId: id,
+        },
+        update: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+        },
+        create: {
+          ...aiPhoneCallConfig,
+          guestEmail: !!aiPhoneCallConfig?.guestEmail ? aiPhoneCallConfig.guestEmail : null,
+          guestCompany: !!aiPhoneCallConfig?.guestCompany ? aiPhoneCallConfig.guestCompany : null,
+          eventTypeId: id,
+        },
+      });
+    } else if (!aiPhoneCallConfig.enabled && eventType.aiPhoneCallConfig) {
+      await ctx.prisma.aIPhoneCallConfiguration.delete({
+        where: {
+          eventTypeId: id,
+        },
+      });
+    }
+  }
+
   const updatedEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     slug: true,
     schedulingType: true,
@@ -340,6 +414,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
     throw e;
   }
+  const updatedValues = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      // @ts-expect-error Element implicitly has any type
+      acc[key] = value;
+    }
+    return acc;
+  }, {});
 
   // Handling updates to children event types (managed events types)
   await updateChildrenEventTypes({
@@ -350,8 +431,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     connectedLink,
     updatedEventType,
     children,
+    profileId: ctx.user.profile.id,
     prisma: ctx.prisma,
+    updatedValues,
   });
+
   const res = ctx.res as NextApiResponse;
   if (typeof res?.revalidate !== "undefined") {
     try {

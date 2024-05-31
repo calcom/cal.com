@@ -1,15 +1,17 @@
-import { useSearchParams } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
+import { EventTypeDuplicateInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -24,7 +26,7 @@ import {
 } from "@calcom/ui";
 
 const querySchema = z.object({
-  title: z.string(),
+  title: z.string().min(1),
   description: z.string().default(""),
   slug: z.string(),
   id: z.coerce.number(),
@@ -33,7 +35,7 @@ const querySchema = z.object({
 });
 
 const DuplicateDialog = () => {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -47,6 +49,7 @@ const DuplicateDialog = () => {
       slug: t("event_type_duplicate_copy_text", { slug }),
       ...defaultValues,
     },
+    resolver: zodResolver(EventTypeDuplicateInput),
   });
   const { register } = form;
 
@@ -65,8 +68,13 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
-      await router.replace("/event-types/" + eventType.id);
-      showToast(t("event_type_created_successfully"), "success");
+      await router.replace(`/event-types/${eventType.id}`);
+      showToast(
+        t("event_type_created_successfully", {
+          eventTypeTitle: eventType.title,
+        }),
+        "success"
+      );
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -90,7 +98,7 @@ const DuplicateDialog = () => {
     <Dialog
       name="duplicate"
       clearQueryParamsOnClose={["description", "title", "length", "slug", "name", "id", "pageSlug"]}>
-      <DialogContent type="creation" className="overflow-y-auto" title="Duplicate Event Type">
+      <DialogContent type="creation" className="overflow-y-auto" title={t("duplicate_event_type")}>
         <Form
           form={form}
           handleSubmit={(values) => {
@@ -156,7 +164,7 @@ const DuplicateDialog = () => {
           </div>
           <DialogFooter showDivider className="mt-10">
             <DialogClose />
-            <Button type="submit" loading={duplicateMutation.isLoading}>
+            <Button data-testid="continue" type="submit" loading={duplicateMutation.isPending}>
               {t("continue")}
             </Button>
           </DialogFooter>

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { create } from "zustand";
 
 import dayjs from "@calcom/dayjs";
+import { BOOKER_NUMBER_OF_DAYS_TO_LOAD } from "@calcom/lib/constants";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
@@ -27,6 +28,7 @@ type StoreInitializeType = {
   seatReferenceUid?: string;
   durationConfig?: number[] | null;
   org?: string | null;
+  isInstantMeeting?: boolean;
 };
 
 type SeatedEventData = {
@@ -104,6 +106,11 @@ export type BookerStore = {
   occurenceCount: number | null;
   setOccurenceCount(count: number | null): void;
   /**
+   * The number of days worth of schedules to load.
+   */
+  dayCount: number | null;
+  setDayCount: (dayCount: number | null) => void;
+  /**
    * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
    * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
@@ -111,6 +118,8 @@ export type BookerStore = {
   rescheduleUid: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
+  setBookingData: (bookingData: GetBookingType | null | undefined) => void;
+
   /**
    * Method called by booker component to set initial data.
    */
@@ -128,9 +137,13 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
-  org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
+
+  isInstantMeeting?: boolean;
+
+  org?: string | null;
+  setOrg: (org: string | null | undefined) => void;
 };
 
 /**
@@ -198,9 +211,17 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   },
   month: getQueryParam("month") || getQueryParam("date") || dayjs().format("YYYY-MM"),
   setMonth: (month: string | null) => {
+    if (!month) {
+      removeQueryParam("month");
+      return;
+    }
     set({ month, selectedTimeslot: null });
     updateQueryParam("month", month ?? "");
     get().setSelectedDate(null);
+  },
+  dayCount: BOOKER_NUMBER_OF_DAYS_TO_LOAD > 0 ? BOOKER_NUMBER_OF_DAYS_TO_LOAD : null,
+  setDayCount: (dayCount: number | null) => {
+    set({ dayCount });
   },
   isTeamEvent: false,
   seatedEventData: {
@@ -225,6 +246,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     isTeamEvent,
     durationConfig,
     org,
+    isInstantMeeting,
   }: StoreInitializeType) => {
     const selectedDateInStore = get().selectedDate;
 
@@ -256,22 +278,45 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
         (["week_view", "column_view"].includes(layout) ? dayjs().format("YYYY-MM-DD") : null),
     });
 
-    if (eventId) {
-      if (durationConfig?.includes(Number(getQueryParam("duration")))) {
-        set({
-          selectedDuration: Number(getQueryParam("duration")),
-        });
-      } else {
-        removeQueryParam("duration");
-      }
+    if (durationConfig?.includes(Number(getQueryParam("duration")))) {
+      set({
+        selectedDuration: Number(getQueryParam("duration")),
+      });
+    } else {
+      removeQueryParam("duration");
     }
 
     // Unset selected timeslot if user is rescheduling. This could happen
     // if the user reschedules a booking right after the confirmation page.
     // In that case the time would still be store in the store, this way we
     // force clear this.
-    if (rescheduleUid && bookingData) set({ selectedTimeslot: null });
+    // Also, fetch the original booking duration if user is rescheduling and
+    // update the selectedDuration
+    if (rescheduleUid && bookingData) {
+      set({ selectedTimeslot: null });
+      const originalBookingLength = dayjs(bookingData?.endTime).diff(
+        dayjs(bookingData?.startTime),
+        "minutes"
+      );
+      set({ selectedDuration: originalBookingLength });
+      updateQueryParam("duration", originalBookingLength ?? "");
+    }
     if (month) set({ month });
+
+    if (isInstantMeeting) {
+      const month = dayjs().format("YYYY-MM");
+      const selectedDate = dayjs().format("YYYY-MM-DD");
+      const selectedTimeslot = new Date().toISOString();
+      set({
+        month,
+        selectedDate,
+        selectedTimeslot,
+        isInstantMeeting,
+      });
+      updateQueryParam("month", month);
+      updateQueryParam("date", selectedDate ?? "");
+      updateQueryParam("slot", selectedTimeslot ?? "", false);
+    }
     //removeQueryParam("layout");
   },
   durationConfig: null,
@@ -279,6 +324,9 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   setSelectedDuration: (selectedDuration: number | null) => {
     set({ selectedDuration });
     updateQueryParam("duration", selectedDuration ?? "");
+  },
+  setBookingData: (bookingData: GetBookingType | null | undefined) => {
+    set({ bookingData: bookingData ?? null });
   },
   recurringEventCount: null,
   setRecurringEventCount: (recurringEventCount: number | null) => set({ recurringEventCount }),
@@ -290,11 +338,15 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   selectedTimeslot: getQueryParam("slot") || null,
   setSelectedTimeslot: (selectedTimeslot: string | null) => {
     set({ selectedTimeslot });
-    updateQueryParam("slot", selectedTimeslot ?? "");
+    updateQueryParam("slot", selectedTimeslot ?? "", false);
   },
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {
     set({ formValues });
+  },
+  org: null,
+  setOrg: (org: string | null | undefined) => {
+    set({ org });
   },
 }));
 
@@ -310,6 +362,7 @@ export const useInitializeBookerStore = ({
   isTeamEvent,
   durationConfig,
   org,
+  isInstantMeeting,
 }: StoreInitializeType) => {
   const initializeStore = useBookerStore((state) => state.initialize);
   useEffect(() => {
@@ -325,6 +378,7 @@ export const useInitializeBookerStore = ({
       org,
       verifiedEmail,
       durationConfig,
+      isInstantMeeting,
     });
   }, [
     initializeStore,
@@ -339,5 +393,6 @@ export const useInitializeBookerStore = ({
     isTeamEvent,
     verifiedEmail,
     durationConfig,
+    isInstantMeeting,
   ]);
 };

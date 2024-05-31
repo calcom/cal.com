@@ -30,8 +30,29 @@ const dailyReturnTypeSchema = z.object({
     enable_chat: z.boolean(),
     enable_knocking: z.boolean(),
     enable_prejoin_ui: z.boolean(),
+    enable_transcription_storage: z.boolean().default(false),
   }),
 });
+
+const getTranscripts = z.object({
+  total_count: z.number(),
+  data: z.array(
+    z.object({
+      transcriptId: z.string(),
+      domainId: z.string(),
+      roomId: z.string(),
+      mtgSessionId: z.string(),
+      duration: z.number(),
+      status: z.string(),
+    })
+  ),
+});
+
+const getRooms = z
+  .object({
+    id: z.string(),
+  })
+  .passthrough();
 
 export interface DailyEventResult {
   id: string;
@@ -60,6 +81,7 @@ export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
   type: "daily_video",
   key: { apikey: process.env.DAILY_API_KEY },
   userId: 0,
+  user: { email: "" },
   appId: "daily-video",
   invalid: false,
   teamId: null,
@@ -70,7 +92,7 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
   return fetch(`https://api.daily.co/v1${endpoint}`, {
     method: "GET",
     headers: {
-      Authorization: "Bearer " + api_key,
+      Authorization: `Bearer ${api_key}`,
       "Content-Type": "application/json",
       ...init?.headers,
     },
@@ -83,6 +105,33 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
     method: "POST",
     body: JSON.stringify(body),
   });
+}
+
+async function processTranscriptsInBatches(transcriptIds: Array<string>) {
+  const batchSize = 5; // Batch size
+  const batches = []; // Array to hold batches of transcript IDs
+
+  // Split transcript IDs into batches
+  for (let i = 0; i < transcriptIds.length; i += batchSize) {
+    batches.push(transcriptIds.slice(i, i + batchSize));
+  }
+
+  const allTranscriptsAccessLinks = []; // Array to hold all access links
+
+  // Process each batch sequentially
+  for (const batch of batches) {
+    const batchPromises = batch.map((id) =>
+      fetcher(`/transcript/${id}/access-link`)
+        .then(z.object({ link: z.string() }).parse)
+        .then((res) => res.link)
+    );
+
+    const accessLinks = await Promise.all(batchPromises);
+
+    allTranscriptsAccessLinks.push(...accessLinks);
+  }
+
+  return allTranscriptsAccessLinks;
 }
 
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
@@ -106,8 +155,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
   const translateEvent = async (event: CalendarEvent) => {
     // Documentation at: https://docs.daily.co/reference#list-rooms
-    // added a 1 hour buffer for room expiration
-    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60;
+    // Adds 14 days from the end of the booking as the expiration date
+    const exp = Math.round(new Date(event.endTime).getTime() / 1000) + 60 * 60 * 24 * 14;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
     const hasTeamPlan = await prisma.membership.findFirst({
       where: {
@@ -119,19 +168,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         },
       },
     });
-    if (scalePlan === "true" && !!hasTeamPlan === true) {
-      return {
-        privacy: "public",
-        properties: {
-          enable_prejoin_ui: true,
-          enable_knocking: true,
-          enable_screenshare: true,
-          enable_chat: true,
-          exp: exp,
-          enable_recording: "cloud",
-        },
-      };
-    }
+
     return {
       privacy: "public",
       properties: {
@@ -140,9 +177,47 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
+        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
+        enable_transcription_storage: !!hasTeamPlan,
+        ...(!!hasTeamPlan && {
+          permissions: {
+            canAdmin: ["transcription"],
+          },
+        }),
       },
     };
   };
+
+  async function createInstantMeeting(endTime: string) {
+    // added a 1 hour buffer for room expiration
+    const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
+
+    const body = {
+      privacy: "public",
+      properties: {
+        enable_prejoin_ui: true,
+        enable_knocking: true,
+        enable_screenshare: true,
+        enable_chat: true,
+        exp: exp,
+        enable_recording: "cloud",
+        start_video_off: true,
+        enable_transcription_storage: true,
+      },
+    };
+
+    const dailyEvent = await postToDailyAPI("/rooms", body).then(dailyReturnTypeSchema.parse);
+    const meetingToken = await postToDailyAPI("/meeting-tokens", {
+      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+    }).then(meetingTokenSchema.parse);
+
+    return Promise.resolve({
+      type: "daily_video",
+      id: dailyEvent.name,
+      password: meetingToken.token,
+      url: dailyEvent.url,
+    });
+  }
 
   return {
     /** Daily doesn't need to return busy times, so we return empty */
@@ -167,15 +242,34 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         throw new Error("Something went wrong! Unable to get recording");
       }
     },
+    createInstantCalVideoRoom: (endTime: string) => createInstantMeeting(endTime),
     getRecordingDownloadLink: async (recordingId: string): Promise<GetAccessLinkResponseSchema> => {
       try {
-        const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=172800`).then(
+        const res = await fetcher(`/recordings/${recordingId}/access-link?valid_for_secs=43200`).then(
           getAccessLinkResponseSchema.parse
         );
         return Promise.resolve(res);
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! Unable to get recording access link");
+      }
+    },
+    getAllTranscriptsAccessLinkFromRoomName: async (roomName: string): Promise<Array<string>> => {
+      try {
+        const res = await fetcher(`/rooms/${roomName}`).then(getRooms.parse);
+        const roomId = res.id;
+        const allTranscripts = await fetcher(`/transcript?roomId=${roomId}`).then(getTranscripts.parse);
+
+        if (!allTranscripts.data.length) return [];
+
+        const allTranscriptsIds = allTranscripts.data.map((transcript) => transcript.transcriptId);
+        const allTranscriptsAccessLink = await processTranscriptsInBatches(allTranscriptsIds);
+        const accessLinks = await Promise.all(allTranscriptsAccessLink);
+
+        return Promise.resolve(accessLinks);
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to get transcription access link");
       }
     },
   };

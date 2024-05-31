@@ -1,3 +1,14 @@
+import type { UseBookerLayoutType } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
+import type { UseBookingFormReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookingForm";
+import type { UseBookingsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useBookings";
+import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useCalendars";
+import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
+import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
+import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
+import type {
+  useEventReturnType,
+  useScheduleForEventReturnType,
+} from "@calcom/features/bookings/Booker/utils/event";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
@@ -5,15 +16,23 @@ import type { GetBookingType } from "../lib/get-booking";
 export interface BookerProps {
   eventSlug: string;
   username: string;
+  orgBannerUrl?: string | null;
+
+  /*
+    all custom classnames related to booker styling go here
+  */
+  customClassNames?: CustomClassNames;
 
   /**
    * Whether is a team or org, we gather basic info from both
    */
   entity: {
+    considerUnpublished: boolean;
     isUnpublished?: boolean;
     orgSlug?: string | null;
     teamSlug?: string | null;
     name?: string | null;
+    logoUrl?: string | null;
   };
 
   /**
@@ -33,11 +52,6 @@ export interface BookerProps {
   selectedDate?: Date;
 
   hideBranding?: boolean;
-  /**
-   * Sets the Booker component to the away state.
-   * This is NOT revalidated by calling the API.
-   */
-  isAway?: boolean;
   /**
    * If false and the current username indicates a dynamic booking,
    * the Booker will immediately show an error.
@@ -64,8 +78,77 @@ export interface BookerProps {
    * otherwise, the default value is selected
    */
   duration?: number | null;
+  /**
+   * Configures the selectable options for a multiDuration event type.
+   */
+  durationConfig?: number[];
+  /**
+   * Refers to the private link from event types page.
+   */
+  hashedLink?: string | null;
+  isInstantMeeting?: boolean;
 }
+
+export type WrappedBookerPropsMain = {
+  sessionUsername?: string | null;
+  rescheduleUid: string | null;
+  bookingUid: string | null;
+  isRedirect: boolean;
+  fromUserNameRedirected: string;
+  hasSession: boolean;
+  onGoBackInstantMeeting: () => void;
+  onConnectNowInstantMeeting: () => void;
+  onOverlayClickNoCalendar: () => void;
+  onClickOverlayContinue: () => void;
+  onOverlaySwitchStateChange: (state: boolean) => void;
+  extraOptions: Record<string, string | string[]>;
+  bookings: UseBookingsReturnType;
+  slots: UseSlotsReturnType;
+  calendars: UseCalendarsReturnType;
+  bookerForm: UseBookingFormReturnType;
+  event: useEventReturnType;
+  schedule: useScheduleForEventReturnType;
+  bookerLayout: UseBookerLayoutType;
+  verifyEmail: UseVerifyEmailReturnType;
+  customClassNames?: CustomClassNames;
+};
+
+export type WrappedBookerPropsForPlatform = WrappedBookerPropsMain & {
+  isPlatform: true;
+  verifyCode: undefined;
+  customClassNames?: CustomClassNames;
+};
+export type WrappedBookerPropsForWeb = WrappedBookerPropsMain & {
+  isPlatform: false;
+  verifyCode: UseVerifyCodeReturnType;
+};
+
+export type WrappedBookerProps = WrappedBookerPropsForPlatform | WrappedBookerPropsForWeb;
 
 export type BookerState = "loading" | "selecting_date" | "selecting_time" | "booking";
 export type BookerLayout = BookerLayouts | "mobile";
 export type BookerAreas = "calendar" | "timeslots" | "main" | "meta" | "header";
+
+export type CustomClassNames = {
+  bookerContainer?: string;
+  eventMetaCustomClassNames?: {
+    eventMetaContainer?: string;
+    eventMetaTitle?: string;
+    eventMetaTimezoneSelect?: string;
+  };
+  datePickerCustomClassNames?: {
+    datePickerContainer?: string;
+    datePickerTitle?: string;
+    datePickerDays?: string;
+    datePickerDate?: string;
+    datePickerDatesActive?: string;
+    datePickerToggle?: string;
+  };
+  availableTimeSlotsCustomClassNames?: {
+    availableTimeSlotsContainer?: string;
+    availableTimeSlotsHeaderContainer?: string;
+    availableTimeSlotsTitle?: string;
+    availableTimeSlotsTimeFormatToggle?: string;
+    availableTimes?: string;
+  };
+};

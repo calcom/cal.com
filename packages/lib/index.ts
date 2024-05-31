@@ -4,3 +4,4 @@ export * from "./isRecurringEvent";
 export * from "./isBookingLimits";
 export * from "./isDurationLimits";
 export * from "./validateIntervalLimitOrder";
+export * from "./schedules";

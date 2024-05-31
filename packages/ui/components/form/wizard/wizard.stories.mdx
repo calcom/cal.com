@@ -1,5 +1,4 @@
 import { Canvas, Meta, Story } from "@storybook/addon-docs";
-import { useRouter } from "next/router";
 
 import { CustomArgsTable, Title, VariantsTable, VariantRow } from "@calcom/storybook/components";
 
@@ -27,6 +26,11 @@ To observe the actual step navigation behavior, please refer to the Storybook st
 
 <Canvas>
   <Story
+    parameters={{
+      nextjs: {
+        appDirectory: true,
+      },
+    }}
     name="Basic"
     args={{
       href: "/wizard",

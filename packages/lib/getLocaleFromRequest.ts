@@ -3,7 +3,8 @@ import parser from "accept-language-parser";
 import type { GetServerSidePropsContext, NextApiRequest } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { Maybe } from "@calcom/trpc/server";
+
+type Maybe<T> = T | null | undefined;
 
 const { i18n } = require("@calcom/config/next-i18next.config");
 

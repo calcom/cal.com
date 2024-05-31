@@ -3,7 +3,7 @@ import { expect } from "@playwright/test";
 
 import type { Fixtures } from "@calcom/web/playwright/lib/fixtures";
 import { test } from "@calcom/web/playwright/lib/fixtures";
-import { gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
+import { NotFoundPageTextAppDir, gotoRoutingLink } from "@calcom/web/playwright/lib/testUtils";
 
 import {
   addForm,
@@ -36,7 +36,7 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.locator("text=ERROR 404")).toBeVisible();
+      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
     });
 
     test("should be able to edit the form", async ({ page }) => {
@@ -261,6 +261,7 @@ test.describe("Routing Forms", () => {
         ["custom-page", ""],
       ]);
 
+      await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
@@ -304,12 +305,14 @@ test.describe("Routing Forms", () => {
       await users.logout();
       page.goto(`/router?form=${routingForm.id}&Test field=event-routing`);
       await page.waitForURL((url) => {
-        return url.pathname.endsWith("/pro/30min");
+        return url.pathname.endsWith("/pro/30min") && url.searchParams.get("Test field") === "event-routing";
       });
 
       page.goto(`/router?form=${routingForm.id}&Test field=external-redirect`);
       await page.waitForURL((url) => {
-        return url.hostname.includes("google.com");
+        return (
+          url.hostname.includes("google.com") && url.searchParams.get("Test field") === "external-redirect"
+        );
       });
 
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
@@ -397,6 +400,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink({ page, formId: routingFormId });
   await page.fill('[data-testid="form-field-Test field"]', "event-routing");
   page.click('button[type="submit"]');
+
   await page.waitForURL((url) => {
     return url.pathname.endsWith("/pro/30min");
   });

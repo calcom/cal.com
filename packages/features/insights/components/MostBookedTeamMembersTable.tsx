@@ -11,11 +11,11 @@ import { TotalBookingUsersTable } from "./TotalBookingUsersTable";
 export const MostBookedTeamMembersTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedEventTypeId, isAll } = filter;
+  const { dateRange, selectedEventTypeId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.membersWithMostBookings.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.membersWithMostBookings.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -28,10 +28,11 @@ export const MostBookedTeamMembersTable = () => {
       trpc: {
         context: { skipBatch: true },
       },
+      enabled: !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll),
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || !teamId) return null;
 

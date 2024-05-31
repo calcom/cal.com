@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@calcom/prisma/client";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -15,6 +16,10 @@ interface ProjectMutationHandlerOptions {
   input: TProjectMutationInputSchema;
 }
 
+interface IDock {
+  id: number;
+  name: string;
+}
 export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHandlerOptions) => {
   const { user_agent } = await getAppKeysFromSlug("basecamp3");
   const { user, prisma } = ctx;
@@ -24,6 +29,7 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
     where: {
       userId: user?.id,
     },
+    select: credentialForCalendarServiceSelect,
   });
 
   if (!credential) {
@@ -46,7 +52,7 @@ export const projectMutationHandler = async ({ ctx, input }: ProjectMutationHand
     }
   );
   const scheduleJson = await scheduleResponse.json();
-  const scheduleId = scheduleJson.dock.find((dock: any) => dock.name === "schedule").id;
+  const scheduleId = scheduleJson.dock.find((dock: IDock) => dock.name === "schedule").id;
   await prisma.credential.update({
     where: { id: credential.id },
     data: { key: { ...credentialKey, projectId: Number(projectId), scheduleId } },

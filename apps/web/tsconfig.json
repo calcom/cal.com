@@ -5,6 +5,7 @@
     "paths": {
       "~/*": ["modules/*"],
       "@components/*": ["components/*"],
+      "@pages/*": ["pages/*"],
       "@lib/*": ["lib/*"],
       "@server/*": ["server/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
@@ -14,7 +15,8 @@
         "name": "next"
       }
     ],
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true
   },
   "include": [
     /* Find a way to not require this - App files don't belong here. */
@@ -24,7 +26,9 @@
     "../../packages/types/next-auth.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "../../packages/features/bookings/lib/getBookingInfo.ts",
+    "../../packages/features/bookings/lib/getUserBooking.ts"
   ],
   "exclude": ["node_modules"]
 }

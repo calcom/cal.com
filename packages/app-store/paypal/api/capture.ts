@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
+import { findPaymentCredentials } from "@calcom/app-store/paypal/api/webhook";
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
-import { findPaymentCredentials } from "@calcom/features/ee/payments/api/paypal-webhook";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 

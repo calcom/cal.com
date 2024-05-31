@@ -77,6 +77,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
       if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
       // contains the user id, it's already got the most recent booking marked.
       if (!booking.attendees.map((attendee) => attendee.email).includes(user.email)) return;
+      if (organizerIdAndAtCreatedPair[user.id] > booking.createdAt) return; // only consider bookings if they were created after organizer bookings
       aggregate[user.id] = booking.createdAt;
     });
     return aggregate;
@@ -101,9 +102,21 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   return leastRecentlyBookedUser;
 }
 
+function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { priority?: number | null }>({
+  availableUsers,
+}: {
+  availableUsers: T[];
+}) {
+  const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
+
+  return availableUsers.filter(
+    (user) => user.priority === highestPriority || (user.priority == null && highestPriority === 2)
+  );
+}
+
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
-export async function getLuckyUser<T extends Pick<User, "id" | "email">>(
+export async function getLuckyUser<T extends Pick<User, "id" | "email"> & { priority?: number | null }>(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
 ) {
@@ -112,6 +125,7 @@ export async function getLuckyUser<T extends Pick<User, "id" | "email">>(
   }
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
-      return leastRecentlyBookedUser<T>({ availableUsers, eventTypeId });
+      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
+      return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId });
   }
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -19,8 +21,12 @@ const SAMLSSO = () => {
   }, []);
 
   return (
-    <div className="bg-default w-full sm:mx-0 xl:mt-0">
-      <Meta title={t("sso_configuration")} description={t("sso_configuration_description")} />
+    <div className="bg-default w-full sm:mx-0">
+      <Meta
+        title={t("sso_configuration")}
+        description={t("sso_configuration_description")}
+        borderInShellHeader={true}
+      />
       <SSOConfiguration teamId={null} />
     </div>
   );

@@ -10,11 +10,11 @@ import { LoadingInsight } from "./LoadingInsights";
 export const PopularEventsTable = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId, selectedUserId, isAll } = filter;
+  const { dateRange, selectedMemberUserId, selectedUserId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId } = filter;
 
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.popularEventTypes.useQuery(
+  const { data, isSuccess, isPending } = trpc.viewer.insights.popularEventTypes.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -28,10 +28,11 @@ export const PopularEventsTable = () => {
       trpc: {
         context: { skipBatch: true },
       },
+      enabled: !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll),
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
 

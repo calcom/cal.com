@@ -1,22 +1,26 @@
 import type { Webhook } from "@prisma/client";
-import { Webhook as TbWebhook } from "lucide-react";
+import { Trans } from "next-i18next";
+import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { WebhookForm } from "@calcom/features/webhooks/components";
 import type { WebhookFormSubmitData } from "@calcom/features/webhooks/components/WebhookForm";
 import WebhookListItem from "@calcom/features/webhooks/components/WebhookListItem";
 import { subscriberUrlReserved } from "@calcom/features/webhooks/lib/subscriberUrlReserved";
+import { APP_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, Dialog, DialogContent, EmptyScreen, showToast } from "@calcom/ui";
-import { Plus, Lock } from "@calcom/ui/components/icon";
 
 export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
+  const formMethods = useFormContext<FormValues>();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({ eventTypeId: eventType.id });
 
@@ -32,8 +36,9 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       setEditModalOpen(false);
-      await utils.viewer.webhook.list.invalidate();
       showToast(t("webhook_updated_successfully"), "success");
+      await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -42,9 +47,10 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
 
   const createWebhookMutation = trpc.viewer.webhook.create.useMutation({
     async onSuccess() {
+      setCreateModalOpen(false);
       showToast(t("webhook_created_successfully"), "success");
       await utils.viewer.webhook.list.invalidate();
-      setCreateModalOpen(false);
+      await utils.viewer.eventTypes.get.invalidate();
     },
     onError(error) {
       showToast(`${error.message}`, "error");
@@ -84,18 +90,18 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
     );
   };
 
-  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager(
+  const { shouldLockDisableProps, isChildrenManagedEventType, isManagedEventType } = useLockedFieldsManager({
     eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+    translate: t,
+    formMethods,
+  });
   const webhookLockedStatus = shouldLockDisableProps("webhooks");
 
   return (
@@ -115,33 +121,61 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 )}
                 {webhooks.length ? (
                   <>
-                    <div className="mb-2 rounded-md border">
-                      {webhooks.map((webhook, index) => {
-                        return (
-                          <WebhookListItem
-                            key={webhook.id}
-                            webhook={webhook}
-                            lastItem={webhooks.length === index + 1}
-                            canEditWebhook={!webhookLockedStatus.disabled}
-                            onEditWebhook={() => {
-                              setEditModalOpen(true);
-                              setWebhookToEdit(webhook);
-                            }}
-                          />
-                        );
-                      })}
+                    <div className="border-subtle mb-2 rounded-md border p-8">
+                      <div className="flex justify-between">
+                        <div>
+                          <div className="text-default text-sm font-semibold">{t("webhooks")}</div>
+                          <p className="text-subtle max-w-[280px] break-words text-sm sm:max-w-[500px]">
+                            {t("add_webhook_description", { appName: APP_NAME })}
+                          </p>
+                        </div>
+                        {isChildrenManagedEventType && !isManagedEventType ? (
+                          <Button StartIcon="lock" color="secondary" disabled>
+                            {t("locked_by_team_admin")}
+                          </Button>
+                        ) : (
+                          <NewWebhookButton />
+                        )}
+                      </div>
+
+                      <div className="border-subtle my-8 rounded-md border">
+                        {webhooks.map((webhook, index) => {
+                          return (
+                            <WebhookListItem
+                              key={webhook.id}
+                              webhook={webhook}
+                              lastItem={webhooks.length === index + 1}
+                              canEditWebhook={!webhookLockedStatus.disabled}
+                              onEditWebhook={() => {
+                                setEditModalOpen(true);
+                                setWebhookToEdit(webhook);
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+
+                      <p className="text-default text-sm font-normal">
+                        <Trans i18nKey="edit_or_manage_webhooks">
+                          If you wish to edit or manage your web hooks, please head over to &nbsp;
+                          <Link
+                            className="cursor-pointer font-semibold underline"
+                            href="/settings/developer/webhooks">
+                            webhooks settings
+                          </Link>
+                        </Trans>
+                      </p>
                     </div>
-                    <NewWebhookButton />
                   </>
                 ) : (
                   <EmptyScreen
-                    Icon={TbWebhook}
+                    Icon="webhook"
                     headline={t("create_your_first_webhook")}
                     description={t("first_event_type_webhook_description")}
                     buttonRaw={
                       isChildrenManagedEventType && !isManagedEventType ? (
-                        <Button StartIcon={Lock} color="secondary" disabled>
-                          {t("locked_by_admin")}
+                        <Button StartIcon="lock" color="secondary" disabled>
+                          {t("locked_by_team_admin")}
                         </Button>
                       ) : (
                         <NewWebhookButton />

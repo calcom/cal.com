@@ -6,6 +6,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -46,6 +47,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         where: {
           id: details.credentialId,
         },
+        select: credentialForCalendarServiceSelect,
       });
     }
 
@@ -72,7 +74,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       startTime: booking.startTime ? dayjs(booking.startTime).format() : "",
       endTime: booking.endTime ? dayjs(booking.endTime).format() : "",
       organizer: {
-        email: organizer.email,
+        email: booking?.userPrimaryEmail ?? organizer.email,
         name: organizer.name ?? "Nameless",
         timeZone: organizer.timeZone,
         language: { translate: tOrganizer, locale: organizer.locale ?? "en" },
@@ -91,7 +93,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
     };
 
-    const credentials = await getUsersCredentials(ctx.user.id);
+    const credentials = await getUsersCredentials(ctx.user);
 
     const eventManager = new EventManager({
       ...ctx.user,

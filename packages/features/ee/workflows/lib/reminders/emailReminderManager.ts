@@ -1,12 +1,11 @@
-import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
-import sgMail from "@sendgrid/mail";
 import { createEvent } from "ics";
 import type { ParticipationStatus } from "ics";
 import type { DateArray } from "ics";
 import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
@@ -20,39 +19,26 @@ import {
 } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
+import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
-let sendgridAPIKey, senderEmail: string;
-
-const log = logger.getChildLogger({ prefix: ["[emailReminderManager]"] });
-if (process.env.SENDGRID_API_KEY) {
-  sendgridAPIKey = process.env.SENDGRID_API_KEY as string;
-  senderEmail = process.env.SENDGRID_EMAIL as string;
-
-  sgMail.setApiKey(sendgridAPIKey);
-  client.setApiKey(sendgridAPIKey);
-}
-
-async function getBatchId() {
-  if (!process.env.SENDGRID_API_KEY) {
-    console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
-    return "DUMMY_BATCH_ID";
-  }
-  const batchIdResponse = await client.request({
-    url: "/v3/mail/batch",
-    method: "POST",
-  });
-  return batchIdResponse[1].batch_id as string;
-}
+const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
 
 function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   const uid = uuidv4();
   let recurrenceRule: string | undefined = undefined;
   if (evt.eventType.recurringEvent?.count) {
     recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
+  }
+
+  let location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+
+  if (!location) {
+    location = guessEventLocationType(location)?.label || evt.location || "";
   }
 
   const icsEvent = createEvent({
@@ -66,7 +52,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     duration: { minutes: dayjs(evt.endTime).diff(dayjs(evt.startTime), "minute") },
     title: evt.title,
     description: evt.additionalNotes || "",
-    location: evt.location || "",
+    location,
     organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
     attendees: [
       {
@@ -94,25 +80,46 @@ type ScheduleEmailReminderAction = Extract<
   "EMAIL_HOST" | "EMAIL_ATTENDEE" | "EMAIL_ADDRESS"
 >;
 
-export const scheduleEmailReminder = async (
-  evt: BookingInfo,
-  triggerEvent: WorkflowTriggerEvents,
-  action: ScheduleEmailReminderAction,
+export interface ScheduleReminderArgs {
+  evt: BookingInfo;
+  triggerEvent: WorkflowTriggerEvents;
   timeSpan: {
     time: number | null;
     timeUnit: TimeUnit | null;
-  },
-  sendTo: MailData["to"],
-  emailSubject: string,
-  emailBody: string,
-  workflowStepId: number,
-  template: WorkflowTemplates,
-  sender: string,
-  hideBranding?: boolean,
-  seatReferenceUid?: string,
-  includeCalendarEvent?: boolean
-) => {
-  if (action === WorkflowActions.EMAIL_ADDRESS) return;
+  };
+  template: WorkflowTemplates;
+  sender?: string | null;
+  workflowStepId?: number;
+  seatReferenceUid?: string;
+}
+
+interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
+  sendTo: MailData["to"];
+  action: ScheduleEmailReminderAction;
+  emailSubject?: string;
+  emailBody?: string;
+  hideBranding?: boolean;
+  includeCalendarEvent?: boolean;
+  isMandatoryReminder?: boolean;
+}
+
+export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
+  const {
+    evt,
+    triggerEvent,
+    timeSpan,
+    template,
+    sender,
+    workflowStepId,
+    seatReferenceUid,
+    sendTo,
+    emailSubject = "",
+    emailBody = "",
+    hideBranding,
+    includeCalendarEvent,
+    isMandatoryReminder,
+    action,
+  } = args;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -126,12 +133,6 @@ export const scheduleEmailReminder = async (
     scheduledDate = timeSpan.time && timeUnit ? dayjs(endTime).add(timeSpan.time, timeUnit) : null;
   }
 
-  if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
-    console.error("Sendgrid credentials are missing from the .env file");
-  }
-
-  const sandboxMode = process.env.NEXT_PUBLIC_IS_E2E ? true : false;
-
   let attendeeEmailToBeUsedInMail: string | null = null;
   let attendeeToBeUsedInMail: AttendeeInBookingInfo | null = null;
   let name = "";
@@ -139,6 +140,12 @@ export const scheduleEmailReminder = async (
   let timeZone = "";
 
   switch (action) {
+    case WorkflowActions.EMAIL_ADDRESS:
+      name = "";
+      attendeeToBeUsedInMail = evt.attendees[0];
+      attendeeName = evt.attendees[0].name;
+      timeZone = evt.organizer.timeZone;
+      break;
     case WorkflowActions.EMAIL_HOST:
       attendeeToBeUsedInMail = evt.attendees[0];
       name = evt.organizer.name;
@@ -197,8 +204,10 @@ export const scheduleEmailReminder = async (
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
     };
 
     const locale =
@@ -227,6 +236,20 @@ export const scheduleEmailReminder = async (
       attendeeName,
       name
     );
+  } else if (template === WorkflowTemplates.RATING) {
+    emailContent = emailRatingTemplate({
+      isEditingMode: true,
+      action,
+      timeFormat: evt.organizer.timeFormat,
+      startTime,
+      endTime,
+      eventName: evt.title,
+      timeZone,
+      organizer: evt.organizer.name,
+      name,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+    });
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails
@@ -235,11 +258,6 @@ export const scheduleEmailReminder = async (
   const batchId = await getBatchId();
 
   function sendEmail(data: Partial<MailData>, triggerEvent?: WorkflowTriggerEvents) {
-    if (!process.env.SENDGRID_API_KEY) {
-      console.info("No sendgrid API key provided, skipping email");
-      return Promise.resolve();
-    }
-
     const status: ParticipationStatus =
       triggerEvent === WorkflowTriggerEvents.AFTER_EVENT
         ? "COMPLETED"
@@ -247,34 +265,28 @@ export const scheduleEmailReminder = async (
         ? "DECLINED"
         : "ACCEPTED";
 
-    return sgMail.send({
-      to: data.to,
-      from: {
-        email: senderEmail,
-        name: sender,
+    return sendSendgridMail(
+      {
+        to: data.to,
+        subject: emailContent.emailSubject,
+        html: emailContent.emailBody,
+        batchId,
+        replyTo: evt.organizer.email,
+        attachments: includeCalendarEvent
+          ? [
+              {
+                content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
+                filename: "event.ics",
+                type: "text/calendar; method=REQUEST",
+                disposition: "attachment",
+                contentId: uuidv4(),
+              },
+            ]
+          : undefined,
+        sendAt: data.sendAt,
       },
-      subject: emailContent.emailSubject,
-      html: emailContent.emailBody,
-      batchId,
-      replyTo: evt.organizer.email,
-      mailSettings: {
-        sandboxMode: {
-          enable: sandboxMode,
-        },
-      },
-      attachments: includeCalendarEvent
-        ? [
-            {
-              content: Buffer.from(getiCalEventAsString(evt, status) || "").toString("base64"),
-              filename: "event.ics",
-              type: "text/calendar; method=REQUEST",
-              disposition: "attachment",
-              contentId: uuidv4(),
-            },
-          ]
-        : undefined,
-      sendAt: data.sendAt,
-    });
+      { sender }
+    );
   }
 
   if (
@@ -289,7 +301,7 @@ export const scheduleEmailReminder = async (
       // TODO: Maybe don't await for this?
       await Promise.all(promises);
     } catch (error) {
-      console.log("Error sending Email");
+      log.error("Error sending Email");
     }
   } else if (
     (triggerEvent === WorkflowTriggerEvents.BEFORE_EVENT ||
@@ -311,32 +323,59 @@ export const scheduleEmailReminder = async (
           },
           triggerEvent
         );
+        if (!isMandatoryReminder) {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              workflowStepId: workflowStepId,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+            },
+          });
+        } else {
+          await prisma.workflowReminder.create({
+            data: {
+              bookingUid: uid,
+              method: WorkflowMethods.EMAIL,
+              scheduledDate: scheduledDate.toDate(),
+              scheduled: true,
+              referenceId: batchId,
+              seatReferenceId: seatReferenceUid,
+              isMandatoryReminder: true,
+            },
+          });
+        }
+      } catch (error) {
+        log.error(`Error scheduling email with error ${error}`);
+      }
+    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
+      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
+      if (!isMandatoryReminder) {
         await prisma.workflowReminder.create({
           data: {
             bookingUid: uid,
             workflowStepId: workflowStepId,
             method: WorkflowMethods.EMAIL,
             scheduledDate: scheduledDate.toDate(),
-            scheduled: true,
-            referenceId: batchId,
+            scheduled: false,
             seatReferenceId: seatReferenceUid,
           },
         });
-      } catch (error) {
-        console.log(`Error scheduling email with error ${error}`);
+      } else {
+        await prisma.workflowReminder.create({
+          data: {
+            bookingUid: uid,
+            method: WorkflowMethods.EMAIL,
+            scheduledDate: scheduledDate.toDate(),
+            scheduled: false,
+            seatReferenceId: seatReferenceUid,
+            isMandatoryReminder: true,
+          },
+        });
       }
-    } else if (scheduledDate.isAfter(currentDate.add(72, "hour"))) {
-      // Write to DB and send to CRON if scheduled reminder date is past 72 hours
-      await prisma.workflowReminder.create({
-        data: {
-          bookingUid: uid,
-          workflowStepId: workflowStepId,
-          method: WorkflowMethods.EMAIL,
-          scheduledDate: scheduledDate.toDate(),
-          scheduled: false,
-          seatReferenceId: seatReferenceUid,
-        },
-      });
     }
   }
 };
@@ -362,6 +401,6 @@ export const deleteScheduledEmailReminder = async (reminderId: number, reference
       },
     });
   } catch (error) {
-    console.log(`Error canceling reminder with error ${error}`);
+    log.error(`Error canceling reminder with error ${error}`);
   }
 };

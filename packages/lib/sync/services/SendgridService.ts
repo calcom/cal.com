@@ -20,7 +20,7 @@ const serviceName = "sendgrid_service";
 export default class SendgridService extends SyncServiceCore implements ISyncService {
   protected declare service: Sendgrid;
   constructor() {
-    super(serviceName, Sendgrid, logger.getChildLogger({ prefix: [`[[sync] ${serviceName}`] }));
+    super(serviceName, Sendgrid, logger.getSubLogger({ prefix: [`[[sync] ${serviceName}`] }));
   }
 
   upsert = async (user: WebUserInfoType | ConsoleUserInfoType) => {

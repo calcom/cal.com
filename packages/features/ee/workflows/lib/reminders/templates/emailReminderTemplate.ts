@@ -36,7 +36,7 @@ const emailReminderTemplate = (
   const emailSubject = `Reminder: ${eventName} - ${eventDate}`;
 
   const introHtml = `<body>Hi${
-    name ? " " + name : ""
+    name ? ` ${name}` : ""
   },<br><br>This is a reminder about your upcoming event.<br><br>`;
 
   const eventHtml = `<div><strong class="editor-text-bold">Event: </strong></div>${eventName}<br><br>`;

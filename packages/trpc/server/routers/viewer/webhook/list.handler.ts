@@ -35,6 +35,10 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
         OR: [{ userId: ctx.user.id }, { teamId: { in: user?.teams.map((membership) => membership.teamId) } }],
       });
     }
+
+    if (input?.eventTriggers) {
+      where.AND?.push({ eventTriggers: { hasEvery: input.eventTriggers } });
+    }
   }
 
   return await prisma.webhook.findMany({

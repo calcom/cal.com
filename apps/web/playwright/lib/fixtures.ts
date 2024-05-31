@@ -1,30 +1,39 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
-import type { API } from "mailhog";
-import mailhog from "mailhog";
 
-import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
+import { createAppsFixture } from "../fixtures/apps";
 import { createBookingsFixture } from "../fixtures/bookings";
-import { createEmbedsFixture, createGetActionFiredDetails } from "../fixtures/embeds";
+import { createEmailsFixture } from "../fixtures/emails";
+import { createEmbedsFixture } from "../fixtures/embeds";
+import { createEventTypeFixture } from "../fixtures/eventTypes";
+import { createFeatureFixture } from "../fixtures/features";
+import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
+import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
+import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
   page: Page;
+  orgs: ReturnType<typeof createOrgsFixture>;
   users: ReturnType<typeof createUsersFixture>;
   bookings: ReturnType<typeof createBookingsFixture>;
   payments: ReturnType<typeof createPaymentsFixture>;
-  addEmbedListeners: ReturnType<typeof createEmbedsFixture>;
-  getActionFiredDetails: ReturnType<typeof createGetActionFiredDetails>;
+  embeds: ReturnType<typeof createEmbedsFixture>;
   servers: ReturnType<typeof createServersFixture>;
   prisma: typeof prisma;
-  emails?: API;
+  emails: ReturnType<typeof createEmailsFixture>;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
+  bookingPage: ReturnType<typeof createBookingPageFixture>;
+  workflowPage: ReturnType<typeof createWorkflowPageFixture>;
+  features: ReturnType<typeof createFeatureFixture>;
+  eventTypePage: ReturnType<typeof createEventTypeFixture>;
+  appsPage: ReturnType<typeof createAppsFixture>;
 }
 
 declare global {
@@ -36,7 +45,8 @@ declare global {
         calNamespace: string,
         // eslint-disable-next-line
         getActionFiredDetails: (a: { calNamespace: string; actionType: string }) => Promise<any>,
-        expectedUrlDetails?: ExpectedUrlDetails
+        expectedUrlDetails?: ExpectedUrlDetails,
+        isPrendered?: boolean
       ): Promise<R>;
     }
   }
@@ -46,6 +56,10 @@ declare global {
  *  @see https://playwright.dev/docs/test-fixtures
  */
 export const test = base.extend<Fixtures>({
+  orgs: async ({ page }, use) => {
+    const orgsFixture = createOrgsFixture(page);
+    await use(orgsFixture);
+  },
   users: async ({ page, context, emails }, use, workerInfo) => {
     const usersFixture = createUsersFixture(page, emails, workerInfo);
     await use(usersFixture);
@@ -58,13 +72,9 @@ export const test = base.extend<Fixtures>({
     const payemntsFixture = createPaymentsFixture(page);
     await use(payemntsFixture);
   },
-  addEmbedListeners: async ({ page }, use) => {
+  embeds: async ({ page }, use) => {
     const embedsFixture = createEmbedsFixture(page);
     await use(embedsFixture);
-  },
-  getActionFiredDetails: async ({ page }, use) => {
-    const getActionFiredDetailsFixture = createGetActionFiredDetails(page);
-    await use(getActionFiredDetailsFixture);
   },
   servers: async ({}, use) => {
     const servers = createServersFixture();
@@ -77,11 +87,27 @@ export const test = base.extend<Fixtures>({
     await use(createRoutingFormsFixture());
   },
   emails: async ({}, use) => {
-    if (IS_MAILHOG_ENABLED) {
-      const mailhogAPI = mailhog();
-      await use(mailhogAPI);
-    } else {
-      await use(undefined);
-    }
+    await use(createEmailsFixture());
+  },
+  bookingPage: async ({ page }, use) => {
+    const bookingPage = createBookingPageFixture(page);
+    await use(bookingPage);
+  },
+  features: async ({ page }, use) => {
+    const features = createFeatureFixture(page);
+    await features.init();
+    await use(features);
+  },
+  workflowPage: async ({ page }, use) => {
+    const workflowPage = createWorkflowPageFixture(page);
+    await use(workflowPage);
+  },
+  eventTypePage: async ({ page }, use) => {
+    const eventTypePage = createEventTypeFixture(page);
+    await use(eventTypePage);
+  },
+  appsPage: async ({ page }, use) => {
+    const appsPage = createAppsFixture(page);
+    await use(appsPage);
   },
 });

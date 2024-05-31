@@ -17,6 +17,7 @@ export const appDataSchema = eventTypeAppCardZod.merge(
     price: z.number(),
     currency: z.string(),
     paymentOption: paymentOptionEnum.optional(),
+    enabled: z.boolean().optional(),
   })
 );
 
@@ -25,6 +26,4 @@ export const appKeysSchema = z.object({
   client_secret: z.string().startsWith("sk_").min(1),
   public_key: z.string().startsWith("pk_").min(1),
   webhook_secret: z.string().startsWith("whsec_").min(1),
-  payment_fee_fixed: z.number().min(0),
-  payment_fee_percentage: z.number().min(0),
 });

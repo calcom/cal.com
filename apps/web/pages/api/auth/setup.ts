@@ -41,7 +41,7 @@ async function handler(req: NextApiRequest) {
     data: {
       username,
       email: userEmail,
-      password: hashedPassword,
+      password: { create: { hash: hashedPassword } },
       role: "ADMIN",
       name: parsedQuery.data.full_name,
       emailVerified: new Date(),

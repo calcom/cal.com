@@ -4,8 +4,7 @@ import type { ComponentProps } from "react";
 import { forwardRef } from "react";
 
 import { classNames } from "@calcom/lib";
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-import { CheckCircle } from "@calcom/ui/components/icon";
+import { Icon, type IconName } from "@calcom/ui";
 
 import type { ButtonColor } from "../../button/Button";
 
@@ -77,7 +76,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
       <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="circle-check" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -94,7 +93,7 @@ export const DropdownMenuRadioItem = forwardRef<HTMLDivElement, DropdownMenuRadi
       <DropdownMenuPrimitive.RadioItem {...props} ref={forwardedRef}>
         {children}
         <DropdownMenuPrimitive.ItemIndicator>
-          <CheckCircle />
+          <Icon name="circle-check" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.RadioItem>
     );
@@ -105,8 +104,9 @@ DropdownMenuRadioItem.displayName = "DropdownMenuRadioItem";
 type DropdownItemProps = {
   children: React.ReactNode;
   color?: ButtonColor;
-  StartIcon?: SVGComponent;
-  EndIcon?: SVGComponent;
+  StartIcon?: IconName;
+  CustomStartIcon?: React.ReactNode;
+  EndIcon?: IconName;
   href?: string;
   disabled?: boolean;
   childrenClassName?: string;
@@ -131,22 +131,22 @@ export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
 }
 
 export const DropdownItem = (props: DropdownItemProps) => {
-  const { StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
+  const { CustomStartIcon, StartIcon, EndIcon, children, color, childrenClassName, ...rest } = props;
 
   return (
     <ButtonOrLink
       {...rest}
       className={classNames(
-        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2 disabled:cursor-not-allowed",
+        "hover:text-emphasis text-default inline-flex w-full items-center space-x-2 px-3 py-2  disabled:cursor-not-allowed",
         color === "destructive"
           ? "hover:bg-error hover:text-red-700 dark:hover:text-red-100"
           : "hover:bg-subtle",
         props.className
       )}>
       <>
-        {StartIcon && <StartIcon className="h-4 w-4" />}
+        {CustomStartIcon || (StartIcon && <Icon name={StartIcon} className="h-4 w-4" />)}
         <div className={classNames("text-sm font-medium leading-5", childrenClassName)}>{children}</div>
-        {EndIcon && <EndIcon className="h-4 w-4" />}
+        {EndIcon && <Icon name={EndIcon} className="h-4 w-4" />}
       </>
     </ButtonOrLink>
   );

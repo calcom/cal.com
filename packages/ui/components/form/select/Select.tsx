@@ -13,7 +13,7 @@ export type SelectProps<
   Option,
   IsMulti extends boolean = false,
   Group extends GroupBase<Option> = GroupBase<Option>
-> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox" };
+> = Props<Option, IsMulti, Group> & { variant?: "default" | "checkbox"; "data-testid"?: string };
 
 export const Select = <
   Option,
@@ -21,11 +21,21 @@ export const Select = <
   Group extends GroupBase<Option> = GroupBase<Option>
 >({
   components,
-  menuPlacement,
   variant = "default",
   ...props
-}: SelectProps<Option, IsMulti, Group>) => {
-  const { classNames, ...restProps } = props;
+}: SelectProps<Option, IsMulti, Group> & {
+  innerClassNames?: {
+    input?: string;
+    option?: string;
+    control?: string;
+    singleValue?: string;
+    valueContainer?: string;
+    multiValue?: string;
+    menu?: string;
+    menuList?: string;
+  };
+}) => {
+  const { classNames, innerClassNames, menuPlacement = "auto", ...restProps } = props;
   const reactSelectProps = React.useMemo(() => {
     return getReactSelectProps<Option, IsMulti, Group>({
       components: components || {},
@@ -38,15 +48,16 @@ export const Select = <
   return (
     <ReactSelect
       {...reactSelectProps}
+      menuPlacement={menuPlacement}
       classNames={{
-        input: () => cx("text-emphasis", props.classNames?.input),
+        input: () => cx("text-emphasis", innerClassNames?.input),
         option: (state) =>
           cx(
             "bg-default flex cursor-pointer justify-between py-2.5 px-3 rounded-none text-default ",
             state.isFocused && "bg-subtle",
             state.isDisabled && "bg-muted",
             state.isSelected && "bg-emphasis text-default",
-            props.classNames?.option
+            innerClassNames?.option
           ),
         placeholder: (state) => cx("text-muted", state.isFocused && variant !== "checkbox" && "hidden"),
         dropdownIndicator: () => "text-default",
@@ -59,25 +70,25 @@ export const Select = <
                 : state.hasValue
                 ? "p-1 h-fit"
                 : "px-3 py-2 h-fit"
-              : "py-2 px-3 h-fit",
+              : "py-2 px-3",
             props.isDisabled && "bg-subtle",
-            props.classNames?.control
+            innerClassNames?.control
           ),
-        singleValue: () => cx("text-emphasis placeholder:text-muted", props.classNames?.singleValue),
+        singleValue: () => cx("text-emphasis placeholder:text-muted", innerClassNames?.singleValue),
         valueContainer: () =>
-          cx("text-emphasis placeholder:text-muted flex gap-1", props.classNames?.valueContainer),
+          cx("text-emphasis placeholder:text-muted flex gap-1", innerClassNames?.valueContainer),
         multiValue: () =>
           cx(
-            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-none",
-            props.classNames?.multiValue
+            "bg-subtle text-default rounded-md py-1.5 px-2 flex items-center text-sm leading-tight",
+            innerClassNames?.multiValue
           ),
         menu: () =>
           cx(
-            "rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
-            props.classNames?.menu
+            " rounded-md bg-default text-sm leading-4 text-default mt-1 border border-subtle",
+            innerClassNames?.menu
           ),
         groupHeading: () => "leading-none text-xs uppercase text-default pl-2.5 pt-4 pb-2",
-        menuList: () => cx("scroll-bar scrollbar-track-w-20 rounded-md", props.classNames?.menuList),
+        menuList: () => cx("scroll-bar scrollbar-track-w-20 rounded-md", innerClassNames?.menuList),
         indicatorsContainer: (state) =>
           cx(
             state.selectProps.menuIsOpen

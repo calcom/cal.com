@@ -3,8 +3,7 @@ import React, { forwardRef, useId, useState } from "react";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
-import { Skeleton } from "../../..";
-import { X } from "../../icon";
+import { Icon, Skeleton } from "../../..";
 import { HintsOrErrors } from "./HintOrErrors";
 import { Label } from "./Label";
 import type { InputFieldProps, InputProps } from "./types";
@@ -18,7 +17,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       {...props}
       ref={ref}
       className={classNames(
-        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 focus:border-neutral-300 focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
+        "hover:border-emphasis dark:focus:border-emphasis border-default bg-default placeholder:text-muted text-emphasis disabled:hover:border-default disabled:bg-subtle focus:ring-brand-default focus:border-subtle mb-2 block h-9 rounded-md border px-3 py-2 text-sm leading-4 transition focus:outline-none focus:ring-2 disabled:cursor-not-allowed",
         isFullWidth && "w-full",
         props.className
       )}
@@ -31,13 +30,16 @@ type AddonProps = {
   isFilled?: boolean;
   className?: string;
   error?: boolean;
+  onClickAddon?: () => void;
 };
 
-const Addon = ({ isFilled, children, className, error }: AddonProps) => (
+const Addon = ({ isFilled, children, className, error, onClickAddon }: AddonProps) => (
   <div
+    onClick={onClickAddon && onClickAddon}
     className={classNames(
       "addon-wrapper border-default [input:hover_+_&]:border-emphasis [input:hover_+_&]:border-l-default [&:has(+_input:hover)]:border-emphasis [&:has(+_input:hover)]:border-r-default h-9 border px-3",
       isFilled && "bg-subtle",
+      onClickAddon && "cursor-pointer disabled:hover:cursor-not-allowed",
       className
     )}>
     <div
@@ -45,7 +47,16 @@ const Addon = ({ isFilled, children, className, error }: AddonProps) => (
         "min-h-9 flex flex-col justify-center text-sm leading-7",
         error ? "text-error" : "text-default"
       )}>
-      <span className="flex whitespace-nowrap">{children}</span>
+      <span
+        className="flex max-w-2xl overflow-y-auto whitespace-nowrap"
+        style={{
+          WebkitOverflowScrolling: "touch",
+          scrollbarWidth: "none",
+          overflow: "-ms-scroll-chaining",
+          msOverflowStyle: "-ms-autohiding-scrollbar",
+        }}>
+        {children}
+      </span>
     </div>
   </div>
 );
@@ -61,7 +72,7 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     labelClassName,
     disabled,
     LockedIcon,
-    placeholder = isLocaleReady && i18n.exists(name + "_placeholder") ? t(name + "_placeholder") : "",
+    placeholder = isLocaleReady && i18n.exists(`${name}_placeholder`) ? t(`${name}_placeholder`) : "",
     className,
     addOnLeading,
     addOnSuffix,
@@ -75,8 +86,10 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
     containerClassName,
     readOnly,
     showAsteriskIndicator,
+    onClickAddon,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     t: __t,
+    dataTestid,
     ...passThrough
   } = props;
 
@@ -103,11 +116,14 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           dir="ltr"
           className="focus-within:ring-brand-default group relative mb-1 flex items-center rounded-md focus-within:outline-none focus-within:ring-2">
           {addOnLeading && (
-            <Addon isFilled={addOnFilled} className={classNames("rounded-l-md border-r-0", addOnClassname)}>
+            <Addon
+              isFilled={addOnFilled}
+              className={classNames("ltr:rounded-l-md rtl:rounded-r-md", addOnClassname)}>
               {addOnLeading}
             </Addon>
           )}
           <Input
+            data-testid={`${dataTestid}-input` ?? "input-field"}
             id={id}
             type={type}
             placeholder={placeholder}
@@ -133,13 +149,15 @@ export const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function
           />
           {addOnSuffix && (
             <Addon
+              onClickAddon={onClickAddon}
               isFilled={addOnFilled}
               className={classNames("ltr:rounded-r-md rtl:rounded-l-md", addOnClassname)}>
               {addOnSuffix}
             </Addon>
           )}
           {type === "search" && inputValue?.toString().length > 0 && (
-            <X
+            <Icon
+              name="x"
               className="text-subtle absolute top-2.5 h-4 w-4 cursor-pointer ltr:right-2 rtl:left-2"
               onClick={(e) => {
                 setInputValue("");

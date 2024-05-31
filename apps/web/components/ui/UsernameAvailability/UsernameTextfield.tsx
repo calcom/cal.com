@@ -10,8 +10,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
-import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter } from "@calcom/ui";
-import { Check, Edit2 } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogClose, DialogContent, TextField, DialogFooter, Tooltip } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 interface ICustomUsernameProps {
   currentUsername: string | undefined;
@@ -44,7 +44,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const debouncedApiCall = useMemo(
     () =>
       debounce(async (username) => {
-        const { data } = await fetchUsername(username);
+        // TODO: Support orgSlug
+        const { data } = await fetchUsername(username, null);
         setMarkAsError(!data.available);
         setUsernameIsAvailable(data.available);
       }, 150),
@@ -80,7 +81,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
 
   const ActionButtons = () => {
     return usernameIsAvailable && currentUsername !== inputUsernameValue ? (
-      <div className="me-2 ms-2 flex flex-row space-x-2">
+      <div className="relative bottom-[6px] me-2 ms-2 flex flex-row space-x-2">
         <Button
           type="button"
           onClick={() => setOpenDialogSaveUsername(true)}
@@ -134,9 +135,13 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
             {...rest}
           />
           {currentUsername !== inputUsernameValue && (
-            <div className="absolute right-[2px] top-6 flex flex-row">
-              <span className={classNames("mx-2 py-3.5")}>
-                {usernameIsAvailable ? <Check className="h-4 w-4" /> : <></>}
+            <div className="absolute right-[2px] top-6 flex h-7 flex-row">
+              <span className={classNames("bg-default mx-0 p-3")}>
+                {usernameIsAvailable ? (
+                  <Icon name="check" className="relative bottom-[6px] h-4 w-4" />
+                ) : (
+                  <></>
+                )}
               </span>
             </div>
           )}
@@ -153,21 +158,29 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
         </div>
       )}
       <Dialog open={openDialogSaveUsername}>
-        <DialogContent type="confirmation" Icon={Edit2} title={t("confirm_username_change_dialog_title")}>
+        <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">
-              <div className="bg-subtle flex w-full flex-wrap gap-6 rounded-sm px-2 py-3 text-sm">
+              <div className="bg-subtle flex w-full flex-wrap justify-between gap-6 rounded-sm  px-4 py-3 text-sm">
                 <div>
                   <p className="text-subtle">{t("current_username")}</p>
-                  <p className="text-emphasis mt-1" data-testid="current-username">
-                    {currentUsername}
-                  </p>
+                  <Tooltip content={currentUsername}>
+                    <p
+                      className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis"
+                      data-testid="current-username">
+                      {currentUsername}
+                    </p>
+                  </Tooltip>
                 </div>
                 <div>
                   <p className="text-subtle" data-testid="new-username">
                     {t("new_username")}
                   </p>
-                  <p className="text-emphasis mt-1">{inputUsernameValue}</p>
+                  <Tooltip content={inputUsernameValue}>
+                    <p className="text-emphasis mt-1 max-w-md overflow-hidden text-ellipsis">
+                      {inputUsernameValue}
+                    </p>
+                  </Tooltip>
                 </div>
               </div>
             </div>
@@ -176,7 +189,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <DialogFooter className="mt-4">
             <Button
               type="button"
-              loading={updateUsernameMutation.isLoading}
+              loading={updateUsernameMutation.isPending}
               data-testid="save-username"
               onClick={updateUsername}>
               {t("save")}

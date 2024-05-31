@@ -56,8 +56,8 @@ const InputField = forwardRef<HTMLInputElement, InputFieldProps>(function InputF
   const {
     label = t(props.name),
     labelProps,
-    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
-      ? t(props.name + "_placeholder")
+    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+      ? t(`${props.name}_placeholder`)
       : "",
     className,
     addOnLeading,
@@ -169,8 +169,8 @@ export const TextAreaField = forwardRef<HTMLTextAreaElement, TextAreaFieldProps>
   const {
     label = t(props.name as string),
     labelProps,
-    placeholder = t(props.name + "_placeholder") !== props.name + "_placeholder"
-      ? t(props.name + "_placeholder")
+    placeholder = t(`${props.name}_placeholder`) !== `${props.name}_placeholder`
+      ? t(`${props.name}_placeholder`)
       : "",
     ...passThrough
   } = props;

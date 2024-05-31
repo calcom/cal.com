@@ -12,11 +12,11 @@ import { LoadingInsight } from "./LoadingInsights";
 export const AverageEventDurationChart = () => {
   const { t } = useLocale();
   const { filter } = useFilterContext();
-  const { dateRange, selectedMemberUserId, isAll } = filter;
+  const { dateRange, selectedMemberUserId, isAll, initialConfig } = filter;
   const [startDate, endDate] = dateRange;
   const { selectedTeamId: teamId, selectedUserId } = filter;
-
-  const { data, isSuccess, isLoading } = trpc.viewer.insights.averageEventDuration.useQuery(
+  const initialConfigIsReady = !!(initialConfig?.teamId || initialConfig?.userId || initialConfig?.isAll);
+  const { data, isSuccess, isPending } = trpc.viewer.insights.averageEventDuration.useQuery(
     {
       startDate: startDate.toISOString(),
       endDate: endDate.toISOString(),
@@ -30,10 +30,12 @@ export const AverageEventDurationChart = () => {
       trpc: {
         context: { skipBatch: true },
       },
+      // At least one of the following initial configs should have a value
+      enabled: initialConfigIsReady,
     }
   );
 
-  if (isLoading) return <LoadingInsight />;
+  if (isPending) return <LoadingInsight />;
 
   if (!isSuccess || !startDate || !endDate || (!teamId && !selectedUserId)) return null;
   const isNoData = (data && data.length === 0) || data.every((item) => item["Average"] === 0);

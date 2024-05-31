@@ -4,11 +4,15 @@ import z from "zod";
 
 import Paypal from "@calcom/app-store/paypal/lib/Paypal";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
 import { paymentOptionEnum } from "../zod";
+
+const log = logger.getSubLogger({ prefix: ["payment-service:paypal"] });
 
 export const paypalCredentialKeysSchema = z.object({
   client_id: z.string(),
@@ -17,10 +21,15 @@ export const paypalCredentialKeysSchema = z.object({
 });
 
 export class PaymentService implements IAbstractPaymentService {
-  private credentials: z.infer<typeof paypalCredentialKeysSchema>;
+  private credentials: z.infer<typeof paypalCredentialKeysSchema> | null;
 
   constructor(credentials: { key: Prisma.JsonValue }) {
-    this.credentials = paypalCredentialKeysSchema.parse(credentials.key);
+    const keyParsing = paypalCredentialKeysSchema.safeParse(credentials.key);
+    if (keyParsing.success) {
+      this.credentials = keyParsing.data;
+    } else {
+      this.credentials = null;
+    }
   }
 
   async create(
@@ -37,7 +46,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking) {
+      if (!booking || !this.credentials) {
         throw new Error();
       }
 
@@ -82,8 +91,8 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error("Paypal: Payment could not be created for bookingId", bookingId, safeStringify(error));
+      throw new Error(ErrorCode.PaymentCreationFailure);
     }
   }
   async update(): Promise<Payment> {
@@ -113,7 +122,7 @@ export class PaymentService implements IAbstractPaymentService {
           id: bookingId,
         },
       });
-      if (!booking) {
+      if (!booking || !this.credentials) {
         throw new Error();
       }
 
@@ -161,14 +170,15 @@ export class PaymentService implements IAbstractPaymentService {
       }
       return paymentData;
     } catch (error) {
-      console.error(error);
-      throw new Error("Payment could not be created");
+      log.error(
+        "Paypal: Payment method could not be collected for bookingId",
+        bookingId,
+        safeStringify(error)
+      );
+      throw new Error("Paypal: Payment method could not be collected");
     }
   }
-  chargeCard(
-    payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
-    bookingId: number
-  ): Promise<Payment> {
+  chargeCard(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
   getPaymentPaidStatus(): Promise<string> {
@@ -177,19 +187,14 @@ export class PaymentService implements IAbstractPaymentService {
   getPaymentDetails(): Promise<Payment> {
     throw new Error("Method not implemented.");
   }
-  afterPayment(
-    event: CalendarEvent,
-    booking: {
-      user: { email: string | null; name: string | null; timeZone: string } | null;
-      id: number;
-      startTime: { toISOString: () => string };
-      uid: string;
-    },
-    paymentData: Payment
-  ): Promise<void> {
+  afterPayment(): Promise<void> {
     return Promise.resolve();
   }
-  deletePayment(paymentId: number): Promise<boolean> {
+  deletePayment(): Promise<boolean> {
     return Promise.resolve(false);
+  }
+
+  isSetupAlready(): boolean {
+    return !!this.credentials;
   }
 }

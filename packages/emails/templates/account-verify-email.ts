@@ -12,6 +12,7 @@ export type EmailVerifyLink = {
     email: string;
   };
   verificationEmailLink: string;
+  isSecondaryEmailVerification?: boolean;
 };
 
 export default class AccountVerifyEmail extends BaseEmail {
@@ -23,14 +24,17 @@ export default class AccountVerifyEmail extends BaseEmail {
     this.verifyAccountInput = passwordEvent;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const emailSubjectKey = this.verifyAccountInput.isSecondaryEmailVerification
+      ? "verify_email_email_header"
+      : "verify_email_subject";
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
       from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.verifyAccountInput.language("verify_email_subject", {
+      subject: this.verifyAccountInput.language(emailSubjectKey, {
         appName: APP_NAME,
       }),
-      html: renderEmail("VerifyAccountEmail", this.verifyAccountInput),
+      html: await renderEmail("VerifyAccountEmail", this.verifyAccountInput),
       text: this.getTextBody(),
     };
   }

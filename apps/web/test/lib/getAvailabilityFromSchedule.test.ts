@@ -4,10 +4,9 @@ import { expect, it, beforeAll, vi } from "vitest";
 import dayjs from "@calcom/dayjs";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 
-
 beforeAll(() => {
   vi.setSystemTime(new Date("2021-06-20T11:59:59Z"));
-})
+});
 
 //parse "hh:mm-hh:mm" into <Availability> object
 const parseWorkingHours = (workingHours: string) => {

@@ -2,6 +2,7 @@ import { getUserAvailability } from "@calcom/core/getUserAvailability";
 import { isTeamMember } from "@calcom/lib/server/queries/teams";
 import { availabilityUserSelect } from "@calcom/prisma";
 import { prisma } from "@calcom/prisma";
+import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -25,13 +26,10 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
     include: {
       user: {
         select: {
-          credentials: true, // needed for getUserAvailability
+          credentials: {
+            select: credentialForCalendarServiceSelect,
+          }, // needed for getUserAvailability
           ...availabilityUserSelect,
-          organization: {
-            select: {
-              slug: true,
-            },
-          },
         },
       },
     },
@@ -47,7 +45,10 @@ export const getMemberAvailabilityHandler = async ({ ctx, input }: GetMemberAvai
       username: member.user.username,
       dateFrom: input.dateFrom,
       dateTo: input.dateTo,
+      returnDateOverrides: true,
     },
-    { user: member.user }
+    { user: member.user, busyTimesFromLimitsBookings: [] }
   );
 };
+
+export default getMemberAvailabilityHandler;

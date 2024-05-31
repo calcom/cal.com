@@ -1,6 +1,6 @@
-import { TFunction } from "next-i18next";
+import type { TFunction } from "next-i18next";
 
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -30,7 +30,7 @@ export const DisabledAppEmail = (
 
           <CallToAction
             label={t("edit_event_type")}
-            href={`${CAL_URL}/event-types/${eventTypeId}?tabName=apps`}
+            href={`${WEBAPP_URL}/event-types/${eventTypeId}?tabName=apps`}
           />
         </>
       ) : title && eventTypeId ? (
@@ -43,7 +43,7 @@ export const DisabledAppEmail = (
 
           <CallToAction
             label={t("edit_event_type")}
-            href={`${CAL_URL}/event-types/${eventTypeId}?tabName=apps`}
+            href={`${WEBAPP_URL}/event-types/${eventTypeId}?tabName=apps`}
           />
         </>
       ) : appType.some((type) => type === "video") ? (
@@ -54,7 +54,7 @@ export const DisabledAppEmail = (
 
           <hr style={{ marginBottom: "24px" }} />
 
-          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+          <CallToAction label={t("navigate_installed_apps")} href={`${WEBAPP_URL}/apps/installed`} />
         </>
       ) : appType.some((type) => type === "calendar") ? (
         <>
@@ -67,7 +67,7 @@ export const DisabledAppEmail = (
 
           <hr style={{ marginBottom: "24px" }} />
 
-          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+          <CallToAction label={t("navigate_installed_apps")} href={`${WEBAPP_URL}/apps/installed`} />
         </>
       ) : (
         <>
@@ -77,7 +77,7 @@ export const DisabledAppEmail = (
 
           <hr style={{ marginBottom: "24px" }} />
 
-          <CallToAction label={t("navigate_installed_apps")} href={`${CAL_URL}/apps/installed`} />
+          <CallToAction label={t("navigate_installed_apps")} href={`${WEBAPP_URL}/apps/installed`} />
         </>
       )}
     </BaseEmailHtml>

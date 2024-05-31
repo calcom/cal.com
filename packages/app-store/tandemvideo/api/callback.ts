@@ -2,9 +2,9 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "@calcom/prisma";
 
-import createOAuthAppCredential from "../../_utils/createOAuthAppCredential";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 
 let client_id = "";
 let client_secret = "";
