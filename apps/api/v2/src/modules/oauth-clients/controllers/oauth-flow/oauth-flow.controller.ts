@@ -1,4 +1,5 @@
 import { getEnv } from "@/env";
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
@@ -34,7 +35,7 @@ import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
   path: "/v2/oauth/:clientId",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
 @DocsTags("OAuth - development only")

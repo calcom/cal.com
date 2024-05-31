@@ -9,6 +9,7 @@ import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-ty
 import { GetEventTypesData, GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -39,7 +40,7 @@ import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")

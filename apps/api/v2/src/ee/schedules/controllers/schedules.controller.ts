@@ -5,6 +5,7 @@ import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
 import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
 import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -32,7 +33,7 @@ import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
 @Controller({
   path: "/v2/schedules",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")

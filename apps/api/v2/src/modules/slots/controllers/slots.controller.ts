@@ -1,3 +1,4 @@
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
@@ -12,7 +13,7 @@ import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/slots",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @DocsTags("Slots")
 export class SlotsController {

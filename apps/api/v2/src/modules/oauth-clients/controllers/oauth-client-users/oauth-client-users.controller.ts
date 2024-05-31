@@ -1,3 +1,4 @@
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -34,7 +35,7 @@ import { Pagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/oauth-clients/:clientId/users",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(OAuthClientCredentialsGuard)
 @DocsTags("Managed users")

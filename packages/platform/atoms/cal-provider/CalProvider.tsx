@@ -1,6 +1,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
+import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
+import { VERSION_2024_04_15 } from "@calcom/platform-constants";
+
 import { BaseCalProvider } from "./BaseCalProvider";
 
 const queryClient = new QueryClient();
@@ -12,6 +15,7 @@ export type CalProviderProps = {
   options: { refreshUrl?: string; apiUrl: string };
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
+  version?: API_VERSIONS_ENUM;
 };
 
 /**
@@ -35,6 +39,7 @@ export function CalProvider({
   children,
   autoUpdateTimezone = true,
   onTimezoneChange,
+  version = VERSION_2024_04_15,
 }: CalProviderProps) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -43,7 +48,8 @@ export function CalProvider({
         onTimezoneChange={onTimezoneChange}
         clientId={clientId}
         accessToken={accessToken}
-        options={options}>
+        options={options}
+        version={version}>
         {children}
       </BaseCalProvider>
     </QueryClientProvider>

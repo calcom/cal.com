@@ -1,4 +1,5 @@
 import { getEnv } from "@/env";
+import { API_VERSIONS_VALUES } from "@/lib/versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
@@ -47,7 +48,7 @@ Second, make sure that the logged in user has organizationId set to pass the Org
 
 @Controller({
   path: "/v2/oauth-clients",
-  version: ["2024-05-21", "2024-04-15"],
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
