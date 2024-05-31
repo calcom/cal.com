@@ -12,4 +12,7 @@ export const appDataSchema = z.object({});
 
 export const credentialSettingsSchema = z.object({
   disabledEvents: z.array(z.string()),
+  templateSetup: z.boolean(),
 });
+
+export type CredentialSettings = z.infer<typeof credentialSettingsSchema>;
