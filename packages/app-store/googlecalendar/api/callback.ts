@@ -2,14 +2,12 @@ import type { Auth } from "googleapis";
 import { google } from "googleapis";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
@@ -86,53 +84,90 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       await updateProfilePhoto(oAuth2Client, req.session.user.id);
     }
 
-    const credential = await prisma.credential.create({
-      data: {
-        type: "google_calendar",
-        key,
-        userId: req.session.user.id,
-        appId: "google-calendar",
-      },
-    });
-
     const selectedCalendarWhereUnique = {
       userId: req.session.user.id,
       externalId: primaryCal.id,
       integration: "google_calendar",
     };
 
-    // Wrapping in a try/catch to reduce chance of race conditions-
-    // also this improves performance for most of the happy-paths.
-    try {
+    const selectedCalendar = await prisma.selectedCalendar.findUnique({
+      where: {
+        userId_integration_externalId: {
+          ...selectedCalendarWhereUnique,
+        },
+      },
+      select: {
+        credentialId: true,
+        credential: {
+          select: {
+            id: true,
+            invalid: true,
+          },
+        },
+      },
+    });
+
+    if (selectedCalendar) {
+      if (!selectedCalendar.credentialId) {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        const credential = await prisma.credential.create({
+          data: {
+            type: "google_calendar",
+            key,
+            userId: req.session.user.id,
+            appId: "google-calendar",
+          },
+        });
+        await prisma.selectedCalendar.update({
+          where: {
+            userId_integration_externalId: selectedCalendarWhereUnique,
+          },
+          data: {
+            credentialId: credential.id,
+          },
+        });
+        res.redirect(
+          getSafeRedirectUrl(state?.returnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+        );
+        return;
+      }
+
+      if (selectedCalendar.credential?.invalid) {
+        await prisma.credential.update({
+          where: {
+            id: selectedCalendar.credential.id,
+          },
+          data: {
+            key,
+            invalid: false,
+          },
+        });
+      } else {
+        res.redirect(
+          `${
+            getSafeRedirectUrl(state?.onErrorReturnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
+          }?error=account_already_linked`
+        );
+      }
+    } else {
+      const credential = await prisma.credential.create({
+        data: {
+          type: "google_calendar",
+          key,
+          userId: req.session.user.id,
+          appId: "google-calendar",
+        },
+      });
+
       await prisma.selectedCalendar.create({
         data: {
           credentialId: credential.id,
           ...selectedCalendarWhereUnique,
         },
       });
-    } catch (error) {
-      let errorMessage = "something_went_wrong";
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        // it is possible a selectedCalendar was orphaned, in this situation-
-        // we want to recover by connecting the existing selectedCalendar to the new Credential.
-        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
-          res.redirect(
-            getSafeRedirectUrl(state?.returnTo) ??
-              getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
-          );
-          return;
-        }
-        // else
-        errorMessage = "account_already_linked";
-      }
-      await prisma.credential.delete({ where: { id: credential.id } });
-      res.redirect(
-        `${
-          getSafeRedirectUrl(state?.onErrorReturnTo) ??
-          getInstalledAppPath({ variant: "calendar", slug: "google-calendar" })
-        }?error=${errorMessage}`
-      );
-      return;
     }
   }
 

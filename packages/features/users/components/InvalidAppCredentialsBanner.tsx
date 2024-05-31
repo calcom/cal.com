@@ -1,8 +1,8 @@
-import { useRouter } from "next/navigation";
-
+import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { type RouterOutputs, trpc } from "@calcom/trpc";
-import { TopBanner, showToast } from "@calcom/ui";
+import { type RouterOutputs } from "@calcom/trpc";
+import type { App } from "@calcom/types/App";
+import { TopBanner } from "@calcom/ui";
 
 export type InvalidAppCredentialBannersProps = {
   data: RouterOutputs["viewer"]["getUserTopBanners"]["invalidAppCredentialBanners"];
@@ -16,45 +16,24 @@ export function InvalidAppCredentialBanners({ data }: InvalidAppCredentialBanner
   return (
     <div>
       {data.map((app) => (
-        <InvalidAppCredentialBanner
-          teamId={app.teamId}
-          id={app.id}
-          key={app.slug}
-          name={app.name}
-          slug={app.slug}
-        />
+        <InvalidAppCredentialBanner teamId={app.teamId} key={app.type} name={app.name} type={app.type} />
       ))}
     </div>
   );
 }
 
 export type InvalidAppCredentialBannerProps = {
-  id: number;
   name: string;
-  slug: string;
   teamId?: number;
+  type: string;
 };
 
-export function InvalidAppCredentialBanner({ name, slug, id, teamId }: InvalidAppCredentialBannerProps) {
+export function InvalidAppCredentialBanner({ name, teamId, type }: InvalidAppCredentialBannerProps) {
+  const mutation = useAddAppMutation(null, { teamId: teamId });
   const { t } = useLocale();
-  const router = useRouter();
-  const utils = trpc.useUtils();
-  const mutation = trpc.viewer.deleteCredential.useMutation({
-    onSuccess: () => {
-      showToast(t("app_removed_successfully"), "success");
-    },
-    onError: () => {
-      showToast(t("error_removing_app"), "error");
-    },
-    async onSettled() {
-      await utils.viewer.connectedCalendars.invalidate();
-      await utils.viewer.integrations.invalidate();
-    },
-  });
 
   const handleClick = () => {
-    mutation.mutate({ id, teamId });
-    router.push(`/apps/${slug}`);
+    mutation.mutate({ type: type as App["type"] });
   };
 
   return (

@@ -35,8 +35,8 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
     },
     select: {
       appId: true,
-      id: true,
       teamId: true,
+      type: true,
     },
   });
 
@@ -46,7 +46,7 @@ export const checkInvalidAppCredentials = async ({ ctx }: checkInvalidAppCredent
       const appId = app.appId;
       const appMeta = await getAppFromSlug(appId);
       const name = appMeta ? appMeta.name : appId;
-      appNamesAndSlugs.push({ slug: appId, name, id: app.id, teamId: app.teamId ?? undefined });
+      appNamesAndSlugs.push({ name, teamId: app.teamId ?? undefined, type: app.type });
     }
   }
 

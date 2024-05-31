@@ -1,12 +1,10 @@
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { renewSelectedCalendarCredentialId } from "@calcom/lib/connectedCalendar";
 import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
@@ -112,51 +110,90 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   if (defaultCalendar?.id && req.session?.user?.id) {
-    const credential = await prisma.credential.create({
-      data: {
-        type: "office365_calendar",
-        key: responseBody,
-        userId: req.session?.user.id,
-        appId: "office365-calendar",
-      },
-    });
     const selectedCalendarWhereUnique = {
       userId: req.session?.user.id,
       integration: "office365_calendar",
       externalId: defaultCalendar.id,
     };
-    // Wrapping in a try/catch to reduce chance of race conditions-
-    // also this improves performance for most of the happy-paths.
-    try {
+
+    const selectedCalendar = await prisma.selectedCalendar.findUnique({
+      where: {
+        userId_integration_externalId: {
+          ...selectedCalendarWhereUnique,
+        },
+      },
+      select: {
+        credentialId: true,
+        credential: {
+          select: {
+            invalid: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    if (selectedCalendar) {
+      if (!selectedCalendar.credentialId) {
+        // it is possible a selectedCalendar was orphaned, in this situation-
+        // we want to recover by connecting the existing selectedCalendar to the new Credential.
+        const credential = await prisma.credential.create({
+          data: {
+            type: "office365_calendar",
+            key: responseBody,
+            userId: req.session?.user.id,
+            appId: "office365-calendar",
+          },
+        });
+        await prisma.selectedCalendar.update({
+          where: {
+            userId_integration_externalId: selectedCalendarWhereUnique,
+          },
+          data: {
+            credentialId: credential.id,
+          },
+        });
+        res.redirect(
+          getSafeRedirectUrl(state?.returnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+        );
+        return;
+      }
+      if (selectedCalendar.credential?.invalid) {
+        await prisma.credential.update({
+          where: {
+            id: selectedCalendar.credential.id,
+          },
+          data: {
+            key: responseBody,
+            invalid: false,
+          },
+        });
+      } else {
+        res.redirect(
+          `${
+            getSafeRedirectUrl(state?.onErrorReturnTo) ??
+            getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
+          }?error=account_already_linked`
+        );
+        return;
+      }
+    } else {
+      const credential = await prisma.credential.create({
+        data: {
+          type: "office365_calendar",
+          key: responseBody,
+          userId: req.session?.user.id,
+          appId: "office365-calendar",
+        },
+      });
+
       await prisma.selectedCalendar.create({
         data: {
           ...selectedCalendarWhereUnique,
           credentialId: credential.id,
         },
       });
-    } catch (error) {
-      let errorMessage = "something_went_wrong";
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-        // it is possible a selectedCalendar was orphaned, in this situation-
-        // we want to recover by connecting the existing selectedCalendar to the new Credential.
-        if (await renewSelectedCalendarCredentialId(selectedCalendarWhereUnique, credential.id)) {
-          res.redirect(
-            getSafeRedirectUrl(state?.returnTo) ??
-              getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
-          );
-          return;
-        }
-        // else
-        errorMessage = "account_already_linked";
-      }
-      await prisma.credential.delete({ where: { id: credential.id } });
-      res.redirect(
-        `${
-          getSafeRedirectUrl(state?.onErrorReturnTo) ??
-          getInstalledAppPath({ variant: "calendar", slug: "office365-calendar" })
-        }?error=${errorMessage}`
-      );
-      return;
     }
   }
 

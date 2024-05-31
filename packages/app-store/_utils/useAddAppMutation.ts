@@ -25,6 +25,7 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   onSuccess?: (data: AddAppMutationData) => void;
   installGoogleVideo?: boolean;
   returnTo?: string;
+  teamId?: number;
 };
 
 type useAddAppMutationVariables = {
@@ -50,7 +51,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     mutationFn: async (variables) => {
       let type: string | null | undefined;
       let isOmniInstall;
-      const teamId = variables && variables.teamId ? variables.teamId : undefined;
+      const teamId = variables && variables.teamId ? variables.teamId : allOptions?.teamId;
       if (variables === "") {
         type = _type;
       } else {
