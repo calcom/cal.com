@@ -2,7 +2,7 @@ import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
-import { API_VERSIONS_VALUES } from "@/lib/versions";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";

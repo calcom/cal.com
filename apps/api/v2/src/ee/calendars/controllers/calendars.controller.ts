@@ -1,7 +1,7 @@
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { API_VERSIONS_VALUES } from "@/lib/versions";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";

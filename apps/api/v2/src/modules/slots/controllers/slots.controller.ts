@@ -1,4 +1,4 @@
-import { API_VERSIONS_VALUES } from "@/lib/versions";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";

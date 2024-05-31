@@ -1,3 +1,4 @@
+import { VERSION_2024_05_21_VALUE } from "@/lib/api-versions";
 import { TimezonesService } from "@/modules/timezones/services/timezones.service";
 import { Controller, Get } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -7,7 +8,7 @@ import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/timezones",
-  version: "2024-05-21",
+  version: VERSION_2024_05_21_VALUE,
 })
 @DocsTags("Timezones")
 export class TimezonesController {

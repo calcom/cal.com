@@ -1,6 +1,6 @@
 import { ProviderVerifyAccessTokenOutput } from "@/ee/provider/outputs/verify-access-token.output";
 import { ProviderVerifyClientOutput } from "@/ee/provider/outputs/verify-client.output";
-import { API_VERSIONS_VALUES } from "@/lib/versions";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
