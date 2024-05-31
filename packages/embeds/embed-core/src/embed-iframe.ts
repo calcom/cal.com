@@ -23,6 +23,7 @@ export type PrefillAndIframeAttrsConfig = Record<string, string | string[] | Rec
 
   // TODO: It should have a dedicated prefill prop
   // prefill: {},
+  "flag.coep"?: "true" | "false";
 
   // TODO: Move layout and theme as nested props of ui as it makes it clear that these two can be configured using `ui` instruction as well any time.
   // ui: {layout; theme}

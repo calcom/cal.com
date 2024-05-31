@@ -364,6 +364,11 @@ const nextConfig = {
     };
   },
   async headers() {
+    const CORP_HEADER = {
+      key: "Cross-Origin-Resource-Policy",
+      value: "cross-origin",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -395,6 +400,18 @@ const nextConfig = {
             value: "strict-origin-when-cross-origin",
           },
         ],
+      },
+      {
+        source: "/embed/embed.js",
+        headers: [CORP_HEADER],
+      },
+      {
+        source: "/api/avatar/:path*",
+        headers: [CORP_HEADER],
+      },
+      {
+        source: "/avatar.svg",
+        headers: [CORP_HEADER],
       },
       ...(isOrganizationsEnabled
         ? [

@@ -57,6 +57,7 @@ if (only === "all" || only === "ns:default") {
       notes: "Test Meeting",
       guests: ["janedoe@example.com", "test@example.com"],
       theme: "dark",
+      "flag.coep": "true",
     },
   });
   Cal("on", {

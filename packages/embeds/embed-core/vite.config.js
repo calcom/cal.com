@@ -16,6 +16,12 @@ module.exports = defineConfig((configEnv) => {
         EMBED_PUBLIC_WEBAPP_URL: embedCoreEnvVars.EMBED_PUBLIC_WEBAPP_URL,
       }),
     ],
+    server: {
+      // Helps us to test that embed works with these headers
+      headers: {
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      },
+    },
     build: {
       emptyOutDir: true,
       rollupOptions: {
