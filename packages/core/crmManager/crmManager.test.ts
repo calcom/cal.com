@@ -1,8 +1,9 @@
+import { mockCrmApp } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
 import type { TFunction } from "next-i18next";
 import { describe, expect, test, vi } from "vitest";
 
 import { getCrm } from "@calcom/app-store/_utils/getCrm";
-import { mockCrmApp } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
 import CrmManager from "./crmManager";
 
