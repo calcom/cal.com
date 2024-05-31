@@ -149,7 +149,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     // The title of the booking
     const bookingTitle = await page.getByTestId("booking-title").textContent();
     expect(
-      teamMatesObj?.some((teamMate) => {
+      teamMatesObj.concat([{ name: owner.name! }]).some((teamMate) => {
         const BookingTitle = `${teamEventTitle} between ${teamMate.name} and ${testName}`;
         return BookingTitle === bookingTitle;
       })
