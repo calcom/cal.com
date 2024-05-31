@@ -66,7 +66,11 @@ export function Avatar(props: AvatarProps) {
   );
 
   if (href) {
-    avatar = <Link href={href}>{avatar}</Link>;
+    avatar = (
+      <Link data-testid="avatar-href" href={href}>
+        {avatar}
+      </Link>
+    );
   }
 
   return title ? (

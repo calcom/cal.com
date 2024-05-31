@@ -3,7 +3,8 @@ import mailhog from "mailhog";
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 
 const unimplemented = () => {
-  throw new Error("Mailhog is not enabled");
+  // throw new Error("Mailhog is not enabled");
+  return null;
 };
 
 const hasUUID = (query: string) => {

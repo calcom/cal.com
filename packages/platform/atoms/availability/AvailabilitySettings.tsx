@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -86,6 +86,7 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -230,6 +231,7 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -240,6 +242,21 @@ export function AvailabilitySettings({
       schedule: schedule.availability || [],
     },
   });
+
+  useEffect(() => {
+    const subscription = form.watch(
+      (value, { name }) => {
+        console.log(name);
+        if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
+          handleSubmit(value as AvailabilityFormValues);
+      },
+      {
+        ...schedule,
+        schedule: schedule.availability || [],
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
 
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
@@ -260,6 +277,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
@@ -475,6 +493,7 @@ export function AvailabilitySettings({
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
                     weekStart={
                       ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
                         weekStart

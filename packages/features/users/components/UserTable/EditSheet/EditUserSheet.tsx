@@ -45,7 +45,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     asChild
                     className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
-                    imageSrc={avatarURL}
+                    imageSrc={loadedUser.avatarUrl}
                   />
                   <div className="space-between flex flex-col leading-none">
                     <Skeleton loading={isPending} as="p" waitForTranslation={false}>
@@ -100,7 +100,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
               <div className="mb-4 flex-grow">
                 <EditForm
                   selectedUser={loadedUser}
-                  avatarUrl={avatarURL}
+                  avatarUrl={loadedUser.avatarUrl ?? avatarURL}
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
                 />

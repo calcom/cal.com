@@ -46,7 +46,7 @@ export class BillingController {
 
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-  @Roles(["OWNER", "ADMIN"])
+  @Roles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
     @Param("teamId") teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
@@ -122,7 +122,7 @@ export class BillingController {
       await this.billingService.setSubscriptionForTeam(
         teamId,
         subscription,
-        PlatformPlan[plan as keyof typeof PlatformPlan]
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
 
       return {
