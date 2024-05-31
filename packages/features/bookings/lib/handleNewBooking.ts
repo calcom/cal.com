@@ -963,7 +963,7 @@ const checkIfBookerEmailIsBlocked = async ({
   });
 
   if (!user) {
-    throw new HttpError({ statusCode: 500, message: "Blacklist email not present in DB" });
+    throw new HttpError({ statusCode: 403, message: "Blacklist email not present in DB" });
   }
 
   if (user.id !== loggedInUserId) {
