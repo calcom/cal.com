@@ -55,6 +55,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -86,12 +87,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-  });
-  const bookings = useBookings({
-    event,
-    hashedLink: props.hashedLink,
-    bookingForm: bookerForm.bookingForm,
-    metadata: metadata ?? {},
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -129,6 +124,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
+    bookerEmail: bookerForm.formEmail,
+  });
+  const bookings = useBookings({
+    event,
+    hashedLink: props.hashedLink,
+    bookingForm: bookerForm.bookingForm,
+    metadata: metadata ?? {},
+    teamMemberEmail: schedule.data?.teamMember,
   });
 
   const verifyCode = useVerifyCode({
