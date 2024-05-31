@@ -7,6 +7,7 @@ import { trpc } from "@calcom/trpc";
 import { Badge, Switch, Select } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
+import type { CredentialSettings } from "../zod";
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
 export const AuditLogEventToggles = ({
@@ -17,7 +18,7 @@ export const AuditLogEventToggles = ({
 }: {
   value: { label: string; value: AuditLogTriggerTargets; key: string };
   onChange(key: string | undefined): void;
-  settings: { empty: boolean; disabledEvents: string[] };
+  settings: CredentialSettings;
   credentialId: number;
 }) => {
   const [isOpen, setOpen] = useState(false);

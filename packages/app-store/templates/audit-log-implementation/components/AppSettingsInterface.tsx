@@ -11,6 +11,8 @@ import type { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
 import { showToast } from "@calcom/ui";
 
+import { useAppCredential, AuditLogCredentialProvider } from "../context/CredentialContext";
+import type { CredentialSettings } from "../zod";
 import { appKeysSchema } from "../zod";
 import { AuditLogEventToggles } from "./AuditLogEventToggles";
 import { AuditSystemStatus } from "./AuditSystemStatus";
@@ -19,12 +21,18 @@ import { GeneralSettings } from "./GeneralSettings";
 import { NavigationPanel } from "./NavigationPanel";
 
 export default function AppSettings(props: { credentialId: number }) {
+  return (
+    <AuditLogCredentialProvider credentialId={props.credentialId}>
+      <Interface credentialId={props.credentialId} />
+    </AuditLogCredentialProvider>
+  );
+}
+
+function Interface(props: { credentialId: number }) {
   const searchParams = useSearchParams();
   const activePanel = searchParams.get(props.credentialId.toString());
   const { t } = useLocale();
-  const { data, isLoading } = trpc.viewer.appCredentialById.useQuery({
-    id: props.credentialId,
-  });
+  const { data, isLoading } = useAppCredential();
 
   const [value, setValue] = useState<{ label: string; value: AuditLogTriggerTargets; key: string }>(
     availableTriggerTargets.booking
@@ -71,23 +79,25 @@ export default function AppSettings(props: { credentialId: number }) {
 
   return (
     <div className="align-right space-y-4 px-4 pb-4 pt-4 text-sm">
-      <div className="items-between flex space-x-4">
-        <div className="flex w-[25%] flex-col space-y-4">
-          <AuditSystemStatus credentialId={props.credentialId} />
-          <NavigationPanel credentialId={props.credentialId} />
+      <AuditLogCredentialProvider credentialId={props.credentialId}>
+        <div className="items-between flex space-x-4">
+          <div className="flex w-[25%] flex-col space-y-4">
+            <AuditSystemStatus credentialId={props.credentialId} />
+            <NavigationPanel credentialId={props.credentialId} />
+          </div>
+          <div className="flex w-[80%] flex-col justify-between space-y-4">
+            {renderPanel(
+              activePanel,
+              props.credentialId,
+              data?.settings as CredentialSettings,
+              value,
+              onChange,
+              form,
+              updateAppCredentialsMutation
+            )}
+          </div>
         </div>
-        <div className="flex w-[80%] flex-col justify-between space-y-4">
-          {renderPanel(
-            activePanel,
-            props.credentialId,
-            data?.settings as { empty: boolean; disabledEvents: string[] },
-            value,
-            onChange,
-            form,
-            updateAppCredentialsMutation
-          )}
-        </div>
-      </div>
+      </AuditLogCredentialProvider>
     </div>
   );
 }
@@ -95,7 +105,7 @@ export default function AppSettings(props: { credentialId: number }) {
 function renderPanel(
   activePanel: string | null,
   credentialId: number,
-  settings: { empty: boolean; disabledEvents: string[] },
+  settings: CredentialSettings,
   value: { label: string; value: AuditLogTriggerTargets; key: string },
   onChange: (key: string | undefined) => void,
   form: UseFormReturn<
@@ -113,7 +123,7 @@ function renderPanel(
       return (
         <AuditLogEventToggles
           credentialId={credentialId}
-          settings={settings as { empty: boolean; disabledEvents: string[] }}
+          settings={settings}
           value={value}
           onChange={onChange}
         />
