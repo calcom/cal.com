@@ -104,7 +104,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data?.length;
-
+      const eventPayload = {
+        uid: responseData.uid,
+        title: responseData.title,
+        startTime: responseData.startTime,
+        endTime: responseData.endTime,
+        eventTypeId: responseData.eventTypeId,
+        status: responseData.status,
+        paymentRequired: responseData.paymentRequired,
+      };
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
           booking: responseData,
@@ -118,6 +126,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", eventPayload);
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
           booking: responseData,
@@ -131,6 +140,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+
+        sdkActionManager?.fire("bookingSuccessfulV2", eventPayload);
       }
 
       if (paymentUid) {
