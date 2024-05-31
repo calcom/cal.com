@@ -19,7 +19,7 @@
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
 
-    "docker-start-web": "prisma migrate deploy --schema /app/packages/prisma/schema.prisma  && node /app/apps/web/server.js"
+    "docker-start-web": "prisma migrate deploy --schema /app/packages/prisma/schema.prisma  && node /app/apps/web/server.js",
 
 
     "translate-locales": "ts-node scripts/check-missing-translations.ts"
