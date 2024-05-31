@@ -1,17 +1,11 @@
 ---
-name:  Docker CI
+name: Docker Push/Merge Workflow
 
 on:
-# # enable when merged to upstream repo
   # push:
   #   branches:
   #     - main
 
-  # pull_request_target: 
-  #   branches:
-  #     - main
-
-  
   workflow_dispatch:
 
 
@@ -23,7 +17,7 @@ jobs:
     name: Build Image for Testing
     runs-on: ubuntu-latest
     permissions:
-     contents: read
+     contents: write 
      packages: write 
 
     steps:
@@ -62,9 +56,9 @@ jobs:
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           cache-to: |
-            type=gha,scope=base,mode=max
+            type=gha,scope=main-base,mode=max
           cache-from: |
-            type=gha,scope=base
+            type=gha,scope=main-base
           platforms: linux/amd64
           
 
@@ -107,14 +101,13 @@ jobs:
           target: unit-test
           push: false
           cache-to: |
-            type=gha,scope=test,mode=max
+            type=gha,scope=main-test,mode=max
           cache-from: |
-            type=gha,scope=base
-            type=gha,scope=test
+            type=gha,scope=main-base
+            type=gha,scope=main-test
           platforms: linux/amd64
         
         
-  
   # # # # # NEXT JOB #######################################################################   
   # pulls test image from GHCR and run integration test in docker compose testing ability of the built app 
   # to succesfully connect to postgres db
@@ -196,6 +189,7 @@ jobs:
         run: |
               echo "REPO=${GITHUB_REPOSITORY,,}" >>${GITHUB_ENV}
 
+
       - name: Run Trivy for HIGH,CRITICAL CVEs and report (non-blocking)
         uses: aquasecurity/trivy-action@0.20.0
         with:
@@ -255,8 +249,6 @@ jobs:
           input-file: "./apps/web/CHANGELOG.md"
           output-file: "./apps/web/CHANGELOG.md"
           tag-prefix: "v"
-          pre-release: ${{github.event_name == 'pull_request_target'}}
-          pre-release-identifier: "alpha"
           skip-on-empty: 'false'
           # release-count: 20
           skip-git-pull: true
@@ -277,7 +269,6 @@ jobs:
           echo "TAG=${{ steps.changelog.outputs.tag }}" >> $GITHUB_OUTPUT
          
          
-
 # NEXT JOB #######################################################################  
 # builds the final image and adds latest tag and image:V*.*.* semantic versioning tag to merge request
 # and image:v*.*.*-alpha.* tag to pull requests made to main branch before pushing to dockerhub
@@ -287,7 +278,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
+      contents: write
       packages: write 
       pull-requests: write # needed to create and update comments in PRs
 
@@ -311,7 +302,6 @@ jobs:
           username: ${{ github.repository_owner }}
           password:  ${{ secrets.GITHUB_TOKEN }}
           
-
       - name: Docker Metadata for Final Image Build
         id: docker_meta
         uses: docker/metadata-action@v5
@@ -323,43 +313,6 @@ jobs:
             type=raw,value=latest,enable=${{ endsWith(github.ref, github.event.repository.default_branch) }}
             type=raw,value=${{needs.changelog.outputs.TAG}}
 
-    #  adds the Docker image tag(s)/labels pushed to docker hub,to the pull request comment section for reference purpose    
-      - name: Find comment for image tags
-        uses: peter-evans/find-comment@v1
-        if: github.event_name == 'pull_request_target'
-        id: fc
-        with:
-          issue-number: ${{ github.event.pull_request_target.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: Docker image tag(s) pushed
-     
-      - name: Create or update comment for image tags
-        uses: peter-evans/create-or-update-comment@v1
-        if: github.event_name == 'pull_request_target'
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request_target.number }}
-          body: |
-            Docker image tag(s) pushed:
-            ```text
-            ${{ steps.docker_meta.outputs.tags }}
-            ```
-
-            Labels added to images:
-            ```text
-            ${{ steps.docker_meta.outputs.labels }}
-            ```
-          edit-mode: replace
-
-# needed for argocd pull request generator: yet to be implemented
-# adds a "preview" label to pull reguest to main branch
-      - name: add labels 
-        uses: actions-ecosystem/action-add-labels@v1
-        if: github.event_name == 'pull_request_target'
-        with:
-          labels: |
-            preview
-
       - name: Docker Build and Push to Docker Hub
         uses: docker/build-push-action@v5
         with:
@@ -369,10 +322,10 @@ jobs:
              ${{ steps.docker_meta.outputs.tags }} , 
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: |
-            type=gha,scope=base
+            type=gha,scope=main-base
           platforms: linux/amd64
 
-      
+   
 
 # NEXT JOB #######################################################################  
 #update docker compose image tag and  kubernetes manifest "image tag "in a seperate repo
@@ -389,11 +342,9 @@ jobs:
       - name: Set default values for manifest tag
         run: |
           echo "PUSH_MANIFEST_TAG='false'" >> $GITHUB_ENV
-          echo "ENABLE_PREVIEW='false'" >> $GITHUB_ENV
           echo "REMOTE_REPO=''" >> $GITHUB_ENV
           echo "REMOTE_WORKFLOW=''" >> $GITHUB_ENV
-          echo "PREVIEW_WORKFLOW=''" >> $GITHUB_ENV
-
+        
       - name: Checkout repository
         uses: actions/checkout@v4
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
@@ -405,7 +356,7 @@ jobs:
       - name: Update compose manifest
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
         run: |
-          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
+          yq --inplace ".services.calcom.image = \"${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}\"" infra/docker/web/docker-compose.yaml
 
       - name: Configure git
         if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
@@ -414,39 +365,28 @@ jobs:
           git config --local user.name "github-actions[bot]"
 
       - name: Commit changes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           git add .
           git commit -m "Release ${{ needs.changelog.outputs.TAG }} [skip ci]"
 
       - name: Push changes
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' 
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.RELEASE_MAIN }}
           branch: ${{ github.ref }}
 
-      - name: Trigger workflow in remote repository for pull requests
-        if: github.event_name == 'pull_request_target' && github.base_ref == 'refs/heads/main' && env.PUSH_MANIFEST_TAG == 'true' && env.ENABLE_PREVIEW == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
-        run: |
-          gh api \
-            -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.PREVIEW_WORKFLOW}}/dispatches \
-            -f ref=main \
-            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
+      - name: Trigger Deployment Workflow
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.PUSH_MANIFEST_TAG == 'true'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: ${{env.REMOTE_WORKFLOW}}
+          repo: ${{ env.REMOTE_REPO }}
+          inputs: '{"image": "${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" }'
+          token: "${{ secrets.RELEASE_MAIN }}"
+
+     
            
 
-      - name: Trigger workflow in remote repository for other events
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.PUSH_MANIFEST_TAG == 'true'
-        env:
-          GH_TOKEN: ${{ secrets.RELEASE_MAIN }}
-        run: |
-          gh api \
-            -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            /repos/${{ github.repository_owner }}/${{ env.REMOTE_REPO }}/actions/workflows/${{env.REMOTE_WORKFLOW}}/dispatches \
-            -f ref=main \
-            -f "inputs[image]=${{ secrets.DOCKERHUB_USERNAME }}/cal.com:${{ needs.changelog.outputs.TAG }}" 
+     
