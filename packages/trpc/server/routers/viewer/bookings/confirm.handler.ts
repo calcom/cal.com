@@ -199,7 +199,7 @@ export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) =
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      id: booking.userId,
+      id: booking.userId ?? -1,
       email: booking.userPrimaryEmail ?? user.email,
       name: user.name || "Unnamed",
       username: user.username || undefined,
