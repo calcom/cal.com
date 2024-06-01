@@ -28,7 +28,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
   } catch (reason) {
-    return res.status(500).json({ message: "Could not add BoxyHQ Retraced app" });
+    return res.status(500).json({ message: "Could not add audit log app" });
   }
 
   return res.status(200).json({ url: getInstalledAppPath({ variant: "auditLogs", slug: config.slug }) });

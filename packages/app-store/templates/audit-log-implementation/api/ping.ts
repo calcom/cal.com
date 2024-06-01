@@ -1,23 +1,30 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import z from "zod";
 
-import type { AuditLogEvent } from "@calcom/features/audit-logs/types";
+import { CRUD } from "@calcom/features/audit-logs/types";
 import { defaultResponder } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 
 import AuditLogManager from "../lib/AuditLogManager";
 import { appKeysSchema } from "../zod";
 
-const pingEvent: AuditLogEvent = {
-  action: "ping.connection",
+const pingEvent = {
+  action: "SYSTEM.PING",
   actor: {
-    id: "jackson@boxyhq.com",
-    name: "Jackson",
+    id: "-1",
+    name: "App interface",
   },
   target: {
-    name: "tasks",
-    type: "Tasks",
+    id: "-1",
+    name: "connection",
+    type: "SYSTEM",
   },
+  group: {
+    id: "dev",
+    name: "dev",
+  },
+  crud: CRUD.CREATE,
+  created: new Date(),
 };
 
 const ZPingInputSchema = z.object({
