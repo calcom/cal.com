@@ -713,9 +713,18 @@ enum AuditLogBookingTriggerEvents {
   BOOKING_CONFIRMED
 }
 
+enum AuditLogSystemTriggerEvents {
+  SYSTEM_PING
+  SYSTEM_CREDENTIALS_UPDATED
+  SYSTEM_TEMPLATE_UPDATED
+  SYSTEM_EVENT_OFF
+  SYSTEM_EVENT_ON
+}
+
 enum AuditLogTriggerTargets {
   BOOKING
   WEBHOOKS
+  SYSTEM
   API_KEYS
   SCHEDULE
   EVENT_TYPES
