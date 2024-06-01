@@ -364,7 +364,9 @@ const nextConfig = {
     };
   },
   async headers() {
-    const CORP_HEADER = {
+    // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
+    // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
+    const CORP_CROSS_ORIGIN_HEADER = {
       key: "Cross-Origin-Resource-Policy",
       value: "cross-origin",
     };
@@ -403,15 +405,15 @@ const nextConfig = {
       },
       {
         source: "/embed/embed.js",
-        headers: [CORP_HEADER],
+        headers: [CORP_CROSS_ORIGIN_HEADER],
       },
       {
         source: "/api/avatar/:path*",
-        headers: [CORP_HEADER],
+        headers: [CORP_CROSS_ORIGIN_HEADER],
       },
       {
         source: "/avatar.svg",
-        headers: [CORP_HEADER],
+        headers: [CORP_CROSS_ORIGIN_HEADER],
       },
       ...(isOrganizationsEnabled
         ? [

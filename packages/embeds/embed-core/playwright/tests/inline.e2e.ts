@@ -2,10 +2,16 @@ import { expect } from "@playwright/test";
 
 import { test } from "@calcom/web/playwright/lib/fixtures";
 
-import { bookFirstEvent, deleteAllBookingsByEmail, getEmbedIframe, todo } from "../lib/testUtils";
+import {
+  assertNoRequestIsBlocked,
+  bookFirstEvent,
+  deleteAllBookingsByEmail,
+  getEmbedIframe,
+  todo,
+} from "../lib/testUtils";
 
 test.describe("Inline Iframe", () => {
-  test("Inline Iframe - Configured with Dark Theme", async ({
+  test("Inline Iframe - Configured with Dark Theme. Do booking and verify that COEP/CORP headers are correctly set", async ({
     page,
     embeds: { addEmbedListeners, getActionFiredDetails },
   }) => {
@@ -24,6 +30,9 @@ test.describe("Inline Iframe", () => {
     if (!embedIframe) {
       throw new Error("Embed iframe not found");
     }
+
+    assertNoRequestIsBlocked(page);
+
     await bookFirstEvent("pro", embedIframe, page);
     await deleteAllBookingsByEmail("embed-user@example.com");
   });
