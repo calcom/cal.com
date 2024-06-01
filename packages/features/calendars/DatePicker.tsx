@@ -163,6 +163,14 @@ const Days = ({
     includedDates: props.includedDates,
   });
 
+  useEffect(() => {
+    const currentMonth = dayjs().startOf("month").format("YYYY-MM");
+    const browsingMonth = browsingDate.format("YYYY-MM");
+    if (currentMonth === browsingMonth && includedDates.length === 0) {
+      nextMonthButton();
+    }
+  }, []);
+
   const days: (Dayjs | null)[] = Array((weekdayOfFirst - weekStart + 7) % 7).fill(null);
   for (let day = 1, dayCount = daysInMonth(browsingDate); day <= dayCount; day++) {
     const date = browsingDate.set("date", day);
