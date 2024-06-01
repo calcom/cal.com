@@ -29,8 +29,10 @@ import { schemaEventTypeCustomInputPublic } from "~/lib/validations/event-type-c
  *         description: No eventTypeCustomInputs were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  const args: Prisma.EventTypeCustomInputFindManyArgs = isAdmin ? {} : { where: { eventType: { userId } } };
+  const { userId, isSystemWideAdmin } = req;
+  const args: Prisma.EventTypeCustomInputFindManyArgs = isSystemWideAdmin
+    ? {}
+    : { where: { eventType: { userId } } };
   const data = await prisma.eventTypeCustomInput.findMany(args);
   return { event_type_custom_inputs: data.map((v) => schemaEventTypeCustomInputPublic.parse(v)) };
 }
