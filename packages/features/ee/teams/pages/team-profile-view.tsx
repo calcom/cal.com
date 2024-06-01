@@ -147,8 +147,8 @@ const ProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 

@@ -31,6 +31,7 @@ type User = {
 type Filters = {
   teamIds?: number[];
   upIds?: string[];
+  schedulingTypes?: SchedulingType[];
 };
 
 export type EventTypesByViewer = Awaited<ReturnType<typeof getEventTypesByViewer>>;
@@ -202,12 +203,22 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
     membershipRole: membership.role,
   }));
 
-  const filterTeamsEventTypesBasedOnInput = async (eventType: Awaited<ReturnType<typeof mapEventType>>) => {
+  const filterByTeamIds = async (eventType: Awaited<ReturnType<typeof mapEventType>>) => {
     if (!filters || !hasFilter(filters)) {
       return true;
     }
     return filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
   };
+  const filterBySchedulingTypes = (evType: Awaited<ReturnType<typeof mapEventType>>) => {
+    if (!filters || !hasFilter(filters) || !filters.schedulingTypes) {
+      return true;
+    }
+
+    if (!evType.schedulingType) return false;
+
+    return filters.schedulingTypes.includes(evType.schedulingType);
+  };
+
   eventTypeGroups = ([] as EventTypeGroup[]).concat(
     eventTypeGroups,
     await Promise.all(
@@ -271,7 +282,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                   : MembershipRole.MEMBER),
             },
             eventTypes: eventTypes
-              .filter(filterTeamsEventTypesBasedOnInput)
+              .filter(filterByTeamIds)
               .filter((evType) => {
                 const res = evType.userId === null || evType.userId === user.id;
                 return res;
@@ -280,7 +291,8 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
                 membership.role === MembershipRole.MEMBER
                   ? evType.schedulingType !== SchedulingType.MANAGED
                   : true
-              ),
+              )
+              .filter(filterBySchedulingTypes),
           };
         })
     )

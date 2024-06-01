@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const ZRemoveMemberInputSchema = z.object({
-  teamId: z.number(),
-  memberId: z.number(),
+  teamIds: z.array(z.number()),
+  memberIds: z.array(z.number()),
   isOrg: z.boolean().default(false),
 });
 
