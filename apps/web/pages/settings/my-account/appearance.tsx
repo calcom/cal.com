@@ -197,7 +197,7 @@ const AppearanceView = ({
         form={userAppThemeFormMethods}
         handleSubmit={(values) => {
           mutation.mutate({
-            appTheme: values.appTheme ?? null,
+            appTheme: values.appTheme === "" ? null : values.appTheme,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
@@ -249,7 +249,7 @@ const AppearanceView = ({
           mutation.mutate({
             // Radio values don't support null as values, therefore we convert an empty string
             // back to null here.
-            theme: values.theme ?? null,
+            theme: values.theme === "" ? null : values.theme,
           });
         }}>
         <div className="border-subtle flex flex-col justify-between border-x px-6 py-8 sm:flex-row">
