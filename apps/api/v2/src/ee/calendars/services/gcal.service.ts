@@ -6,6 +6,7 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Logger, NotFoundException } from "@nestjs/common";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Prisma } from "@prisma/client";
 import { Request } from "express";
@@ -19,6 +20,7 @@ const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.events",
 ];
 
+@Injectable()
 export class GoogleCalendarService implements OAuthCalendarApp {
   private redirectUri = `${this.config.get("api.url")}/gcal/oauth/save`;
   private gcalResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });

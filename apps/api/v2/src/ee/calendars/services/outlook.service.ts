@@ -5,6 +5,7 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import type { Calendar as OfficeCalendar } from "@microsoft/microsoft-graph-types-beta";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request } from "express";
 import { stringify } from "querystring";
@@ -14,6 +15,7 @@ import { OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { OFFICE_365_CALENDAR_ID } from "@calcom/platform-constants";
 
+@Injectable()
 export class OutlookService implements OAuthCalendarApp {
   private redirectUri = `${this.config.get("api.url")}/calendars/office365/save`;
 
