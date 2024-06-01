@@ -25,19 +25,22 @@ export class OutlookService implements OAuthCalendarApp {
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
   ) {}
 
-  async connect(authorization: string, req: Request): Promise<{ status: string; data: { authUrl: string } }> {
+  async connect(
+    authorization: string,
+    req: Request
+  ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
     const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "");
 
-    return { status: "SUCCESS", data: { authUrl: redirectUrl } };
+    return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
 
   async save(code: string, accessToken: string, origin: string): Promise<{ url: string }> {
     return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin);
   }
 
-  async check(userId: number): Promise<{ status: string }> {
+  async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     return await this.checkIfCalendarConnected(userId);
   }
 
@@ -61,7 +64,7 @@ export class OutlookService implements OAuthCalendarApp {
     return url;
   }
 
-  async checkIfCalendarConnected(userId: number) {
+  async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     const office365CalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
       "office365_calendar",
       userId

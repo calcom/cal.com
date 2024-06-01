@@ -26,12 +26,7 @@ import { Request } from "express";
 import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
-import {
-  SUCCESS_STATUS,
-  CALENDARS,
-  GOOGLE_CALENDAR,
-  MICROSOFT_OUTLOOK_CALENDAR,
-} from "@calcom/platform-constants";
+import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from "@calcom/platform-constants";
 import { CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
@@ -93,7 +88,7 @@ export class CalendarsController {
     @Param("calendar") calendar: string
   ): Promise<{ status: string; data: { authUrl: string } }> {
     switch (calendar) {
-      case MICROSOFT_OUTLOOK_CALENDAR:
+      case OFFICE_365_CALENDAR:
         return await this.outlookService.connect(authorization, req);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.connect(authorization, req);
@@ -120,7 +115,7 @@ export class CalendarsController {
       .parse({ accessToken: stateParams.get("accessToken"), origin: stateParams.get("origin") });
 
     switch (calendar) {
-      case MICROSOFT_OUTLOOK_CALENDAR:
+      case OFFICE_365_CALENDAR:
         return await this.outlookService.save(code, accessToken, origin);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.save(code, accessToken, origin);
@@ -141,7 +136,7 @@ export class CalendarsController {
     @Param("calendar") calendar: string
   ): Promise<{ status: string }> {
     switch (calendar) {
-      case MICROSOFT_OUTLOOK_CALENDAR:
+      case OFFICE_365_CALENDAR:
         return await this.outlookService.check(userId);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.check(userId);
