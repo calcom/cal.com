@@ -3,7 +3,7 @@ import { DefaultAppSettingsOptions } from "@calcom/features/audit-logs/types";
 import { useAppCredential, AuditLogCredentialProvider } from "../context/CredentialContext";
 import { AuditLogEventToggles } from "./AuditLogEventToggles";
 import { AuditSystemStatus } from "./AuditSystemStatus";
-import { CredentialsForm } from "./CredentialsForm";
+import { CredentialsFormWrapper } from "./CredentialsFormWrapper";
 import { GeneralSettings } from "./GeneralSettings";
 import { NavigationPanel } from "./NavigationPanel";
 
@@ -45,6 +45,6 @@ function renderPanel(activePanel: string | null) {
 
     // DefaultAppSettingsOptions.CREDENTIALS
     default:
-      return <CredentialsForm />;
+      return <CredentialsFormWrapper />;
   }
 }

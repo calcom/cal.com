@@ -1,38 +1,51 @@
 import { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc";
 import { Form, PasswordField, InputField, Button, showToast } from "@calcom/ui";
 
-import { useAppCredential } from "../context/CredentialContext";
+import type { AppKeys } from "../zod";
 
-export const CredentialsForm = () => {
-  const { credentialId, form } = useAppCredential();
+export enum FormAction {
+  CREATE,
+  UPDATE,
+}
+
+type CredentialsFormProps = {
+  form: UseFormReturn<AppKeys, any>;
+} & (CredentialCreationForm | CredentialUpdateForm);
+
+export type CredentialCreationForm = { action: FormAction.CREATE; onCreate?: (props: AppKeys) => void };
+export type CredentialUpdateForm = {
+  action: FormAction.UPDATE;
+  credentialId: number;
+  onSubmit?: (props: { key: AppKeys; credentialId: number }) => void;
+};
+
+export const CredentialsForm = (props: CredentialsFormProps) => {
   const [loading, setLoading] = useState(false);
 
   const { t } = useLocale();
-  const updateAppCredentialsMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
-    onSuccess: () => {
-      showToast(t("keys_have_been_saved"), "success");
-      form.reset(form.getValues());
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
 
   return (
     <Form
-      form={form}
+      form={props.form}
       className="flex w-[100%] flex-col justify-between space-y-4"
       handleSubmit={async (values) => {
         try {
           setLoading(true);
-          updateAppCredentialsMutation.mutate({
-            credentialId: credentialId,
-            key: values,
-          });
+          if (props.action === FormAction.UPDATE && props.onSubmit) {
+            props.onSubmit({
+              credentialId: props.credentialId,
+              key: values,
+            });
+          } else if (props.action === FormAction.CREATE && props.onCreate) {
+            props.onCreate(values);
+          } else {
+            showToast("Error. Please contact your developer.", "error");
+          }
+
           setLoading(false);
         } catch (e) {
           console.log(e);
@@ -40,7 +53,7 @@ export const CredentialsForm = () => {
       }}>
       <Controller
         name="endpoint"
-        control={form.control}
+        control={props.form.control}
         render={({ field: { onBlur, onChange, value } }) => (
           <div className="col-span-4 col-start-2 row-start-1 flex flex-row items-end space-x-5">
             <InputField
@@ -57,7 +70,7 @@ export const CredentialsForm = () => {
       />
       <Controller
         name="projectId"
-        control={form.control}
+        control={props.form.control}
         render={({ field: { onBlur, onChange, value } }) => (
           <div className="col-span-4 col-start-2 row-start-2 flex flex-row items-end space-x-5">
             <InputField
@@ -74,7 +87,7 @@ export const CredentialsForm = () => {
       />
       <Controller
         name="apiKey"
-        control={form.control}
+        control={props.form.control}
         render={({ field: { onBlur, onChange, value } }) => {
           return (
             <div className="col-span-4 col-start-2 row-start-3 flex flex-row items-end space-x-5">
@@ -87,7 +100,7 @@ export const CredentialsForm = () => {
                 containerClassName="w-[100%] data-[dirty=true]:w-[90%] duration-300"
               />{" "}
               <Button
-                data-dirty={form.formState.isDirty}
+                data-dirty={props.form.formState.isDirty}
                 className="mb-1 data-[dirty=false]:hidden"
                 loading={loading}
                 type="submit">
