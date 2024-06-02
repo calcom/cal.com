@@ -312,7 +312,7 @@ function BookingListItem(booking: BookingItemProps) {
       name: attendee.name,
       email: attendee.email,
       id: attendee.id,
-      noShow: attendee.noShow,
+      noShow: attendee.noShow || false,
     };
   });
   return (
