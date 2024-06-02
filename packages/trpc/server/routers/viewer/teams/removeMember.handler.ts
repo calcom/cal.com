@@ -27,7 +27,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     identifier: `removeMember.${ctx.sourceIp}`,
   });
 
-  const { memberIds, teamIds, isOrg } = input;
+  const { memberIds, teamIds, isOrg, redirectTo } = input;
   const isAdmin = teamIds.every(async (teamId) => await isTeamAdmin(ctx.user.id, teamId));
 
   const isOrgAdmin = ctx.user.profile?.organizationId
@@ -72,6 +72,7 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
           teamId,
           memberId,
           isOrg,
+          redirectTo,
         })
       );
     }

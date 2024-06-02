@@ -349,6 +349,7 @@ export function UserListTable() {
               <DeleteBulkUsers
                 users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
                 onRemove={() => table.toggleAllPageRowsSelected(false)}
+                allUsers={flatData}
               />
             ),
           },
@@ -442,7 +443,9 @@ export function UserListTable() {
         ]}
       />
 
-      {state.deleteMember.showModal && <DeleteMemberModal state={state} dispatch={dispatch} />}
+      {state.deleteMember.showModal && (
+        <DeleteMemberModal allUsers={flatData} state={state} dispatch={dispatch} />
+      )}
       {state.inviteMember.showModal && <InviteMemberModal dispatch={dispatch} />}
       {state.impersonateMember.showModal && <ImpersonationMemberModal dispatch={dispatch} state={state} />}
       {state.changeMemberRole.showModal && <ChangeUserRoleModal dispatch={dispatch} state={state} />}

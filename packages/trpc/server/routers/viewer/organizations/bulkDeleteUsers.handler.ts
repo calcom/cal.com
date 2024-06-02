@@ -59,9 +59,37 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     userIds: input.userIds,
   });
 
+  const operations = [removeProfiles, deleteMany, removeOrgrelation];
+
+  const organizationId = currentUser.organizationId;
+  const redirectTo = input.redirectTo;
+  if (redirectTo && organizationId) {
+    const users = await ProfileRepository.findManyForOrg({ organizationId });
+    const redirectToUser = await ProfileRepository.findByUserIdAndOrgId({
+      userId: redirectTo,
+      organizationId,
+    });
+
+    if (redirectToUser) {
+      const redirectData = users
+        .filter((user) => input.userIds.some((userId) => userId === user.userId))
+        .map((user) => ({
+          teamId: organizationId,
+          fromUsername: user.username,
+          toProfileId: redirectToUser.id,
+        }));
+
+      const createUserRedirection = prisma.removedOrgMembersRedirect.createMany({
+        data: redirectData,
+      });
+
+      operations.push(createUserRedirection);
+    }
+  }
+
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
-  await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
+  await prisma.$transaction(operations);
 
   return {
     success: true,

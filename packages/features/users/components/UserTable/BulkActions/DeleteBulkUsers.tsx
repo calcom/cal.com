@@ -1,17 +1,23 @@
+import { useState } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
 
+import { RemovedMembersRedirectModal } from "../RemovedMembersRedirectModal";
 import type { User } from "../UserListTable";
 
 interface Props {
   users: User[];
   onRemove: () => void;
+  allUsers: User[];
 }
 
-export function DeleteBulkUsers({ users, onRemove }: Props) {
+export function DeleteBulkUsers({ allUsers, users, onRemove }: Props) {
   const { t } = useLocale();
   const selectedRows = users; // Get selected rows from table
+  const [profileRedirect, setProfileRedirect] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<{ label: string | null; value: number } | undefined>();
   const utils = trpc.useUtils();
   const deleteMutation = trpc.viewer.organizations.bulkDeleteUsers.useMutation({
     onSuccess: () => {
@@ -34,6 +40,7 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
         isPending={deleteMutation.isPending}
         onConfirm={() => {
           deleteMutation.mutateAsync({
+            redirectTo: selectedMember?.value,
             userIds: selectedRows.map((user) => user.id),
           });
           onRemove();
@@ -43,6 +50,14 @@ export function DeleteBulkUsers({ users, onRemove }: Props) {
             userCount: selectedRows.length,
           })}
         </p>
+        <RemovedMembersRedirectModal
+          allUsers={allUsers}
+          usersToBeRemoved={selectedRows.map((user) => user.id)}
+          setSelectedMember={setSelectedMember}
+          setProfileRedirect={setProfileRedirect}
+          profileRedirect={profileRedirect}
+          selectedMember={selectedMember}
+        />
       </ConfirmationDialogContent>
     </Dialog>
   );

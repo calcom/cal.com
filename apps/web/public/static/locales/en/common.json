@@ -1515,6 +1515,7 @@
   "new_api_key": "New API key",
   "active": "active",
   "api_key_updated": "API key name updated",
+  "redirect_all_future_links_to": "Select a member to redirect future links to.",
   "api_key_update_failed": "Error updating API key name",
   "embeds_title": "HTML iframe embed",
   "embeds_description": "Embed all your event types on your website",

@@ -11,6 +11,7 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
@@ -121,6 +122,22 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   };
 
   const isThereAnyNonOrgUser = usersInOrgContext.some(isNonOrgUser);
+
+  if (!usersInOrgContext.length && isValidOrgDomain && currentOrgDomain) {
+    const username = await ProfileRepository.findUserToRedirectTo({
+      username: usernameList[0],
+      orgSlug: currentOrgDomain,
+    });
+
+    if (username) {
+      return {
+        redirect: {
+          permanent: false,
+          destination: `/${username}`,
+        },
+      };
+    }
+  }
 
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {

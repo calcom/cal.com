@@ -10,10 +10,12 @@ const removeMember = async ({
   memberId,
   teamId,
   isOrg,
+  redirectTo,
 }: {
   memberId: number;
   teamId: number;
   isOrg: boolean;
+  redirectTo?: number;
 }) => {
   const [membership] = await prisma.$transaction([
     prisma.membership.delete({
@@ -80,6 +82,23 @@ const removeMember = async ({
       userId: userToDeleteMembershipOf.id,
       organizationId: orgInfo.id,
     });
+
+    if (redirectTo && profileToDelete) {
+      const userToRedirectTo = await ProfileRepository.findByUserIdAndOrgId({
+        userId: redirectTo,
+        organizationId: orgInfo.id,
+      });
+
+      if (userToRedirectTo) {
+        await prisma.removedOrgMembersRedirect.create({
+          data: {
+            toProfileId: userToRedirectTo.id,
+            fromUsername: profileToDelete.username,
+            teamId: orgInfo.id,
+          },
+        });
+      }
+    }
 
     if (
       userToDeleteMembershipOf.username &&

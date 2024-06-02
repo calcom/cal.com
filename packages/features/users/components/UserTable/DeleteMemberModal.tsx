@@ -1,13 +1,23 @@
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
+import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Dialog, ConfirmationDialogContent, showToast } from "@calcom/ui";
 
-import type { State, Action } from "./UserListTable";
+import { RemovedMembersRedirectModal } from "./RemovedMembersRedirectModal";
+import type { State, Action, User } from "./UserListTable";
 
-export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
+export function DeleteMemberModal({
+  state,
+  dispatch,
+  allUsers,
+}: {
+  allUsers: User[];
+  state: State;
+  dispatch: Dispatch<Action>;
+}) {
   const { t } = useLocale();
   const { data: session } = useSession();
   const utils = trpc.useUtils();
@@ -25,6 +35,8 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
       showToast(err.message, "error");
     },
   });
+  const [profileRedirect, setProfileRedirect] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<{ label: string | null; value: number } | undefined>();
   return (
     <Dialog
       open={state.deleteMember.showModal}
@@ -46,9 +58,20 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
             teamIds: [session?.user.org.id],
             memberIds: [state?.deleteMember?.user.id],
             isOrg: true,
+            redirectTo: selectedMember?.value,
           });
         }}>
         {t("remove_member_confirmation_message")}
+        {state?.deleteMember?.user?.id && (
+          <RemovedMembersRedirectModal
+            profileRedirect={profileRedirect}
+            setProfileRedirect={setProfileRedirect}
+            selectedMember={selectedMember}
+            setSelectedMember={setSelectedMember}
+            usersToBeRemoved={[state?.deleteMember?.user.id]}
+            allUsers={allUsers}
+          />
+        )}
       </ConfirmationDialogContent>
     </Dialog>
   );
