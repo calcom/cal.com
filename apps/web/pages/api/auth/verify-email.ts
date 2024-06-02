@@ -1,6 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
+import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
+import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
@@ -100,6 +102,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         metadata: userMetadataParsed,
       },
     });
+
+    const stripeCustomerId = await getStripeCustomerIdFromUserId(user.id);
+    await stripe.customers.update(stripeCustomerId, { email: updatedEmail });
 
     // The user is trying to update the email to an already existing unverified secondary email of his
     // so we swap the emails and its verified status
