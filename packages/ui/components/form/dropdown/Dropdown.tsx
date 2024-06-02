@@ -52,7 +52,7 @@ DropdownMenuContent.displayName = "DropdownMenuContent";
 
 type DropdownMenuLabelProps = ComponentProps<(typeof DropdownMenuPrimitive)["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
-  <DropdownMenuPrimitive.Label {...props} className="text-subtle px-3 py-2" />
+  <DropdownMenuPrimitive.Label {...props} className={classNames("text-subtle px-3 py-2", props.className)} />
 );
 
 type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
@@ -71,12 +71,23 @@ export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
 type DropdownMenuCheckboxItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
 export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, ...props }, forwardedRef) => {
+  ({ children, checked, onCheckedChange, ...props }, forwardedRef) => {
     return (
-      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
+      <DropdownMenuPrimitive.CheckboxItem
+        {...props}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        ref={forwardedRef}
+        className="hover:text-emphasis text-default hover:bg-subtle flex w-full items-center space-x-2 px-3 py-2 pr-20  hover:outline-none hover:ring-0 disabled:cursor-not-allowed">
         {children}
-        <DropdownMenuPrimitive.ItemIndicator>
-          <Icon name="circle-check" />
+        {!checked && (
+          <Icon
+            className="text-subtle absolute right-2 inline-flex w-8 items-center justify-center"
+            name="square"
+          />
+        )}
+        <DropdownMenuPrimitive.ItemIndicator className="focus:ring-emphasis text-subtle absolute right-2 inline-flex w-8 items-center justify-center">
+          <Icon name="square-check" className="" />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );

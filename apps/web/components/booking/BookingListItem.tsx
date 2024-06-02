@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
 import {
@@ -40,9 +41,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuItem,
   DropdownItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from "@calcom/ui";
 
-// import { Eye, Clipboard, EyeOff, Mail } from "@calcom/ui/components/icon";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
@@ -304,7 +307,14 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-
+  const attendeeList = booking.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      id: attendee.id,
+      noShow: attendee.noShow,
+    };
+  });
   return (
     <>
       <RescheduleDialog
@@ -513,7 +523,7 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {booking.attendees.length !== 0 && (
                 <DisplayAttendees
-                  attendees={booking.attendees}
+                  attendees={attendeeList}
                   user={booking.user}
                   currentEmail={userEmail}
                   bookingUid={booking.uid}
@@ -662,6 +672,8 @@ const FirstAttendee = ({
 type AttendeeProps = {
   name?: string;
   email: string;
+  id: number;
+  noShow: boolean;
 };
 
 type NoShowProps = {
@@ -669,29 +681,43 @@ type NoShowProps = {
   isPast: boolean;
 };
 
-const Attendee = ({ email, name, bookingUid, isPast }: AttendeeProps & NoShowProps) => {
+const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
+  const { email, name, bookingUid, isPast, noShow: noShowAttendee } = attendeeProps;
   const { t } = useLocale();
-  const [noShow, setNoShow] = useState(false);
+
+  const [noShow, setNoShow] = useState(noShowAttendee);
   const [openDropdown, setOpenDropdown] = useState(false);
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async () => {
       noShow
-        ? showToast("Attendee marked as No Show", "success")
-        : showToast("Attendee unmarked as No Show", "Success");
+        ? showToast(
+            t("x_marked_as_no_show", {
+              x: email,
+            }),
+            "success"
+          )
+        : showToast(
+            t("x_unmarked_as_no_show", {
+              x: email,
+            }),
+            "success"
+          );
     },
     onError: (err) => {
       showToast(err.message, "error");
     },
   });
 
-  function toggleNoShow(noShow: boolean, event: React.MouseEvent<HTMLButtonElement>) {
-    // TODO: backend call to update noShow status peer attendee
-    // noShowMutation.mutate({ bookingUid, attendeeEmails });
-    // TODO: optimistically update UI, likely without useState
+  function toggleNoShow({
+    attendee,
+    bookingUid,
+  }: {
+    attendee: { email: string; noShow: boolean };
+    bookingUid: string;
+  }) {
+    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
     setNoShow(!noShow);
-    event.preventDefault();
-    event.stopPropagation();
   }
 
   return (
@@ -710,7 +736,6 @@ const Attendee = ({ email, name, bookingUid, isPast }: AttendeeProps & NoShowPro
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        {/* TODO: figure out how to close the dropdown after clicking, since we are stopping propagation due to the <Link> */}
         <DropdownMenuItem className="focus:outline-none">
           {/* TODO: add subject: title */}
           <DropdownItem
@@ -738,16 +763,124 @@ const Attendee = ({ email, name, bookingUid, isPast }: AttendeeProps & NoShowPro
         {isPast && (
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
-              <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon="eye">
+              <DropdownItem
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  e.preventDefault();
+                }}
+                StartIcon="eye">
                 {t("unmark_as_no_show")}
               </DropdownItem>
             ) : (
-              <DropdownItem onClick={(e) => toggleNoShow(noShow, e)} StartIcon="eye-off">
+              <DropdownItem
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  e.preventDefault();
+                }}
+                StartIcon="eye-off">
                 {t("mark_as_no_show")}
               </DropdownItem>
             )}
           </DropdownMenuItem>
         )}
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
+type GroupedAttendeeProps = {
+  attendees: AttendeeProps[];
+  bookingUid: string;
+};
+
+const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
+  const { bookingUid } = groupedAttendeeProps;
+  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
+    return {
+      id: attendee.id,
+      email: attendee.email,
+      name: attendee.name,
+      noShow: attendee.noShow || false,
+    };
+  });
+  const { t } = useLocale();
+  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+    onSuccess: async () => {
+      showToast(t("no_show_updated"), "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+  const { control, handleSubmit } = useForm<{
+    attendees: AttendeeProps[];
+  }>({
+    defaultValues: {
+      attendees,
+    },
+    mode: "onBlur",
+  });
+
+  const { fields } = useFieldArray({
+    control,
+    name: "attendees",
+  });
+
+  const onSubmit = (data: { attendees: AttendeeProps[] }) => {
+    const filteredData = data.attendees.slice(1);
+    noShowMutation.mutate({ bookingUid, attendees: filteredData });
+    setOpenDropdown(false);
+  };
+
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  return (
+    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+      <DropdownMenuTrigger asChild>
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          {t("plus_more", { count: attendees.length - 1 })}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel className="text-xs font-medium uppercase">
+          {t("mark_as_no_show_title")}
+        </DropdownMenuLabel>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {fields.slice(1).map((field, index) => (
+            <Controller
+              key={field.id}
+              name={`attendees.${index + 1}.noShow`}
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <DropdownMenuCheckboxItem
+                  checked={value || false}
+                  onCheckedChange={onChange}
+                  className="pr-8 focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onChange(!value);
+                  }}>
+                  {field.email}
+                </DropdownMenuCheckboxItem>
+              )}
+            />
+          ))}
+          <DropdownMenuSeparator />
+          <div className=" flex justify-end p-2">
+            <Button
+              color="secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(onSubmit)();
+              }}>
+              {t("mark_as_no_show_title")}
+            </Button>
+          </div>
+        </form>
       </DropdownMenuContent>
     </Dropdown>
   );
@@ -767,6 +900,8 @@ const DisplayAttendees = ({
   isPast: boolean;
 }) => {
   const { t } = useLocale();
+  attendees.sort((a, b) => a.id - b.id);
+
   return (
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
@@ -776,14 +911,13 @@ const DisplayAttendees = ({
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
           {attendees.length > 2 ? (
-            // instead of Tooltip here, we do MARK AS NO SHOW dropdown as shared by Ciaran
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} />
+                  <Attendee {...attendee} bookingUid={bookingUid} isPast={isPast} />
                 </p>
               ))}>
-              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+              {isPast && <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />}
             </Tooltip>
           ) : (
             <Attendee {...attendees[1]} bookingUid={bookingUid} isPast={isPast} />
