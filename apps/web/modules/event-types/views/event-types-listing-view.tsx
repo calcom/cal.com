@@ -411,6 +411,7 @@ export const EventTypeList = ({
                   {!(lastItem && lastItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                   )}
+                  <div className="h-2 w-1 bg-gray-300" />
                   <MemoizedItem type={type} group={group} readOnly={readOnly} />
                   <div className="mt-4 hidden sm:mt-0 sm:flex">
                     <div className="flex justify-between space-x-2 rtl:space-x-reverse">

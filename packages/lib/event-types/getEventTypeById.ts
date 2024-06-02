@@ -108,6 +108,7 @@ export const getEventTypeById = async ({
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
+      eventTypeColour: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,

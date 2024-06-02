@@ -21,6 +21,7 @@ import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
@@ -37,6 +38,7 @@ import {
   TextField,
   Tooltip,
   showToast,
+  ColorPicker,
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -49,6 +51,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
+  const [colourError, setColourError] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
@@ -125,6 +128,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
+  const eventTypeColourLocked = shouldLockDisableProps("eventTypeColour");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
@@ -522,6 +526,45 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             onCheckedChange={(e) => onChange(e)}
             data-testid="lock-timezone-toggle"
           />
+        )}
+      />
+      <Controller
+        name="eventTypeColour"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              value && "rounded-b-none"
+            )}
+            title={t("event_type_colour")}
+            {...eventTypeColourLocked}
+            description={t("event_type_colour_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            childrenClassName="lg:ml-0">
+            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <ColorPicker
+                defaultValue=""
+                resetDefaultValue="ffffff"
+                onChange={(value) => {
+                  try {
+                    checkWCAGContrastColor("#ffffff", value);
+                    setColourError(false);
+                    formMethods.setValue("eventTypeColour", value, { shouldDirty: true });
+                  } catch (err) {
+                    setColourError(true);
+                  }
+                }}
+              />
+              {colourError ? (
+                <div className="mt-4">
+                  <Alert severity="warning" message={t("light_theme_contrast_error")} />
+                </div>
+              ) : null}
+            </div>
+          </SettingsToggle>
         )}
       />
       {allowDisablingAttendeeConfirmationEmails(workflows) && (
