@@ -1,10 +1,10 @@
 import prisma from "@calcom/prisma";
 
 // let's take this from org-wide webhooks PR
-export const getOrgIdFromMemberOrTeamId = async (args: {
+export default async function getOrgIdFromMemberOrTeamId(args: {
   memberId?: number | null;
   teamId?: number | null;
-}) => {
+}) {
   const userId = args.memberId ?? 0;
   const teamId = args.teamId ?? 0;
 
@@ -46,4 +46,4 @@ export const getOrgIdFromMemberOrTeamId = async (args: {
     },
   });
   return orgId?.id;
-};
+}
