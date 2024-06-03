@@ -9,7 +9,7 @@ import { getServerSideProps } from "@lib/settings/license-keys/new/getServerSide
 
 import PageWrapper from "@components/PageWrapper";
 
-const CreateNewOrganizationPage = () => {
+const CreateNewLicenseKeyPage = () => {
   const { t } = useLocale();
   return (
     <LicenseRequired>
@@ -26,8 +26,8 @@ const LayoutWrapper = (page: React.ReactElement) => {
   );
 };
 
-CreateNewOrganizationPage.getLayout = LayoutWrapper;
-CreateNewOrganizationPage.PageWrapper = PageWrapper;
+CreateNewLicenseKeyPage.getLayout = LayoutWrapper;
+CreateNewLicenseKeyPage.PageWrapper = PageWrapper;
 
-export default CreateNewOrganizationPage;
+export default CreateNewLicenseKeyPage;
 export { getServerSideProps };
