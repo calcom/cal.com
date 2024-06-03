@@ -78,16 +78,27 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
         checked={checked}
         onCheckedChange={onCheckedChange}
         ref={forwardedRef}
-        className="hover:text-emphasis text-default hover:bg-subtle flex w-full items-center space-x-2 px-3 py-2 pr-20  hover:outline-none hover:ring-0 disabled:cursor-not-allowed">
-        {children}
+        className="hover:text-emphasis text-default hover:bg-subtle flex flex-1 items-center space-x-2 px-3 py-2 hover:outline-none hover:ring-0 disabled:cursor-not-allowed">
+        <div className="w-full">{children}</div>
         {!checked && (
-          <Icon
-            className="text-subtle absolute right-2 inline-flex w-8 items-center justify-center"
-            name="square"
+          <input
+            aria-disabled={true}
+            aria-label={typeof children === "string" ? `Not active ${children}` : undefined}
+            aria-readonly
+            checked={false}
+            type="checkbox"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default ml-auto h-4 w-4 rounded hover:cursor-pointer"
           />
         )}
-        <DropdownMenuPrimitive.ItemIndicator className="focus:ring-emphasis text-subtle absolute right-2 inline-flex w-8 items-center justify-center">
-          <Icon name="square-check" className="" />
+        <DropdownMenuPrimitive.ItemIndicator asChild>
+          <input
+            aria-disabled={true}
+            aria-readonly
+            aria-label={typeof children === "string" ? `Active${children}` : undefined}
+            checked={true}
+            type="checkbox"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+          />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -124,6 +135,7 @@ type DropdownItemProps = {
 } & ButtonOrLinkProps;
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
+
 export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const isLink = typeof href !== "undefined";
   const ButtonOrLink = isLink ? "a" : "button";
