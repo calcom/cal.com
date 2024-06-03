@@ -528,7 +528,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
   return addedTeams;
 }
 
-async function addUsers(users: InputUser[]) {
+export async function addUsers(users: InputUser[]) {
   const prismaUsersCreate = [];
   for (let i = 0; i < users.length; i++) {
     const newUser = users[i];
@@ -1668,4 +1668,28 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
 
 export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
   return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
+};
+
+export const writeCredentialToMockDb = async (credential) => {
+  await prismock.credential.create({
+    data: credential,
+  });
+};
+
+export const getCredentialFromMockDb = async (credentialId) => {
+  return await prismock.credential.findFirst({
+    where: {
+      id: credentialId,
+    },
+  });
+};
+
+export const getEventTypesFromMockDb = async (eventTypeIds: number[]) => {
+  return await prismock.eventType.findFirst({
+    where: {
+      id: {
+        in: eventTypeIds,
+      },
+    },
+  });
 };
