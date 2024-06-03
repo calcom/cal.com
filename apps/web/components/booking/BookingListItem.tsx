@@ -864,7 +864,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
                     e.preventDefault();
                     onChange(!value);
                   }}>
-                  {field.email}
+                  <span className={value ? "line-through" : ""}>{field.email}</span>
                 </DropdownMenuCheckboxItem>
               )}
             />
