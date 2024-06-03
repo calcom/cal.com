@@ -364,7 +364,13 @@ function BookingListItem(booking: BookingItemProps) {
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
         <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <div className="flex h-full items-center">
-            <div className="mr-3 h-[70%] w-0.5 bg-gray-300" />
+            {booking.eventType?.eventTypeColour && (
+              <div
+                className="mr-3 h-[70%] w-0.5"
+                style={{ backgroundColor: booking.eventType.eventTypeColour }}
+              />
+            )}
+
             <Link href={bookingLink}>
               <div className="cursor-pointer py-4">
                 <div className="text-emphasis text-sm leading-6">{startTime}</div>

@@ -138,11 +138,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const closeEventNameTip = () => setShowEventNameTip(false);
   const { activeTheme } = useGetTheme();
-  const defaultEventTypeColour = eventTypeColourVisible
-    ? formMethods.getValues("eventTypeColour")
-    : activeTheme === "dark"
-    ? DEFAULT_DARK_BRAND_COLOR
-    : DEFAULT_LIGHT_BRAND_COLOR;
+  const defaultEventTypeColour =
+    formMethods.getValues("eventTypeColour") ||
+    (activeTheme === "dark" ? DEFAULT_DARK_BRAND_COLOR : DEFAULT_LIGHT_BRAND_COLOR);
 
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);

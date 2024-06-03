@@ -181,7 +181,9 @@ const Item = ({
       href={`/event-types/${type.id}?tabName=setup`}
       className="relative flex-1 overflow-hidden pr-4 text-sm"
       title={type.title}>
-      {type.eventTypeColour && <div className={`absolute h-full w-0.5 bg-${type.eventTypeColour}`} />}
+      {type.eventTypeColour && (
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: type.eventTypeColour }} />
+      )}
       <div className="ml-3">
         <div>
           <span

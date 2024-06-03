@@ -124,6 +124,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     parentId: null,
     profileId: null,
     secondaryEmailId: null,
+    eventTypeColour: null,
     ...eventType,
   };
 };

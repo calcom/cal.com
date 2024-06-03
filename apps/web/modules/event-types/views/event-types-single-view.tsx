@@ -249,7 +249,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       length: eventType.length,
       hidden: eventType.hidden,
       hashedLink: eventType.hashedLink?.link || undefined,
-      eventTypeColour: eventType.eventTypeColour || undefined,
+      eventTypeColour: eventType.eventTypeColour || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
