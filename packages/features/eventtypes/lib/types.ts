@@ -46,7 +46,7 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
-  eventTypeColour?: string;
+  eventTypeColour: string | null;
   locations: {
     type: EventLocationType["type"];
     address?: string;
