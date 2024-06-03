@@ -2,7 +2,6 @@ import {
   FilterCheckboxField,
   FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
-import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
@@ -11,17 +10,17 @@ import { AnimatedPopover, Avatar } from "@calcom/ui";
 import { useFilterContext } from "../context/provider";
 
 type User = RouterOutputs["viewer"]["insights"]["userList"][number];
-type Option = { value: number; label: string; username: string | null };
+type Option = { value: number; label: string; username: string | null; avatarUrl: string | null };
 
 const mapUserToOption = (user: User): Option => ({
   value: user.id,
   label: user.name ?? user.email, // every user should have at least email
   username: user.username,
+  avatarUrl: user.avatarUrl,
 });
 
 export const UserListInTeam = () => {
   const { t } = useLocale();
-  const bookerUrl = useBookerUrl();
   const { filter, setConfigFilters } = useFilterContext();
   const { selectedFilter, selectedTeamId, selectedMemberUserId, isAll } = filter;
   const { data, isSuccess } = trpc.viewer.insights.userList.useQuery({
@@ -65,13 +64,7 @@ export const UserListInTeam = () => {
                 });
               }
             }}
-            icon={
-              <Avatar
-                alt={`${member?.value} avatar`}
-                imageSrc={member.username ? `${bookerUrl}/${member.username}/avatar.png` : undefined}
-                size="xs"
-              />
-            }
+            icon={<Avatar alt={`${member?.value} avatar`} imageSrc={member.avatarUrl} size="xs" />}
           />
         ))}
         {userListOptions?.length === 0 && (

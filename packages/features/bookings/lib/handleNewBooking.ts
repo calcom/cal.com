@@ -68,6 +68,7 @@ import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -943,6 +944,65 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
+const checkIfBookerEmailIsBlocked = async ({
+  bookerEmail,
+  loggedInUserId,
+}: {
+  bookerEmail: string;
+  loggedInUserId?: number;
+}) => {
+  const baseEmail = extractBaseEmail(bookerEmail);
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const blacklistedEmail = blacklistedGuestEmails.find(
+    (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
+  );
+
+  if (!blacklistedEmail) {
+    return false;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          email: baseEmail,
+          emailVerified: {
+            not: null,
+          },
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: baseEmail,
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+  }
+
+  if (user.id !== loggedInUserId) {
+    throw new HttpError({
+      statusCode: 403,
+      message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+    });
+  }
+};
+
 async function handler(
   req: NextApiRequest & {
     userId?: number | undefined;
@@ -1004,6 +1064,8 @@ async function handler(
   } = bookingData;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
+
+  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
 
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
@@ -1289,7 +1351,12 @@ async function handler(
         loggerWithEventDetails
       );
       const luckyUsers: typeof users = [];
-      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      const luckyUserPool: IsFixedAwareUser[] = [];
+      const fixedUserPool: IsFixedAwareUser[] = [];
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
+
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -1299,6 +1366,17 @@ async function handler(
           luckyUserPool: luckyUserPool.map((user) => user.id),
         })
       );
+
+      if (reqBody.teamMemberEmail) {
+        // If requested user is not a fixed host, assign the lucky user as the team member
+        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
+          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
+          if (teamMember) {
+            luckyUsers.push(teamMember);
+          }
+        }
+      }
+
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -1346,13 +1424,11 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (
-        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-      ) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
+      users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
@@ -1369,7 +1445,10 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  const [organizerUser] = users;
+  // If the team member is requested then they should be the organizer
+  const organizerUser = reqBody.teamMemberEmail
+    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -1420,7 +1499,17 @@ async function handler(
     },
   ];
 
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1435,6 +1524,10 @@ async function handler(
     });
     return guestArray;
   }, [] as Invitee);
+
+  if (guestsRemoved.length > 0) {
+    log.info("Removed guests from the booking", guestsRemoved);
+  }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -1452,29 +1545,31 @@ async function handler(
   const teamDestinationCalendars: DestinationCalendar[] = [];
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users.slice(1).map(async (user) => {
-    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-    // push to teamDestinationCalendars if it's a team event but collective only
-    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push({
-        ...user.destinationCalendar,
-        externalId: processExternalId(user.destinationCalendar),
-      });
-    }
+  const teamMemberPromises = users
+    .filter((user) => user.email !== organizerUser.email)
+    .map(async (user) => {
+      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
+      // push to teamDestinationCalendars if it's a team event but collective only
+      if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+        teamDestinationCalendars.push({
+          ...user.destinationCalendar,
+          externalId: processExternalId(user.destinationCalendar),
+        });
+      }
 
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      name: user.name ?? "",
-      firstName: "",
-      lastName: "",
-      timeZone: user.timeZone,
-      language: {
-        translate: await getTranslation(user.locale ?? "en", "common"),
-        locale: user.locale ?? "en",
-      },
-    };
-  });
+      return {
+        id: user.id,
+        email: user.email ?? "",
+        name: user.name ?? "",
+        firstName: "",
+        lastName: "",
+        timeZone: user.timeZone,
+        language: {
+          translate: await getTranslation(user.locale ?? "en", "common"),
+          locale: user.locale ?? "en",
+        },
+      };
+    });
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1658,8 +1753,8 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
+        paymentRequired: false,
       };
-
       return {
         ...bookingResponse,
         ...luckyUserResponse,
@@ -2275,7 +2370,7 @@ async function handler(
     req.statusCode = 201;
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
-    const bookingReponse = {
+    const bookingResponse = {
       ...booking,
       user: {
         ...booking.user,
@@ -2284,9 +2379,10 @@ async function handler(
     };
 
     return {
-      ...bookingReponse,
+      ...bookingResponse,
       ...luckyUserResponse,
       message: "Payment required",
+      paymentRequired: true,
       paymentUid: payment?.uid,
       paymentId: payment?.id,
     };
@@ -2426,6 +2522,7 @@ async function handler(
       ...booking.user,
       email: null,
     },
+    paymentRequired: false,
   };
 
   return {

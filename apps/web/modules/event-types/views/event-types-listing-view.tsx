@@ -9,6 +9,7 @@ import { memo, useEffect, useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
+import useIntercom from "@calcom/features/ee/support/lib/intercom/useIntercom";
 import { EventTypeEmbedButton, EventTypeEmbedDialog } from "@calcom/features/embed/EventTypeEmbed";
 import { EventTypeDescription } from "@calcom/features/eventtypes/components";
 import CreateEventTypeDialog from "@calcom/features/eventtypes/components/CreateEventTypeDialog";
@@ -946,12 +947,15 @@ const EventTypesPage: React.FC & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = () => {
   const { t } = useLocale();
+  const searchParams = useCompatSearchParams();
+  const { open } = useIntercom();
   const { data: user } = useMeQuery();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [showProfileBanner, setShowProfileBanner] = useState(false);
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
+  const router = useRouter();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
@@ -959,6 +963,20 @@ const EventTypesPage: React.FC & {
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
+
+  useEffect(() => {
+    if (searchParams?.get("openIntercom") === "true") {
+      open();
+    }
+    /**
+     * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
+     * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
+     */
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    localStorage.removeItem("onBoardingRedirect");
+    redirectUrl && router.push(redirectUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     setShowProfileBanner(
