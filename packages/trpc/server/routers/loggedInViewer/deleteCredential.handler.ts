@@ -63,6 +63,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       },
     },
   });
+  console.log("🚀 ~ deleteCredentialHandler ~ credential:", credential);
 
   if (!credential) {
     throw new TRPCError({ code: "NOT_FOUND" });
