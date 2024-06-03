@@ -117,19 +117,19 @@ export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   prisma: PrismaClient,
   currentUserId: number,
-  readOnly?: boolean
+  isReadOperation?: boolean
 ) {
   if (!workflow) {
     return false;
   }
-
-  if (!readOnly) {
+  if (!isReadOperation) {
     const userWorkflow = await prisma.workflow.findFirst({
       where: {
         id: workflow.id,
         OR: [
           { userId: currentUserId },
           {
+            // for non-read operation every team member has access
             team: {
               members: {
                 some: {
@@ -156,6 +156,7 @@ export async function isAuthorized(
               some: {
                 userId: currentUserId,
                 accepted: true,
+                //only admins can update team/org workflows
                 NOT: {
                   role: MembershipRole.MEMBER,
                 },
@@ -226,10 +227,8 @@ export async function isAuthorizedToAddActiveOnIds(
           parent: true,
         },
       });
-      if (newTeam) {
-        if (newTeam.parent?.id !== teamId) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
-        }
+      if (newTeam?.parent?.id !== teamId) {
+        return false;
       }
     } else {
       const newEventType = await prisma.eventType.findFirst({
@@ -248,20 +247,20 @@ export async function isAuthorizedToAddActiveOnIds(
 
       if (newEventType) {
         if (teamId && teamId !== newEventType.teamId) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
+          return false;
         }
-
         if (
           !teamId &&
           userId &&
           newEventType.userId !== userId &&
           !newEventType?.users.find((eventTypeUser) => eventTypeUser.id === userId)
         ) {
-          throw new TRPCError({ code: "UNAUTHORIZED" });
+          return false;
         }
       }
     }
   }
+  return true;
 }
 
 async function getRemindersFromRemovedTeams(
@@ -320,7 +319,6 @@ async function getRemindersFromRemovedTeams(
                 parentId: null, // children managed event types are handled above with team event types
               },
             },
-            //if user is part of removed team make sure they are not part of an still active team
           },
         ],
         workflowStepId: {
@@ -333,15 +331,6 @@ async function getRemindersFromRemovedTeams(
         id: true,
         referenceId: true,
         method: true,
-        booking: {
-          include: {
-            user: {
-              include: {
-                teams: true,
-              },
-            },
-          },
-        },
       },
     });
 
@@ -363,15 +352,6 @@ async function getRemindersFromRemovedEventTypes(
       method: string;
     }[]
   >[] = [];
-  const allRemindres = await prisma.workflowReminder.findMany({
-    select: {
-      booking: {
-        select: {
-          eventTypeId: true,
-        },
-      },
-    },
-  });
   removedEventTypes.forEach((eventTypeId) => {
     const remindersToDelete = prisma.workflowReminder.findMany({
       where: {
@@ -449,9 +429,9 @@ export async function scheduleWorkflowNotifications(
   trigger: WorkflowTriggerEvents,
   userId: number,
   teamId: number | null,
-  existingActiveOn?: number[]
+  alreadyScheduledActiveOnIds?: number[]
 ) {
-  const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg, existingActiveOn);
+  const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
     bookingstoScheduleNotifications,
@@ -464,7 +444,7 @@ export async function scheduleWorkflowNotifications(
   );
 }
 
-async function getBookings(activeOn: number[], isOrg: boolean, existingActiveOn: number[] = []) {
+async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledActiveOnIds: number[] = []) {
   if (activeOn.length === 0) return [];
 
   if (isOrg) {
@@ -506,13 +486,13 @@ async function getBookings(activeOn: number[], isOrg: boolean, existingActiveOn:
               teamId: null,
               parentId: null, // children managed event types are handled above with team event types
             },
-            // if user is already part of an existing activeOn connecting reminders are already scheduled
+            // if user is already part of an already scheduled activeOn connecting reminders are already scheduled
             NOT: {
               user: {
                 teams: {
                   some: {
                     teamId: {
-                      in: existingActiveOn,
+                      in: alreadyScheduledActiveOnIds,
                     },
                   },
                 },

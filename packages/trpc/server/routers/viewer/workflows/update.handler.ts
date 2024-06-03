@@ -79,12 +79,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
   const hasPaidPlan = IS_SELF_HOSTED || isCurrentUsernamePremium || isTeamsPlan;
 
-  const where: { id?: { in: number[] } } = {};
-
-  where.id = {
-    in: activeOn,
-  };
-
   let newActiveOn: number[] = [];
 
   const removedActiveOn: number[] = [];
@@ -93,11 +87,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (!isOrg) {
     // activeOn are event types ids
-
     const activeOnEventTypes = await ctx.prisma.eventType.findMany({
       where: {
+        id: {
+          in: activeOn,
+        },
         ...(userWorkflow.teamId && { parentId: null }), //all children managed event types are added after
-        ...where,
       },
       select: {
         id: true,
@@ -157,7 +152,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ...eventType.children.map((child) => child.id),
     ]);
 
-    //todo: code was changed, make sure this still works as it should
     newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnEventTypeIds.includes(eventTypeId));
 
     await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
@@ -176,14 +170,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       },
     });
 
-    //todo: is there any harm to do this here already?
     //create all workflow - eventtypes relationships
     await ctx.prisma.workflowsOnEventTypes.createMany({
       data: activeOnWithChildren.map((eventTypeId) => ({
         workflowId: id,
         eventTypeId,
       })),
-    }); // make sure that this is enough instead of the code below
+    });
   } else {
     // activeOn are team ids
 
@@ -193,7 +186,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         await ctx.prisma.team.findMany({
           where: {
             parent: {
-              id: userWorkflow.teamId || 0, // teamId is never undefined because of the isOrg check before
+              id: userWorkflow.teamId ?? 0,
             },
           },
           select: {
@@ -216,7 +209,16 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     newActiveOn = activeOn.filter((teamId) => !oldActiveOnTeamIds.includes(teamId));
 
-    await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
+      newActiveOn,
+      isOrg,
+      userWorkflow?.teamId,
+      userWorkflow?.userId
+    );
+
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
 
     const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
 
@@ -237,53 +239,30 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  const exsitingActiveOn = userWorkflow.activeOnTeams
-    .filter((activeOnRel) => activeOn.includes(activeOnRel.teamId))
-    .map((activeOnRel) => activeOnRel.teamId);
-
+  //todo: test this
   if (userWorkflow.trigger !== trigger) {
-    //if trigger changed, delete all reminders from old steps and create new one from all activeOn
+    //if trigger changed, delete all reminders from steps before change
 
-    if (!isOrg) {
-      console.log("handle trigger change");
-      await deleteRemindersOfActiveOnIds(
-        userWorkflow.activeOn.map((activeOn) => activeOn.eventTypeId),
-        userWorkflow.steps,
-        isOrg,
-        ctx.prisma
-      );
-      //create new reminders for old steps (newActiveOn are already correctly scheduled)
-      await scheduleWorkflowNotifications(
-        activeOn,
-        isOrg,
-        userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-        time,
-        timeUnit,
-        trigger,
-        user.id,
-        userWorkflow.teamId,
-        exsitingActiveOn
-      );
+    let activeOnBefore: number[];
+
+    if (isOrg) {
+      activeOnBefore = userWorkflow.activeOnTeams.map((activeOn) => activeOn.teamId);
     } else {
-      await deleteRemindersOfActiveOnIds(
-        userWorkflow.activeOnTeams.map((activeOn) => activeOn.teamId),
-        userWorkflow.steps,
-        isOrg,
-        ctx.prisma
-      );
-      //create new reminders for old steps (newActiveOn are already correctly scheduled)
-      await scheduleWorkflowNotifications(
-        activeOn,
-        isOrg,
-        userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
-        time,
-        timeUnit,
-        trigger,
-        user.id,
-        userWorkflow.teamId,
-        exsitingActiveOn
-      );
+      activeOnBefore = userWorkflow.activeOn.map((activeOn) => activeOn.eventTypeId);
     }
+
+    await deleteRemindersOfActiveOnIds(activeOnBefore, userWorkflow.steps, isOrg, ctx.prisma);
+
+    await scheduleWorkflowNotifications(
+      activeOn, // schedule for existing activeOn (reminders were deleted) + new active on
+      isOrg,
+      userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
+      time,
+      timeUnit,
+      trigger,
+      user.id,
+      userWorkflow.teamId
+    );
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
     await scheduleWorkflowNotifications(
@@ -295,7 +274,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       user.id,
       userWorkflow.teamId,
-      exsitingActiveOn
+      activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)) // alreadyScheduledActiveOnIds
     );
   }
 
@@ -324,6 +303,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         id: true,
         referenceId: true,
         method: true,
+        booking: {
+          select: {
+            eventTypeId: true,
+          },
+        },
       },
     });
     //step was deleted
@@ -373,10 +357,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      // cancel all notifications of edited step
+      // cancel all notifications of edited step, not from new event types
       await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
 
       // schedule notifications for edited steps
+      //this is duplicate when editing trigger or when new event types added
       await scheduleWorkflowNotifications(
         activeOn,
         isOrg,
@@ -385,8 +370,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         timeUnit,
         trigger,
         user.id,
-        userWorkflow.teamId,
-        exsitingActiveOn
+        userWorkflow.teamId
       );
     }
   });
@@ -440,8 +424,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId,
-      exsitingActiveOn
+      userWorkflow.teamId
     );
   }
 
