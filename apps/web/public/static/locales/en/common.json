@@ -2399,6 +2399,7 @@
   "delete_org_eventtypes": "Delete individual event types",
   "lock_org_users_eventtypes": "Lock individual event type creation",
   "lock_org_users_eventtypes_description": "Prevent members from creating their own event types.",
+  "add_to_event_type": "Add to event type",
   "create_account_password": "Create account password",
   "error_creating_account_password": "Failed to create account password",
   "cannot_create_account_password_cal_provider": "Cannot create account password for cal accounts",
