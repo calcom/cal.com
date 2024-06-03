@@ -6,6 +6,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
+import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {
@@ -36,7 +37,10 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   // save the user id in the request for later use
   req.userId = apiKey.userId;
-  // save the isAdmin boolean here for later use
-  req.isAdmin = await isAdminGuard(req);
+  const { isAdmin, scope } = await isAdminGuard(req);
+
+  req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
+  req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
+
   await next();
 };

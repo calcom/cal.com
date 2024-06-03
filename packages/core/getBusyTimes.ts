@@ -14,6 +14,8 @@ import { stringToDayjs } from "@calcom/prisma/zod-utils";
 import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
+
 export async function getBusyTimes(params: {
   credentials: CredentialPayload[];
   userId: number;
@@ -85,10 +87,16 @@ export async function getBusyTimes(params: {
   const endTimeDate =
     rescheduleUid && duration ? dayjs(endTime).add(duration, "minute").toDate() : new Date(endTime);
 
+  // to also get bookings that are outside of start and end time, but the buffer falls within the start and end time
+  const definedBufferTimes = getDefinedBufferTimes();
+  const maxBuffer = definedBufferTimes[definedBufferTimes.length - 1];
+  const startTimeAdjustedWithMaxBuffer = dayjs(startTimeDate).subtract(maxBuffer, "minute").toDate();
+  const endTimeAdjustedWithMaxBuffer = dayjs(endTimeDate).add(maxBuffer, "minute").toDate();
+
   // startTime is less than endTimeDate and endTime grater than startTimeDate
   const sharedQuery = {
-    startTime: { lte: endTimeDate },
-    endTime: { gte: startTimeDate },
+    startTime: { lte: endTimeAdjustedWithMaxBuffer },
+    endTime: { gte: startTimeAdjustedWithMaxBuffer },
     status: {
       in: [BookingStatus.ACCEPTED],
     },
@@ -144,50 +152,43 @@ export async function getBusyTimes(params: {
       });
 
   const bookingSeatCountMap: { [x: string]: number } = {};
-  // Only take bookings as source of truth when there are no connected calendars
-  // this is because cancellations downstream aren't reflected in our Booking database.
-  // TODO: Reflect downstream cancellations in our Booking database and use Booking as
-  //       source of truth.
-  const busyTimes =
-    credentials?.length > 0
-      ? []
-      : bookings.reduce(
-          (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-            if (eventType?.seatsPerTimeSlot) {
-              const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
-              bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
-              bookingSeatCountMap[bookedAt]++;
-              // Seat references on the current event are non-blocking until the event is fully booked.
-              if (
-                // there are still seats available.
-                bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
-                // and this is the seated event, other event types should be blocked.
-                eventTypeId === eventType?.id
-              ) {
-                // then we do not add the booking to the busyTimes.
-                return aggregate;
-              }
-              // if it does get blocked at this point; we remove the bookingSeatCountMap entry
-              // doing this allows using the map later to remove the ranges from calendar busy times.
-              delete bookingSeatCountMap[bookedAt];
-            }
-            if (rest.uid === rescheduleUid) {
-              return aggregate;
-            }
-            aggregate.push({
-              start: dayjs(startTime)
-                .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
-                .toDate(),
-              end: dayjs(endTime)
-                .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
-                .toDate(),
-              title,
-              source: `eventType-${eventType?.id}-booking-${id}`,
-            });
-            return aggregate;
-          },
-          []
-        );
+  const busyTimes = bookings.reduce(
+    (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
+      if (eventType?.seatsPerTimeSlot) {
+        const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
+        bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
+        bookingSeatCountMap[bookedAt]++;
+        // Seat references on the current event are non-blocking until the event is fully booked.
+        if (
+          // there are still seats available.
+          bookingSeatCountMap[bookedAt] < (eventType?.seatsPerTimeSlot || 1) &&
+          // and this is the seated event, other event types should be blocked.
+          eventTypeId === eventType?.id
+        ) {
+          // then we do not add the booking to the busyTimes.
+          return aggregate;
+        }
+        // if it does get blocked at this point; we remove the bookingSeatCountMap entry
+        // doing this allows using the map later to remove the ranges from calendar busy times.
+        delete bookingSeatCountMap[bookedAt];
+      }
+      if (rest.uid === rescheduleUid) {
+        return aggregate;
+      }
+      aggregate.push({
+        start: dayjs(startTime)
+          .subtract((eventType?.beforeEventBuffer || 0) + (afterEventBuffer || 0), "minute")
+          .toDate(),
+        end: dayjs(endTime)
+          .add((eventType?.afterEventBuffer || 0) + (beforeEventBuffer || 0), "minute")
+          .toDate(),
+        title,
+        source: `eventType-${eventType?.id}-booking-${id}`,
+      });
+      return aggregate;
+    },
+    []
+  );
 
   logger.debug(
     `Busy Time from Cal Bookings ${JSON.stringify({

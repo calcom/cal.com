@@ -99,11 +99,21 @@ const tabs: VerticalTabItemProps[] = [
         name: "directory_sync",
         href: "/settings/organizations/dsync",
       },
+      {
+        name: "admin_api",
+        href: "/settings/organizations/admin-api",
+      },
     ],
   },
   {
     name: "teams",
     href: "/teams",
+    icon: "users",
+    children: [],
+  },
+  {
+    name: "other_teams",
+    href: "/settings/organizations/teams/other",
     icon: "users",
     children: [],
   },
@@ -119,6 +129,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
@@ -181,6 +192,7 @@ const useTabs = () => {
     // check if name is in adminRequiredKeys
     return processedTabs.filter((tab) => {
       if (organizationRequiredKeys.includes(tab.name)) return !!orgBranding;
+      if (tab.name === "other_teams" && !isOrgAdminOrOwner) return false;
 
       if (isAdmin) return true;
       return !adminRequiredKeys.includes(tab.name);
@@ -307,6 +319,12 @@ const TeamListCollapsible = () => {
                     textClassNames="px-3 text-emphasis font-medium text-sm"
                     disableChevron
                   />
+                  <VerticalTabItem
+                    name={t("event_types_page_title")}
+                    href={`/event-types?teamIds=${team.id}`}
+                    textClassNames="px-3 text-emphasis font-medium text-sm"
+                    disableChevron
+                  />
                   {(team.role === MembershipRole.OWNER ||
                     team.role === MembershipRole.ADMIN ||
                     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -390,17 +408,6 @@ const SettingsSidebarContainer = ({
 
   const isOrgAdminOrOwner =
     currentOrg && currentOrg?.user?.role && ["OWNER", "ADMIN"].includes(currentOrg?.user?.role);
-
-  if (isOrgAdminOrOwner) {
-    const teamsIndex = tabsWithPermissions.findIndex((tab) => tab.name === "teams");
-
-    tabsWithPermissions.splice(teamsIndex + 1, 0, {
-      name: "other_teams",
-      href: "/settings/organizations/teams/other",
-      icon: "users",
-      children: [],
-    });
-  }
 
   return (
     <nav
@@ -579,7 +586,6 @@ const SettingsSidebarContainer = ({
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />
-
                                 <>
                                   {/* TODO: enable appearance edit */}
                                   {/* <VerticalTabItem

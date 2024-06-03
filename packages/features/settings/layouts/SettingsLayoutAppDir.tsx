@@ -107,6 +107,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "apps", href: "/settings/admin/apps/calendar" },
       { name: "users", href: "/settings/admin/users" },
       { name: "organizations", href: "/settings/admin/organizations" },
+      { name: "lockedSMS", href: "/settings/admin/lockedSMS" },
       { name: "oAuth", href: "/settings/admin/oAuth" },
     ],
   },
@@ -401,6 +402,12 @@ const SettingsSidebarContainer = ({
                                 <VerticalTabItem
                                   name={t("members")}
                                   href={`/settings/teams/${team.id}/members`}
+                                  textClassNames="px-3 text-emphasis font-medium text-sm"
+                                  disableChevron
+                                />
+                                <VerticalTabItem
+                                  name={t("event_types_page_title")}
+                                  href={`/event-types?teamIds=${team.id}`}
                                   textClassNames="px-3 text-emphasis font-medium text-sm"
                                   disableChevron
                                 />

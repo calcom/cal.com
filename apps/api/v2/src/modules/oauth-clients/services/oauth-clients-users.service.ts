@@ -1,4 +1,5 @@
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -6,15 +7,15 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { slugify } from "@calcom/platform-libraries";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries";
 
 @Injectable()
 export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService
+    private readonly eventTypesService: EventTypesService,
+    private readonly schedulesService: SchedulesService
   ) {}
 
   async createOauthClientUser(
@@ -52,6 +53,9 @@ export class OAuthClientUsersService {
             },
           },
           isPlatformManaged,
+          timeFormat: body.timeFormat,
+          weekStart: body.weekStart,
+          timeZone: body.timeZone,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
@@ -62,7 +66,13 @@ export class OAuthClientUsersService {
       oAuthClientId,
       user.id
     );
+
     await this.eventTypesService.createUserDefaultEventTypes(user.id);
+
+    if (body.timeZone) {
+      const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
+      user.defaultScheduleId = defaultSchedule.id;
+    }
 
     return {
       user,
@@ -92,8 +102,6 @@ export class OAuthClientUsersService {
 
   getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
     const [username, emailDomain] = userEmail.split("@");
-    const email = `${username}+${oAuthClientId}@${emailDomain}`;
-
-    return email;
+    return `${username}+${oAuthClientId}@${emailDomain}`;
   }
 }
