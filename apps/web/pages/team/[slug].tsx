@@ -87,7 +87,7 @@ function TeamPage({
             "dark:bg-darkgray-100 bg-default hover:bg-muted border-subtle group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0",
             !isEmbed && "bg-default"
           )}>
-          <div className="px-6 py-4 ">
+          <div className="relative flex justify-between px-6 py-4">
             <Link
               href={{
                 pathname: `${isValidOrgDomain ? "" : "/team"}/${team.slug}/${type.slug}`,
@@ -99,22 +99,22 @@ function TeamPage({
                 });
               }}
               data-testid="event-type-link"
-              className="flex justify-between">
-              <div className="flex-shrink">
-                <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
-                  <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
-                </div>
-                <EventTypeDescription className="text-sm" eventType={type} />
+              className="absolute inset-0"
+            />
+            <div className="flex-shrink">
+              <div className="flex flex-wrap items-center space-x-2 rtl:space-x-reverse">
+                <h2 className=" text-default text-sm font-semibold">{type.title}</h2>
               </div>
-              <div className="mt-1 self-center">
-                <UserAvatarGroup
-                  truncateAfter={4}
-                  className="flex flex-shrink-0"
-                  size="sm"
-                  users={type.users}
-                />
-              </div>
-            </Link>
+              <EventTypeDescription className="text-sm" eventType={type} />
+            </div>
+            <div className="mt-1 self-center">
+              <UserAvatarGroup
+                truncateAfter={4}
+                className="flex flex-shrink-0"
+                size="sm"
+                users={type.users}
+              />
+            </div>
           </div>
         </li>
       ))}
