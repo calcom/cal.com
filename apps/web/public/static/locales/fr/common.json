@@ -68,6 +68,7 @@
   "light_theme_contrast_error": "La couleur du thème clair ne passe pas la vérification du contraste. Nous vous recommandons de modifier cette couleur afin que vos boutons soient plus visibles.",
   "payment_not_created_error": "Le paiement n'a pas pu être créé",
   "couldnt_charge_card_error": "Impossible de débiter la carte pour le Paiement",
+  "or_pay_with_card": "Ou payer par carte",
   "no_available_users_found_error": "Aucun utilisateur disponible n'a été trouvé. Pourriez-vous essayer un autre créneau horaire ?",
   "request_body_end_time_internal_error": "Erreur interne. Le corps de la demande ne contient pas l'heure de fin",
   "create_calendar_event_error": "Impossible de créer un événement de Calendrier dans le calendrier de l'Organisateur",

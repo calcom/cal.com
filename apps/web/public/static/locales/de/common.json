@@ -68,6 +68,7 @@
   "light_theme_contrast_error": "Die Farbe des hellen Designs hat die Kontrastprüfung nicht bestanden. Wir empfehlen Ihnen, diese Farbe zu ändern, damit Ihre Schaltflächen sichtbarer sind.",
   "payment_not_created_error": "Zahlung konnte nicht erstellt werden",
   "couldnt_charge_card_error": "Karte konnte nicht für die Zahlung belastet werden",
+  "or_pay_with_card": "oder",
   "no_available_users_found_error": "Keine verfügbaren Benutzer gefunden. Können Sie es mit einem anderen Zeitfenster versuchen?",
   "request_body_end_time_internal_error": "Interner Fehler. Request-Body enthält keinen Endzeitpunkt",
   "create_calendar_event_error": "Kalenderereignis konnte nicht im Kalender des Organisators erstellt werden",

@@ -69,6 +69,7 @@
   "light_theme_contrast_error": "Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible.",
   "payment_not_created_error": "Payment could not be created",
   "couldnt_charge_card_error": "Could not charge card for Payment",
+  "or_pay_with_card": "Or pay with card",
   "no_available_users_found_error": "No available users found. Could you try another time slot?",
   "request_body_end_time_internal_error": "Internal Error. Request body does not contain end time",
   "create_calendar_event_error": "Unable to create Calendar event in Organizer's calendar",

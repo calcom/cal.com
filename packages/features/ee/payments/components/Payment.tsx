@@ -1,7 +1,17 @@
 import type { Payment } from "@prisma/client";
 import type { EventType } from "@prisma/client";
-import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
-import type { StripeElementLocale } from "@stripe/stripe-js";
+import {
+  Elements,
+  PaymentElement,
+  PaymentRequestButtonElement,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import type {
+  StripeElementLocale,
+  PaymentRequest,
+  PaymentRequestPaymentMethodEvent,
+} from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
@@ -10,7 +20,7 @@ import getStripe from "@calcom/app-store/stripepayment/lib/client";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, CheckboxField } from "@calcom/ui";
+import { Button, CheckboxField, Divider } from "@calcom/ui";
 
 import type { PaymentPageProps } from "../pages/payment";
 
@@ -64,8 +74,32 @@ const PaymentForm = (props: Props) => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
 
-  const handleSubmit = async (ev: SyntheticEvent) => {
-    ev.preventDefault();
+  const [paymentRequest, setPaymentRequest] = useState<PaymentRequest | null>(null);
+  useEffect(() => {
+    if (!stripe || !elements) {
+      return;
+    }
+
+    const pr = stripe.paymentRequest({
+      country: "US",
+      currency: props.payment.currency,
+      total: { label: props.booking.title, amount: props.payment.amount },
+      requestPayerName: true,
+      requestPayerEmail: true,
+    });
+
+    // Check the availability of the Payment Request API.
+    pr.canMakePayment().then((result) => {
+      if (result) {
+        setPaymentRequest(pr);
+      }
+    });
+
+    pr.on("paymentmethod", handleSubmit);
+  }, [stripe, elements, props]);
+
+  const handleSubmit = async (ev: SyntheticEvent | PaymentRequestPaymentMethodEvent) => {
+    "preventDefault" in ev && ev.preventDefault();
 
     if (!stripe || !elements || searchParams === null) {
       return;
@@ -85,7 +119,18 @@ const PaymentForm = (props: Props) => {
       uid: props.booking.uid,
       email: searchParams?.get("email"),
     };
-    if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
+    if ("paymentMethod" in ev) {
+      payload = await stripe.confirmCardPayment(
+        props.clientSecret,
+        { payment_method: ev.paymentMethod.id },
+        { handleActions: false }
+      );
+      if (payload.paymentIntent) {
+        params.payment_intent = payload.paymentIntent.id;
+        params.payment_intent_client_secret = payload.paymentIntent.client_secret || undefined;
+        params.redirect_status = payload.paymentIntent.status;
+      }
+    } else if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
         redirect: "if_required",
@@ -135,7 +180,21 @@ const PaymentForm = (props: Props) => {
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
       <div>
-        <PaymentElement onChange={() => setState({ status: "idle" })} />
+        {paymentRequest && (
+          <div className="mb-4 flex flex-col gap-4">
+            <PaymentRequestButtonElement options={{ paymentRequest }} />
+
+            <div className="text-muted flex items-center gap-4">
+              <Divider className="flex-1" />
+              <span className="text-sm">{t("or_pay_with_card")}</span>
+              <Divider className="flex-1" />
+            </div>
+          </div>
+        )}
+        <PaymentElement
+          onChange={() => setState({ status: "idle" })}
+          options={{ wallets: { applePay: "never" } }}
+        />
       </div>
       {paymentOption === "HOLD" && (
         <div className="bg-info mb-5 mt-2 rounded-md p-3">
