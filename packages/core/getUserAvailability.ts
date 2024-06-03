@@ -532,7 +532,7 @@ const _getBusyTimesFromLimits = async (
         booking.attendeesCount < eventType.seatsPerTimeSlot &&
         dayjs(booking.start).isBetween(dateFrom, dateTo)
       ) {
-        for (let j = i; j < busyTimes.length; j++) {
+        for (let j = 0; j < busyTimes.length; j++) {
           const busyTime = busyTimes[j];
           if (dayjs(booking.start).add(1, "ms").isBetween(busyTime.start, busyTime.end)) {
             busyTimes.splice(

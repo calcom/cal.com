@@ -153,7 +153,7 @@ export async function getBusyTimes(params: {
       ? []
       : bookings.reduce(
           (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
-            if (rest._count?.seatsReferences) {
+            if (eventType?.seatsPerTimeSlot) {
               const bookedAt = `${dayjs(startTime).utc().format()}<>${dayjs(endTime).utc().format()}`;
               bookingSeatCountMap[bookedAt] = bookingSeatCountMap[bookedAt] || 0;
               bookingSeatCountMap[bookedAt]++;
@@ -343,7 +343,11 @@ export async function getBusyTimesForLimitChecks(params: {
       },
       title: true,
       userId: true,
-      attendees: true,
+      attendees: {
+        select: {
+          id: true,
+        },
+      },
     },
   });
 
