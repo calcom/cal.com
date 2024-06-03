@@ -12,6 +12,7 @@ export type IntegrationOAuthCallbackState = {
   installGoogleVideo?: boolean;
   appOnboardingRedirectUrl?: string;
   teamId?: number;
+  defaultInstall?: boolean;
 };
 
 export type CredentialOwner = {
@@ -31,6 +32,7 @@ type AppScript = { attrs?: Record<string, string> } & { src?: string; content?: 
 
 export type Tag = {
   scripts: AppScript[];
+  pushEventScript?: AppScript;
 };
 
 export interface InstallAppButtonProps {
@@ -48,7 +50,15 @@ export type EventTypeAppCardComponentProps = {
   // Limit what data should be accessible to apps
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
-    "id" | "title" | "description" | "teamId" | "length" | "recurringEvent" | "seatsPerTimeSlot" | "team"
+    | "id"
+    | "title"
+    | "description"
+    | "teamId"
+    | "length"
+    | "recurringEvent"
+    | "seatsPerTimeSlot"
+    | "team"
+    | "schedulingType"
   > & {
     URL: string;
   };

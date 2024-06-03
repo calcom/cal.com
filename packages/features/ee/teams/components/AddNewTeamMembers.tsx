@@ -288,8 +288,8 @@ const PendingMemberItem = (props: { member: TeamMember; index: number; teamId: n
           className="h-[36px] w-[36px]"
           onClick={() => {
             removeMemberMutation.mutate({
-              teamId: teamId,
-              memberId: member.id,
+              teamIds: [teamId],
+              memberIds: [member.id],
               isOrg: !!props.isOrg,
             });
           }}

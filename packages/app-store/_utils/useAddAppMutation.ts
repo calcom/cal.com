@@ -44,13 +44,22 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
   const mutation = useMutation<
     AddAppMutationData,
     Error,
-    { type?: App["type"]; variant?: string; slug?: string; isOmniInstall?: boolean; teamId?: number } | ""
+    | {
+        type?: App["type"];
+        variant?: string;
+        slug?: string;
+        isOmniInstall?: boolean;
+        teamId?: number;
+        defaultInstall?: boolean;
+      }
+    | ""
   >({
     ...options,
     mutationFn: async (variables) => {
       let type: string | null | undefined;
       let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
+      const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
       if (variables === "") {
         type = _type;
       } else {
@@ -76,10 +85,11 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(defaultInstall && { defaultInstall }),
       };
 
       const stateStr = encodeURIComponent(JSON.stringify(state));
-      const searchParams = `?state=${stateStr}${teamId ? `&teamId=${teamId}` : ""}`;
+      const searchParams = generateSearchParamString({ stateStr, teamId, returnTo });
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
@@ -113,3 +123,25 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 }
 
 export default useAddAppMutation;
+const generateSearchParamString = ({
+  stateStr,
+  teamId,
+  returnTo,
+}: {
+  stateStr: string;
+  teamId?: number;
+  returnTo?: string;
+}) => {
+  const url = new URL("https://example.com"); // Base URL can be anything since we only care about the search params
+
+  url.searchParams.append("state", stateStr);
+  if (teamId !== undefined) {
+    url.searchParams.append("teamId", teamId.toString());
+  }
+  if (returnTo) {
+    url.searchParams.append("returnTo", returnTo);
+  }
+
+  // Return the search string part of the URL
+  return url.search;
+};

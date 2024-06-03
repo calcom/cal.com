@@ -1,14 +1,13 @@
 import { getLocation } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import type {
-  Calendar,
   CalendarEvent,
   EventBusyDate,
   IntegrationCalendar,
   NewCalendarEventType,
-  Person,
 } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
+import type { ContactCreateInput, CRM, Contact } from "@calcom/types/CrmService";
 
 import appConfig from "../config.json";
 
@@ -34,7 +33,7 @@ type ContactCreateResult = {
   };
 };
 
-export default class PipedriveCalendarService implements Calendar {
+export default class PipedriveCrmService implements CRM {
   private log: typeof logger;
   private tenantId: string;
   private revertApiKey: string;
@@ -46,8 +45,8 @@ export default class PipedriveCalendarService implements Calendar {
     this.log = logger.getSubLogger({ prefix: [`[[lib] ${appConfig.slug}`] });
   }
 
-  private createContacts = async (attendees: Person[]) => {
-    const result = attendees.map(async (attendee) => {
+  async createContacts(contactsToCreate: ContactCreateInput[]): Promise<Contact[]> {
+    const result = contactsToCreate.map(async (attendee) => {
       const headers = new Headers();
       headers.append("x-revert-api-token", this.revertApiKey);
       headers.append("x-revert-t-id", this.tenantId);
@@ -74,17 +73,21 @@ export default class PipedriveCalendarService implements Calendar {
         return Promise.reject(error);
       }
     });
-    return await Promise.all(result);
-  };
 
-  private contactSearch = async (event: CalendarEvent) => {
-    const result = event.attendees.map(async (attendee) => {
+    const results = await Promise.all(result);
+    return results.map((result) => result.result);
+  }
+
+  async getContacts(email: string | string[]): Promise<Contact[]> {
+    const emailArray = Array.isArray(email) ? email : [email];
+
+    const result = emailArray.map(async (attendeeEmail) => {
       const headers = new Headers();
       headers.append("x-revert-api-token", this.revertApiKey);
       headers.append("x-revert-t-id", this.tenantId);
       headers.append("Content-Type", "application/json");
 
-      const bodyRaw = JSON.stringify({ searchCriteria: attendee.email });
+      const bodyRaw = JSON.stringify({ searchCriteria: attendeeEmail });
 
       const requestOptions = {
         method: "POST",
@@ -100,8 +103,9 @@ export default class PipedriveCalendarService implements Calendar {
         return { status: "error", results: [] };
       }
     });
-    return await Promise.all(result);
-  };
+    const results = await Promise.all(result);
+    return results[0].results;
+  }
 
   private getMeetingBody = (event: CalendarEvent): string => {
     return `<b>${event.organizer.language.translate("invitee_timezone")}:</b> ${
@@ -111,7 +115,7 @@ export default class PipedriveCalendarService implements Calendar {
     }`;
   };
 
-  private createPipedriveEvent = async (event: CalendarEvent, contacts: CalendarEvent["attendees"]) => {
+  private createPipedriveEvent = async (event: CalendarEvent, contacts: Contact[]) => {
     const eventPayload = {
       subject: event.title,
       startDateTime: event.startTime,
@@ -173,7 +177,7 @@ export default class PipedriveCalendarService implements Calendar {
     return await fetch(`${this.revertApiUrl}crm/events/${uid}`, requestOptions);
   };
 
-  async handleEventCreation(event: CalendarEvent, contacts: CalendarEvent["attendees"]) {
+  async handleEventCreation(event: CalendarEvent, contacts: Contact[]) {
     const meetingEvent = await (await this.createPipedriveEvent(event, contacts)).json();
     if (meetingEvent && meetingEvent.status === "ok") {
       this.log.debug("event:creation:ok", { meetingEvent });
@@ -190,92 +194,8 @@ export default class PipedriveCalendarService implements Calendar {
     return Promise.reject("Something went wrong when creating a meeting in PipedriveCRM");
   }
 
-  async createEvent(event: CalendarEvent): Promise<NewCalendarEventType> {
-    let contacts = await this.contactSearch(event);
-    contacts = contacts.filter((c) => c.results.length >= 1);
-    if (contacts && contacts.length) {
-      if (contacts.length === event.attendees.length) {
-        // all contacts are in Pipedrive CRM already.
-        this.log.debug("contact:search:all", { event, contacts: contacts });
-        const existingPeople = contacts.map((c) => {
-          return {
-            id: Number(c.results[0].id),
-            name: `${c.results[0].firstName} ${c.results[0].lastName}`,
-            email: c.results[0].email,
-            timeZone: event.attendees[0].timeZone,
-            language: event.attendees[0].language,
-          };
-        });
-        return await this.handleEventCreation(event, existingPeople);
-      } else {
-        // Some attendees don't exist in PipedriveCRM
-        // Get the existing contacts' email to filter out
-        this.log.debug("contact:search:notAll", { event, contacts });
-        const existingContacts = contacts.map((contact) => contact.results[0].email);
-        this.log.debug("contact:filter:existing", { existingContacts });
-        // Get non existing contacts filtering out existing from attendees
-        const nonExistingContacts: Person[] = event.attendees.filter(
-          (attendee) => !existingContacts.includes(attendee.email)
-        );
-        this.log.debug("contact:filter:nonExisting", { nonExistingContacts });
-        // Only create contacts in PipedriveCRM that were not present in the previous contact search
-        const createdContacts = await this.createContacts(nonExistingContacts);
-        this.log.debug("contact:created", { createdContacts });
-        // Continue with event creation and association only when all contacts are present in Pipedrive
-        if (createdContacts[0] && createdContacts[0].status === "ok") {
-          this.log.debug("contact:creation:ok");
-          const existingPeople = contacts.map((c) => {
-            return {
-              id: Number(c.results[0].id),
-              name: c.results[0].name,
-              email: c.results[0].email,
-              timeZone: nonExistingContacts[0].timeZone,
-              language: nonExistingContacts[0].language,
-            };
-          });
-          const newlyCreatedPeople = createdContacts.map((c) => {
-            return {
-              id: Number(c.result.id),
-              name: c.result.name,
-              email: c.result.email,
-              timeZone: nonExistingContacts[0].timeZone,
-              language: nonExistingContacts[0].language,
-            };
-          });
-          const allContacts = existingPeople.concat(newlyCreatedPeople);
-          // ensure the order of attendees is maintained.
-          allContacts.sort((a, b) => {
-            const indexA = event.attendees.findIndex((c) => c.email === a.email);
-            const indexB = event.attendees.findIndex((c) => c.email === b.email);
-            return indexA - indexB;
-          });
-          return await this.handleEventCreation(event, allContacts);
-        }
-        return Promise.reject({
-          calError: "Something went wrong when creating non-existing attendees in PipedriveCRM",
-        });
-      }
-    } else {
-      this.log.debug("contact:search:none", { event, contacts });
-      const createdContacts = await this.createContacts(event.attendees);
-      this.log.debug("contact:created", { createdContacts });
-      if (createdContacts[0] && createdContacts[0].status === "ok") {
-        this.log.debug("contact:creation:ok");
-        const newContacts = createdContacts.map((c) => {
-          return {
-            id: Number(c.result.id),
-            name: c.result.name,
-            email: c.result.email,
-            timeZone: event.attendees[0].timeZone,
-            language: event.attendees[0].language,
-          };
-        });
-        return await this.handleEventCreation(event, newContacts);
-      }
-    }
-    return Promise.reject({
-      calError: "Something went wrong when searching/creating the attendees in PipedriveCRM",
-    });
+  async createEvent(event: CalendarEvent, contacts: Contact[]): Promise<NewCalendarEventType> {
+    return await this.handleEventCreation(event, contacts);
   }
 
   async updateEvent(uid: string, event: CalendarEvent): Promise<NewCalendarEventType> {
