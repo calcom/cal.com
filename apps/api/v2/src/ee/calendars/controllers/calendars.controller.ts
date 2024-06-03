@@ -27,7 +27,7 @@ import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
 import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from "@calcom/platform-constants";
-import { CalendarBusyTimesInput } from "@calcom/platform-types";
+import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
   path: "/calendars",
@@ -86,7 +86,7 @@ export class CalendarsController {
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
     @Param("calendar") calendar: string
-  ): Promise<{ status: string; data: { authUrl: string } }> {
+  ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
         return await this.outlookService.connect(authorization, req);
@@ -131,10 +131,7 @@ export class CalendarsController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessTokenGuard, PermissionsGuard)
   @Permissions([APPS_READ])
-  async check(
-    @GetUser("id") userId: number,
-    @Param("calendar") calendar: string
-  ): Promise<{ status: string }> {
+  async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
         return await this.outlookService.check(userId);
