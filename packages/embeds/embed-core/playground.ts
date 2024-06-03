@@ -191,6 +191,28 @@ if (only === "all" || only === "ns:fourth") {
     callback,
   });
 }
+
+if (only === "all" || only === "ns:corpTest") {
+  Cal("init", "corpTest", {
+    debug: true,
+    origin: "http://localhost:3000",
+  });
+  Cal.ns.corpTest([
+    "inline",
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    //@ts-ignore
+    {
+      elementOrSelector: "#cal-booking-place-corpTest .place",
+      calLink: "pro",
+      config: {
+        iframeAttrs: {
+          id: "cal-booking-place-corpTest-iframe",
+        },
+        "flag.coep": "false",
+      },
+    },
+  ]);
+}
 if (only === "all" || only === "ns:fifth") {
   Cal("init", "fifth", {
     debug: true,
@@ -223,7 +245,7 @@ if (only === "all" || only === "prerender-test") {
     origin: "http://localhost:3000",
   });
   Cal.ns.e2ePrerenderLightTheme("prerender", {
-    calLink: "free/30min",
+    calLink: "free/30min?flag.coep=true",
     type: "modal",
   });
 }

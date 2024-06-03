@@ -14,7 +14,6 @@ export default function withEmbedSsr(getServerSideProps: GetServerSideProps) {
     const isCOEPEnabled = context.query["flag.coep"] === "true";
     if (isCOEPEnabled) {
       context.res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
-      context.res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
     }
 
     if ("redirect" in ssrResponse) {

@@ -408,13 +408,21 @@ const nextConfig = {
         headers: [CORP_CROSS_ORIGIN_HEADER],
       },
       {
-        source: "/api/avatar/:path*",
+        source: "/:path*/embed",
+        // COEP require-corp header is set conditionally when flag.coep is set to true
         headers: [CORP_CROSS_ORIGIN_HEADER],
       },
-      {
-        source: "/avatar.svg",
-        headers: [CORP_CROSS_ORIGIN_HEADER],
-      },
+      // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
+      ...[
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+      ],
       ...(isOrganizationsEnabled
         ? [
             {
