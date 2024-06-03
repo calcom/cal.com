@@ -1214,6 +1214,113 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/connect": {
+      "get": {
+        "operationId": "CalendarsController_redirect",
+        "parameters": [
+          {
+            "name": "Authorization",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
+    "/v2/calendars/{calendar}/save": {
+      "get": {
+        "operationId": "CalendarsController_save",
+        "parameters": [
+          {
+            "name": "state",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
+    "/v2/calendars/{calendar}/check": {
+      "get": {
+        "operationId": "CalendarsController_check",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
