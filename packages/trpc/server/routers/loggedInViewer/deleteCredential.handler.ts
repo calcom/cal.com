@@ -345,7 +345,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         });
       }
     } else if (
-      (appStoreMetadata[credential.app?.slug as keyof typeof appStoreMetadata].extendsFeature = "EventType")
+      appStoreMetadata[credential.app?.slug as keyof typeof appStoreMetadata]?.extendsFeature === "EventType"
     ) {
       const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
       const appSlug = credential.app?.slug;
