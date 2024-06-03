@@ -133,6 +133,7 @@ export default function MultiSelectCheckboxes({
       closeMenuOnSelect={false}
       hideSelectedOptions={false}
       isLoading={isLoading}
+      data-testid="multi-select-check-boxes"
       components={{
         ...additonalComponents,
         Option: InputOption,

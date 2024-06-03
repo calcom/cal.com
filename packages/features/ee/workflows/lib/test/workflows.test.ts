@@ -11,7 +11,7 @@ import {
 import { describe, expect, beforeAll, vi } from "vitest";
 
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { deleteRemindersFromRemovedActiveOn } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { deleteRemindersOfActiveOnIds } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 beforeAll(() => {
@@ -196,7 +196,16 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
 
     const workflow = await createWorkflowRemindersForWorkflow("User Workflow");
 
-    await deleteRemindersFromRemovedActiveOn([1], workflow?.steps || [], false, prismock, [2]);
+    const removedActiveOnIds = [1];
+    const activeOnIds = [2];
+
+    await deleteRemindersOfActiveOnIds(
+      removedActiveOnIds,
+      workflow?.steps || [],
+      false,
+      prismock,
+      activeOnIds
+    );
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
@@ -269,37 +278,46 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
         organizer,
       })
     );
-    const bookings = await prismock.booking.findMany({
-      select: {
-        eventType: true,
-      },
-    });
+
     const workflow = await createWorkflowRemindersForWorkflow("Org Workflow");
 
+    let removedActiveOnIds = [1];
+    const activeOnIds = [2];
+
     //workflow removed from team 2, but still acitve on team 3 --> so reminder should not be removed
-    await deleteRemindersFromRemovedActiveOn([3], workflow?.steps || [], true, prismock, [4]);
+    await deleteRemindersOfActiveOnIds(
+      removedActiveOnIds,
+      workflow?.steps || [],
+      true,
+      prismock,
+      activeOnIds
+    );
 
     // get all reminders from organizer's bookings
     const workflowRemindersWithOneTeamActive = await prismock.workflowReminder.findMany({
-      select: {
+      where: {
         booking: {
-          select: {
-            userId: organizer.id,
-          },
+          userId: organizer.id,
         },
       },
     });
 
+    removedActiveOnIds = [3];
+
     // should still be active on all 4 bookings
     expect(workflowRemindersWithOneTeamActive.length).toBe(4);
-    await deleteRemindersFromRemovedActiveOn([3], workflow?.steps || [], true, prismock, [2]);
+    await deleteRemindersOfActiveOnIds(
+      removedActiveOnIds,
+      workflow?.steps || [],
+      true,
+      prismock,
+      activeOnIds
+    );
 
     const workflowRemindersWithNoTeamActive = await prismock.workflowReminder.findMany({
-      select: {
+      where: {
         booking: {
-          select: {
-            userId: organizer.id,
-          },
+          userId: organizer.id,
         },
       },
     });

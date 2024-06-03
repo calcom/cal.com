@@ -19,12 +19,13 @@ test.describe("Workflow Tab - Event Type", () => {
         await assertListCount(3);
       });
 
-      test("Editing an existing workflow", async ({ workflowPage }) => {
+      test("Editing an existing workflow", async ({ workflowPage, page }) => {
         const { saveWorkflow, fillNameInput, editSelectedWorkflow, hasWorkflowInList } = workflowPage;
 
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
         await saveWorkflow();
+        await page.getByRole("button", { name: /Go Back/i }).click();
         await hasWorkflowInList("Edited Workflow");
       });
 

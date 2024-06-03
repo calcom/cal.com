@@ -361,7 +361,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
 
       // schedule notifications for edited steps
-      //this is duplicate when editing trigger or when new event types added
       await scheduleWorkflowNotifications(
         activeOn,
         isOrg,
