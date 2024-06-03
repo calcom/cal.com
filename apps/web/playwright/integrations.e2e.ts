@@ -346,19 +346,6 @@ test.fixme("Integrations", () => {
     });
   });
 
-  test.describe("Google Calendar", () => {
-    test("Can add Google calendar from the app store", async ({ page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-
-      await page.goto("/apps/google-calendar");
-
-      await page.locator('data-testid="install-app-button"').click();
-
-      await expect(page.url()).toContain("accounts.google.com");
-    });
-  });
-
   todo("Can add Google Calendar");
 
   todo("Can add Office 365 Calendar");
