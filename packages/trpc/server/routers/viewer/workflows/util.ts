@@ -429,6 +429,7 @@ export async function scheduleWorkflowNotifications(
   trigger: WorkflowTriggerEvents,
   userId: number,
   teamId: number | null,
+  prisma: PrismaClient,
   alreadyScheduledActiveOnIds?: number[]
 ) {
   const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
@@ -440,7 +441,8 @@ export async function scheduleWorkflowNotifications(
     timeUnit,
     trigger,
     userId,
-    teamId
+    teamId,
+    prisma
   );
 }
 
@@ -530,18 +532,21 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
 
 type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
 
-type BookingsReminders = UnwrapPromise<ReturnType<typeof getBookings>>;
+type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
 
-async function scheduleBookingReminders(
-  bookingsReminders: BookingsReminders,
+// some parts of  scheduleWorkflowReminders (reminderSchedule.ts) is quite similar to this code
+// we should consider refactoring this to  reuse similar code snippets
+export async function scheduleBookingReminders(
+  bookings: Bookings,
   workflowSteps: Partial<WorkflowStep>[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  teamId: number | null
+  teamId: number | null,
+  prisma: PrismaClient
 ) {
-  if (!bookingsReminders.length) return;
+  if (!bookings.length) return;
 
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
 
@@ -552,7 +557,7 @@ async function scheduleBookingReminders(
     if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
       return;
 
-    const promiseScheduleReminders = bookingsReminders.map(async (booking) => {
+    const promiseScheduleReminders = bookings.map(async (booking) => {
       const defaultLocale = "en";
       const bookingInfo = {
         uid: booking.uid,

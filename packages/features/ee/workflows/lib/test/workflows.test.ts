@@ -325,3 +325,29 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
     expect(workflowRemindersWithNoTeamActive.length).toBe(0);
   });
 });
+
+describe("scheduleBookingReminders", () => {
+  test("schedules email reminders for user workflow", async ({}) => {
+    expect(true).tobe(true);
+    /*
+    scheduleBookingReminders();
+
+    params:
+    bookings: Bookings,
+    workflowSteps: Partial<WorkflowStep>[],
+    time: number | null,
+    timeUnit: TimeUnit | null,
+    trigger: WorkflowTriggerEvents,
+    userId: number,
+    teamId: number | null
+    */
+  });
+
+  test("schedules email reminders for team workflow", async ({}) => {
+    expect(true).tobe(true);
+  });
+
+  test("schedules email reminders for team workflow", async ({}) => {
+    expect(true).tobe(true);
+  });
+});

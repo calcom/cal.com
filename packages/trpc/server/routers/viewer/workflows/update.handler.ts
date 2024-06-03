@@ -261,7 +261,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId
+      userWorkflow.teamId,
+      ctx.prisma
     );
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
@@ -274,6 +275,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       user.id,
       userWorkflow.teamId,
+      ctx.prisma,
       activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)) // alreadyScheduledActiveOnIds
     );
   }
@@ -369,7 +371,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         timeUnit,
         trigger,
         user.id,
-        userWorkflow.teamId
+        userWorkflow.teamId,
+        ctx.prisma
       );
     }
   });
@@ -423,7 +426,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId
+      userWorkflow.teamId,
+      ctx.prisma
     );
   }
 
