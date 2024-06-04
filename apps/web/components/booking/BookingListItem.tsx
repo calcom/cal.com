@@ -453,7 +453,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+        <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
             {/* Time and Badges for mobile */}
             <div className="w-full pb-2 pt-4 sm:hidden">
@@ -719,6 +719,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
+          data-testid="guest"
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 hover:text-blue-500">
           {noShow ? (
@@ -758,6 +759,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
               <DropdownItem
+                data-testid="unmark-no-show"
                 onClick={(e) => {
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
@@ -768,6 +770,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               </DropdownItem>
             ) : (
               <DropdownItem
+                data-testid="mark-no-show"
                 onClick={(e) => {
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
@@ -834,6 +837,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
       <DropdownMenuTrigger asChild>
         <button
+          data-testid="more-guests"
           onClick={(e) => e.stopPropagation()}
           className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: attendees.length - 1 })}
@@ -866,6 +870,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
           <DropdownMenuSeparator />
           <div className=" flex justify-end p-2">
             <Button
+              data-testid="update-no-show"
               color="secondary"
               onClick={(e) => {
                 e.preventDefault();
