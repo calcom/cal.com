@@ -62,7 +62,11 @@ export class BillingService {
         customer: customerId,
         line_items: [
           {
-            price: this.billingConfigService.get(plan),
+            price: this.billingConfigService.get(plan)?.overage,
+          },
+          {
+            price: this.billingConfigService.get(plan)?.base,
+            quantity: 1,
           },
         ],
         success_url: `${this.webAppUrl}/settings/platform/`,
@@ -108,8 +112,8 @@ export class BillingService {
    * we delay the job until the booking starts.
    * the delay ensure we can adapt to cancel / reschedule.
    */
-  async increaseUsageByClientId(
-    clientId: string,
+  async increaseUsageByUserId(
+    userId: number,
     booking: {
       uid: string;
       startTime: Date;
@@ -127,11 +131,11 @@ export class BillingService {
     await this.billingQueue.add(
       INCREMENT_JOB,
       {
-        oAuthClientId: clientId,
+        userId,
       } satisfies IncrementJobDataType,
       { delay: delay > 0 ? delay : 0, jobId: `increment-${uid}`, removeOnComplete: true }
     );
-    this.logger.log(`Added stripe usage increment job for booking ${uid} and oAuthClientId ${clientId}`);
+    this.logger.log(`Added stripe usage increment job for booking ${uid} and user ${userId}`);
   }
 
   /**

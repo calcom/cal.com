@@ -156,8 +156,8 @@ export class BookingsController {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
       );
-      if (oAuthClientId && booking.uid && booking.startTime) {
-        void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+      if (booking.userId && booking.uid && booking.startTime) {
+        void (await this.billingService.increaseUsageByUserId(booking.userId, {
           uid: booking.uid,
           startTime: booking.startTime,
           fromReschedule: booking.fromReschedule,
@@ -185,7 +185,7 @@ export class BookingsController {
       try {
         req.body.id = parseInt(bookingId);
         const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
-        if (oAuthClientId && !res.onlyRemovedAttendee) {
+        if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
         }
         return {
@@ -218,8 +218,8 @@ export class BookingsController {
       );
 
       createdBookings.forEach(async (booking) => {
-        if (oAuthClientId && booking.uid && booking.startTime) {
-          void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+        if (booking.userId && booking.uid && booking.startTime) {
+          void (await this.billingService.increaseUsageByUserId(booking.userId, {
             uid: booking.uid,
             startTime: booking.startTime,
           }));
@@ -249,11 +249,11 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      if (oAuthClientId && instantMeeting.bookingUid) {
+      if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();
         // add a 10 secondes delay to the usage incrementation
         now.setSeconds(now.getSeconds() + 10);
-        void (await this.billingService.increaseUsageByClientId(oAuthClientId, {
+        void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
           uid: instantMeeting.bookingUid,
           startTime: now,
         }));

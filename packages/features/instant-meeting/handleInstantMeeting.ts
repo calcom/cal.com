@@ -79,6 +79,7 @@ export type HandleInstantMeetingResponse = {
   bookingId: number;
   bookingUid: string;
   expires: Date;
+  userId: number | null;
 };
 
 async function handler(req: NextApiRequest) {
@@ -229,6 +230,7 @@ async function handler(req: NextApiRequest) {
     bookingId: newBooking.id,
     bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
+    userId: newBooking.userId,
   } satisfies HandleInstantMeetingResponse;
 }
 

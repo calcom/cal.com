@@ -8,11 +8,10 @@ import { Job } from "bull";
 export const INCREMENT_JOB = "increment";
 export const BILLING_QUEUE = "billing";
 export type IncrementJobDataType = {
-  oAuthClientId: string;
+  userId: number;
   bookingId?: number | null;
   startTime?: Date | null;
   endTime?: Date | null;
-  userId?: number | null;
 };
 
 export type DecrementJobDataType = IncrementJobDataType;
@@ -29,9 +28,10 @@ export class BillingProcessor {
 
   @Process(INCREMENT_JOB)
   async handleIncrement(job: Job<IncrementJobDataType>) {
-    const { oAuthClientId } = job.data;
+    const { userId } = job.data;
     try {
-      const team = await this.teamsRepository.findTeamIdFromClientId(oAuthClientId);
+      // get the platform org of the managed user
+      const team = await this.teamsRepository.findPlatformOrgFromUserId(userId);
       const teamId = team.id;
       if (!team.id) return void 0;
 
@@ -46,26 +46,28 @@ export class BillingProcessor {
       const stripeSubscription = await this.stripeService.stripe.subscriptions.retrieve(
         billingSubscription.subscriptionId
       );
-      const item = stripeSubscription.items.data[0];
-      // legacy plans are licensed, we cannot create usage records against them
-      if (item.price?.recurring?.usage_type === "licensed") {
+      const meteredItem = stripeSubscription.items.data.find(
+        (item) => item.price?.recurring?.usage_type === "metered"
+      );
+      // no metered item found to increase usage, return early
+      if (!meteredItem) {
         return void 0;
       }
-      await this.stripeService.stripe.subscriptionItems.createUsageRecord(item.id, {
+      await this.stripeService.stripe.subscriptionItems.createUsageRecord(meteredItem.id, {
         action: "increment",
         quantity: 1,
         timestamp: "now",
       });
-      this.logger.log("Increased usage for subscription", {
+      this.logger.log("Increased Org usage for subscription", {
         subscriptionId: billingSubscription.subscriptionId,
         teamId,
-        oAuthClientId,
-        itemId: item.id,
+        userId,
+        itemId: meteredItem.id,
       });
       return void 1;
     } catch (err) {
-      this.logger.error("Failed to increase usage for oAuthClient", {
-        oAuthClientId,
+      this.logger.error("Failed to increase usage for Org", {
+        userId,
         err,
       });
       return void 0;
