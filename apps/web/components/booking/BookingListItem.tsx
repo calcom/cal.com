@@ -732,7 +732,6 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem className="focus:outline-none">
-          {/* TODO: add subject: title */}
           <DropdownItem
             StartIcon="mail"
             href={`mailto:${email}`}
