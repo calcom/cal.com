@@ -1,5 +1,4 @@
 import {
-  addUsers,
   addEventTypesToDb,
   mockNoTranslations,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
@@ -12,35 +11,13 @@ import { DestinationCalendarRepository } from "@calcom/lib/server/repository/des
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
-import { createContextInner } from "../server/createContext";
-import { createCaller } from "../server/routers/_app";
+// import { createContextInner } from "../server/createContext";
+// import { createCaller } from "../server/routers/_app";
 
 const testUser = {
   email: "test@test.com",
   username: "test-user",
   organizationId: null,
-};
-
-const setupIndividualCredentialTest = async (userId: number) => {
-  const ctx = await createContextInner({
-    locale: "en",
-    session: {
-      hasValidLicense: true,
-      upId: "test-upId",
-      user: {
-        id: userId,
-        profile: {
-          id: 1,
-          upId: "profile-upid",
-          username: testUser.username,
-        },
-      },
-    },
-  });
-
-  const caller = createCaller(ctx);
-
-  return caller;
 };
 
 const setupCredential = async (credentialInput) => {
@@ -60,15 +37,19 @@ describe("deleteCredential", () => {
     mockNoTranslations();
   });
 
+  // describe("expected errors", () => {
+  //   test("credential not found", async () => {});
+  // });
+
   describe("individual credentials", () => {
     test("Delete video credential", async () => {
+      const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
+
       const user = await UserRepository.create({
         ...testUser,
       });
 
-      const caller = await setupIndividualCredentialTest(user.id);
-
-      const eventTypes = await addEventTypesToDb([
+      await addEventTypesToDb([
         {
           id: 1,
           userId: user.id,
@@ -85,9 +66,8 @@ describe("deleteCredential", () => {
 
       await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
-      await caller.viewer.deleteCredential({ id: 123 });
-
-      const eventTypeQuery = await EventTypeRepository.findAllByUserId(user.id);
+      await handleDeleteCredential({ userId: user.id, userMetadata: user.metadata, credentialId: 123 });
+      const eventTypeQuery = await EventTypeRepository.findAllByUserId({ userId: user.id });
 
       // Ensure that the event type with the deleted app was converted back to daily
       const changedEventType = eventTypeQuery.find((eventType) => eventType.id === 1)?.locations;
@@ -99,11 +79,11 @@ describe("deleteCredential", () => {
       expect(nonChangedEventType![0]).toEqual({ type: "integrations:msteams" });
     });
     test("Delete calendar credential", async () => {
+      const handleDeleteCredential = (await import("./handleDeleteCredential")).default;
+
       const user = await UserRepository.create({
         ...testUser,
       });
-
-      const caller = await setupIndividualCredentialTest(user.id);
 
       const eventTypes = await addEventTypesToDb([
         {
@@ -144,22 +124,13 @@ describe("deleteCredential", () => {
       const eventTypeCalendar = await DestinationCalendarRepository.getByEventTypeId(eventTypes[0].id);
       expect(eventTypeCalendar).toBeDefined();
 
-      await caller.viewer.deleteCredential({ id: 123 });
+      await handleDeleteCredential({ userId: user.id, userMetadata: user.metadata, credentialId: 123 });
 
       const userCalendarAfter = await DestinationCalendarRepository.getByUserId(user.id);
       expect(userCalendarAfter).toBeNull();
 
       const eventTypeCalendarAfter = await DestinationCalendarRepository.getByEventTypeId(eventTypes[0].id);
       expect(eventTypeCalendarAfter).toBeNull();
-    });
-    test("deleteCredential", async () => {
-      const caller = await setupIndividualCredentialTest();
-
-      await setupCredential({ userId: testUser.id });
-
-      await addUsers([testUser]);
-
-      await caller.viewer.deleteCredential({ id: 123 });
     });
 
     // TODO: Add test for payment apps
