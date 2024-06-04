@@ -254,9 +254,35 @@ export async function getBookings({
       where: {
         OR: [
           {
-            attendees: {
-              some: {
-                email: user.email,
+            eventType: {
+              team: {
+                members: {
+                  some: {
+                    userId: user.id,
+                    role: {
+                      in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            user: {
+              teams: {
+                some: {
+                  team: {
+                    isOrganization: true,
+                    members: {
+                      some: {
+                        userId: user.id,
+                        role: {
+                          in: ["ADMIN", "OWNER"],
+                        },
+                      },
+                    },
+                  },
+                },
               },
             },
           },
