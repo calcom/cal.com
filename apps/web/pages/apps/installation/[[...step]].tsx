@@ -468,10 +468,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-    const exteandsEventType = appMetadata?.extendsFeature === "EventType";
+    const extendsEventType = appMetadata?.extendsFeature === "EventType";
 
     const isConferencing = isConferencingApp(appMetadata.categories);
-    const showEventTypesStep = exteandsEventType || isConferencing;
+    const showEventTypesStep = extendsEventType || isConferencing;
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
 
