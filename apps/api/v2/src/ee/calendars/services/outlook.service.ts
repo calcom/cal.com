@@ -156,7 +156,7 @@ export class OutlookService implements OAuthCalendarApp {
 
     const office365OAuthCredentials = await this.getOAuthCredentials(parsedCode);
 
-    const defaultCalendar = await this.getDefaultCalendar(accessToken);
+    const defaultCalendar = await this.getDefaultCalendar(office365OAuthCredentials.access_token);
 
     if (defaultCalendar?.id) {
       const credential = await this.credentialRepository.createAppCredential(
