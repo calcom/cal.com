@@ -230,6 +230,7 @@ export async function getBookings({
     bookingsQueryUserId,
     bookingsQueryAttendees,
     bookingsQueryTeamMember,
+    bookingsQueryOrganizationMembers,
     bookingsQuerySeatReference,
     //////////////////////////
 
@@ -242,6 +243,23 @@ export async function getBookings({
         OR: [
           {
             userId: user.id,
+          },
+        ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            attendees: {
+              some: {
+                email: user.email,
+              },
+            },
           },
         ],
         AND: [passedBookingsStatusFilter, ...filtersCombined],
@@ -267,6 +285,16 @@ export async function getBookings({
               },
             },
           },
+        ],
+        AND: [passedBookingsStatusFilter, ...filtersCombined],
+      },
+      orderBy,
+      take: take + 1,
+      skip,
+    }),
+    prisma.booking.findMany({
+      where: {
+        OR: [
           {
             user: {
               teams: {
@@ -284,55 +312,6 @@ export async function getBookings({
                   },
                 },
               },
-            },
-          },
-        ],
-        AND: [passedBookingsStatusFilter, ...filtersCombined],
-      },
-      orderBy,
-      take: take + 1,
-      skip,
-    }),
-    prisma.booking.findMany({
-      where: {
-        OR: [
-          {
-            eventType: {
-              OR: [
-                {
-                  team: {
-                    members: {
-                      some: {
-                        userId: user.id,
-                        role: {
-                          in: ["ADMIN", "OWNER"],
-                        },
-                      },
-                    },
-                  },
-                },
-                {
-                  users: {
-                    some: {
-                      teams: {
-                        some: {
-                          team: {
-                            isOrganization: true,
-                            members: {
-                              some: {
-                                userId: user.id,
-                                role: {
-                                  in: ["ADMIN", "OWNER"],
-                                },
-                              },
-                            },
-                          },
-                        },
-                      },
-                    },
-                  },
-                },
-              ],
             },
           },
         ],
@@ -426,6 +405,7 @@ export async function getBookings({
     bookingsQueryUserId
       .concat(bookingsQueryAttendees)
       .concat(bookingsQueryTeamMember)
+      .concat(bookingsQueryOrganizationMembers)
       .concat(bookingsQuerySeatReference)
   );
 
