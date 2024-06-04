@@ -423,7 +423,7 @@ export async function deleteRemindersOfActiveOnIds(
 export async function scheduleWorkflowNotifications(
   activeOn: number[],
   isOrg: boolean,
-  workflowSteps: WorkflowStep[],
+  workflowSteps: Partial<WorkflowStep>[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
@@ -538,7 +538,7 @@ type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
 // we should consider refactoring this to  reuse similar code snippets
 export async function scheduleBookingReminders(
   bookings: Bookings,
-  workflowSteps: WorkflowStep[],
+  workflowSteps: Partial<WorkflowStep>[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
