@@ -304,7 +304,7 @@ const getUser = async (userId: number) => {
     },
     select: {
       id: true,
-      avatar: true,
+      avatarUrl: true,
       name: true,
       username: true,
       teams: {
@@ -326,7 +326,7 @@ const getUser = async (userId: number) => {
             select: {
               id: true,
               name: true,
-              logo: true,
+              logoUrl: true,
             },
           },
         },
@@ -457,7 +457,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const personalAccount = {
       id: user.id,
       name: user.name,
-      avatar: user.avatar,
+      avatarUrl: user.avatarUrl,
       alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
     };
 
