@@ -3,7 +3,7 @@ const connect = require("connect");
 const { createProxyMiddleware } = require("http-proxy-middleware");
 
 const apiProxyV1 = createProxyMiddleware({
-  target: "https://api.agenda.yinflow.life",
+  target: "http://localhost:3003",
 });
 
 const apiProxyV2 = createProxyMiddleware({
@@ -15,4 +15,4 @@ app.use("/", apiProxyV1);
 
 app.use("/v2", apiProxyV2);
 
-http.createServer(app).listen(443);
+http.createServer(app).listen(3002);
