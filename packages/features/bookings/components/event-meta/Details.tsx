@@ -83,8 +83,8 @@ export const EventMetaBlock = ({
   contentClassName,
   className,
   isDark,
-  style,
-}: EventMetaProps) => {
+}: //style,
+EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
   return (
