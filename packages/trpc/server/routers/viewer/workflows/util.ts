@@ -37,7 +37,7 @@ import { TRPCError } from "@trpc/server";
 
 const log = logger.getSubLogger({ prefix: ["workflow"] });
 
-const bookingSelect = {
+export const bookingSelect = {
   userPrimaryEmail: true,
   startTime: true,
   endTime: true,
@@ -423,7 +423,7 @@ export async function deleteRemindersOfActiveOnIds(
 export async function scheduleWorkflowNotifications(
   activeOn: number[],
   isOrg: boolean,
-  workflowSteps: Partial<WorkflowStep>[],
+  workflowSteps: WorkflowStep[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
@@ -538,7 +538,7 @@ type Bookings = UnwrapPromise<ReturnType<typeof getBookings>>;
 // we should consider refactoring this to  reuse similar code snippets
 export async function scheduleBookingReminders(
   bookings: Bookings,
-  workflowSteps: Partial<WorkflowStep>[],
+  workflowSteps: WorkflowStep[],
   time: number | null,
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
@@ -547,9 +547,7 @@ export async function scheduleBookingReminders(
   prisma: PrismaClient
 ) {
   if (!bookings.length) return;
-
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
-
   //create reminders for all bookings with newEventTypes
   const promiseSteps = workflowSteps.map(async (step) => {
     // we do not have attendees phone number (user is notified about that when setting this action)
@@ -604,7 +602,6 @@ export async function scheduleBookingReminders(
             await verifyEmailSender(step.sendTo || "", userId, teamId, prisma);
             sendTo = [step.sendTo || ""];
         }
-
         await scheduleEmailReminder({
           evt: bookingInfo,
           triggerEvent: trigger,
@@ -619,6 +616,7 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
+          prisma,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({

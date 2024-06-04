@@ -18,7 +18,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
+import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -51,6 +51,8 @@ type InputWorkflow = {
   trigger: WorkflowTriggerEvents;
   action: WorkflowActions;
   template: WorkflowTemplates;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
 };
 
 type InputHost = {
@@ -470,6 +472,8 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
           teamId: workflow.teamId,
           trigger: workflow.trigger,
           name: workflow.name ? workflow.name : "Test Workflow",
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
         },
         include: {
           steps: true,

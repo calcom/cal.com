@@ -10,9 +10,37 @@ import {
 
 import { describe, expect, beforeAll, vi } from "vitest";
 
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
-import { deleteRemindersOfActiveOnIds } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import dayjs from "@calcom/dayjs";
+import { BookingStatus, WorkflowMethods, TimeUnit } from "@calcom/prisma/enums";
+import {
+  deleteRemindersOfActiveOnIds,
+  scheduleBookingReminders,
+  bookingSelect,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
+
+const workflowSelect = {
+  id: true,
+  userId: true,
+  isActiveOnAll: true,
+  trigger: true,
+  time: true,
+  timeUnit: true,
+  team: {
+    select: {
+      isOrganization: true,
+    },
+  },
+  teamId: true,
+  user: {
+    select: {
+      teams: true,
+    },
+  },
+  steps: true,
+  activeOn: true,
+  activeOnTeams: true,
+};
 
 beforeAll(() => {
   vi.setSystemTime(new Date("2024-05-20T11:59:59Z"));
@@ -51,30 +79,34 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-05-22T04:00:00.000Z`,
     endTime: `2024-05-22T04:30:00.000Z`,
+    attendees: ["attendee@example.com"],
   },
   {
     uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
     eventTypeId: 1,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-22T04:00:00.000Z`,
-    endTime: `2024-05-22T04:30:00.000Z`,
+    startTime: `2024-05-23T04:00:00.000Z`,
+    endTime: `2024-05-23T04:30:00.000Z`,
+    attendees: ["attendee@example.com"],
   },
   {
     uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
     eventTypeId: 2,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-22T04:30:00.000Z`,
-    endTime: `2024-05-22T05:00:00.000Z`,
+    startTime: `2024-06-01T04:30:00.000Z`,
+    endTime: `2024-06-01T05:00:00.000Z`,
+    attendees: ["attendee@example.com"],
   },
   {
     uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
     eventTypeId: 2,
     userId: 101,
     status: BookingStatus.ACCEPTED,
-    startTime: `2024-05-22T04:30:00.000Z`,
-    endTime: `2024-05-22T05:00:00.000Z`,
+    startTime: `2024-06-02T04:30:00.000Z`,
+    endTime: `2024-06-02T05:00:00.000Z`,
+    attendees: ["attendee@example.com"],
   },
 ];
 
@@ -159,7 +191,7 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
   ];
 
   for (const data of workflowRemindersData) {
-    prismock.workflowReminder.create({
+    await prismock.workflowReminder.create({
       data,
     });
   }
@@ -183,6 +215,8 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
             name: "User Workflow",
             userId: organizer.id,
             trigger: "BEFORE_EVENT",
+            time: 1,
+            timeUnit: TimeUnit.HOUR,
             action: "EMAIL_HOST",
             template: "REMINDER",
             activeOn: [1],
@@ -327,27 +361,181 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
 });
 
 describe("scheduleBookingReminders", () => {
-  test("schedules email reminders for user workflow", async ({}) => {
-    expect(true).toBe(true);
-    /*
-    scheduleBookingReminders();
+  test("schedules workflow notifications with before event trigger and email to host action", async ({}) => {
+    // organizer is part of org and two teams
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
 
-    params:
-    bookings: Bookings,
-    workflowSteps: Partial<WorkflowStep>[],
-    time: number | null,
-    timeUnit: TimeUnit | null,
-    trigger: WorkflowTriggerEvents,
-    userId: number,
-    teamId: number | null
-    */
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Workflow",
+            userId: 101,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [],
+            time: 1,
+            timeUnit: TimeUnit.HOUR,
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: mockBookings,
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      prismock
+    );
+
+    const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
+      where: {
+        workflowStep: {
+          workflowId: workflow.id,
+        },
+      },
+    });
+    scheduledWorkflowReminders.sort((a, b) =>
+      dayjs(a.scheduledDate).isBefore(dayjs(b.scheduledDate)) ? -1 : 1
+    );
+
+    const expectedScheduledDates = [
+      new Date("2024-05-22T03:00:00.000"),
+      new Date("2024-05-23T03:00:00.000Z"),
+      new Date("2024-06-01T03:30:00.000Z"),
+      new Date("2024-06-02T03:30:00.000Z"),
+    ];
+
+    scheduledWorkflowReminders.forEach((reminder, index) => {
+      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(reminder.method).toBe(WorkflowMethods.EMAIL);
+      if (index < 2) {
+        expect(reminder.scheduled).toBe(true);
+      } else {
+        expect(reminder.scheduled).toBe(false);
+      }
+    });
   });
 
-  test("schedules email reminders for team workflow", async ({}) => {
+  test("schedules workflow notifications with after event trigger and email to host action", async ({}) => {
+    // organizer is part of org and two teams
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Workflow",
+            userId: 101,
+            trigger: "AFTER_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOn: [],
+            time: 1,
+            timeUnit: TimeUnit.HOUR,
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: mockBookings,
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      2,
+      prismock
+    );
+
+    const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
+      where: {
+        workflowStep: {
+          workflowId: workflow.id,
+        },
+      },
+    });
+    scheduledWorkflowReminders.sort((a, b) =>
+      dayjs(a.scheduledDate).isBefore(dayjs(b.scheduledDate)) ? -1 : 1
+    );
+
+    const expectedScheduledDates = [
+      new Date("2024-05-22T05:30:00.000"),
+      new Date("2024-05-23T05:30:00.000Z"),
+      new Date("2024-06-01T06:00:00.000Z"),
+      new Date("2024-06-02T06:00:00.000Z"),
+    ];
+
+    scheduledWorkflowReminders.forEach((reminder, index) => {
+      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(reminder.method).toBe(WorkflowMethods.EMAIL);
+      if (index < 2) {
+        expect(reminder.scheduled).toBe(true);
+      } else {
+        expect(reminder.scheduled).toBe(false);
+      }
+    });
+  });
+
+  test("schedules workflow notifications with before event trigger and sms to host action", async ({}) => {
     expect(true).toBe(true);
   });
 
-  test("schedules email reminders for team workflow", async ({}) => {
+  test("schedules workflow notifications with after event trigger and sms to host action", async ({}) => {
     expect(true).toBe(true);
   });
 });
