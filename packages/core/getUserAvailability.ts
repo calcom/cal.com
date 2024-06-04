@@ -16,6 +16,7 @@ import { checkBookingLimit } from "@calcom/lib/server";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { getTotalBookingDuration } from "@calcom/lib/server/queries";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, stringToDayjsZod } from "@calcom/prisma/zod-utils";
@@ -59,8 +60,18 @@ const _getEventType = async (id: number) => {
       id: true,
       seatsPerTimeSlot: true,
       bookingLimits: true,
+      hosts: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
       durationLimits: true,
       assignAllTeamMembers: true,
+      schedulingType: true,
       timeZone: true,
       length: true,
       metadata: true,
@@ -123,10 +134,29 @@ export const getCurrentSeats = async (
   return monitorCallbackAsync(_getCurrentSeats, ...args);
 };
 
-const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Dayjs) => {
-  return await prisma.booking.findMany({
+const _getCurrentSeats = async (
+  eventType: {
+    id?: number;
+    schedulingType?: SchedulingType | null;
+    hosts?: {
+      user: {
+        email: string;
+      };
+    }[];
+  },
+  dateFrom: Dayjs,
+  dateTo: Dayjs
+) => {
+  const { schedulingType, hosts, id } = eventType;
+  const hostEmails = hosts?.map((host) => host.user.email);
+  const isTeamEvent =
+    schedulingType === SchedulingType.MANAGED ||
+    schedulingType === SchedulingType.ROUND_ROBIN ||
+    schedulingType === SchedulingType.COLLECTIVE;
+
+  const bookings = await prisma.booking.findMany({
     where: {
-      eventTypeId,
+      eventTypeId: id,
       startTime: {
         gte: dateFrom.format(),
         lte: dateTo.format(),
@@ -136,12 +166,31 @@ const _getCurrentSeats = async (eventTypeId: number, dateFrom: Dayjs, dateTo: Da
     select: {
       uid: true,
       startTime: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
       _count: {
         select: {
           attendees: true,
         },
       },
     },
+  });
+
+  return bookings.map((booking) => {
+    const attendees = isTeamEvent
+      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
+      : booking.attendees;
+
+    return {
+      uid: booking.uid,
+      startTime: booking.startTime,
+      _count: {
+        attendees: attendees.length,
+      },
+    };
   });
 };
 
@@ -219,7 +268,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     current bookings with a seats event type and display them on the calendar, even if they are full */
   let currentSeats: CurrentSeats | null = initialData?.currentSeats || null;
   if (!currentSeats && eventType?.seatsPerTimeSlot) {
-    currentSeats = await getCurrentSeats(eventType.id, dateFrom, dateTo);
+    currentSeats = await getCurrentSeats(eventType, dateFrom, dateTo);
   }
 
   const bookingLimits = parseBookingLimit(eventType?.bookingLimits);

@@ -265,6 +265,29 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
+      {
         /**
          * Needed due to the introduction of dotted usernames
          * @see https://github.com/calcom/cal.com/pull/11706
@@ -326,29 +349,6 @@ const nextConfig = {
         {
           source: "/:user/avatar.png",
           destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/forms/:formQuery*",
-          destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/router",
-          destination: "/apps/routing-forms/router",
-        },
-        {
-          source: "/success/:path*",
-          has: [
-            {
-              type: "query",
-              key: "uid",
-              value: "(?<uid>.*)",
-            },
-          ],
-          destination: "/booking/:uid/:path*",
-        },
-        {
-          source: "/cancel/:path*",
-          destination: "/booking/:path*",
         },
       ],
 
@@ -535,6 +535,11 @@ const nextConfig = {
       {
         source: "/apps/installed",
         destination: "/apps/installed/calendar",
+        permanent: true,
+      },
+      {
+        source: "/settings/organizations/platform/:path*",
+        destination: "/settings/platform",
         permanent: true,
       },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
