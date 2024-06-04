@@ -4,7 +4,7 @@ import { prisma } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["repository/eventType"] });
 export class AppRepository {
-  static async seedApp(dirName: string, keys: any) {
+  static async seedApp(dirName: string, keys?: any) {
     const appMetadata = appStoreMetadata[dirName as keyof typeof appStoreMetadata];
 
     if (!appMetadata) {

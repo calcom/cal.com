@@ -1,28 +1,35 @@
 import MockDataBaseClient from "../../../tests/libs/__mocks__/mockDatabaseClient";
 
-import { addUsers, addEventTypesToDb } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import {
+  addUsers,
+  addEventTypesToDb,
+  mockNoTranslations,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, beforeEach } from "vitest";
 
 import { AppRepository } from "@calcom/lib/server/repository/app";
+import { CredentialRepository } from "@calcom/lib/server/repository/credential";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 
 import { createContextInner } from "../server/createContext";
 import { createCaller } from "../server/routers/_app";
 
 const testUser = {
-  id: 1,
   email: "test@test.com",
   username: "test-user",
+  organizationId: null,
 };
 
-const setupIndividualCredentialTest = async () => {
+const setupIndividualCredentialTest = async (userId: number) => {
   const ctx = await createContextInner({
     locale: "en",
     session: {
       hasValidLicense: true,
       upId: "test-upId",
       user: {
-        id: testUser.id,
+        id: userId,
         profile: {
           id: 1,
           upId: "profile-upid",
@@ -46,46 +53,42 @@ const setupCredential = async (credentialInput) => {
     teamId: null,
   };
 
-  const credential = { ...exampleCredential, ...credentialInput };
-
-  const MockDatabaseClient = new MockDataBaseClient();
-
-  await MockDatabaseClient.writeCredential(credential);
-
-  return credential;
+  return await CredentialRepository.create({ ...exampleCredential, ...credentialInput });
 };
 
 describe("deleteCredential", () => {
+  beforeEach(async () => {
+    mockNoTranslations();
+  });
+
   describe("individual credentials", () => {
     test("Delete video credential", async () => {
-      const caller = await setupIndividualCredentialTest();
+      const user = await UserRepository.create({
+        ...testUser,
+      });
+
+      const caller = await setupIndividualCredentialTest(user.id);
 
       const eventTypes = await addEventTypesToDb([
         {
           id: 1,
-          userId: testUser.id,
+          userId: user.id,
           locations: [{ type: "integrations:zoom" }],
         },
         {
           id: 2,
-          userId: testUser.id,
+          userId: user.id,
           locations: [{ type: "integrations:msteams" }],
         },
       ]);
 
-      const MockDatabaseClient = new MockDataBaseClient();
-
       await AppRepository.seedApp("zoomvideo");
 
-      await setupCredential({ userId: testUser.id, type: "zoom_video", appId: "zoom" });
-
-      await addUsers([testUser]);
+      await setupCredential({ userId: user.id, type: "zoom_video", appId: "zoom" });
 
       await caller.viewer.deleteCredential({ id: 123 });
 
-      const eventTypeQuery = await MockDatabaseClient.getEventTypes(
-        eventTypes.map((eventType) => eventType.id)
-      );
+      const eventTypeQuery = await EventTypeRepository.findAllByUserId(user.id);
 
       // Ensure that the event type with the deleted app was converted back to daily
       const changedEventType = eventTypeQuery.find((eventType) => eventType.id === 1)?.locations;
