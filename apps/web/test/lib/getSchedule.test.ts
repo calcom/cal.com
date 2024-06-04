@@ -850,7 +850,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -918,7 +918,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
@@ -987,7 +987,7 @@ describe("getSchedule", () => {
             selectedCalendars: [TestData.selectedCalendars.google],
           },
         ],
-        apps: [TestData.apps.googleCalendar],
+        apps: [TestData.apps["google-calendar"]],
       };
 
       await createBookingScenario(scenarioData);
