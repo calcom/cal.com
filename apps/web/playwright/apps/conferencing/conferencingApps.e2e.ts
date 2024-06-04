@@ -119,7 +119,7 @@ test.describe("check conferencing apps ", () => {
       const app = ALL_APPS[index];
       await page.goto("apps/categories/conferencing");
       await appsPage.installConferencingAppSkipConfigure(app.slug);
-      await appsPage.vefifyConferencingtApp(app, index);
+      await appsPage.verifyConferencingtApp(app, index);
     }
   });
 
