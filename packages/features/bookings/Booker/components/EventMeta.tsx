@@ -100,9 +100,11 @@ export const EventMeta = ({
               entity={event.entity}
             />
           )}
-          <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
+          <EventTitle className={`${classNames?.eventMetaTitle} title-class-font-size my-2 mt-4`}>
+            {event?.title}
+          </EventTitle>
           {event.description && (
-            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
+            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4 description-class-font-size">
               <div dangerouslySetInnerHTML={{ __html: event.description }} />
             </EventMetaBlock>
           )}
@@ -135,7 +137,8 @@ export const EventMeta = ({
             )}
             <EventDetails event={event} />
             <EventMetaBlock
-              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
+              style={{ marginTop: -4, marginBottom: -4 }}
+              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100 "
               contentClassName="relative max-w-[90%]"
               icon="globe">
               {bookerState === "booking" ? (

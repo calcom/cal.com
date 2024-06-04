@@ -7,8 +7,19 @@
   height: 6rem !important;
 }
 
+.title-class-font-size {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #598392 !important;
+}
+
+.description-class-font-size {
+  font-size: 14px !important;
+}
+
+
 p.text-subtle.mt-2.text-sm.font-semibold {
-  font-size: 31px;
+  font-size: 40px;
   font-family:
     Syne Variablefont Wght,
     sans-serif;
@@ -68,6 +79,10 @@ span.min-w-32.current-timezone.before\:bg-subtle.-mt-\[2px\].flex.h-6.max-w-full
   height: 1.5rem !important;
 }
 
+.text-emphasis.h-6.md\:max-w-\[145px\].max-w-\[250px\] {
+  height: 14px !important;
+}
+
 .lucide-clock {
   color: #08c6a3;
 }
@@ -100,7 +115,7 @@ span.bg-emphasis.item-center.relative.inline-flex.aspect-square.justify-center.r
   gap: 80px;
 }
 
-.flex.items-start.justify-start.text-sm.text-text.cursor-pointer.\[\&_\.current-timezone\:before\]\:focus-within\:opacity-100.\[\&_\.current-timezone\:before\]\:hover\:opacity-100 {
+/* .flex.items-start.justify-start.text-sm.text-text.cursor-pointer.\[\&_\.current-timezone\:before\]\:focus-within\:opacity-100.\[\&_\.current-timezone\:before\]\:hover\:opacity-100 {
   display: none;
-}
+} */
 /* Pedro EMBED Yinflow stylesheet (version 3) */
