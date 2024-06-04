@@ -10,7 +10,6 @@ import {
   bookTimeSlot,
   doOnOrgDomain,
   getOrgOrigin,
-  NotFoundPageTextAppDir,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "../lib/testUtils";
@@ -174,10 +173,7 @@ test.describe("Bookings", () => {
       });
 
       const event = await user.getFirstEventAsOwner();
-      await page.goto(`/${user.username}/${event.slug}`);
-
-      // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+      await expectPageToBeNotFound({ page, url: `/${user.username}/${event.slug}` });
 
       await doOnOrgDomain(
         {
@@ -513,5 +509,5 @@ async function bookTeamEvent({
 
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
