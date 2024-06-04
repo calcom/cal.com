@@ -6,6 +6,7 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
 
 const formSchema = z.object({
@@ -15,6 +16,7 @@ const formSchema = z.object({
 export default function CloseComSetup() {
   const { t } = useLocale();
   const router = useRouter();
+  const query = useRouterQuery();
   const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
   const [testLoading, setTestLoading] = useState<boolean>(false);
 
@@ -63,13 +65,17 @@ export default function CloseComSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/closecom/add", {
-                    method: "POST",
-                    body: JSON.stringify(values),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
+                  const { returnTo } = query;
+                  const res = await fetch(
+                    `/api/integrations/closecom/add${returnTo ? `?returnTo=${returnTo}` : ""}`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify(values),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  );
                   const json = await res.json();
 
                   if (res.ok) {
