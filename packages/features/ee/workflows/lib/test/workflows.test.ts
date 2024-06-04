@@ -328,7 +328,7 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
 
 describe("scheduleBookingReminders", () => {
   test("schedules email reminders for user workflow", async ({}) => {
-    expect(true).tobe(true);
+    expect(true).toBe(true);
     /*
     scheduleBookingReminders();
 
@@ -344,10 +344,10 @@ describe("scheduleBookingReminders", () => {
   });
 
   test("schedules email reminders for team workflow", async ({}) => {
-    expect(true).tobe(true);
+    expect(true).toBe(true);
   });
 
   test("schedules email reminders for team workflow", async ({}) => {
-    expect(true).tobe(true);
+    expect(true).toBe(true);
   });
 });
