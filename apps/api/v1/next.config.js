@@ -2,12 +2,7 @@ const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 
 const plugins = [withAxiom];
-
-/** @type {import("next").NextConfig} */
 const nextConfig = {
-  experimental: {
-    instrumentationHook: true,
-  },
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/core",
@@ -92,12 +87,12 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  plugins.push((nextConfig) =>
-    withSentryConfig(nextConfig, {
-      autoInstrumentServerFunctions: true,
-      hideSourceMaps: true,
-    })
-  );
+  nextConfig["sentry"] = {
+    autoInstrumentServerFunctions: true,
+    hideSourceMaps: true,
+  };
+
+  plugins.push(withSentryConfig);
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
