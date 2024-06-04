@@ -10,6 +10,7 @@ import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
+import prismaDefault from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
   WorkflowActions,
@@ -120,7 +121,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     includeCalendarEvent,
     isMandatoryReminder,
     action,
-    prisma,
+    prisma = prismaDefault,
   } = args;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;

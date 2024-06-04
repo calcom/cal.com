@@ -281,13 +281,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // handle deleted and edited workflow steps
-  userWorkflow.steps.map(async ({ numberVerificationPending, ...oldStep }) => {
+  userWorkflow.steps.map(async ({ ...oldStep }) => {
     const foundStep = steps.find((s) => s.id === oldStep.id);
     let newStep;
 
     if (foundStep) {
       const { senderName, ...rest } = {
         ...foundStep,
+        numberVerificationPending: false,
         sender: getSender({
           action: foundStep.action,
           sender: foundStep.sender || null,
@@ -323,7 +324,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      //step was edited
+      //step was
+      //am I alwaus going in here now?
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
