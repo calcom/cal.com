@@ -1,6 +1,8 @@
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -58,6 +60,7 @@ const removeMember = async ({
       select: {
         isOrganization: true,
         organizationSettings: true,
+        slug: true,
         id: true,
         metadata: true,
       },
@@ -90,11 +93,13 @@ const removeMember = async ({
       });
 
       if (userToRedirectTo) {
-        await prisma.removedOrgMembersRedirect.create({
+        const orgUrlPrefix = getOrgFullOrigin(orgInfo.slug);
+        await prisma.tempOrgRedirect.create({
           data: {
-            toProfileId: userToRedirectTo.id,
-            fromUsername: profileToDelete.username,
-            teamId: orgInfo.id,
+            from: profileToDelete.username,
+            toUrl: `${orgUrlPrefix}/${userToRedirectTo.username}`,
+            type: RedirectType.User,
+            fromOrgId: orgInfo.id,
           },
         });
       }

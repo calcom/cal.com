@@ -11,7 +11,6 @@ import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import logger from "@calcom/lib/logger";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
@@ -82,24 +81,26 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const dataFetchStart = Date.now();
 
-  if (!isOrgContext) {
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+  });
+
+  if (!isOrgContext || (!usersInOrgContext.length && isValidOrgDomain)) {
     // If there is no org context, see if some redirect is setup due to org migration
+    // Or if valid org and no users, check if user was deleted has redirect
     const redirect = await getTemporaryOrgRedirect({
       slugs: usernameList,
       redirectType: RedirectType.User,
       eventTypeSlug: null,
       currentQuery: context.query,
+      orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     });
 
     if (redirect) {
       return redirect;
     }
   }
-
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
-    usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));
@@ -122,22 +123,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
   };
 
   const isThereAnyNonOrgUser = usersInOrgContext.some(isNonOrgUser);
-
-  if (!usersInOrgContext.length && isValidOrgDomain && currentOrgDomain) {
-    const username = await ProfileRepository.findUserToRedirectTo({
-      username: usernameList[0],
-      orgSlug: currentOrgDomain,
-    });
-
-    if (username) {
-      return {
-        redirect: {
-          permanent: false,
-          destination: `/${username}`,
-        },
-      };
-    }
-  }
 
   if (!usersInOrgContext.length || (!isValidOrgDomain && !isThereAnyNonOrgUser)) {
     return {

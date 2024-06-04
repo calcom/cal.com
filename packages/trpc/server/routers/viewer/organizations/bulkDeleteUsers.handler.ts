@@ -1,6 +1,8 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -71,18 +73,19 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
     });
 
     if (redirectToUser) {
+      const orgUrlPrefix = getOrgFullOrigin(redirectToUser.organization.slug);
       const redirectData = users
         .filter((user) => input.userIds.some((userId) => userId === user.userId))
         .map((user) => ({
-          teamId: organizationId,
-          fromUsername: user.username,
-          toProfileId: redirectToUser.id,
+          from: user.username,
+          toUrl: `${orgUrlPrefix}/${redirectToUser.username}`,
+          type: RedirectType.User,
+          fromOrgId: organizationId,
         }));
 
-      const createUserRedirection = prisma.removedOrgMembersRedirect.createMany({
+      const createUserRedirection = prisma.tempOrgRedirect.createMany({
         data: redirectData,
       });
-
       operations.push(createUserRedirection);
     }
   }

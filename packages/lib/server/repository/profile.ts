@@ -384,32 +384,6 @@ export class ProfileRepository {
     return normalizeProfile(profile);
   }
 
-  static async findUserToRedirectTo({ username, orgSlug }: { username: string; orgSlug: string }) {
-    const org = await prisma.team.findFirst({
-      where: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
-    });
-
-    if (!org) return;
-
-    const redirectTo = await prisma.removedOrgMembersRedirect.findUnique({
-      where: {
-        teamId_fromUsername: {
-          teamId: org.id,
-          fromUsername: username,
-        },
-      },
-      select: {
-        toProfile: {
-          select: {
-            username: true,
-          },
-        },
-      },
-    });
-
-    return redirectTo?.toProfile.username;
-  }
-
   static async findManyByOrgSlugOrRequestedSlug({
     usernames,
     orgSlug,

@@ -349,8 +349,6 @@ model Profile {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
-  redirectFromRemovedMembers removedOrgMembersRedirect[]
-
   @@unique([userId, organizationId])
   @@index([uid])
   @@index([userId])
@@ -358,71 +356,58 @@ model Profile {
 }
 
 model Team {
-  id                     Int                         @id @default(autoincrement())
+  id                    Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                   String
+  name                  String
   /// @zod.min(1)
-  slug                   String?
-  logo                   String?
-  logoUrl                String?
-  calVideoLogo           String?
-  appLogo                String?
-  appIconLogo            String?
-  bio                    String?
-  hideBranding           Boolean                     @default(false)
-  isPrivate              Boolean                     @default(false)
-  hideBookATeamMember    Boolean                     @default(false)
-  members                Membership[]
-  eventTypes             EventType[]
-  workflows              Workflow[]
-  createdAt              DateTime                    @default(now())
+  slug                  String?
+  logo                  String?
+  logoUrl               String?
+  calVideoLogo          String?
+  appLogo               String?
+  appIconLogo           String?
+  bio                   String?
+  hideBranding          Boolean                 @default(false)
+  isPrivate             Boolean                 @default(false)
+  hideBookATeamMember   Boolean                 @default(false)
+  members               Membership[]
+  eventTypes            EventType[]
+  workflows             Workflow[]
+  createdAt             DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata               Json?
-  theme                  String?
-  brandColor             String?
-  darkBrandColor         String?
-  verifiedNumbers        VerifiedNumber[]
-  verifiedEmails         VerifiedEmail[]
-  bannerUrl              String?
-  parentId               Int?
-  parent                 Team?                       @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children               Team[]                      @relation("organization")
-  orgUsers               User[]                      @relation("scope")
-  inviteTokens           VerificationToken[]
-  webhooks               Webhook[]
-  timeFormat             Int?
-  timeZone               String                      @default("Europe/London")
-  weekStart              String                      @default("Sunday")
-  routingForms           App_RoutingForms_Form[]
-  apiKeys                ApiKey[]
-  credentials            Credential[]
-  accessCodes            AccessCode[]
-  isOrganization         Boolean                     @default(false)
-  organizationSettings   OrganizationSettings?
-  instantMeetingTokens   InstantMeetingToken[]
-  orgProfiles            Profile[]
-  pendingPayment         Boolean                     @default(false)
-  dsyncTeamGroupMapping  DSyncTeamGroupMapping[]
-  isPlatform             Boolean                     @default(false)
-  platformOAuthClient    PlatformOAuthClient[]
-  smsLockState           SMSLockState                @default(UNLOCKED)
-  platformBilling        PlatformBilling?
-  removedMembersRedirect removedOrgMembersRedirect[]
+  metadata              Json?
+  theme                 String?
+  brandColor            String?
+  darkBrandColor        String?
+  verifiedNumbers       VerifiedNumber[]
+  verifiedEmails        VerifiedEmail[]
+  bannerUrl             String?
+  parentId              Int?
+  parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children              Team[]                  @relation("organization")
+  orgUsers              User[]                  @relation("scope")
+  inviteTokens          VerificationToken[]
+  webhooks              Webhook[]
+  timeFormat            Int?
+  timeZone              String                  @default("Europe/London")
+  weekStart             String                  @default("Sunday")
+  routingForms          App_RoutingForms_Form[]
+  apiKeys               ApiKey[]
+  credentials           Credential[]
+  accessCodes           AccessCode[]
+  isOrganization        Boolean                 @default(false)
+  organizationSettings  OrganizationSettings?
+  instantMeetingTokens  InstantMeetingToken[]
+  orgProfiles           Profile[]
+  pendingPayment        Boolean                 @default(false)
+  dsyncTeamGroupMapping DSyncTeamGroupMapping[]
+  isPlatform            Boolean                 @default(false)
+  platformOAuthClient   PlatformOAuthClient[]
+  smsLockState          SMSLockState            @default(UNLOCKED)
+  platformBilling       PlatformBilling?
 
   @@unique([slug, parentId])
   @@index([parentId])
-}
-
-model removedOrgMembersRedirect {
-  id           Int      @id @default(autoincrement())
-  teamId       Int
-  team         Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  toProfileId  Int
-  toProfile    Profile  @relation(fields: [toProfileId], references: [id], onDelete: Cascade)
-  fromUsername String
-  createdAt    DateTime @default(now())
-
-  @@unique([teamId, fromUsername])
 }
 
 model OrganizationSettings {

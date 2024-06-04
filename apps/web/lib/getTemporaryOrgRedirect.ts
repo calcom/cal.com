@@ -1,6 +1,7 @@
 import type { ParsedUrlQuery } from "querystring";
 import { stringify } from "querystring";
 
+import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { RedirectType } from "@calcom/prisma/client";
@@ -11,11 +12,13 @@ export const getTemporaryOrgRedirect = async ({
   redirectType,
   eventTypeSlug,
   currentQuery,
+  orgSlug,
 }: {
   slugs: string[] | string;
   redirectType: RedirectType;
   eventTypeSlug: string | null;
   currentQuery: ParsedUrlQuery;
+  orgSlug: string | null;
 }) => {
   const prisma = (await import("@calcom/prisma")).default;
   slugs = slugs instanceof Array ? slugs : [slugs];
@@ -25,8 +28,24 @@ export const getTemporaryOrgRedirect = async ({
       slugs,
       redirectType,
       eventTypeSlug,
+      orgSlug,
     })
   );
+
+  let fromOrgId = 0;
+
+  if (orgSlug && slugs.length === 1) {
+    const org = await prisma.team.findFirst({
+      where: whereClauseForOrgWithSlugOrRequestedSlug(orgSlug),
+      select: {
+        id: true,
+      },
+    });
+
+    if (!org) return;
+
+    fromOrgId = org.id;
+  }
 
   const redirects = await prisma.tempOrgRedirect.findMany({
     where: {
@@ -34,7 +53,7 @@ export const getTemporaryOrgRedirect = async ({
       from: {
         in: slugs,
       },
-      fromOrgId: 0,
+      fromOrgId,
     },
   });
 
