@@ -12,3 +12,4 @@ export { useCancelBooking } from "./hooks/useCancelBooking";
 export { useGetBooking } from "./hooks/useGetBooking";
 export { useGetBookings } from "./hooks/useGetBookings";
 export { useMe } from "./hooks/useMe";
+export { Office365Connect } from "./office365-connect";
