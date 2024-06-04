@@ -1,4 +1,5 @@
 import TwilioClient from "twilio";
+import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -101,7 +102,7 @@ export const scheduleSMS = async (
     console.log(
       "Skipped sending SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. SMS are available in globalThis.testSMS"
     );
-    return {};
+    return { sid: uuidv4() };
   }
 
   const twilio = createTwilioClient();
