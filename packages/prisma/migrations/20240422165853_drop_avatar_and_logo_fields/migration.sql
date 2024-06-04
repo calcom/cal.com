@@ -6,7 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE "Team" DROP COLUMN "logo";
+-- ALTER TABLE "Team" DROP COLUMN "logo";
 
 -- AlterTable
-ALTER TABLE "users" DROP COLUMN "avatar";
+-- ALTER TABLE "users" DROP COLUMN "avatar";
