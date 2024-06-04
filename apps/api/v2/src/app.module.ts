@@ -50,8 +50,6 @@ import { AppController } from "./app.controller";
     EndpointsModule,
     AuthModule,
     JwtModule,
-    //register prefix for all routes in EndpointsModule
-    RouterModule.register([{ path: "/v2", module: EndpointsModule }]),
   ],
   controllers: [AppController],
   providers: [
