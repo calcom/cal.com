@@ -5,12 +5,12 @@ import type { ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
-export interface useGcalProps {
+export interface useOffice365CalendarProps {
   isAuth: boolean;
   onCheckError?: OnCheckErrorType;
 }
 
-export const useOffice365Calendar = ({ isAuth, onCheckError }: useGcalProps) => {
+export const useOffice365Calendar = ({ isAuth, onCheckError }: useOffice365CalendarProps) => {
   const [allowConnect, setAllowConnect] = useState<boolean>(false);
   const [checked, setChecked] = useState<boolean>(false);
 
