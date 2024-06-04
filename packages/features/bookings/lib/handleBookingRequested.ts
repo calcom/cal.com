@@ -2,6 +2,7 @@ import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/ema
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -39,12 +40,18 @@ export async function handleBookingRequested(args: {
   await sendOrganizerRequestEmail({ ...evt });
   await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
 
+  const orgId = await getOrgIdFromMemberOrTeamId({
+    memberId: booking.userId,
+    teamId: booking.eventType?.teamId,
+  });
+
   try {
     const subscribersBookingRequested = await getWebhooks({
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
       teamId: booking.eventType?.teamId,
+      orgId,
     });
 
     const webhookPayload = getWebhookPayloadForBooking({
