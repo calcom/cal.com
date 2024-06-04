@@ -100,85 +100,95 @@ export const EventMeta = ({
               entity={event.entity}
             />
           )}
-          <EventTitle className={`${classNames?.eventMetaTitle} title-class-font-size my-2 mt-4`}>
+          <EventTitle
+            className={`${classNames?.eventMetaTitle} title-class-font-size my-2 mt-4 hidden sm:block`}>
             {event?.title}
           </EventTitle>
+          <p className="title-class-font-size my-4 mb-8 sm:hidden">{event?.title}</p>
           {event.description && (
-            <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4 description-class-font-size">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
-            </EventMetaBlock>
+            <>
+              <EventMetaBlock contentClassName=" hidden sm:block mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4 description-class-font-size">
+                <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              </EventMetaBlock>
+
+              <EventMetaBlock contentClassName=" sm:hidden mb-8 break-words max-w-full max-h-[180px] scroll-bar  description-class-font-size">
+                <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              </EventMetaBlock>
+            </>
           )}
-          <div className="space-y-4 font-medium rtl:-mr-2">
-            {rescheduleUid && bookingData && (
-              <EventMetaBlock icon="calendar">
-                {t("former_time")}
-                <br />
-                <span className="line-through" data-testid="former_time_p">
+          <div className="">
+            <div className=" space-y-4 font-medium md:ml-28 md:pl-2 ">
+              {rescheduleUid && bookingData && (
+                <EventMetaBlock icon="calendar">
+                  {t("former_time")}
+                  <br />
+                  <span className="line-through" data-testid="former_time_p">
+                    <FromToTime
+                      date={bookingData.startTime.toString()}
+                      duration={null}
+                      timeFormat={timeFormat}
+                      timeZone={timezone}
+                      language={i18n.language}
+                    />
+                  </span>
+                </EventMetaBlock>
+              )}
+              {selectedTimeslot && (
+                <EventMetaBlock icon="calendar">
                   <FromToTime
-                    date={bookingData.startTime.toString()}
-                    duration={null}
+                    date={selectedTimeslot}
+                    duration={selectedDuration || event.length}
                     timeFormat={timeFormat}
                     timeZone={timezone}
                     language={i18n.language}
                   />
-                </span>
-              </EventMetaBlock>
-            )}
-            {selectedTimeslot && (
-              <EventMetaBlock icon="calendar">
-                <FromToTime
-                  date={selectedTimeslot}
-                  duration={selectedDuration || event.length}
-                  timeFormat={timeFormat}
-                  timeZone={timezone}
-                  language={i18n.language}
-                />
-              </EventMetaBlock>
-            )}
-            <EventDetails event={event} />
-            <EventMetaBlock
-              style={{ marginTop: -4, marginBottom: -4 }}
-              className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100 "
-              contentClassName="relative max-w-[90%]"
-              icon="globe">
-              {bookerState === "booking" ? (
-                <>{timezone}</>
-              ) : (
-                <span
-                  className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
-                    event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
-                  }`}>
-                  <TimezoneSelect
-                    menuPosition="fixed"
-                    timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
-                    classNames={{
-                      control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
-                      menu: () => "!w-64 max-w-[90vw]",
-                      singleValue: () => "text-text py-1",
-                      indicatorsContainer: () => "ml-auto",
-                      container: () => "max-w-full",
-                    }}
-                    value={timezone}
-                    onChange={(tz) => setTimezone(tz.value)}
-                    isDisabled={event.lockTimeZoneToggleOnBookingPage}
-                  />
-                </span>
+                </EventMetaBlock>
               )}
-            </EventMetaBlock>
-            {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
-              <EventMetaBlock icon="user" className={`${colorClass}`}>
-                <div className="text-bookinghighlight flex items-start text-sm">
-                  <p>
-                    <SeatsAvailabilityText
-                      showExact={!!seatedEventData.showAvailableSeatsCount}
-                      totalSeats={eventTotalSeats}
-                      bookedSeats={bookingSeatAttendeesQty || 0}
-                      variant="fraction"
+              <EventDetails event={event} />
+              <EventMetaBlock
+                style={{ marginTop: -4, marginBottom: -4 }}
+                className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100 "
+                contentClassName="relative max-w-[90%]"
+                icon="globe">
+                {bookerState === "booking" ? (
+                  <>{timezone}</>
+                ) : (
+                  <span
+                    className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                      event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
+                    }`}>
+                    <TimezoneSelect
+                      menuPosition="fixed"
+                      timezoneSelectCustomClassname={classNames?.eventMetaTimezoneSelect}
+                      classNames={{
+                        control: () => "!min-h-0 p-0 w-full border-0 bg-transparent focus-within:ring-0",
+                        menu: () => "!w-64 max-w-[90vw]",
+                        singleValue: () => "text-text py-1",
+                        indicatorsContainer: () => "ml-auto",
+                        container: () => "max-w-full",
+                      }}
+                      value={timezone}
+                      onChange={(tz) => setTimezone(tz.value)}
+                      isDisabled={event.lockTimeZoneToggleOnBookingPage}
                     />
-                  </p>
-                </div>
+                  </span>
+                )}
               </EventMetaBlock>
-            ) : null}
+              {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
+                <EventMetaBlock icon="user" className={`${colorClass}`}>
+                  <div className="text-bookinghighlight flex items-start text-sm">
+                    <p>
+                      <SeatsAvailabilityText
+                        showExact={!!seatedEventData.showAvailableSeatsCount}
+                        totalSeats={eventTotalSeats}
+                        bookedSeats={bookingSeatAttendeesQty || 0}
+                        variant="fraction"
+                      />
+                    </p>
+                  </div>
+                </EventMetaBlock>
+              ) : null}
+            </div>
           </div>
         </m.div>
       )}
