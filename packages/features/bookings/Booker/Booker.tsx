@@ -12,6 +12,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import "../../../../apps/web/styles/custom-embed.css";
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";

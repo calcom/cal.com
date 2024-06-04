@@ -7,15 +7,41 @@
   height: 6rem !important;
 }
 
+.title-class-font-size {
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  color: #598392 !important;
+}
+
+.description-class-font-size {
+  font-size: 14px !important;
+}
+
+
 p.text-subtle.mt-2.text-sm.font-semibold {
-  font-size: 31px;
+  font-size: 40px;
   font-family:
     Syne Variablefont Wght,
     sans-serif;
   font-weight: bold;
   color: #06c6a3;
+
+  /* padding-top: 30px !important; */
+}
+
+.custom-mobile-text {
+  font-size: 40px;
+  font-family:
+    Syne Variablefont Wght,
+    sans-serif;
+  font-weight: bold;
+  color: #06c6a3;
+
+  /* padding-top: 30px !important; */
+}
+
+.adjust-title {
   margin-left: 120px !important;
-  padding-top: 30px !important;
 }
 
 h1.text-text.text-xl.font-semibold.my-2 {
@@ -60,12 +86,16 @@ ul.flex.items-center.border-muted {
   margin-top: 20px;
 }
 
-.space-y-4.font-medium.rtl\:-mr-2 {
+/* .space-y-4.font-medium.rtl\:-mr-2 {
   margin-left: 120px !important;
-}
+} */
 
 span.min-w-32.current-timezone.before\:bg-subtle.-mt-\[2px\].flex.h-6.max-w-full.items-center.justify-start.before\:absolute.before\:inset-0.before\:bottom-\[-3px\].before\:left-\[-30px\].before\:top-\[-3px\].before\:w-\[calc\(100\%_\+_35px\)\].before\:rounded-md.before\:py-3.before\:opacity-0.before\:transition-opacity {
   height: 1.5rem !important;
+}
+
+.text-emphasis.h-6.md\:max-w-\[145px\].max-w-\[250px\] {
+  height: 14px !important;
 }
 
 .lucide-clock {
@@ -100,7 +130,7 @@ span.bg-emphasis.item-center.relative.inline-flex.aspect-square.justify-center.r
   gap: 80px;
 }
 
-.flex.items-start.justify-start.text-sm.text-text.cursor-pointer.\[\&_\.current-timezone\:before\]\:focus-within\:opacity-100.\[\&_\.current-timezone\:before\]\:hover\:opacity-100 {
+/* .flex.items-start.justify-start.text-sm.text-text.cursor-pointer.\[\&_\.current-timezone\:before\]\:focus-within\:opacity-100.\[\&_\.current-timezone\:before\]\:hover\:opacity-100 {
   display: none;
-}
+} */
 /* Pedro EMBED Yinflow stylesheet (version 3) */

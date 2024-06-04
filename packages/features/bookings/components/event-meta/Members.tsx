@@ -49,31 +49,58 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
       : [];
 
   return (
-    <>
-      <AvatarGroup
-        size="sm"
-        className="border-muted"
-        items={[
-          ...orgAvatarItem,
-          ...shownUsers.map((user) => ({
-            href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
-              user.profile?.username
-            }?redirect=false`,
-            alt: user.name || "",
-            title: user.name || "",
-            image: getUserAvatarUrl(user),
-          })),
-        ]}
-      />
+    <div>
+      <div className="grid grid-cols-1 sm:hidden ">
+        <AvatarGroup
+          size="sm"
+          // className="border-muted"
+          items={[
+            ...orgAvatarItem,
+            ...shownUsers.map((user) => ({
+              href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+                user.profile?.username
+              }?redirect=false`,
+              alt: user.name || "",
+              title: user.name || "",
+              image: getUserAvatarUrl(user),
+            })),
+          ]}
+        />
 
-      <p className="text-subtle mt-2 text-sm font-semibold">
-        {showOnlyProfileName
-          ? profile.name
-          : shownUsers
-              .map((user) => user.name)
-              .filter((name) => name)
-              .join(", ")}
-      </p>
-    </>
+        <p className=" custom-mobile-text text-subtle mt-8 text-sm font-semibold">
+          {showOnlyProfileName
+            ? profile.name
+            : shownUsers
+                .map((user) => user.name)
+                .filter((name) => name)
+                .join(", ")}
+        </p>
+      </div>
+      <div className="grid hidden grid-cols-1 md:block">
+        <AvatarGroup
+          size="sm"
+          className="border-muted"
+          items={[
+            ...orgAvatarItem,
+            ...shownUsers.map((user) => ({
+              href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+                user.profile?.username
+              }?redirect=false`,
+              alt: user.name || "",
+              title: user.name || "",
+              image: getUserAvatarUrl(user),
+            })),
+          ]}
+        />
+        <p style={{ lineHeight: "1.2" }} className="text-subtle adjust-title mt-2 text-sm font-semibold">
+          {showOnlyProfileName
+            ? profile.name
+            : shownUsers
+                .map((user) => user.name)
+                .filter((name) => name)
+                .join(", ")}
+        </p>
+      </div>
+    </div>
   );
 };
