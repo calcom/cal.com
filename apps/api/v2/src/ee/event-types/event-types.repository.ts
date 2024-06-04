@@ -4,7 +4,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { getEventTypeById } from "@calcom/platform-libraries";
+import { getEventTypeById } from "@calcom/platform-libraries-0.0.2";
 import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()

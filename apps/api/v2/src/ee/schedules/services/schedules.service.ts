@@ -7,13 +7,13 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 import { Schedule } from "@prisma/client";
 import { User } from "@prisma/client";
 
-import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries";
-import { updateScheduleHandler } from "@calcom/platform-libraries";
+import type { ScheduleWithAvailabilities } from "@calcom/platform-libraries-0.0.2";
+import { updateScheduleHandler } from "@calcom/platform-libraries-0.0.2";
 import {
   transformWorkingHoursForClient,
   transformAvailabilityForClient,
   transformDateOverridesForClient,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries-0.0.2";
 import { UpdateScheduleInput } from "@calcom/platform-types";
 
 @Injectable()

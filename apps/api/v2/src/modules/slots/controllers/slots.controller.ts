@@ -1,3 +1,4 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
 import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
@@ -5,14 +6,14 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getAvailableSlots } from "@calcom/platform-libraries";
-import type { AvailableSlotsType } from "@calcom/platform-libraries";
+import { getAvailableSlots } from "@calcom/platform-libraries-0.0.2";
+import type { AvailableSlotsType } from "@calcom/platform-libraries-0.0.2";
 import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 
 @Controller({
-  path: "slots",
-  version: "2",
+  path: "/v2/slots",
+  version: API_VERSIONS_VALUES,
 })
 @DocsTags("Slots")
 export class SlotsController {

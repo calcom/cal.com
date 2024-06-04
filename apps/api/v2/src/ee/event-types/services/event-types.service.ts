@@ -9,8 +9,8 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.2";
+import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.2";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()

@@ -1,4 +1,5 @@
 import { getEnv } from "@/env";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
@@ -46,8 +47,8 @@ const AUTH_DOCUMENTATION = `⚠️ First, this endpoint requires \`Cookie: next-
 Second, make sure that the logged in user has organizationId set to pass the OrganizationRolesGuard guard.`;
 
 @Controller({
-  path: "oauth-clients",
-  version: "2",
+  path: "/v2/oauth-clients",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(NextAuthGuard, OrganizationRolesGuard)
 @DocsExcludeController(getEnv("NODE_ENV") === "production")

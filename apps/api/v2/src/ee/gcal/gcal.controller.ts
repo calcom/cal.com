@@ -2,6 +2,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
 import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
 import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -40,8 +41,8 @@ const CALENDAR_SCOPES = [
 
 // Controller for the GCalConnect Atom
 @Controller({
-  path: "/gcal",
-  version: "2",
+  path: "/v2/gcal",
+  version: API_VERSIONS_VALUES,
 })
 @DocsTags("Google Calendar")
 export class GcalController {

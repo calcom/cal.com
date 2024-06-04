@@ -5,6 +5,7 @@ import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
 import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
 import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
 import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -31,8 +32,8 @@ import { UpdateScheduleInput } from "@calcom/platform-types";
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
 @Controller({
-  path: "schedules",
-  version: "2",
+  path: "/v2/schedules",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")

@@ -3,6 +3,7 @@ import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calen
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -30,8 +31,8 @@ import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from 
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
-  path: "/calendars",
-  version: "2",
+  path: "/v2/calendars",
+  version: API_VERSIONS_VALUES,
 })
 @DocsTags("Calendars")
 export class CalendarsController {
