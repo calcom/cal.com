@@ -69,13 +69,11 @@ export const EventMetaBlock = ({
   contentClassName,
   className,
   isDark,
-}: //style,
-EventMetaProps) => {
+}: EventMetaProps) => {
   if (!React.Children.count(children)) return null;
 
   return (
     <div
-      //style={style}
       className={classNames(
         "flex items-start justify-start text-sm",
         highlight ? "text-emphasis" : "text-text",

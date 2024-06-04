@@ -17,6 +17,10 @@
   font-size: 14px !important;
 }
 
+.event-meta-block-fix {
+  margin-top: -4px;
+  margin-bottom: -4px;
+}
 
 p.text-subtle.mt-2.text-sm.font-semibold {
   font-size: 40px;
