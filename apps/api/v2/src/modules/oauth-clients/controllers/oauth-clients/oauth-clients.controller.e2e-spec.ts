@@ -14,6 +14,7 @@ import { Test } from "@nestjs/testing";
 import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { BillingRepositoryFixture } from "test/fixtures/repository/platform-billing.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
@@ -114,6 +115,7 @@ describe("OAuth Clients Endpoints", () => {
     let usersFixtures: UserRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamFixtures: TeamRepositoryFixture;
+    let billingFixtures: BillingRepositoryFixture;
     let user: User;
     let org: Team;
     let app: INestApplication;
@@ -132,6 +134,7 @@ describe("OAuth Clients Endpoints", () => {
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
+      billingFixtures = new BillingRepositoryFixture(moduleRef);
       user = await usersFixtures.create({
         email: userEmail,
       });
@@ -145,12 +148,14 @@ describe("OAuth Clients Endpoints", () => {
         },
         isPlatform: true,
       });
+      // subscribe the team
+      await billingFixtures.createSubscriptionForTeam(org.id, "STARTER");
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
     });
 
-    describe("User is not in an organization", () => {
+    describe("User is not part of an organization", () => {
       it(`/GET`, () => {
         return request(app.getHttpServer()).get("/api/v2/oauth-clients").expect(403);
       });
@@ -358,6 +363,7 @@ describe("OAuth Clients Endpoints", () => {
     afterAll(async () => {
       await teamFixtures.delete(org.id);
       await usersFixtures.delete(user.id);
+      await billingFixtures.deleteSubscriptionForTeam(org.id);
       await app.close();
     });
   });
