@@ -103,7 +103,7 @@ test.describe("Bookings", () => {
       const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
         title: "Booking as organizer",
         bookingsFixture: bookings,
-        // Create a booking 3 days ago
+        // Create a booking 4 days ago
         relativeDate: -4,
         organizer: firstUser,
         organizerEventType: firstUser.eventTypes[0],
