@@ -18,7 +18,7 @@ export const getTemporaryOrgRedirect = async ({
   redirectType: RedirectType;
   eventTypeSlug: string | null;
   currentQuery: ParsedUrlQuery;
-  orgSlug: string | null;
+  orgSlug?: string | null;
 }) => {
   const prisma = (await import("@calcom/prisma")).default;
   slugs = slugs instanceof Array ? slugs : [slugs];
