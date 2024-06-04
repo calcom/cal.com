@@ -7,6 +7,10 @@ import {
   createBookingScenario,
   createOrganization,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+import {
+  expectSMSWorkflowToBeTriggered,
+  expectSMSWorkflowToBeNotTriggered,
+} from "@calcom/web/test/utils/bookingScenario/expects";
 
 import { describe, expect, beforeAll, vi } from "vitest";
 
@@ -498,7 +502,7 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      2,
+      null, //teamId
       prismock
     );
 
@@ -531,11 +535,140 @@ describe("scheduleBookingReminders", () => {
     });
   });
 
-  test("schedules workflow notifications with before event trigger and sms to host action", async ({}) => {
-    expect(true).toBe(true);
-  });
+  test("send sms to specific number for bookings", async ({ sms }) => {
+    // organizer is part of org and two teams
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      schedules: [TestData.schedules.IstMorningShift],
+    });
 
-  test("schedules workflow notifications with after event trigger and sms to host action", async ({}) => {
-    expect(true).toBe(true);
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Workflow",
+            userId: 101,
+            trigger: "BEFORE_EVENT",
+            action: "SMS_NUMBER",
+            template: "REMINDER",
+            activeOn: [],
+            time: 3,
+            timeUnit: TimeUnit.HOUR,
+            sendTo: "000",
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: mockBookings,
+        organizer,
+      })
+    );
+
+    const workflow = await prismock.workflow.findFirst({
+      select: workflowSelect,
+    });
+
+    const bookings = await prismock.booking.findMany({
+      where: {
+        userId: organizer.id,
+      },
+      select: bookingSelect,
+    });
+
+    expect(workflow).not.toBeNull();
+
+    if (!workflow) return;
+
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      prismock
+    );
+
+    // number is not verified, so sms should not send
+    expectSMSWorkflowToBeNotTriggered({
+      sms,
+      toNumber: "000",
+    });
+
+    await prismock.verifiedNumber.create({
+      data: {
+        userId: organizer.id,
+        phoneNumber: "000",
+      },
+    });
+
+    const allVerified = await prismock.verifiedNumber.findMany();
+    await scheduleBookingReminders(
+      bookings,
+      workflow.steps,
+      workflow.time,
+      workflow.timeUnit,
+      workflow.trigger,
+      organizer.id,
+      null, //teamId
+      prismock
+    );
+
+    // two sms schould be scheduled
+    expectSMSWorkflowToBeTriggered({
+      sms,
+      toNumber: "000",
+      includedString: "2024 May 22 at 9:30am Asia/Kolkata",
+    });
+
+    expectSMSWorkflowToBeTriggered({
+      sms,
+      toNumber: "000",
+      includedString: "2024 May 23 at 9:30am Asia/Kolkata",
+    });
+
+    // sms are to far in future
+    // expectSMSWorkflowToBeNotTriggered({
+    //   sms,
+    //   toNumber: "000",
+    //   includedString: "2024 June 1 at 10:00am Asia/Kolkata"
+    // });
+
+    // expectSMSWorkflowToBeNotTriggered({
+    //   sms,
+    //   toNumber: "000",
+    //   includedString: "2024 June 2 at 10:00am Asia/Kolkata"
+    // });
+
+    const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
+      where: {
+        workflowStep: {
+          workflowId: workflow.id,
+        },
+      },
+    });
+    scheduledWorkflowReminders.sort((a, b) =>
+      dayjs(a.scheduledDate).isBefore(dayjs(b.scheduledDate)) ? -1 : 1
+    );
+
+    const expectedScheduledDates = [
+      new Date("2024-05-22T01:00:00.000"),
+      new Date("2024-05-23T01:00:00.000Z"),
+      new Date("2024-06-01T01:30:00.000Z"),
+      new Date("2024-06-02T01:30:00.000Z"),
+    ];
+
+    scheduledWorkflowReminders.forEach((reminder, index) => {
+      expect(expectedScheduledDates[index]).toStrictEqual(reminder.scheduledDate);
+      expect(reminder.method).toBe(WorkflowMethods.SMS);
+      if (index < 2) {
+        expect(reminder.scheduled).toBe(true);
+      } else {
+        expect(reminder.scheduled).toBe(false);
+      }
+    });
   });
 });

@@ -53,6 +53,7 @@ type InputWorkflow = {
   template: WorkflowTemplates;
   time?: number | null;
   timeUnit?: TimeUnit | null;
+  sendTo?: string;
 };
 
 type InputHost = {
@@ -487,6 +488,7 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
           template: workflow.template,
           numberVerificationPending: false,
           includeCalendarEvent: false,
+          sendTo: workflow.sendTo,
           workflow: {
             connect: {
               id: createdWorkflow.id,

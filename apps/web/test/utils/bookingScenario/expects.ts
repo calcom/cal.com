@@ -350,17 +350,29 @@ export function expectWorkflowToBeNotTriggered({
 export function expectSMSWorkflowToBeTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).toEqual(
+  const allSMS = sms.get();
+
+  // Check if the expected SMS was sent to number
+  expect(allSMS).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
         to: toNumber,
       }),
     ])
   );
+
+  // Check if includedString is part of any message
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    expect(messageWithIncludedString).toBeDefined();
+  }
 }
 
 export function expectSMSWorkflowToBeNotTriggered({

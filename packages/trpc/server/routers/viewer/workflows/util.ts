@@ -634,6 +634,7 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
+          prisma: prisma,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
