@@ -3,7 +3,7 @@ import type { FC } from "react";
 import { Button } from "@calcom/ui";
 
 import { useAtomsContext } from "../hooks/useAtomsContext";
-import type { OnCheckErroType } from "../hooks/useGcal";
+import type { OnCheckErrorType } from "../hooks/useGcal";
 import { useGcal } from "../hooks/useGcal";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import { cn } from "../src/lib/utils";
@@ -12,7 +12,7 @@ interface GcalConnectProps {
   className?: string;
   label?: string;
   alreadyConnectedLabel?: string;
-  onCheckError?: OnCheckErroType;
+  onCheckError?: OnCheckErrorType;
 }
 
 /**
@@ -32,7 +32,7 @@ interface GcalConnectProps {
  * @param {string} [label="Connect Google Calendar"] - The label for the connect button. Optional.
  * @param {string} [alreadyConnectedLabel="Connected Google Calendar"] - The label for the already connected button. Optional.
  * @param {string} [className] - Additional CSS class name for the button. Optional.
- * @param {OnCheckErroType} [onCheckError] - A callback function to handle errors when checking the connection status. Optional.
+ * @param {OnCheckErrorType} [onCheckError] - A callback function to handle errors when checking the connection status. Optional.
  * @returns {JSX.Element} The rendered component.
  */
 export const GcalConnect: FC<GcalConnectProps> = ({
