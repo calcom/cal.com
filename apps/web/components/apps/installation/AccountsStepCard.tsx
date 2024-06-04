@@ -64,7 +64,7 @@ type AccountStepCardProps = {
   personalAccount: PersonalAccountProps;
   onSelect: (id?: number) => void;
   loading: boolean;
-  isConferencing: boolean;
+  installableOnTeams: boolean;
 };
 
 export const AccountsStepCard: FC<AccountStepCardProps> = ({
@@ -72,7 +72,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
   personalAccount,
   onSelect,
   loading,
-  isConferencing,
+  installableOnTeams,
 }) => {
   const { t } = useLocale();
   return (
@@ -87,7 +87,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
           onClick={() => onSelect()}
           loading={loading}
         />
-        {!isConferencing &&
+        {installableOnTeams &&
           teams?.map((team) => (
             <AccountSelector
               key={team.id}

@@ -292,7 +292,8 @@ const OnboardingPage = ({
                   personalAccount={personalAccount}
                   onSelect={handleSelectAccount}
                   loading={mutation.isPending}
-                  isConferencing={isConferencing}
+                  // conferencing apps dont support team install
+                  installableOnTeams={!isConferencing}
                 />
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
