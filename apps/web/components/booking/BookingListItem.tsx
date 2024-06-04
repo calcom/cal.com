@@ -16,6 +16,7 @@ import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -96,7 +97,7 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
-  const isPast = new Date(booking.endTime) < new Date();
+  const isBookingInPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -229,7 +230,7 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isPast && isPending && !isConfirmed) {
+  if (isBookingInPast && isPending && !isConfirmed) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
 
@@ -287,9 +288,9 @@ function BookingListItem(booking: BookingItemProps) {
 
   const title = booking.title;
 
-  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showViewRecordingsButton = !!(booking.isRecorded && isBookingInPast && isConfirmed);
   const showCheckRecordingButton =
-    isPast &&
+    isBookingInPast &&
     isConfirmed &&
     !booking.isRecorded &&
     (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
@@ -527,7 +528,7 @@ function BookingListItem(booking: BookingItemProps) {
                   user={booking.user}
                   currentEmail={userEmail}
                   bookingUid={booking.uid}
-                  isPast={isPast}
+                  isBookingInPast={isBookingInPast}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -546,7 +547,7 @@ function BookingListItem(booking: BookingItemProps) {
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
-          {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {(showViewRecordingsButton || showCheckRecordingButton) && (
             <TableActions actions={showRecordingActions} />
           )}
@@ -678,31 +679,25 @@ type AttendeeProps = {
 
 type NoShowProps = {
   bookingUid: string;
-  isPast: boolean;
+  isBookingInPast: boolean;
 };
 
 const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
-  const { email, name, bookingUid, isPast, noShow: noShowAttendee } = attendeeProps;
+  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee } = attendeeProps;
   const { t } = useLocale();
 
   const [noShow, setNoShow] = useState(noShowAttendee);
   const [openDropdown, setOpenDropdown] = useState(false);
+  const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async () => {
-      noShow
-        ? showToast(
-            t("x_marked_as_no_show", {
-              x: email,
-            }),
-            "success"
-          )
-        : showToast(
-            t("x_unmarked_as_no_show", {
-              x: email,
-            }),
-            "success"
-          );
+      showToast(
+        t(noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
+          x: name || email,
+        }),
+        "success"
+      );
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -750,17 +745,17 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         </DropdownMenuItem>
         <DropdownMenuItem className="focus:outline-none">
           <DropdownItem
-            StartIcon="clipboard"
+            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
             onClick={(e) => {
               e.preventDefault();
-              navigator.clipboard.writeText(email);
+              copyToClipboard(email);
               setOpenDropdown(false);
               showToast(t("email_copied"), "success");
             }}>
-            {t("copy_to_clipboard")}
+            {!isCopied ? t("copy") : t("copied")}
           </DropdownItem>
         </DropdownMenuItem>
-        {isPast && (
+        {isBookingInPast && (
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
               <DropdownItem
@@ -891,13 +886,13 @@ const DisplayAttendees = ({
   user,
   currentEmail,
   bookingUid,
-  isPast,
+  isBookingInPast,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
   bookingUid: string;
-  isPast: boolean;
+  isBookingInPast: boolean;
 }) => {
   const { t } = useLocale();
   attendees.sort((a, b) => a.id - b.id);
@@ -906,7 +901,7 @@ const DisplayAttendees = ({
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} bookingUid={bookingUid} isPast={isPast} />
+      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -914,13 +909,13 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} bookingUid={bookingUid} isPast={isPast} />
+                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
                 </p>
               ))}>
-              {isPast && <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />}
+              {isBookingInPast && <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} bookingUid={bookingUid} isPast={isPast} />
+            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
           )}
         </>
       )}

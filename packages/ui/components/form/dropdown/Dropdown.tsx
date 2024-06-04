@@ -94,7 +94,7 @@ export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuC
           <input
             aria-disabled={true}
             aria-readonly
-            aria-label={typeof children === "string" ? `Active${children}` : undefined}
+            aria-label={typeof children === "string" ? `Active ${children}` : undefined}
             checked={true}
             type="checkbox"
             className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
