@@ -1,4 +1,4 @@
-import type { OnCheckErroType } from "hooks/useGcal";
+import type { OnCheckErrorType } from "hooks/useGcal";
 import { useState, useEffect } from "react";
 
 import type { ApiErrorResponse } from "@calcom/platform-types";
@@ -7,7 +7,7 @@ import http from "../lib/http";
 
 export interface useGcalProps {
   isAuth: boolean;
-  onCheckError?: OnCheckErroType;
+  onCheckError?: OnCheckErrorType;
 }
 
 export const useOffice365Calendar = ({ isAuth, onCheckError }: useGcalProps) => {

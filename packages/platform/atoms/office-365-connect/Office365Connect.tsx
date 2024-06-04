@@ -1,4 +1,4 @@
-import type { OnCheckErroType } from "hooks/useGcal";
+import type { OnCheckErrorType } from "hooks/useGcal";
 import type { FC } from "react";
 
 import { Button } from "@calcom/ui";
@@ -12,7 +12,7 @@ interface Office365ConnectProps {
   className?: string;
   label?: string;
   alreadyConnectedLabel?: string;
-  onCheckError?: OnCheckErroType;
+  onCheckError?: OnCheckErrorType;
 }
 
 export const Office365Connect: FC<Office365ConnectProps> = ({
