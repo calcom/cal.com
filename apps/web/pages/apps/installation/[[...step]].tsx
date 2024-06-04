@@ -61,7 +61,6 @@ const STEPS = [
   AppOnboardingSteps.EVENT_TYPES_STEP,
   AppOnboardingSteps.CONFIGURE_STEP,
 ] as const;
-const MAX_NUMBER_OF_STEPS = STEPS.length;
 
 type StepType = (typeof STEPS)[number];
 
@@ -117,12 +116,12 @@ const OnboardingPage = ({
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
-      stepNumber: 2,
+      stepNumber: isConferencing ? 1 : 2,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) => `${t("configure_app_header", { appName })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: 3,
+      stepNumber: isConferencing ? 2 : 3,
     },
   } as const;
   const [configureStep, setConfigureStep] = useState(false);
@@ -134,6 +133,13 @@ const OnboardingPage = ({
     return step;
   }, [step, configureStep]);
   const stepObj = STEPS_MAP[currentStep];
+
+  const maxSteps = useMemo(() => {
+    if (!showEventTypesStep) {
+      return 1;
+    }
+    return isConferencing ? STEPS.length - 1 : STEPS.length;
+  }, [showEventTypesStep, isConferencing]);
 
   const utils = trpc.useContext();
 
@@ -284,7 +290,7 @@ const OnboardingPage = ({
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}
                 subtitle={stepObj.getDescription(appMetadata.name)}>
-                <Steps maxSteps={MAX_NUMBER_OF_STEPS} currentStep={stepObj.stepNumber} disableNavigation />
+                <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
               {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
