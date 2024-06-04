@@ -146,7 +146,7 @@ export const EventMeta = ({
               )}
               <EventDetails event={event} />
               <EventMetaBlock
-                style={{ marginTop: -4, marginBottom: -4 }}
+                // style={{ marginTop: -4, marginBottom: -4 }}
                 className="cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100 "
                 contentClassName="relative max-w-[90%]"
                 icon="globe">
