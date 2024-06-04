@@ -512,6 +512,7 @@ model Attendee {
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
   bookingSeat BookingSeat?
+  noShow      Boolean?     @default(false)
 
   @@index([email])
   @@index([bookingId])
