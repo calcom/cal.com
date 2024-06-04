@@ -4,6 +4,8 @@ import { addUsers, addEventTypesToDb } from "@calcom/web/test/utils/bookingScena
 
 import { describe, test, expect } from "vitest";
 
+import { AppRepository } from "@calcom/lib/server/repository/app";
+
 import { createContextInner } from "../server/createContext";
 import { createCaller } from "../server/routers/_app";
 
@@ -73,13 +75,7 @@ describe("deleteCredential", () => {
 
       const MockDatabaseClient = new MockDataBaseClient();
 
-      await MockDatabaseClient.writeApp({
-        slug: "zoom",
-        categories: ["conferencing"],
-        keys: {},
-        dirName: "zoom",
-        enabled: true,
-      });
+      await AppRepository.seedApp("zoomvideo");
 
       await setupCredential({ userId: testUser.id, type: "zoom_video", appId: "zoom" });
 
