@@ -131,6 +131,18 @@ function BookingListItem(booking: BookingItemProps) {
     return booking.seatsReferences[0].referenceUid;
   };
 
+  const isRescheduleAllowed = () => {
+    if (!booking.eventType.rescheduleOption) {
+      return true;
+    }
+    const { type, timeStamp } = booking.eventType.rescheduleOption;
+    if (type === "strict") {
+      return dayjs().isBefore(dayjs(booking.startTime).subtract(timeStamp, "hour"));
+    } else {
+      return dayjs().isBefore(dayjs(booking.startTime).add(timeStamp, "minute"));
+    }
+  };
+
   const pendingActions: ActionType[] = [
     {
       id: "reject",
@@ -222,6 +234,21 @@ function BookingListItem(booking: BookingItemProps) {
 
   if (isPast && isPending && !isConfirmed) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
+  }
+
+  if (!isTabRecurring && !isRecurring && !isRescheduleAllowed()) {
+    bookedActions = bookedActions.map((action) => {
+      if (action.id === "edit_booking") {
+        const actions = action.actions.filter((subAction) => {
+          if (subAction.id === "reschedule" || subAction.id === "reschedule_request") {
+            return isRescheduleAllowed();
+          }
+          return true;
+        });
+        return { ...action, actions };
+      }
+      return action;
+    });
   }
 
   const RequestSentMessage = () => {

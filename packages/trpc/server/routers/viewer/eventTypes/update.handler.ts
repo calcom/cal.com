@@ -62,6 +62,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     offsetStart,
     secondaryEmailId,
     aiPhoneCallConfig,
+    rescheduleOption,
     ...rest
   } = input;
 
@@ -131,7 +132,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
-    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    rescheduleOption:
+      rescheduleOption === null ? Prisma.DbNull : (rescheduleOption as Prisma.InputJsonObject),
+    metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonValue),
   };
   data.locations = locations ?? undefined;
   if (periodType) {

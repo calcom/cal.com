@@ -185,6 +185,7 @@ export default async function handleChildrenEventTypes({
             metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
             bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
             durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
+            rescheduleOption: (managedEventTypeValues.rescheduleOption as Prisma.InputJsonValue) ?? null,
             onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
             userId,
             users: {

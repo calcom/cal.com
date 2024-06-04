@@ -164,6 +164,13 @@ export const recurringEventType = z
   })
   .nullable();
 
+export const rescheduleOptionType = z
+  .object({
+    type: z.string(),
+    timeStamp: z.number(),
+  })
+  .nullable();
+
 // dayjs iso parsing is very buggy - cant use :( - turns ISO string into Date object
 export const iso8601 = z.string().transform((val, ctx) => {
   const time = Date.parse(val);
@@ -642,6 +649,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  rescheduleOption: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

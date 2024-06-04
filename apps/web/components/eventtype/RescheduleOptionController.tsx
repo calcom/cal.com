@@ -54,7 +54,7 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
               LockedIcon={rescheduleOptionLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 if (!val) {
-                  formMethods.setValue("rescheduleOption", undefined, {
+                  formMethods.setValue("rescheduleOption", null, {
                     shouldDirty: true,
                   });
                 } else {

@@ -83,12 +83,10 @@ export type FormValues = {
   minimumBookingNoticeInDurationType: number;
   beforeEventBuffer: number;
   afterEventBuffer: number;
-  rescheduleOption:
-    | {
-        type: string;
-        timeStamp: number;
-      }
-    | undefined;
+  rescheduleOption: {
+    type: string;
+    timeStamp: number;
+  } | null;
   slotInterval: number | null;
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
   destinationCalendar: {
