@@ -19,14 +19,13 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
   const formMethods = useFormContext<FormValues>();
 
   const rescheduleOption = formMethods.getValues("rescheduleOption");
-  const hasRescheduleOption = Object.keys(rescheduleOption ?? {}).length > 0;
-
+  const [hasRescheduleOption, setHasRescheduleOption] = useState(!!rescheduleOption);
   const [flexibleSetup, setFlexibleSetup] = useState({
-    timeStamp: hasRescheduleOption && rescheduleOption.type === "flexible" ? rescheduleOption.timeStamp : 0,
+    timeStamp: rescheduleOption?.type === "flexible" ? rescheduleOption.timeStamp : 0,
   });
 
   const [strictSetup, setStrictSetup] = useState({
-    timeStamp: hasRescheduleOption && rescheduleOption.type === "strict" ? rescheduleOption.timeStamp : 1,
+    timeStamp: rescheduleOption?.type === "strict" ? rescheduleOption.timeStamp : 1,
   });
 
   const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
@@ -55,24 +54,21 @@ export default function RescheduleOptionController({ eventType }: RescheduleOpti
               LockedIcon={rescheduleOptionLockedProps.LockedIcon}
               onCheckedChange={(val) => {
                 if (!val) {
-                  formMethods.setValue(
-                    "rescheduleOption",
-                    {},
-                    {
-                      shouldDirty: true,
-                    }
-                  );
+                  formMethods.setValue("rescheduleOption", undefined, {
+                    shouldDirty: true,
+                  });
                 } else {
                   formMethods.setValue(
                     "rescheduleOption",
-                    { type: rescheduleOption.type ?? "strict", timeStamp: rescheduleOption.timeStamp ?? 1 },
+                    { type: rescheduleOption?.type ?? "strict", timeStamp: rescheduleOption?.timeStamp ?? 1 },
                     { shouldDirty: true }
                   );
                 }
+                setHasRescheduleOption(val);
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
                 <RadioGroup.Root
-                  defaultValue={rescheduleOption.type || "strict"}
+                  defaultValue={rescheduleOption?.type || "strict"}
                   onValueChange={(val) => {
                     if (val === "flexible") {
                       formMethods.setValue(

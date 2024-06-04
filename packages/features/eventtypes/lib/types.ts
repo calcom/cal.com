@@ -83,10 +83,10 @@ export type FormValues = {
   minimumBookingNoticeInDurationType: number;
   beforeEventBuffer: number;
   afterEventBuffer: number;
-  rescheduleOption?:
+  rescheduleOption:
     | {
         type: string;
-        timestamp: number;
+        timeStamp: number;
       }
     | undefined;
   slotInterval: number | null;
