@@ -100,6 +100,54 @@ describe("deleteCredential", () => {
       expect(nonChangedEventType).toBeDefined();
       expect(nonChangedEventType![0]).toEqual({ type: "integrations:msteams" });
     });
+    test("Delete calendar credential", async () => {
+      const caller = await setupIndividualCredentialTest();
+
+      const eventTypes = await addEventTypesToDb([
+        {
+          id: 1,
+          userId: testUser.id,
+        },
+      ]);
+
+      const MockDatabaseClient = new MockDataBaseClient();
+
+      await MockDatabaseClient.writeApp({
+        slug: "google-calendar",
+        categories: ["calendar"],
+        keys: {},
+        dirName: "googlecalendar",
+        enabled: true,
+      });
+
+      const credential = await setupCredential({
+        userId: testUser.id,
+        type: "google_calendar",
+        appId: "google-calendar",
+      });
+
+      await MockDatabaseClient.writeDestinationCalendar({
+        id: 1,
+        integration: "google_calendar",
+        externalId: "test@google.com",
+        primaryId: "test@google.com",
+        userId: testUser.id,
+        credentialId: credential.id,
+      });
+
+      await MockDatabaseClient.writeDestinationCalendar({
+        id: 2,
+        integration: "google_calendar",
+        externalId: "test@google.com",
+        primaryId: "test@google.com",
+        eventTypeId: eventTypes[0].id,
+        credentialId: credential.id,
+      });
+
+      await addUsers([testUser]);
+
+      await caller.viewer.deleteCredential({ id: 123 });
+    });
     test("deleteCredential", async () => {
       const caller = await setupIndividualCredentialTest();
 
@@ -109,5 +157,8 @@ describe("deleteCredential", () => {
 
       await caller.viewer.deleteCredential({ id: 123 });
     });
+
+    // TODO: Add test for payment apps
+    // TODO: Add test for event type apps
   });
 });

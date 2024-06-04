@@ -38,4 +38,20 @@ export default class MockDatabaseClient {
       },
     });
   }
+
+  public async writeDestinationCalendar(destinationCalendar) {
+    return await prismock.destinationCalendar.create({
+      data: destinationCalendar,
+    });
+  }
+
+  public async getDestinationCalendars(destinationCalendarIds) {
+    return await prismock.destinationCalendar.findMany({
+      where: {
+        id: {
+          in: destinationCalendarIds,
+        },
+      },
+    });
+  }
 }

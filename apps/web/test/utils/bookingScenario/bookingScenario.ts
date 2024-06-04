@@ -201,6 +201,7 @@ export async function addEventTypesToDb(
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
+    userId?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
