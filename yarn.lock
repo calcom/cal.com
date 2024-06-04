@@ -17,6 +17,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@47ng/cloak@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@47ng/cloak@npm:1.1.0"
+  dependencies:
+    "@47ng/codec": ^1.0.1
+    "@stablelib/base64": ^1.0.1
+    "@stablelib/hex": ^1.0.1
+    "@stablelib/utf8": ^1.0.1
+    chalk: ^4.1.2
+    commander: ^8.3.0
+    dotenv: ^10.0.0
+    s-ago: ^2.2.0
+  bin:
+    cloak: dist/cli.js
+  checksum: 7d72c66ff7837368e9ca8f5ba402d72041427eb47c53c340b4640e3352f2956d8673a4a8e97591fb2b9dfe27f3d2765bcd925617273ef2488df2565c77c78299
+  languageName: node
+  linkType: hard
+
+"@47ng/codec@npm:^1.0.1":
+  version: 1.1.0
+  resolution: "@47ng/codec@npm:1.1.0"
+  dependencies:
+    "@stablelib/base64": ^1.0.1
+    "@stablelib/hex": ^1.0.1
+  checksum: 4f780c4413fe78bbedbaff4135340c0e5f5a30df88f5cffbec51349eb0a1c909728e6c2bbda52506ff8c12653bf39b78c67b78bbe9501b0b9741da0cdaeec6ff
+  languageName: node
+  linkType: hard
+
 "@aashutoshrathi/word-wrap@npm:^1.2.3":
   version: 1.2.6
   resolution: "@aashutoshrathi/word-wrap@npm:1.2.6"
@@ -3829,13 +3857,11 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
-    "@calcom/platform-libraries": 0.0.3
+    "@calcom/platform-libraries": 0.0.2
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
     "@golevelup/ts-jest": ^0.4.0
-    "@microsoft/microsoft-graph-types-beta": ^0.42.0-preview
-    "@nestjs/bull": ^10.1.1
     "@nestjs/cli": ^10.0.0
     "@nestjs/common": ^10.0.0
     "@nestjs/config": ^3.1.1
@@ -3858,7 +3884,6 @@ __metadata:
     "@types/passport-jwt": ^3.0.13
     "@types/supertest": ^2.0.12
     body-parser: ^1.20.2
-    bull: ^4.12.4
     class-transformer: ^0.5.1
     class-validator: ^0.14.0
     cookie-parser: ^1.4.6
@@ -3875,7 +3900,6 @@ __metadata:
     passport: ^0.7.0
     passport-jwt: ^4.0.1
     prettier: ^2.8.6
-    querystring: ^0.2.1
     reflect-metadata: ^0.1.13
     rxjs: ^7.8.1
     source-map-support: ^0.5.21
@@ -4140,6 +4164,43 @@ __metadata:
     tailwind-scrollbar: ^2.0.1
     tailwindcss: ^3.3.3
     typescript: ^4.9.4
+  languageName: unknown
+  linkType: soft
+
+"@calcom/console@workspace:apps/console":
+  version: 0.0.0-use.local
+  resolution: "@calcom/console@workspace:apps/console"
+  dependencies:
+    "@calcom/dayjs": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+    "@calcom/tsconfig": "*"
+    "@calcom/ui": "*"
+    "@headlessui/react": ^1.5.0
+    "@heroicons/react": ^1.0.6
+    "@prisma/client": ^5.4.2
+    "@tailwindcss/forms": ^0.5.2
+    "@types/node": 16.9.1
+    "@types/react": 18.0.26
+    autoprefixer: ^10.4.12
+    chart.js: ^3.7.1
+    client-only: ^0.0.1
+    eslint: ^8.34.0
+    next: ^13.5.4
+    next-auth: ^4.22.1
+    next-i18next: ^13.2.2
+    postcss: ^8.4.18
+    prisma: ^5.4.2
+    prisma-field-encryption: ^1.4.0
+    react: ^18.2.0
+    react-chartjs-2: ^4.0.1
+    react-dom: ^18.2.0
+    react-hook-form: ^7.43.3
+    react-live-chat-loader: ^2.8.1
+    swr: ^1.2.2
+    tailwindcss: ^3.3.3
+    typescript: ^4.9.4
+    zod: ^3.22.4
   languageName: unknown
   linkType: soft
 
@@ -4747,17 +4808,6 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
-  languageName: node
-  linkType: hard
-
-"@calcom/platform-libraries@npm:0.0.3":
-  version: 0.0.3
-  resolution: "@calcom/platform-libraries@npm:0.0.3"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 34677e6f907ac6196c615b2eb344adcc35bcf3f523596a2f8e580c630710a6cd02ad01b87bfdcbe001fe0705a8a863f399c302ac8304806737a08fcc29cf1d5b
   languageName: node
   linkType: hard
 
@@ -9092,13 +9142,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/microsoft-graph-types-beta@npm:^0.42.0-preview":
-  version: 0.42.0-preview
-  resolution: "@microsoft/microsoft-graph-types-beta@npm:0.42.0-preview"
-  checksum: e760ed8f2daab8d41952de4f84204caf8f2e35cda07a1dd93d0da2a85886a400565b66a3be6ca55ce10cf86ce64564e31e29fa5b0ea35bcc9439701c29f90967
-  languageName: node
-  linkType: hard
-
 "@microsoft/tsdoc-config@npm:~0.16.1":
   version: 0.16.2
   resolution: "@microsoft/tsdoc-config@npm:0.16.2"
@@ -9134,48 +9177,6 @@ __metadata:
     chevrotain: ^10.5.0
     lilconfig: ^2.1.0
   checksum: a9da6f075cead30a2ca728024055bdfee108901813be344ab37e56fc594102c8065e73e6bc40995deb662325cf877f4cd90f205e66fe13540e372d7653de61f3
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-darwin-arm64@npm:3.0.2"
-  conditions: os=darwin & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-darwin-x64@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-darwin-x64@npm:3.0.2"
-  conditions: os=darwin & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-linux-arm64@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-linux-arm64@npm:3.0.2"
-  conditions: os=linux & cpu=arm64
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-linux-arm@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-linux-arm@npm:3.0.2"
-  conditions: os=linux & cpu=arm
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-linux-x64@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-linux-x64@npm:3.0.2"
-  conditions: os=linux & cpu=x64
-  languageName: node
-  linkType: hard
-
-"@msgpackr-extract/msgpackr-extract-win32-x64@npm:3.0.2":
-  version: 3.0.2
-  resolution: "@msgpackr-extract/msgpackr-extract-win32-x64@npm:3.0.2"
-  conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
 
@@ -9264,32 +9265,6 @@ __metadata:
     pump: ^3.0.0
     tar-fs: ^2.1.1
   checksum: 7fa8ac40b4e85738a4ee6bf891bc27fce2445b65b4477e0ec86aed0fa62ab18bdf5d193ce04553ad9bfa639e1eef33b8b30da4ef3e7218f12bf95f24c8786e5b
-  languageName: node
-  linkType: hard
-
-"@nestjs/bull-shared@npm:^10.1.1":
-  version: 10.1.1
-  resolution: "@nestjs/bull-shared@npm:10.1.1"
-  dependencies:
-    tslib: 2.6.2
-  peerDependencies:
-    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^8.0.0 || ^9.0.0 || ^10.0.0
-  checksum: 492c6bfd8d77ded163913aa8fced3c6a52f8b6b40ae2e35b722cde98d89d3a0136497233ea8d60436cc842107cb61fc1f2a5ddc3fa01dd85aa68f08a350f8c47
-  languageName: node
-  linkType: hard
-
-"@nestjs/bull@npm:^10.1.1":
-  version: 10.1.1
-  resolution: "@nestjs/bull@npm:10.1.1"
-  dependencies:
-    "@nestjs/bull-shared": ^10.1.1
-    tslib: 2.6.2
-  peerDependencies:
-    "@nestjs/common": ^8.0.0 || ^9.0.0 || ^10.0.0
-    "@nestjs/core": ^8.0.0 || ^9.0.0 || ^10.0.0
-    bull: ^3.3 || ^4.0.0
-  checksum: 3f3cf1a119324f2e7721fedc3d1484a60ffb55381a2d291040953770e0aded825cd14ee2a2526e68929f79fee56053ae9ac0858f8a427cbb11dbffb73191be36
   languageName: node
   linkType: hard
 
@@ -10602,6 +10577,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@prisma/debug@npm:5.14.0":
+  version: 5.14.0
+  resolution: "@prisma/debug@npm:5.14.0"
+  checksum: 523934576f882aa91d6c0df59b103216fdd2705ab93c55ef804fc02e6affd3b87c6adfa71d4f595b54c1247fa85b94c5dcff4b9b7c394780a9f2c0df7f70daf8
+  languageName: node
+  linkType: hard
+
 "@prisma/debug@npm:5.3.1":
   version: 5.3.1
   resolution: "@prisma/debug@npm:5.3.1"
@@ -10774,6 +10756,15 @@ __metadata:
     cross-spawn: 7.0.3
     kleur: 4.1.5
   checksum: 49ed1e8b44a45bfeee40e7da3886d70a69b64116c8d2543834fd5d844d3f4ebd053f60d4ff4e3f25a82ab2e6b28d042eb65874b9595bad45486ff3fd69df5225
+  languageName: node
+  linkType: hard
+
+"@prisma/generator-helper@npm:^5.9.1":
+  version: 5.14.0
+  resolution: "@prisma/generator-helper@npm:5.14.0"
+  dependencies:
+    "@prisma/debug": 5.14.0
+  checksum: 34eab007f5cfcb0677dfdb95fd0614fff1a519d1400b2f25d15502af0866255bb7b29055c7a94922c2ec7fb0d14ff2335835e6e75ab6ddfbd214f8dc8b2253ba
   languageName: node
   linkType: hard
 
@@ -14098,10 +14089,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@stablelib/base64@npm:^1.0.0":
+"@stablelib/base64@npm:^1.0.0, @stablelib/base64@npm:^1.0.1":
   version: 1.0.1
   resolution: "@stablelib/base64@npm:1.0.1"
   checksum: 3ef4466d1d6889ac3fc67407bc21aa079953981c322eeca3b29f426d05506c63011faab1bfc042d7406e0677a94de6c9d2db2ce079afdd1eccae90031bfb5859
+  languageName: node
+  linkType: hard
+
+"@stablelib/hex@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@stablelib/hex@npm:1.0.1"
+  checksum: 557f1c5d6b42963deee7627d4be1ae3542607851c5561e9419c42682d09562ebd3a06e2d92e088c52213a71ed121ec38221abfc5acd9e65707a77ecee3c96915
+  languageName: node
+  linkType: hard
+
+"@stablelib/utf8@npm:^1.0.1":
+  version: 1.0.2
+  resolution: "@stablelib/utf8@npm:1.0.2"
+  checksum: 3ab01baa4eb36eece44a310bf6b2e4313e8d585fc04dbcf8a5dc2d239f06071f34038b85aad6fbd98e9969f0b3b0584fcb541fe5e512c8f0cc0982b9fe1290a3
   languageName: node
   linkType: hard
 
@@ -20116,21 +20121,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bull@npm:^4.12.4":
-  version: 4.12.9
-  resolution: "bull@npm:4.12.9"
-  dependencies:
-    cron-parser: ^4.2.1
-    get-port: ^5.1.1
-    ioredis: ^5.3.2
-    lodash: ^4.17.21
-    msgpackr: ^1.10.1
-    semver: ^7.5.2
-    uuid: ^8.3.0
-  checksum: a9b1ff4a413a9463559204ff500f2359d62df7d37a33ec12e4832b0b864fd829ae862924031fe67f0936f9a55127042febd1e1ec8916b814118cd3c331cbc3bb
-  languageName: node
-  linkType: hard
-
 "bundle-name@npm:^4.1.0":
   version: 4.1.0
   resolution: "bundle-name@npm:4.1.0"
@@ -20770,6 +20760,13 @@ __metadata:
   version: 0.0.2
   resolution: "charenc@npm:0.0.2"
   checksum: 81dcadbe57e861d527faf6dd3855dc857395a1c4d6781f4847288ab23cffb7b3ee80d57c15bba7252ffe3e5e8019db767757ee7975663ad2ca0939bb8fcaf2e5
+  languageName: node
+  linkType: hard
+
+"chart.js@npm:^3.7.1":
+  version: 3.9.1
+  resolution: "chart.js@npm:3.9.1"
+  checksum: 9ab0c0ac01215af0b3f020f2e313030fd6e347b48ed17d5484ee9c4e8ead45e78ae71bea16c397621c386b409ce0b14bf17f9f6c2492cd15b56c0f433efdfff6
   languageName: node
   linkType: hard
 
@@ -22243,15 +22240,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cron-parser@npm:^4.2.1":
-  version: 4.9.0
-  resolution: "cron-parser@npm:4.9.0"
-  dependencies:
-    luxon: ^3.2.1
-  checksum: 3cf248fc5cae6c19ec7124962b1cd84b76f02b9bc4f58976b3bd07624db3ef10aaf1548efcc2d2dcdab0dad4f12029d640a55ecce05ea5e1596af9db585502cf
-  languageName: node
-  linkType: hard
-
 "cross-env@npm:^7.0.3":
   version: 7.0.3
   resolution: "cross-env@npm:7.0.3"
@@ -23710,6 +23698,13 @@ __metadata:
   version: 16.4.1
   resolution: "dotenv@npm:16.4.1"
   checksum: a343f0a1d156deef8c60034f797969867af4dbccfacedd4ac15fad04547e7ffe0553b58fc3b27a5837950f0d977e38e9234943fbcec4aeced4e3d044309a76ab
+  languageName: node
+  linkType: hard
+
+"dotenv@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "dotenv@npm:10.0.0"
+  checksum: f412c5fe8c24fbe313d302d2500e247ba8a1946492db405a4de4d30dd0eb186a88a43f13c958c5a7de303938949c4231c56994f97d05c4bc1f22478d631b4005
   languageName: node
   linkType: hard
 
@@ -28986,6 +28981,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"immer@npm:^10.0.3":
+  version: 10.1.1
+  resolution: "immer@npm:10.1.1"
+  checksum: 07c67970b7d22aded73607193d84861bf786f07d47f7d7c98bb10016c7a88f6654ad78ae1e220b3c623695b133aabbf24f5eb8d9e8060cff11e89ccd81c9c10b
+  languageName: node
+  linkType: hard
+
 "immutable@npm:^3.8.2, immutable@npm:^3.x.x":
   version: 3.8.2
   resolution: "immutable@npm:3.8.2"
@@ -33185,7 +33187,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luxon@npm:^3.2.1, luxon@npm:^3.4.4":
+"luxon@npm:^3.4.4":
   version: 3.4.4
   resolution: "luxon@npm:3.4.4"
   checksum: 36c1f99c4796ee4bfddf7dc94fa87815add43ebc44c8934c924946260a58512f0fd2743a629302885df7f35ccbd2d13f178c15df046d0e3b6eb71db178f1c60c
@@ -34994,49 +34996,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msgpackr-extract@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "msgpackr-extract@npm:3.0.2"
-  dependencies:
-    "@msgpackr-extract/msgpackr-extract-darwin-arm64": 3.0.2
-    "@msgpackr-extract/msgpackr-extract-darwin-x64": 3.0.2
-    "@msgpackr-extract/msgpackr-extract-linux-arm": 3.0.2
-    "@msgpackr-extract/msgpackr-extract-linux-arm64": 3.0.2
-    "@msgpackr-extract/msgpackr-extract-linux-x64": 3.0.2
-    "@msgpackr-extract/msgpackr-extract-win32-x64": 3.0.2
-    node-gyp: latest
-    node-gyp-build-optional-packages: 5.0.7
-  dependenciesMeta:
-    "@msgpackr-extract/msgpackr-extract-darwin-arm64":
-      optional: true
-    "@msgpackr-extract/msgpackr-extract-darwin-x64":
-      optional: true
-    "@msgpackr-extract/msgpackr-extract-linux-arm":
-      optional: true
-    "@msgpackr-extract/msgpackr-extract-linux-arm64":
-      optional: true
-    "@msgpackr-extract/msgpackr-extract-linux-x64":
-      optional: true
-    "@msgpackr-extract/msgpackr-extract-win32-x64":
-      optional: true
-  bin:
-    download-msgpackr-prebuilds: bin/download-prebuilds.js
-  checksum: 5adb809b965bac41c310e60373d54c955fe78e4d134ab036d0f9ee5b322cec0a739878d395e17c1ac82d840705896b2dafae6a8cc04ad34c14d2de4b06b58330
-  languageName: node
-  linkType: hard
-
-"msgpackr@npm:^1.10.1":
-  version: 1.10.2
-  resolution: "msgpackr@npm:1.10.2"
-  dependencies:
-    msgpackr-extract: ^3.0.2
-  dependenciesMeta:
-    msgpackr-extract:
-      optional: true
-  checksum: f7d9aae68196b3612e522a81c939b226045d115e97233541bf8475d170ca686f814bfdb6255865912d052f87f37466dbadf09ca17541b315f03d9ad9f6b439ef
-  languageName: node
-  linkType: hard
-
 "mssql@npm:10.0.2":
   version: 10.0.2
   resolution: "mssql@npm:10.0.2"
@@ -35833,17 +35792,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp-build-optional-packages@npm:5.0.7":
-  version: 5.0.7
-  resolution: "node-gyp-build-optional-packages@npm:5.0.7"
-  bin:
-    node-gyp-build-optional-packages: bin.js
-    node-gyp-build-optional-packages-optional: optional.js
-    node-gyp-build-optional-packages-test: build-test.js
-  checksum: bcb4537af15bcb3811914ea0db8f69284ca10db1cc7543a167a4c41ae4b9b5044b133f789fdadad0b7adc6931f6ae7def3c75b0bc7b05836881aae52400163e6
-  languageName: node
-  linkType: hard
-
 "node-gyp@npm:latest":
   version: 9.3.1
   resolution: "node-gyp@npm:9.3.1"
@@ -36309,6 +36257,13 @@ __metadata:
   version: 0.4.0
   resolution: "object-keys@npm:0.4.0"
   checksum: 1be3ebe9b48c0d5eda8e4a30657d887a748cb42435e0e2eaf49faf557bdd602cd2b7558b8ce90a4eb2b8592d16b875a1900bce859cbb0f35b21c67e11a45313c
+  languageName: node
+  linkType: hard
+
+"object-path@npm:^0.11.8":
+  version: 0.11.8
+  resolution: "object-path@npm:0.11.8"
+  checksum: 684ccf0fb6b82f067dc81e2763481606692b8485bec03eb2a64e086a44dbea122b2b9ef44423a08e09041348fe4b4b67bd59985598f1652f67df95f0618f5968
   languageName: node
   linkType: hard
 
@@ -38640,6 +38595,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"prisma-field-encryption@npm:^1.4.0":
+  version: 1.5.2
+  resolution: "prisma-field-encryption@npm:1.5.2"
+  dependencies:
+    "@47ng/cloak": ^1.1.0
+    "@prisma/generator-helper": ^5.9.1
+    debug: ^4.3.4
+    immer: ^10.0.3
+    object-path: ^0.11.8
+    zod: ^3.22.4
+  peerDependencies:
+    "@prisma/client": ">= 4.7"
+  bin:
+    prisma-field-encryption: dist/generator/main.js
+  checksum: 22c04c16af2a3f0f4cd1b6b31172a17b758619cd5e1fb6bed469147fa0d840fc072f59c8da836c64181796778959fd512d2054f5f5d985921b4c91e3c18d4453
+  languageName: node
+  linkType: hard
+
 "prisma-kysely@npm:^1.7.1":
   version: 1.8.0
   resolution: "prisma-kysely@npm:1.8.0"
@@ -39129,13 +39102,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"querystring@npm:^0.2.1":
-  version: 0.2.1
-  resolution: "querystring@npm:0.2.1"
-  checksum: 7b83b45d641e75fd39cd6625ddfd44e7618e741c61e95281b57bbae8fde0afcc12cf851924559e5cc1ef9baa3b1e06e22b164ea1397d65dd94b801f678d9c8ce
-  languageName: node
-  linkType: hard
-
 "querystringify@npm:^2.1.1":
   version: 2.2.0
   resolution: "querystringify@npm:2.2.0"
@@ -39338,6 +39304,16 @@ __metadata:
     react: ^16.3.0 || ^17.0.0 || ^18.0.0
     react-dom: ^16.3.0 || ^17.0.0 || ^18.0.0
   checksum: 368084515bdbc59dddf1a0e367c6bb49e9b9efdc1d01343afeeb412feb52d89b88ac6b09378433cdb3716557ff2cf56751f11183ecd99a5df2a5c48b1691e33d
+  languageName: node
+  linkType: hard
+
+"react-chartjs-2@npm:^4.0.1":
+  version: 4.3.1
+  resolution: "react-chartjs-2@npm:4.3.1"
+  peerDependencies:
+    chart.js: ^3.5.0
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 574d12cc43b9b4a0f1e04cc692982e16ef7083c03da2a8a9fc2180fe9bcadc793008f81d8f4eec5465925eff84c95d7c523cb74376858b363ae75a83bb3c2a5d
   languageName: node
   linkType: hard
 
@@ -41805,6 +41781,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"s-ago@npm:^2.2.0":
+  version: 2.2.0
+  resolution: "s-ago@npm:2.2.0"
+  checksum: f665fef44d9d88322ce5a798ca3c49b40f96231ddc7bd46dc23c883e98215675aa422985760d45d3779faa3c0bc94edb2a50630bf15f54c239d11963e53d998c
+  languageName: node
+  linkType: hard
+
 "sade@npm:^1.7.3":
   version: 1.8.1
   resolution: "sade@npm:1.8.1"
@@ -42156,15 +42139,6 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 12d8ad952fa353b0995bf180cdac205a4068b759a140e5d3c608317098b3575ac2f1e09182206bf2eb26120e1c0ed8fb92c48c592f6099680de56bb071423ca3
-  languageName: node
-  linkType: hard
-
-"semver@npm:^7.5.2":
-  version: 7.6.2
-  resolution: "semver@npm:7.6.2"
-  bin:
-    semver: bin/semver.js
-  checksum: 40f6a95101e8d854357a644da1b8dd9d93ce786d5c6a77227bc69dbb17bea83d0d1d1d7c4cd5920a6df909f48e8bd8a5909869535007f90278289f2451d0292d
   languageName: node
   linkType: hard
 
@@ -44093,6 +44067,15 @@ __metadata:
     "@swc/core": ^1.2.147
     webpack: ">=2"
   checksum: 010d84d399525c0185d36d62c86c55ae017e7a90046bc8a39be4b7e07526924037868049f6037bc966da98151cb2600934b96a66279b742d3c413a718b427251
+  languageName: node
+  linkType: hard
+
+"swr@npm:^1.2.2":
+  version: 1.3.0
+  resolution: "swr@npm:1.3.0"
+  peerDependencies:
+    react: ^16.11.0 || ^17.0.0 || ^18.0.0
+  checksum: e7a184f0d560e9c8be85c023cc8e65e56a88a6ed46f9394b301b07f838edca23d2e303685319a4fcd620b81d447a7bcb489c7fa0a752c259f91764903c690cdb
   languageName: node
   linkType: hard
 
