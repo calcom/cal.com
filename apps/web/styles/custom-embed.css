@@ -51,6 +51,7 @@ p.text-subtle.mt-2.text-sm.font-semibold {
 
 .adjust-title {
   margin-left: 120px !important;
+  /* padding-top: 30px !important; */
 }
 
 h1.text-text.text-xl.font-semibold.my-2 {
