@@ -4,10 +4,10 @@ import type { ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../lib/http";
 
-export type OnCheckErroType = (err: ApiErrorResponse) => void;
+export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export interface useGcalProps {
   isAuth: boolean;
-  onCheckError?: OnCheckErroType;
+  onCheckError?: OnCheckErrorType;
 }
 
 export const useGcal = ({ isAuth, onCheckError }: useGcalProps) => {
