@@ -136,6 +136,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
+  metadata?: any;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -169,23 +170,35 @@ export const Timezones = {
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts && eventType.hosts.length > 0) {
-      await prismock.host.createMany({
-        data: eventType.hosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: eventType.id,
-          isFixed: host.isFixed ?? false,
-        })),
+    if (!eventType.hosts?.length) continue;
+    for (const host of eventType.hosts) {
+      const data: Prisma.HostCreateInput = {
+        eventType: {
+          connect: {
+            id: eventType.id,
+          },
+        },
+        isFixed: host.isFixed ?? false,
+        user: {
+          connect: {
+            id: host.userId,
+          },
+        },
+      };
+
+      await prismock.host.create({
+        data,
       });
     }
   }
 }
 
-async function addEventTypesToDb(
+export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
     "users" | "worflows" | "destinationCalendar" | "schedule"
   > & {
+    id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +207,7 @@ async function addEventTypesToDb(
     destinationCalendar?: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
+    metadata?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -247,7 +261,7 @@ async function addEventTypesToDb(
   return allEventTypes;
 }
 
-async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
+export async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   const baseEventType = {
     title: "Base EventType Title",
     slug: "base-event-type-slug",
@@ -465,7 +479,9 @@ async function addWorkflows(workflows: InputWorkflow[]) {
   await addWorkflowsToDb(workflows);
 }
 
-async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
+export async function addUsersToDb(
+  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
+) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
@@ -491,7 +507,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
-async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
   await prismock.team.createMany({
     data: teams,
@@ -638,6 +654,21 @@ export async function createOrganization(orgData: {
     },
   });
   return org;
+}
+
+export async function createCredentials(
+  credentialData: {
+    type: string;
+    key: any;
+    id?: number;
+    userId?: number | null;
+    teamId?: number | null;
+  }[]
+) {
+  const credentials = await prismock.credential.createMany({
+    data: credentialData,
+  });
+  return credentials;
 }
 
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
@@ -840,6 +871,23 @@ export const TestData = {
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift and IstEveningShift
+     */
+    IstMidShift: {
+      name: "12:30AM to 8PM in India - 7:00AM to 14:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T12:30:00.000Z"),
+          endTime: new Date("1970-01-01T20:00:00.000Z"),
           date: null,
         },
       ],
@@ -1442,6 +1490,74 @@ export function mockErrorOnVideoMeetingCreation({
       });
     });
   });
+}
+
+export function mockCrmApp(
+  metadataLookupKey: string,
+  crmData?: {
+    createContacts?: {
+      id: string;
+      email: string;
+    }[];
+    getContacts?: {
+      id: string;
+      email: string;
+      ownerEmail: string;
+    }[];
+  }
+) {
+  let contactsCreated: {
+    id: string;
+    email: string;
+  }[] = [];
+  let contactsQueried: {
+    id: string;
+    email: string;
+    ownerEmail: string;
+  }[] = [];
+  const eventsCreated: boolean[] = [];
+  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
+  const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
+  appMock &&
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
+      lib: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        CrmService: class {
+          constructor() {
+            log.debug("Create CrmSerive");
+          }
+
+          createContact() {
+            if (crmData?.createContacts) {
+              contactsCreated = crmData.createContacts;
+              return Promise.resolve(crmData?.createContacts);
+            }
+          }
+
+          getContacts(email: string) {
+            if (crmData?.getContacts) {
+              contactsQueried = crmData?.getContacts;
+              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+
+              return Promise.resolve(contactsOfEmail);
+            }
+          }
+
+          createEvent() {
+            eventsCreated.push(true);
+            return Promise.resolve({});
+          }
+        },
+      },
+    });
+
+  return {
+    contactsCreated,
+    contactsQueried,
+    eventsCreated,
+  };
 }
 
 export function getBooker({ name, email }: { name: string; email: string }) {
