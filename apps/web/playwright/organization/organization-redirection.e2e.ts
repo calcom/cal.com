@@ -61,7 +61,7 @@ test.describe("Unpublished Organization", () => {
     }) => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
       const { team } = await orgOwner.getFirstTeamMembership();
-      await page.goto(`http://${orgSlug}.cal.local:3000/${team.slug}?orgRedirection=true`);
+      await page.goto(`${getOrgOrigin(orgSlug)}/${team.slug}?orgRedirection=true`);
       await test.step("Profile visible", async () => {
         await page.waitForLoadState("networkidle");
 
@@ -81,56 +81,6 @@ test.describe("Unpublished Organization", () => {
         await bookEventOnThisPage(page);
       });
     });
-    //   page,
-    //   users,
-    //   orgs,
-    // }) => {
-    //   // const org = await orgs.create({
-    //   //   name: "Example Org",
-    //   //   requestedSlug: orgSlug,
-    //   // });
-    //   const teamOwnerUsernamePrefix = "owner";
-    //   const teamOwnerEmail = users.trackEmail({
-    //     username: teamOwnerUsernamePrefix,
-    //     domain: `example.com`,
-    //   });
-    //   const teamOwnerUser = await users.create(
-    //     {
-    //       username: teamOwnerUsernamePrefix,
-    //       email: teamOwnerEmail,
-    //       role: "ADMIN",
-
-    //       roleInOrganization: "OWNER",
-    //     },
-    //     {
-    //       hasTeam: true,
-    //       isOrg: true,
-    //       hasSubteam: true,
-    //       isUnpublished: true,
-    //     }
-    //   );
-    //   const { team, role } = await teamOwnerUser.getFirstTeamMembership();
-    //   await page.goto(`http://${orgSlug}.cal.local:3000/${team.slug}?orgRedirection=true`);
-    //   await test.step("Profile visible", async () => {
-    //     await page.waitForLoadState("networkidle");
-
-    //     // make sure that team profile is visibles
-    //     await expect(page.locator('[data-testid="name-title"]')).toBeVisible();
-    //     await expect(page.locator('[data-testid="event-types"]')).toBeVisible();
-    //   });
-    //   await test.step("Browsing to an event", async () => {
-    //     page.getByTestId("event-type-link").first().click();
-    //     await page.waitForURL((url) => {
-    //       return (
-    //         url.searchParams.get("orgRedirection") === "true" && url.pathname.startsWith(`/${team.slug}/`)
-    //       );
-    //     });
-    //     await expect(page.getByTestId("event-title")).toBeVisible();
-    //   });
-    //   await test.step("Book event", async () => {
-    //     await bookEventOnThisPage(page);
-    //   });
-    // });
   });
   test.describe("User Profile & Event", () => {
     // Main test for redirection feature
