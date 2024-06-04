@@ -9,6 +9,7 @@ import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { Prisma } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
@@ -366,6 +367,16 @@ export async function doOnOrgDomain(
   await page.setExtraHTTPHeaders({
     "x-cal-force-slug": "",
   });
+}
+
+export function getOrgOrigin(orgSlug: string | null) {
+  if (!orgSlug) {
+    throw new Error("orgSlug is required");
+  }
+
+  let orgOrigin = WEBAPP_URL.replace("://app", `://${orgSlug}`);
+  orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
+  return orgOrigin;
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.

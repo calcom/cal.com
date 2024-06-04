@@ -3,13 +3,13 @@ import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 
 import { test } from "../lib/fixtures";
 import {
   bookTimeSlot,
   doOnOrgDomain,
+  getOrgOrigin,
   NotFoundPageTextAppDir,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
@@ -17,16 +17,6 @@ import {
 import { expectExistingUserToBeInvitedToOrganization } from "../team/expects";
 import { gotoPathAndExpectRedirectToOrgDomain } from "./lib/gotoPathAndExpectRedirectToOrgDomain";
 import { acceptTeamOrOrgInvite, inviteExistingUserToOrganization } from "./lib/inviteUser";
-
-function getOrgOrigin(orgSlug: string | null) {
-  if (!orgSlug) {
-    throw new Error("orgSlug is required");
-  }
-
-  let orgOrigin = WEBAPP_URL.replace("://app", `://${orgSlug}`);
-  orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
-  return orgOrigin;
-}
 
 test.describe("Bookings", () => {
   test.afterEach(({ orgs, users }) => {

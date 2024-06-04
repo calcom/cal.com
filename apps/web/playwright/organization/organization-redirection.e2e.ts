@@ -1,25 +1,15 @@
 import { expect } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 
 import { test } from "../lib/fixtures";
-import { bookEventOnThisPage } from "../lib/testUtils";
+import { bookEventOnThisPage, getOrgOrigin } from "../lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
+// currently, /etc/hosts must be configured to point orgSlug.cal.local to localhost
 const orgSlug = "example";
-
-function getOrgOrigin(orgSlug: string | null) {
-  if (!orgSlug) {
-    throw new Error("orgSlug is required");
-  }
-
-  let orgOrigin = WEBAPP_URL.replace("://app", `://${orgSlug}`);
-  orgOrigin = orgOrigin.includes(orgSlug) ? orgOrigin : WEBAPP_URL.replace("://", `://${orgSlug}.`);
-  return orgOrigin;
-}
 
 async function createUserWithOrganizationAndTeam(users: ReturnType<typeof createUsersFixture>) {
   const orgOwnerUsernamePrefix = "owner";
@@ -52,13 +42,12 @@ test.describe("Unpublished Organization", () => {
   });
 
   test.describe("Team Profile & Event", () => {
-    // Main test for redirection feature
-    test("Cannot see team profile when visiting directly", async ({ page, users }) => {
+    test("Cannot see team profile by default", async ({ page, users }) => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
 
       const { team } = await orgOwner.getFirstTeamMembership();
 
-      await page.goto(`http://${orgSlug}.cal.local:3000/${team.slug}`);
+      await page.goto(`${getOrgOrigin(orgSlug)}/${team.slug}`);
       await page.waitForLoadState("networkidle");
 
       await expect(page.getByTestId("empty-screen")).toBeVisible();
@@ -66,7 +55,7 @@ test.describe("Unpublished Organization", () => {
       // make sure that team profile is not visible
       await expect(page.getByTestId("team-name")).toHaveCount(0);
     });
-    test("Can see team profile and book event when orgRedirection=true query param present", async ({
+    test("Can see team profile and book event with orgRedirection=true query param", async ({
       page,
       users,
     }) => {
@@ -145,24 +134,25 @@ test.describe("Unpublished Organization", () => {
   });
   test.describe("User Profile & Event", () => {
     // Main test for redirection feature
-    test("Cannot see user profile when visiting directly", async ({ page, users }) => {
+    test("Cannot see user profile by default", async ({ page, users }) => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
 
-      await page.goto(`http://${orgSlug}.cal.local:3000/${orgOwner.username}`);
+      await page.goto(`${getOrgOrigin(orgSlug)}/${orgOwner.username}`);
       await page.waitForLoadState("networkidle");
 
       await expect(page.getByTestId("empty-screen")).toBeVisible();
 
-      // make sure that user profile is not visibles
+      // make sure that user profile is not visible
       await expect(page.locator('[data-testid="name-title"]')).toHaveCount(0);
       await expect(page.locator('[data-testid="event-types"]')).toHaveCount(0);
     });
-    test("Can see user profile and book event when orgRedirection=true query param present", async ({
+
+    test("Can see user profile and book event with orgRedirection=true query param", async ({
       page,
       users,
     }) => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
-      await page.goto(`http://${orgSlug}.cal.local:3000/${orgOwner.username}?orgRedirection=true`);
+      await page.goto(`${getOrgOrigin(orgSlug)}/${orgOwner.username}?orgRedirection=true`);
       await test.step("Profile visible", async () => {
         await page.waitForLoadState("networkidle");
 
@@ -186,7 +176,7 @@ test.describe("Unpublished Organization", () => {
     });
   });
   test.describe("Private URL", () => {
-    test("Cannot see event when visiting private URL directly", async ({ page, users, prisma }) => {
+    test("Cannot see event by default", async ({ page, users, prisma }) => {
       const orgOwner = await createUserWithOrganizationAndTeam(users);
       const eventType = await orgOwner.getFirstEventAsOwner();
       // make event have an hashedUrl so it is private
@@ -206,15 +196,13 @@ test.describe("Unpublished Organization", () => {
         },
       });
 
-      await page.goto(
-        `http://${orgSlug}.cal.local:3000/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}`
-      );
+      await page.goto(`${getOrgOrigin(orgSlug)}/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}`);
       await page.waitForLoadState("networkidle");
 
       await expect(page.getByTestId("empty-screen")).toBeVisible();
     });
 
-    test("Can see event and book event when orgRedirection=true query param present", async ({
+    test("Can see page and book event with orgRedirection=true query param", async ({
       page,
       users,
       prisma,
@@ -239,7 +227,7 @@ test.describe("Unpublished Organization", () => {
       });
 
       await page.goto(
-        `http://${orgSlug}.cal.local:3000/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}?orgRedirection=true`
+        `${getOrgOrigin(orgSlug)}/d/${privateEvent.hashedLink?.link}/${privateEvent.slug}?orgRedirection=true`
       );
       await test.step("Profile visible", async () => {
         await page.waitForLoadState("networkidle");
