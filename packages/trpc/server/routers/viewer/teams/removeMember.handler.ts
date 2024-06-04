@@ -27,31 +27,66 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
     identifier: `removeMember.${ctx.sourceIp}`,
   });
 
-  const isAdmin = await isTeamAdmin(ctx.user.id, input.teamId);
+  const { memberIds, teamIds, isOrg } = input;
+  const isAdmin = teamIds.every(async (teamId) => await isTeamAdmin(ctx.user.id, teamId));
+
   const isOrgAdmin = ctx.user.profile?.organizationId
     ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
     : false;
-  if (!(isAdmin || isOrgAdmin) && ctx.user.id !== input.memberId)
-    throw new TRPCError({ code: "UNAUTHORIZED" });
-  // Only a team owner can remove another team owner.
-  if ((await isTeamOwner(input.memberId, input.teamId)) && !(await isTeamOwner(ctx.user.id, input.teamId)))
+
+  if (!(isAdmin || isOrgAdmin) && memberIds.every((memberId) => ctx.user.id !== memberId))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (ctx.user.id === input.memberId && isAdmin && !isOrgAdmin)
+  // Only a team owner can remove another team owner.
+  const isAnyMemberOwnerAndCurrentUserNotOwner = await Promise.all(
+    memberIds.map(async (memberId) => {
+      const isAnyTeamOwnerAndCurrentUserNotOwner = await Promise.all(
+        teamIds.map(async (teamId) => {
+          return (await isTeamOwner(memberId, teamId)) && !(await isTeamOwner(ctx.user.id, teamId));
+        })
+      ).then((results) => results.some((result) => result));
+
+      return isAnyTeamOwnerAndCurrentUserNotOwner;
+    })
+  ).then((results) => results.some((result) => result));
+
+  if (isAnyMemberOwnerAndCurrentUserNotOwner) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Only a team owner can remove another team owner.",
+    });
+  }
+
+  if (memberIds.some((memberId) => ctx.user.id === memberId) && isAdmin && !isOrgAdmin)
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "You can not remove yourself from a team you own.",
     });
 
-  const { membership } = await removeMember({
-    teamId: input.teamId,
-    memberId: input.memberId,
-    isOrg: input.isOrg,
-  });
+  const deleteMembershipPromises = [];
+
+  for (const memberId of memberIds) {
+    for (const teamId of teamIds) {
+      deleteMembershipPromises.push(
+        removeMember({
+          teamId,
+          memberId,
+          isOrg,
+        })
+      );
+    }
+  }
+
+  const memberships = await Promise.all(deleteMembershipPromises);
 
   // Sync Services
-  closeComDeleteTeamMembership(membership.user);
-  if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(input.teamId);
+  memberships.flatMap((m) => closeComDeleteTeamMembership(m.membership.user));
+
+  if (IS_TEAM_BILLING_ENABLED) {
+    for (const teamId of teamIds) {
+      await updateQuantitySubscriptionFromStripe(teamId);
+    }
+  }
 };
 
 export default removeMemberHandler;
