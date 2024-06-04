@@ -323,7 +323,6 @@ async function handler(req: CustomRequest) {
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {
-    //this also needs to add org workflows
     await sendCancelledReminders({
       eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
       userId: bookingToDelete.eventType.userId,

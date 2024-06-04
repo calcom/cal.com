@@ -1,7 +1,7 @@
 import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { WorkflowActions } from "@calcom/prisma/enums";
 
-import type { Workflow } from "./reminders/reminderScheduler";
+import type { Workflow } from "./types";
 
 export function allowDisablingHostConfirmationEmails(workflows: Workflow[]) {
   return !!workflows.find(

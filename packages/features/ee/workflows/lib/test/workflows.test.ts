@@ -630,18 +630,18 @@ describe("scheduleBookingReminders", () => {
       includedString: "2024 May 23 at 9:30am Asia/Kolkata",
     });
 
-    // sms are to far in future
-    // expectSMSWorkflowToBeNotTriggered({
-    //   sms,
-    //   toNumber: "000",
-    //   includedString: "2024 June 1 at 10:00am Asia/Kolkata"
-    // });
+    // sms are too far in future
+    expectSMSWorkflowToBeNotTriggered({
+      sms,
+      toNumber: "000",
+      includedString: "2024 June 1 at 10:00am Asia/Kolkata",
+    });
 
-    // expectSMSWorkflowToBeNotTriggered({
-    //   sms,
-    //   toNumber: "000",
-    //   includedString: "2024 June 2 at 10:00am Asia/Kolkata"
-    // });
+    expectSMSWorkflowToBeNotTriggered({
+      sms,
+      toNumber: "000",
+      includedString: "2024 June 2 at 10:00am Asia/Kolkata",
+    });
 
     const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
       where: {

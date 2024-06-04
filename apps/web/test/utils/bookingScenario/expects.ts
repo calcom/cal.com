@@ -357,38 +357,47 @@ export function expectSMSWorkflowToBeTriggered({
   includedString?: string;
 }) {
   const allSMS = sms.get();
-
-  // Check if the expected SMS was sent to number
-  expect(allSMS).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
-
-  // Check if includedString is part of any message
   if (includedString) {
     const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
 
-    expect(messageWithIncludedString).toBeDefined();
+    expect(messageWithIncludedString?.to).toBe(toNumber);
+  } else {
+    expect(allSMS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
   }
 }
 
 export function expectSMSWorkflowToBeNotTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).not.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
+  const allSMS = sms.get();
+
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    if (messageWithIncludedString) {
+      expect(messageWithIncludedString?.to).not.toBe(toNumber);
+    }
+  } else {
+    expect(allSMS).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export async function expectBookingToBeInDatabase(

@@ -4,7 +4,6 @@ import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
-import type { Workflow } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import {
   scheduleWorkflowReminders,
   workflowSelect,
@@ -27,6 +26,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "../../ee/workflows/lib/allowDisablingStandardEmails";
+import type { Workflow } from "../../ee/workflows/lib/types";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -129,13 +129,6 @@ export async function handleConfirmation(args: {
     smsReminderNumber: string | null;
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
-    user: {
-      id: number;
-      username: string | null;
-      profiles: {
-        organizationId?: number | null;
-      }[];
-    } | null;
     eventType: {
       userId: number | null;
       teamId: number | null;
@@ -200,17 +193,6 @@ export async function handleConfirmation(args: {
               },
             },
           },
-          user: {
-            select: {
-              id: true,
-              username: true,
-              profiles: {
-                select: {
-                  organizationId: true,
-                },
-              },
-            },
-          },
           description: true,
           attendees: true,
           location: true,
@@ -261,17 +243,6 @@ export async function handleConfirmation(args: {
                 workflow: {
                   select: workflowSelect,
                 },
-              },
-            },
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            username: true,
-            profiles: {
-              select: {
-                organizationId: true,
               },
             },
           },

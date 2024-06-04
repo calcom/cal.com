@@ -541,7 +541,7 @@ describe("handleNewBooking", () => {
     );
   });
   describe("Org Workflows", () => {
-    test("should trigger workflow when a new team event is booked team and this team is active on org workflow", async ({
+    test("should trigger workflow when a new team event is booked and this team is active on org workflow", async ({
       emails,
     }) => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;

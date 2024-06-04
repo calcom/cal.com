@@ -155,6 +155,7 @@ const removeMember = async ({
             workflowStep: {
               workflow: {
                 isActiveOnAll: true,
+                teamId: team.parentId,
               },
             },
           },

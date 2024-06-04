@@ -727,7 +727,7 @@ export async function createOrganization(orgData: {
     },
   });
   if (orgData.withTeam) {
-    const team = await prismock.team.create({
+    await prismock.team.create({
       data: {
         name: "Org Team",
         slug: "org-team",
@@ -1016,21 +1016,6 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     }),
-    IstWorkHoursNoWeekends: {
-      id: 1,
-      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
-      availability: [
-        {
-          // userId: null,
-          // eventTypeId: null,
-          days: [/*0*/ 1, 2, 3, 4, 5 /*6*/],
-          startTime: new Date("1970-01-01T09:30:00.000Z"),
-          endTime: new Date("1970-01-01T18:00:00.000Z"),
-          date: null,
-        },
-      ],
-      timeZone: Timezones["+5:30"],
-    },
   },
   users: {
     example: {
@@ -1775,10 +1760,4 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
 
 export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
   return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
-};
-
-export const replaceDates = (dates: string[], replacement: Record<string, string>) => {
-  return dates.map((date) => {
-    return date.replace(/(.*)T/, (_, group1) => `${replacement[group1]}T`);
-  });
 };

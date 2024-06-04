@@ -3,10 +3,10 @@ import {
   isSMSOrWhatsappAction,
   isWhatsappAction,
 } from "@calcom/features/ee/workflows/lib/actionHelperFunctions";
+import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
-import type { TimeUnit, WorkflowTemplates } from "@calcom/prisma/enums";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -26,30 +26,6 @@ type ProcessWorkflowStepParams = {
   emailAttendeeSendToOverride?: string;
   hideBranding?: boolean;
   seatReferenceUid?: string;
-};
-
-// create a types file for these, they are used in a lot of different places (workflows/lib/types.ts)
-export type Workflow = {
-  id: number;
-  trigger: WorkflowTriggerEvents;
-  time: number | null;
-  timeUnit: TimeUnit | null;
-  userId: number | null;
-  teamId: number | null;
-  steps: WorkflowStep[];
-};
-
-type WorkflowStep = {
-  action: WorkflowActions;
-  sendTo: string | null;
-  template: WorkflowTemplates;
-  reminderBody: string | null;
-  emailSubject: string | null;
-  id: number;
-  sender: string | null;
-  includeCalendarEvent: boolean;
-  numberVerificationPending: boolean;
-  numberRequired: boolean | null;
 };
 
 export const workflowSelect = {

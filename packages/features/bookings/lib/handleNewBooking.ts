@@ -906,7 +906,6 @@ export const findBookingQuery = async (bookingId: number) => {
   if (!foundBooking) {
     throw new Error("Internal Error. Couldn't find booking");
   }
-
   // Don't leak any sensitive data
   return foundBooking;
 };
@@ -2463,7 +2462,6 @@ async function handler(
 
   const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
-  // if org workflow exists I don't need mandatory reminders
   await scheduleMandatoryReminder(
     evtWithMetadata,
     eventTypeWorkflows,
