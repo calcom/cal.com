@@ -30,7 +30,7 @@ export class EventTypesService {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
-    const { eventType } = await createEventType({
+    const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
       ctx: {
         user: eventTypeUser,
@@ -39,6 +39,12 @@ export class EventTypesService {
         prisma: this.dbWrite.prisma,
       },
     });
+
+    const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
+    }
 
     return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }

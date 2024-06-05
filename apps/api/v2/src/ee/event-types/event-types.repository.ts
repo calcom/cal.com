@@ -68,7 +68,10 @@ export class EventTypesRepository {
   }
 
   async getEventTypeById(eventTypeId: number) {
-    return this.dbRead.prisma.eventType.findUnique({ where: { id: eventTypeId } });
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { users: true, profile: true, schedule: true, hosts: true },
+    });
   }
 
   async getUserEventTypeBySlug(userId: number, slug: string) {

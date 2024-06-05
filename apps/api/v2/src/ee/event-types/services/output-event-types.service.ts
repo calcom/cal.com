@@ -1,12 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import type { EventType } from "@prisma/client";
+import type { EventType, User, Profile, Schedule, Host } from "@prisma/client";
 
 import { getResponseEventTypeLocations, getResponseEventTypeBookingFields } from "@calcom/platform-libraries";
 import { TransformedLocationsSchema, BookingFieldsSchema } from "@calcom/platform-libraries";
 
+type EventTypeRelations = { users: User; profile: Profile; schedule: Schedule; hosts: Host };
+
 @Injectable()
 export class OutputEventTypesService {
-  getResponseEventType(ownerId: number, databaseEventType: EventType) {
+  getResponseEventType(ownerId: number, databaseEventType: EventType & EventTypeRelations) {
     const {
       id,
       length,
@@ -17,6 +19,22 @@ export class OutputEventTypesService {
       minimumBookingNotice,
       beforeEventBuffer,
       afterEventBuffer,
+      slug,
+      schedulingType,
+      recurringEvent,
+      users,
+      schedule,
+      hosts,
+      metadata,
+      requiresConfirmation,
+      price,
+      currency,
+      lockTimeZoneToggleOnBookingPage,
+      seatsPerTimeSlot,
+      forwardParamsSuccessRedirect,
+      successRedirectUrl,
+      seatsShowAvailabilityCount,
+      isInstantEvent,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -27,6 +45,7 @@ export class OutputEventTypesService {
       ownerId,
       lengthInMinutes: length,
       title,
+      slug,
       description,
       locations,
       bookingFields,
@@ -35,6 +54,21 @@ export class OutputEventTypesService {
       minimumBookingNotice,
       beforeEventBuffer,
       afterEventBuffer,
+      schedulingType,
+      recurringEvent,
+      metadata,
+      requiresConfirmation,
+      price,
+      currency,
+      lockTimeZoneToggleOnBookingPage,
+      seatsPerTimeSlot,
+      forwardParamsSuccessRedirect,
+      successRedirectUrl,
+      seatsShowAvailabilityCount,
+      isInstantEvent,
+      users,
+      schedule,
+      hosts,
     };
   }
 

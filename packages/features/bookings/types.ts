@@ -21,7 +21,6 @@ export type EventActuallyUsed = Pick<
   | "slug"
   | "schedulingType"
   | "recurringEvent"
-  | "recurringEvent"
   | "users"
   | "profile"
   | "entity"

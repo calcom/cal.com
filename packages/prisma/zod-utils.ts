@@ -164,6 +164,8 @@ export const recurringEventType = z
   })
   .nullable();
 
+export type RecurringEventType = z.infer<typeof recurringEventType>;
+
 // dayjs iso parsing is very buggy - cant use :( - turns ISO string into Date object
 export const iso8601 = z.string().transform((val, ctx) => {
   const time = Date.parse(val);

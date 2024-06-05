@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
+import { transformApiEventTypeForAtom } from "@calcom/atoms/event-type/atom-api-transformers/transformApiEventTypeForAtom";
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
@@ -112,12 +113,15 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const event = useEventType(username, props.eventSlug);
+  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug);
+  const event = useMemo(() => {
+    return { isSuccess, isError, isPending, data: data ? transformApiEventTypeForAtom(data) : undefined };
+  }, [isSuccess, isError, isPending, data]);
 
   if (isDynamic && props.duration && event.data) {
     // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
     // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
-    event.data.lengthInMinutes = props.duration;
+    event.data.length = props.duration;
   }
 
   const bookerLayout = useBookerLayout(event.data);
