@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter, Poppins } from "next/font/google";
 
-import { GcalConnect } from "@calcom/atoms";
+import { GcalConnect, Connect } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
@@ -20,6 +20,7 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
             To get started, connect your google calendar.
           </p>
           <GcalConnect className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
+          <Connect.OutlookCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
         </div>
         <div className="hidden lg:block">
           <img

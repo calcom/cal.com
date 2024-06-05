@@ -2,11 +2,11 @@ import type { FC } from "react";
 
 import { Button } from "@calcom/ui";
 
-import { useAtomsContext } from "../hooks/useAtomsContext";
-import type { OnCheckErrorType } from "../hooks/useGcal";
-import { useGcal } from "../hooks/useGcal";
-import { AtomsWrapper } from "../src/components/atoms-wrapper";
-import { cn } from "../src/lib/utils";
+import type { OnCheckErrorType } from "../../hooks/connect/google/useGcal";
+import { useGcal } from "../../hooks/connect/google/useGcal";
+import { useAtomsContext } from "../../hooks/useAtomsContext";
+import { AtomsWrapper } from "../../src/components/atoms-wrapper";
+import { cn } from "../../src/lib/utils";
 
 interface GcalConnectProps {
   className?: string;

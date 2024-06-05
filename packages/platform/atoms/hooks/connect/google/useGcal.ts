@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 
 import type { ApiErrorResponse } from "@calcom/platform-types";
 
-import http from "../lib/http";
+import http from "../../../lib/http";
 
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export interface useGcalProps {

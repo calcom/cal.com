@@ -1,5 +1,5 @@
 export { CalProvider } from "./cal-provider";
-export { GcalConnect } from "./gcal-connect";
+export { GcalConnect } from "./connect/google";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
 export { BookerPlatformWrapper as Booker } from "./booker";
 export { useIsPlatform } from "./hooks/useIsPlatform";
@@ -12,4 +12,5 @@ export { useCancelBooking } from "./hooks/useCancelBooking";
 export { useGetBooking } from "./hooks/useGetBooking";
 export { useGetBookings } from "./hooks/useGetBookings";
 export { useMe } from "./hooks/useMe";
-export { Office365Connect } from "./office-365-connect";
+export { OutlookConnect } from "./connect/outlook";
+export * as Connect from "./connect";
