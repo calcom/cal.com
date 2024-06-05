@@ -40,12 +40,14 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const mutation = useAddAppMutation(null);
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
 
   useEffect(() => {
     setSearchTextIndex(searchText ? app.name.toLowerCase().indexOf(searchText.toLowerCase()) : undefined);
   }, [app.name, searchText]);
 
   const handleAppInstall = () => {
+    setIsLoading(true);
     if (isConferencing(app.categories)) {
       mutation.mutate(
         {
@@ -74,6 +76,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
           },
           onError: (error) => {
             if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+            setIsLoading(false);
           },
         }
       );
@@ -154,7 +157,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: mutation.isPending,
+                      loading: isLoading,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;
@@ -176,7 +179,7 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
                       onClick: () => {
                         handleAppInstall();
                       },
-                      loading: mutation.isPending,
+                      loading: isLoading,
                     };
                   }
                   return <InstallAppButtonChild paid={app.paid} {...props} />;

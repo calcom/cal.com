@@ -82,7 +82,10 @@ export const AppPage = ({
 
   const mutation = useAddAppMutation(null);
 
+  const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
+
   const handleAppInstall = () => {
+    setIsLoading(true);
     if (isConferencing(categories)) {
       mutation.mutate(
         {
@@ -111,6 +114,7 @@ export const AppPage = ({
           },
           onError: (error) => {
             if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+            setIsLoading(false);
           },
         }
       );
@@ -262,7 +266,7 @@ export const AppPage = ({
                         onClick: () => {
                           handleAppInstall();
                         },
-                        loading: mutation.isPending,
+                        loading: isLoading,
                       };
                     }
                     return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
@@ -291,7 +295,7 @@ export const AppPage = ({
                     onClick: () => {
                       handleAppInstall();
                     },
-                    loading: mutation.isPending,
+                    loading: isLoading,
                   };
                 }
                 return (
