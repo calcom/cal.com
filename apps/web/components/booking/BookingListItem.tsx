@@ -209,7 +209,7 @@ function BookingListItem(booking: BookingItemProps) {
         onClick: () => {
           setIsOpenReassignDialog(true);
         },
-        icon: Users,
+        icon: "users" as const,
       });
     }
   }
