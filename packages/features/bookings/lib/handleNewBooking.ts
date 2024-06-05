@@ -906,6 +906,7 @@ export const findBookingQuery = async (bookingId: number) => {
   if (!foundBooking) {
     throw new Error("Internal Error. Couldn't find booking");
   }
+
   // Don't leak any sensitive data
   return foundBooking;
 };
@@ -1152,7 +1153,6 @@ async function handler(
         credentials: {
           select: credentialForCalendarServiceSelect,
         }, // Don't leak to client
-
         ...userSelect.select,
       },
     });
@@ -2481,7 +2481,7 @@ async function handler(
   try {
     await scheduleWorkflowReminders({
       eventTypeWorkflows,
-      orgId: orgId,
+      orgId,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,

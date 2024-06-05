@@ -130,8 +130,6 @@ export async function handleConfirmation(args: {
     metadata: Prisma.JsonValue | null;
     customInputs: Prisma.JsonValue;
     eventType: {
-      userId: number | null;
-      teamId: number | null;
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       owner: {
@@ -177,8 +175,6 @@ export async function handleConfirmation(args: {
             select: {
               slug: true,
               bookingFields: true,
-              userId: true,
-              teamId: true,
               owner: {
                 select: {
                   hideBranding: true,
@@ -230,8 +226,6 @@ export async function handleConfirmation(args: {
         eventType: {
           select: {
             slug: true,
-            userId: true,
-            teamId: true,
             bookingFields: true,
             owner: {
               select: {
@@ -262,47 +256,6 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
-  const teamId = updatedBookings[0]?.eventType?.teamId;
-  const userId = updatedBookings[0]?.eventType?.userId;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  //Workflows - set reminders for confirmed events
-  try {
-    for (let index = 0; index < updatedBookings.length; index++) {
-      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-      const evtOfBooking = {
-        ...evt,
-        metadata: { videoCallUrl: meetingUrl },
-        eventType: { slug: eventTypeSlug },
-      };
-      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
-      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-      evtOfBooking.uid = updatedBookings[index].uid;
-      const isFirstBooking = index === 0;
-      const eventTypeWorkflows =
-        updatedBookings[index]?.eventType?.workflows.map((workflowRel) => workflowRel.workflow) || [];
-      await scheduleMandatoryReminder(
-        evtOfBooking,
-        eventTypeWorkflows,
-        false,
-        !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
-      );
-
-      await scheduleWorkflowReminders({
-        eventTypeWorkflows,
-        orgId,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
-        calendarEvent: evtOfBooking,
-        isFirstRecurringEvent: isFirstBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-      });
-    }
-  } catch (error) {
-    // Silently fail
-    console.error(error);
-  }
-
   try {
     const teamId = await getTeamIdFromEventType({
       eventType: {
@@ -314,6 +267,8 @@ export async function handleConfirmation(args: {
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
 
     const userId = triggerForUser ? booking.userId : null;
+
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
     const subscribersBookingCreated = await getWebhooks({
       userId,
@@ -452,6 +407,43 @@ export async function handleConfirmation(args: {
 
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
+    }
+  } catch (error) {
+    // Silently fail
+    console.error(error);
+  }
+
+  //Workflows - set reminders for confirmed events
+  try {
+    for (let index = 0; index < updatedBookings.length; index++) {
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const evtOfBooking = {
+        ...evt,
+        metadata: { videoCallUrl: meetingUrl },
+        eventType: { slug: eventTypeSlug },
+      };
+      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+      evtOfBooking.uid = updatedBookings[index].uid;
+      const isFirstBooking = index === 0;
+      const eventTypeWorkflows =
+        updatedBookings[index]?.eventType?.workflows.map((workflowRel) => workflowRel.workflow) || [];
+      await scheduleMandatoryReminder(
+        evtOfBooking,
+        eventTypeWorkflows,
+        false,
+        !!updatedBookings[index].eventType?.owner?.hideBranding,
+        evt.attendeeSeatId
+      );
+
+      await scheduleWorkflowReminders({
+        eventTypeWorkflows,
+        orgId,
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: evtOfBooking,
+        isFirstRecurringEvent: isFirstBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+      });
     }
   } catch (error) {
     // Silently fail

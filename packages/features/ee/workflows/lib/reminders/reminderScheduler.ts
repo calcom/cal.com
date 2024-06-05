@@ -175,8 +175,10 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     orgId,
   } = args;
   if (isNotConfirmed) return;
+  const userId = evt.organizer.id;
+  const teamId = evt.team?.id;
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
+  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
 
   if (!workflows.length) return;
 
@@ -312,7 +314,10 @@ const getAllWorkflows = async (
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
   const { eventTypeWorkflows, smsReminderNumber, evt, hideBranding, orgId } = args;
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
+  const userId = evt.organizer.id;
+  const teamId = evt.team?.id;
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
 
   if (!workflows.length) return;
 

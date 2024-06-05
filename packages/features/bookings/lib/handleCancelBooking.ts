@@ -73,7 +73,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       eventType: {
         select: {
           slug: true,
-          userId: true,
           owner: {
             select: {
               id: true,
