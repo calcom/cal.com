@@ -1,3 +1,4 @@
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { HttpError as HttpCode } from "@calcom/lib/http-error";
@@ -47,17 +48,7 @@ export async function getBooking(bookingId: number) {
           workflows: {
             select: {
               workflow: {
-                select: {
-                  id: true,
-                  userId: true,
-                  name: true,
-                  steps: true,
-                  position: true,
-                  teamId: true,
-                  time: true,
-                  timeUnit: true,
-                  trigger: true,
-                },
+                select: workflowSelect,
               },
             },
           },

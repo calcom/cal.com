@@ -46,10 +46,8 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import {
-  scheduleWorkflowReminders,
-  workflowSelect,
-} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -1697,6 +1695,10 @@ async function handler(
     orgId,
   };
 
+  const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, organizerUserId, teamId, orgId);
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -1729,7 +1731,7 @@ async function handler(
       subscriberOptions,
       eventTrigger,
       responses,
-      orgId: organizerOrganizationId,
+      workflows,
     });
     if (newBooking) {
       req.statusCode = 201;
@@ -2468,21 +2470,17 @@ async function handler(
 
   const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
-  const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
-
   await scheduleMandatoryReminder(
     evtWithMetadata,
-    eventTypeWorkflows,
+    workflows,
     !isConfirmedByDefault,
     !!eventType.owner?.hideBranding,
-    evt.attendeeSeatId,
-    orgId
+    evt.attendeeSeatId
   );
 
   try {
     await scheduleWorkflowReminders({
-      eventTypeWorkflows,
-      orgId,
+      workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,

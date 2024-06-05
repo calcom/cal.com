@@ -6,7 +6,6 @@ import {
 import type { Workflow, WorkflowStep } from "@calcom/features/ee/workflows/lib/types";
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_NAME } from "@calcom/lib/constants";
-import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -28,35 +27,11 @@ type ProcessWorkflowStepParams = {
   seatReferenceUid?: string;
 };
 
-export const workflowSelect = {
-  id: true,
-  trigger: true,
-  time: true,
-  timeUnit: true,
-  userId: true,
-  teamId: true,
-  steps: {
-    select: {
-      id: true,
-      action: true,
-      sendTo: true,
-      reminderBody: true,
-      emailSubject: true,
-      template: true,
-      numberVerificationPending: true,
-      sender: true,
-      includeCalendarEvent: true,
-      numberRequired: true,
-    },
-  },
-};
-
 export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams {
-  eventTypeWorkflows: Workflow[];
+  workflows: Workflow[];
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
-  orgId?: number | null;
 }
 
 const processWorkflowStep = async (
@@ -163,7 +138,7 @@ const processWorkflowStep = async (
 
 export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersArgs) => {
   const {
-    eventTypeWorkflows,
+    workflows,
     smsReminderNumber,
     calendarEvent: evt,
     isNotConfirmed = false,
@@ -172,13 +147,8 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
-    orgId,
   } = args;
   if (isNotConfirmed) return;
-  const userId = evt.organizer.id;
-  const teamId = evt.team?.id;
-
-  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
 
   if (!workflows.length) return;
 
@@ -215,109 +185,14 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
 };
 
 export interface SendCancelledRemindersArgs {
-  eventTypeWorkflows: Workflow[];
+  workflows: Workflow[];
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
-  orgId?: number | null;
 }
 
-export const getAllWorkflows = async (
-  eventTypeWorkflows: Workflow[],
-  userId?: number | null,
-  teamId?: number | null,
-  orgId?: number | null
-) => {
-  const allWorkflows = eventTypeWorkflows;
-
-  if (orgId) {
-    if (teamId) {
-      const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
-        where: {
-          teamId: teamId,
-        },
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-        },
-      });
-
-      const orgTeamWorkflows = orgTeamWorkflowsRel?.map((workflowRel) => workflowRel.workflow) ?? [];
-      allWorkflows.push(...orgTeamWorkflows);
-    } else if (userId) {
-      const orgUserWorkflowsRel = await prisma.workflowsOnTeams.findMany({
-        where: {
-          team: {
-            members: {
-              some: {
-                userId: userId,
-                accepted: true,
-              },
-            },
-          },
-        },
-        select: {
-          workflow: {
-            select: workflowSelect,
-          },
-          team: true,
-        },
-      });
-
-      const orgUserWorkflows = orgUserWorkflowsRel.map((workflowRel) => workflowRel.workflow) ?? [];
-      allWorkflows.push(...orgUserWorkflows);
-    }
-
-    const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
-      where: {
-        teamId: orgId,
-        isActiveOnAll: true,
-      },
-      select: workflowSelect,
-    });
-    allWorkflows.push(...activeOnAllOrgWorkflows);
-  }
-
-  if (teamId) {
-    const activeOnAllTeamWorkflows = await prisma.workflow.findMany({
-      where: {
-        teamId,
-        isActiveOnAll: true, // what about managed event types
-      },
-      select: workflowSelect,
-    });
-    allWorkflows.push(...activeOnAllTeamWorkflows);
-  } else if (userId) {
-    const activeOnAllUserWorkflows = await prisma.workflow.findMany({
-      where: {
-        userId,
-        isActiveOnAll: true, // what about managed event type?
-      },
-      select: workflowSelect,
-    });
-    allWorkflows.push(...activeOnAllUserWorkflows);
-  }
-
-  // remove all the duplicate workflows from allWorkflows
-  const seen = new Set();
-
-  const workflows = allWorkflows.filter((workflow) => {
-    const duplicate = seen.has(workflow.id);
-    seen.add(workflow.id);
-    return !duplicate;
-  });
-
-  return workflows;
-};
-
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { eventTypeWorkflows, smsReminderNumber, evt, hideBranding, orgId } = args;
-
-  const userId = evt.organizer.id;
-  const teamId = evt.team?.id;
-
-  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+  const { smsReminderNumber, evt, workflows, hideBranding } = args;
 
   if (!workflows.length) return;
 

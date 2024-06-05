@@ -5,9 +5,12 @@ import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
 import {
-  scheduleWorkflowReminders,
-  workflowSelect,
-} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
+import { getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -21,12 +24,6 @@ import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "../../ee/workflows/lib/allowDisablingStandardEmails";
-import type { Workflow } from "../../ee/workflows/lib/types";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -68,6 +65,23 @@ export async function handleConfirmation(args: {
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
 
+  const eventTypeWorkflows = booking.eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
+
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: booking.eventType?.teamId ?? null },
+      parentId: booking?.eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
+
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
       errorCode: "BookingCreatingMeetingFailed",
@@ -87,8 +101,6 @@ export async function handleConfirmation(args: {
       const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
-
-      const workflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow);
 
       if (workflows) {
         isHostConfirmationEmailsDisabled =
@@ -135,9 +147,6 @@ export async function handleConfirmation(args: {
       owner: {
         hideBranding?: boolean | null;
       } | null;
-      workflows: {
-        workflow: Workflow;
-      }[];
     } | null;
   }[] = [];
 
@@ -178,13 +187,6 @@ export async function handleConfirmation(args: {
               owner: {
                 select: {
                   hideBranding: true,
-                },
-              },
-              workflows: {
-                select: {
-                  workflow: {
-                    select: workflowSelect,
-                  },
                 },
               },
             },
@@ -232,13 +234,6 @@ export async function handleConfirmation(args: {
                 hideBranding: true,
               },
             },
-            workflows: {
-              select: {
-                workflow: {
-                  select: workflowSelect,
-                },
-              },
-            },
           },
         },
         uid: true,
@@ -255,19 +250,6 @@ export async function handleConfirmation(args: {
     });
     updatedBookings.push(updatedBooking);
   }
-
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: booking.eventType?.teamId ?? null },
-      parentId: booking?.eventType?.parentId ?? null,
-    },
-  });
-
-  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
-
-  const userId = triggerForUser ? booking.userId : null;
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   try {
     const subscribersBookingCreated = await getWebhooks({
@@ -426,20 +408,17 @@ export async function handleConfirmation(args: {
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
-      const eventTypeWorkflows =
-        updatedBookings[index]?.eventType?.workflows.map((workflowRel) => workflowRel.workflow) || [];
+
       await scheduleMandatoryReminder(
         evtOfBooking,
-        eventTypeWorkflows,
+        workflows,
         false,
         !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId,
-        orgId
+        evt.attendeeSeatId
       );
 
       await scheduleWorkflowReminders({
-        eventTypeWorkflows,
-        orgId,
+        workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,

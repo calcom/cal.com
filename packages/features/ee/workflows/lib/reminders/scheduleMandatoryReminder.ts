@@ -6,7 +6,6 @@ import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
 
 import type { ExtendedCalendarEvent } from "./reminderScheduler";
-import { getAllWorkflows } from "./reminderScheduler";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
@@ -16,17 +15,11 @@ export type NewBookingEventType =
 
 export async function scheduleMandatoryReminder(
   evt: ExtendedCalendarEvent,
-  eventTypeWorkflows: Workflow[],
+  workflows: Workflow[],
   requiresConfirmation: boolean,
   hideBranding: boolean,
-  seatReferenceUid: string | undefined,
-  orgId?: number | null
+  seatReferenceUid: string | undefined
 ) {
-  const userId = evt.organizer.id;
-  const teamId = evt.team?.id;
-
-  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
-
   try {
     // here we need to also check if maybe another org or team workflow exists
     const hasExistingWorkflow = workflows.some((workflow) => {
