@@ -21,6 +21,7 @@ export interface HubspotToken extends TokenResponseIF {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -50,7 +51,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: metadata.slug, type: metadata.type }, hubspotToken, req);
 
-  const state = decodeOAuthState(req);
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "other", slug: "hubspot" })
   );

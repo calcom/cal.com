@@ -52,7 +52,7 @@ DropdownMenuContent.displayName = "DropdownMenuContent";
 
 type DropdownMenuLabelProps = ComponentProps<(typeof DropdownMenuPrimitive)["Label"]>;
 export const DropdownMenuLabel = (props: DropdownMenuLabelProps) => (
-  <DropdownMenuPrimitive.Label {...props} className="text-subtle px-3 py-2" />
+  <DropdownMenuPrimitive.Label {...props} className={classNames("text-subtle px-3 py-2", props.className)} />
 );
 
 type DropdownMenuItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
@@ -71,12 +71,34 @@ export const DropdownMenuGroup = DropdownMenuPrimitive.Group;
 
 type DropdownMenuCheckboxItemProps = ComponentProps<(typeof DropdownMenuPrimitive)["CheckboxItem"]>;
 export const DropdownMenuCheckboxItem = forwardRef<HTMLDivElement, DropdownMenuCheckboxItemProps>(
-  ({ children, ...props }, forwardedRef) => {
+  ({ children, checked, onCheckedChange, ...props }, forwardedRef) => {
     return (
-      <DropdownMenuPrimitive.CheckboxItem {...props} ref={forwardedRef} className="">
-        {children}
-        <DropdownMenuPrimitive.ItemIndicator>
-          <Icon name="circle-check" />
+      <DropdownMenuPrimitive.CheckboxItem
+        {...props}
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        ref={forwardedRef}
+        className="hover:text-emphasis text-default hover:bg-subtle flex flex-1 items-center space-x-2 px-3 py-2 hover:outline-none hover:ring-0 disabled:cursor-not-allowed">
+        <div className="w-full">{children}</div>
+        {!checked && (
+          <input
+            aria-disabled={true}
+            aria-label={typeof children === "string" ? `Not active ${children}` : undefined}
+            aria-readonly
+            checked={false}
+            type="checkbox"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default ml-auto h-4 w-4 rounded hover:cursor-pointer"
+          />
+        )}
+        <DropdownMenuPrimitive.ItemIndicator asChild>
+          <input
+            aria-disabled={true}
+            aria-readonly
+            aria-label={typeof children === "string" ? `Active ${children}` : undefined}
+            checked={true}
+            type="checkbox"
+            className="text-emphasis dark:text-muted focus:ring-emphasis border-default bg-default h-4 w-4 rounded hover:cursor-pointer"
+          />
         </DropdownMenuPrimitive.ItemIndicator>
       </DropdownMenuPrimitive.CheckboxItem>
     );
@@ -113,6 +135,7 @@ type DropdownItemProps = {
 } & ButtonOrLinkProps;
 
 type ButtonOrLinkProps = ComponentProps<"button"> & ComponentProps<"a">;
+
 export function ButtonOrLink({ href, ...props }: ButtonOrLinkProps) {
   const isLink = typeof href !== "undefined";
   const ButtonOrLink = isLink ? "a" : "button";

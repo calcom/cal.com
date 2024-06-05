@@ -126,7 +126,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               <div
                 key={type.id}
                 style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0">
                 <Icon
                   name="arrow-right"
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
