@@ -2337,6 +2337,9 @@
   "field_identifiers_as_variables": "Use field identifiers as variables for your custom event redirect",
   "field_identifiers_as_variables_with_example": "Use field identifiers as variables for your custom event redirect (e.g. {{variable}})",
   "account_already_linked": "Account is already linked",
+  "send_email": "Send email",
+  "mark_as_no_show": "Mark as no-show",
+  "unmark_as_no_show": "Unmark no-show",
   "account_unlinked_success": "Account unlinked successfully",
   "account_unlinked_error": "There was an error unlinking the account",
   "travel_schedule": "Travel Schedule",
@@ -2460,5 +2463,10 @@
   "unable_to_subscribe_to_the_platform": "An error occurred while trying to subscribe to the platform plan, please try again later",
   "updating_oauth_client_error": "An error occurred while updating the OAuth client, please try again later",
   "creating_oauth_client_error": "An error occurred while creating the OAuth client, please try again later",
+  "mark_as_no_show_title": "Mark as no show",
+  "x_marked_as_no_show": "{{x}} marked as no-show",
+  "x_unmarked_as_no_show": "{{x}} unmarked as no-show",
+  "no_show_updated": "No-show status updated for attendees",
+  "email_copied": "Email copied",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
