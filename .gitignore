@@ -3,6 +3,7 @@
 # .env file
 .env
 !packages/prisma/.env
+.remote-env
 
 # dependencies
 node_modules
