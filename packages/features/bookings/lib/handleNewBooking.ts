@@ -46,7 +46,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { getAllWorkflows, workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";

@@ -36,6 +36,7 @@ const createNewSeat = async (
     fullName,
     bookerEmail,
     responses,
+    workflows,
   } = rescheduleSeatedBookingObject;
   let { evt } = rescheduleSeatedBookingObject;
   let resultBooking: HandleSeatsResultBooking;
@@ -117,9 +118,7 @@ const createNewSeat = async (
     let isHostConfirmationEmailsDisabled = false;
     let isAttendeeConfirmationEmailDisabled = false;
 
-    const workflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
-
-    if (eventType.workflows) {
+    if (workflows) {
       isHostConfirmationEmailsDisabled =
         eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
       isAttendeeConfirmationEmailDisabled =

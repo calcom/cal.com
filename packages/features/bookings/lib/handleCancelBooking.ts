@@ -7,7 +7,7 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect, getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -320,11 +320,14 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  //Workflows - schedule reminders
-  if (bookingToDelete.eventType?.workflows) {
+  if (bookingToDelete.eventType) {
+    const eventTypeWorkflows =
+      bookingToDelete.eventType?.workflows.map((workflowRel) => workflowRel.workflow) ?? [];
+
+    const workflows = await getAllWorkflows(eventTypeWorkflows, organizerUserId, teamId, orgId);
+
     await sendCancelledReminders({
-      eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
-      orgId,
+      workflows,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {
         ...evt,
