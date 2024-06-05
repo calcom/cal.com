@@ -31,6 +31,7 @@ import {
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -185,15 +186,19 @@ export default function Success(props: PageProps) {
     },
   });
 
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
+
   useEffect(() => {
     if (noShow) {
-      noShowMutation.mutate({ bookingUid: bookingInfo.uid });
+      noShowMutation.mutate({ bookingUid: bookingInfo.uid, token });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const sendFeedback = async (rating: string, comment: string) => {
-    mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
+    mutation.mutate({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment, token });
   };
 
   function setIsCancellationMode(value: boolean) {

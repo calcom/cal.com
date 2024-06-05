@@ -4,8 +4,10 @@ import superjson from "superjson";
 
 import { forms } from "@calcom/app-store/routing-forms/trpc/procedures/forms";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
+import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { map } from "@calcom/features/flags/server/procedures/map";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { createServerSideHelpers } from "@calcom/trpc/react/server";
 import { createContext } from "@calcom/trpc/server/createContext";
 import { me } from "@calcom/trpc/server/routers/loggedInViewer/procedures/me";
@@ -57,7 +59,11 @@ const routerSlice = router({
 export async function ssrInit(context: GetServerSidePropsContext, options?: { noI18nPreload: boolean }) {
   const ctx = await createContext(context);
   const locale = await getLocale(context.req);
+  const session = await getServerSession(context);
   const i18n = await serverSideTranslations(locale, ["common", "vital"]);
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
 
   const ssr = createServerSideHelpers({
     router: routerSlice,
@@ -80,7 +86,7 @@ export async function ssrInit(context: GetServerSidePropsContext, options?: { no
     ssr.viewer.features.map.prefetch(),
     // Provides a better UX to the users who have already upgraded.
     ssr.viewer.teams.hasTeamPlan.prefetch(),
-    ssr.viewer.public.session.prefetch(),
+    ssr.viewer.public.session.prefetch({ token }),
     ssr.viewer.me.prefetch(),
   ]);
 

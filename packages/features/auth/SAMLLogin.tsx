@@ -1,9 +1,11 @@
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import type { Dispatch, SetStateAction } from "react";
 import { useFormContext } from "react-hook-form";
 import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -21,6 +23,10 @@ const schema = z.object({
 export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
   const { t } = useLocale();
   const methods = useFormContext();
+  const { data: session } = useSession();
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
 
   const mutation = trpc.viewer.public.samlTenantProduct.useMutation({
     onSuccess: async (data) => {
@@ -60,6 +66,7 @@ export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Prop
 
         mutation.mutate({
           email,
+          token,
         });
       }}>
       {t("signin_with_saml_oidc")}

@@ -6,6 +6,7 @@ import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booki
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
@@ -65,6 +66,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
   const eventData = await ssr.viewer.public.event.fetch({
@@ -73,6 +77,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isTeamEvent: true,
     org,
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
+    token,
   });
 
   if (!eventData) {

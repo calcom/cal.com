@@ -5,6 +5,8 @@ import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
 import { cookies, headers } from "next/headers";
 
+import { symmetricEncrypt } from "@calcom/lib/crypto";
+
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 import { getServerSideProps } from "@lib/d/[link]/[slug]/getServerSideProps";
 
@@ -20,6 +22,10 @@ export const generateMetadata = async ({
   const { entity, booking, user, slug, isTeamEvent } = pageProps;
   const rescheduleUid = booking?.uid;
   const { trpc } = await import("@calcom/trpc");
+  const meQuery = trpc.viewer.me.useQuery();
+  const token = encodeURIComponent(
+    symmetricEncrypt(meQuery.data?.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
   const { data: event } = trpc.viewer.public.event.useQuery(
     {
       username: user ?? "",
@@ -27,8 +33,9 @@ export const generateMetadata = async ({
       isTeamEvent,
       org: entity.orgSlug ?? null,
       fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
+      token,
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, enabled: !meQuery.isPending }
   );
   const profileName = event?.profile?.name ?? "";
   const title = event?.title ?? "";

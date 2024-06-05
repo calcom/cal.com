@@ -2,6 +2,7 @@ import { usePathname } from "next/navigation";
 import { shallow } from "zustand/shallow";
 
 import { useSchedule } from "@calcom/features/schedules";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { trpc } from "@calcom/trpc/react";
 
@@ -23,6 +24,10 @@ export const useEvent = () => {
   const [username, eventSlug] = useBookerStore((state) => [state.username, state.eventSlug], shallow);
   const isTeamEvent = useBookerStore((state) => state.isTeamEvent);
   const org = useBookerStore((state) => state.org);
+  const meQuery = trpc.viewer.me.useQuery();
+  const token = encodeURIComponent(
+    symmetricEncrypt(meQuery.data?.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
 
   const event = trpc.viewer.public.event.useQuery(
     {
@@ -30,8 +35,9 @@ export const useEvent = () => {
       eventSlug: eventSlug ?? "",
       isTeamEvent,
       org: org ?? null,
+      token,
     },
-    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
+    { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) && !meQuery.isPending }
   );
 
   return {

@@ -1,9 +1,11 @@
 import { isSupportedCountry } from "libphonenumber-js";
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
 import { classNames } from "@calcom/lib";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { trpc } from "@calcom/trpc/react";
 
 export type PhoneInputProps = {
@@ -61,11 +63,18 @@ function BasePhoneInput({ name, className = "", onChange, value, ...rest }: Phon
 
 const useDefaultCountry = () => {
   const [defaultCountry, setDefaultCountry] = useState("us");
-  const query = trpc.viewer.public.countryCode.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-    retry: false,
-  });
+  const { data: session } = useSession();
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
+  const query = trpc.viewer.public.countryCode.useQuery(
+    { token },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: false,
+    }
+  );
 
   useEffect(
     function refactorMeWithoutEffect() {

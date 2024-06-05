@@ -5,6 +5,8 @@ import { WithLayout } from "app/layoutHOC";
 import { type GetServerSidePropsContext } from "next";
 import { cookies, headers } from "next/headers";
 
+import { symmetricEncrypt } from "@calcom/lib/crypto";
+
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
 
 export const generateMetadata = async ({
@@ -19,6 +21,10 @@ export const generateMetadata = async ({
   const { eventData, user, slug, booking } = props;
   const entity = eventData.entity;
   const { trpc } = await import("@calcom/trpc");
+  const meQuery = trpc.viewer.me.useQuery();
+  const token = encodeURIComponent(
+    symmetricEncrypt(meQuery.data?.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
   const { data: event } = trpc.viewer.public.event.useQuery(
     {
       username: user,
@@ -26,8 +32,9 @@ export const generateMetadata = async ({
       isTeamEvent: false,
       org: entity.orgSlug ?? null,
       fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
+      token,
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, enabled: !meQuery.isPending }
   );
 
   const profileName = event?.profile?.name ?? "";

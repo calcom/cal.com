@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -9,6 +10,7 @@ import z from "zod";
 
 import { classNames } from "@calcom/lib";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
@@ -123,10 +125,15 @@ export default function Verify(props: inferSSRProps<typeof getServerSideProps>) 
   const routerQuery = useRouterQuery();
   const { t, sessionId, stripeCustomerId } = querySchema.parse(routerQuery);
   const [secondsLeft, setSecondsLeft] = useState(30);
+  const { data: session } = useSession();
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
   const { data } = trpc.viewer.public.stripeCheckoutSession.useQuery(
     {
       stripeCustomerId,
       checkoutSessionId: sessionId,
+      token,
     },
     {
       enabled: !!stripeCustomerId || !!sessionId,

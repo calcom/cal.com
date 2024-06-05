@@ -1,11 +1,13 @@
 import publicProcedure from "../../procedures/publicProcedure";
 import { importHandler, router } from "../../trpc";
 import { slotsRouter } from "../viewer/slots/_router";
+import { ZcountryCodeSchema } from "./countryCode.schema";
 import { i18nInputSchema } from "./i18n.schema";
 import { ZNoShowInputSchema } from "./noShow.schema";
 import { event } from "./procedures/event";
 import { session } from "./procedures/session";
 import { ZSamlTenantProductInputSchema } from "./samlTenantProduct.schema";
+import { ZssoConnectionsInputSchema } from "./ssoConnections.schema";
 import { ZStripeCheckoutSessionInputSchema } from "./stripeCheckoutSession.schema";
 import { ZSubmitRatingInputSchema } from "./submitRating.schema";
 
@@ -20,7 +22,7 @@ export const publicViewerRouter = router({
     const handler = await importHandler(namespaced("i18n"), () => import("./i18n.handler"));
     return handler(opts);
   }),
-  countryCode: publicProcedure.query(async (opts) => {
+  countryCode: publicProcedure.input(ZcountryCodeSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("countryCode"), () => import("./countryCode.handler"));
     return handler(opts);
   }),
@@ -49,7 +51,7 @@ export const publicViewerRouter = router({
   // REVIEW: This router is part of both the public and private viewer router?
   slots: slotsRouter,
   event,
-  ssoConnections: publicProcedure.query(async () => {
+  ssoConnections: publicProcedure.input(ZssoConnectionsInputSchema).query(async () => {
     const handler = await importHandler(
       namespaced("ssoConnections"),
       () => import("./ssoConnections.handler")

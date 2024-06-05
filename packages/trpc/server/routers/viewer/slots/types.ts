@@ -24,6 +24,7 @@ export const getScheduleSchema = z
     // whether to do team event or user event
     isTeamEvent: z.boolean().optional().default(false),
     orgSlug: z.string().optional(),
+    token: z.string(),
   })
   .transform((val) => {
     // Need this so we can pass a single username in the query string form public API
@@ -45,6 +46,7 @@ export const reserveSlotSchema = z
     // endTime ISOString
     slotUtcEndDate: z.string(),
     bookingUid: z.string().optional(),
+    token: z.string(),
   })
   .refine(
     (data) => !!data.eventTypeId || !!data.slotUtcStartDate || !!data.slotUtcEndDate,
@@ -61,4 +63,5 @@ export type Slot = {
 
 export const removeSelectedSlotSchema = z.object({
   uid: z.string().nullable(),
+  token: z.string(),
 });

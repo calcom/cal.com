@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -12,6 +13,7 @@ import { z } from "zod";
 import { SAMLLogin } from "@calcom/features/auth/SAMLLogin";
 import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,6 +55,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
+  const { data: session } = useSession();
   const formSchema = z
     .object({
       email: z
@@ -158,8 +161,11 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
     // fallback if error not found
     else setErrorMessage(errorMessages[res.error] || t("something_went_wrong"));
   };
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
 
-  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery();
+  const { data, isPending, error } = trpc.viewer.public.ssoConnections.useQuery({ token });
 
   useEffect(
     function refactorMeWithoutEffect() {

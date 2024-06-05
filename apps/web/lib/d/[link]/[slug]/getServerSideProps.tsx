@@ -5,6 +5,7 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookingForReschedule, getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
@@ -104,6 +105,9 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   }
 
   const isTeamEvent = !!hashedLink.eventType?.team?.id;
+  const token = encodeURIComponent(
+    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
 
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we c an show a 404 otherwise.
@@ -112,6 +116,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventSlug: slug,
     isTeamEvent,
     org,
+    token,
   });
 
   if (!eventData) {

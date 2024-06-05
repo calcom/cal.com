@@ -1,4 +1,5 @@
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { HeadSeo } from "@calcom/ui";
@@ -31,6 +32,10 @@ export const BookerSeo = (props: BookerSeoProps) => {
     bookingData,
   } = props;
   const { t } = useLocale();
+  const meQuery = trpc.viewer.me.useQuery();
+  const token = encodeURIComponent(
+    symmetricEncrypt(meQuery.data?.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
+  );
   const { data: event } = trpc.viewer.public.event.useQuery(
     {
       username,
@@ -38,8 +43,9 @@ export const BookerSeo = (props: BookerSeoProps) => {
       isTeamEvent,
       org: entity.orgSlug ?? null,
       fromRedirectOfNonOrgLink: entity.fromRedirectOfNonOrgLink,
+      token,
     },
-    { refetchOnWindowFocus: false }
+    { refetchOnWindowFocus: false, enabled: !meQuery.isPending }
   );
 
   const profileName = event?.profile.name ?? "";
