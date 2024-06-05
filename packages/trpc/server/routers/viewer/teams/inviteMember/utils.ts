@@ -44,7 +44,7 @@ export async function checkPermissions({
   teamId: number;
   isOrg?: boolean;
 }) {
-  // Checks if the team they are inviteing to IS the org. Not a child team
+  // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
     if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
@@ -85,7 +85,7 @@ export async function getTeamOrThrow(teamId: number) {
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
-export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | string[]) {
+export async function getUniqueUsernameOrEmailsOrThrow(usernameOrEmail: string | string[]) {
   const emailsToInvite = Array.isArray(usernameOrEmail)
     ? Array.from(new Set(usernameOrEmail))
     : [usernameOrEmail];
@@ -100,26 +100,35 @@ export async function getUsernameOrEmailsToInvite(usernameOrEmail: string | stri
   return emailsToInvite;
 }
 
+export const enum INVITE_STATUS {
+  USER_PENDING_MEMBER_OF_THE_ORG = "USER_PENDING_MEMBER_OF_THE_ORG",
+  USER_ALREADY_INVITED_OR_MEMBER = "USER_ALREADY_INVITED_OR_MEMBER",
+  USER_MEMBER_OF_OTHER_ORGANIZATION = "USER_MEMBER_OF_OTHER_ORGANIZATION",
+  CAN_BE_INVITED = "CAN_BE_INVITED",
+}
+
 export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) {
   const myLog = log.getSubLogger({ prefix: ["canBeInvited"] });
   myLog.debug("Checking if user can be invited", safeStringify({ invitee, team }));
   const alreadyInvited = invitee.teams?.find(({ teamId: membershipTeamId }) => team.id === membershipTeamId);
   if (alreadyInvited) {
-    return false;
+    return INVITE_STATUS.USER_ALREADY_INVITED_OR_MEMBER;
   }
 
-  const orgMembership = invitee.teams?.find((membersip) => membersip.teamId === team.parentId);
-  // invitee is invited to the org's team and is already part of the organization
+  const orgMembership = invitee.teams?.find((membership) => membership.teamId === team.parentId);
+
+  // An invitee here won't be a member of the team
+  // If he is invited to a sub-team and is already part of the organization.
   if (
     team.parentId &&
     UserRepository.isAMemberOfOrganization({ user: invitee, organizationId: team.parentId })
   ) {
-    return true;
+    return INVITE_STATUS.CAN_BE_INVITED;
   }
 
   // user invited to join a team inside an org, but has not accepted invite to org yet
   if (team.parentId && orgMembership && !orgMembership.accepted) {
-    return false;
+    return INVITE_STATUS.USER_PENDING_MEMBER_OF_THE_ORG;
   }
 
   if (
@@ -127,9 +136,9 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
     // Member of an organization is invited to join a team that is not a subteam of the organization
     invitee.profiles.find((profile) => profile.organizationId != team.parentId)
   ) {
-    return false;
+    return INVITE_STATUS.USER_MEMBER_OF_OTHER_ORGANIZATION;
   }
-  return true;
+  return INVITE_STATUS.CAN_BE_INVITED;
 }
 
 export async function getExistingUsersToInvite({
@@ -420,7 +429,7 @@ type TeamAndOrganizationSettings = Team & {
   organizationSettings?: OrganizationSettings | null;
 };
 
-export function getIsOrgVerified(
+export function getOrgState(
   isOrg: boolean,
   team: TeamAndOrganizationSettings & {
     parent: TeamAndOrganizationSettings | null;
