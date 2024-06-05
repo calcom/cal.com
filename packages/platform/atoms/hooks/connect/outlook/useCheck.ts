@@ -22,13 +22,13 @@ export const useCheck = ({ isAuth, onCheckError }: UseCheckProps) => {
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/calendars/office365/check`)
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
-            return { status: SUCCESS_STATUS, data: { allowConnect: true, checked: true } };
+            return { status: SUCCESS_STATUS, data: { allowConnect: false, checked: true } };
           }
           onCheckError?.(responseBody);
-          return { status: ERROR_STATUS, data: { allowConnect: false, checked: true } };
+          return { status: ERROR_STATUS, data: { allowConnect: true, checked: true } };
         });
     },
   });
 
-  return { allowConnect: check?.data?.allowConnect ?? false, checked: check?.data?.checked ?? false };
+  return { allowConnect: check?.data?.allowConnect ?? true, checked: check?.data?.checked ?? true };
 };
