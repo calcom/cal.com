@@ -7,8 +7,9 @@ import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
@@ -116,25 +117,45 @@ async function createOrganizationAndAddMembersAndTeams({
     };
   })[] = [];
 
-  // Create all users first
   try {
     for (const member of orgMembers) {
-      const orgMemberInDb = {
-        ...(await prisma.user.create({
-          data: {
-            ...member.memberData,
-            emailVerified: new Date(),
-            password: {
-              create: {
-                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+      const newUser = await createUserAndEventType({
+        user: {
+          ...member.memberData,
+          password: member.memberData.password.create?.hash,
+        },
+        eventTypes: [
+          {
+            title: "30min",
+            slug: "30min",
+            length: 30,
+            _bookings: [
+              {
+                uid: uuid(),
+                title: "30min",
+                startTime: dayjs().add(1, "day").toDate(),
+                endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
               },
-            },
+            ],
           },
-        })),
+        ],
+      });
+
+      const orgMemberInDb = {
+        ...newUser,
         inTeams: member.inTeams,
         orgMembership: member.orgMembership,
         orgProfile: member.orgProfile,
       };
+
+      await prisma.tempOrgRedirect.create({
+        data: {
+          fromOrgId: 0,
+          type: RedirectType.User,
+          from: member.memberData.username,
+          toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+        },
+      });
 
       orgMembersInDb.push(orgMemberInDb);
     }
@@ -145,6 +166,7 @@ async function createOrganizationAndAddMembersAndTeams({
         return;
       }
     }
+    console.error(e);
   }
 
   await Promise.all([
@@ -179,6 +201,11 @@ async function createOrganizationAndAddMembersAndTeams({
         create: orgMembersInDb.map((member) => ({
           uid: uuid(),
           username: member.orgProfile.username,
+          movedFromUser: {
+            connect: {
+              id: member.id,
+            },
+          },
           user: {
             connect: {
               id: member.id,
@@ -853,6 +880,51 @@ async function main() {
               role: "ADMIN",
             },
           ],
+        },
+        {
+          memberData: {
+            email: "member1-acme@example.com",
+            password: {
+              create: {
+                hash: "member1-acme",
+              },
+            },
+            username: "member1-acme",
+            name: "Member 1",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member1",
+          },
+          inTeams: [
+            {
+              slug: "team1",
+              role: "ADMIN",
+            },
+          ],
+        },
+        {
+          memberData: {
+            email: "member2-acme@example.com",
+            password: {
+              create: {
+                hash: "member2-acme",
+              },
+            },
+            username: "member2-acme",
+            name: "Member 2",
+          },
+          orgMembership: {
+            role: "MEMBER",
+            accepted: true,
+          },
+          orgProfile: {
+            username: "member2",
+          },
+          inTeams: [],
         },
       ],
     },

@@ -1,17 +1,17 @@
 import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
-import { Badge, Button, showToast, SkeletonButton, SkeletonText } from "@calcom/ui";
-import { BookOpen, Check, ExternalLink, File, Flag, Mail, Shield } from "@calcom/ui/components/icon";
+import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";
 
@@ -22,6 +22,7 @@ export type AppPageProps = {
   isGlobal?: AppType["isGlobal"];
   logo: string;
   slug: string;
+  dirName: string | undefined;
   variant: string;
   body: React.ReactNode;
   categories: string[];
@@ -69,8 +70,11 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
+  dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
+  const searchParams = useCompatSearchParams();
+
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
   const mutation = useAddAppMutation(null, {
@@ -119,6 +123,11 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
+  useEffect(() => {
+    if (searchParams?.get("defaultInstall") === "true") {
+      mutation.mutate({ type, variant, slug, defaultInstall: true });
+    }
+  }, []);
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -196,7 +205,7 @@ export const AppPage = ({
           isGlobal ||
           (existingCredentials.length > 0 && allowedMultipleInstalls ? (
             <div className="flex space-x-3">
-              <Button StartIcon={Check} color="secondary" disabled>
+              <Button StartIcon="check" color="secondary" disabled>
                 {existingCredentials.length > 0
                   ? t("active_install", { count: existingCredentials.length })
                   : t("default")}
@@ -224,6 +233,7 @@ export const AppPage = ({
                         multiInstall
                         concurrentMeetings={concurrentMeetings}
                         paid={paid}
+                        dirName={dirName}
                         {...props}
                       />
                     );
@@ -263,6 +273,7 @@ export const AppPage = ({
                     credentials={appDbQuery.data?.credentials}
                     concurrentMeetings={concurrentMeetings}
                     paid={paid}
+                    dirName={dirName}
                     {...props}
                   />
                 );
@@ -323,7 +334,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis text-sm font-normal no-underline hover:underline"
                 href={docs}>
-                <BookOpen className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
+                <Icon name="book-open" className="text-subtle -mt-1 mr-1 inline h-4 w-4" />
                 {t("documentation")}
               </a>
             </li>
@@ -335,7 +346,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={website}>
-                <ExternalLink className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="external-link" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {website.replace("https://", "")}
               </a>
             </li>
@@ -347,7 +358,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={`mailto:${email}`}>
-                <Mail className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="mail" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
 
                 {email}
               </a>
@@ -360,7 +371,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={tos}>
-                <File className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="file" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("terms_of_service")}
               </a>
             </li>
@@ -372,7 +383,7 @@ export const AppPage = ({
                 rel="noreferrer"
                 className="text-emphasis font-normal no-underline hover:underline"
                 href={privacy}>
-                <Shield className="text-subtle -mt-px mr-1 inline h-4 w-4" />
+                <Icon name="shield" className="text-subtle -mt-px mr-1 inline h-4 w-4" />
                 {t("privacy_policy")}
               </a>
             </li>
@@ -383,7 +394,7 @@ export const AppPage = ({
           {t("every_app_published", { appName: APP_NAME, companyName: COMPANY_NAME })}
         </span>
         <a className="mt-2 block text-xs text-red-500" href={`mailto:${SUPPORT_MAIL_ADDRESS}`}>
-          <Flag className="inline h-3 w-3" /> {t("report_app")}
+          <Icon name="flag" className="inline h-3 w-3" /> {t("report_app")}
         </a>
       </div>
     </div>

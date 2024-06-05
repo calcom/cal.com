@@ -33,6 +33,19 @@ testBothFutureAndLegacyRoutes.describe("App Store - Authed", (routeVariant) => {
     await expect(page.locator(`text=Connect to Apple Server`)).toBeVisible();
   });
 
+  test("Can add Google calendar from the app store", async ({ page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+
+    await page.goto("/apps/google-calendar");
+
+    await page.getByTestId("install-app-button").click();
+
+    await page.waitForNavigation();
+
+    await expect(page.url()).toContain("accounts.google.com");
+  });
+
   test("Installed Apps - Navigation", async ({ page, users }) => {
     const user = await users.create();
     await user.apiLogin();

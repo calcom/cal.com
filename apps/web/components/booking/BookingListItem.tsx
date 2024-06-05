@@ -29,23 +29,13 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  Icon,
   MeetingTimeInTimezones,
   showToast,
   TableActions,
   TextAreaField,
   Tooltip,
 } from "@calcom/ui";
-import {
-  Ban,
-  Check,
-  Clock,
-  CreditCard,
-  MapPin,
-  RefreshCcw,
-  Send,
-  X,
-  Users,
-} from "@calcom/ui/components/icon";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
@@ -77,7 +67,7 @@ function BookingListItem(booking: BookingItemProps) {
     t,
     i18n: { language },
   } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [rejectionReason, setRejectionReason] = useState<string>("");
   const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
@@ -151,7 +141,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setRejectionDialogIsOpen(true);
       },
-      icon: Ban,
+      icon: "ban",
       disabled: mutation.isPending,
     },
     // For bookings with payment, only confirm if the booking is paid for
@@ -165,7 +155,7 @@ function BookingListItem(booking: BookingItemProps) {
             onClick: () => {
               bookingConfirm(true);
             },
-            icon: Check,
+            icon: "check" as const,
             disabled: mutation.isPending,
           },
         ]
@@ -175,7 +165,7 @@ function BookingListItem(booking: BookingItemProps) {
   const editBookingActions: ActionType[] = [
     {
       id: "reschedule",
-      icon: Clock,
+      icon: "clock" as const,
       label: t("reschedule_booking"),
       href: `${bookerUrl}/reschedule/${booking.uid}${
         booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
@@ -183,7 +173,7 @@ function BookingListItem(booking: BookingItemProps) {
     },
     {
       id: "reschedule_request",
-      icon: Send,
+      icon: "send" as const,
       iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
       label: t("send_reschedule_request"),
       onClick: () => {
@@ -196,7 +186,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setIsOpenLocationDialog(true);
       },
-      icon: MapPin,
+      icon: "map-pin" as const,
     },
   ];
 
@@ -234,7 +224,7 @@ function BookingListItem(booking: BookingItemProps) {
         isTabRecurring && isRecurring ? "&allRemainingBookings=true" : ""
       }${booking.seatsReferences.length ? `&seatReferenceUid=${getSeatReferenceUid()}` : ""}
       `,
-      icon: X,
+      icon: "x" as const,
     },
     {
       id: "edit_booking",
@@ -251,7 +241,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setChargeCardDialogIsOpen(true);
       },
-      icon: CreditCard,
+      icon: "credit-card" as const,
     },
   ];
 
@@ -265,7 +255,7 @@ function BookingListItem(booking: BookingItemProps) {
 
   const RequestSentMessage = () => {
     return (
-      <Badge startIcon={Send} size="md" variant="gray" data-testid="request_reschedule_sent">
+      <Badge startIcon="send" size="md" variant="gray" data-testid="request_reschedule_sent">
         {t("reschedule_request_sent")}
       </Badge>
     );
@@ -652,7 +642,8 @@ const RecurringBookingsTooltip = ({
                 );
               })}>
               <div className="text-default">
-                <RefreshCcw
+                <Icon
+                  name="refresh-ccw"
                   strokeWidth="3"
                   className="text-muted float-left mr-1 mt-1.5 inline-block h-3 w-3"
                 />

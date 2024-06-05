@@ -1,5 +1,6 @@
 import jackson from "@calcom/features/ee/sso/lib/jackson";
-import { canAccess, samlProductID, samlTenantID, tenantPrefix } from "@calcom/features/ee/sso/lib/saml";
+import { canAccess } from "@calcom/features/ee/sso/lib/saml";
+import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
 
@@ -26,9 +27,23 @@ export const getHandler = async ({ ctx, input }: Options) => {
     });
   }
 
-  const tenant = input.organizationId ? `${tenantPrefix}${input.organizationId}` : (samlTenantID as string);
+  // Right now dsync is only available for organizations
+  if (!input.organizationId) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Organization ID is required",
+    });
+  }
 
-  const { data, error } = await dsyncController.directories.getByTenantAndProduct(tenant, samlProductID);
+  const dsyncData = await prisma.dSyncData.findUnique({
+    where: {
+      organizationId: input.organizationId,
+    },
+  });
+
+  if (!dsyncData) return null;
+
+  const { data, error } = await dsyncController.directories.get(dsyncData.directoryId);
 
   if (error) {
     console.error("Error fetching directory sync connection", error);

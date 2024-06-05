@@ -1,10 +1,5 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, test, vi, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { BookingStatus } from "@calcom/prisma/enums";
 import {
   getBooker,
   TestData,
@@ -20,6 +15,12 @@ import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { getMockRequestDataForCancelBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForCancelBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe, test, vi, expect } from "vitest";
+
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import * as handleSeatsModule from "../handleSeats";
 
@@ -187,7 +188,9 @@ describe("handleSeats", () => {
         body: mockBookingData,
       });
 
-      await handleNewBooking(req);
+      const createdBooking = await handleNewBooking(req);
+
+      expect(createdBooking.metadata).toHaveProperty("videoCallUrl");
 
       const handleSeatsCall = spy.mock.calls[0][0];
 

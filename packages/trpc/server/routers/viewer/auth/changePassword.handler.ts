@@ -22,7 +22,17 @@ export const changePasswordHandler = async ({ input, ctx }: ChangePasswordOption
   const { user } = ctx;
 
   if (user.identityProvider !== IdentityProvider.CAL) {
-    throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
+    const userWithPassword = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+      select: {
+        password: true,
+      },
+    });
+    if (!userWithPassword?.password?.hash) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "THIRD_PARTY_IDENTITY_PROVIDER_ENABLED" });
+    }
   }
 
   const currentPasswordQuery = await prisma.userPassword.findFirst({
