@@ -5,17 +5,17 @@ import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
+import type { EventActuallyUsed } from "../../types";
 
 export interface EventMembersProps {
   /**
    * Used to determine whether all members should be shown or not.
    * In case of Round Robin type, members aren't shown.
    */
-  schedulingType: PublicEvent["schedulingType"];
-  users: PublicEvent["users"];
-  profile: PublicEvent["profile"];
-  entity: PublicEvent["entity"];
+  schedulingType: EventActuallyUsed["schedulingType"];
+  users: EventActuallyUsed["users"];
+  profile: EventActuallyUsed["profile"];
+  entity: EventActuallyUsed["entity"];
 }
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {

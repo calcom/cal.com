@@ -1,11 +1,11 @@
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
 
 interface IInstantBookingProps {
   onConnectNow: () => void;
-  event: NonNullable<useEventReturnType["data"]>;
+  event: Pick<EventActuallyUsed, "entity" | "schedulingType" | "users">;
 }
 
 export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) => {

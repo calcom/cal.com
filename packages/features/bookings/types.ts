@@ -6,6 +6,44 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 export type PublicEvent = NonNullable<RouterOutputs["viewer"]["public"]["event"]>;
+
+export type EventActuallyUsedQuery = {
+  isSuccess: boolean;
+  isError: boolean;
+  isPending: boolean;
+  data?: EventActuallyUsed | null;
+};
+
+export type EventActuallyUsed = Pick<
+  PublicEvent,
+  | "id"
+  | "length"
+  | "slug"
+  | "schedulingType"
+  | "recurringEvent"
+  | "recurringEvent"
+  | "users"
+  | "profile"
+  | "entity"
+  | "locations"
+  | "metadata"
+  | "isDynamic"
+  | "requiresConfirmation"
+  | "price"
+  | "currency"
+  | "lockTimeZoneToggleOnBookingPage"
+  | "schedule"
+  | "seatsPerTimeSlot"
+  | "title"
+  | "description"
+  | "forwardParamsSuccessRedirect"
+  | "successRedirectUrl"
+  | "hosts"
+  | "bookingFields"
+  | "seatsShowAvailabilityCount"
+  | "isInstantEvent"
+>;
+
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 
 export type EventPrice = { currency: string; price: number; displayAlternateSymbol?: boolean };

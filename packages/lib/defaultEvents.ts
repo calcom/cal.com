@@ -120,7 +120,7 @@ const dynamicEvent = {
   metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
 };
 
-const defaultEvents = [dynamicEvent];
+export const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;

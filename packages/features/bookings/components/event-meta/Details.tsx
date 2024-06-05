@@ -7,7 +7,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Icon, type IconName } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
+import type { EventActuallyUsed } from "../../types";
 import { EventDetailBlocks } from "../../types";
 import { AvailableEventLocations } from "./AvailableEventLocations";
 import { EventDuration } from "./Duration";
@@ -15,7 +15,17 @@ import { EventOccurences } from "./Occurences";
 import { Price } from "./Price";
 
 type EventDetailsPropsBase = {
-  event: PublicEvent;
+  event: Pick<
+    EventActuallyUsed,
+    | "currency"
+    | "price"
+    | "locations"
+    | "requiresConfirmation"
+    | "recurringEvent"
+    | "length"
+    | "metadata"
+    | "isDynamic"
+  >;
   className?: string;
 };
 

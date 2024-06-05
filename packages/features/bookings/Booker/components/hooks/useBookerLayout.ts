@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { shallow } from "zustand/shallow";
 
 import { useEmbedType, useEmbedUiConfig, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
@@ -9,13 +10,12 @@ import { defaultBookerLayoutSettings } from "@calcom/prisma/zod-utils";
 import { extraDaysConfig } from "../../config";
 import { useBookerStore } from "../../store";
 import type { BookerLayout } from "../../types";
-import type { useEventReturnType } from "../../utils/event";
 import { validateLayout } from "../../utils/layout";
 import { getQueryParam } from "../../utils/query-param";
 
 export type UseBookerLayoutType = ReturnType<typeof useBookerLayout>;
 
-export const useBookerLayout = (event: useEventReturnType["data"]) => {
+export const useBookerLayout = (event: Pick<EventActuallyUsed, "profile"> | undefined | null) => {
   const [_layout, setLayout] = useBookerStore((state) => [state.layout, state.setLayout], shallow);
   const isEmbed = useIsEmbed();
   const isMobile = useMediaQuery("(max-width: 768px)");

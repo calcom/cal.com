@@ -4,13 +4,13 @@ import { shallow } from "zustand/shallow";
 import dayjs from "@calcom/dayjs";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
 import { trpc } from "@calcom/trpc";
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
-export const useSlots = (event: useEventReturnType) => {
+export const useSlots = (event: { data?: Pick<EventActuallyUsed, "id" | "length"> | null }) => {
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],

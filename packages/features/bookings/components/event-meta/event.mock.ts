@@ -1,6 +1,6 @@
-import type { PublicEvent } from "bookings/types";
+import type { EventActuallyUsed } from "bookings/types";
 
-export const mockEvent: PublicEvent = {
+export const mockEvent: EventActuallyUsed = {
   id: 1,
   title: "Quick check-in",
   slug: "quick-check-in",
@@ -14,4 +14,4 @@ export const mockEvent: PublicEvent = {
   schedulingType: null,
   length: 30,
   locations: [{ type: "integrations:google:meet" }, { type: "integrations:zoom" }],
-} as PublicEvent; // TODO: complete mock and remove type assertion
+} as unknown as EventActuallyUsed; // TODO: complete mock and remove type assertion

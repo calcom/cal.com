@@ -7,6 +7,7 @@ import { useIsPlatform } from "@calcom/atoms/monorepo";
 import type { IOutOfOfficeData } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { OutOfOfficeInSlots } from "@calcom/features/bookings/Booker/components/OutOfOfficeInSlots";
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import type { Slots } from "@calcom/features/schedules";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,7 +16,6 @@ import type { IGetAvailableSlots } from "@calcom/trpc/server/routers/viewer/slot
 import { Button, Icon, SkeletonText } from "@calcom/ui";
 
 import { useBookerStore } from "../Booker/store";
-import type { useEventReturnType } from "../Booker/utils/event";
 import { getQueryParam } from "../Booker/utils/query-param";
 import { useTimePreferences } from "../lib";
 import { useCheckOverlapWithOverlay } from "../lib/useCheckOverlapWithOverlay";
@@ -36,7 +36,9 @@ type AvailableTimesProps = {
   showTimeFormatToggle?: boolean;
   className?: string;
   selectedSlots?: string[];
-  event: useEventReturnType;
+  event: {
+    data?: Pick<EventActuallyUsed, "length"> | null;
+  };
   customClassNames?: string;
 };
 
@@ -54,7 +56,9 @@ const SlotItem = ({
   selectedSlots?: string[];
   onTimeSelect: TOnTimeSelect;
   showAvailableSeatsCount?: boolean | null;
-  event: useEventReturnType;
+  event: {
+    data?: Pick<EventActuallyUsed, "length"> | null;
+  };
   customClassNames?: string;
 }) => {
   const { t } = useLocale();

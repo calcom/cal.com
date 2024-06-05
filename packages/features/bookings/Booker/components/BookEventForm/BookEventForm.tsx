@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
-import type { useEventReturnType } from "../../utils/event";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
@@ -43,7 +43,11 @@ export const BookEventForm = ({
   extraOptions,
   isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
-  eventQuery: useEventReturnType;
+  eventQuery: {
+    isError: boolean;
+    isPending: boolean;
+    data?: Pick<EventActuallyUsed, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+  };
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;

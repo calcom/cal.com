@@ -7,7 +7,7 @@ import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Badge } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
+import type { EventActuallyUsed } from "../../types";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -36,7 +36,11 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
   return hourStr || minStr;
 };
 
-export const EventDuration = ({ event }: { event: PublicEvent }) => {
+export const EventDuration = ({
+  event,
+}: {
+  event: Pick<EventActuallyUsed, "length" | "metadata" | "isDynamic">;
+}) => {
   const { t } = useLocale();
   const isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [

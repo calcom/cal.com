@@ -8,9 +8,9 @@ import { Tooltip, Alert } from "@calcom/ui";
 import { Input } from "@calcom/ui";
 
 import { useTimePreferences } from "../../lib";
-import type { PublicEvent } from "../../types";
+import type { EventActuallyUsed } from "../../types";
 
-export const EventOccurences = ({ event }: { event: PublicEvent }) => {
+export const EventOccurences = ({ event }: { event: Pick<EventActuallyUsed, "recurringEvent"> }) => {
   const maxOccurences = event.recurringEvent?.count || null;
   const { t, i18n } = useLocale();
   const [setRecurringEventCount, recurringEventCount, setOccurenceCount, occurenceCount] = useBookerStore(

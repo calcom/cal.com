@@ -2,20 +2,23 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
+import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { useBookerStore } from "../store";
-import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
 
 export const DatePicker = ({
   event,
   schedule,
   classNames,
 }: {
-  event: useEventReturnType;
+  event: {
+    data?: Pick<EventActuallyUsed, "users"> | null;
+  };
   schedule: useScheduleForEventReturnType;
   classNames?: {
     datePickerContainer?: string;
