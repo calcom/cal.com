@@ -15,7 +15,7 @@ import type { ScheduleTextReminderAction } from "./smsReminderManager";
 import { scheduleSMSReminder } from "./smsReminderManager";
 import { scheduleWhatsappReminder } from "./whatsappReminderManager";
 
-type ExtendedCalendarEvent = CalendarEvent & {
+export type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: { slug?: string };
 };
@@ -222,7 +222,7 @@ export interface SendCancelledRemindersArgs {
   orgId?: number | null;
 }
 
-const getAllWorkflows = async (
+export const getAllWorkflows = async (
   eventTypeWorkflows: Workflow[],
   userId?: number | null,
   teamId?: number | null,

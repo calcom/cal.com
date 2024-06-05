@@ -1,10 +1,12 @@
 import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import type { BookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+
+import type { ExtendedCalendarEvent } from "./reminderScheduler";
+import { getAllWorkflows } from "./reminderScheduler";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
@@ -13,12 +15,18 @@ export type NewBookingEventType =
   | Awaited<ReturnType<typeof getEventTypesFromDB>>;
 
 export async function scheduleMandatoryReminder(
-  evt: BookingInfo,
-  workflows: Workflow[],
+  evt: ExtendedCalendarEvent,
+  eventTypeWorkflows: Workflow[],
   requiresConfirmation: boolean,
   hideBranding: boolean,
-  seatReferenceUid: string | undefined
+  seatReferenceUid: string | undefined,
+  orgId?: number | null
 ) {
+  const userId = evt.organizer.id;
+  const teamId = evt.team?.id;
+
+  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+
   try {
     // here we need to also check if maybe another org or team workflow exists
     const hasExistingWorkflow = workflows.some((workflow) => {

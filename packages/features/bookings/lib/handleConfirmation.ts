@@ -256,20 +256,20 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: booking.eventType?.teamId ?? null },
+      parentId: booking?.eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
   try {
-    const teamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: booking.eventType?.teamId ?? null },
-        parentId: booking?.eventType?.parentId ?? null,
-      },
-    });
-
-    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
-
-    const userId = triggerForUser ? booking.userId : null;
-
-    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
     const subscribersBookingCreated = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -433,7 +433,8 @@ export async function handleConfirmation(args: {
         eventTypeWorkflows,
         false,
         !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
+        evt.attendeeSeatId,
+        orgId
       );
 
       await scheduleWorkflowReminders({

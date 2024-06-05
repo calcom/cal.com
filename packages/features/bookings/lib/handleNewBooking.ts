@@ -2475,7 +2475,8 @@ async function handler(
     eventTypeWorkflows,
     !isConfirmedByDefault,
     !!eventType.owner?.hideBranding,
-    evt.attendeeSeatId
+    evt.attendeeSeatId,
+    orgId
   );
 
   try {
