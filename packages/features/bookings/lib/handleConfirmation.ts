@@ -291,8 +291,6 @@ export async function handleConfirmation(args: {
 
       await scheduleWorkflowReminders({
         eventTypeWorkflows,
-        teamId,
-        userId,
         orgId,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,

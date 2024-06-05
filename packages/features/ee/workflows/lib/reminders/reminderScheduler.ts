@@ -56,8 +56,6 @@ export interface ScheduleWorkflowRemindersArgs extends ProcessWorkflowStepParams
   isNotConfirmed?: boolean;
   isRescheduleEvent?: boolean;
   isFirstRecurringEvent?: boolean;
-  userId?: number | null;
-  teamId?: number | null;
   orgId?: number | null;
 }
 
@@ -174,13 +172,11 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
-    userId,
-    teamId,
     orgId,
   } = args;
   if (isNotConfirmed) return;
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
 
   if (!workflows.length) return;
 
@@ -221,8 +217,6 @@ export interface SendCancelledRemindersArgs {
   smsReminderNumber: string | null;
   evt: ExtendedCalendarEvent;
   hideBranding?: boolean;
-  userId?: number | null;
-  teamId?: number | null;
   orgId?: number | null;
 }
 
@@ -316,9 +310,9 @@ const getAllWorkflows = async (
 };
 
 export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) => {
-  const { eventTypeWorkflows, smsReminderNumber, evt, hideBranding, userId, teamId, orgId } = args;
+  const { eventTypeWorkflows, smsReminderNumber, evt, hideBranding, orgId } = args;
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
 
   if (!workflows.length) return;
 

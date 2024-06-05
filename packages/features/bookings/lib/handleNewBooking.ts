@@ -2481,9 +2481,7 @@ async function handler(
   try {
     await scheduleWorkflowReminders({
       eventTypeWorkflows,
-      userId: organizerUser.id ?? undefined,
       orgId: orgId,
-      teamId,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,

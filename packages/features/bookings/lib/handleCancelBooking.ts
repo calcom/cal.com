@@ -327,8 +327,6 @@ async function handler(req: CustomRequest) {
   if (bookingToDelete.eventType?.workflows) {
     await sendCancelledReminders({
       eventTypeWorkflows: bookingToDelete.eventType.workflows.map((workflowRel) => workflowRel.workflow),
-      userId: bookingToDelete.eventType.userId,
-      teamId,
       orgId,
       smsReminderNumber: bookingToDelete.smsReminderNumber,
       evt: {

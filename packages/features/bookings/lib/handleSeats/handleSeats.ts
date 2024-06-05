@@ -103,8 +103,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     try {
       await scheduleWorkflowReminders({
         eventTypeWorkflows: eventType.workflows.map((workflowRel) => workflowRel.workflow),
-        userId: eventType.userId,
-        teamId: eventType.team?.id,
         orgId,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
