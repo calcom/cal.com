@@ -101,7 +101,7 @@ const Locations: React.FC<LocationsProps> = ({
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
       // Skip "Organizer's Default App" for non-team members
-      return team?.id ? option.label !== t("organizer_default_conferencing_app") : true;
+      return !team?.id ? option.label !== t("organizer_default_conferencing_app") : true;
     });
 
     return {
