@@ -43,9 +43,11 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const { data, isPending: isPendingEventType } = trpc.viewer.eventTypes.getByViewer.useQuery();
 
-  const teamOptions =
+  const { data: otherTeams, isPending: isPendingTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+
+  const profileTeamsOptions =
     isOrg && data
       ? data?.profiles
           .filter((profile) => !!profile.teamId)
@@ -56,6 +58,17 @@ export default function WorkflowDetailsPage(props: Props) {
             };
           })
       : [];
+
+  const otherTeamsOptions = otherTeams
+    ? otherTeams.map((team) => {
+        return {
+          value: String(team.id) || "",
+          label: team.name || team.slug || "",
+        };
+      })
+    : [];
+
+  const teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
 
   const searchParams = useSearchParams();
   const eventTypeId = searchParams?.get("eventTypeId");
@@ -170,7 +183,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={isOrg ? teamOptions : allEventTypeOptions}
                   isDisabled={props.readOnly || form.getValues("selectAll")}
-                  isLoading={isPending}
+                  isLoading={isPendingEventType || isPendingTeams}
                   className="w-full md:w-64"
                   setSelected={setSelectedOptions}
                   selected={selectedOptions}
