@@ -4,7 +4,6 @@ import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/l
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
-import { ORGANIZATION_MIN_SEATS } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -12,9 +11,11 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
 const teamPaymentMetadataSchema = z.object({
+  // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
   paymentId: z.string(),
   subscriptionId: z.string(),
   subscriptionItemId: z.string(),
+  orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
 
 /** Used to prevent double charges for the same team */
@@ -81,17 +82,28 @@ export const generateTeamCheckoutSession = async ({
  */
 export const purchaseTeamOrOrgSubscription = async (input: {
   teamId: number;
-  seats: number;
+  /**
+   * The actual number of seats in the team.
+   * The seats that we would charge for could be more than this depending on the MINIMUM_NUMBER_OF_ORG_SEATS in case of an organization
+   * For a team it would be the same as this value
+   */
+  seatsUsed: number;
+  /**
+   * If provided, this is the exact number we would charge for.
+   */
+  seatsToChargeFor?: number | null;
   userId: number;
   isOrg?: boolean;
   pricePerSeat: number | null;
 }) => {
-  const { teamId, seats, userId, isOrg, pricePerSeat } = input;
+  const { teamId, seatsToChargeFor, seatsUsed, userId, isOrg, pricePerSeat } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
 
-  // For orgs, enforce minimum of 30 seats
-  const quantity = isOrg ? Math.max(seats, MINIMUM_NUMBER_OF_ORG_SEATS) : seats;
+  // For orgs, enforce minimum of MINIMUM_NUMBER_OF_ORG_SEATS seats if `seatsToChargeFor` not set
+  const seats = isOrg ? Math.max(seatsUsed, MINIMUM_NUMBER_OF_ORG_SEATS) : seatsUsed;
+  const quantity = seatsToChargeFor ? seatsToChargeFor : seats;
+
   const customer = await getStripeCustomerIdFromUserId(userId);
 
   const session = await stripe.checkout.sessions.create({
@@ -169,7 +181,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }
 };
 
-const getTeamWithPaymentMetadata = async (teamId: number) => {
+export const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
     where: { id: teamId },
     select: { metadata: true, members: true, isOrganization: true },
@@ -200,7 +212,10 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
      **/
     if (!url) return;
     const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId, subscriptionItemId } = team.metadata;
+    const { subscriptionId, subscriptionItemId, orgSeats } = team.metadata;
+    // Either it would be custom pricing where minimum number of seats are changed(available in orgSeats) or it would be default MINIMUM_NUMBER_OF_ORG_SEATS
+    // We can't go below this quantity for subscription
+    const orgMinimumSubscriptionQuantity = orgSeats || MINIMUM_NUMBER_OF_ORG_SEATS;
     const membershipCount = team.members.length;
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     const subscriptionQuantity = subscription.items.data.find(
@@ -208,9 +223,9 @@ export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
     )?.quantity;
     if (!subscriptionQuantity) throw new Error("Subscription not found");
 
-    if (team.isOrganization && membershipCount < ORGANIZATION_MIN_SEATS) {
+    if (team.isOrganization && membershipCount < orgMinimumSubscriptionQuantity) {
       console.info(
-        `Org ${teamId} has less members than the min ${ORGANIZATION_MIN_SEATS}, skipping updating subscription.`
+        `Org ${teamId} has less members than the min required ${orgMinimumSubscriptionQuantity}, skipping updating subscription.`
       );
       return;
     }
