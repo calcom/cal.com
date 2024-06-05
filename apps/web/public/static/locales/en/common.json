@@ -2042,6 +2042,7 @@
   "organization_banner_title": "Manage organizations with multiple teams",
   "set_up_your_organization": "Set up your organization",
   "set_up_your_platform_organization": "Set up your platform",
+  "platform_account_warning": "Do not use your personal Cal.com account or account used to manage teams and organizations. Create a new Cal.com account specifically for setting up the Platform and only then continue on this page.",
   "organizations_description": "Organizations are shared environments where teams can create shared event types, apps, workflows and more.",
   "platform_organization_description": "Cal.com Platform lets you integrate scheduling effortlessly into your app using platform apis and atoms.",
   "must_enter_organization_name": "Must enter an organization name",

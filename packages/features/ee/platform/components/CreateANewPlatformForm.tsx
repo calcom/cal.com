@@ -90,6 +90,9 @@ const CreateANewPlatformFormChild = ({ session }: { session: Ensure<SessionConte
           }
         }}>
         <div>
+          <Alert severity="warning" title={t("platform_account_warning")} />
+        </div>
+        <div>
           {serverErrorMessage && (
             <div className="mb-4">
               <Alert severity="error" message={serverErrorMessage} />
