@@ -53,7 +53,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
   );
 };
 
-export type PersonalAccountProps = Pick<User, "id" | "avatar" | "name"> & { alreadyInstalled: boolean };
+export type PersonalAccountProps = Pick<User, "id" | "avatarUrl" | "name"> & { alreadyInstalled: boolean };
 
 export type TeamsProp = (Pick<Team, "id" | "name" | "logoUrl"> & {
   alreadyInstalled: boolean;
@@ -81,7 +81,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
           testId="install-app-button-personal"
-          avatar={personalAccount.avatar ?? ""}
+          avatar={personalAccount.avatarUrl ?? ""}
           name={personalAccount.name ?? ""}
           alreadyInstalled={personalAccount.alreadyInstalled}
           onClick={() => onSelect()}

@@ -580,7 +580,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const personalAccount = {
       id: user.id,
       name: user.name,
-      avatar: user.avatarUrl,
+      avatarUrl: user.avatarUrl,
       alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
     };
 
