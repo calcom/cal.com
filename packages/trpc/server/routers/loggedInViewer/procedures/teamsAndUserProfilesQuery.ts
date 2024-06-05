@@ -1,8 +1,8 @@
 import authedProcedure from "../../../procedures/authedProcedure";
-import { ZteamsAndUserProfilesQuerySchema } from "../teamsAndUserProfilesQuery.schema";
+import { ZTeamsAndUserProfilesQueryInputSchema } from "../teamsAndUserProfilesQuery.schema";
 
 export const teamsAndUserProfilesQuery = authedProcedure
-  .input(ZteamsAndUserProfilesQuerySchema)
+  .input(ZTeamsAndUserProfilesQueryInputSchema)
   .query(async ({ ctx, input }) => {
     const handler = (await import("../teamsAndUserProfilesQuery.handler")).teamsAndUserProfilesQuery;
 

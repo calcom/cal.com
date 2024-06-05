@@ -183,12 +183,16 @@ async function handler(req: CustomRequest) {
     },
   });
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
+  const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToDelete.userId : null,
+    userId: organizerUserId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,
@@ -318,8 +322,6 @@ async function handler(req: CustomRequest) {
     })
   );
   await Promise.all(promises);
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: bookingToDelete.user.id, teamId });
 
   //Workflows - schedule reminders
   if (bookingToDelete.eventType?.workflows) {

@@ -1,9 +1,9 @@
 import { z } from "zod";
 
-export const ZteamsAndUserProfilesQuerySchema = z
+export const ZTeamsAndUserProfilesQueryInputSchema = z
   .object({
     includeOrg: z.boolean().optional(),
   })
   .optional();
 
-export type TteamsAndUserProfilesQuerySchema = z.infer<typeof ZteamsAndUserProfilesQuerySchema>;
+export type TTeamsAndUserProfilesQueryInputSchema = z.infer<typeof ZTeamsAndUserProfilesQueryInputSchema>;

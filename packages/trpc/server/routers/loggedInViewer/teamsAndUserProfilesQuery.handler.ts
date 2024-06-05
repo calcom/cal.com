@@ -7,14 +7,14 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import type { TteamsAndUserProfilesQuerySchema } from "./teamsAndUserProfilesQuery.schema";
+import type { TTeamsAndUserProfilesQueryInputSchema } from "./teamsAndUserProfilesQuery.schema";
 
 type TeamsAndUserProfileOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TteamsAndUserProfilesQuerySchema;
+  input: TTeamsAndUserProfilesQueryInputSchema;
 };
 
 export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProfileOptions) => {
@@ -59,17 +59,27 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
 
-  const teams = input?.includeOrg
-    ? user.teams
-    : user.teams.filter((membership) => !membership.team.isOrganization);
+  let teamsData;
 
-  const formattedTeams = teams.map((membership) => ({
-    ...membership,
-    team: {
-      ...membership.team,
-      metadata: teamMetadataSchema.parse(membership.team.metadata),
-    },
-  }));
+  if (input?.includeOrg) {
+    teamsData = user.teams.map((membership) => ({
+      ...membership,
+      team: {
+        ...membership.team,
+        metadata: teamMetadataSchema.parse(membership.team.metadata),
+      },
+    }));
+  } else {
+    teamsData = user.teams
+      .filter((membership) => !membership.team.isOrganization)
+      .map((membership) => ({
+        ...membership,
+        team: {
+          ...membership.team,
+          metadata: teamMetadataSchema.parse(membership.team.metadata),
+        },
+      }));
+  }
 
   return [
     {
@@ -81,7 +91,7 @@ export const teamsAndUserProfilesQuery = async ({ ctx, input }: TeamsAndUserProf
       }),
       readOnly: false,
     },
-    ...formattedTeams.map((membership) => ({
+    ...teamsData.map((membership) => ({
       teamId: membership.team.id,
       name: membership.team.name,
       slug: membership.team.slug ? `team/${membership.team.slug}` : null,

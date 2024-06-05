@@ -315,23 +315,28 @@ export async function handleConfirmation(args: {
 
     const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
 
+    const userId = triggerForUser ? booking.userId : null;
+
     const subscribersBookingCreated = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
+      orgId,
     });
     const subscribersMeetingStarted = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
       teamId: booking.eventType?.teamId,
+      orgId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
       teamId: booking.eventType?.teamId,
+      orgId,
     });
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
@@ -394,10 +399,11 @@ export async function handleConfirmation(args: {
     if (paid) {
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
-        userId: triggerForUser ? booking.userId : null,
+        userId,
         eventTypeId: booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
         teamId: booking.eventType?.teamId,
+        orgId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({
         where: {
