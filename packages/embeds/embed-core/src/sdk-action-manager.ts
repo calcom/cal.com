@@ -22,6 +22,19 @@ export type EventDataMap = {
     };
   };
   linkReady: Record<string, never>;
+  bookingSuccessfulV2: {
+    uid: string | undefined;
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+  };
+
+  /**
+   * @deprecated Use `bookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
+   */
   bookingSuccessful: {
     // TODO: Shouldn't send the entire booking and eventType objects, we should send specific fields from them.
     booking: unknown;
@@ -35,6 +48,18 @@ export type EventDataMap = {
     };
     confirmed: boolean;
   };
+  rescheduleBookingSuccessfulV2: {
+    uid: string | undefined;
+    title: string | undefined;
+    startTime: string | undefined;
+    endTime: string | undefined;
+    eventTypeId: number | null | undefined;
+    status: string | undefined;
+    paymentRequired: boolean;
+  };
+  /**
+   * @deprecated Use `rescheduleBookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
+   */
   rescheduleBookingSuccessful: {
     booking: unknown;
     eventType: unknown;

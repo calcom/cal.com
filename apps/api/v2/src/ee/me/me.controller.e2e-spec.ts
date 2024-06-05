@@ -2,6 +2,7 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -33,7 +34,14 @@ describe("Me Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule],
+          imports: [
+            AppModule,
+            PrismaModule,
+            AvailabilitiesModule,
+            UsersModule,
+            TokensModule,
+            SchedulesModule,
+          ],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -110,13 +118,13 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat = { timeFormat: 100 };
+      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart = { weekStart: "waba luba dub dub" };
+      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" };
 
       return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });

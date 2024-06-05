@@ -44,7 +44,7 @@ const createOAuthAppCredential = async (
 
     if (!team) throw new Error("User does not belong to the team");
 
-    await prisma.credential.create({
+    return await prisma.credential.create({
       data: {
         type: appData.type,
         key: key || {},
@@ -52,13 +52,11 @@ const createOAuthAppCredential = async (
         appId: appData.appId,
       },
     });
-
-    return;
   }
 
   await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
-  await prisma.credential.create({
+  return await prisma.credential.create({
     data: {
       type: appData.type,
       key: key || {},
@@ -66,8 +64,6 @@ const createOAuthAppCredential = async (
       appId: appData.appId,
     },
   });
-
-  return;
 };
 
 export default createOAuthAppCredential;
