@@ -140,7 +140,7 @@ export type CustomRequest = NextApiRequest & {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, cancelledBy } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -366,6 +366,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        cancelledBy: cancelledBy ? cancelledBy : undefined,
       },
     });
     const allUpdatedBookings = await prisma.booking.findMany({
@@ -408,6 +409,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        cancelledBy: cancelledBy ? cancelledBy : undefined,
         // Assume that canceling the booking is the last action
         iCalSequence: evt.iCalSequence || 100,
       },

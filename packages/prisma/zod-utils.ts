@@ -221,6 +221,7 @@ export const bookingCreateBodySchema = z.object({
   eventTypeSlug: z.string().optional(),
   rescheduleUid: z.string().optional(),
   recurringEventId: z.string().optional(),
+  rescheduledBy: z.string().optional(),
   start: z.string(),
   timeZone: z.string().refine((value: string) => isSupportedTimeZone(value), { message: "Invalid timezone" }),
   user: z.union([z.string(), z.array(z.string())]).optional(),
@@ -305,6 +306,7 @@ export const schemaBookingCancelParams = z.object({
   allRemainingBookings: z.boolean().optional(),
   cancellationReason: z.string().optional(),
   seatReferenceUid: z.string().optional(),
+  cancelledBy: z.string().nullish(),
 });
 
 export const vitalSettingsUpdateSchema = z.object({

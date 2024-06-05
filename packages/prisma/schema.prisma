@@ -576,6 +576,8 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?
   scheduledTriggers     WebhookScheduledTriggers[]
+  cancelledBy           String?
+  rescheduledBy         String?
 
   @@index([eventTypeId])
   @@index([userId])

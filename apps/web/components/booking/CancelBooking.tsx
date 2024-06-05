@@ -23,6 +23,7 @@ type Props = {
   theme: string | null;
   allRemainingBookings: boolean;
   seatReferenceUid?: string;
+  currentUserEmail?: string | null;
   bookingCancelledEventProps: {
     booking: unknown;
     organizer: {
@@ -38,7 +39,8 @@ export default function CancelBooking(props: Props) {
   const [cancellationReason, setCancellationReason] = useState<string>("");
   const { t } = useLocale();
   const router = useRouter();
-  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps } = props;
+  const { booking, allRemainingBookings, seatReferenceUid, bookingCancelledEventProps, currentUserEmail } =
+    props;
   const [loading, setLoading] = useState(false);
   const telemetry = useTelemetry();
   const [error, setError] = useState<string | null>(booking ? null : t("booking_already_cancelled"));
@@ -99,6 +101,7 @@ export default function CancelBooking(props: Props) {
                       allRemainingBookings,
                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
+                      cancelledBy: currentUserEmail,
                     }),
                     headers: {
                       "Content-Type": "application/json",

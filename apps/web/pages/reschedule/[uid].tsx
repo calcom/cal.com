@@ -17,8 +17,16 @@ export default function Type() {
 export async function getServerSideProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
 
-  const { uid: bookingUid, seatReferenceUid } = z
-    .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
+  const {
+    uid: bookingUid,
+    seatReferenceUid,
+    rescheduledBy,
+  } = z
+    .object({
+      uid: z.string(),
+      seatReferenceUid: z.string().optional(),
+      rescheduledBy: z.string().optional(),
+    })
     .parse(context.query);
 
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
@@ -140,7 +148,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     redirect: {
       destination: `/${eventPage}?${destinationUrl.toString()}${
         eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
-      }`,
+      }${rescheduledBy ? `&rescheduledBy=${rescheduledBy}` : ""}`,
       permanent: false,
     },
   };

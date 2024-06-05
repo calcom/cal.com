@@ -5,8 +5,8 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
   // Only the original attendee can make changes to the event
   // Guests cannot
   const t = props.attendee.language.translate;
-  const cancelLink = getCancelLink(props.calEvent);
-  const rescheduleLink = getRescheduleLink(props.calEvent);
+  const cancelLink = getCancelLink(props.calEvent, props.attendee);
+  const rescheduleLink = getRescheduleLink(props.calEvent, props.attendee);
   const bookingLink = getBookingUrl(props.calEvent);
 
   const isOriginalAttendee = props.attendee.email === props.calEvent.attendees[0]?.email;
