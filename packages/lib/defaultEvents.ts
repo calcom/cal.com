@@ -72,6 +72,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,
   availability: [],
@@ -116,7 +117,7 @@ const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
-  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
 const defaultEvents = [dynamicEvent];

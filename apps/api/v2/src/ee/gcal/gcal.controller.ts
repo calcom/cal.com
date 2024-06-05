@@ -2,6 +2,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GcalAuthUrlOutput } from "@/ee/gcal/outputs/auth-url.output";
 import { GcalCheckOutput } from "@/ee/gcal/outputs/check.output";
 import { GcalSaveRedirectOutput } from "@/ee/gcal/outputs/save-redirect.output";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GCalService } from "@/modules/apps/services/gcal.service";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -26,16 +27,12 @@ import {
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Prisma } from "@prisma/client";
 import { Request } from "express";
 import { google } from "googleapis";
 import { z } from "zod";
 
-import {
-  APPS_READ,
-  GOOGLE_CALENDAR_ID,
-  GOOGLE_CALENDAR_TYPE,
-  SUCCESS_STATUS,
-} from "@calcom/platform-constants";
+import { APPS_READ, GOOGLE_CALENDAR_TYPE, SUCCESS_STATUS } from "@calcom/platform-constants";
 
 const CALENDAR_SCOPES = [
   "https://www.googleapis.com/auth/calendar.readonly",
@@ -44,8 +41,8 @@ const CALENDAR_SCOPES = [
 
 // Controller for the GCalConnect Atom
 @Controller({
-  path: "/gcal",
-  version: "2",
+  path: "/v2/gcal",
+  version: API_VERSIONS_VALUES,
 })
 @DocsTags("Google Calendar")
 export class GcalController {
@@ -106,10 +103,11 @@ export class GcalController {
 
     const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
     const token = await oAuth2Client.getToken(parsedCode);
-    const key = token.res?.data;
+    // Google oAuth Credentials are stored in token.tokens
+    const key = token.tokens;
     const credential = await this.credentialRepository.createAppCredential(
       GOOGLE_CALENDAR_TYPE,
-      key,
+      key as Prisma.InputJsonValue,
       ownerId
     );
 
@@ -129,7 +127,7 @@ export class GcalController {
         primaryCal.id,
         credential.id,
         ownerId,
-        GOOGLE_CALENDAR_ID
+        GOOGLE_CALENDAR_TYPE
       );
     }
 

@@ -1,3 +1,4 @@
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -53,6 +54,7 @@ export const BookerSeo = (props: BookerSeoProps) => {
   const title = event?.title ?? "";
   return (
     <HeadSeo
+      origin={getOrgFullOrigin(entity.orgSlug ?? null)}
       title={`${rescheduleUid && !!bookingData ? t("reschedule") : ""} ${title} | ${profileName}`}
       description={`${rescheduleUid ? t("reschedule") : ""} ${title}`}
       meeting={{

@@ -6,9 +6,10 @@ import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-typ
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
-import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
+import { GetEventTypesData, GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -33,13 +34,13 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getPublicEvent } from "@calcom/platform-libraries";
-import { getEventTypesByViewer } from "@calcom/platform-libraries";
+import { getPublicEvent } from "@calcom/platform-libraries-0.0.2";
+import { getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
-  path: "event-types",
-  version: "2",
+  path: "/v2/event-types",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")
@@ -96,7 +97,7 @@ export class EventTypesController {
 
     return {
       status: SUCCESS_STATUS,
-      data: eventTypes,
+      data: eventTypes as GetEventTypesData,
     };
   }
 
