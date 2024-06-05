@@ -93,7 +93,12 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   // beSilentAboutErrors is false only when there is a single user being invited, so we just check the first item status here
   // Bulk invites error are silently ignored and they should be logged differently when needed
-  if (!beSilentAboutErrors && existingUsersWithMemberships[0].canBeInvited !== INVITE_STATUS.CAN_BE_INVITED) {
+  const firstExistingUser = existingUsersWithMemberships[0];
+  if (
+    !beSilentAboutErrors &&
+    firstExistingUser &&
+    firstExistingUser.canBeInvited !== INVITE_STATUS.CAN_BE_INVITED
+  ) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: translation(existingUsersWithMemberships[0].canBeInvited),
@@ -168,7 +173,11 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       await updateQuantitySubscriptionFromStripe(input.teamId);
     }
   }
-  return input;
+  return {
+    ...input,
+    numUsersInvited:
+      existingUsersWithMembershipsThatNeedToBeInvited.length + newUsersEmailsOrUsernames.length,
+  };
 };
 
 export default inviteMemberHandler;
