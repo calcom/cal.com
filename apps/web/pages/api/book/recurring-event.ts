@@ -13,7 +13,7 @@ async function handler(req: NextApiRequest & { userId?: number }, res: NextApiRe
   const userIp = getIP(req);
 
   await checkRateLimitAndThrowError({
-    rateLimitingType: "core",
+    rateLimitingType: "common",
     identifier: userIp,
   });
   const session = await getServerSession({ req, res });
