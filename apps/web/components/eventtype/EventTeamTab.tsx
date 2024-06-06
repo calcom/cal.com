@@ -291,12 +291,10 @@ const Hosts = ({
   assignAllTeamMembers,
   setAssignAllTeamMembers,
   team,
-  updateEventType,
 }: {
   teamMembers: TeamMember[];
   assignAllTeamMembers: boolean;
   setAssignAllTeamMembers: Dispatch<SetStateAction<boolean>>;
-  updateEventType?: () => void;
 } & Pick<EventTypeSetupProps, "team">) => {
   const { t, i18n } = useLocale();
   const {
@@ -461,7 +459,6 @@ const Hosts = ({
                           newHosts.push({ isFixed: isFixed, userId: member.user.id, priority: 2 })
                         );
                         setValue("hosts", [...newHosts, ...hosts], { shouldDirty: true });
-                        updateEventType && updateEventType();
                       },
                       onError: (error) => {
                         showToast(error.message, "error");
@@ -482,10 +479,7 @@ export const EventTeamTab = ({
   team,
   teamMembers,
   eventType,
-  updateEventType,
-}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType"> & {
-  updateEventType?: () => void;
-}) => {
+}: Pick<EventTypeSetupProps, "teamMembers" | "team" | "eventType">) => {
   const { t } = useLocale();
 
   const schedulingTypeOptions: {
@@ -568,7 +562,6 @@ export const EventTeamTab = ({
             setAssignAllTeamMembers={setAssignAllTeamMembers}
             teamMembers={allMembers}
             team={team}
-            updateEventType={updateEventType}
           />
         </>
       )}

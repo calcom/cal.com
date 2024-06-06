@@ -412,14 +412,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
-    team: (
-      <EventTeamTab
-        teamMembers={teamMembers}
-        team={team}
-        eventType={eventType}
-        updateEventType={() => handleSubmit(formMethods.getValues())}
-      />
-    ),
+    team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
