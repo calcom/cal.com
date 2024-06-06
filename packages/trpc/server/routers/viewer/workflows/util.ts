@@ -173,26 +173,60 @@ export async function isAuthorized(
   return false;
 }
 
-export async function upsertSmsReminderFieldForBooking({
+export async function upsertSmsReminderFieldForEventTypes({
+  activeOn,
   workflowId,
-  eventTypeId,
   isSmsReminderNumberRequired,
+  isOrg,
 }: {
+  activeOn: number[];
   workflowId: number;
   isSmsReminderNumberRequired: boolean;
-  eventTypeId: number;
+  isOrg: boolean;
 }) {
-  await upsertBookingField(
-    getSmsReminderNumberField(),
-    getSmsReminderNumberSource({
-      workflowId,
-      isSmsReminderNumberRequired,
-    }),
-    eventTypeId
-  );
+  let allEventTypeIds = activeOn;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOn);
+  }
+
+  for (const eventTypeId of allEventTypeIds) {
+    await upsertBookingField(
+      getSmsReminderNumberField(),
+      getSmsReminderNumberSource({
+        workflowId,
+        isSmsReminderNumberRequired,
+      }),
+      eventTypeId
+    );
+  }
 }
 
-export async function removeSmsReminderFieldForBooking({
+export async function removeSmsReminderFieldForEventTypes({
+  activeOnToRemove,
+  workflowId,
+  isOrg,
+  activeOn,
+}: {
+  activeOnToRemove: number[];
+  workflowId: number;
+  isOrg: boolean;
+  activeOn?: number[];
+}) {
+  let allEventTypeIds = activeOnToRemove;
+
+  if (isOrg) {
+    allEventTypeIds = await getAllUserAndTeamEventTypes(activeOnToRemove, activeOn);
+  }
+  for (const eventTypeId of allEventTypeIds) {
+    await removeSmsReminderFieldForEventType({
+      workflowId,
+      eventTypeId,
+    });
+  }
+}
+
+export async function removeSmsReminderFieldForEventType({
   workflowId,
   eventTypeId,
 }: {
@@ -209,6 +243,51 @@ export async function removeSmsReminderFieldForBooking({
     },
     eventTypeId
   );
+}
+
+async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
+  const teamMembersWithEventTypes = await prisma.membership.findMany({
+    where: {
+      teamId: {
+        in: teamIds,
+      },
+      user: {
+        teams: {
+          none: {
+            team: {
+              id: {
+                in: notMemberOfTeamId ?? [],
+              },
+            },
+          },
+        },
+      },
+    },
+    select: {
+      user: {
+        select: {
+          eventTypes: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const teamEventTypes = await prisma.eventType.findMany({
+    where: {
+      teamId: {
+        in: teamIds,
+      },
+    },
+  });
+  const userEventTypes = teamMembersWithEventTypes?.flatMap((membership) =>
+    membership.user.eventTypes.map((et) => et.id)
+  );
+
+  return teamEventTypes.map((et) => et.id).concat(userEventTypes);
 }
 
 export async function isAuthorizedToAddActiveOnIds(

@@ -12,13 +12,13 @@ import type { TUpdateInputSchema } from "./update.schema";
 import {
   getSender,
   isAuthorized,
-  removeSmsReminderFieldForBooking,
-  upsertSmsReminderFieldForBooking,
+  upsertSmsReminderFieldForEventTypes,
   deleteRemindersOfActiveOnIds,
   isAuthorizedToAddActiveOnIds,
   deleteAllWorkflowReminders,
   scheduleWorkflowNotifications,
   verifyEmailSender,
+  removeSmsReminderFieldForEventTypes,
 } from "./util";
 
 type UpdateOptions = {
@@ -32,6 +32,7 @@ type UpdateOptions = {
 export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const { user } = ctx;
   const { id, name, activeOn, steps, trigger, time, timeUnit, isActiveOnAll } = input;
+
   const userWorkflow = await ctx.prisma.workflow.findUnique({
     where: {
       id,
@@ -81,9 +82,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let newActiveOn: number[] = [];
 
-  const removedActiveOn: number[] = [];
+  let removedActiveOn: number[] = [];
 
-  let activeOnWithChildren: number[] = [];
+  let activeOnWithChildren: number[] = activeOn;
 
   let oldActiveOnIds: number[] = [];
 
@@ -156,16 +157,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
 
-    await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
+    const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
+      newActiveOn,
+      isOrg,
+      userWorkflow?.teamId,
+      userWorkflow?.userId
+    );
 
     if (!isAuthorizedToAddIds) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-    const removedActiveOn = oldActiveOnIds.filter(
-      (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
-    );
+    removedActiveOn = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
 
     await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma);
 
@@ -224,7 +228,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    const removedActiveOn = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
+    removedActiveOn = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
 
     await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma, activeOn);
 
@@ -480,29 +484,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       (step) =>
         step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
     );
+  await removeSmsReminderFieldForEventTypes({
+    activeOnToRemove: removedActiveOn,
+    workflowId: id,
+    isOrg,
+    activeOn,
+  });
 
-  //this still needs to be fixed for org workflows
-  for (const removedEventType of removedActiveOn) {
-    await removeSmsReminderFieldForBooking({
+  if (!smsReminderNumberNeeded) {
+    await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId: id, isOrg }); //here not children??
+  } else {
+    await upsertSmsReminderFieldForEventTypes({
+      activeOn: activeOnWithChildren,
       workflowId: id,
-      eventTypeId: removedEventType,
+      isSmsReminderNumberRequired: steps.some(
+        (s) =>
+          (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+          s.numberRequired
+      ),
+      isOrg,
     });
-  }
-
-  for (const eventTypeId of activeOnWithChildren) {
-    if (smsReminderNumberNeeded) {
-      await upsertSmsReminderFieldForBooking({
-        workflowId: id,
-        isSmsReminderNumberRequired: steps.some(
-          (s) =>
-            (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
-            s.numberRequired
-        ),
-        eventTypeId,
-      });
-    } else {
-      await removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId });
-    }
   }
 
   return {
