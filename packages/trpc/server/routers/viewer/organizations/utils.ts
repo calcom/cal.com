@@ -6,28 +6,23 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
-import type { TAddBulkTeams } from "./addBulkTeams.schema";
+import type { TAddMembersToTeams } from "./addMembersToTeams.schema";
 
-type AddBulkTeamsHandler = {
-  ctx: {
-    user: NonNullable<TrpcSessionUser>;
-  };
-  input: TAddBulkTeams;
-};
+interface AddBulkToTeamProps {
+  user: NonNullable<TrpcSessionUser>;
+  input: TAddMembersToTeams;
+}
 
-export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
-  const currentUser = ctx.user;
-
-  if (!currentUser.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
+export const addMembersToTeams = async ({ user, input }: AddBulkToTeamProps) => {
+  if (!user.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
 
   // check if user is admin of organization
-  if (!(await isOrganisationAdmin(currentUser?.id, currentUser.organizationId)))
+  if (!(await isOrganisationAdmin(user?.id, user.organizationId)))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  // Loop over all users and check if they are already in the organization
   const usersInOrganization = await prisma.membership.findMany({
     where: {
-      teamId: currentUser.organizationId,
+      teamId: user.organizationId,
       user: {
         id: {
           in: input.userIds,
@@ -85,6 +80,4 @@ export async function addBulkTeamsHandler({ ctx, input }: AddBulkTeamsHandler) {
     success: true,
     invitedTotalUsers: input.userIds.length,
   };
-}
-
-export default addBulkTeamsHandler;
+};
