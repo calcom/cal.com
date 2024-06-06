@@ -70,10 +70,10 @@ export function createAppsFixture(page: Page) {
       await selectFirstAvailableTimeSlotNextMonth(page);
 
       if (index > 0) {
-        if (app.organizerInputPlaceholder) {
-          await page.getByLabel(app.organizerInputPlaceholder).click();
-        } else {
+        if (app.label) {
           await page.getByLabel(app.label).click();
+        } else if (app.organizerInputPlaceholder) {
+          await page.getByLabel(app.organizerInputPlaceholder).click();
         }
       }
       await bookTimeSlot(page);

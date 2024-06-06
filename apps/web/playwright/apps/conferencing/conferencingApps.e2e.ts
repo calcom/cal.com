@@ -111,8 +111,12 @@ const ALL_APPS: TApp[] = [
 
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("check conferencing apps ", () => {
-  test("check conferencing apps by skipping the configure step", async ({ appsPage, page, users }) => {
+test.describe("check non-oAuth conferencing apps ", () => {
+  test("check non-oAuth conferencing apps by skipping the configure step", async ({
+    appsPage,
+    page,
+    users,
+  }) => {
     const user = await users.create();
     await user.apiLogin();
     for (let index = 0; index < ALL_APPS.length; index++) {
@@ -123,7 +127,7 @@ test.describe("check conferencing apps ", () => {
     }
   });
 
-  test("check conferencing apps using the new flow", async ({ appsPage, page, users }) => {
+  test("check non-oAuth conferencing apps using the new flow", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
