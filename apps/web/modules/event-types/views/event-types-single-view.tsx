@@ -282,6 +282,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      seatsMinimumBookingNotice: eventType.seatsMinimumBookingNotice,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
@@ -800,6 +801,8 @@ const EventTypePageWrapper: React.FC<PageProps> & {
   getLayout?: AppProps["Component"]["getLayout"];
 } = (props) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
+
+  console.log("EventTypePageWrapper data", data);
 
   if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;

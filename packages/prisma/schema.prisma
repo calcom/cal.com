@@ -114,6 +114,7 @@ model EventType {
   onlyShowFirstAvailableSlot           Boolean                   @default(false)
   seatsShowAttendees                   Boolean?                  @default(false)
   seatsShowAvailabilityCount           Boolean?                  @default(true)
+  seatsMinimumBookingNotice            Int?                      @default(0)
   schedulingType                       SchedulingType?
   schedule                             Schedule?                 @relation(fields: [scheduleId], references: [id])
   scheduleId                           Int?

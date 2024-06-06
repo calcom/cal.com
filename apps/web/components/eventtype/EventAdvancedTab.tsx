@@ -1,6 +1,7 @@
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import type { UseFormRegisterReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
@@ -20,6 +21,9 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
+import type { DurationType } from "@calcom/lib/convertToNewDurationType";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
@@ -37,9 +41,11 @@ import {
   TextField,
   Tooltip,
   showToast,
+  InputField,
+  Select,
 } from "@calcom/ui";
 
-import RequiresConfirmationController from "./RequiresConfirmationController";
+import RequiresConfirmationController from "@components/eventtype/RequiresConfirmationController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -499,6 +505,16 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                           )}
                         />
                       </div>
+                      <div className="mt-4 w-full">
+                        <Label htmlFor="minimumBookingNotice">
+                          {t("seats_minimum_booking_notice")}
+                          {/* {shouldLockIndicator("minimumBookingNotice")} */}
+                        </Label>
+                        <MinimumBookingNoticeInput
+                          disabled={shouldLockDisableProps("seatsMinimumBookingNotice").disabled}
+                          {...formMethods.register("seatsMinimumBookingNotice")}
+                        />
+                      </div>
                     </div>
                   )}
                 />
@@ -574,3 +590,103 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     </div>
   );
 };
+
+const MinimumBookingNoticeInput = React.forwardRef<
+  HTMLInputElement,
+  Omit<UseFormRegisterReturn<"seatsMinimumBookingNotice">, "ref">
+>(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {
+  const { t } = useLocale();
+  const { setValue, getValues } = useFormContext<FormValues>();
+  const durationTypeOptions: {
+    value: DurationType;
+    label: string;
+  }[] = [
+    {
+      label: t("minutes"),
+      value: "minutes",
+    },
+    {
+      label: t("hours"),
+      value: "hours",
+    },
+    {
+      label: t("days"),
+      value: "days",
+    },
+  ];
+
+  console.log("passThroughProps.name", passThroughProps.name);
+  //getValues(passThroughProps.name)
+  console.log("getValues(passThroughProps.name)", getValues(passThroughProps.name));
+  // findDurationType(getValues(passThroughProps.name))
+  console.log(
+    "findDurationType(getValues(passThroughProps.name))",
+    findDurationType(getValues(passThroughProps.name))
+  );
+
+  const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
+    type: DurationType;
+    value: number;
+  }>({
+    type: findDurationType(getValues(passThroughProps.name)),
+    value: convertToNewDurationType(
+      "minutes",
+      findDurationType(getValues(passThroughProps.name)),
+      getValues(passThroughProps.name)
+    ),
+  });
+
+  // keep hidden field in sync with minimumBookingNoticeDisplayValues
+  useEffect(() => {
+    setValue(
+      passThroughProps.name,
+      convertToNewDurationType(
+        minimumBookingNoticeDisplayValues.type,
+        "minutes",
+        minimumBookingNoticeDisplayValues.value
+      ),
+      { shouldDirty: true }
+    );
+  }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
+
+  return (
+    <div className="flex items-end justify-end">
+      <div className="w-1/2 md:w-full">
+        <InputField
+          required
+          disabled={passThroughProps.disabled}
+          defaultValue={minimumBookingNoticeDisplayValues.value}
+          onChange={(e) =>
+            setMinimumBookingNoticeDisplayValues({
+              ...minimumBookingNoticeDisplayValues,
+              value: parseInt(e.target.value || "0", 10),
+            })
+          }
+          label="AAAAA"
+          type="number"
+          placeholder="0"
+          min={0}
+          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
+        />
+        <input type="hidden" ref={ref} {...passThroughProps} />
+      </div>
+      <Select
+        isSearchable={false}
+        isDisabled={passThroughProps.disabled}
+        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+        defaultValue={durationTypeOptions.find(
+          (option) => option.value === minimumBookingNoticeDisplayValues.type
+        )}
+        onChange={(input) => {
+          if (input) {
+            setMinimumBookingNoticeDisplayValues({
+              ...minimumBookingNoticeDisplayValues,
+              type: input.value,
+            });
+          }
+        }}
+        options={durationTypeOptions}
+      />
+    </div>
+  );
+});
