@@ -762,3 +762,36 @@ export const getRetellLLMSchema = z
   .passthrough();
 
 export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;
+
+export const ZSubmitBatchProcessorJobRes = z.object({
+  id: z.string(),
+});
+
+export const TSubmitBatchProcessorJobRes = z.infer<typeof ZSubmitBatchProcessorJobRes>;
+
+export type batchProcessorBody = {
+  preset: "transcript";
+  inParams: {
+    sourceType: "recordingId";
+    recordingId: string;
+  };
+  outParams: {
+    s3Config: {
+      s3KeyTemplate: "transcript";
+    };
+  };
+};
+
+export const ZGetTranscriptAccessLink = z.object({
+  id: z.string(),
+  present: z.string(),
+  status: z.string(),
+  transcription: z.array(
+    z.object({
+      format: z.string(),
+      link: z.string().url(),
+    })
+  ),
+});
+
+export const TGetTranscriptAccessLink = z.infer<typeof ZGetTranscriptAccessLink>;

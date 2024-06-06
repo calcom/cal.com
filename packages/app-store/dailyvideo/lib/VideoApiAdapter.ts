@@ -2,8 +2,19 @@ import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
-import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import type {
+  GetRecordingsResponseSchema,
+  GetAccessLinkResponseSchema,
+  TSubmitBatchProcessorJobRes,
+  batchProcessorBody,
+  TGetTranscriptAccessLink,
+} from "@calcom/prisma/zod-utils";
+import {
+  getRecordingsResponseSchema,
+  getAccessLinkResponseSchema,
+  ZSubmitBatchProcessorJobRes,
+  ZGetTranscriptAccessLink,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -43,6 +54,17 @@ const getTranscripts = z.object({
       roomId: z.string(),
       mtgSessionId: z.string(),
       duration: z.number(),
+      status: z.string(),
+    })
+  ),
+});
+
+const getBatchProcessJobs = z.object({
+  total_count: z.number(),
+  data: z.array(
+    z.object({
+      id: z.string(),
+      preset: z.string(),
       status: z.string(),
     })
   ),
@@ -270,6 +292,44 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! Unable to get transcription access link");
+      }
+    },
+    submitBatchProcessorJob: async (body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes> => {
+      try {
+        const batchProcessorJob = await postToDailyAPI("/batch-processor", body).then(
+          ZSubmitBatchProcessorJobRes.parse
+        );
+        return batchProcessorJob;
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to submit batch processor job");
+      }
+    },
+    getTranscriptsAccessLinkFromRecordingId: async (
+      recordingId: string
+    ): Promise<TGetTranscriptAccessLink["transcription"]> => {
+      try {
+        const batchProcessorJobs = await fetcher(`batch-processor?recordingId=${recordingId}`).then(
+          getBatchProcessJobs.parse
+        );
+        if (!batchProcessorJobs.data.length) {
+          return { message: `No Batch processor jobs found for recording id ${recordingId}` };
+        }
+
+        const transcriptJobId = batchProcessorJobs.data.filter(
+          (job) => job.preset === "transcript" && job.status === "finished"
+        )?.[0]?.id;
+
+        if (!transcriptJobId) return [];
+
+        const accessLinkRes = await fetcher(`/batch-processor/${transcriptJobId}/access-link`).then(
+          ZGetTranscriptAccessLink.parse
+        );
+
+        return accessLinkRes.transcription;
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! can't get transcripts");
       }
     },
   };

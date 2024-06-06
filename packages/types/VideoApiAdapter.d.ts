@@ -1,4 +1,9 @@
-import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import type {
+  GetRecordingsResponseSchema,
+  GetAccessLinkResponseSchema,
+  TSubmitBatchProcessorJobRes,
+  batchProcessorBody,
+} from "@calcom/prisma/zod-utils";
 
 import type { EventBusyDate } from "./Calendar";
 import type { CredentialPayload } from "./Credential";
@@ -28,6 +33,10 @@ export type VideoApiAdapter =
       createInstantCalVideoRoom?(endTime: string): Promise<VideoCallData>;
 
       getAllTranscriptsAccessLinkFromRoomName?(roomName: string): Promise<Array<string>>;
+
+      submitBatchProcessorJob?(body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes>;
+
+      getTranscriptsAccessLinkFromRecordingId?(recordingId: string): Promise<Array<any>>;
     }
   | undefined;
 
