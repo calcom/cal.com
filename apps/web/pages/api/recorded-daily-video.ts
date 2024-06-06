@@ -121,9 +121,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const hmac = createHmac("sha256", base64DecodedSecret);
   const computed_signature = hmac.update(signature).digest("base64");
 
-  // if (req.headers["x-webhook-signature"] !== computed_signature) {
-  //   return res.status(403).json({ message: "Signature does not match" });
-  // }
+  if (req.headers["x-webhook-signature"] !== computed_signature) {
+    return res.status(403).json({ message: "Signature does not match" });
+  }
 
   const response = schema.safeParse(req.body);
 
