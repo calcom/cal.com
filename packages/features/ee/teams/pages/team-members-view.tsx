@@ -25,13 +25,14 @@ type Team = RouterOutputs["viewer"]["teams"]["get"];
 interface MembersListProps {
   team: Team | undefined;
   isOrgAdminOrOwner: boolean | undefined;
+  orgMembersNotInThisTeam: RouterOutputs["viewer"]["organizations"]["getMembers"] | undefined;
 }
 
 const checkIfExist = (comp: string, query: string) =>
   comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
 
 function MembersList(props: MembersListProps) {
-  const { team, isOrgAdminOrOwner } = props;
+  const { team, isOrgAdminOrOwner, orgMembersNotInThisTeam } = props;
   const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
 
@@ -54,6 +55,7 @@ function MembersList(props: MembersListProps) {
           team={team}
           members={membersList}
           isOrgAdminOrOwner={isOrgAdminOrOwner}
+          orgMembersNotInThisTeam={orgMembersNotInThisTeam}
           setQuery={setQuery}
         />
       ) : null}
@@ -145,7 +147,11 @@ const MembersView = () => {
 
             {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
-                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
+                <MembersList
+                  team={team}
+                  isOrgAdminOrOwner={isOrgAdminOrOwner}
+                  orgMembersNotInThisTeam={orgMembersNotInThisTeam}
+                />
               </>
             )}
 

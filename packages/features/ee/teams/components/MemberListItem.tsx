@@ -29,16 +29,20 @@ import {
   Tooltip,
 } from "@calcom/ui";
 
+import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
+import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
+import MemberInvitationModal from "./MemberInvitationModal";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
   members: RouterOutputs["viewer"]["teams"]["get"]["members"];
+  orgMembersNotInThisTeam: RouterOutputs["viewer"]["organizations"]["getMembers"] | undefined;
   isOrgAdminOrOwner: boolean | undefined;
   setQuery: Dispatch<SetStateAction<string>>;
 }
 
-type User = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+export type User = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 
 /** TODO: Migrate the one in apps/web to tRPC package */
 const useCurrentUserId = () => {
@@ -63,6 +67,7 @@ export type State = {
   inviteMember: Payload;
   editSheet: Payload;
   teamAvailability: Payload;
+  inviteLinkSetting: Payload;
 };
 
 export type Action =
@@ -73,7 +78,8 @@ export type Action =
         | "SET_IMPERSONATE_ID"
         | "INVITE_MEMBER"
         | "EDIT_USER_SHEET"
-        | "TEAM_AVAILABILITY";
+        | "TEAM_AVAILABILITY"
+        | "INVITE_LINK_SETTING";
       payload: Payload;
     }
   | {
@@ -99,6 +105,9 @@ const initialState: State = {
   teamAvailability: {
     showModal: false,
   },
+  inviteLinkSetting: {
+    showModal: false,
+  },
 };
 
 function reducer(state: State, action: Action): State {
@@ -114,6 +123,8 @@ function reducer(state: State, action: Action): State {
     case "EDIT_USER_SHEET":
       return { ...state, editSheet: action.payload };
     case "TEAM_AVAILABILITY":
+      return { ...state, editSheet: action.payload };
+    case "INVITE_LINK_SETTING":
       return { ...state, editSheet: action.payload };
     case "CLOSE_MODAL":
       return {
@@ -135,6 +146,7 @@ export default function MemberListItem(props: Props) {
   const utils = trpc.useUtils();
   const [state, dispatch] = useReducer(reducer, initialState);
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -167,8 +179,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({
-      teamId: [props.team?.id],
-      memberId: [state.deleteMember.user?.id as number],
+      teamIds: [props.team?.id],
+      memberIds: [state.deleteMember.user?.id as number],
       isOrg: checkIsOrg(props.team),
     });
 
@@ -235,16 +247,29 @@ export default function MemberListItem(props: Props) {
         accessorFn: (data) => data.role,
         header: "Role",
         cell: ({ row, table }) => {
-          const { role, username } = row.original;
+          const { role, username, accepted } = row.original;
           return (
-            <Badge
-              data-testid={`member-${username}-role`}
-              variant={role === "MEMBER" ? "gray" : "blue"}
-              onClick={() => {
-                table.getColumn("role")?.setFilterValue([role]);
-              }}>
-              {role}
-            </Badge>
+            <div className="flex h-full flex-wrap items-center gap-2">
+              {!accepted && (
+                <Badge
+                  data-testid="member-pending"
+                  variant="orange"
+                  className="text-xs"
+                  onClick={() => {
+                    table.getColumn("role")?.setFilterValue(["PENDING"]);
+                  }}>
+                  Pending
+                </Badge>
+              )}
+              <Badge
+                data-testid={`member-${username}-role`}
+                variant={role === "MEMBER" ? "gray" : "blue"}
+                onClick={() => {
+                  table.getColumn("role")?.setFilterValue([role]);
+                }}>
+                {role}
+              </Badge>
+            </div>
           );
         },
         filterFn: (rows, id, filterValue) => {
@@ -277,21 +302,30 @@ export default function MemberListItem(props: Props) {
               {props.team.membership?.accepted && (
                 <div className="flex items-center justify-center">
                   <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
-                    {/* TODO: bring availability back. right now its ugly and broken
-                     <Tooltip
+                    <Tooltip
                       content={
-                        props.member.accepted
+                        user.accepted
                           ? t("team_view_user_availability")
                           : t("team_view_user_availability_disabled")
                       }>
                       <Button
-                        disabled={!props.member.accepted}
-                        onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
+                        disabled={!user.accepted}
+                        onClick={() =>
+                          user.accepted
+                            ? dispatch({
+                                type: "TEAM_AVAILABILITY",
+                                payload: {
+                                  user,
+                                  showModal: true,
+                                },
+                              })
+                            : null
+                        }
                         color="secondary"
                         variant="icon"
                         StartIcon="clock"
                       />
-                    </Tooltip> */}
+                    </Tooltip>
                     {!!user.accepted && (
                       <Tooltip content={t("view_public_page")}>
                         <Button
@@ -467,7 +501,14 @@ export default function MemberListItem(props: Props) {
         selectionOptions={[
           {
             type: "render",
-            render: (table) => <></>,
+            render: (table) => (
+              <DeleteBulkTeamMembers
+                users={table.getSelectedRowModel().flatRows.map((row) => row.original)}
+                onRemove={() => table.toggleAllPageRowsSelected(false)}
+                isOrg={checkIsOrg(props.team)}
+                teamId={props.team.id}
+              />
+            ),
           },
         ]}
         tableContainerRef={tableContainerRef}
@@ -570,6 +611,96 @@ export default function MemberListItem(props: Props) {
               type: "CLOSE_MODAL",
             })
           }
+        />
+      )}
+      {state.inviteMember.showModal && (
+        <MemberInvitationModal
+          isPending={inviteMemberMutation.isPending}
+          isOpen={true}
+          orgMembers={props.orgMembersNotInThisTeam}
+          members={props.members}
+          teamId={props.team.id}
+          token={props.team.inviteToken?.token}
+          onExit={() =>
+            dispatch({
+              type: "CLOSE_MODAL",
+            })
+          }
+          onSubmit={(values, resetFields) => {
+            inviteMemberMutation.mutate(
+              {
+                teamId: props.team.id,
+                language: i18n.language,
+                role: values.role,
+                usernameOrEmail: values.emailOrUsername,
+              },
+              {
+                onSuccess: async (data) => {
+                  await utils.viewer.teams.get.invalidate();
+                  await utils.viewer.organizations.getMembers.invalidate();
+                  dispatch({
+                    type: "CLOSE_MODAL",
+                  });
+
+                  if (Array.isArray(data.usernameOrEmail)) {
+                    showToast(
+                      t("email_invite_team_bulk", {
+                        userCount: data.numUsersInvited,
+                      }),
+                      "success"
+                    );
+                    resetFields();
+                  } else {
+                    showToast(
+                      t("email_invite_team", {
+                        email: data.usernameOrEmail,
+                      }),
+                      "success"
+                    );
+                  }
+                },
+                onError: (error) => {
+                  showToast(error.message, "error");
+                },
+              }
+            );
+          }}
+          onSettingsOpen={() => {
+            dispatch({
+              type: "INVITE_MEMBER",
+              payload: {
+                showModal: false,
+              },
+            });
+            dispatch({
+              type: "INVITE_LINK_SETTING",
+              payload: {
+                showModal: true,
+              },
+            });
+          }}
+        />
+      )}
+      {state.inviteLinkSetting.showModal && props.team.inviteToken && (
+        <InviteLinkSettingsModal
+          isOpen={true}
+          teamId={props.team.id}
+          token={props.team.inviteToken.token}
+          expiresInDays={props.team.inviteToken.expiresInDays || undefined}
+          onExit={() => {
+            dispatch({
+              type: "INVITE_MEMBER",
+              payload: {
+                showModal: true,
+              },
+            });
+            dispatch({
+              type: "INVITE_LINK_SETTING",
+              payload: {
+                showModal: false,
+              },
+            });
+          }}
         />
       )}
     </>

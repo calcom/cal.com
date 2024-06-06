@@ -2116,6 +2116,8 @@
   "add_to_team": "Add to team",
   "remove_users_from_org": "Remove users from organization",
   "remove_users_from_org_confirm": "Are you sure you want to remove {{userCount}} users from this organization?",
+  "remove_users_from_team": "Remove users from team",
+  "remove_users_from_team_confirm": "Are you sure you want to remove {{userCount}} users from this team?",
   "user_has_no_schedules": "This user has not setup any schedules yet",
   "user_isnt_in_any_teams": "This user is not in any teams",
   "requires_booker_email_verification": "Requires booker email verification",
