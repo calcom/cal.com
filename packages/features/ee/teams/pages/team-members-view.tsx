@@ -10,7 +10,7 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Meta, showToast, TextField } from "@calcom/ui";
+import { Meta, showToast } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -49,28 +49,13 @@ function MembersList(props: MembersListProps) {
     : undefined;
   return (
     <div className="flex flex-col gap-y-3">
-      <TextField
-        type="search"
-        autoComplete="false"
-        onChange={(e) => setQuery(e.target.value)}
-        value={query}
-        placeholder={`${t("search")}...`}
-      />
       {membersList?.length && team ? (
-        <ul
-          className="divide-subtle border-subtle divide-y rounded-md border "
-          data-testId="team-member-list-container">
-          {membersList.map((member) => {
-            return (
-              <MemberListItem
-                key={member.id}
-                team={team}
-                member={member}
-                isOrgAdminOrOwner={isOrgAdminOrOwner}
-              />
-            );
-          })}
-        </ul>
+        <MemberListItem
+          team={team}
+          members={membersList}
+          isOrgAdminOrOwner={isOrgAdminOrOwner}
+          setQuery={setQuery}
+        />
       ) : null}
     </div>
   );
@@ -136,25 +121,7 @@ const MembersView = () => {
 
   return (
     <>
-      <Meta
-        title={t("team_members")}
-        description={t("members_team_description")}
-        CTA={
-          isAdmin || isOrgAdminOrOwner ? (
-            <Button
-              type="button"
-              color="primary"
-              StartIcon="plus"
-              className="ml-auto"
-              onClick={() => setShowMemberInvitationModal(true)}
-              data-testid="new-member-button">
-              {t("add")}
-            </Button>
-          ) : (
-            <></>
-          )
-        }
-      />
+      <Meta title={t("team_members")} description={t("members_team_description")} CTA={<></>} />
       {!isPending && (
         <>
           <div>

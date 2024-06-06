@@ -1,12 +1,16 @@
+import type { ColumnDef } from "@tanstack/react-table";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useMemo, useRef, useReducer } from "react";
+import type { Dispatch, SetStateAction } from "react";
 
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { trpc } from "@calcom/trpc";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
+import { Avatar, Badge, Checkbox, DataTable } from "@calcom/ui";
 import {
   Button,
   ButtonGroup,
@@ -23,18 +27,18 @@ import {
   DropdownMenuTrigger,
   showToast,
   Tooltip,
-  UserAvatar,
 } from "@calcom/ui";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
-import TeamAvailabilityModal from "./TeamAvailabilityModal";
-import TeamPill, { TeamRole } from "./TeamPill";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
-  member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  members: RouterOutputs["viewer"]["teams"]["get"]["members"];
   isOrgAdminOrOwner: boolean | undefined;
+  setQuery: Dispatch<SetStateAction<string>>;
 }
+
+type User = RouterOutputs["viewer"]["teams"]["get"]["members"][number];
 
 /** TODO: Migrate the one in apps/web to tRPC package */
 const useCurrentUserId = () => {
@@ -47,15 +51,90 @@ const checkIsOrg = (team: Props["team"]) => {
   return team.isOrganization;
 };
 
+type Payload = {
+  showModal: boolean;
+  user?: User;
+};
+
+export type State = {
+  changeMemberRole: Payload;
+  deleteMember: Payload;
+  impersonateMember: Payload;
+  inviteMember: Payload;
+  editSheet: Payload;
+  teamAvailability: Payload;
+};
+
+export type Action =
+  | {
+      type:
+        | "SET_CHANGE_MEMBER_ROLE_ID"
+        | "SET_DELETE_ID"
+        | "SET_IMPERSONATE_ID"
+        | "INVITE_MEMBER"
+        | "EDIT_USER_SHEET"
+        | "TEAM_AVAILABILITY";
+      payload: Payload;
+    }
+  | {
+      type: "CLOSE_MODAL";
+    };
+
+const initialState: State = {
+  changeMemberRole: {
+    showModal: false,
+  },
+  deleteMember: {
+    showModal: false,
+  },
+  impersonateMember: {
+    showModal: false,
+  },
+  inviteMember: {
+    showModal: false,
+  },
+  editSheet: {
+    showModal: false,
+  },
+  teamAvailability: {
+    showModal: false,
+  },
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "SET_CHANGE_MEMBER_ROLE_ID":
+      return { ...state, changeMemberRole: action.payload };
+    case "SET_DELETE_ID":
+      return { ...state, deleteMember: action.payload };
+    case "SET_IMPERSONATE_ID":
+      return { ...state, impersonateMember: action.payload };
+    case "INVITE_MEMBER":
+      return { ...state, inviteMember: action.payload };
+    case "EDIT_USER_SHEET":
+      return { ...state, editSheet: action.payload };
+    case "TEAM_AVAILABILITY":
+      return { ...state, editSheet: action.payload };
+    case "CLOSE_MODAL":
+      return {
+        ...state,
+        changeMemberRole: { showModal: false },
+        deleteMember: { showModal: false },
+        impersonateMember: { showModal: false },
+        inviteMember: { showModal: false },
+        editSheet: { showModal: false },
+      };
+    default:
+      return state;
+  }
+}
+
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
 
   const utils = trpc.useUtils();
-  const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
-  const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
-  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
@@ -86,240 +165,358 @@ export default function MemberListItem(props: Props) {
 
   const currentUserId = useCurrentUserId();
 
-  const name =
-    props.member.name ||
-    (() => {
-      const emailName = props.member.email.split("@")[0];
-      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
-    })();
-
   const removeMember = () =>
     removeMemberMutation.mutate({
       teamId: props.team?.id,
-      memberId: props.member.id,
+      memberId: state.deleteMember.user?.id as number,
       isOrg: checkIsOrg(props.team),
     });
 
-  const editMode =
-    (props.team.membership?.role === MembershipRole.OWNER &&
-      (props.member.role !== MembershipRole.OWNER ||
-        ownersInTeam() > 1 ||
-        props.member.id !== currentUserId)) ||
-    (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER) ||
-    props.isOrgAdminOrOwner;
-  const impersonationMode =
-    editMode &&
-    !props.member.disableImpersonation &&
-    props.member.accepted &&
-    process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
-  const resendInvitation = editMode && !props.member.accepted;
-
-  const bookerUrl = props.member.bookerUrl;
-  const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
-  const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
-  const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
-  const appList = props.member.connectedApps?.map(({ logo, name, externalId }) => {
-    return logo ? (
-      externalId ? (
-        <div className="ltr:mr-2 rtl:ml-2 ">
-          <Tooltip content={externalId}>
-            <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-          </Tooltip>
-        </div>
-      ) : (
-        <div className="ltr:mr-2 rtl:ml-2">
-          <img className="h-5 w-5" src={logo} alt={`${name} logo`} />
-        </div>
-      )
-    ) : null;
-  });
-
-  return (
-    <li className="divide-subtle divide-y px-5">
-      <div className="my-4 flex justify-between">
-        <div className="flex w-full flex-col justify-between truncate sm:flex-row">
-          <div className="flex">
-            <UserAvatar
-              noOrganizationIndicator
-              size="sm"
-              user={props.member}
-              className="h-10 w-10 rounded-full"
-            />
-            <div className="ms-3 inline-block">
-              <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
-                <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">
-                  {name}
-                </span>
-                {!props.member.accepted && (
-                  <TeamPill data-testid="member-pending" color="orange" text={t("pending")} />
-                )}
-                {isAdmin && props.member.accepted && appList}
-                {props.member.role && <TeamRole data-testid="member-role" role={props.member.role} />}
-              </div>
-              <div className="text-default flex items-center">
-                <span
-                  className=" block text-sm"
-                  data-testid={
-                    props.member.accepted
-                      ? "member-email"
-                      : `email-${props.member.email.replace("@", "")}-pending`
-                  }
-                  data-email={props.member.email}>
-                  {props.member.email}
-                </span>
-                {bookingLink && (
-                  <>
-                    <span className="text-default mx-2 block">•</span>
-                    <a
-                      target="_blank"
-                      href={`${bookerUrl}/${props.member.username}`}
-                      className="text-default block text-sm">
-                      {bookingLink}
-                    </a>
-                  </>
-                )}
+  const memorisedColumns = useMemo(() => {
+    const cols: ColumnDef<User>[] = [
+      // Disabling select for this PR: Will work on actions etc in a follow up
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+            className="translate-y-[2px]"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+            className="translate-y-[2px]"
+          />
+        ),
+      },
+      {
+        id: "member",
+        accessorFn: (data) => data.email,
+        header: `Member (${props.members.length})`,
+        cell: ({ row }) => {
+          const { username, email, avatarUrl } = row.original;
+          return (
+            <div className="flex items-center gap-2">
+              <Avatar
+                size="sm"
+                alt={username || email}
+                imageSrc={getUserAvatarUrl({
+                  avatarUrl,
+                })}
+              />
+              <div className="">
+                <div
+                  data-testid={`member-${username}-username`}
+                  className="text-emphasis text-sm font-medium leading-none">
+                  {username || "No username"}
+                </div>
+                <div
+                  data-testid={`member-${username}-email`}
+                  className="text-subtle mt-1 text-sm leading-none">
+                  {email}
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        {props.team.membership?.accepted && (
-          <div className="flex items-center justify-center">
-            <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
-              {/* TODO: bring availability back. right now its ugly and broken
-               <Tooltip
-                content={
-                  props.member.accepted
-                    ? t("team_view_user_availability")
-                    : t("team_view_user_availability_disabled")
-                }>
-                <Button
-                  disabled={!props.member.accepted}
-                  onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
-                  color="secondary"
-                  variant="icon"
-                  StartIcon="clock"
-                />
-              </Tooltip> */}
-              {!!props.member.accepted && (
-                <Tooltip content={t("view_public_page")}>
-                  <Button
-                    target="_blank"
-                    href={`${bookerUrl}/${props.member.username}`}
-                    color="secondary"
-                    className={classNames(!editMode ? "rounded-r-md" : "")}
-                    variant="icon"
-                    StartIcon="external-link"
-                    disabled={!props.member.accepted}
-                  />
-                </Tooltip>
-              )}
-              {editMode && (
-                <Dropdown>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      className="radix-state-open:rounded-r-md"
-                      color="secondary"
-                      variant="icon"
-                      StartIcon="ellipsis"
-                    />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() => setShowChangeMemberRoleModal(true)}
-                        StartIcon="pencil">
-                        {t("edit")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                    {impersonationMode && (
-                      <>
-                        <DropdownMenuItem>
+          );
+        },
+        filterFn: (rows, id, filterValue) => {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore Weird typing issue
+          return rows.getValue(id).includes(filterValue);
+        },
+      },
+      {
+        id: "role",
+        accessorFn: (data) => data.role,
+        header: "Role",
+        cell: ({ row, table }) => {
+          const { role, username } = row.original;
+          return (
+            <Badge
+              data-testid={`member-${username}-role`}
+              variant={role === "MEMBER" ? "gray" : "blue"}
+              onClick={() => {
+                table.getColumn("role")?.setFilterValue([role]);
+              }}>
+              {role}
+            </Badge>
+          );
+        },
+        filterFn: (rows, id, filterValue) => {
+          if (filterValue.includes("PENDING")) {
+            if (filterValue.length === 1) return !rows.original.accepted;
+            else return !rows.original.accepted || filterValue.includes(rows.getValue(id));
+          }
+
+          // Show only the selected roles
+          return filterValue.includes(rows.getValue(id));
+        },
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const user = row.original;
+          const editMode =
+            (props.team.membership?.role === MembershipRole.OWNER &&
+              (user.role !== MembershipRole.OWNER || ownersInTeam() > 1 || user.id !== currentUserId)) ||
+            (props.team.membership?.role === MembershipRole.ADMIN && user.role !== MembershipRole.OWNER) ||
+            props.isOrgAdminOrOwner;
+          const impersonationMode =
+            editMode &&
+            !user.disableImpersonation &&
+            user.accepted &&
+            process.env.NEXT_PUBLIC_TEAM_IMPERSONATION === "true";
+          const resendInvitation = editMode && !user.accepted;
+          return (
+            <>
+              {props.team.membership?.accepted && (
+                <div className="flex items-center justify-center">
+                  <ButtonGroup combined containerProps={{ className: "border-default hidden md:flex" }}>
+                    {/* TODO: bring availability back. right now its ugly and broken
+                     <Tooltip
+                      content={
+                        props.member.accepted
+                          ? t("team_view_user_availability")
+                          : t("team_view_user_availability_disabled")
+                      }>
+                      <Button
+                        disabled={!props.member.accepted}
+                        onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
+                        color="secondary"
+                        variant="icon"
+                        StartIcon="clock"
+                      />
+                    </Tooltip> */}
+                    {!!user.accepted && (
+                      <Tooltip content={t("view_public_page")}>
+                        <Button
+                          target="_blank"
+                          href={`${user.bookerUrl}/${user.username}`}
+                          color="secondary"
+                          className={classNames(!editMode ? "rounded-r-md" : "")}
+                          variant="icon"
+                          StartIcon="external-link"
+                          disabled={!user.accepted}
+                        />
+                      </Tooltip>
+                    )}
+                    {editMode && (
+                      <Dropdown>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            className="radix-state-open:rounded-r-md"
+                            color="secondary"
+                            variant="icon"
+                            StartIcon="ellipsis"
+                          />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              onClick={() =>
+                                dispatch({
+                                  type: "EDIT_USER_SHEET",
+                                  payload: {
+                                    user,
+                                    showModal: true,
+                                  },
+                                })
+                              }
+                              StartIcon="pencil">
+                              {t("edit")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                          {impersonationMode && (
+                            <>
+                              <DropdownMenuItem>
+                                <DropdownItem
+                                  type="button"
+                                  onClick={() =>
+                                    dispatch({
+                                      type: "SET_IMPERSONATE_ID",
+                                      payload: {
+                                        user,
+                                        showModal: true,
+                                      },
+                                    })
+                                  }
+                                  StartIcon="lock">
+                                  {t("impersonate")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                            </>
+                          )}
+                          {resendInvitation && (
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                onClick={() => {
+                                  resendInvitationMutation.mutate({
+                                    teamId: props.team?.id,
+                                    email: user.email,
+                                    language: i18n.language,
+                                  });
+                                }}
+                                StartIcon="send">
+                                {t("resend_invitation")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem>
+                            <DropdownItem
+                              type="button"
+                              onClick={() =>
+                                dispatch({
+                                  type: "SET_DELETE_ID",
+                                  payload: {
+                                    user,
+                                    showModal: true,
+                                  },
+                                })
+                              }
+                              color="destructive"
+                              StartIcon="user-x">
+                              {t("remove")}
+                            </DropdownItem>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </Dropdown>
+                    )}
+                  </ButtonGroup>
+                  <div className="flex md:hidden">
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild>
+                        <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem className="outline-none">
                           <DropdownItem
+                            disabled={!user.accepted}
+                            href={!user.accepted ? undefined : `/${user.username}`}
+                            target="_blank"
                             type="button"
-                            onClick={() => setShowImpersonateModal(true)}
-                            StartIcon="lock">
-                            {t("impersonate")}
+                            StartIcon="external-link">
+                            {t("view_public_page")}
                           </DropdownItem>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    {resendInvitation && (
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          onClick={() => {
-                            resendInvitationMutation.mutate({
-                              teamId: props.team?.id,
-                              email: props.member.email,
-                              language: i18n.language,
-                            });
-                          }}
-                          StartIcon="send">
-                          {t("resend_invitation")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem>
-                      <DropdownItem
-                        type="button"
-                        onClick={() => setShowDeleteModal(true)}
-                        color="destructive"
-                        StartIcon="user-x">
-                        {t("remove")}
-                      </DropdownItem>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </Dropdown>
+                        {editMode && (
+                          <>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                onClick={() =>
+                                  dispatch({
+                                    type: "EDIT_USER_SHEET",
+                                    payload: {
+                                      user,
+                                      showModal: true,
+                                    },
+                                  })
+                                }
+                                StartIcon="pencil">
+                                {t("edit")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <DropdownItem
+                                type="button"
+                                color="destructive"
+                                onClick={() =>
+                                  dispatch({
+                                    type: "SET_DELETE_ID",
+                                    payload: {
+                                      user,
+                                      showModal: true,
+                                    },
+                                  })
+                                }
+                                StartIcon="user-x">
+                                {t("remove")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </Dropdown>
+                  </div>
+                </div>
               )}
-            </ButtonGroup>
-            <div className="flex md:hidden">
-              <Dropdown>
-                <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem className="outline-none">
-                    <DropdownItem
-                      disabled={!props.member.accepted}
-                      href={!props.member.accepted ? undefined : `/${props.member.username}`}
-                      target="_blank"
-                      type="button"
-                      StartIcon="external-link">
-                      {t("view_public_page")}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                  {editMode && (
-                    <>
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          onClick={() => setShowChangeMemberRoleModal(true)}
-                          StartIcon="pencil">
-                          {t("edit")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <DropdownItem
-                          type="button"
-                          color="destructive"
-                          onClick={() => setShowDeleteModal(true)}
-                          StartIcon="user-x">
-                          {t("remove")}
-                        </DropdownItem>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                </DropdownMenuContent>
-              </Dropdown>
-            </div>
-          </div>
-        )}
-      </div>
+            </>
+          );
+        },
+      },
+    ];
 
-      {editMode && (
-        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal((prev) => !prev)}>
+    return cols;
+  }, [props.isOrgAdminOrOwner, dispatch, props.members, props.team]);
+
+  const Data = useMemo<User[]>(() => props.members, [props.members]);
+
+  return (
+    <>
+      <DataTable
+        data-testId="user-list-data-table"
+        onSearch={(value) => props.setQuery(value)}
+        selectionOptions={[
+          {
+            type: "render",
+            render: (table) => <></>,
+          },
+        ]}
+        tableContainerRef={tableContainerRef}
+        tableCTA={
+          props.isOrgAdminOrOwner && (
+            <Button
+              type="button"
+              color="primary"
+              StartIcon="plus"
+              size="sm"
+              className="rounded-md"
+              onClick={() =>
+                dispatch({
+                  type: "INVITE_MEMBER",
+                  payload: {
+                    showModal: true,
+                  },
+                })
+              }
+              data-testid="new-organization-member-button">
+              {t("add")}
+            </Button>
+          )
+        }
+        columns={memorisedColumns}
+        data={Data}
+        filterableItems={[
+          {
+            tableAccessor: "role",
+            title: "Role",
+            options: [
+              { label: "Owner", value: "OWNER" },
+              { label: "Admin", value: "ADMIN" },
+              { label: "Member", value: "MEMBER" },
+              { label: "Pending", value: "PENDING" },
+            ],
+          },
+        ]}
+      />
+
+      {state.deleteMember.showModal && (
+        <Dialog
+          open={true}
+          onOpenChange={(open) =>
+            !open &&
+            dispatch({
+              type: "CLOSE_MODAL",
+            })
+          }>
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}
@@ -330,17 +527,25 @@ export default function MemberListItem(props: Props) {
         </Dialog>
       )}
 
-      {showImpersonateModal && props.member.username && (
-        <Dialog open={showImpersonateModal} onOpenChange={() => setShowImpersonateModal(false)}>
+      {state.impersonateMember.showModal && state.impersonateMember.user?.username && (
+        <Dialog
+          open={true}
+          onOpenChange={() =>
+            dispatch({
+              type: "CLOSE_MODAL",
+            })
+          }>
           <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
                 await signIn("impersonation-auth", {
-                  username: props.member.email,
+                  username: state.impersonateMember.user?.email,
                   teamId: props.team.id,
                 });
-                setShowImpersonateModal(false);
+                dispatch({
+                  type: "CLOSE_MODAL",
+                });
               }}>
               <DialogFooter showDivider className="mt-8">
                 <DialogClose color="secondary">{t("cancel")}</DialogClose>
@@ -353,26 +558,20 @@ export default function MemberListItem(props: Props) {
         </Dialog>
       )}
 
-      {showChangeMemberRoleModal && (
+      {state.changeMemberRole.showModal && (
         <MemberChangeRoleModal
-          isOpen={showChangeMemberRoleModal}
+          isOpen={true}
           currentMember={props.team.membership.role}
           teamId={props.team?.id}
-          memberId={props.member.id}
-          initialRole={props.member.role as MembershipRole}
-          onExit={() => setShowChangeMemberRoleModal(false)}
+          memberId={state.changeMemberRole.user?.id as number}
+          initialRole={state.changeMemberRole.user?.role as MembershipRole}
+          onExit={() =>
+            dispatch({
+              type: "CLOSE_MODAL",
+            })
+          }
         />
       )}
-      {showTeamAvailabilityModal && (
-        <Dialog open={showTeamAvailabilityModal} onOpenChange={() => setShowTeamAvailabilityModal(false)}>
-          <DialogContent type="creation" size="md">
-            <TeamAvailabilityModal team={props.team} member={props.member} />
-            <DialogFooter>
-              <Button onClick={() => setShowTeamAvailabilityModal(false)}>{t("done")}</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
-    </li>
+    </>
   );
 }
