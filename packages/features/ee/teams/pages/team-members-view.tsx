@@ -10,13 +10,11 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, showToast } from "@calcom/ui";
+import { Meta } from "@calcom/ui";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
-import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
-import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
@@ -33,7 +31,6 @@ const checkIfExist = (comp: string, query: string) =>
 
 function MembersList(props: MembersListProps) {
   const { team, isOrgAdminOrOwner, orgMembersNotInThisTeam } = props;
-  const { t } = useLocale();
   const [query, setQuery] = useState<string>("");
 
   const members = team?.members;
@@ -65,20 +62,14 @@ function MembersList(props: MembersListProps) {
 
 const MembersView = () => {
   const searchParams = useCompatSearchParams();
-  const { t, i18n } = useLocale();
+  const { t } = useLocale();
 
   const router = useRouter();
   const session = useSession();
   const org = session?.data?.user.org;
-
-  const utils = trpc.useUtils();
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);
-
-  const showDialog = searchParams?.get("inviteModal") === "true";
-  const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
-  const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
 
   const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
@@ -111,8 +102,6 @@ const MembersView = () => {
   );
 
   const isPending = isOrgListLoading || isTeamsLoading;
-
-  const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
   const isInviteOpen = !team?.membership.accepted;
 
@@ -172,70 +161,6 @@ const MembersView = () => {
               />
             )}
           </div>
-          {showMemberInvitationModal && team && (
-            <MemberInvitationModal
-              isPending={inviteMemberMutation.isPending}
-              isOpen={showMemberInvitationModal}
-              orgMembers={orgMembersNotInThisTeam}
-              members={team.members}
-              teamId={team.id}
-              token={team.inviteToken?.token}
-              onExit={() => setShowMemberInvitationModal(false)}
-              onSubmit={(values, resetFields) => {
-                inviteMemberMutation.mutate(
-                  {
-                    teamId,
-                    language: i18n.language,
-                    role: values.role,
-                    usernameOrEmail: values.emailOrUsername,
-                  },
-                  {
-                    onSuccess: async (data) => {
-                      await utils.viewer.teams.get.invalidate();
-                      await utils.viewer.organizations.getMembers.invalidate();
-                      setShowMemberInvitationModal(false);
-
-                      if (Array.isArray(data.usernameOrEmail)) {
-                        showToast(
-                          t("email_invite_team_bulk", {
-                            userCount: data.numUsersInvited,
-                          }),
-                          "success"
-                        );
-                        resetFields();
-                      } else {
-                        showToast(
-                          t("email_invite_team", {
-                            email: data.usernameOrEmail,
-                          }),
-                          "success"
-                        );
-                      }
-                    },
-                    onError: (error) => {
-                      showToast(error.message, "error");
-                    },
-                  }
-                );
-              }}
-              onSettingsOpen={() => {
-                setShowMemberInvitationModal(false);
-                setInviteLinkSettingsModal(true);
-              }}
-            />
-          )}
-          {showInviteLinkSettingsModal && team?.inviteToken && (
-            <InviteLinkSettingsModal
-              isOpen={showInviteLinkSettingsModal}
-              teamId={team.id}
-              token={team.inviteToken.token}
-              expiresInDays={team.inviteToken.expiresInDays || undefined}
-              onExit={() => {
-                setInviteLinkSettingsModal(false);
-                setShowMemberInvitationModal(true);
-              }}
-            />
-          )}
         </>
       )}
     </>

@@ -30,6 +30,7 @@ import {
 } from "@calcom/ui";
 
 import DeleteBulkTeamMembers from "./DeleteBulkTeamMembers";
+import { EditMemberSheet } from "./EditMemberSheet";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import MemberInvitationModal from "./MemberInvitationModal";
@@ -176,6 +177,9 @@ export default function MemberListItem(props: Props) {
   };
 
   const currentUserId = useCurrentUserId();
+  const isAdmin =
+    props.team.membership.role === MembershipRole.OWNER ||
+    props.team.membership.role === MembershipRole.ADMIN;
 
   const removeMember = () =>
     removeMemberMutation.mutate({
@@ -513,7 +517,7 @@ export default function MemberListItem(props: Props) {
         ]}
         tableContainerRef={tableContainerRef}
         tableCTA={
-          props.isOrgAdminOrOwner && (
+          isAdmin || props.isOrgAdminOrOwner ? (
             <Button
               type="button"
               color="primary"
@@ -531,6 +535,8 @@ export default function MemberListItem(props: Props) {
               data-testid="new-organization-member-button">
               {t("add")}
             </Button>
+          ) : (
+            <></>
           )
         }
         columns={memorisedColumns}
@@ -703,6 +709,7 @@ export default function MemberListItem(props: Props) {
           }}
         />
       )}
+      {state.editSheet.showModal && <EditMemberSheet dispatch={dispatch} state={state} />}
     </>
   );
 }
