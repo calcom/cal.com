@@ -1,6 +1,8 @@
 import type { LoggerOptions } from "winston";
 import { format, transports } from "winston";
 
+import { AxiomTransport } from "./axiom-transport";
+
 const formattedTimestamp = format.timestamp({
   format: "YYYY-MM-DD HH:mm:ss.SSS",
 });
@@ -36,13 +38,25 @@ export const logLevels = {
 export const loggerConfig = (): LoggerOptions => {
   const isProduction = process.env.NODE_ENV === "production";
 
+  const transports = [new transports.Console()];
+
+  if (!!process.env.AXIOM_TOKEN && !!process.env.AXIOM_DATASET && !!process.env.API_ENV) {
+    transports.push(
+      new AxiomTransport({
+        token: process.env.AXIOM_TOKEN,
+        dataset: process.env.AXIOM_DATASET,
+        environment: process.env.API_ENV,
+      })
+    );
+  }
+
   return {
     levels: logLevels,
     level: process.env.LOG_LEVEL ?? "info",
     format: isProduction ? WINSTON_PROD_FORMAT : WINSTON_DEV_FORMAT,
-    transports: [new transports.Console()],
-    exceptionHandlers: [new transports.Console()],
-    rejectionHandlers: [new transports.Console()],
+    transports,
+    exceptionHandlers: transports,
+    rejectionHandlers: transports,
     defaultMeta: {
       service: "cal-platform-api",
     },
