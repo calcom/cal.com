@@ -85,7 +85,6 @@ export class GcalController {
     const url = new URL(this.config.get("api.url") + "/calendars/google/save");
     url.searchParams.append("code", code);
     url.searchParams.append("state", state);
-    console.log("HREF", url.href);
     return { url: url.href };
   }
 
