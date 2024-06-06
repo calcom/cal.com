@@ -71,6 +71,7 @@ export class CalendarsController {
   }
 
   @Get("/")
+  @UseGuards(AccessTokenGuard)
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
@@ -86,13 +87,14 @@ export class CalendarsController {
   async redirect(
     @Req() req: Request,
     @Headers("Authorization") authorization: string,
-    @Param("calendar") calendar: string
+    @Param("calendar") calendar: string,
+    @Query("redir") redir?: string | null
   ): Promise<ApiResponse<{ authUrl: string }>> {
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.connect(authorization, req);
+        return await this.outlookService.connect(authorization, req, redir ?? "");
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.connect(authorization, req);
+        return await this.googleCalendarService.connect(authorization, req, redir ?? "");
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -111,15 +113,18 @@ export class CalendarsController {
   ): Promise<{ url: string }> {
     // state params contains our user access token
     const stateParams = new URLSearchParams(state);
-    const { accessToken, origin } = z
-      .object({ accessToken: z.string(), origin: z.string() })
-      .parse({ accessToken: stateParams.get("accessToken"), origin: stateParams.get("origin") });
-
+    const { accessToken, origin, redir } = z
+      .object({ accessToken: z.string(), origin: z.string(), redir: z.string().nullish().optional() })
+      .parse({
+        accessToken: stateParams.get("accessToken"),
+        origin: stateParams.get("origin"),
+        redir: stateParams.get("redir"),
+      });
     switch (calendar) {
       case OFFICE_365_CALENDAR:
-        return await this.outlookService.save(code, accessToken, origin);
+        return await this.outlookService.save(code, accessToken, origin, redir ?? "");
       case GOOGLE_CALENDAR:
-        return await this.googleCalendarService.save(code, accessToken, origin);
+        return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
