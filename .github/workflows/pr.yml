@@ -1,6 +1,8 @@
 name: PR Update
 
 on:
+  pull_request:
+    types: [labeled]
   pull_request_target:
     branches:
       - main
@@ -55,11 +57,64 @@ jobs:
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
+  build-api-v1:
+    name: Production builds
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/api-v1-production-build.yml
+    secrets: inherit
+
+  build-api-v2:
+    name: Production builds
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/api-v2-production-build.yml
+    secrets: inherit
+
+  build:
+    name: Production builds
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/production-build-without-database.yml
+    secrets: inherit
+
+  e2e:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/e2e.yml
+    secrets: inherit
+
+  e2e-app-store:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/e2e-app-store.yml
+    secrets: inherit
+
+  e2e-embed:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/e2e-embed.yml
+    secrets: inherit
+
+  e2e-embed-react:
+    name: Tests
+    needs: [lint, build, build-api-v1, build-api-v2]
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/e2e-embed-react.yml
+    secrets: inherit
+
+  analyze:
+    name: Analyze Build
+    needs: [build]
+    if: contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+    uses: ./.github/workflows/nextjs-bundle-analysis.yml
+    secrets: inherit
+
   required:
-    needs: [changes, lint, type-check, unit-test, integration-test]
+    needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled') || !contains(github.event.pull_request.labels.*.name, 'ready-for-e2e'))
         run: exit 1
