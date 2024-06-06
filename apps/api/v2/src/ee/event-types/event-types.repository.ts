@@ -3,26 +3,33 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { getEventTypeById, slugify } from "@calcom/platform-libraries";
+import {
+  getEventTypeById,
+  slugify,
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeLocations,
+} from "@calcom/platform-libraries";
 import { CreateEventTypeInput } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
+
+type InputEventTransformed = Omit<CreateEventTypeInput, "lengthInMinutes" | "locations" | "bookingFields"> & {
+  length: number;
+  slug: string;
+  locations?: ReturnType<typeof transformApiEventTypeLocations>;
+  bookingFields?: ReturnType<typeof transformApiEventTypeBookingFields>;
+};
 
 @Injectable()
 export class EventTypesRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createUserEventType(userId: number, body: CreateEventTypeInput) {
-    const { lengthInMinutes, ...rest } = body;
-    const length = lengthInMinutes;
-    const slug = slugify(body.title);
+  async createUserEventType(userId: number, body: InputEventTransformed) {
     return this.dbWrite.prisma.eventType.create({
       data: {
-        ...rest,
-        length,
-        slug,
+        ...body,
         userId,
-        locations: JSON.stringify(body.locations),
-        bookingFields: JSON.stringify(body.bookingFields),
+        locations: body.locations,
+        bookingFields: body.bookingFields,
         users: { connect: { id: userId } },
       },
     });

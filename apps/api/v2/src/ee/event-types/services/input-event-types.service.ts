@@ -19,12 +19,17 @@ export class InputEventTypesService {
 
     const { lengthInMinutes, locations, bookingFields, ...rest } = inputEventType;
 
+    const random = Math.floor(100000 + Math.random() * 900000);
+    const timestamp = new Date().valueOf();
+
+    const slug = `${slugify(rest.title)}-${timestamp}${random}`;
+
     const eventType = {
+      ...rest,
       length: lengthInMinutes,
-      slug: slugify(rest.title),
+      slug,
       locations: this.transformInputLocations(locations || defaultLocations),
       bookingFields: this.transformInputBookingFields(bookingFields),
-      ...rest,
     };
 
     return eventType;

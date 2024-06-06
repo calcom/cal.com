@@ -4,7 +4,7 @@ import { Inter } from "next/font/google";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-import { Booker } from "@calcom/atoms";
+import { Booker, useEventTypes } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,26 +28,28 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
 
         {!isLoadingEvents && !eventTypeSlug && Boolean(eventTypes?.length) && !rescheduleUid && (
           <div className="flex flex-col gap-4">
-            {eventTypes?.map((event: { id: number; slug: string; title: string; length: number }) => {
-              const formatEventSlug = event.slug
-                .split("-")
-                .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
-                .join(" ");
+            {eventTypes?.map(
+              (event: { id: number; slug: string; title: string; lengthInMinutes: number }) => {
+                const formatEventSlug = event.slug
+                  .split("-")
+                  .map((item) => `${item[0].toLocaleUpperCase()}${item.slice(1)}`)
+                  .join(" ");
 
-              return (
-                <div
-                  onClick={() => {
-                    setEventTypeSlug(event.slug);
-                    setEventTypeDuration(event.length);
-                  }}
-                  className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
-                  key={event.id}>
-                  <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
-                  <p>{`/${event.slug}`}</p>
-                  <span className="border-none bg-gray-800 px-2 text-white">{event?.length}</span>
-                </div>
-              );
-            })}
+                return (
+                  <div
+                    onClick={() => {
+                      setEventTypeSlug(event.slug);
+                      setEventTypeDuration(event.lengthInMinutes);
+                    }}
+                    className="mx-10 w-[80vw] cursor-pointer rounded-md border-[0.8px] border-black px-10 py-4"
+                    key={event.id}>
+                    <h1 className="text-lg font-semibold">{formatEventSlug}</h1>
+                    <p>{`/${event.slug}`}</p>
+                    <span className="border-none bg-gray-800 px-2 text-white">{event?.lengthInMinutes}</span>
+                  </div>
+                );
+              }
+            )}
           </div>
         )}
 

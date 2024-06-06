@@ -1,4 +1,3 @@
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule } from "@prisma/client";
 
@@ -56,13 +55,13 @@ export class OutputEventTypesService {
       description: description || "",
       locations,
       bookingFields,
+      recurringEvent,
       disableGuests,
       slotInterval,
       minimumBookingNotice,
       beforeEventBuffer,
       afterEventBuffer,
       schedulingType,
-      recurringEvent,
       metadata,
       requiresConfirmation,
       price,
@@ -78,20 +77,24 @@ export class OutputEventTypesService {
     };
   }
 
-  transformLocations(locations: EventType["locations"]) {
+  transformLocations(locations: any) {
+    if (!locations) return [];
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
-  transformBookingFields(inputBookingFields: EventType["bookingFields"]) {
+  transformBookingFields(inputBookingFields: any) {
+    if (!inputBookingFields) return [];
     return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
   }
 
-  transformRecurringEvent(obj: unknown) {
-    return parseRecurringEvent(obj);
+  transformRecurringEvent(recurringEvent: any) {
+    if (!recurringEvent) return null;
+    return parseRecurringEvent(recurringEvent);
   }
 
-  transformMetadata(obj: unknown) {
-    return EventTypeMetaDataSchema.parse(obj);
+  transformMetadata(metadata: any) {
+    if (!metadata) return {};
+    return EventTypeMetaDataSchema.parse(metadata);
   }
 
   async getSchedule(databaseEventType: DatabaseEventType) {
@@ -100,7 +103,7 @@ export class OutputEventTypesService {
 
   transformUsers(users: User[]) {
     return users.map((user) => {
-      const metadata = userMetadata.parse(user.metadata) || {};
+      const metadata = user.metadata ? userMetadata.parse(user.metadata) : {};
       return {
         id: user.id,
         name: user.name,
@@ -109,7 +112,7 @@ export class OutputEventTypesService {
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
         weekStart: user.weekStart,
-        metadata,
+        metadata: metadata || {},
       };
     });
   }

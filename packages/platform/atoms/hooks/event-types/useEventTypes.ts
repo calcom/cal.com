@@ -13,9 +13,9 @@ export const useEventTypes = (username: string) => {
   return useQuery({
     queryKey: [QUERY_KEY, username],
     queryFn: () => {
-      return http?.get<ApiResponse<EventTypeOutput>>(pathname).then((res) => {
+      return http?.get<ApiResponse<EventTypeOutput[]>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
-          return (res.data as ApiSuccessResponse<EventTypeOutput>).data;
+          return (res.data as ApiSuccessResponse<EventTypeOutput[]>).data;
         }
         throw new Error(res.data.error.message);
       });
