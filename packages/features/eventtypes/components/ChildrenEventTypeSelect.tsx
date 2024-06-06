@@ -1,11 +1,11 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
-import { WEBSITE_URL } from "@calcom/lib/constants";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
 
 export type ChildrenEventType = {
@@ -20,6 +20,7 @@ export type ChildrenEventType = {
     username: string;
     membership: MembershipRole;
     eventTypeSlugs: string[];
+    profile: UserProfile;
   };
   slug: string;
   hidden: boolean;
@@ -35,10 +36,7 @@ export const ChildrenEventTypeSelect = ({
   onChange: (value: readonly ChildrenEventType[]) => void;
 }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
-
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
-  const domain = orgBranding?.fullDomain ?? WEBSITE_URL;
 
   return (
     <>
@@ -109,7 +107,9 @@ export const ChildrenEventTypeSelect = ({
                           color="secondary"
                           target="_blank"
                           variant="icon"
-                          href={`${domain}/${children.owner?.username}/${children.slug}`}
+                          href={`${getBookerBaseUrlSync(
+                            children.owner.profile?.organization?.slug ?? null
+                          )}/${children.owner?.username}/${children.slug}`}
                           StartIcon="external-link"
                         />
                       </Tooltip>
