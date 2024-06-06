@@ -84,6 +84,7 @@ type OnboardingPageProps = {
   credentialId?: number;
   showEventTypesStep: boolean;
   isConferencing: boolean;
+  installableOnTeams: boolean;
 };
 
 type TUpdateObject = {
@@ -103,6 +104,7 @@ const OnboardingPage = ({
   credentialId,
   showEventTypesStep,
   isConferencing,
+  installableOnTeams,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -117,12 +119,12 @@ const OnboardingPage = ({
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
-      stepNumber: isConferencing ? 1 : 2,
+      stepNumber: installableOnTeams ? 1 : 2,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) => `${t("configure_app_header", { appName })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: isConferencing ? 2 : 3,
+      stepNumber: installableOnTeams ? 2 : 3,
     },
   } as const;
   const [configureStep, setConfigureStep] = useState(false);
@@ -139,8 +141,8 @@ const OnboardingPage = ({
     if (!showEventTypesStep) {
       return 1;
     }
-    return isConferencing ? STEPS.length - 1 : STEPS.length;
-  }, [showEventTypesStep, isConferencing]);
+    return installableOnTeams ? STEPS.length : STEPS.length - 1;
+  }, [showEventTypesStep, installableOnTeams]);
 
   const utils = trpc.useContext();
 
@@ -299,8 +301,7 @@ const OnboardingPage = ({
                   personalAccount={personalAccount}
                   onSelect={handleSelectAccount}
                   loading={mutation.isPending}
-                  // conferencing apps dont support team install
-                  installableOnTeams={!isConferencing}
+                  installableOnTeams={installableOnTeams}
                 />
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
@@ -613,6 +614,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         userName: user.username,
         credentialId,
         isConferencing,
+        // conferencing apps dont support team install
+        installableOnTeams: !isConferencing,
       } as OnboardingPageProps,
     };
   } catch (err) {
