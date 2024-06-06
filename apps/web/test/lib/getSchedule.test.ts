@@ -137,6 +137,7 @@ describe("getSchedule", () => {
                 isFixed: false,
               },
             ],
+            teamId: 1,
             schedulingType: "ROUND_ROBIN",
             metadata: {
               apps: {
@@ -155,6 +156,20 @@ describe("getSchedule", () => {
             email: "example@example.com",
             id: 101,
             schedules: [TestData.schedules.IstEveningShift],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 101,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
           {
             ...TestData.users.example,
@@ -162,6 +177,20 @@ describe("getSchedule", () => {
             id: 102,
             schedules: [TestData.schedules.IstMorningShift],
             defaultScheduleId: 2,
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 102,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
         ],
         bookings: [],
@@ -265,6 +294,7 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 60,
             length: 60,
+            teamId: 1,
             hosts: [
               {
                 userId: 101,
@@ -297,6 +327,20 @@ describe("getSchedule", () => {
             email: "example@example.com",
             id: 101,
             schedules: [TestData.schedules.IstMidShift],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 101,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
           {
             ...TestData.users.example,
@@ -304,14 +348,41 @@ describe("getSchedule", () => {
             id: 102,
             schedules: [TestData.schedules.IstMorningShift],
             defaultScheduleId: 2,
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 102,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
           {
             ...TestData.users.example,
             email: "example2@example.com",
             id: 103,
             schedules: [TestData.schedules.IstEveningShift],
-
             defaultScheduleId: 3,
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 103,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
         ],
         bookings: [],
@@ -1157,6 +1228,7 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 45,
             schedulingType: "COLLECTIVE",
+            teamId: 1,
             length: 45,
             users: [
               {
@@ -1183,11 +1255,39 @@ describe("getSchedule", () => {
             ...TestData.users.example,
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 101,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
           {
             ...TestData.users.example,
             id: 102,
             schedules: [TestData.schedules.IstWorkHours],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 102,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
         ],
         bookings: [
@@ -1282,6 +1382,7 @@ describe("getSchedule", () => {
             id: 1,
             slotInterval: 45,
             length: 45,
+            teamId: 1,
             users: [
               {
                 id: 101,
@@ -1308,11 +1409,39 @@ describe("getSchedule", () => {
             ...TestData.users.example,
             id: 101,
             schedules: [TestData.schedules.IstWorkHours],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 101,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
           {
             ...TestData.users.example,
             id: 102,
             schedules: [TestData.schedules.IstWorkHours],
+            teams: [
+              {
+                membership: {
+                  accepted: true,
+                  teamId: 1,
+                  userId: 102,
+                },
+                team: {
+                  name: "Team 1",
+                  slug: "team-1",
+                  id: 1,
+                },
+              },
+            ],
           },
         ],
         bookings: [
