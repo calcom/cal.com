@@ -1,47 +1,27 @@
 import type { FC } from "react";
 
-import { Button } from "@calcom/ui";
+import { OFFICE_365_CALENDAR } from "@calcom/platform-constants";
 
-import type { OnCheckErrorType } from "../../hooks/connect/outlook/useCheck";
-import { useCheck } from "../../hooks/connect/outlook/useCheck";
-import { useConnect } from "../../hooks/connect/outlook/useConnect";
-import { useAtomsContext } from "../../hooks/useAtomsContext";
-import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { cn } from "../../src/lib/utils";
+import type { OAuthConnectProps } from "../OAuthConnect";
+import { OAuthConnect } from "../OAuthConnect";
 
-interface Office365ConnectProps {
-  className?: string;
-  label?: string;
-  alreadyConnectedLabel?: string;
-  onCheckError?: OnCheckErrorType;
-}
-
-export const OutlookConnect: FC<Office365ConnectProps> = ({
-  label = "Connect Microsoft Outlook Calendar",
+export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
+  label = "Connect Outlook Calendar",
   alreadyConnectedLabel = "Connected Outlook Calendar",
+  loadingLabel = "Checking Outlook Calendar",
   className,
   onCheckError,
+  redir,
 }) => {
-  const { isAuth } = useAtomsContext();
-  const { connect } = useConnect();
-
-  const { allowConnect, checked } = useCheck({
-    isAuth,
-    onCheckError,
-  });
-
-  if (!isAuth || !checked) return <></>;
-
   return (
-    <AtomsWrapper>
-      <Button
-        StartIcon="calendar-days"
-        color="primary"
-        disabled={!allowConnect}
-        className={cn("", className)}
-        onClick={() => connect()}>
-        {allowConnect ? label : alreadyConnectedLabel}
-      </Button>
-    </AtomsWrapper>
+    <OAuthConnect
+      label={label}
+      alreadyConnectedLabel={alreadyConnectedLabel}
+      loadingLabel={loadingLabel}
+      calendar={OFFICE_365_CALENDAR}
+      className={className}
+      onCheckError={onCheckError}
+      redir={redir}
+    />
   );
 };

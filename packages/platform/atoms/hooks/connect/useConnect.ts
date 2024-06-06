@@ -1,20 +1,23 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { OFFICE_365_CALENDAR, SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import type { CALENDARS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse } from "@calcom/platform-types";
 
-import http from "../../../lib/http";
+import http from "../../lib/http";
 
-export const QUERY_KEY = ["get-office-365-redirect-uri"];
+export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-redirect-uri`];
 
-export const useGetRedirectUrl = () => {
+export const useGetRedirectUrl = (calendar: (typeof CALENDARS)[number], redir?: string) => {
   const authUrl = useQuery({
-    queryKey: QUERY_KEY,
+    queryKey: getQueryKey(calendar),
     staleTime: Infinity,
     enabled: false,
     queryFn: () => {
       return http
-        ?.get<ApiResponse<{ authUrl: string }>>(`/calendars/${OFFICE_365_CALENDAR}/connect`)
+        ?.get<ApiResponse<{ authUrl: string }>>(
+          `/calendars/${calendar}/connect${redir ? `?redir=${redir}` : ""}`
+        )
         .then(({ data: responseBody }) => {
           if (responseBody.status === SUCCESS_STATUS) {
             return responseBody.data.authUrl;
@@ -28,8 +31,8 @@ export const useGetRedirectUrl = () => {
   return authUrl;
 };
 
-export const useConnect = () => {
-  const { refetch } = useGetRedirectUrl();
+export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string) => {
+  const { refetch } = useGetRedirectUrl(calendar, redir);
 
   const connect = async () => {
     const redirectUri = await refetch();

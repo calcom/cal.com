@@ -1,65 +1,27 @@
 import type { FC } from "react";
 
-import { Button } from "@calcom/ui";
+import { GOOGLE_CALENDAR } from "@calcom/platform-constants";
 
-import type { OnCheckErrorType } from "../../hooks/connect/google/useGcal";
-import { useGcal } from "../../hooks/connect/google/useGcal";
-import { useAtomsContext } from "../../hooks/useAtomsContext";
-import { AtomsWrapper } from "../../src/components/atoms-wrapper";
-import { cn } from "../../src/lib/utils";
+import type { OAuthConnectProps } from "../OAuthConnect";
+import { OAuthConnect } from "../OAuthConnect";
 
-interface GcalConnectProps {
-  className?: string;
-  label?: string;
-  alreadyConnectedLabel?: string;
-  onCheckError?: OnCheckErrorType;
-}
-
-/**
- * Renders a button to connect or disconnect the Google Calendar of a user.
- * @requires AccessToken - The user must be authenticated with an access token passed to CalProvider.
- * @component
- * @example
- * ```tsx
- * <GcalConnect
- *   label="Connect Google Calendar"
- *   alreadyConnectedLabel="Connected Google Calendar"
- *   className="my-button"
- * />
- * ```
- *
- *
- * @param {string} [label="Connect Google Calendar"] - The label for the connect button. Optional.
- * @param {string} [alreadyConnectedLabel="Connected Google Calendar"] - The label for the already connected button. Optional.
- * @param {string} [className] - Additional CSS class name for the button. Optional.
- * @param {OnCheckErrorType} [onCheckError] - A callback function to handle errors when checking the connection status. Optional.
- * @returns {JSX.Element} The rendered component.
- */
-export const GcalConnect: FC<GcalConnectProps> = ({
+export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   label = "Connect Google Calendar",
   alreadyConnectedLabel = "Connected Google Calendar",
+  loadingLabel = "Checking Google Calendar",
   className,
   onCheckError,
+  redir,
 }) => {
-  const { isAuth } = useAtomsContext();
-
-  const { allowConnect, checked, redirectToGcalOAuth } = useGcal({
-    isAuth,
-    onCheckError,
-  });
-
-  if (!isAuth || !checked) return <></>;
-
   return (
-    <AtomsWrapper>
-      <Button
-        StartIcon="calendar-days"
-        color="primary"
-        disabled={!allowConnect}
-        className={cn("", className)}
-        onClick={() => redirectToGcalOAuth()}>
-        {allowConnect ? label : alreadyConnectedLabel}
-      </Button>
-    </AtomsWrapper>
+    <OAuthConnect
+      label={label}
+      alreadyConnectedLabel={alreadyConnectedLabel}
+      loadingLabel={loadingLabel}
+      calendar={GOOGLE_CALENDAR}
+      className={className}
+      onCheckError={onCheckError}
+      redir={redir}
+    />
   );
 };
