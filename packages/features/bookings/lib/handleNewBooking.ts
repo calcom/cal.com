@@ -2198,8 +2198,6 @@ async function handler(
         let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
-        const workflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
-
         if (workflows) {
           isHostConfirmationEmailsDisabled =
             eventType.metadata?.disableStandardEmails?.confirmation?.host || false;

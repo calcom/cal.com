@@ -263,6 +263,48 @@ export async function isAuthorizedToAddActiveOnIds(
   return true;
 }
 
+const reminderMethods: {
+  [x: string]: (id: number, referenceId: string | null, prisma: PrismaClient) => void;
+} = {
+  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
+  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
+  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
+};
+
+export async function deleteAllWorkflowReminders(
+  remindersToDelete:
+    | {
+        id: number;
+        referenceId: string | null;
+        method: string;
+      }[]
+    | null,
+  prisma: PrismaClient
+) {
+  if (!remindersToDelete) return Promise.resolve();
+
+  await Promise.all(
+    remindersToDelete.map((reminder) => {
+      return reminderMethods[reminder.method](reminder.id, reminder.referenceId, prisma);
+    })
+  ).catch((error) => {
+    log.error("An error occurred when deleting workflow reminders", error);
+  });
+}
+
+export async function deleteRemindersOfActiveOnIds(
+  removedActiveOnIds: number[],
+  workflowSteps: WorkflowStep[],
+  isOrg: boolean,
+  prisma: PrismaClient,
+  activeOnIds?: number[]
+) {
+  const remindersToDelete = !isOrg
+    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps, prisma)
+    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, prisma, activeOnIds);
+  await deleteAllWorkflowReminders(remindersToDelete, prisma);
+}
+
 async function getRemindersFromRemovedTeams(
   removedTeams: number[],
   workflowSteps: WorkflowStep[],
@@ -378,48 +420,6 @@ async function getRemindersFromRemovedEventTypes(
   return remindersToDelete;
 }
 
-const reminderMethods: {
-  [x: string]: (id: number, referenceId: string | null, prisma: PrismaClient) => void;
-} = {
-  [WorkflowMethods.EMAIL]: deleteScheduledEmailReminder,
-  [WorkflowMethods.SMS]: deleteScheduledSMSReminder,
-  [WorkflowMethods.WHATSAPP]: deleteScheduledWhatsappReminder,
-};
-
-export async function deleteAllWorkflowReminders(
-  remindersToDelete:
-    | {
-        id: number;
-        referenceId: string | null;
-        method: string;
-      }[]
-    | null,
-  prisma: PrismaClient
-) {
-  if (!remindersToDelete) return Promise.resolve();
-
-  await Promise.all(
-    remindersToDelete.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId, prisma);
-    })
-  ).catch((error) => {
-    log.error("An error occurred when deleting workflow reminders", error);
-  });
-}
-
-export async function deleteRemindersOfActiveOnIds(
-  removedActiveOnIds: number[],
-  workflowSteps: WorkflowStep[],
-  isOrg: boolean,
-  prisma: PrismaClient,
-  activeOnIds?: number[]
-) {
-  const remindersToDelete = !isOrg
-    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps, prisma)
-    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, prisma, activeOnIds);
-  await deleteAllWorkflowReminders(remindersToDelete, prisma);
-}
-
 export async function scheduleWorkflowNotifications(
   activeOn: number[],
   isOrg: boolean,
@@ -432,10 +432,10 @@ export async function scheduleWorkflowNotifications(
   prisma: PrismaClient,
   alreadyScheduledActiveOnIds?: number[]
 ) {
-  const bookingstoScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
+  const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
-    bookingstoScheduleNotifications,
+    bookingsToScheduleNotifications,
     workflowSteps,
     time,
     timeUnit,
@@ -450,7 +450,6 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
   if (activeOn.length === 0) return [];
 
   if (isOrg) {
-    // this query is pretty much the same as we do it for workflowReminders, maybe we can reuse this somehow
     const bookingsForReminders = await prisma.booking.findMany({
       where: {
         OR: [
@@ -502,6 +501,10 @@ async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledA
             },
           },
         ],
+        status: BookingStatus.ACCEPTED,
+        startTime: {
+          gte: new Date(),
+        },
       },
       select: bookingSelect,
     });
@@ -548,10 +551,9 @@ export async function scheduleBookingReminders(
 ) {
   if (!bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
-  //create reminders for all bookings with newEventTypes
+  //create reminders for all bookings for each workflow step
   const promiseSteps = workflowSteps.map(async (step) => {
     // we do not have attendees phone number (user is notified about that when setting this action)
-    // in some scenarios we could already have the phone number, so we should still schedule if phone number exists
     if (step.action == WorkflowActions.SMS_ATTENDEE || step.action == WorkflowActions.WHATSAPP_ATTENDEE)
       return;
 

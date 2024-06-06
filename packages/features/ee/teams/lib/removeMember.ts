@@ -109,8 +109,7 @@ const removeMember = async ({
       }),
     ]);
 
-    // cancel/delete all workflowReminders of that user that come from org workflows
-    // todo: don't delete reminder if user is still part of another team that is active on this workflow
+    // delete all workflowReminders of the removed team member that come from org workflows
     const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
       where: {
         workflowStep: {
@@ -139,27 +138,38 @@ const removeMember = async ({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
 
-  // cancel/delete all workflowReminders of that user that come from that team (org teams only)
+  // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
   if (team.parentId) {
+    const removedWorkflows = await prisma.workflow.findMany({
+      where: {
+        activeOnTeams: {
+          some: {
+            teamId: team.id,
+          },
+        },
+        //don't delete reminder, if user is still part of another team that is active on this workflow
+        activeOnTeams: {
+          none: {
+            team: {
+              members: {
+                some: {
+                  userId: memberId,
+                },
+              },
+            },
+          },
+        },
+        isActiveOnAll: false,
+      },
+    });
+
     const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
       where: {
-        OR: [
-          {
-            workflowStep: {
-              workflowId: {
-                in: team.activeOrgWorkflows.map((workflowRel) => workflowRel.workflowId),
-              },
-            },
+        workflowStep: {
+          workflowId: {
+            in: removedWorkflows?.map((workflow) => workflow.id) ?? [],
           },
-          {
-            workflowStep: {
-              workflow: {
-                isActiveOnAll: true,
-                teamId: team.parentId,
-              },
-            },
-          },
-        ],
+        },
         booking: {
           eventType: {
             userId: memberId,

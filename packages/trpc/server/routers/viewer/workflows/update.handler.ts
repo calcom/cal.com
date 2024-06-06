@@ -85,6 +85,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let activeOnWithChildren: number[] = [];
 
+  let oldActiveOnIds: number[] = [];
+
   if (!isOrg) {
     // activeOn are event types ids
     const activeOnEventTypes = await ctx.prisma.eventType.findMany({
@@ -112,7 +114,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userWorkflow.isActiveOnAll) {
       oldActiveOnEventTypes = await ctx.prisma.eventType.findMany({
         where: {
-          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }),
+          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }), // is it ok to fetch managed event tyeps here for user workflows?
         },
         select: {
           id: true,
@@ -147,17 +149,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
-    const oldActiveOnEventTypeIds = oldActiveOnEventTypes.flatMap((eventType) => [
+    oldActiveOnIds = oldActiveOnEventTypes.flatMap((eventType) => [
       eventType.id,
       ...eventType.children.map((child) => child.id),
     ]);
 
-    newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnEventTypeIds.includes(eventTypeId));
+    newActiveOn = activeOn.filter((eventTypeId) => !oldActiveOnIds.includes(eventTypeId));
 
     await isAuthorizedToAddActiveOnIds(newActiveOn, isOrg, userWorkflow?.teamId, userWorkflow?.userId);
 
+    if (!isAuthorizedToAddIds) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-    const removedActiveOn = oldActiveOnEventTypeIds.filter(
+    const removedActiveOn = oldActiveOnIds.filter(
       (eventTypeId) => !activeOnWithChildren.includes(eventTypeId)
     );
 
@@ -179,10 +185,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   } else {
     // activeOn are team ids
-
-    let oldActiveOnTeamIds: number[];
     if (userWorkflow.isActiveOnAll) {
-      oldActiveOnTeamIds = (
+      oldActiveOnIds = (
         await ctx.prisma.team.findMany({
           where: {
             parent: {
@@ -195,7 +199,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         })
       ).map((team) => team.id);
     } else {
-      oldActiveOnTeamIds = (
+      oldActiveOnIds = (
         await ctx.prisma.workflowsOnTeams.findMany({
           where: {
             workflowId: id,
@@ -207,7 +211,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       ).map((teamRel) => teamRel.teamId);
     }
 
-    newActiveOn = activeOn.filter((teamId) => !oldActiveOnTeamIds.includes(teamId));
+    newActiveOn = activeOn.filter((teamId) => !oldActiveOnIds.includes(teamId));
 
     const isAuthorizedToAddIds = await isAuthorizedToAddActiveOnIds(
       newActiveOn,
@@ -220,7 +224,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    const removedActiveOn = oldActiveOnTeamIds.filter((teamId) => !activeOn.includes(teamId));
+    const removedActiveOn = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
 
     await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma, activeOn);
 
@@ -242,19 +246,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //todo: test this
   if (userWorkflow.trigger !== trigger) {
     //if trigger changed, delete all reminders from steps before change
-
-    let activeOnBefore: number[];
-
-    if (isOrg) {
-      activeOnBefore = userWorkflow.activeOnTeams.map((activeOn) => activeOn.teamId);
-    } else {
-      activeOnBefore = userWorkflow.activeOn.map((activeOn) => activeOn.eventTypeId);
-    }
-
-    await deleteRemindersOfActiveOnIds(activeOnBefore, userWorkflow.steps, isOrg, ctx.prisma);
+    await deleteRemindersOfActiveOnIds(oldActiveOnIds, userWorkflow.steps, isOrg, ctx.prisma);
 
     await scheduleWorkflowNotifications(
-      activeOn, // schedule for existing activeOn (reminders were deleted) + new active on
+      activeOn, // schedule for activeOn that stayed the same (old reminders were deleted) + new active on
       isOrg,
       userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
@@ -281,7 +276,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   // handle deleted and edited workflow steps
-  userWorkflow.steps.map(async ({ ...oldStep }) => {
+  userWorkflow.steps.map(async (oldStep) => {
     const foundStep = steps.find((s) => s.id === oldStep.id);
     let newStep;
 
@@ -324,8 +319,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      //step was
-      //am I alwaus going in here now?
+      //step was edited
     } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
@@ -361,7 +355,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
       });
 
-      // cancel all notifications of edited step, not from new event types
+      // cancel all notifications of edited step
       await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
 
       // schedule notifications for edited steps
@@ -487,6 +481,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
     );
 
+  //this still needs to be fixed for org workflows
   for (const removedEventType of removedActiveOn) {
     await removeSmsReminderFieldForBooking({
       workflowId: id,

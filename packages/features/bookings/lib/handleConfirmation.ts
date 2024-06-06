@@ -251,6 +251,41 @@ export async function handleConfirmation(args: {
     updatedBookings.push(updatedBooking);
   }
 
+  //Workflows - set reminders for confirmed events
+  try {
+    for (let index = 0; index < updatedBookings.length; index++) {
+      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
+      const evtOfBooking = {
+        ...evt,
+        metadata: { videoCallUrl: meetingUrl },
+        eventType: { slug: eventTypeSlug },
+      };
+      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
+      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
+      evtOfBooking.uid = updatedBookings[index].uid;
+      const isFirstBooking = index === 0;
+
+      await scheduleMandatoryReminder(
+        evtOfBooking,
+        workflows,
+        false,
+        !!updatedBookings[index].eventType?.owner?.hideBranding,
+        evt.attendeeSeatId
+      );
+
+      await scheduleWorkflowReminders({
+        workflows,
+        smsReminderNumber: updatedBookings[index].smsReminderNumber,
+        calendarEvent: evtOfBooking,
+        isFirstRecurringEvent: isFirstBooking,
+        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
+      });
+    }
+  } catch (error) {
+    // Silently fail
+    console.error(error);
+  }
+
   try {
     const subscribersBookingCreated = await getWebhooks({
       userId,
@@ -389,41 +424,6 @@ export async function handleConfirmation(args: {
 
       // I don't need to await for this
       Promise.all(bookingPaidSubscribers);
-    }
-  } catch (error) {
-    // Silently fail
-    console.error(error);
-  }
-
-  //Workflows - set reminders for confirmed events
-  try {
-    for (let index = 0; index < updatedBookings.length; index++) {
-      const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-      const evtOfBooking = {
-        ...evt,
-        metadata: { videoCallUrl: meetingUrl },
-        eventType: { slug: eventTypeSlug },
-      };
-      evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
-      evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
-      evtOfBooking.uid = updatedBookings[index].uid;
-      const isFirstBooking = index === 0;
-
-      await scheduleMandatoryReminder(
-        evtOfBooking,
-        workflows,
-        false,
-        !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
-      );
-
-      await scheduleWorkflowReminders({
-        workflows,
-        smsReminderNumber: updatedBookings[index].smsReminderNumber,
-        calendarEvent: evtOfBooking,
-        isFirstRecurringEvent: isFirstBooking,
-        hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-      });
     }
   } catch (error) {
     // Silently fail

@@ -21,7 +21,6 @@ export async function scheduleMandatoryReminder(
   seatReferenceUid: string | undefined
 ) {
   try {
-    // here we need to also check if maybe another org or team workflow exists
     const hasExistingWorkflow = workflows.some((workflow) => {
       return (
         workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
