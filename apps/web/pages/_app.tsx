@@ -37,15 +37,16 @@ MyApp.getInitialProps = async (ctx: AppContextType) => {
   const { req, res } = ctx.ctx;
 
   let newLocale = "en";
-  let userSession = null;
+  let isPlatformUser = false;
 
   if (req) {
     const { getLocale } = await import("@calcom/features/auth/lib/getLocale");
     const { getServerSession } = await import("@calcom/features/auth/lib/getServerSession");
+    const userSession = await getServerSession({ req: req as NextApiRequest, res });
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     newLocale = await getLocale(req as IncomingMessage & { cookies: Record<string, any> });
-    userSession = await getServerSession({ req: req as NextApiRequest, res });
+    isPlatformUser = userSession?.isPlatformUser ?? false;
   } else if (typeof window !== "undefined" && window.calNewLocale) {
     newLocale = window.calNewLocale;
   }
@@ -53,7 +54,7 @@ MyApp.getInitialProps = async (ctx: AppContextType) => {
   return {
     pageProps: {
       newLocale,
-      isPlatformUser: userSession?.isPlatformUser ?? false,
+      isPlatformUser,
     },
   };
 };
