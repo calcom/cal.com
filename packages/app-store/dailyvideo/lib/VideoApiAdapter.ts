@@ -307,9 +307,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getTranscriptsAccessLinkFromRecordingId: async (
       recordingId: string
-    ): Promise<TGetTranscriptAccessLink["transcription"]> => {
+    ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }> => {
       try {
-        const batchProcessorJobs = await fetcher(`batch-processor?recordingId=${recordingId}`).then(
+        const batchProcessorJobs = await fetcher(`/batch-processor?recordingId=${recordingId}`).then(
           getBatchProcessJobs.parse
         );
         if (!batchProcessorJobs.data.length) {

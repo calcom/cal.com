@@ -767,7 +767,7 @@ export const ZSubmitBatchProcessorJobRes = z.object({
   id: z.string(),
 });
 
-export const TSubmitBatchProcessorJobRes = z.infer<typeof ZSubmitBatchProcessorJobRes>;
+export type TSubmitBatchProcessorJobRes = z.infer<typeof ZSubmitBatchProcessorJobRes>;
 
 export type batchProcessorBody = {
   preset: "transcript";
@@ -784,7 +784,7 @@ export type batchProcessorBody = {
 
 export const ZGetTranscriptAccessLink = z.object({
   id: z.string(),
-  present: z.string(),
+  preset: z.string(),
   status: z.string(),
   transcription: z.array(
     z.object({
@@ -794,4 +794,4 @@ export const ZGetTranscriptAccessLink = z.object({
   ),
 });
 
-export const TGetTranscriptAccessLink = z.infer<typeof ZGetTranscriptAccessLink>;
+export type TGetTranscriptAccessLink = z.infer<typeof ZGetTranscriptAccessLink>;

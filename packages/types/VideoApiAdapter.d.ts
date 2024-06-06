@@ -3,6 +3,7 @@ import type {
   GetAccessLinkResponseSchema,
   TSubmitBatchProcessorJobRes,
   batchProcessorBody,
+  TGetTranscriptAccessLink,
 } from "@calcom/prisma/zod-utils";
 
 import type { EventBusyDate } from "./Calendar";
@@ -36,7 +37,9 @@ export type VideoApiAdapter =
 
       submitBatchProcessorJob?(body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes>;
 
-      getTranscriptsAccessLinkFromRecordingId?(recordingId: string): Promise<Array<any>>;
+      getTranscriptsAccessLinkFromRecordingId?(
+        recordingId: string
+      ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }>;
     }
   | undefined;
 

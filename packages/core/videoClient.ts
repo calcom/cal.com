@@ -357,7 +357,7 @@ const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
     },
   ]);
 
-  return videoAdapter?.getTranscriptsAccessLinkFromRecordingId(recordingId);
+  return videoAdapter?.getTranscriptsAccessLinkFromRecordingId?.(recordingId);
 };
 
 export {
