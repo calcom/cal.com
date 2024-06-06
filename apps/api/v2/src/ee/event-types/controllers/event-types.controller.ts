@@ -1,4 +1,5 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { EventTypeIdParams } from "@/ee/event-types/inputs/event-type-id.input";
 import { GetPublicEventTypeQueryParams } from "@/ee/event-types/inputs/get-public-event-type-query-params.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
@@ -30,6 +31,7 @@ import {
   Delete,
   Query,
   InternalServerErrorException,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -69,7 +71,9 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
   async getEventType(
-    @Param("eventTypeId") eventTypeId: string,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+
     @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput> {
     const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
@@ -145,7 +149,8 @@ export class EventTypesController {
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
-    @Param("eventTypeId") eventTypeId: number,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput> {
@@ -161,7 +166,8 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(AccessTokenGuard)
   async deleteEventType(
-    @Param("eventTypeId") eventTypeId: number,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser("id") userId: number
   ): Promise<DeleteEventTypeOutput> {
     const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
