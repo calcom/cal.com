@@ -186,7 +186,13 @@ export default function WorkflowDetailsPage(props: Props) {
                   isLoading={isPendingEventType || isPendingTeams}
                   className="w-full md:w-64"
                   setSelected={setSelectedOptions}
-                  selected={selectedOptions}
+                  selected={
+                    form.getValues("selectAll")
+                      ? isOrg
+                        ? teamOptions
+                        : allEventTypeOptions
+                      : selectedOptions
+                  }
                   setValue={(s: Option[]) => {
                     form.setValue("activeOn", s);
                   }}
