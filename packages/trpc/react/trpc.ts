@@ -58,7 +58,7 @@ export const trpc: CreateTRPCNext<AppRouter, NextPageContext, null> = createTRPC
       typeof window !== "undefined"
         ? "/api/trpc"
         : process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}/api/trpc`
+        ? `https://${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`
         : `${process.env.NEXT_PUBLIC_WEBAPP_URL}/api/trpc`;
 
     /**
