@@ -2,11 +2,11 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { default as DatePickerComponent } from "@calcom/features/calendars/DatePicker";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 
 import { useBookerStore } from "../store";
 import type { useScheduleForEventReturnType } from "../utils/event";
@@ -17,7 +17,7 @@ export const DatePicker = ({
   classNames,
 }: {
   event: {
-    data?: Pick<EventActuallyUsed, "users"> | null;
+    data?: { users: Pick<User, "weekStart">[] } | null;
   };
   schedule: useScheduleForEventReturnType;
   classNames?: {

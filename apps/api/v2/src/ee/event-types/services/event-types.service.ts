@@ -111,9 +111,11 @@ export class EventTypesService {
   async getUserEventTypes(userId: number) {
     const eventTypes = await this.eventTypesRepository.getUserEventTypes(userId);
 
-    return eventTypes.map((eventType) =>
-      this.outputEventTypesService.getResponseEventType(userId, eventType)
-    );
+    const eventTypePromises = eventTypes.map(async (eventType) => {
+      return await this.outputEventTypesService.getResponseEventType(userId, eventType);
+    });
+
+    return await Promise.all(eventTypePromises);
   }
 
   async getUserEventTypeForAtom(user: UserWithProfile, eventTypeId: number) {

@@ -4,24 +4,26 @@ import {
   transformApiEventTypeBookingFields,
 } from "@calcom/lib/event-types/transformers";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type { EventTypeOutput } from "@calcom/platform-types";
-import type { BookerLayoutSettings } from "@calcom/prisma/zod-utils";
-import { BookerLayouts, bookerLayoutOptions, eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import {
+  bookerLayoutOptions,
+  eventTypeBookingFields,
+  BookerLayouts,
   bookerLayouts as bookerLayoutsSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
 
 export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
-  const { lengthInMinutes, locations, bookingFields, ...rest } = eventType;
+  const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
 
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
-  } as BookerLayoutSettings;
-  const firstUsersMetadata = userMetadataSchema.parse(rest.users[0].metadata || {});
+  };
+  const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
@@ -36,14 +38,14 @@ export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
     isDefault,
     isDynamic: false,
     profile: {
-      username: rest.users[0].username,
-      name: rest.users[0].name,
-      weekStart: rest.users[0].weekStart,
+      username: users[0].username,
+      name: users[0].name,
+      weekStart: users[0].weekStart,
       image: getUserAvatarUrl({
-        avatarUrl: rest.users[0].avatarUrl,
+        avatarUrl: users[0].avatarUrl,
       }),
-      brandColor: rest.users[0].brandColor,
-      darkBrandColor: rest.users[0].darkBrandColor,
+      brandColor: users[0].brandColor,
+      darkBrandColor: users[0].darkBrandColor,
       theme: null,
       bookerLayouts,
     },
@@ -55,6 +57,27 @@ export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
       name: undefined,
     },
     hosts: [],
+    users: users.map((user) => ({
+      ...user,
+      metadata: undefined,
+      bookerUrl: getBookerBaseUrlSync(null),
+      profile: {
+        username: user.username || "",
+        name: user.name,
+        weekStart: user.weekStart,
+        image: getUserAvatarUrl({
+          avatarUrl: user.avatarUrl,
+        }),
+        brandColor: user.brandColor,
+        darkBrandColor: user.darkBrandColor,
+        theme: null,
+        organization: null,
+        id: user.id,
+        organizationId: null,
+        userId: user.id,
+        upId: `usr-${user.id}`,
+      },
+    })),
   };
 }
 

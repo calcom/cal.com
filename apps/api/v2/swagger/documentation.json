@@ -793,6 +793,16 @@
       "post": {
         "operationId": "SchedulesController_createSchedule",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -835,7 +845,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule"
+            "description": "Returns the default schedule",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetDefaultScheduleOutput"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2024,6 +2041,70 @@
           "refreshToken"
         ]
       },
+      "RecurringEvent": {
+        "type": "object",
+        "properties": {}
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "avatarUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "metadata"
+        ]
+      },
+      "Schedule": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "timeZone"
+        ]
+      },
       "EventTypeOutput": {
         "type": "object",
         "properties": {
@@ -2042,11 +2123,13 @@
           },
           "description": {
             "type": "string",
-            "nullable": true,
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           },
           "ownerId": {
             "type": "number"
+          },
+          "slug": {
+            "type": "string"
           },
           "locations": {
             "type": "array",
@@ -2076,13 +2159,92 @@
           },
           "afterEventBuffer": {
             "type": "number"
+          },
+          "schedulingType": {
+            "type": "object",
+            "nullable": true
+          },
+          "recurringEvent": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurringEvent"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "nullable": true
+          },
+          "forwardParamsSuccessRedirect": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User"
+            }
+          },
+          "schedule": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Schedule"
+              }
+            ]
           }
         },
         "required": [
           "id",
           "lengthInMinutes",
           "title",
-          "ownerId"
+          "description",
+          "ownerId",
+          "slug",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "schedulingType",
+          "recurringEvent",
+          "metadata",
+          "requiresConfirmation",
+          "price",
+          "currency",
+          "lockTimeZoneToggleOnBookingPage",
+          "seatsPerTimeSlot",
+          "forwardParamsSuccessRedirect",
+          "successRedirectUrl",
+          "seatsShowAvailabilityCount",
+          "isInstantEvent",
+          "users",
+          "schedule"
         ]
       },
       "GetEventTypesOutput": {
@@ -2294,17 +2456,15 @@
             ],
             "type": "array",
             "items": {
-              "type": "object"
+              "type": "string"
             }
           },
           "startTime": {
             "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
             "example": "09:00"
           },
           "endTime": {
             "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
             "example": "10:00"
           }
         },
@@ -2323,12 +2483,10 @@
           },
           "startTime": {
             "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
             "example": "12:00"
           },
           "endTime": {
             "type": "string",
-            "pattern": "TIME_FORMAT_HH_MM",
             "example": "13:00"
           }
         },
@@ -2336,6 +2494,57 @@
           "date",
           "startTime",
           "endTime"
+        ]
+      },
+      "CreateScheduleInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
         ]
       },
       "ScheduleOutput": {
@@ -2421,6 +2630,26 @@
           "data"
         ]
       },
+      "GetDefaultScheduleOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "GetScheduleOutput": {
         "type": "object",
         "properties": {
@@ -2478,62 +2707,48 @@
       "UpdateScheduleInput": {
         "type": "object",
         "properties": {
-          "timeZone": {
-            "type": "string"
-          },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput"
+            }
           },
           "isDefault": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": true
           },
-          "schedule": {
+          "overrides": {
             "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
             ],
+            "type": "array",
             "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "dateOverrides": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
+              "$ref": "#/components/schemas/ScheduleOverrideInput"
+            }
           }
-        },
-        "required": [
-          "timeZone",
-          "name",
-          "isDefault",
-          "schedule"
-        ]
+        }
       },
       "UpdateScheduleOutput": {
         "type": "object",
@@ -3175,26 +3390,6 @@
           "bookingId",
           "externalCalendarId",
           "credentialId"
-        ]
-      },
-      "User": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          },
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "email"
         ]
       },
       "GetBookingsDataEntry": {

@@ -14,6 +14,18 @@ export type EventActuallyUsedQuery = {
   data?: EventActuallyUsed | null;
 };
 
+type EventUserActuallyUsed = Pick<
+  PublicEvent["users"][number],
+  "name" | "username" | "avatarUrl" | "weekStart" | "profile"
+> & {
+  metadata?: undefined;
+  brandColor?: string | null;
+  darkBrandColor?: string | null;
+  bookerUrl: string;
+};
+
+type EventProfileActuallyUsed = Pick<PublicEvent["profile"], "name" | "image" | "bookerLayouts">;
+
 export type EventActuallyUsed = Pick<
   PublicEvent,
   | "id"
@@ -21,8 +33,6 @@ export type EventActuallyUsed = Pick<
   | "slug"
   | "schedulingType"
   | "recurringEvent"
-  | "users"
-  | "profile"
   | "entity"
   | "locations"
   | "metadata"
@@ -41,7 +51,7 @@ export type EventActuallyUsed = Pick<
   | "bookingFields"
   | "seatsShowAvailabilityCount"
   | "isInstantEvent"
->;
+> & { users: EventUserActuallyUsed[] } & { profile: EventProfileActuallyUsed };
 
 export type ValidationErrors<T extends object> = { key: FieldPath<T>; error: ErrorOption }[];
 

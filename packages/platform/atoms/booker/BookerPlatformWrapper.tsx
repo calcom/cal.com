@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
-import { transformApiEventTypeForAtom } from "@calcom/atoms/event-type/atom-api-transformers/transformApiEventTypeForAtom";
 import dayjs from "@calcom/dayjs";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
@@ -23,6 +22,7 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { transformApiEventTypeForAtom } from "../event-type/atom-api-transformers/transformApiEventTypeForAtom";
 import { useEventType } from "../hooks/event-types/useEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";

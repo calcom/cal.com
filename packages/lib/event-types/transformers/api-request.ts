@@ -9,7 +9,7 @@ const integrationsMapping: Record<Integration, string> = {
 
 function transformApiEventTypeLocations(inputLocations: CreateEventTypeInput["locations"]) {
   if (!inputLocations) {
-    return undefined;
+    return [];
   }
 
   return inputLocations.map((location) => {

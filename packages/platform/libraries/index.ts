@@ -24,7 +24,7 @@ export { createHandler as createEventType } from "@calcom/trpc/server/routers/vi
 export { updateHandler as updateEventType } from "@calcom/trpc/server/routers/viewer/eventTypes/update.handler";
 
 export { SchedulingType, PeriodType } from "@calcom/prisma/enums";
-
+export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 export type { EventType } from "@calcom/lib/event-types/getEventTypeById";
 export type { EventTypesByViewer } from "@calcom/lib/event-types/getEventTypesByViewer";
 export type { EventTypesPublic } from "@calcom/lib/event-types/getEventTypesPublic";
@@ -84,3 +84,5 @@ export {
   TransformedLocationsSchema,
   BookingFieldsSchema,
 } from "@calcom/lib/event-types/transformers";
+
+export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";

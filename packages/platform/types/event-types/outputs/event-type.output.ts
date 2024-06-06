@@ -6,15 +6,53 @@ import {
   CREATE_EVENT_DESCRIPTION_EXAMPLE,
   CREATE_EVENT_LENGTH_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
-  ValidateBookingFields,
-  ValidateLocations,
 } from "@calcom/platform-types";
 import type { Location, BookingField } from "@calcom/platform-types";
-import type { Schedule, User } from "@calcom/prisma/client";
-import type { SchedulingType } from "@calcom/prisma/enums";
-import { SchedulingType as SchedulingTypeEnum } from "@calcom/prisma/enums";
 
+import { ValidateLocations } from "../inputs//locations.input";
+import { ValidateBookingFields } from "../inputs/booking-fields.input";
 import { RecurringEvent } from "../inputs/recurring-event";
+
+export const SchedulingTypeEnum = {
+  ROUND_ROBIN: "ROUND_ROBIN",
+  COLLECTIVE: "COLLECTIVE",
+  MANAGED: "MANAGED",
+} as const;
+
+export type SchedulingType = (typeof SchedulingTypeEnum)[keyof typeof SchedulingTypeEnum];
+
+class Schedule {
+  @IsInt()
+  id!: number;
+
+  @IsString()
+  timeZone!: string | null;
+}
+
+class User {
+  @IsInt()
+  id!: number;
+
+  @IsString()
+  name!: string | null;
+
+  @IsString()
+  username!: string | null;
+
+  @IsString()
+  avatarUrl!: string | null;
+
+  @IsString()
+  weekStart!: string;
+
+  @IsString()
+  brandColor!: string | null;
+
+  @IsString()
+  darkBrandColor!: string | null;
+
+  metadata!: Record<string, unknown>;
+}
 
 export class EventTypeOutput {
   @IsInt()
@@ -104,5 +142,5 @@ export class EventTypeOutput {
 
   users!: User[];
 
-  schedule!: Schedule;
+  schedule!: Schedule | null;
 }

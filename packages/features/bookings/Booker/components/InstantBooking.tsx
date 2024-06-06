@@ -1,11 +1,14 @@
 import type { EventActuallyUsed } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { Button, UserAvatarGroupWithOrg } from "@calcom/ui";
 
 interface IInstantBookingProps {
   onConnectNow: () => void;
-  event: Pick<EventActuallyUsed, "entity" | "schedulingType" | "users">;
+  event: Pick<EventActuallyUsed, "entity" | "schedulingType"> & {
+    users: (Pick<User, "name" | "username" | "avatarUrl"> & { bookerUrl: string })[];
+  };
 }
 
 export const InstantBooking = ({ onConnectNow, event }: IInstantBookingProps) => {

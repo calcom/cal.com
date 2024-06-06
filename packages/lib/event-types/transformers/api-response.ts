@@ -16,7 +16,7 @@ function getResponseEventTypeLocations(
   transformedLocations: ReturnType<typeof transformApiEventTypeLocations>
 ) {
   if (!transformedLocations) {
-    return undefined;
+    return [];
   }
 
   return transformedLocations.map((location) => {
@@ -70,7 +70,7 @@ function getResponseEventTypeBookingFields(
   transformedBookingFields: ReturnType<typeof transformApiEventTypeBookingFields>
 ) {
   if (!transformedBookingFields) {
-    return undefined;
+    return [];
   }
 
   return transformedBookingFields.map((field) => {

@@ -22,21 +22,27 @@ import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
   event: {
-    data?: Pick<
-      EventActuallyUsed,
-      | "id"
-      | "slug"
-      | "hosts"
-      | "requiresConfirmation"
-      | "isDynamic"
-      | "users"
-      | "metadata"
-      | "forwardParamsSuccessRedirect"
-      | "successRedirectUrl"
-      | "length"
-      | "recurringEvent"
-      | "schedulingType"
-    > | null;
+    data?:
+      | (Pick<
+          EventActuallyUsed,
+          | "id"
+          | "slug"
+          | "hosts"
+          | "requiresConfirmation"
+          | "isDynamic"
+          | "metadata"
+          | "forwardParamsSuccessRedirect"
+          | "successRedirectUrl"
+          | "length"
+          | "recurringEvent"
+          | "schedulingType"
+        > & {
+          users: Pick<
+            EventActuallyUsed["users"][number],
+            "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
+          >[];
+        })
+      | null;
   };
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];

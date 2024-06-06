@@ -41,6 +41,7 @@ export class EventTypesRepository {
         id: eventTypeId,
         userId,
       },
+      include: { users: true, schedule: true },
     });
   }
 
@@ -49,6 +50,7 @@ export class EventTypesRepository {
       where: {
         userId,
       },
+      include: { users: true, schedule: true },
     });
   }
 
@@ -70,7 +72,7 @@ export class EventTypesRepository {
   async getEventTypeById(eventTypeId: number) {
     return this.dbRead.prisma.eventType.findUnique({
       where: { id: eventTypeId },
-      include: { users: true, profile: true, schedule: true, hosts: true },
+      include: { users: true, schedule: true },
     });
   }
 
@@ -82,6 +84,7 @@ export class EventTypesRepository {
           slug: slug,
         },
       },
+      include: { users: true, schedule: true },
     });
   }
 
