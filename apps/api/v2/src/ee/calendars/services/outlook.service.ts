@@ -152,7 +152,7 @@ export class OutlookService implements OAuthCalendarApp {
   ) {
     // if code is not defined, user denied to authorize office 365 app, just redirect straight away
     if (!code) {
-      return { url: redir ?? origin };
+      return { url: redir || origin };
     }
 
     const parsedCode = z.string().parse(code);
@@ -183,7 +183,7 @@ export class OutlookService implements OAuthCalendarApp {
     }
 
     return {
-      url: redir ?? origin,
+      url: redir || origin,
     };
   }
 }

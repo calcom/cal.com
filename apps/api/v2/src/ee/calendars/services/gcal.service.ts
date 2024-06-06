@@ -116,7 +116,7 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     // User chose not to authorize your app or didn't authorize your app
     // redirect directly without oauth code
     if (!code) {
-      return { url: redir ?? origin };
+      return { url: redir || origin };
     }
 
     const parsedCode = z.string().parse(code);
@@ -157,6 +157,6 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       );
     }
 
-    return { url: redir ?? origin };
+    return { url: redir || origin };
   }
 }
