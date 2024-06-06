@@ -34,7 +34,6 @@ import {
   InvalidAppCredentialBanners,
   type InvalidAppCredentialBannersProps,
 } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -257,7 +256,6 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
