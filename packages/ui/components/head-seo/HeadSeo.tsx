@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { buildCanonical, getSeoImage, seoConfig } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
 
@@ -69,6 +70,7 @@ const buildSeoMeta = (pageProps: {
 };
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
+  const { i18n } = useLocale();
   const path = usePathname();
 
   // The below code sets the defaultUrl for our canonical tags
@@ -87,7 +89,8 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     isBrandingHidden,
   } = props;
 
-  const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
+  const image =
+    getSeoImage("ogImage") + constructGenericImage({ title, description, locale: i18n?.language });
   const truncatedDescription = truncateOnWord(description, 158);
   const pageTitle = `${title}${isBrandingHidden ? "" : ` | ${APP_NAME}`}`;
   let seoObject = buildSeoMeta({
@@ -129,6 +132,7 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     openGraph: {
       ...nextSeoProps.openGraph,
       ...seoObject.openGraph,
+      title: APP_NAME,
       images: [...(nextSeoProps.openGraph?.images || []), ...seoObject.openGraph.images],
     },
     additionalMetaTags: [...(nextSeoProps.additionalMetaTags || [])],

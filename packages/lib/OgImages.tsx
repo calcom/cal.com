@@ -25,6 +25,7 @@ export interface AppImageProps {
 export interface GenericImageProps {
   title: string;
   description: string;
+  locale?: string;
 }
 
 export interface ScreenshotImageProps {
@@ -89,11 +90,15 @@ export const constructAppImage = ({ name, slug, description }: AppImageProps, en
   return encodeUri ? encodeURIComponent(url) : url;
 };
 
-export const constructGenericImage = ({ title, description }: GenericImageProps, encodeUri = true) => {
+export const constructGenericImage = (
+  { title, description, locale }: GenericImageProps,
+  encodeUri = true
+) => {
   const url = [
     `?type=generic`,
     `&title=${encodeURIComponent(title)}`,
     `&description=${encodeURIComponent(description)}`,
+    `&locale=${encodeURIComponent(locale ?? "en")}`,
     // Joining a multiline string for readability.
   ].join("");
 
