@@ -45,7 +45,10 @@ export async function getHandler(req: NextApiRequest) {
   if (!isSystemWideAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
   const data = await prisma.user.findUnique({ where: { id: query.userId } });
-  const user = schemaUserReadPublic.parse(data);
+  const user = schemaUserReadPublic.parse({
+    ...data,
+    avatar: data?.avatarUrl,
+  });
   return { user };
 }
 
