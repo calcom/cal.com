@@ -110,7 +110,7 @@ export async function getServerSession(options: {
       profile: user.profile,
     },
     profileId: token.profileId,
-    isPlatformUser: userFromDb.organization?.isPlatform ?? false,
+    isPlatformUser: user.profile.organization?.isPlatform ?? false,
     upId,
   };
 
