@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -110,7 +110,7 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-    isPending,
+    isPending: isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -129,11 +129,82 @@ function WorkflowPage() {
     teamId: workflow?.team?.id,
   });
 
+  const { data: eventTypeGroups, isPending: isPendingEventTypes } =
+    trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const { data: otherTeams, isPending: isPendingTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+  const isOrg = workflow?.team?.isOrganization ?? false;
+
+  const teamId = workflow?.teamId ?? undefined;
+
+  const profileTeamsOptions =
+    isOrg && eventTypeGroups
+      ? eventTypeGroups?.profiles
+          .filter((profile) => !!profile.teamId)
+          .map((profile) => {
+            return {
+              value: String(profile.teamId) || "",
+              label: profile.name || profile.slug || "",
+            };
+          })
+      : [];
+
+  const otherTeamsOptions = otherTeams
+    ? otherTeams.map((team) => {
+        return {
+          value: String(team.id) || "",
+          label: team.name || team.slug || "",
+        };
+      })
+    : [];
+
+  const teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
+
+  const eventTypeOptions = useMemo(
+    () =>
+      eventTypeGroups?.eventTypeGroups.reduce((options, group) => {
+        /** don't show team event types for user workflow */
+        if (!teamId && group.teamId) return options;
+        /** only show correct team event types for team workflows */
+        if (teamId && teamId !== group.teamId) return options;
+        return [
+          ...options,
+          ...group.eventTypes
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig ||
+                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+                !!teamId
+            )
+            .map((eventType) => ({
+              value: String(eventType.id),
+              label: `${eventType.title} ${
+                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+              }`,
+            })),
+        ];
+      }, [] as Option[]) || [],
+    [eventTypeGroups]
+  );
+
+  let allEventTypeOptions = eventTypeOptions;
+  const distinctEventTypes = new Set();
+
+  if (!teamId && isMixedEventType) {
+    allEventTypeOptions = [...eventTypeOptions, ...selectedOptions];
+    allEventTypeOptions = allEventTypeOptions.filter((option) => {
+      const duplicate = distinctEventTypes.has(option.value);
+      distinctEventTypes.add(option.value);
+      return !duplicate;
+    });
+  }
+
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
 
-  const isOrg = workflow?.team?.isOrganization ?? false;
+  const isPending = isPendingWorkflow || isPendingEventTypes || isPendingTeams;
+  s;
 
   useEffect(() => {
     if (!isPending) {
@@ -148,32 +219,35 @@ function WorkflowPage() {
       }
       let activeOn;
 
-      if (isOrg) {
-        activeOn = workflowData.activeOnTeams.flatMap((active) => {
-          return {
-            value: String(active.team.id) || "",
-            label: active.team.slug || "",
-          };
-        });
-        setSelectedOptions(activeOn || []);
+      if (workflowData.isActiveOnAll) {
+        activeOn = isOrg ? teamOptions : allEventTypeOptions;
       } else {
-        setSelectedOptions(
-          workflowData.activeOn.flatMap((active) => {
-            if (workflowData.teamId && active.eventType.parentId) return [];
+        if (isOrg) {
+          activeOn = workflowData.activeOnTeams.flatMap((active) => {
             return {
-              value: String(active.eventType.id),
-              label: active.eventType.title,
+              value: String(active.team.id) || "",
+              label: active.team.slug || "",
             };
-          }) || []
-        );
-        activeOn = workflowData.activeOn
-          ? workflowData.activeOn.map((active) => ({
-              value: active.eventType.id.toString(),
-              label: active.eventType.slug,
-            }))
-          : undefined;
+          });
+          setSelectedOptions(activeOn || []);
+        } else {
+          setSelectedOptions(
+            workflowData.activeOn.flatMap((active) => {
+              if (workflowData.teamId && active.eventType.parentId) return [];
+              return {
+                value: String(active.eventType.id),
+                label: active.eventType.title,
+              };
+            }) || []
+          );
+          activeOn = workflowData.activeOn
+            ? workflowData.activeOn.map((active) => ({
+                value: active.eventType.id.toString(),
+                label: active.eventType.slug,
+              }))
+            : undefined;
+        }
       }
-
       //translate dynamic variables into local language
       const steps = workflowData.steps.map((step) => {
         const updatedStep = {
@@ -355,9 +429,9 @@ function WorkflowPage() {
                       selectedOptions={selectedOptions}
                       setSelectedOptions={setSelectedOptions}
                       teamId={workflow ? workflow.teamId || undefined : undefined}
-                      isMixedEventType={isMixedEventType}
                       readOnly={readOnly}
                       isOrg={isOrg}
+                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
                     />
                   </>
                 ) : (
