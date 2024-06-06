@@ -158,6 +158,7 @@ export const EventSetupTab = (
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
+    const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
     const validLocations = formMethods.getValues("locations").filter((location) => {
       const eventLocation = getEventLocationType(location.type);
       if (!eventLocation) {
@@ -444,6 +445,8 @@ export const EventSetupTab = (
                 data-testid="add-location"
                 StartIcon="plus"
                 color="minimal"
+                disabled={seatsEnabled}
+                tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
                 onClick={() => setShowEmptyLocationSelect(true)}>
                 {t("add_location")}
               </Button>
