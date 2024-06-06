@@ -33,7 +33,7 @@ export const mapMemberToChildrenOption = (
       membership: member.membership,
       eventTypeSlugs: member.eventTypes ?? [],
       avatar: member.avatar,
-      orgSlug: member.profile?.organization?.slug ?? null,
+      profile: member.profile,
     },
     value: `${member.id ?? ""}`,
     label: `${member.name || member.email || ""}${!member.username ? ` (${pendingString})` : ""}`,
