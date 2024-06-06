@@ -51,7 +51,7 @@ export function createAppsFixture(page: Page) {
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
     },
-    verifyConferencingtApp: async (app: TApp, index: number) => {
+    verifyConferencingApp: async (app: TApp, index: number) => {
       await page.goto("/event-types");
       await gotoFirstEventType(page);
       if (index == 0) {
