@@ -237,7 +237,6 @@ model User {
   emailVerified       DateTime?
   password            UserPassword?
   bio                 String?
-  avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
   travelSchedules     TravelSchedule[]
@@ -275,7 +274,6 @@ model User {
   darkBrandColor      String?
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
-  away                Boolean              @default(false)
   // participate in dynamic group booking or not
   allowDynamicBooking Boolean?             @default(true)
 
@@ -361,7 +359,6 @@ model Team {
   name                  String
   /// @zod.min(1)
   slug                  String?
-  logo                  String?
   logoUrl               String?
   calVideoLogo          String?
   appLogo               String?

@@ -1,5 +1,6 @@
 "use client";
 
+import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -10,10 +11,13 @@ import {
 } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { DOCS_URL, IS_CALCOM, JOIN_DISCORD, WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HeadSeo, Icon } from "@calcom/ui";
+import { HeadSeo } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 import { Discord } from "@calcom/ui/components/icon/Discord";
 
 import PageWrapper from "@components/PageWrapper";
+
+import { getTranslations } from "@server/lib/getTranslations";
 
 enum pageType {
   ORG = "org",
@@ -267,3 +271,13 @@ export default function Custom404() {
 }
 
 Custom404.PageWrapper = PageWrapper;
+
+export const getStaticProps = async (context: GetStaticPropsContext) => {
+  const i18n = await getTranslations(context);
+
+  return {
+    props: {
+      i18n,
+    },
+  };
+};
