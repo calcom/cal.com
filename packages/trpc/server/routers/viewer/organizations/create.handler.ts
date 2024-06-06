@@ -4,7 +4,12 @@ import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendAdminOrganizationNotification, sendOrganizationCreationEmail } from "@calcom/emails";
 import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { RESERVED_SUBDOMAINS, ORG_SELF_SERVE_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  RESERVED_SUBDOMAINS,
+  ORG_SELF_SERVE_ENABLED,
+  ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import { createDomain } from "@calcom/lib/domainManager/organization";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
@@ -67,6 +72,12 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
     });
+  }
+
+  const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
+
+  if (!IS_USER_ADMIN && publishedTeams.length < ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE && !isPlatform) {
+    throw new TRPCError({ code: "FORBIDDEN", message: "You need to have minimum published teams." });
   }
 
   let orgOwner = await prisma.user.findUnique({
