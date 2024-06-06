@@ -13,7 +13,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { Prisma, type User as UserType, type UserPassword } from "@calcom/prisma/client";
+import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -85,19 +85,33 @@ export async function getTeamOrThrow(teamId: number) {
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
-export async function getUniqueUsernameOrEmailsOrThrow(usernameOrEmail: string | string[]) {
-  const emailsToInvite = Array.isArray(usernameOrEmail)
-    ? Array.from(new Set(usernameOrEmail))
-    : [usernameOrEmail];
+export async function getUniqueUsernameOrEmailsOrThrow(
+  usernamesOrEmails: {
+    usernameOrEmail: string;
+    role: MembershipRole;
+  }[]
+) {
+  const usernamesOrEmailsSet = new Set();
+  const uniqueUsernamesOrEmails: {
+    usernameOrEmail: string;
+    role: MembershipRole;
+  }[] = [];
+  usernamesOrEmails.forEach((usernameOrEmail) => {
+    if (usernamesOrEmailsSet.has(usernameOrEmail)) {
+      return;
+    }
+    uniqueUsernamesOrEmails.push(usernameOrEmail);
+    usernamesOrEmailsSet.add(usernameOrEmail.usernameOrEmail);
+  });
 
-  if (emailsToInvite.length === 0) {
+  if (uniqueUsernamesOrEmails.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You must provide at least one email address to invite.",
     });
   }
 
-  return emailsToInvite;
+  return uniqueUsernamesOrEmails;
 }
 
 export const enum INVITE_STATUS {
@@ -141,14 +155,27 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   return INVITE_STATUS.CAN_BE_INVITED;
 }
 
-export async function getExistingUsersToInvite({
-  usernamesOrEmails,
+type Invitation = {
+  usernameOrEmail: string;
+  role: MembershipRole;
+};
+
+type ExistingUserWithInviteStatus = Awaited<ReturnType<typeof getExistingUsersWithInviteStatus>>[number];
+type ExistingUserWithInviteStatusAndProfile = ExistingUserWithInviteStatus & {
+  profile: {
+    username: string;
+  } | null;
+};
+
+export async function getExistingUsersWithInviteStatus({
+  invitations,
   team,
 }: {
-  usernamesOrEmails: string[];
+  invitations: Invitation[];
   team: TeamWithParent;
 }) {
-  const invitees: UserWithMembership[] = await prisma.user.findMany({
+  const usernamesOrEmails = invitations.map((invitation) => invitation.usernameOrEmail);
+  const inviteesFromDb: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
         // Either it's a username in that organization
@@ -176,11 +203,21 @@ export async function getExistingUsersToInvite({
     },
   });
 
+  const userToRoleMap = new Map<string, MembershipRole>();
+  invitations.forEach((invitation) => {
+    userToRoleMap.set(invitation.usernameOrEmail, invitation.role);
+  });
+
   // Check if the users found in the database can be invited to join the team/org
-  return invitees.map((invitee) => {
+  return inviteesFromDb.map((inviteeFromDb) => {
+    const newRole =
+      userToRoleMap.get(inviteeFromDb.email) ||
+      (inviteeFromDb.username ? userToRoleMap.get(inviteeFromDb.username) : MembershipRole.MEMBER);
+
     return {
-      ...invitee,
-      canBeInvited: canBeInvited(invitee, team),
+      ...inviteeFromDb,
+      newRole: newRole ?? MembershipRole.MEMBER,
+      canBeInvited: canBeInvited(inviteeFromDb, team),
     };
   });
 }
@@ -218,8 +255,9 @@ export function getOrgConnectionInfo({
 }
 
 export async function createNewUsersConnectToOrgIfExists({
-  usernamesOrEmails,
-  input,
+  invitations,
+  isOrg,
+  teamId,
   parentId,
   autoAcceptEmailDomain,
   connectionInfoMap,
@@ -228,8 +266,9 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart,
   timeZone,
 }: {
-  usernamesOrEmails: string[];
-  input: InviteMemberOptions["input"];
+  invitations: Invitation[];
+  isOrg: boolean;
+  teamId: number;
   parentId?: number | null;
   autoAcceptEmailDomain?: string;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
@@ -239,16 +278,16 @@ export async function createNewUsersConnectToOrgIfExists({
   timeZone?: string;
 }) {
   // fail if we have invalid emails
-  usernamesOrEmails.forEach((usernameOrEmail) => checkInputEmailIsValid(usernameOrEmail));
+  invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
   const createdUsers = await prisma.$transaction(
     async (tx) => {
       const createdUsers = [];
-      for (let index = 0; index < usernamesOrEmails.length; index++) {
-        const usernameOrEmail = usernamesOrEmails[index];
+      for (let index = 0; index < invitations.length; index++) {
+        const invitation = invitations[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
-        const { orgId, autoAccept } = connectionInfoMap[usernameOrEmail];
-        const [emailUser, emailDomain] = usernameOrEmail.split("@");
+        const { orgId, autoAccept } = connectionInfoMap[invitation.usernameOrEmail];
+        const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
 
         // An org member can't change username during signup, so we set the username
         const orgMemberUsername =
@@ -259,14 +298,14 @@ export async function createNewUsersConnectToOrgIfExists({
         // As a regular team member is allowed to change username during signup, we don't set any username for him
         const regularTeamMemberUsername = null;
 
-        const isBecomingAnOrgMember = parentId || input.isOrg;
+        const isBecomingAnOrgMember = parentId || isOrg;
 
         const createdUser = await tx.user.create({
           data: {
             username: isBecomingAnOrgMember ? orgMemberUsername : regularTeamMemberUsername,
-            email: usernameOrEmail,
+            email: invitation.usernameOrEmail,
             verified: true,
-            invitedTo: input.teamId,
+            invitedTo: teamId,
             isPlatformManaged: !!isPlatformManaged,
             timeFormat,
             weekStart,
@@ -289,8 +328,8 @@ export async function createNewUsersConnectToOrgIfExists({
               : null),
             teams: {
               create: {
-                teamId: input.teamId,
-                role: input.role as MembershipRole,
+                teamId: teamId,
+                role: invitation.role,
                 accepted: autoAccept, // If the user is invited to a child team, they are automatically accepted
               },
             },
@@ -323,8 +362,8 @@ export async function createMemberships({
   parentId,
   accepted,
 }: {
-  input: InviteMemberOptions["input"];
-  invitees: (UserWithMembership & {
+  input: Omit<InviteMemberOptions["input"], "usernameOrEmail">;
+  invitees: (ExistingUserWithInviteStatus & {
     needToCreateOrgMembership: boolean | null;
   })[];
   parentId: number | null;
@@ -344,7 +383,7 @@ export async function createMemberships({
           role:
             organizationRole === MembershipRole.ADMIN || organizationRole === MembershipRole.OWNER
               ? organizationRole
-              : input.role,
+              : invitee.newRole,
         });
 
         // membership for the org
@@ -361,21 +400,7 @@ export async function createMemberships({
     });
   } catch (e) {
     console.error(e);
-    if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      // Don't throw an error if the user is already a member of the team when inviting multiple users
-      if (!Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "This user is a member of this team / has a pending invitation.",
-        });
-      } else if (Array.isArray(input.usernameOrEmail) && e.code === "P2002") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Trying to invite users already members of this team / have pending invitations",
-        });
-      }
-      logger.error("Failed to create memberships", input.teamId);
-    } else throw e;
+    throw e;
   }
 }
 
@@ -528,32 +553,27 @@ export const groupUsersByJoinability = ({
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMemberships: (UserWithMembership & {
-    profile: {
-      username: string;
-    } | null;
-  })[];
+  existingUsersWithMemberships: ExistingUserWithInviteStatusAndProfile[];
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) => {
   const usersToAutoJoin = [];
   const regularUsers = [];
 
   for (let index = 0; index < existingUsersWithMemberships.length; index++) {
-    const existingUserWithMembersips = existingUsersWithMemberships[index];
-
+    const existingUserWithMemberships = existingUsersWithMemberships[index];
     const autoJoinStatus = getAutoJoinStatus({
-      invitee: existingUserWithMembersips,
+      invitee: existingUserWithMemberships,
       team,
       connectionInfoMap,
     });
 
     autoJoinStatus.autoAccept
       ? usersToAutoJoin.push({
-          ...existingUserWithMembersips,
+          ...existingUserWithMemberships,
           ...autoJoinStatus,
         })
       : regularUsers.push({
-          ...existingUserWithMembersips,
+          ...existingUserWithMemberships,
           ...autoJoinStatus,
         });
   }
@@ -583,11 +603,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMemberships: (UserWithMembership & {
-    profile: {
-      username: string;
-    } | null;
-  })[];
+  existingUsersWithMemberships: Omit<ExistingUserWithInviteStatusAndProfile, "canBeInvited" | "newRole">[];
   currentUserTeamName?: string;
   currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;

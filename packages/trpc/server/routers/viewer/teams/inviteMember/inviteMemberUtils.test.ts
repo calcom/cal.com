@@ -146,11 +146,6 @@ describe("Invite Member Utils", () => {
       await expect(getUniqueUsernameOrEmailsOrThrow([])).rejects.toThrow(TRPCError);
     });
 
-    it("should return an array with one email if a string is provided", async () => {
-      const result = await getUniqueUsernameOrEmailsOrThrow("test@example.com");
-      expect(result).toEqual(["test@example.com"]);
-    });
-
     it("should return an array with multiple emails if an array is provided", async () => {
       const result = await getUniqueUsernameOrEmailsOrThrow(["test1@example.com", "test2@example.com"]);
       expect(result).toEqual(["test1@example.com", "test2@example.com"]);

@@ -6,12 +6,26 @@ import { MembershipRole } from "@calcom/prisma/enums";
 export const ZInviteMemberInputSchema = z.object({
   teamId: z.number(),
   usernameOrEmail: z
-    .union([z.string(), z.array(z.string())])
+    .union([
+      z.string(),
+      z.array(z.string()),
+      z.array(
+        z.object({
+          email: z.string().email(),
+          role: z.nativeEnum(MembershipRole),
+        })
+      ),
+    ])
     .transform((usernameOrEmail) => {
       if (typeof usernameOrEmail === "string") {
         return usernameOrEmail.trim().toLowerCase();
       }
-      return usernameOrEmail.map((item) => item.trim().toLowerCase());
+      return usernameOrEmail.map((item) => {
+        if (typeof item === "string") {
+          return item.trim().toLowerCase();
+        }
+        return item;
+      });
     })
     .refine(
       (value) => {
@@ -33,7 +47,7 @@ export const ZInviteMemberInputSchema = z.object({
       },
       { message: "Bulk invitations are restricted to email addresses only." }
     ),
-  role: z.nativeEnum(MembershipRole),
+  role: z.nativeEnum(MembershipRole).optional(),
   language: z.string(),
   isOrg: z.boolean().default(false),
 });
