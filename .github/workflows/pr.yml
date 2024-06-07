@@ -37,7 +37,7 @@ jobs:
         run: |
           if [[ "${{ github.event.label.name }}" == "ready-for-e2e" ]]; then
             echo "run-e2e=true" >> $GITHUB_OUTPUT
-          else if [[ "${{ toJSON(github.event.pull_request.labels) }}" == *"ready-for-e2e"* ]]
+          else if [[ "${{ toJSON(github.event.pull_request.labels) }}" == *"ready-for-e2e"* ]]; then
             echo "run-e2e=true" >> $GITHUB_OUTPUT
           else
             echo "run-e2e=false" >> $GITHUB_OUTPUT
