@@ -33,14 +33,18 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     steps:
-      - name: Check for label
-        shell: bash
-        run: |
-          if [[ "${{ github.event.label.name }}" == "ready-for-e2e" || "${{ toJSON(github.event.pull_request.labels) }}" == *"ready-for-e2e"* ]]; then
-            echo "run-e2e=true" >> $GITHUB_OUTPUT
-          else
-            echo "run-e2e=false" >> $GITHUB_OUTPUT
-          fi
+      - name: Check for 'ready-for-e2e' label
+        id: check_label
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prLabels = context.payload.pull_request.labels.map(label => label.name);
+            console.log(prLabels);
+            const hasRunE2eTestsLabel = prLabels.includes('ready-for-e2e');
+            return { labelExists: hasRunE2eTestsLabel };
+      - name: Set run-e2e output
+        id: set_output
+        run: echo "run-e2e=${{ steps.check_label.outputs.labelExists }}" >> $GITHUB_OUTPUT
   type-check:
     name: Type check
     needs: [changes]
