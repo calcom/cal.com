@@ -115,7 +115,12 @@ const ProfileView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const permalink = `${WEBAPP_URL}/team/${team?.slug}`;
+  const permalink = team
+    ? `${getTeamUrlSync({
+        orgSlug: team.parent ? team.parent.slug : null,
+        teamSlug: team.slug,
+      })}`
+    : "";
 
   const isBioEmpty = !team || !team.bio || !team.bio.replace("<p><br></p>", "").length;
 
