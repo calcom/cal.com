@@ -9,7 +9,7 @@ export default class EventDeclinedSMS extends SMSManager {
 
   getMessage(attendee: Attendee) {
     const t = attendee.language.translate;
-    return `Hey ${attendee.name}, ${t("event_request_declined")} ${t("event_declined_subject", {
+    return `${t("hey_there")} ${attendee.name}, ${t("event_request_declined")} ${t("event_declined_subject", {
       title: this.calEvent.title,
       date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
     })}`;

@@ -57,6 +57,8 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
         include: {
           team: {
             select: {
+              id: true,
+              name: true,
               parentId: true,
             },
           },
@@ -200,6 +202,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     ),
     organizer,
     iCalUID: bookingToReschedule.iCalUID,
+    team: !!bookingToReschedule.eventType?.team
+      ? {
+          name: bookingToReschedule.eventType.team.name,
+          id: bookingToReschedule.eventType.team.id,
+          members: [],
+        }
+      : undefined,
   });
 
   const director = new CalendarEventDirector();

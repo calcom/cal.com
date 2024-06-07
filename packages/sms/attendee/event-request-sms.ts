@@ -14,7 +14,7 @@ export default class EventRequestSMS extends SMSManager {
       name: attendee.name,
     })}. ${t("user_needs_to_confirm_or_reject_booking", {
       user: this.calEvent.organizer.name,
-    })} \n\n ${t("you_can_view_booking_details_with_this_url", {
+    })}\n\n ${t("you_can_view_booking_details_with_this_url", {
       url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`,
     })}`;
   }

@@ -31,6 +31,16 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       location: true,
       attendees: true,
       references: true,
+      eventType: {
+        include: {
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
       user: {
         select: {
           id: true,
@@ -108,6 +118,13 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         tAttendees
       ),
       organizer: userOwnerAsPeopleType,
+      team: !!bookingToReschedule.eventType?.team
+        ? {
+            name: bookingToReschedule.eventType.team.name,
+            id: bookingToReschedule.eventType.team.id,
+            members: [],
+          }
+        : undefined,
     });
     const director = new CalendarEventDirector();
     director.setBuilder(builder);

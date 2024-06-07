@@ -23,7 +23,7 @@ export const useVerifyEmail = ({
   const [isEmailVerificationModalVisible, setEmailVerificationModalVisible] = useState(false);
   const verifiedEmail = useBookerStore((state) => state.verifiedEmail);
   const setVerifiedEmail = useBookerStore((state) => state.setVerifiedEmail);
-  const debouncedEmail = useDebounce(email, 600);
+  const debouncedEmail = useDebounce(email ?? "", 600);
   const { data: session } = useSession();
 
   const { t } = useLocale();

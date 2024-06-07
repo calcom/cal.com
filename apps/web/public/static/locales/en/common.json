@@ -2406,6 +2406,7 @@
   "add_email": "Add Email",
   "add_email_description": "Add an email address to replace your primary or to use as an alternative email on your event types.",
   "confirm_email": "Confirm your email",
+  "confirming_your_booking_sms":"$t(hey_there) {{name}}, confirming your booking on {{date}}.",
   "scheduler_first_name": "The first name of the person booking",
   "scheduler_last_name": "The last name of the person booking",
   "organizer_first_name": "Your first name",

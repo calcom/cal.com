@@ -10,10 +10,10 @@ export default class EventSuccessfullyScheduledSMS extends SMSManager {
 
   getMessage(attendee: Attendee) {
     const t = attendee.language.translate;
-    return `${t("hey_there")} ${attendee.name}, confirming your booking on  ${this.getFormattedDate(
-      attendee.timeZone,
-      attendee.language.locale
-    )} . \n\n ${t("you_can_view_booking_details_with_this_url", {
+    return `${t("confirming_your_booking_sms", {
+      name: attendee.name,
+      date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
+    })} \n\n ${t("you_can_view_booking_details_with_this_url", {
       url: `${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${this.calEvent.uid}`,
     })}`;
   }
