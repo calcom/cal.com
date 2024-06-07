@@ -17,6 +17,7 @@ test.describe("Managed Event Types", () => {
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
     const adminUser = await users.create();
+    const [eventType] = adminUser.eventTypes;
     // Creating the member user of the team
     const memberUser = await users.create();
     // First we work with owner user, logging in
@@ -54,6 +55,7 @@ test.describe("Managed Event Types", () => {
       await page.click("[type=submit]");
 
       await page.waitForURL("event-types/**");
+      await page.goto(`/event-types/${eventType.id}?tabName=setup`);
     });
 
     await test.step("Managed event type has unlocked fields for admin", async () => {

@@ -209,6 +209,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
       if (
+        !!team &&
         eventType.hosts.length === 0 &&
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types")
