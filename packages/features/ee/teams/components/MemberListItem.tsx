@@ -34,6 +34,7 @@ import { EditMemberSheet } from "./EditMemberSheet";
 import InviteLinkSettingsModal from "./InviteLinkSettingsModal";
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import MemberInvitationModal from "./MemberInvitationModal";
+import TeamAvailabilityModal from "./TeamAvailabilityModal";
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["get"];
@@ -124,9 +125,9 @@ function reducer(state: State, action: Action): State {
     case "EDIT_USER_SHEET":
       return { ...state, editSheet: action.payload };
     case "TEAM_AVAILABILITY":
-      return { ...state, editSheet: action.payload };
+      return { ...state, teamAvailability: action.payload };
     case "INVITE_LINK_SETTING":
-      return { ...state, editSheet: action.payload };
+      return { ...state, inviteLinkSetting: action.payload };
     case "CLOSE_MODAL":
       return {
         ...state,
@@ -135,6 +136,8 @@ function reducer(state: State, action: Action): State {
         impersonateMember: { showModal: false },
         inviteMember: { showModal: false },
         editSheet: { showModal: false },
+        teamAvailability: { showModal: false },
+        inviteLinkSetting: { showModal: false },
       };
     default:
       return state;
@@ -708,6 +711,27 @@ export default function MemberListItem(props: Props) {
             });
           }}
         />
+      )}
+      {state.teamAvailability.showModal && (
+        <Dialog
+          open={true}
+          onOpenChange={() => {
+            dispatch({
+              type: "CLOSE_MODAL",
+            });
+          }}>
+          <DialogContent type="creation" size="md">
+            <TeamAvailabilityModal
+              team={props.team}
+              member={state.teamAvailability.user}
+              onExit={() =>
+                dispatch({
+                  type: "CLOSE_MODAL",
+                })
+              }
+            />
+          </DialogContent>
+        </Dialog>
       )}
       {state.editSheet.showModal && <EditMemberSheet dispatch={dispatch} state={state} />}
     </>
