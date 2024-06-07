@@ -19,6 +19,7 @@ import {
   scheduleWorkflowNotifications,
   verifyEmailSender,
   removeSmsReminderFieldForEventTypes,
+  isStepEdited,
 } from "./util";
 
 type UpdateOptions = {
@@ -322,9 +323,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           id: oldStep.id,
         },
       });
-
-      //step was edited
-    } else if (JSON.stringify(oldStep) !== JSON.stringify(newStep)) {
+    } else if (isStepEdited(oldStep, newStep)) {
       // check if step that require team plan already existed before
       if (!hasPaidPlan && !isSMSOrWhatsappAction(oldStep.action) && isSMSOrWhatsappAction(newStep.action)) {
         throw new TRPCError({ code: "UNAUTHORIZED", message: "Not available on free plan" });
@@ -395,12 +394,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           senderName,
           ...stepToAdd
         } = {
+          ...newStep,
           sender: getSender({
             action: newStep.action,
             sender: newStep.sender || null,
             senderName: newStep.senderName,
           }),
-          ...newStep,
         };
 
         return stepToAdd;

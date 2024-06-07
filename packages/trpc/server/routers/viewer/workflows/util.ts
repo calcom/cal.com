@@ -739,3 +739,20 @@ export async function scheduleBookingReminders(
   });
   return Promise.all(promiseSteps);
 }
+
+export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
+  const oldStepKeys = Object.keys(oldStep);
+  const newStepKeys = Object.keys(newStep);
+
+  if (oldStepKeys.length !== newStepKeys.length) {
+    return true;
+  }
+
+  for (const key of oldStepKeys) {
+    if (oldStep[key as keyof WorkflowStep] !== newStep[key as keyof WorkflowStep]) {
+      return true;
+    }
+  }
+
+  return false;
+}
