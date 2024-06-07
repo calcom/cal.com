@@ -55,10 +55,10 @@ test.describe("Managed Event Types", () => {
       await page.click("[type=submit]");
 
       await page.waitForURL("event-types/**");
-      await page.goto(`/event-types/${eventType.id}?tabName=setup`);
     });
 
     await test.step("Managed event type has unlocked fields for admin", async () => {
+      await page.getByTestId("vertical-tab-event_setup_tab_title").click();
       await page.getByTestId("update-eventtype").waitFor();
       await expect(page.locator('input[name="title"]')).toBeEditable();
       await expect(page.locator('input[name="slug"]')).toBeEditable();
