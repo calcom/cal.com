@@ -672,7 +672,7 @@ const FirstAttendee = ({
 
 type AttendeeProps = {
   name?: string;
-  email: string;
+  email: string | null;
   id: number;
   noShow: boolean;
 };
