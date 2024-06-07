@@ -31,13 +31,12 @@ jobs:
 
   check-label:
     runs-on: buildjet-2vcpu-ubuntu-2204
+    name: Check for E2E label
     steps:
       - name: Check for label
         shell: bash
         run: |
-          if [[ "${{ github.event.label.name }}" == "ready-for-e2e" ]]; then
-            echo "run-e2e=true" >> $GITHUB_OUTPUT
-          else if [[ "${{ toJSON(github.event.pull_request.labels) }}" == *"ready-for-e2e"* ]]; then
+          if [[ "${{ github.event.label.name }}" == "ready-for-e2e" || "${{ toJSON(github.event.pull_request.labels) }}" == *"ready-for-e2e"* ]]; then
             echo "run-e2e=true" >> $GITHUB_OUTPUT
           else
             echo "run-e2e=false" >> $GITHUB_OUTPUT
