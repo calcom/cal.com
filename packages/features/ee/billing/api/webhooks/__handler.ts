@@ -1,5 +1,4 @@
 /// <reference types="stripe-event-types" />
-/// <reference types="stripe-event-types" />
 import { buffer } from "micro";
 import type { NextApiRequest } from "next";
 import type Stripe from "stripe";
@@ -8,7 +7,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { HttpError } from "@calcom/lib/http-error";
 
 /** Stripe Webhook Handler Mappings */
-type SWHMap = {
+export type SWHMap = {
   [T in Stripe.DiscriminatedEvent as T["type"]]: {
     [K in keyof T as Exclude<K, "type">]: T[K];
   };

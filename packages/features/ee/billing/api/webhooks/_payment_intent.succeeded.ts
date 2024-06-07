@@ -1,19 +1,9 @@
-/// <reference types="stripe-event-types" />
-import type Stripe from "stripe";
+import billing from "../..";
+import type { SWHMap } from "./__handler";
 
-import { prisma } from "@calcom/prisma";
-
-const handleStripePaymentSuccess = async (data: Stripe.DiscriminatedEvent.PaymentIntentEvent["data"]) => {
+const handler = async (data: SWHMap["payment_intent.succeeded"]["data"]) => {
   const paymentIntent = data.object;
-  const payment = await prisma.payment.findFirst({
-    where: {
-      externalId: paymentIntent.id,
-    },
-    select: {
-      id: true,
-      bookingId: true,
-    },
-  });
+  await billing.handleTeamCancellation();
 };
 
-export default handleStripePaymentSuccess;
+export default handler;
