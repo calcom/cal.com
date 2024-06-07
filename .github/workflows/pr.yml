@@ -39,6 +39,8 @@ jobs:
         with:
           script: |
             const branch = '${{ github.event.inputs.branch || github.event.pull_request.ref }}';
+            console.log('github.event.inputs.branch', '${{ github.event.inputs.branch }}');
+            console.log(branch);
             const response = await github.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
