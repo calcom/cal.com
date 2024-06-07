@@ -35,7 +35,7 @@ jobs:
     steps:
       - name: Get PR from branch name
         id: get_pr
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
             const branch = 'chore/improve-ci-workflow'; //'${{ github.event.inputs.branch || github.event.pull_request.ref }}';
@@ -50,6 +50,8 @@ jobs:
 
             if (response.data.length > 0) {
               const pr = response.data[0];
+              console.log('pr_number', pr.number);
+              console.log('pr_url', pr.html_url);
               core.setOutput('pr_number', pr.number);
               core.setOutput('pr_url', pr.html_url);
             } else {
