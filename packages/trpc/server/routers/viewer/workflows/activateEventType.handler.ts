@@ -12,8 +12,8 @@ import { TRPCError } from "@trpc/server";
 import type { TActivateEventTypeInputSchema } from "./activateEventType.schema";
 import {
   deleteAllWorkflowReminders,
-  removeSmsReminderFieldForBooking,
-  upsertSmsReminderFieldForBooking,
+  removeSmsReminderFieldForEventTypes,
+  upsertSmsReminderFieldForEventTypes,
 } from "./util";
 
 type ActivateEventTypeOptions = {
@@ -70,6 +70,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     },
     include: {
       steps: true,
+      team: {
+        select: {
+          isOrganization: true,
+        },
+      },
     },
   });
 
@@ -86,6 +91,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       eventTypeId,
     },
   });
+
+  const isOrg = eventTypeWorkflow.team?.isOrganization ?? false;
+
+  const activeOn = [eventTypeId].concat(userEventType.children.map((ch) => ch.id));
+
   if (isActive) {
     // disable workflow for this event type & delete all reminders
     const remindersToDelete = await prisma.workflowReminder.findMany({
@@ -116,13 +126,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
       },
     });
-
-    [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (chId) => {
-      await removeSmsReminderFieldForBooking({
-        workflowId,
-        eventTypeId: chId,
-      });
-    });
+    await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId, isOrg });
   } else {
     // activate workflow and schedule reminders for existing bookings
 
@@ -257,13 +261,8 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
-      [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (evTyId) => {
-        await upsertSmsReminderFieldForBooking({
-          workflowId,
-          isSmsReminderNumberRequired,
-          eventTypeId: evTyId,
-        });
-      });
+
+      await upsertSmsReminderFieldForEventTypes({ activeOn, workflowId, isSmsReminderNumberRequired, isOrg });
     }
   }
 };
