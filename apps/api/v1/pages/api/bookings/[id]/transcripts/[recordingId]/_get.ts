@@ -1,7 +1,13 @@
 import type { NextApiRequest } from "next";
 
-import { getTranscriptsAccessLinkFromRecordingId } from "@calcom/core/videoClient";
+import {
+  getTranscriptsAccessLinkFromRecordingId,
+  checkIfRoomNameMatchesInRecording,
+} from "@calcom/core/videoClient";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
+import type { PartialReference } from "@calcom/types/EventManager";
 
 import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTransformParseInt";
 
@@ -45,11 +51,38 @@ import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTr
 
 export async function getHandler(req: NextApiRequest) {
   const { query } = req;
-  const { recordingId } = getTranscriptFromRecordingId.parse(query);
+  const { id, recordingId } = getTranscriptFromRecordingId.parse(query);
+
+  await checkIfRecordingBelongsToBooking(id, recordingId);
 
   const transcriptsAccessLinks = await getTranscriptsAccessLinkFromRecordingId(recordingId);
 
   return transcriptsAccessLinks;
 }
+
+const checkIfRecordingBelongsToBooking = async (bookingId: string, recordingId: string) => {
+  const booking = await prisma.booking.findUnique({
+    where: { id: bookingId },
+    include: { references: true },
+  });
+
+  if (!booking)
+    throw new HttpError({
+      statusCode: 404,
+      message: `No Booking found with booking id ${bookingId}`,
+    });
+
+  const roomName =
+    booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
+    undefined;
+
+  const canUserAccessRecordingId = await checkIfRoomNameMatchesInRecording(roomName, recordingId);
+  if (!canUserAccessRecordingId) {
+    throw new HttpError({
+      statusCode: 403,
+      message: `This Recording Id ${recordingId} does not belong to booking ${bookingId}`,
+    });
+  }
+};
 
 export default defaultResponder(getHandler);

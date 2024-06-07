@@ -3,7 +3,11 @@ import { z } from "zod";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
-import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import {
+  getRecordingsResponseSchema,
+  getAccessLinkResponseSchema,
+  recordingItemSchema,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
@@ -321,6 +325,15 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! can't get transcripts");
+      }
+    },
+    checkIfRoomNameMatchesInRecording: async (roomName: string, recordingId: string): Promise<boolean> => {
+      try {
+        const recording = await fetcher(`/recordings/${recordingId}`).then(recordingItemSchema.parse);
+        return recording.room_name === roomName;
+      } catch (err) {
+        console.error("err", err);
+        throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err?.message}`);
       }
     },
   };
