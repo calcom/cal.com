@@ -40,9 +40,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = '${{ github.ref#refs/heads/ }}';
-            console.log('github.event.inputs.branch', '${{ github.event.inputs.branch }}');
-            console.log('github.ref', '${{ github.ref#refs/heads/ }}');
+            const ref = '${{ github.ref }}';
+            const branch = ref.replace('refs/heads/', '');
+            console.log(ref);
             console.log(branch);
             const response = await github.rest.pulls.list({
               owner: context.repo.owner,
