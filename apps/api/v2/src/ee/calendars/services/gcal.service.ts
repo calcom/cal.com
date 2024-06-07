@@ -37,31 +37,32 @@ export class GoogleCalendarService implements OAuthCalendarApp {
 
   async connect(
     authorization: string,
-    req: Request
+    req: Request,
+    redir?: string
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "");
+    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
 
-  async save(code: string, accessToken: string, origin: string): Promise<{ url: string }> {
-    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin);
+  async save(code: string, accessToken: string, origin: string, redir?: string): Promise<{ url: string }> {
+    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir);
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     return await this.checkIfCalendarConnected(userId);
   }
 
-  async getCalendarRedirectUrl(accessToken: string, origin: string) {
+  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string) {
     const oAuth2Client = await this.getOAuthClient(this.redirectUri);
 
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: "offline",
       scope: CALENDAR_SCOPES,
       prompt: "consent",
-      state: `accessToken=${accessToken}&origin=${origin}`,
+      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}`,
     });
 
     return authUrl;
@@ -106,11 +107,16 @@ export class GoogleCalendarService implements OAuthCalendarApp {
     return { status: SUCCESS_STATUS };
   }
 
-  async saveCalendarCredentialsAndRedirect(code: string, accessToken: string, origin: string) {
+  async saveCalendarCredentialsAndRedirect(
+    code: string,
+    accessToken: string,
+    origin: string,
+    redir?: string
+  ) {
     // User chose not to authorize your app or didn't authorize your app
     // redirect directly without oauth code
     if (!code) {
-      return { url: origin };
+      return { url: redir || origin };
     }
 
     const parsedCode = z.string().parse(code);
@@ -151,6 +157,6 @@ export class GoogleCalendarService implements OAuthCalendarApp {
       );
     }
 
-    return { url: origin };
+    return { url: redir || origin };
   }
 }

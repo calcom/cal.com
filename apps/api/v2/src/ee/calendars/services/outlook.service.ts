@@ -11,13 +11,16 @@ import { Request } from "express";
 import { stringify } from "querystring";
 import { z } from "zod";
 
-import { OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { OFFICE_365_CALENDAR_ID } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  OFFICE_365_CALENDAR,
+  OFFICE_365_CALENDAR_ID,
+  OFFICE_365_CALENDAR_TYPE,
+} from "@calcom/platform-constants";
 
 @Injectable()
 export class OutlookService implements OAuthCalendarApp {
-  private redirectUri = `${this.config.get("api.url")}/calendars/office365/save`;
+  private redirectUri = `${this.config.get("api.url")}/calendars/${OFFICE_365_CALENDAR}/save`;
 
   constructor(
     private readonly config: ConfigService,
@@ -29,24 +32,25 @@ export class OutlookService implements OAuthCalendarApp {
 
   async connect(
     authorization: string,
-    req: Request
+    req: Request,
+    redir?: string
   ): Promise<{ status: typeof SUCCESS_STATUS; data: { authUrl: string } }> {
     const accessToken = authorization.replace("Bearer ", "");
     const origin = req.get("origin") ?? req.get("host");
-    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "");
+    const redirectUrl = await await this.getCalendarRedirectUrl(accessToken, origin ?? "", redir);
 
     return { status: SUCCESS_STATUS, data: { authUrl: redirectUrl } };
   }
 
-  async save(code: string, accessToken: string, origin: string): Promise<{ url: string }> {
-    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin);
+  async save(code: string, accessToken: string, origin: string, redir?: string): Promise<{ url: string }> {
+    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir);
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
     return await this.checkIfCalendarConnected(userId);
   }
 
-  async getCalendarRedirectUrl(accessToken: string, origin: string) {
+  async getCalendarRedirectUrl(accessToken: string, origin: string, redir?: string) {
     const { client_id } = await this.calendarsService.getAppKeys(OFFICE_365_CALENDAR_ID);
 
     const scopes = ["User.Read", "Calendars.Read", "Calendars.ReadWrite", "offline_access"];
@@ -56,7 +60,7 @@ export class OutlookService implements OAuthCalendarApp {
       client_id,
       prompt: "select_account",
       redirect_uri: this.redirectUri,
-      state: `accessToken=${accessToken}&origin=${origin}`,
+      state: `accessToken=${accessToken}&origin=${origin}&redir=${redir ?? ""}`,
     };
 
     const query = stringify(params);
@@ -140,10 +144,15 @@ export class OutlookService implements OAuthCalendarApp {
     return responseBody as OfficeCalendar;
   }
 
-  async saveCalendarCredentialsAndRedirect(code: string, accessToken: string, origin: string) {
+  async saveCalendarCredentialsAndRedirect(
+    code: string,
+    accessToken: string,
+    origin: string,
+    redir?: string
+  ) {
     // if code is not defined, user denied to authorize office 365 app, just redirect straight away
     if (!code) {
-      return { url: origin };
+      return { url: redir || origin };
     }
 
     const parsedCode = z.string().parse(code);
@@ -174,7 +183,7 @@ export class OutlookService implements OAuthCalendarApp {
     }
 
     return {
-      url: origin,
+      url: redir || origin,
     };
   }
 }
