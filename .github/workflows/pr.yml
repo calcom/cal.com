@@ -50,27 +50,17 @@ jobs:
 
             if (response.data.length > 0) {
               const pr = response.data[0];
+              const labels = pr.labels.map(label => label.name);
               console.log('pr_number', pr.number);
               console.log('pr_url', pr.html_url);
-              core.setOutput('pr_number', pr.number);
-              core.setOutput('pr_url', pr.html_url);
+              if (labels.includes('ready-for-e2e')) {
+                core.setOutput('run-e2e', true);
+              } else {
+                core.setOutput('run-e2e', false);
+              }
             } else {
-              throw new Error(`No open pull request found for branch: ${branch}`);
+              core.setOutput('run-e2e', false);
             }
-      - name: Check for 'ready-for-e2e' label
-        id: check_label
-        run: |
-          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          -H "Accept: application/vnd.github.v3+json" \
-          "${{ steps.check-label.outputs.pr_url }}/labels" | jq -r '.[].name')
-
-          if [[ "$PR_LABELS" == *"ready-for-e2e"* ]]; then
-            echo "Label found"
-            echo "run-e2e=true" >> $GITHUB_OUTPUT
-          else
-            echo "Label not found"
-            echo "run-e2e=false" >> $GITHUB_OUTPUT
-          fi
   type-check:
     name: Type check
     needs: [changes]
