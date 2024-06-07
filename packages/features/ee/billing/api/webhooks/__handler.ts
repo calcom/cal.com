@@ -35,7 +35,7 @@ class HttpCode extends HttpError {
  * ```ts
  * stripeWebhookHandler({
  *   "payment_intent.succeeded": import("./_lazyLoadedSuccessHandler"),
- *   "payment_intent.canc": import("./_lazyLoadedSuccessHandler"),
+ *   "customer.subscription.deleted": import("./_customer.subscription.deleted"),
  * })
  * ```
  */
