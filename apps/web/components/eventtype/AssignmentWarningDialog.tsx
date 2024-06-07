@@ -29,7 +29,7 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
           <p className="mt-3">{t("leave_without_adding_attendees")}</p>
           <p className="mt-4">{t("no_availability_shown_to_bookers")}</p>
         </div>
-        <DialogFooter>
+        <DialogFooter className="mt-6">
           <Button
             onClick={(e) => {
               e.preventDefault();

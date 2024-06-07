@@ -163,7 +163,7 @@ export const createNewEventType = async (page: Page, args: { eventTitle: string 
   await page.click("[type=submit]");
 
   await page.waitForURL((url) => {
-    return url.pathname.startsWith("/event-types");
+    return url.pathname !== "/event-types";
   });
 };
 
