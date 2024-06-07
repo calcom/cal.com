@@ -163,6 +163,9 @@
   "link_expires": "p.s. It expires in {{expiresIn}} hours.",
   "upgrade_to_per_seat": "Upgrade to Per-Seat",
   "seat_options_doesnt_support_confirmation": "Seats option doesn't support confirmation requirement",
+  "multilocation_doesnt_support_seats": "Multiple Locations doesn't support seats option",
+  "no_show_fee_doesnt_support_seats": "No show fee doesn't support seats option",
+  "seats_option_doesnt_support_multi_location" : "Seats option doesn't support Multiple Locations",
   "team_upgrade_seats_details": "Of the {{memberCount}} members in your team, {{unpaidCount}} seat(s) are unpaid. At ${{seatPrice}}/month per seat the estimated total cost of your membership is ${{totalCost}}/month.",
   "team_upgrade_banner_description": "You haven't finished your team setup. Your team \"{{teamName}}\" needs to be upgraded.",
   "upgrade_banner_action": "Upgrade here",
@@ -2468,5 +2471,8 @@
   "x_unmarked_as_no_show": "{{x}} unmarked as no-show",
   "no_show_updated": "No-show status updated for attendees",
   "email_copied": "Email copied",
+  "USER_PENDING_MEMBER_OF_THE_ORG": "User is a pending member of the organization",
+  "USER_ALREADY_INVITED_OR_MEMBER": "User is already invited or a member",
+  "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
