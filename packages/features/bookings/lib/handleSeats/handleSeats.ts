@@ -113,7 +113,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
-        emailAttendeeSendToOverride: bookerEmail,
         isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail ?? undefined,
         seatReferenceUid: evt.attendeeSeatId,

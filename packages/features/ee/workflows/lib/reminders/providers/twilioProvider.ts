@@ -61,8 +61,6 @@ export const sendSMS = async (
     return;
   }
 
-  assertTwilio(twilio);
-
   const twilio = createTwilioClient();
 
   if (!teamId && userId) {
