@@ -38,7 +38,7 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const branch = '${{ github.event.inputs.branch || github.event.pull_request.ref }}';
+            const branch = 'chore/improve-ci-workflow'; //'${{ github.event.inputs.branch || github.event.pull_request.ref }}';
             console.log('github.event.inputs.branch', '${{ github.event.inputs.branch }}');
             console.log(branch);
             const response = await github.pulls.list({
