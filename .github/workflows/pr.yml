@@ -55,11 +55,14 @@ jobs:
               console.log('pr_url', pr.html_url);
               if (labels.includes('ready-for-e2e')) {
                 core.setOutput('run-e2e', true);
+                console.log('Found the label');
               } else {
                 core.setOutput('run-e2e', false);
+                console.log('Did not find the label');
               }
             } else {
               core.setOutput('run-e2e', false);
+              console.log('No PR found matching the branch');
             }
   type-check:
     name: Type check
