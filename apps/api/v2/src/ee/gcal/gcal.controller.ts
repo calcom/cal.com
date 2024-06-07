@@ -82,56 +82,10 @@ export class GcalController {
   @Redirect(undefined, 301)
   @HttpCode(HttpStatus.OK)
   async save(@Query("state") state: string, @Query("code") code: string): Promise<GcalSaveRedirectOutput> {
-    const stateParams = new URLSearchParams(state);
-    const { accessToken, origin } = z
-      .object({ accessToken: z.string(), origin: z.string() })
-      .parse({ accessToken: stateParams.get("accessToken"), origin: stateParams.get("origin") });
-
-    // User chose not to authorize your app or didn't authorize your app
-    // redirect directly without oauth code
-    if (!code) {
-      return { url: origin };
-    }
-
-    const parsedCode = z.string().parse(code);
-
-    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-
-    if (!ownerId) {
-      throw new UnauthorizedException("Invalid Access token.");
-    }
-
-    const oAuth2Client = await this.gcalService.getOAuthClient(this.redirectUri);
-    const token = await oAuth2Client.getToken(parsedCode);
-    // Google oAuth Credentials are stored in token.tokens
-    const key = token.tokens;
-    const credential = await this.credentialRepository.createAppCredential(
-      GOOGLE_CALENDAR_TYPE,
-      key as Prisma.InputJsonValue,
-      ownerId
-    );
-
-    oAuth2Client.setCredentials(key);
-
-    const calendar = google.calendar({
-      version: "v3",
-      auth: oAuth2Client,
-    });
-
-    const cals = await calendar.calendarList.list({ fields: "items(id,summary,primary,accessRole)" });
-
-    const primaryCal = cals.data.items?.find((cal) => cal.primary);
-
-    if (primaryCal?.id) {
-      await this.selectedCalendarsRepository.createSelectedCalendar(
-        primaryCal.id,
-        credential.id,
-        ownerId,
-        GOOGLE_CALENDAR_TYPE
-      );
-    }
-
-    return { url: origin };
+    const url = new URL(this.config.get("api.url") + "/calendars/google/save");
+    url.searchParams.append("code", code);
+    url.searchParams.append("state", state);
+    return { url: url.href };
   }
 
   @Get("/check")
