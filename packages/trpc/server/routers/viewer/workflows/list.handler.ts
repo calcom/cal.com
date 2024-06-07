@@ -102,7 +102,27 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
           },
         ],
       },
-      include: teamWorkflowInclude,
+      include: {
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+        activeOnTeams: {
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        steps: true,
+      },
     });
     workflows.push(
       ...activeOrgWorkflows.map((workflow) => {

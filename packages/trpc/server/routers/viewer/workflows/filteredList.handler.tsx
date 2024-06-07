@@ -32,6 +32,16 @@ const includedFields = {
       },
     },
   },
+  activeOnTeams: {
+    select: {
+      team: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  },
   steps: true,
   team: {
     select: {
@@ -40,6 +50,7 @@ const includedFields = {
       name: true,
       members: true,
       logo: true,
+      isOrganization: true,
     },
   },
 };
@@ -86,7 +97,7 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
 
-      return { readOnly, ...workflow };
+      return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
     });
 
     return {
@@ -138,7 +149,7 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
 
-      return { readOnly, ...workflow };
+      return { readOnly, isOrg: workflow.team?.isOrganization, ...workflow };
     });
 
     return {

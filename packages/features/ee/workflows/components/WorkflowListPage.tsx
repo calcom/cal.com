@@ -35,7 +35,13 @@ export type WorkflowType = Workflow & {
     logo?: string | null;
   } | null;
   steps: WorkflowStep[];
-  activeOn: {
+  activeOnTeams?: {
+    team: {
+      id: number;
+      name?: string | null;
+    };
+  }[];
+  activeOn?: {
     eventType: {
       id: number;
       title: string;
@@ -155,7 +161,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </li>
                           <li>
                             <Badge variant="gray">
-                              {workflow.activeOn && workflow.activeOn.length > 0 ? (
+                              {workflow.activeOn && workflow.activeOn.length ? (
                                 <Tooltip
                                   content={workflow.activeOn
                                     .filter((wf) => (workflow.teamId ? wf.eventType.parentId === null : true))
@@ -169,17 +175,33 @@ export default function WorkflowListPage({ workflows }: Props) {
                                     ))}>
                                   <div>
                                     <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                    {t("active_on_event_types", {
-                                      count: workflow.activeOn.filter((wf) =>
-                                        workflow.teamId ? wf.eventType.parentId === null : true
-                                      ).length,
-                                    })}
+                                    {workflow.isActiveOnAll
+                                      ? t("active_on_all_event_types")
+                                      : t("active_on_event_types", {
+                                          count: workflow.activeOn.filter((wf) =>
+                                            workflow.teamId ? wf.eventType.parentId === null : true
+                                          ).length,
+                                        })}
+                                  </div>
+                                </Tooltip>
+                              ) : workflow.activeOnTeams && workflow.activeOnTeams.length > 0 ? (
+                                <Tooltip
+                                  content={workflow.activeOnTeams.map((activeOn, key) => (
+                                    <p key={key}>{activeOn.team.name}</p>
+                                  ))}>
+                                  <div>
+                                    <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
+                                    {workflow.isActiveOnAll
+                                      ? t("active_on_all_teams")
+                                      : t("active_on_teams", {
+                                          count: workflow.activeOnTeams?.length,
+                                        })}
                                   </div>
                                 </Tooltip>
                               ) : (
                                 <div>
                                   <Icon name="link" className="mr-1.5 inline h-3 w-3" aria-hidden="true" />
-                                  {t("no_active_event_types")}
+                                  {workflow.isOrg ? t("no_active_teams") : t("no_active_event_types")}
                                 </div>
                               )}
                             </Badge>
