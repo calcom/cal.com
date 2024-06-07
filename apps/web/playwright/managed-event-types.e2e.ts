@@ -17,7 +17,6 @@ test.describe("Managed Event Types", () => {
   test("Can create managed event type", async ({ page, users }) => {
     // Creating the owner user of the team
     const adminUser = await users.create();
-    const [eventType] = adminUser.eventTypes;
     // Creating the member user of the team
     const memberUser = await users.create();
     // First we work with owner user, logging in
