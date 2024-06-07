@@ -150,19 +150,10 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [lint, type-check, unit-test, integration-test]
-    if: always()
-    runs-on: buildjet-2vcpu-ubuntu-2204
-    steps:
-      - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
-        run: exit 1
-
-  e2e-required:
-    needs: [check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled') || !contains(github.event.pull_request.labels.*.name, 'ready-for-e2e')
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
