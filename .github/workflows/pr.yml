@@ -97,49 +97,49 @@ jobs:
   build-api-v1:
     name: Production builds
     needs: [check-label]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/api-v1-production-build.yml
     secrets: inherit
 
   build-api-v2:
     name: Production builds
     needs: [check-label]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/api-v2-production-build.yml
     secrets: inherit
 
   build:
     name: Production builds
     needs: [check-label]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
   e2e:
     name: Tests
     needs: [check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
     needs: [check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
     needs: [check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
     needs: [check-label, build, build-api-v1, build-api-v2]
-    if: ${{ needs.check-label.outputs.run-e2e == true }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
