@@ -1,12 +1,24 @@
-import { AuditLogBookingTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
+import {
+  AuditLogBookingTriggerEvents,
+  AuditLogSystemTriggerEvents,
+  AuditLogTriggerTargets,
+} from "@calcom/prisma/enums";
 
 import type { DefaultAppSettingOptionEntry, GeneralSettingsOption } from "./types";
 import { DefaultAppSettingsOptions } from "./types";
 import { getHref } from "./utils";
 
-export const availableTriggerEvents: { [key: string]: string } = {
+export type AvailableTriggerEventsType = AuditLogBookingTriggerEvents;
+
+export const availableTriggerEvents: Record<
+  string,
+  { [key: string]: AvailableTriggerEventsType | AuditLogSystemTriggerEvents }
+> = {
   booking: {
     ...AuditLogBookingTriggerEvents,
+  },
+  apps: {
+    ...AuditLogSystemTriggerEvents,
   },
 };
 
@@ -28,10 +40,11 @@ export const availableTriggerTargets = {
   //   label: "API Key",
   //   value: AuditLogTriggerTargets.API_KEYS,
   // },
-  // apps: {
-  //   label: "Apps",
-  //   value: AuditLogTriggerTargets.APPS,
-  // },
+  apps: {
+    label: "Apps",
+    value: AuditLogTriggerTargets.APPS,
+    key: "apps",
+  },
   // routingforms: {
   //   label: "Routing Forms",
   //   value: AuditLogTriggerTargets.ROUTING_FORMS,

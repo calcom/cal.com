@@ -45,5 +45,9 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
     },
   });
 
-  return !!updated;
+  return {
+    result: !!updated,
+    oldCredential: credential,
+    updatedCredential: updated,
+  };
 };

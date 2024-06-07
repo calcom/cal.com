@@ -1,13 +1,13 @@
 import requestIp from "request-ip";
 import type { WebhookDataType } from "webhooks/lib/sendPayload";
-import { z } from "zod";
 
 import { getAuditLogManager } from "@calcom/features/audit-logs/lib/getAuditLogManager";
-import { CRUD, getValues } from "@calcom/features/audit-logs/types";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
+import { bookingSchemaGenerated, CRUD, ZAuditLogEventBase } from "@calcom/features/audit-logs/types";
+import type { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { AppCategories, AuditLogTriggerTargets } from "@calcom/prisma/enums";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 const getFirstClause = (userId: number[] | null | undefined, teamId: number | null | undefined) => {
   const clauses = [];
@@ -54,67 +54,6 @@ export async function handleAuditLogTrigger({
     detectedIp = requestIp.getClientIp(req);
   } else {
     detectedIp = req.source_ip;
-  }
-
-  const bookingsSchema = z.object({
-    crud: z.nativeEnum(CRUD),
-    action: z.enum(getValues(AuditLogTriggerEvents)),
-    description: getRetracedStringParser("No description provided"),
-    actor: z.object({
-      id: getRetracedStringParser("-1"),
-      name: getRetracedStringParser("Not provided."),
-      fields: z.object({
-        additionalNotes: getRetracedStringParser("Not provided."),
-        email: getRetracedStringParser("Not provided"),
-      }),
-    }),
-    target: z.object({
-      id: getRetracedStringParser("Not found."),
-      name: getRetracedStringParser("No host name."),
-      fields: z.object({
-        email: getRetracedStringParser("Not provided."),
-        username: getRetracedStringParser("Not provided."),
-        name: getRetracedStringParser("Not provided."),
-        timezone: getRetracedStringParser("Not provided."),
-      }),
-      type: z.enum(getValues(AuditLogTriggerTargets)),
-    }),
-    fields: z.object({
-      title: getRetracedStringParser("Not provided."),
-      bookerUrl: getRetracedStringParser("Not provided."),
-      startTime: getRetracedStringParser("Not provided."),
-      endTime: getRetracedStringParser("Not provided."),
-      bookingType: getRetracedStringParser("Not provided."),
-      bookingTypeId: getRetracedStringParser("Not provided."),
-      description: getRetracedStringParser("Not provided."),
-      location: getRetracedStringParser("Not provided."),
-      conferenceCredentialId: getRetracedStringParser("Not provided."),
-      iCalUID: getRetracedStringParser("Not provided."),
-      eventTitle: getRetracedStringParser("Not provided."),
-      length: getRetracedStringParser("Not provided."),
-      bookingId: getRetracedStringParser("Not provided."),
-      status: getRetracedStringParser("Not provided."),
-      smsReminderNumber: getRetracedStringParser("Not provided."),
-      rejectionReason: getRetracedStringParser("Not provided."),
-    }),
-    is_anonymous: z.boolean(),
-    is_failure: z.boolean(),
-    group: z.object({
-      id: getRetracedStringParser("Not provided."),
-      name: getRetracedStringParser("Not provided."),
-    }),
-    created: z.date(),
-    source_ip: z
-      .string()
-      .trim()
-      .transform((value) => (value.length <= 1 ? "Not provided." : value)),
-  });
-
-  function getRetracedStringParser(message: string) {
-    return z.coerce
-      .string()
-      .trim()
-      .transform((value) => (value.length <= 1 ? message : value));
   }
 
   const event = {
@@ -168,7 +107,7 @@ export async function handleAuditLogTrigger({
     source_ip: detectedIp === "::1" ? "127.0.0.1" : detectedIp,
   };
 
-  const parsedSchema = bookingsSchema.parse(event);
+  const parsedSchema = bookingSchemaGenerated.parse(event);
 
   // Next step is to create a zod pipeline that does what I'm doing above.
   // Lets start by parsing zod schemas.
@@ -201,6 +140,85 @@ export async function handleAuditLogTrigger({
       }
 
       await auditLogManager.reportEvent(parsedSchema);
+    }
+  } catch (error) {
+    logger.error("Error while sending audit log", error);
+  }
+}
+
+export async function handleAuditLogTriggerTemp({
+  path,
+  user,
+  sourceIp,
+  credential,
+}: {
+  path?: any;
+  user: NonNullable<TrpcSessionUser>;
+  sourceIp?: string | undefined;
+  credential?: Credential;
+}) {
+  // 2. Parse Event
+  // 3. Get relevant user and team ids.
+  // 4. Get credentials for all relevant ids.
+  // 5. Loop through credentials and report respectively.
+  const event = {
+    crud: CRUD.UPDATE,
+    action: "SYSTEM_CREDENTIALS_UPDATED",
+    description: "App keys have been updated",
+    actor: {
+      id: user.id.toString(),
+      name: user.name,
+    },
+    target: {
+      id: credential?.id.toString() ?? "-1",
+      name: "BoxyHQ Retraced",
+      type: AuditLogTriggerTargets.APPS,
+    },
+    fields: {
+      oldCredential: "this is a test",
+      newCredential: "this is a test",
+    },
+    group: {
+      id: "default",
+      name: "default",
+    },
+    created: new Date(),
+    source_ip: sourceIp,
+  };
+
+  const parsedEvent = ZAuditLogEventBase.parse(event);
+
+  // TODO: in case of update app credentials notify user audit log app, and credential.
+  // So if credential has a team ID notify the audit log app of the team.
+  const userIds = [user.id as number];
+
+  const firstClause = getFirstClause(userIds, null);
+  try {
+    const credentials = await prisma.credential.findMany({
+      where: {
+        AND: [
+          firstClause,
+          {
+            type: {
+              contains: AppCategories.auditLogs,
+            },
+          },
+        ],
+      },
+    });
+
+    for (const credential of credentials) {
+      const settings = credential.settings as { disabledEvents: string[] | undefined };
+
+      if (settings.disabledEvents && settings.disabledEvents.includes(event.action)) continue;
+
+      const auditLogManager = await getAuditLogManager(credential);
+
+      if (!auditLogManager) {
+        return;
+      }
+
+      await auditLogManager.reportEvent(parsedEvent);
     }
   } catch (error) {
     logger.error("Error while sending audit log", error);
