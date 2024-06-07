@@ -204,7 +204,6 @@ function WorkflowPage() {
     MembershipRole.MEMBER;
 
   const isPending = isPendingWorkflow || isPendingEventTypes || isPendingTeams;
-  s;
 
   useEffect(() => {
     if (!isPending) {

@@ -41,7 +41,7 @@ const WorkflowListItem = (props: ItemProps) => {
     })
   );
 
-  const isActive = activeEventTypeIds.includes(eventType.id);
+  const isActive = workflow.isOrg || activeEventTypeIds.includes(eventType.id);
   const utils = trpc.useUtils();
 
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
@@ -194,9 +194,7 @@ function EventWorkflowsTab(props: Props) {
   });
 
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
-
   const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
-
   const { data, isPending } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -206,13 +204,17 @@ function EventWorkflowsTab(props: Props) {
 
   useEffect(() => {
     if (data?.workflows) {
-      const activeWorkflows = workflows.map((workflowOnEventType) => {
+      const activeOrgWorkflows = data.workflows.filter((workflow) => workflow.isOrg);
+      const activeEventTypeWorkflows = workflows.map((workflowOnEventType) => {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
           readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
         } as WorkflowType;
       });
+
+      const allActiveWorkflows = activeOrgWorkflows.concat(activeEventTypeWorkflows);
+
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
           (!workflow.teamId || eventType.teamId === workflow.teamId) &&
@@ -224,8 +226,8 @@ function EventWorkflowsTab(props: Props) {
       );
       const allSortedWorkflows =
         workflowsDisableProps.isLocked && !isManagedEventType
-          ? activeWorkflows
-          : activeWorkflows.concat(disabledWorkflows);
+          ? allActiveWorkflows
+          : allActiveWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -14,9 +14,105 @@ type ListOptions = {
   input: TListInputSchema;
 };
 
+const teamWorkflowInclude = {
+  team: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      members: true,
+    },
+  },
+  activeOn: {
+    select: {
+      eventType: {
+        select: {
+          id: true,
+          title: true,
+          parentId: true,
+          _count: {
+            select: {
+              children: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  steps: true,
+};
+
 export const listHandler = async ({ ctx, input }: ListOptions) => {
+  const workflows: WorkflowType[] = [];
+
+  const org = await prisma.team.findFirst({
+    where: {
+      isOrganization: true,
+      children: {
+        some: {
+          id: input?.teamId,
+        },
+      },
+      members: {
+        some: {
+          userId: input?.userId || ctx.user.id,
+          accepted: true,
+        },
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (org) {
+    const activeOrgWorkflows = await prisma.workflow.findMany({
+      where: {
+        team: {
+          id: org.id,
+          members: {
+            some: {
+              userId: ctx.user.id,
+              accepted: true,
+            },
+          },
+        },
+        OR: [
+          {
+            isActiveOnAll: true,
+          },
+          {
+            activeOnTeams: {
+              some: {
+                team: {
+                  OR: [
+                    { id: input?.teamId },
+                    {
+                      members: {
+                        some: {
+                          userId: ctx.user.id,
+                          accepted: true,
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        ],
+      },
+      include: teamWorkflowInclude,
+    });
+    workflows.push(
+      ...activeOrgWorkflows.map((workflow) => {
+        return { ...workflow, isOrg: true, readOnly: true };
+      })
+    );
+  }
+
   if (input && input.teamId) {
-    const workflows: WorkflowType[] = await prisma.workflow.findMany({
+    const teamWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
         team: {
           id: input.teamId,
@@ -28,49 +124,25 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
           },
         },
       },
-      include: {
-        team: {
-          select: {
-            id: true,
-            slug: true,
-            name: true,
-            members: true,
-          },
-        },
-        activeOn: {
-          select: {
-            eventType: {
-              select: {
-                id: true,
-                title: true,
-                parentId: true,
-                _count: {
-                  select: {
-                    children: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-        steps: true,
-      },
+      include: teamWorkflowInclude,
       orderBy: {
         id: "asc",
       },
     });
-    const workflowsWithReadOnly = workflows.map((workflow) => {
+    const workflowsWithReadOnly = teamWorkflows.map((workflow) => {
       const readOnly = !!workflow.team?.members?.find(
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
       return { ...workflow, readOnly };
     });
 
-    return { workflows: workflowsWithReadOnly };
+    workflows.push(...workflowsWithReadOnly);
+
+    return { workflows };
   }
 
   if (input && input.userId) {
-    const workflows: WorkflowType[] = await prisma.workflow.findMany({
+    const userWorkflows: WorkflowType[] = await prisma.workflow.findMany({
       where: {
         userId: ctx.user.id,
       },
@@ -106,10 +178,12 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
       },
     });
 
+    workflows.push(...userWorkflows);
+
     return { workflows };
   }
 
-  const workflows = await prisma.workflow.findMany({
+  const allWorkflows = await prisma.workflow.findMany({
     where: {
       OR: [
         { userId: ctx.user.id },
@@ -157,7 +231,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     },
   });
 
-  const workflowsWithReadOnly: WorkflowType[] = workflows.map((workflow) => {
+  const workflowsWithReadOnly: WorkflowType[] = allWorkflows.map((workflow) => {
     const readOnly = !!workflow.team?.members?.find(
       (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
     );
@@ -165,5 +239,7 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     return { readOnly, ...workflow };
   });
 
-  return { workflows: workflowsWithReadOnly };
+  workflows.push(...workflowsWithReadOnly);
+
+  return { workflows };
 };

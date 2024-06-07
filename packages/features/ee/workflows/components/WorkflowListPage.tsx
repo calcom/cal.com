@@ -46,6 +46,7 @@ export type WorkflowType = Workflow & {
     };
   }[];
   readOnly?: boolean;
+  isOrg?: boolean;
 };
 interface Props {
   workflows: WorkflowType[] | undefined;

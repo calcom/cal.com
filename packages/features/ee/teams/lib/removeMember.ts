@@ -146,9 +146,7 @@ const removeMember = async ({
           some: {
             teamId: team.id,
           },
-        },
-        //don't delete reminder, if user is still part of another team that is active on this workflow
-        activeOnTeams: {
+          //don't delete reminder, if user is still part of another team that is active on this workflow
           none: {
             team: {
               members: {
