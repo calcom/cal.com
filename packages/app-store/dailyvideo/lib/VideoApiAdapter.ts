@@ -333,7 +333,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         return recording.room_name === roomName;
       } catch (err) {
         console.error("err", err);
-        throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err?.message}`);
+        throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err}`);
       }
     },
   };
