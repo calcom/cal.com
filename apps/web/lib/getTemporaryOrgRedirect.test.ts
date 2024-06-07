@@ -11,6 +11,11 @@ const mockData = {
     toUrl: string;
     from: string;
     redirectType: RedirectType;
+    fromOrgId: number;
+  }[],
+  orgs: [] as {
+    slug: string;
+    id: number;
   }[],
 };
 
@@ -18,16 +23,30 @@ function mockARedirectInDB({
   toUrl,
   slug,
   redirectType,
+  fromOrgId = 0,
+  orgSlug,
+  orgId,
 }: {
   toUrl: string;
   slug: string;
   redirectType: RedirectType;
+  fromOrgId?: number;
+  orgSlug?: string;
+  orgId?: number;
 }) {
   mockData.redirects.push({
     toUrl,
     from: slug,
     redirectType,
+    fromOrgId,
   });
+
+  if (orgId && orgSlug) {
+    mockData.orgs.push({
+      slug: orgSlug,
+      id: orgId,
+    });
+  }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
   prismaMock.tempOrgRedirect.findMany.mockImplementation(({ where }) => {
@@ -35,13 +54,32 @@ function mockARedirectInDB({
       const tempOrgRedirects: typeof mockData.redirects = [];
       where.from.in.forEach((whereSlug: string) => {
         const matchingRedirect = mockData.redirects.find((redirect) => {
-          return where.type === redirect.redirectType && whereSlug === redirect.from && where.fromOrgId === 0;
+          return (
+            where.type === redirect.redirectType &&
+            whereSlug === redirect.from &&
+            where.fromOrgId === redirect.fromOrgId
+          );
         });
         if (matchingRedirect) {
           tempOrgRedirects.push(matchingRedirect);
         }
       });
       resolve(tempOrgRedirects);
+    });
+  });
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  prismaMock.team.findFirst.mockImplementation(({ where }) => {
+    return new Promise((resolve) => {
+      where.OR.forEach(({ slug }: { slug: string }) => {
+        const matchingOrg = mockData.orgs.find((org) => {
+          return slug === org.slug;
+        });
+        if (matchingOrg) {
+          resolve(matchingOrg);
+        }
+      });
+      resolve(null);
     });
   });
 }
@@ -84,6 +122,32 @@ describe("getTemporaryOrgRedirect", () => {
       redirect: {
         permanent: false,
         destination: "https://calcom.cal.com/30min?abc=1&orgRedirection=true",
+      },
+    });
+  });
+
+  it("should generate replacement User URL for deleted Org user", async () => {
+    mockARedirectInDB({
+      redirectType: RedirectType.User,
+      slug: "slug",
+      toUrl: "https://calcom.cal.com/john",
+      fromOrgId: 1,
+      orgSlug: "acme",
+      orgId: 1,
+    });
+
+    const redirect = await getTemporaryOrgRedirect({
+      slugs: "slug",
+      redirectType: RedirectType.User,
+      eventTypeSlug: null,
+      currentQuery: {},
+      orgSlug: "acme",
+    });
+
+    expect(redirect).toEqual({
+      redirect: {
+        permanent: false,
+        destination: "https://calcom.cal.com/john?orgRedirection=true",
       },
     });
   });
