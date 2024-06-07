@@ -40,8 +40,9 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const branch = 'chore/improve-ci-workflow'; //'${{ github.event.inputs.branch || github.event.pull_request.ref }}';
+            const branch = 'chore/improve-ci-workflow'; //'${{ github.event.inputs.branch || github.ref }}';
             console.log('github.event.inputs.branch', '${{ github.event.inputs.branch }}');
+            console.log('github.ref', ${{ github.ref }});
             console.log(branch);
             const response = await github.rest.pulls.list({
               owner: context.repo.owner,
@@ -53,8 +54,7 @@ jobs:
             if (response.data.length > 0) {
               const pr = response.data[0];
               const labels = pr.labels.map(label => label.name);
-              console.log('pr_number', pr.number);
-              console.log('pr_url', pr.html_url);
+              console.log('PR #', pr.number);
               if (labels.includes('ready-for-e2e')) {
                 core.setOutput('run-e2e', true);
                 console.log('Found the label');
