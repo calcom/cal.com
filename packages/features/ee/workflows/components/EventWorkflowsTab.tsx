@@ -34,11 +34,11 @@ const WorkflowListItem = (props: ItemProps) => {
   const { t } = useLocale();
 
   const [activeEventTypeIds, setActiveEventTypeIds] = useState(
-    workflow.activeOn.map((active) => {
+    workflow.activeOn?.map((active) => {
       if (active.eventType) {
         return active.eventType.id;
       }
-    })
+    }) ?? []
   );
 
   const isActive = workflow.isOrg || activeEventTypeIds.includes(eventType.id);
