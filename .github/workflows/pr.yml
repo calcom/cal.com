@@ -33,18 +33,40 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     steps:
-      - name: Check for 'ready-for-e2e' label
-        id: check_label
+      - name: Get PR from branch name
+        id: get_pr
         uses: actions/github-script@v6
         with:
           script: |
-            const prLabels = context.payload.pull_request.labels.map(label => label.name);
-            console.log(prLabels);
-            const hasRunE2eTestsLabel = prLabels.includes('ready-for-e2e');
-            return { labelExists: hasRunE2eTestsLabel };
-      - name: Set run-e2e output
-        id: set_output
-        run: echo "run-e2e=${{ steps.check_label.outputs.labelExists }}" >> $GITHUB_OUTPUT
+            const branch = '${{ github.event.inputs.branch || github.event.pull_request.ref }}';
+            const response = await github.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              head: `${context.repo.owner}:${branch}`
+            });
+
+            if (response.data.length > 0) {
+              const pr = response.data[0];
+              core.setOutput('pr_number', pr.number);
+              core.setOutput('pr_url', pr.html_url);
+            } else {
+              throw new Error(`No open pull request found for branch: ${branch}`);
+            }
+      - name: Check for 'ready-for-e2e' label
+        id: check_label
+        run: |
+          PR_LABELS=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          "${{ steps.check-label.outputs.pr_url }}/labels" | jq -r '.[].name')
+
+          if [[ "$PR_LABELS" == *"ready-for-e2e"* ]]; then
+            echo "Label found"
+            echo "run-e2e=true" >> $GITHUB_OUTPUT
+          else
+            echo "Label not found"
+            echo "run-e2e=false" >> $GITHUB_OUTPUT
+          fi
   type-check:
     name: Type check
     needs: [changes]
