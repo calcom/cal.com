@@ -19,6 +19,7 @@ type CustomNextApiResponse = NextApiResponse & Response;
 vi.mock("@calcom/core/videoClient", () => {
   return {
     getTranscriptsAccessLinkFromRecordingId: vi.fn(),
+    checkIfRoomNameMatchesInRecording: vi.fn(),
   };
 });
 
@@ -36,6 +37,7 @@ const mockGetTranscripts = () => {
   const downloadLinks = [{ format: "json", link: "https://URL1" }];
 
   vi.mocked(getTranscriptsAccessLinkFromRecordingId).mockResolvedValue(downloadLinks);
+  vi.mocked(checkIfRoomNameMatchesInRecording).mockResolvedValue(true);
 
   return downloadLinks;
 };
