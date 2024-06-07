@@ -2,24 +2,15 @@ import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-import type {
-  GetRecordingsResponseSchema,
-  GetAccessLinkResponseSchema,
-  TSubmitBatchProcessorJobRes,
-  batchProcessorBody,
-  TGetTranscriptAccessLink,
-} from "@calcom/prisma/zod-utils";
-import {
-  getRecordingsResponseSchema,
-  getAccessLinkResponseSchema,
-  ZSubmitBatchProcessorJobRes,
-  ZGetTranscriptAccessLink,
-} from "@calcom/prisma/zod-utils";
+import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
+import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
