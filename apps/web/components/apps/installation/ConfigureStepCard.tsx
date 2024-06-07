@@ -25,6 +25,7 @@ export type TFormType = {
   metadata: z.infer<typeof EventTypeMetaDataSchema>;
   locations: LocationObject[];
   bookingFields: z.infer<typeof eventTypeBookingFields>;
+  seatsPerTimeSlot: number | null;
 };
 
 export type ConfigureStepCardProps = {
@@ -68,6 +69,7 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
         metadata: eventType?.metadata,
         locations: eventType?.locations,
         bookingFields: eventType?.bookingFields,
+        seatsPerTimeSlot: eventType?.seatsPerTimeSlot,
       },
       resolver: zodResolver(
         z.object({

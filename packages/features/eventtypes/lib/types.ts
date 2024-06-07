@@ -118,4 +118,4 @@ export type FormValues = {
   secondaryEmailId?: number;
 };
 
-export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields">;
+export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

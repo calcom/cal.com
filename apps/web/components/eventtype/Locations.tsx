@@ -111,6 +111,7 @@ const Locations: React.FC<LocationsProps> = ({
   });
 
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
+  const seatsEnabled = !!getValues("seatsPerTimeSlot");
 
   const validLocations =
     getValues("locations")?.filter((location) => {
@@ -199,7 +200,7 @@ const Locations: React.FC<LocationsProps> = ({
 
       const canAppendLocation = !validLocations.find((location) => location.type === newLocationType);
 
-      if (canAppendLocation) {
+      if (canAppendLocation && !seatsEnabled) {
         append({
           type: newLocationType,
           credentialId: prefillLocation?.credentialId,
@@ -208,7 +209,7 @@ const Locations: React.FC<LocationsProps> = ({
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [prefillLocation]);
+  }, [prefillLocation, seatsEnabled]);
 
   return (
     <div className="w-full">
@@ -421,6 +422,8 @@ const Locations: React.FC<LocationsProps> = ({
               data-testid="add-location"
               StartIcon="plus"
               color="minimal"
+              disabled={seatsEnabled}
+              tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
               onClick={() => setShowEmptyLocationSelect(true)}>
               {t("add_location")}
             </Button>
