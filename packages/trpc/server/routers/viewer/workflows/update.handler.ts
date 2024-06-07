@@ -231,7 +231,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     removedActiveOn = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
 
-    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma, activeOn);
+    await deleteRemindersOfActiveOnIds(
+      removedActiveOn,
+      userWorkflow.steps,
+      isOrg,
+      ctx.prisma,
+      activeOn.filter((activeOn) => !newActiveOn.includes(activeOn))
+    );
 
     //update active on
     await ctx.prisma.workflowsOnTeams.deleteMany({
