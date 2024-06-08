@@ -3,12 +3,15 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!req.session?.user?.id) {
     return res.status(401).json({ message: "You must be logged in to do this" });
   }
   const appType = "google_video";
+  const state = decodeOAuthState(req);
   try {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -29,6 +32,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
     if (!installation) {
       throw new Error("Unable to create user credential for google_video");
+    }
+
+    if (state?.defaultInstall) {
+      setDefaultConferencingApp(req.session.user.id, "google-meet");
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
