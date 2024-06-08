@@ -2,6 +2,7 @@ import type { App_RoutingForms_Form, User } from "@prisma/client";
 
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
@@ -33,9 +34,15 @@ export async function onFormSubmission(
     };
   }
 
+  const { userId, teamId } = getWebhookTargetEntity(form);
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
   const subscriberOptions = {
+    userId,
+    teamId,
+    orgId,
     triggerEvent: WebhookTriggerEvents.FORM_SUBMITTED,
-    ...getWebhookTargetEntity(form),
   };
 
   const webhooks = await getWebhooks(subscriberOptions);

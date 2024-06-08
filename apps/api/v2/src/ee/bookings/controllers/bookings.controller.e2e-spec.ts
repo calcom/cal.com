@@ -20,7 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
+import { handleNewBooking } from "@calcom/platform-libraries-0.0.2";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
