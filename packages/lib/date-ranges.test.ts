@@ -159,13 +159,13 @@ describe("processWorkingHours", () => {
     // in America/New_York DST ends on first Sunday of November
     const timeZone = "America/New_York";
 
-    let firstSundayOfNovember = dayjs().startOf("day").month(10).date(1);
+    let firstSundayOfNovember = dayjs.utc().startOf("day").month(10).date(1);
     while (firstSundayOfNovember.day() !== 0) {
       firstSundayOfNovember = firstSundayOfNovember.add(1, "day");
     }
 
-    const dateFrom = dayjs().month(10).date(1).startOf("day");
-    const dateTo = dayjs().month(10).endOf("month");
+    const dateFrom = dayjs.utc().month(10).date(1).startOf("day");
+    const dateTo = dayjs.utc().month(10).endOf("month");
 
     const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
@@ -223,17 +223,17 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/Berlin";
 
-    const dateFrom = dayjs().startOf("day");
-    const dateTo = dayjs().add(1, "week").startOf("day");
+    const dateFrom = dayjs.utc().startOf("day");
+    const dateTo = dayjs.utc().add(1, "week").startOf("day");
 
     const travelSchedules = [
       {
-        startDate: dayjs().add(2, "day").startOf("day"),
-        endDate: dayjs().add(3, "day").endOf("day"),
+        startDate: dayjs.utc().add(2, "day").startOf("day"),
+        endDate: dayjs.utc().add(3, "day").endOf("day"),
         timeZone: "America/New_York",
       },
       {
-        startDate: dayjs().add(5, "day").startOf("day"),
+        startDate: dayjs.utc().add(5, "day").startOf("day"),
         timeZone: "Asia/Kolkata",
       },
     ];

@@ -56,14 +56,16 @@ describe("handleNewBooking", () => {
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        const startDateTimeOrganizerTz = dayjs(plus1DateString)
+        const startDateTimeOrganizerTz = dayjs
+          .utc(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(11)
           .minute(0)
           .second(0);
 
-        const endDateTimeOrganizerTz = dayjs(plus1DateString)
+        const endDateTimeOrganizerTz = dayjs
+          .utc(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(12)
@@ -217,14 +219,16 @@ describe("handleNewBooking", () => {
         });
 
         // Using .endOf("day") here to ensure our date doesn't change when we set the time zone
-        const startDateTimeOrganizerTz = dayjs(plus1DateString)
+        const startDateTimeOrganizerTz = dayjs
+          .utc(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .hour(23)
           .minute(0)
           .second(0);
 
-        const endDateTimeOrganizerTz = dayjs(plus1DateString)
+        const endDateTimeOrganizerTz = dayjs
+          .utc(plus1DateString)
           .endOf("day")
           .tz(newYorkTimeZone)
           .startOf("day")
