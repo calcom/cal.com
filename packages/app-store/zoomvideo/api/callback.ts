@@ -5,11 +5,14 @@ import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 import { getZoomAppKeys } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const { client_id, client_secret } = await getZoomAppKeys();
+  const state = decodeOAuthState(req);
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/zoomvideo/callback`);
   const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
@@ -70,6 +73,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const credentialIdsToDelete = existingCredentialZoomVideo.map((item) => item.id);
   if (credentialIdsToDelete.length > 0) {
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
+  }
+
+  if (state?.defaultInstall) {
+    setDefaultConferencingApp(userId, "zoom");
   }
 
   await createOAuthAppCredential({ appId: "zoom", type: "zoom_video" }, responseBody, req);

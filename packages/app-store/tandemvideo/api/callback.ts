@@ -5,6 +5,8 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
+import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 
 let client_id = "";
 let client_secret = "";
@@ -25,6 +27,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "Tandem client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Tandem client_secret missing." });
   if (!base_url) return res.status(400).json({ message: "Tandem base_url missing." });
+  const state = decodeOAuthState(req);
 
   const result = await fetch(`${base_url}/api/v1/oauth/v2/token`, {
     method: "POST",
@@ -57,6 +60,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
   }
   if (result.ok) {
+    if (state?.defaultInstall) {
+      setDefaultConferencingApp(userId, "tandem");
+    }
     responseBody.expiry_date = Math.round(Date.now() + responseBody.expires_in * 1000);
     delete responseBody.expires_in;
 
