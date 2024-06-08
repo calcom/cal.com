@@ -26,6 +26,8 @@ class HttpCode extends HttpError {
   }
 }
 
+const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+
 /**
  * Allows us to split big API handlers by webhook event, and lazy load them.
  * It already handles the Stripe signature verification and event construction.
@@ -42,13 +44,13 @@ class HttpCode extends HttpError {
 export const stripeWebhookHandler = (handlers: SWHandlers) => async (req: NextApiRequest) => {
   const sig = req.headers["stripe-signature"];
   if (!sig) throw new HttpCode(400, "Missing stripe-signature");
-  if (!process.env.STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
+  if (!STRIPE_WEBHOOK_SECRET) throw new HttpCode(500, "Missing STRIPE_WEBHOOK_SECRET");
   const requestBuffer = await buffer(req);
   const payload = requestBuffer.toString();
   const event = stripe.webhooks.constructEvent(
     payload,
     sig,
-    process.env.STRIPE_WEBHOOK_SECRET
+    STRIPE_WEBHOOK_SECRET
   ) as Stripe.DiscriminatedEvent;
   const handler = (await handlers[event.type])?.default;
   // auto catch unsupported Stripe events.

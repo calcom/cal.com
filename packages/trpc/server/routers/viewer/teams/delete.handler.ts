@@ -1,5 +1,4 @@
-import { cancelTeamSubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
@@ -19,9 +18,12 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
-
+  const team = await prisma.team.findUniqueOrThrow({
+    where: { id: input.teamId },
+    select: { id: true, metadata: true, members: true, isOrganization: true },
+  });
+  const teamBilling = TeamBilling.create(team);
+  await teamBilling.cancel();
   const deletedTeam = await prisma.$transaction(async (tx) => {
     // delete all memberships
     await tx.membership.deleteMany({
