@@ -80,7 +80,7 @@ export const Day = ({
       type="button"
       style={disabled ? { ...disabledDateButtonEmbedStyles } : { ...enabledDateButtonEmbedStyles }}
       className={classNames(
-        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium disabled:cursor-default disabled:border-transparent disabled:font-light ",
+        "disabled:text-bookinglighter absolute bottom-0 left-0 right-0 top-0 mx-auto w-full rounded-md border-2 border-transparent text-center text-sm font-medium transition disabled:cursor-default disabled:border-transparent disabled:font-light ",
         active
           ? "bg-brand-default text-brand"
           : !disabled
@@ -254,7 +254,7 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isPending ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50"
+              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50 transition"
               key={`e-${idx}`}
               disabled>
               <SkeletonText className="h-4 w-5" />
@@ -342,7 +342,7 @@ const DatePicker = ({
           <div className="flex">
             <Button
               className={classNames(
-                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
+                `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
                 !browsingDate.isAfter(dayjs()) &&
                   `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
                 customClassNames?.datePickerToggle
@@ -356,7 +356,7 @@ const DatePicker = ({
             />
             <Button
               className={classNames(
-                `group p-1 opacity-70 hover:opacity-100 rtl:rotate-180`,
+                `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
                 `${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(+1)}
