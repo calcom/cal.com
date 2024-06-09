@@ -15,7 +15,8 @@ import type { OriginalRescheduledBooking } from "../../handleNewBooking";
 const lastAttendeeDeleteBooking = async (
   originalRescheduledBooking: OriginalRescheduledBooking,
   filteredAttendees: Partial<Attendee>[] | undefined,
-  originalBookingEvt?: CalendarEvent
+  originalBookingEvt?: CalendarEvent,
+  actorUserId?: number
 ) => {
   let deletedReferences = false;
   if ((!filteredAttendees || filteredAttendees.length === 0) && originalRescheduledBooking) {
@@ -53,6 +54,7 @@ const lastAttendeeDeleteBooking = async (
         },
         data: {
           status: BookingStatus.CANCELLED,
+          actorUserId: actorUserId ?? null,
         },
       });
     });

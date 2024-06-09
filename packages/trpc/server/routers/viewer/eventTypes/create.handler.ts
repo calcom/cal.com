@@ -101,10 +101,13 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   const profile = ctx.user.profile;
   try {
-    const eventType = await EventTypeRepository.create({
-      ...data,
-      profileId: profile.id,
-    });
+    const eventType = await EventTypeRepository.create(
+      {
+        ...data,
+        profileId: profile.id,
+      },
+      ctx.user.id
+    );
     return { eventType };
   } catch (e) {
     console.warn(e);

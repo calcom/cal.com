@@ -32,12 +32,12 @@ export class EventTypeCreateAuditLogger {
   ): IEventTypeCreateLog {
     return {
       actionType: this.actionType,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventId,
       },
       crud: CRUD.CREATE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     };
   }
 
@@ -89,13 +89,13 @@ export class EventTypeUpdateAuditLogger {
 
     const eventTypeUpdateLog: IEventTypeUpdateLog = {
       actionType: this.actionType,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventId,
         changedAttributes: changedAttributesList,
       },
       crud: CRUD.UPDATE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     };
 
     return eventTypeUpdateLog;
@@ -130,12 +130,12 @@ export class EventTypeDeleteAuditLogger {
   ): IEventTypeDeleteLog {
     return {
       actionType: this.actionType,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventType.title,
       },
       crud: CRUD.DELETE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     };
   }
 

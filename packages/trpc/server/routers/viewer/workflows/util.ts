@@ -81,10 +81,12 @@ export async function upsertSmsReminderFieldForBooking({
   workflowId,
   eventTypeId,
   isSmsReminderNumberRequired,
+  actorUserId,
 }: {
   workflowId: number;
   isSmsReminderNumberRequired: boolean;
   eventTypeId: number;
+  actorUserId?: number;
 }) {
   await upsertBookingField(
     getSmsReminderNumberField(),
@@ -92,16 +94,19 @@ export async function upsertSmsReminderFieldForBooking({
       workflowId,
       isSmsReminderNumberRequired,
     }),
-    eventTypeId
+    eventTypeId,
+    actorUserId ?? null
   );
 }
 
 export async function removeSmsReminderFieldForBooking({
   workflowId,
   eventTypeId,
+  actorUserId,
 }: {
   workflowId: number;
   eventTypeId: number;
+  actorUserId?: number;
 }) {
   await removeBookingField(
     {
@@ -111,6 +116,7 @@ export async function removeSmsReminderFieldForBooking({
       id: `${workflowId}`,
       type: "workflow",
     },
-    eventTypeId
+    eventTypeId,
+    actorUserId ?? null
   );
 }

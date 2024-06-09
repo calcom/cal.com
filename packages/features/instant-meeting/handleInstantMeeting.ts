@@ -184,6 +184,8 @@ async function handler(req: NextApiRequest) {
     },
   };
 
+  const actorUser = await prisma.user.findUnique({ where: { email: bookerEmail } });
+  if (actorUser?.id) newBookingData.actorUserId = actorUser.id;
   const createBookingObj = {
     include: {
       attendees: true,

@@ -21,7 +21,8 @@ import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } 
 
 const createNewSeat = async (
   rescheduleSeatedBookingObject: NewSeatedBookingObject,
-  seatedBooking: SeatedBooking
+  seatedBooking: SeatedBooking,
+  actorUserId?: number
 ) => {
   const {
     tAttendees,
@@ -95,6 +96,7 @@ const createNewSeat = async (
           },
         },
       },
+      actorUserId: actorUserId ?? null,
       ...(seatedBooking.status === BookingStatus.CANCELLED && { status: BookingStatus.ACCEPTED }),
     },
   });

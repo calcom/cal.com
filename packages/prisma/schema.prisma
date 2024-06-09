@@ -139,6 +139,8 @@ model EventType {
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
+  //This is used to pass session dependent actorUserId for AuditLogger Client Extension. It is always null.
+  actorUserId      Int?
 
   @@unique([userId, slug])
   @@unique([teamId, slug])
@@ -573,6 +575,8 @@ model Booking {
   ratingFeedback        String?
   noShowHost            Boolean?
   scheduledTriggers     WebhookScheduledTriggers[]
+  //This is used to pass session dependent actorUserId for AuditLogger Client Extension. It is always null.
+  actorUserId           Int?
 
   @@index([eventTypeId])
   @@index([userId])

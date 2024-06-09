@@ -12,17 +12,17 @@ export type EventTypeAuditLogOption = (typeof EventTypeAuditLogOption)[keyof typ
 
 export interface IEventTypeCreateLog {
   actionType: typeof EventTypeAuditLogOption.EventTypeCreate;
-  actorUser: { id: number; fullName?: string; email?: string };
+  actorUser: { id: number };
   target: {
     targetEvent: number | string;
   };
   crud: typeof CRUD.CREATE;
-  targetTeam: { id: number; name: string; slug: string };
+  targetTeam: { id: number };
 }
 
 export interface IEventTypeUpdateLog {
   actionType: typeof EventTypeAuditLogOption.EventTypeUpdate;
-  actorUser: { id: number; fullName?: string; email?: string };
+  actorUser: { id: number };
   target: {
     targetEvent: number | string;
     changedAttributes: {
@@ -30,17 +30,17 @@ export interface IEventTypeUpdateLog {
     }[];
   };
   crud: typeof CRUD.UPDATE;
-  targetTeam: { id: number; name: string; slug: string };
+  targetTeam: { id: number };
 }
 
 export interface IEventTypeDeleteLog {
   actionType: typeof EventTypeAuditLogOption.EventTypeDelete;
-  actorUser: { id: number; fullName?: string; email?: string };
+  actorUser: { id: number };
   target: {
     targetEvent: string;
   };
   crud: typeof CRUD.DELETE;
-  targetTeam: { id: number; name: string; slug: string };
+  targetTeam: { id: number };
 }
 
 export type IEventTypeLog = IEventTypeCreateLog | IEventTypeUpdateLog | IEventTypeDeleteLog;

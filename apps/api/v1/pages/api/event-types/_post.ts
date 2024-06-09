@@ -302,7 +302,10 @@ async function postHandler(req: NextApiRequest) {
     data.hosts = { createMany: { data: hosts } };
   }
 
-  const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
+  const eventType = await prisma.eventType.create({
+    data: { ...data, actorUserId: userId },
+    include: { hosts: true },
+  });
 
   return {
     event_type: schemaEventTypeReadPublic.parse(eventType),

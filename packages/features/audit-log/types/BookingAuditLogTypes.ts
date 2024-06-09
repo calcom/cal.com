@@ -12,7 +12,7 @@ export const BookingAuditLogOption = {
 export type BookingAuditLogOption = (typeof BookingAuditLogOption)[keyof typeof BookingAuditLogOption];
 export interface IBookingCreateLog {
   actionType: typeof BookingAuditLogOption.BookingCreate;
-  actorUserId: number;
+  actorUser: { id: number };
   target: {
     targetEvent: number | string;
     targetUsersEmails: string[];
@@ -20,12 +20,12 @@ export interface IBookingCreateLog {
     endTime: Date;
   };
   crud: typeof CRUD.CREATE;
-  targetTeamId: number;
+  targetTeam: { id: number };
 }
 
 export interface IBookingUpdateLog {
   actionType: typeof BookingAuditLogOption.BookingUpdate;
-  actorUserId: number;
+  actorUser: { id: number };
   target: {
     targetEvent: number | string;
     startTime: Date;
@@ -35,12 +35,12 @@ export interface IBookingUpdateLog {
     }[];
   };
   crud: typeof CRUD.UPDATE;
-  targetTeamId: number;
+  targetTeam: { id: number };
 }
 
 export interface IBookingDeleteLog {
   actionType: typeof BookingAuditLogOption.BookingDelete;
-  actorUserId: number;
+  actorUser: { id: number };
   target: {
     targetEvent: number | string;
     targetUsersEmails: string[];
@@ -48,7 +48,7 @@ export interface IBookingDeleteLog {
     endTime: Date;
   };
   crud: typeof CRUD.DELETE;
-  targetTeamId: number;
+  targetTeam: { id: number };
 }
 
 export type IBookingLog = IBookingCreateLog | IBookingUpdateLog | IBookingDeleteLog;

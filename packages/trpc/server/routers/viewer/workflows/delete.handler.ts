@@ -56,7 +56,11 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   for (const activeOn of workflowToDelete.activeOn) {
-    await removeSmsReminderFieldForBooking({ workflowId: id, eventTypeId: activeOn.eventTypeId });
+    await removeSmsReminderFieldForBooking({
+      workflowId: id,
+      eventTypeId: activeOn.eventTypeId,
+      actorUserId: ctx.user.id ?? null,
+    });
   }
 
   await prisma.workflow.deleteMany({

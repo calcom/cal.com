@@ -47,7 +47,8 @@ async function getEventType(eventTypeId: EventType["id"]) {
 export async function upsertBookingField(
   fieldToAdd: Omit<Field, "required">,
   source: NonNullable<Field["sources"]>[number],
-  eventTypeId: EventType["id"]
+  eventTypeId: EventType["id"],
+  actorUserId?: number
 ) {
   const eventType = await getEventType(eventTypeId);
   let fieldFound = false;
@@ -97,6 +98,7 @@ export async function upsertBookingField(
     },
     data: {
       bookingFields: newFields,
+      actorUserId: actorUserId ?? null,
     },
   });
 }
@@ -104,7 +106,8 @@ export async function upsertBookingField(
 export async function removeBookingField(
   fieldToRemove: Pick<Field, "name">,
   source: Pick<NonNullable<Field["sources"]>[number], "id" | "type">,
-  eventTypeId: EventType["id"]
+  eventTypeId: EventType["id"],
+  actorUserId?: number
 ) {
   const eventType = await getEventType(eventTypeId);
 
@@ -137,6 +140,7 @@ export async function removeBookingField(
     },
     data: {
       bookingFields: newFields,
+      actorUserId: actorUserId ?? null,
     },
   });
 }

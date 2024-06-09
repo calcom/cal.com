@@ -20,6 +20,7 @@ export class EventTypesRepository {
         ...body,
         userId,
         users: { connect: { id: userId } },
+        actorUserId: userId,
       },
     });
   }
@@ -70,7 +71,7 @@ export class EventTypesRepository {
     });
   }
 
-  async deleteEventType(eventTypeId: number) {
-    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId } });
+  async deleteEventType(eventTypeId: number, actorUserId: number) {
+    return this.dbWrite.prisma.eventType.delete({ where: { id: eventTypeId, actorUserId } });
   }
 }

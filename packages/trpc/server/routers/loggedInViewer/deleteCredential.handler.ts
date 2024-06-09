@@ -128,6 +128,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         },
         data: {
           locations: updatedLocations,
+          actorUserId: ctx.user.id ?? null,
         },
       });
     }
@@ -264,6 +265,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               data: {
                 status: BookingStatus.CANCELLED,
                 cancellationReason: "Payment method removed",
+                actorUserId: ctx.user.id ?? null,
               },
             });
 

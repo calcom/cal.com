@@ -46,7 +46,7 @@ export class BookingCreateAuditLogger {
     const bookedAttendeesEmails = targetAttendees.map((attendee) => attendee.email);
     return {
       actionType: this.actionType,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventId,
         targetUsersEmails: bookedAttendeesEmails,
@@ -54,7 +54,7 @@ export class BookingCreateAuditLogger {
         endTime: this.targetBookingWithAttendees.endTime,
       },
       crud: CRUD.CREATE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     };
   }
 
@@ -119,7 +119,7 @@ export class BookingUpdateAuditLogger {
 
     bookingUpdateLog.push({
       actionType: this.actionType,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: updatedBookingWithAttendees.id,
         startTime: updatedBookingWithAttendees.startTime,
@@ -127,7 +127,7 @@ export class BookingUpdateAuditLogger {
         changedAttributes: changedAttributesList,
       },
       crud: CRUD.UPDATE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     });
 
     return bookingUpdateLog;
@@ -182,7 +182,7 @@ export class BookingUpdateAttendeeAuditLogger {
 
     createdAttendeesLog.push({
       actionType: BookingAuditLogOption.BookingCreate,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventId,
         targetUsersEmails: newAttendeesEmails,
@@ -190,12 +190,12 @@ export class BookingUpdateAttendeeAuditLogger {
         endTime,
       },
       crud: CRUD.CREATE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     });
 
     removedAttendeesLog.push({
       actionType: BookingAuditLogOption.BookingDelete,
-      actorUserId,
+      actorUser: { id: actorUserId },
       target: {
         targetEvent: targetEventId,
         targetUsersEmails: removedAttendeesEmails,
@@ -203,7 +203,7 @@ export class BookingUpdateAttendeeAuditLogger {
         endTime,
       },
       crud: CRUD.DELETE,
-      targetTeamId,
+      targetTeam: { id: targetTeamId },
     });
 
     return [...createdAttendeesLog, ...removedAttendeesLog];

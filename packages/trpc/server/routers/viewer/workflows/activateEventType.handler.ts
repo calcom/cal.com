@@ -134,6 +134,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       await removeSmsReminderFieldForBooking({
         workflowId,
         eventTypeId: chId,
+        actorUserId: ctx.user.id ?? null,
       });
     });
   } else {
@@ -275,6 +276,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           workflowId,
           isSmsReminderNumberRequired,
           eventTypeId: evTyId,
+          actorUserId: ctx.user.id ?? null,
         });
       });
     }
