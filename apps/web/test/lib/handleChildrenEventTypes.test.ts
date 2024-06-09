@@ -118,7 +118,6 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -148,7 +147,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
-          actorUserId,
+          actorUserId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -173,7 +172,6 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -277,7 +275,6 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -310,7 +307,7 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          actorUserId,
+          actorUserId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -333,7 +330,6 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -391,7 +387,6 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
-        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -440,7 +435,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          actorUserId,
+          actorUserId: null,
         },
       });
       const { profileId, ...rest } = evType;

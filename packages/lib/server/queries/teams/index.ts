@@ -348,6 +348,7 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               workflows: currentWorkflowIds && {
                 create: currentWorkflowIds.map((wfId) => ({ workflowId: wfId })),
               },
+              actorUserId: userId ?? null,
             },
           });
         } else {
