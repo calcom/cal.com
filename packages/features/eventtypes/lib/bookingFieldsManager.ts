@@ -48,7 +48,7 @@ export async function upsertBookingField(
   fieldToAdd: Omit<Field, "required">,
   source: NonNullable<Field["sources"]>[number],
   eventTypeId: EventType["id"],
-  actorUserId?: number
+  actorUserId?: number | null
 ) {
   const eventType = await getEventType(eventTypeId);
   let fieldFound = false;
@@ -107,7 +107,7 @@ export async function removeBookingField(
   fieldToRemove: Pick<Field, "name">,
   source: Pick<NonNullable<Field["sources"]>[number], "id" | "type">,
   eventTypeId: EventType["id"],
-  actorUserId?: number
+  actorUserId?: number | null
 ) {
   const eventType = await getEventType(eventTypeId);
 

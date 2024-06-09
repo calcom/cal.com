@@ -106,7 +106,7 @@ export async function removeSmsReminderFieldForBooking({
 }: {
   workflowId: number;
   eventTypeId: number;
-  actorUserId?: number;
+  actorUserId?: number | null;
 }) {
   await removeBookingField(
     {
