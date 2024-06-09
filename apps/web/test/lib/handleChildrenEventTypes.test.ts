@@ -148,7 +148,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
-          actorUserId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -310,7 +309,6 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          actorUserId: null,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -440,7 +438,6 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          actorUserId: null,
         },
       });
       const { profileId, ...rest } = evType;
