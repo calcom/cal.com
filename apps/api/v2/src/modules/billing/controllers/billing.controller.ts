@@ -1,4 +1,5 @@
 import { AppConfig } from "@/config/type";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
@@ -29,8 +30,8 @@ import { Stripe } from "stripe";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "/billing",
-  version: "2",
+  path: "/v2/billing",
+  version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(true)
 export class BillingController {
@@ -122,7 +123,7 @@ export class BillingController {
       await this.billingService.setSubscriptionForTeam(
         teamId,
         subscription,
-        PlatformPlan[plan as keyof typeof PlatformPlan]
+        PlatformPlan[plan.toUpperCase() as keyof typeof PlatformPlan]
       );
 
       return {

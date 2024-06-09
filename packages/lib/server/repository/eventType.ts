@@ -185,4 +185,29 @@ export class EventTypeRepository {
       });
     }
   }
+
+  static async findAllByUserId({ userId }: { userId: number }) {
+    return await prisma.eventType.findMany({
+      where: {
+        userId,
+      },
+    });
+  }
+
+  static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
+    return await prisma.eventType.findMany({
+      where: {
+        OR: [
+          {
+            teamId,
+          },
+          {
+            parent: {
+              teamId,
+            },
+          },
+        ],
+      },
+    });
+  }
 }

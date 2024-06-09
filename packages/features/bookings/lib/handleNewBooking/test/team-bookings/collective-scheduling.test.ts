@@ -1509,7 +1509,128 @@ describe("handleNewBooking", () => {
       });
     });
 
-    test.todo("Round Robin booking");
+    describe("Round Robin Assignment", () => {
+      test(`successfully books contact owner if rr lead skip is enabled`, async ({ emails }) => {
+        const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+        const booker = getBooker({
+          email: "booker@example.com",
+          name: "Booker",
+        });
+
+        const otherTeamMembers = [
+          {
+            name: "Other Team Member 1",
+            username: "other-team-member-1",
+            timeZone: Timezones["+5:30"],
+            defaultScheduleId: 1001,
+            email: "other-team-member-1@example.com",
+            id: 102,
+            schedules: [{ ...TestData.schedules.IstWorkHours, id: 1001 }],
+          },
+        ];
+
+        const organizer = getOrganizer({
+          name: "Organizer",
+          email: "organizer@example.com",
+          id: 101,
+          schedules: [TestData.schedules.IstWorkHours],
+        });
+
+        mockSuccessfulVideoMeetingCreation({
+          metadataLookupKey: appStoreMetadata.dailyvideo.dirName,
+          videoMeetingData: {
+            id: "MOCK_ID",
+            password: "MOCK_PASS",
+            url: `http://mock-dailyvideo.example.com/meeting-1`,
+          },
+        });
+
+        const { eventTypes } = await createBookingScenario(
+          getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                schedulingType: SchedulingType.ROUND_ROBIN,
+                length: 30,
+                metadata: {
+                  apps: {
+                    salesforce: {
+                      enabled: true,
+                      appCategories: ["crm"],
+                      roundRobinLeadSkip: true,
+                    },
+                  },
+                },
+                users: [
+                  {
+                    id: 101,
+                  },
+                  {
+                    id: 102,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            usersApartFromOrganizer: otherTeamMembers,
+          })
+        );
+
+        const bookingData = {
+          eventTypeId: 1,
+          teamMemberEmail: otherTeamMembers[0].email,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: OrganizerDefaultConferencingAppType },
+          },
+        };
+
+        const mockBookingData1 = getMockRequestDataForBooking({
+          data: {
+            ...bookingData,
+            start: `${getDate({ dateIncrement: 1 }).dateString}T05:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 1 }).dateString}T05:30:00.000Z`,
+          },
+        });
+
+        const mockBookingData2 = getMockRequestDataForBooking({
+          data: {
+            ...bookingData,
+            start: `${getDate({ dateIncrement: 2 }).dateString}T05:00:00.000Z`,
+            end: `${getDate({ dateIncrement: 2 }).dateString}T05:30:00.000Z`,
+          },
+        });
+
+        const { req: req1 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData1,
+        });
+
+        const { req: req2 } = createMockNextJsRequest({
+          method: "POST",
+          body: mockBookingData2,
+        });
+
+        const createdBooking1 = await handleNewBooking(req1);
+
+        expect(createdBooking1.userId).toBe(102);
+
+        const createdBooking2 = await handleNewBooking(req2);
+        expect(createdBooking2.userId).toBe(102);
+      });
+    });
   });
 
   describe("Team Plus Paid Events", () => {

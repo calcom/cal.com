@@ -123,6 +123,15 @@ const workspaces = packagedEmbedTestsOnly
       {
         test: {
           globals: true,
+          name: "@calcom/app-store-core",
+          include: ["packages/app-store/*.{test,spec}.[jt]s?(x)"],
+          environment: "jsdom",
+          setupFiles: ["packages/ui/components/test-setup.ts"],
+        },
+      },
+      {
+        test: {
+          globals: true,
           name: "@calcom/ui",
           include: ["packages/ui/components/**/*.{test,spec}.[jt]s?(x)"],
           environment: "jsdom",
@@ -144,6 +153,15 @@ const workspaces = packagedEmbedTestsOnly
           include: ["packages/lib/hooks/**/*.{test,spec}.{ts,js}"],
           environment: "jsdom",
           setupFiles: [],
+        },
+      },
+      {
+        test: {
+          globals: true,
+          environment: "jsdom",
+          name: "@calcom/web/modules/views",
+          include: ["apps/web/modules/**/*.{test,spec}.tsx"],
+          setupFiles: ["apps/web/modules/test-setup.ts"],
         },
       },
     ];
