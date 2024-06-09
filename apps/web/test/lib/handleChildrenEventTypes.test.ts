@@ -148,6 +148,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
+          actorUserId: 1,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -309,6 +310,7 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
+          actorUserId: 1,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -415,6 +417,7 @@ describe("handleChildrenEventTypes", () => {
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
+        actorUserId: 1,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
