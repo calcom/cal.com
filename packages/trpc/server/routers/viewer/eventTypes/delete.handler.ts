@@ -16,13 +16,13 @@ export const deleteHandler = async ({ ctx: _ctx, input }: DeleteOptions) => {
   await prisma.eventTypeCustomInput.deleteMany({
     where: {
       eventTypeId: id,
-      actorUserId: _ctx.user.id ?? null,
     },
   });
 
   await prisma.eventType.delete({
     where: {
       id,
+      actorUserId: _ctx.user.id ?? null,
     },
   });
 
