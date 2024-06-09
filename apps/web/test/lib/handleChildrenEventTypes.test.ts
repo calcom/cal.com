@@ -148,7 +148,6 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
-          actorUserId,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -173,6 +172,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -309,7 +309,6 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          actorUserId,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -332,6 +331,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -438,7 +438,6 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          actorUserId,
         },
       });
       const { profileId, ...rest } = evType;

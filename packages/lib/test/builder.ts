@@ -70,6 +70,7 @@ export const buildBooking = (
     rating: null,
     noShowHost: null,
     ratingFeedback: null,
+    actorUserId: null,
     ...booking,
   };
 };
@@ -124,6 +125,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     parentId: null,
     profileId: null,
     secondaryEmailId: null,
+    actorUserId: null,
     ...eventType,
   };
 };
