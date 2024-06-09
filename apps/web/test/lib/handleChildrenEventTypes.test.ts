@@ -417,7 +417,6 @@ describe("handleChildrenEventTypes", () => {
         prisma: prismaMock,
         profileId: null,
         updatedValues: {},
-        actorUserId: 1,
       });
       expect(prismaMock.eventType.create).toHaveBeenCalledWith({
         data: {
@@ -441,6 +440,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
+          actorUserId: 1,
         },
       });
       const { profileId, ...rest } = evType;
