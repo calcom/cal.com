@@ -1287,7 +1287,7 @@ describe("handleNewBooking", () => {
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: OrganizerDefaultConferencingAppType,
+            location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });

@@ -2002,7 +2002,9 @@ async function handler(
   } else if (isConfirmedByDefault) {
     // Use EventManager to conditionally use all needed integrations.
     const createManager = await eventManager.create(evt);
-
+    if (evt.location) {
+      booking.location = evt.location;
+    }
     // This gets overridden when creating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;

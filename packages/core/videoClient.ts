@@ -115,7 +115,6 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       safeStringify(err),
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
-
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
