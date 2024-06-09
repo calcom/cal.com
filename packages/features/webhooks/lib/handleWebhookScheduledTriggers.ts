@@ -61,9 +61,11 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     const parsedPayload = jsonParse(job.payload);
 
     const body = JSON.stringify({
-      ...parsedLegacyPayload, // for ensures backward compatibility. Note: It also populate the triggerEvent which is part of the actual payload
-      payload: parsedPayload,
-      createdAt: new Date().toISOString(),
+      ...parsedLegacyPayload, // for ensures backward compatibility. Note: It also populate the triggerEvent which is part of the both actual and legacy payload
+      ...(job.payload && {
+        payload: parsedPayload,
+        createdAt: new Date().toISOString(),
+      }),
     });
 
     if (webhook) {
