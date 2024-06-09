@@ -3,7 +3,10 @@ import { v4 } from "uuid";
 
 import { getHumanReadableLocationValue } from "@calcom/core/location";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
+import { type WebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
+import { getBooking } from "@calcom/lib/payment/getBooking";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -72,8 +75,16 @@ export async function addSubscription({
       });
 
       for (const booking of bookings) {
+        const { booking: bookingWithWebhookPayload, evt } = await getBooking(booking.id);
+
+        const webhookData = getWebhookPayloadForBooking({
+          booking: bookingWithWebhookPayload,
+          evt,
+        });
+
         scheduleTrigger({
           booking,
+          webhookData,
           subscriberUrl: createSubscription.subscriberUrl,
           subscriber: {
             id: createSubscription.id,
@@ -242,20 +253,24 @@ export async function listBookings(
 
 export async function scheduleTrigger({
   booking,
+  webhookData,
   subscriberUrl,
   subscriber,
   triggerEvent,
 }: {
   booking: { id: number; endTime: Date; startTime: Date };
+  webhookData: Omit<WebhookDataType, "createdAt" | "triggerEvent">;
   subscriberUrl: string;
   subscriber: { id: string; appId: string | null };
   triggerEvent: WebhookTriggerEvents;
 }) {
   try {
-    const payload = JSON.stringify({ triggerEvent, ...booking });
+    const legacyPayload = JSON.stringify({ triggerEvent, ...booking });
+    const payload = JSON.stringify(webhookData);
 
     await prisma.webhookScheduledTriggers.create({
       data: {
+        legacyPayload,
         payload,
         appId: subscriber.appId,
         startAfter: triggerEvent === WebhookTriggerEvents.MEETING_ENDED ? booking.endTime : booking.startTime,
@@ -438,8 +453,20 @@ export async function updateTriggerForExistingBookings(
 
   if (addedEventTriggers.length > 0) {
     const promise = bookings.map((booking) => {
-      return addedEventTriggers.map((triggerEvent) => {
-        scheduleTrigger({ booking, subscriberUrl: webhook.subscriberUrl, subscriber: webhook, triggerEvent });
+      return addedEventTriggers.map(async (triggerEvent) => {
+        const { booking: bookingWithWebhookPayload, evt } = await getBooking(booking.id);
+        const webhookData = getWebhookPayloadForBooking({
+          booking: bookingWithWebhookPayload,
+          evt,
+        });
+
+        scheduleTrigger({
+          booking,
+          webhookData,
+          subscriberUrl: webhook.subscriberUrl,
+          subscriber: webhook,
+          triggerEvent,
+        });
       });
     });
 
