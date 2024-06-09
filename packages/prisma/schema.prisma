@@ -1392,3 +1392,29 @@ model PlatformBilling {
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
 }
+
+enum CRUD {
+  CREATE
+  READ
+  UPDATE
+  DELETE
+}
+
+enum ActionType {
+  EventTypeCreate
+  EventTypeUpdate
+  EventTypeDelete
+  BookingCreate
+  BookingUpdate
+  BookingDelete
+}
+
+model AuditLog {
+  id         Int        @id @default(autoincrement())
+  actionType ActionType
+  actorUser  Json
+  target     Json
+  crud       CRUD
+  createdAt  DateTime   @default(now())
+  targetTeam Json
+}
