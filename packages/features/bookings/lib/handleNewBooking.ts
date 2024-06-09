@@ -1199,6 +1199,7 @@ async function handler(
   }
 
   let rescheduleUid = reqBody.rescheduleUid;
+  const reschduledBy = reqBody.rescheduledBy;
 
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
@@ -1243,6 +1244,7 @@ async function handler(
     }
     originalRescheduledBooking = await getOriginalRescheduledBooking(
       rescheduleUid,
+      reschduledBy,
       !!eventType.seatsPerTimeSlot
     );
     if (!originalRescheduledBooking) {
@@ -1793,6 +1795,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        reschduledBy: reqBody.rescheduledBy,
       },
     });
   }

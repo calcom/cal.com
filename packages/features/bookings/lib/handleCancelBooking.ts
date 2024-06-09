@@ -140,7 +140,7 @@ export type CustomRequest = NextApiRequest & {
 };
 
 async function handler(req: CustomRequest) {
-  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid } =
+  const { id, uid, allRemainingBookings, cancellationReason, seatReferenceUid, canceledBy } =
     schemaBookingCancelParams.parse(req.body);
   req.bookingToDelete = await getBookingToDelete(id, uid);
   const {
@@ -366,6 +366,7 @@ async function handler(req: CustomRequest) {
       data: {
         status: BookingStatus.CANCELLED,
         cancellationReason: cancellationReason,
+        canceledBy: canceledBy ? canceledBy : undefined, // It's kind of a check the person who cancels the booking is the same person who created it
       },
     });
     const allUpdatedBookings = await prisma.booking.findMany({

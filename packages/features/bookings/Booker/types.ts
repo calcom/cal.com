@@ -92,6 +92,7 @@ export interface BookerProps {
 export type WrappedBookerPropsMain = {
   sessionUsername?: string | null;
   rescheduleUid: string | null;
+  rescheduledBy: string | null;
   bookingUid: string | null;
   isRedirect: boolean;
   fromUserNameRedirected: string;

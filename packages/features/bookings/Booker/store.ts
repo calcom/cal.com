@@ -25,7 +25,8 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   verifiedEmail?: string | null;
   rescheduleUid?: string | null;
-  seatReferenceUid?: string;
+  seatReferenceUid?: string | null;
+  reschduledBy?: string | null;
   durationConfig?: number[] | null;
   org?: string | null;
   isInstantMeeting?: boolean;
@@ -116,6 +117,7 @@ export type BookerStore = {
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
+  reschduledBy: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
@@ -205,6 +207,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   username: null,
   eventSlug: null,
   eventId: null,
+  reschduledBy: null,
   verifiedEmail: null,
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
@@ -240,6 +243,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     month,
     eventId,
     rescheduleUid = null,
+    reschduledBy = null,
     bookingUid = null,
     bookingData = null,
     layout,
@@ -257,6 +261,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().eventId === eventId &&
       get().rescheduleUid === rescheduleUid &&
       get().bookingUid === bookingUid &&
+      get().reschduledBy === reschduledBy &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
       get().layout === layout
     )
@@ -267,6 +272,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       org,
       rescheduleUid,
+      reschduledBy,
       bookingUid,
       bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
@@ -356,6 +362,7 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
+  reschduledBy = null,
   bookingData = null,
   verifiedEmail = null,
   layout,

@@ -42,6 +42,7 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
 type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
+  rescheduledBy?: string;
   bookingUid?: string;
   username: string | string[];
   entity?: BookerProps["entity"];
@@ -306,6 +307,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
           }
         }
         rescheduleUid={props.rescheduleUid ?? null}
+        rescheduledBy={props.rescheduledBy ?? null}
         bookingUid={props.bookingUid ?? null}
         isRedirect={false}
         fromUserNameRedirected=""
