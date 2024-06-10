@@ -14,34 +14,6 @@ type ListOptions = {
   input: TListInputSchema;
 };
 
-const teamWorkflowInclude = {
-  team: {
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      members: true,
-    },
-  },
-  activeOn: {
-    select: {
-      eventType: {
-        select: {
-          id: true,
-          title: true,
-          parentId: true,
-          _count: {
-            select: {
-              children: true,
-            },
-          },
-        },
-      },
-    },
-  },
-  steps: true,
-};
-
 export const listHandler = async ({ ctx, input }: ListOptions) => {
   const workflows: WorkflowType[] = [];
 
@@ -144,7 +116,33 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
           },
         },
       },
-      include: teamWorkflowInclude,
+      include: {
+        team: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            members: true,
+          },
+        },
+        activeOn: {
+          select: {
+            eventType: {
+              select: {
+                id: true,
+                title: true,
+                parentId: true,
+                _count: {
+                  select: {
+                    children: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        steps: true,
+      },
       orderBy: {
         id: "asc",
       },

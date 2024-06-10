@@ -161,7 +161,7 @@ export default function WorkflowListPage({ workflows }: Props) {
                           </li>
                           <li>
                             <Badge variant="gray">
-                              {workflow.activeOn && workflow.activeOn.length ? (
+                              {workflow.activeOn && workflow.activeOn.length > 0 ? (
                                 <Tooltip
                                   content={workflow.activeOn
                                     .filter((wf) => (workflow.teamId ? wf.eventType.parentId === null : true))

@@ -151,7 +151,7 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
 
-      return { readOnly, isOrg: workflow.team?.isOrganization, ...workflow };
+      return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
     });
 
     return {
