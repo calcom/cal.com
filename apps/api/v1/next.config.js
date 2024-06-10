@@ -2,7 +2,12 @@ const { withAxiom } = require("next-axiom");
 const { withSentryConfig } = require("@sentry/nextjs");
 
 const plugins = [withAxiom];
+
+/** @type {import("next").NextConfig} */
 const nextConfig = {
+  experimental: {
+    instrumentationHook: true,
+  },
   transpilePackages: [
     "@calcom/app-store",
     "@calcom/core",
