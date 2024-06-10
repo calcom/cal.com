@@ -9,6 +9,10 @@ import { defaultResponder } from "@calcom/lib/server";
 
 // @TODO: Didn't look at the contents of this function in order to not break old booking page.
 
+export const config = {
+  maxDuration: 60,
+};
+
 async function handler(req: NextApiRequest & { userId?: number }, res: NextApiResponse) {
   const userIp = getIP(req);
 
