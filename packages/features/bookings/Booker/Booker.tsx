@@ -1,21 +1,23 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
-import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
 import BookingPageTagManager from "@calcom/app-store/BookingPageTagManager";
 import dayjs from "@calcom/dayjs";
+import PoweredBy from "@calcom/ee/components/PoweredBy";
 import { getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { UnpublishedEntity } from "@calcom/ui/components/unpublished-entity/UnpublishedEntity";
 
 import { VerifyCodeDialog } from "../components/VerifyCodeDialog";
 import { AvailableTimeSlots } from "./components/AvailableTimeSlots";
 import { BookEventForm } from "./components/BookEventForm";
 import { BookFormAsModal } from "./components/BookEventForm/BookFormAsModal";
+import { DatePicker } from "./components/DatePicker";
 import { EventMeta } from "./components/EventMeta";
 import { HavingTroubleFindingTime } from "./components/HavingTroubleFindingTime";
 import { Header } from "./components/Header";
@@ -30,13 +32,6 @@ import { useBookerStore } from "./store";
 import type { BookerProps, WrappedBookerProps } from "./types";
 
 const loadFramerFeatures = () => import("./framer-features").then((res) => res.default);
-const PoweredBy = dynamic(() => import("@calcom/ee/components/PoweredBy"));
-const UnpublishedEntity = dynamic(() =>
-  import("@calcom/ui/components/unpublished-entity/UnpublishedEntity").then((mod) => mod.UnpublishedEntity)
-);
-const DatePicker = dynamic(() => import("./components/DatePicker").then((mod) => mod.DatePicker), {
-  ssr: false,
-});
 
 const BookerComponent = ({
   username,
