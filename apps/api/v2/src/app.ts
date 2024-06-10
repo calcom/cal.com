@@ -1,3 +1,5 @@
+import "./instrument";
+
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
@@ -20,7 +22,6 @@ import {
 } from "@calcom/platform-constants";
 
 import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
-import "./instrument";
 
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
