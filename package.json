@@ -90,7 +90,6 @@
     "c8": "^7.13.0",
     "checkly": "latest",
     "dotenv-checker": "^1.1.5",
-    "eslint-plugin-import": "^2.29.1",
     "husky": "^8.0.0",
     "i18n-unused": "^0.13.0",
     "jest-diff": "^29.5.0",
