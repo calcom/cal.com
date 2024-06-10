@@ -813,7 +813,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         }
 
         let isOutOfBounds = false;
-        if (eventType.seatsPerTimeSlot && !!slot?.attendees > 0) {
+        if (eventType.seatsPerTimeSlot && slot.attendees && slot.attendees > 0) {
           // logic for handling eventType.seatsMinimumBookingNotice if the eventType has seats
           isOutOfBounds = isTimeOutOfBounds({
             time: slot.time,
