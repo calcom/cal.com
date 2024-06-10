@@ -2,9 +2,9 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, labeled, reopened]
+    types: [opened, synchronize, reopened]
     branches:
-        - main
+      - main
   workflow_dispatch:
 
 concurrency:
@@ -66,6 +66,7 @@ jobs:
               core.setOutput('run-e2e', false);
               console.log('No PR found matching the branch');
             }
+
   type-check:
     name: Type check
     needs: [changes]
