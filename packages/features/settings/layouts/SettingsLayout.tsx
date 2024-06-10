@@ -169,7 +169,9 @@ const useTabs = () => {
         };
       } else if (tab.href === "/settings/organizations") {
         const newArray = (tab?.children ?? []).filter(
-          (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
+          (child) =>
+            (isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)) &&
+            !(orgBranding?.id && child.name === "admin_api")
         );
         return {
           ...tab,
