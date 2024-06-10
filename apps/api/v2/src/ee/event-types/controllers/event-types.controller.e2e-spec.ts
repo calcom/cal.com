@@ -30,7 +30,7 @@ import {
   EventTypesPublic,
   eventTypeBookingFields,
   eventTypeLocations,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries-0.0.2";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
@@ -202,6 +202,16 @@ describe("Event types Endpoints", () => {
           eventType.beforeEventBuffer = body.beforeEventBuffer ?? 10;
           eventType.afterEventBuffer = body.afterEventBuffer ?? 10;
         });
+    });
+
+    it("should return 400 if param event type id is null", async () => {
+      const locations = [{ type: "inPerson", address: "123 Main St" }];
+
+      const body: UpdateEventTypeInput = {
+        locations,
+      };
+
+      return request(app.getHttpServer()).patch(`/api/v2/event-types/null`).send(body).expect(400);
     });
 
     it("should update event type locations", async () => {

@@ -59,6 +59,8 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
       { name: "api_keys", href: "/settings/developer/api-keys" },
+      // TODO: hide this if they have an organisation
+      { name: "admin_api", href: "/settings/organizations/admin-api" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
     ],
@@ -102,7 +104,7 @@ const tabs: VerticalTabItemProps[] = [
       },
       {
         name: "admin_api",
-        href: "/settings/organizations/admin-api",
+        href: "https://cal.com/docs/enterprise-features/api/api-reference/bookings#admin-access",
       },
     ],
   },

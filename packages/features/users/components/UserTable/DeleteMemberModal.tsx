@@ -43,8 +43,8 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
           if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
 
           removeMemberMutation.mutate({
-            teamId: session?.user.org.id,
-            memberId: state?.deleteMember?.user.id,
+            teamIds: [session?.user.org.id],
+            memberIds: [state?.deleteMember?.user.id],
             isOrg: true,
           });
         }}>
