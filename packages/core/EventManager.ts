@@ -590,13 +590,13 @@ export default class EventManager {
         }
       }
     };
-
     if (event.destinationCalendar && event.destinationCalendar.length > 0) {
       let eventCreated = false;
       // Since GCal pushes events to multiple calendars we only want to create one event per booking
       let gCalAdded = false;
       const destinationCalendars: DestinationCalendar[] = event.destinationCalendar.reduce(
         (destinationCals, cal) => {
+          if (!cal) return destinationCals;
           if (cal.integration === "google_calendar") {
             if (gCalAdded) {
               return destinationCals;

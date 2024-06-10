@@ -114,6 +114,12 @@ export const roundRobinReassignment = async ({
     },
   });
 
+  const luckyUserDestinationCalendar = await prisma.destinationCalendar.findFirst({
+    where: {
+      userId: luckyUser.id,
+    },
+  });
+
   const luckyUserT = await getTranslation(luckyUser.locale || "en", "common");
 
   const teamMemberPromises = [];
@@ -135,7 +141,6 @@ export const roundRobinReassignment = async ({
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  console.log("🚀 ~ teamMembers:", teamMembers);
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -158,6 +163,12 @@ export const roundRobinReassignment = async ({
 
   const attendeeList = await Promise.all(attendeePromises);
 
+  const destinationCalendar = eventType.destinationCalendar
+    ? [eventType.destinationCalendar]
+    : luckyUserDestinationCalendar
+    ? [luckyUserDestinationCalendar]
+    : null;
+
   const evt: CalendarEvent = {
     organizer: {
       name: luckyUser.name || "",
@@ -176,7 +187,7 @@ export const roundRobinReassignment = async ({
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
-    destinationCalendar: [booking.destinationCalendar] || [eventType.destinationCalendar] || null,
+    destinationCalendar,
     team: {
       members: teamMembers,
       name: eventType.team?.name || "",
@@ -188,15 +199,11 @@ export const roundRobinReassignment = async ({
   };
 
   // If changed owner, also change destination calendar
-  const newDestinationCalendar = await prisma.destinationCalendar.findFirst({
+  const previousHostDestinationCalendar = await prisma.destinationCalendar.findFirst({
     where: {
-      userId: luckyUser.id,
+      userId: previousOrganizer.id,
     },
   });
-
-  // if (!newDestinationCalendar) {
-  //   throw new Error("New destination calendar not found");
-  // }
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -215,12 +222,7 @@ export const roundRobinReassignment = async ({
   // See if the reassigned member is the organizer
   const eventManager = new EventManager({ ...luckyUser, credentials: [...credentials] });
 
-  await eventManager.reschedule(evt, booking.uid, undefined, true, [newDestinationCalendar]);
-
-  console.log(
-    "🚀 ~ timeformat:",
-    dayjs(evt.startTime).tz(evt.organizer.timezone).locale(luckyUser.locale).format("12")
-  );
+  await eventManager.reschedule(evt, booking.uid, undefined, true, [previousHostDestinationCalendar]);
 
   // Send to new RR host
   await sendRoundRobinScheduledEmails(evt, [
