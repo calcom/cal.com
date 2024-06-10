@@ -226,7 +226,7 @@ function getBookingFields(bookingFields: EventTypeOutput["bookingFields"]) {
     },
   ];
 
-  const missingSystemBeforeFields = [];
+  const missingSystemBeforeFields: SystemField[] = [];
 
   for (const field of systemBeforeFields) {
     const existingBookingFieldIndex = transformedBookingFields.findIndex(
@@ -244,9 +244,9 @@ function getBookingFields(bookingFields: EventTypeOutput["bookingFields"]) {
     }
   }
 
-  transformedBookingFields.concat(missingSystemBeforeFields);
+  transformedBookingFields.push(...missingSystemBeforeFields);
 
-  const missingSystemAfterFields = [];
+  const missingSystemAfterFields: SystemField[] = [];
   for (const field of systemAfterFields) {
     const existingBookingFieldIndex = transformedBookingFields.findIndex(
       (f) => getFieldIdentifier(f.name) === getFieldIdentifier(field.name)
@@ -263,7 +263,6 @@ function getBookingFields(bookingFields: EventTypeOutput["bookingFields"]) {
     }
   }
 
-  return eventTypeBookingFields
-    .brand<"HAS_SYSTEM_FIELDS">()
-    .parse(transformedBookingFields.concat(missingSystemAfterFields));
+  transformedBookingFields.push(...missingSystemAfterFields);
+  return eventTypeBookingFields.brand<"HAS_SYSTEM_FIELDS">().parse(transformedBookingFields);
 }
