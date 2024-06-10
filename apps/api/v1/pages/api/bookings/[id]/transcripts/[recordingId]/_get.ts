@@ -60,7 +60,7 @@ export async function getHandler(req: NextApiRequest) {
   return transcriptsAccessLinks;
 }
 
-const checkIfRecordingBelongsToBooking = async (bookingId: string, recordingId: string) => {
+const checkIfRecordingBelongsToBooking = async (bookingId: number, recordingId: string) => {
   const booking = await prisma.booking.findUnique({
     where: { id: bookingId },
     include: { references: true },
