@@ -19,6 +19,10 @@
     },
     "pages/api/trpc/slots/[trpc].ts": {
       "memory": 3008
+    },
+    "pages/api/book/recurring-events.ts": {
+      "memory": 3008,
+      "maxDuration": 60
     }
   }
 }
