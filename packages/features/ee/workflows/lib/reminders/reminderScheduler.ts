@@ -148,7 +148,7 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     calendarEvent: evt,
     isNotConfirmed = false,
     isRescheduleEvent = false,
-    isFirstRecurringEvent = false,
+    isFirstRecurringEvent = true,
     emailAttendeeSendToOverride = "",
     hideBranding,
     seatReferenceUid,
