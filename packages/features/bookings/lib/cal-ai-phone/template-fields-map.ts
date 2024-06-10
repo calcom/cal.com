@@ -1,6 +1,8 @@
 import { z } from "zod";
 
-type TemplateType = "CHECK_IN_APPPOINTMENT";
+export const CHECK_IN_APPPOINTMENT = "CHECK_IN_APPPOINTMENT";
+
+type TemplateType = CHECK_IN_APPPOINTMENT;
 
 const fieldTypeEnum = z.enum([
   "name",
@@ -37,7 +39,7 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
   CHECK_IN_APPPOINTMENT: [
     {
       type: "text",
-      name: "scheduler_name",
+      name: "schedulerName",
       required: true,
       defaultLabel: "scheduler_name",
       placeholder: "Enter your name",

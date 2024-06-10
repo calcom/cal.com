@@ -1,4 +1,3 @@
-import { ErrorMessage } from "@hookform/error-message";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
@@ -6,13 +5,13 @@ import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
+import { getTemplateFieldsSchema } from "@calcom/features/bookings/lib/cal-ai-phone/getTemplateFieldsSchema";
 import { TEMPLATES_FIELDS } from "@calcom/features/bookings/lib/cal-ai-phone/template-fields-map";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Button,
@@ -89,14 +88,25 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
   );
 }
 
+const ErrorMessage = ({ fieldName, message }: { fieldName: string; message: string }) => {
+  const { t } = useLocale();
+  return (
+    <div data-testid={`error-message-${fieldName}`} className="mt-2 flex items-center text-sm text-red-700 ">
+      <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+      <p>{t(message || "invalid_input")}</p>
+    </div>
+  );
+};
+
 const TemplateFields = () => {
   const { t } = useLocale();
   const formMethods = useFormContext<FormValues>();
-  const { control, formState, watch } = formMethods;
+  const { control, watch } = formMethods;
 
   const templateType = watch("aiPhoneCallConfig.templateType");
   const fields = TEMPLATES_FIELDS[templateType];
-  console.log("fields", fields);
+
+  if (!fields) return null;
 
   return fields?.map((field) => {
     return (
@@ -115,21 +125,7 @@ const TemplateFields = () => {
                     onChange(val);
                   }}
                 />
-                <ErrorMessage
-                  name="responses"
-                  errors={formState.errors}
-                  render={({ message }: { message: string | undefined }) => {
-                    message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
-                    return (
-                      <div
-                        data-testid={`error-message-${field.name}`}
-                        className="mt-2 flex items-center text-sm text-red-700 ">
-                        <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                        <p>{t(message || "invalid_input")}</p>
-                      </div>
-                    );
-                  }}
-                />
+                {error?.message && <ErrorMessage message={error.message} fieldName={field.name} />}
               </div>
             );
           }}
@@ -143,6 +139,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
+  const templateType = formMethods.watch("aiPhoneCallConfig.templateType");
+
   const [calApiKey, setCalApiKey] = useState("");
 
   const createCallMutation = trpc.viewer.organizations.createPhoneCall.useMutation({
@@ -159,26 +157,32 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const handleSubmit = async () => {
     try {
       const values = formMethods.getValues("aiPhoneCallConfig");
+      console.log("values", values);
 
-      const data = await AIPhoneSettingSchema.parseAsync({
-        generalPrompt: values.generalPrompt,
-        beginMessage: values.beginMessage,
-        enabled: values.enabled,
-        guestName: values.guestName,
-        guestEmail: values.guestEmail.trim().length ? values.guestEmail : undefined,
-        guestCompany: values.guestCompany.trim().length ? values.guestCompany : undefined,
+      const schema = getTemplateFieldsSchema({ templateType });
+
+      const data = schema.parse({
+        ...values,
+        guestEmail: values.guestEmail && values.guestEmail.trim().length ? values.guestEmail : undefined,
+        guestCompany:
+          values.guestCompany && values.guestCompany.trim().length ? values.guestCompany : undefined,
         eventTypeId: eventType.id,
-        numberToCall: values.numberToCall,
-        yourPhoneNumber: values.yourPhoneNumber,
         calApiKey,
       });
 
-      createCallMutation.mutate(data);
+      // createCallMutation.mutate(data);
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldName = err.issues?.[0]?.path?.[0];
         const message = err.issues?.[0]?.message;
         showToast(`Error on ${fieldName}: ${message} `, "error");
+        const issues = err.issues;
+        for (const issue of issues) {
+          formMethods.setError(`aiPhoneCallConfig.${issue.path[0]}`, {
+            type: "custom",
+            message: issue.message,
+          });
+        }
       } else {
         showToast(t("something_went_wrong"), "error");
       }
@@ -192,18 +196,21 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           <Label>{t("your_phone_number")}</Label>
           <Controller
             name="aiPhoneCallConfig.yourPhoneNumber"
-            render={({ field: { onChange, value } }) => {
+            render={({ field: { onChange, value, name }, fieldState: { error } }) => {
               return (
-                <PhoneInput
-                  required
-                  placeholder={t("your_phone_number")}
-                  id="aiPhoneCallConfig.yourPhoneNumber"
-                  name="aiPhoneCallConfig.yourPhoneNumber"
-                  value={value}
-                  onChange={(val) => {
-                    onChange(val);
-                  }}
-                />
+                <div>
+                  <PhoneInput
+                    required
+                    placeholder={t("your_phone_number")}
+                    id="aiPhoneCallConfig.yourPhoneNumber"
+                    name="aiPhoneCallConfig.yourPhoneNumber"
+                    value={value}
+                    onChange={(val) => {
+                      onChange(val);
+                    }}
+                  />
+                  {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
+                </div>
               );
             }}
           />
@@ -249,18 +256,21 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           <Label>{t("number_to_call")}</Label>
           <Controller
             name="aiPhoneCallConfig.numberToCall"
-            render={({ field: { onChange, value } }) => {
+            render={({ field: { onChange, value, name }, fieldState: { error } }) => {
               return (
-                <PhoneInput
-                  required
-                  placeholder={t("phone_number")}
-                  id="aiPhoneCallConfig.numberToCall"
-                  name="aiPhoneCallConfig.numberToCall"
-                  value={value}
-                  onChange={(val) => {
-                    onChange(val);
-                  }}
-                />
+                <div>
+                  <PhoneInput
+                    required
+                    placeholder={t("phone_number")}
+                    id="aiPhoneCallConfig.numberToCall"
+                    name="aiPhoneCallConfig.numberToCall"
+                    value={value}
+                    onChange={(val) => {
+                      onChange(val);
+                    }}
+                  />
+                  {error?.message && <ErrorMessage message={error.message} fieldName={name} />}
+                </div>
               );
             }}
           />
@@ -269,30 +279,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
           <Divider />
         </>
-
-        {/* <TextField
-          type="text"
-          hint="Variable: {{name}}"
-          label={t("guest_name")}
-          placeholder="Jane Doe"
-          {...formMethods.register("aiPhoneCallConfig.guestName")}
-        />
-
-        <TextField
-          type="text"
-          hint="Variable: {{email}}"
-          label={t("guest_email")}
-          placeholder="jane@acme.com"
-          {...formMethods.register("aiPhoneCallConfig.guestEmail")}
-        />
-
-        <TextField
-          type="text"
-          hint="Variable: {{company}}"
-          label={t("guest_company")}
-          placeholder="Acme"
-          {...formMethods.register("aiPhoneCallConfig.guestCompany")}
-        /> */}
 
         <TextField
           type="text"
@@ -305,28 +291,14 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
             setCalApiKey(e.target.value);
           }}
         />
+        {formMethods.formState?.errors?.aiPhoneCallConfig?.["calApiKey"]?.message && (
+          <ErrorMessage
+            fieldName="calApiKey"
+            message={formMethods.formState?.errors?.aiPhoneCallConfig?.["calApiKey"]?.message}
+          />
+        )}
 
         <Divider />
-        {/* <TextAreaField
-          rows={3}
-          required
-          placeholder={t("general_prompt")}
-          label={t("general_prompt")}
-          {...formMethods.register("aiPhoneCallConfig.generalPrompt")}
-          onChange={(e) => {
-            formMethods.setValue("aiPhoneCallConfig.generalPrompt", e.target.value, { shouldDirty: true });
-          }}
-        />
-
-        <TextAreaField
-          rows={3}
-          placeholder={t("begin_message")}
-          label={t("begin_message")}
-          {...formMethods.register("aiPhoneCallConfig.beginMessage")}
-          onChange={(e) => {
-            formMethods.setValue("aiPhoneCallConfig.beginMessage", e.target.value, { shouldDirty: true });
-          }}
-        /> */}
 
         <Button
           disabled={createCallMutation.isPending}
