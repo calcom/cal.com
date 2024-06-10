@@ -183,10 +183,14 @@ function buildSlotsWithDateRanges({
       break;
     }
   }
-
+  console.log("iterating the dateRanges and building slots?");
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
+    // hardocde minimum booking notice to 1 min (the least it can logically be)
+    // applying minimumBookingNotice will happen later in utils/getAvailableSlots()
+    const startTimeWithMinNotice = dayjs.utc().add(1, "minute");
+    console.log("dateYYYMMDD (range.start)", dateYYYYMMDD);
+    console.log("startTimeWithMinNotice", startTimeWithMinNotice);
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
@@ -260,6 +264,7 @@ const getSlots = ({
   datesOutOfOffice,
 }: GetSlots) => {
   if (dateRanges) {
+    console.log("");
     const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
@@ -270,6 +275,7 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
+    console.log("slots (if dateRanges exists)", slots);
     return slots;
   }
 

@@ -47,6 +47,7 @@ export const AvailableTimeSlots = ({
   customClassNames,
 }: AvailableTimeSlotsProps) => {
   const selectedDate = useBookerStore((state) => state.selectedDate);
+  console.log("selectedDate from Booker Store", selectedDate);
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSeatedEventData = useBookerStore((state) => state.setSeatedEventData);
   const date = selectedDate || dayjs().format("YYYY-MM-DD");
@@ -85,7 +86,11 @@ export const AvailableTimeSlots = ({
     ? nonEmptyScheduleDaysFromSelectedDate.slice(0, extraDays)
     : [];
 
+  console.log("useSlotsForAvailableDates(dates, schedule?.slots);", dates, schedule?.slots);
+
   const slotsPerDay = useSlotsForAvailableDates(dates, schedule?.slots);
+
+  console.log("slotsPerDay", slotsPerDay);
 
   return (
     <>
