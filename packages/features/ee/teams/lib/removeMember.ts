@@ -130,7 +130,7 @@ const removeMember = async ({
       },
     });
 
-    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
+    deleteAllWorkflowReminders(workflowRemindersToDelete);
   }
 
   // Deleted managed event types from this team from this member
@@ -181,7 +181,7 @@ const removeMember = async ({
       },
     });
 
-    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
+    deleteAllWorkflowReminders(workflowRemindersToDelete);
   }
 
   return { membership };

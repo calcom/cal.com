@@ -498,31 +498,29 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
         },
       });
 
-      if (workflows) {
-        //activate event types and teams on workflows
-        if (isOrg && workflow.activeOnTeams) {
-          await Promise.all(
-            workflow.activeOnTeams.map((id) =>
-              prismock.workflowsOnTeams.create({
-                data: {
-                  workflowId: createdWorkflow.id,
-                  teamId: id,
-                },
-              })
-            )
-          );
-        } else if (workflow.activeOn) {
-          await Promise.all(
-            workflow.activeOn.map((id) =>
-              prismock.workflowsOnEventTypes.create({
-                data: {
-                  workflowId: createdWorkflow.id,
-                  eventTypeId: id,
-                },
-              })
-            )
-          );
-        }
+      //activate event types and teams on workflows
+      if (isOrg && workflow.activeOnTeams) {
+        await Promise.all(
+          workflow.activeOnTeams.map((id) =>
+            prismock.workflowsOnTeams.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                teamId: id,
+              },
+            })
+          )
+        );
+      } else if (workflow.activeOn) {
+        await Promise.all(
+          workflow.activeOn.map((id) =>
+            prismock.workflowsOnEventTypes.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                eventTypeId: id,
+              },
+            })
+          )
+        );
       }
     })
   );

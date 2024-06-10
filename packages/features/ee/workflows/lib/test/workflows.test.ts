@@ -241,8 +241,8 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
       removedActiveOnIds,
       workflow?.steps || [],
       false,
-      prismock,
-      activeOnIds
+      activeOnIds,
+      prismock
     );
 
     const workflowReminders = await prismock.workflowReminder.findMany({
@@ -327,8 +327,8 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
       removedActiveOnIds,
       workflow?.steps || [],
       true,
-      prismock,
-      activeOnIds
+      activeOnIds,
+      prismock
     );
 
     // get all reminders from organizer's bookings
@@ -348,8 +348,8 @@ describe("deleteRemindersFromRemovedActiveOn", () => {
       removedActiveOnIds,
       workflow?.steps || [],
       true,
-      prismock,
-      activeOnIds
+      activeOnIds,
+      prismock
     );
 
     const workflowRemindersWithNoTeamActive = await prismock.workflowReminder.findMany({

@@ -142,7 +142,7 @@ async function cancelAttendeeSeat(
     bookingToDelete?.workflowReminders.filter((reminder) => reminder.seatReferenceId === seatReferenceUid) ??
     null;
 
-  await deleteAllWorkflowReminders(workflowRemindersForAttendee, prisma);
+  await deleteAllWorkflowReminders(workflowRemindersForAttendee);
 
   return { success: true };
 }

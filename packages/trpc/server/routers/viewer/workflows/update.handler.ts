@@ -62,7 +62,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const isOrg = !!userWorkflow?.team?.isOrganization;
 
-  const isUserAuthorized = await isAuthorized(userWorkflow, ctx.prisma, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(userWorkflow, undefined, ctx.user.id, true);
 
   if (!isUserAuthorized || !userWorkflow) {
     throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -172,7 +172,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
     removedActiveOn = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
 
-    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg, ctx.prisma);
+    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg);
 
     //update active on
     await ctx.prisma.workflowsOnEventTypes.deleteMany({
@@ -235,7 +235,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       removedActiveOn,
       userWorkflow.steps,
       isOrg,
-      ctx.prisma,
       activeOn.filter((activeOn) => !newActiveOn.includes(activeOn))
     );
 
@@ -257,7 +256,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   //todo: test this
   if (userWorkflow.trigger !== trigger) {
     //if trigger changed, delete all reminders from steps before change
-    await deleteRemindersOfActiveOnIds(oldActiveOnIds, userWorkflow.steps, isOrg, ctx.prisma);
+    await deleteRemindersOfActiveOnIds(oldActiveOnIds, userWorkflow.steps, isOrg);
 
     await scheduleWorkflowNotifications(
       activeOn, // schedule for activeOn that stayed the same (old reminders were deleted) + new active on
@@ -267,8 +266,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId,
-      ctx.prisma
+      userWorkflow.teamId
     );
   } else {
     // if trigger didn't change, only schedule reminders for all new activeOn
@@ -281,7 +279,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       trigger,
       user.id,
       userWorkflow.teamId,
-      ctx.prisma,
       activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)) // alreadyScheduledActiveOnIds
     );
   }
@@ -322,7 +319,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     //step was deleted
     if (!newStep) {
       // cancel all workflow reminders from deleted steps
-      await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
+      await deleteAllWorkflowReminders(remindersFromStep);
 
       await ctx.prisma.workflowStep.delete({
         where: {
@@ -342,7 +339,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         newStep.action === WorkflowActions.EMAIL_ADDRESS;
 
       if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
-        await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+        await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
       }
 
       await ctx.prisma.workflowStep.update({
@@ -365,7 +362,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
 
       // cancel all notifications of edited step
-      await deleteAllWorkflowReminders(remindersFromStep, ctx.prisma);
+      await deleteAllWorkflowReminders(remindersFromStep);
 
       // schedule notifications for edited steps
       await scheduleWorkflowNotifications(
@@ -376,8 +373,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         timeUnit,
         trigger,
         user.id,
-        userWorkflow.teamId,
-        ctx.prisma
+        userWorkflow.teamId
       );
     }
   });
@@ -392,7 +388,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         }
 
         if (newStep.action === WorkflowActions.EMAIL_ADDRESS) {
-          await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId, ctx.prisma);
+          await verifyEmailSender(newStep.sendTo || "", user.id, userWorkflow.teamId);
         }
 
         const {
@@ -431,8 +427,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       timeUnit,
       trigger,
       user.id,
-      userWorkflow.teamId,
-      ctx.prisma
+      userWorkflow.teamId
     );
   }
 

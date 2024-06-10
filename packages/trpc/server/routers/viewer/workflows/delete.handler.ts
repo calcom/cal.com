@@ -50,7 +50,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   });
 
   //cancel workflow reminders of deleted workflow
-  await deleteAllWorkflowReminders(scheduledReminders, prisma);
+  await deleteAllWorkflowReminders(scheduledReminders);
 
   const isOrg = workflowToDelete.team?.isOrganization ?? false;
 

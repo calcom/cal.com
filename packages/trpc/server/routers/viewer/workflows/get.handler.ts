@@ -54,7 +54,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflow, prisma, ctx.user.id);
+  const isUserAuthorized = await isAuthorized(workflow, ctx.user.id);
 
   if (!isUserAuthorized) {
     throw new TRPCError({

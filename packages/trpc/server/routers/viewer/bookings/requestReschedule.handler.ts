@@ -155,7 +155,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   //cancel workflow reminders of previous booking
-  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders, prisma);
+  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?

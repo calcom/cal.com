@@ -1895,7 +1895,7 @@ async function handler(
   if (originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     // cancel workflow reminders from previous rescheduled booking
-    await deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders, prisma);
+    await deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 

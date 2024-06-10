@@ -118,7 +118,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       },
     });
 
-    await deleteAllWorkflowReminders(remindersToDelete, prisma);
+    await deleteAllWorkflowReminders(remindersToDelete);
 
     await prisma.workflowsOnEventTypes.deleteMany({
       where: {

@@ -85,6 +85,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             },
           },
           parentId: true,
+          userId: true,
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -471,7 +472,7 @@ async function handler(req: CustomRequest) {
     webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
     //Workflows - cancel all reminders for cancelled bookings
-    workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders, prisma));
+    workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
   }
 
   await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
