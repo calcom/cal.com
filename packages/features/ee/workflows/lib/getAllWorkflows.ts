@@ -95,6 +95,7 @@ export const getAllWorkflows = async (
     const activeOnAllUserWorkflows = await prisma.workflow.findMany({
       where: {
         userId,
+        teamId: null,
         isActiveOnAll: true, // what about managed event type?
       },
       select: workflowSelect,
