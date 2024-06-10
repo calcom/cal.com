@@ -165,3 +165,6 @@ export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
 export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
   : `https://app.cal.com/sparkles.svg`;
+
+export const PASSKEY_TIMEOUT = 60000;
+export const MAXIMUM_PASSKEYS = 50;

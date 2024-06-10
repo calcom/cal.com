@@ -319,6 +319,8 @@ model User {
   movedToProfile             Profile?                     @relation("moved_to_profile", fields: [movedToProfileId], references: [id], onDelete: SetNull)
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
+  passkeys                   Passkey[]
+  verificationToken          VerificationToken[]
 
   OutOfOfficeReasons OutOfOfficeReason[]
   smsLockState       SMSLockState        @default(UNLOCKED)
@@ -459,11 +461,37 @@ model VerificationToken {
   team             Team?           @relation(fields: [teamId], references: [id])
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id])
+  userId           Int?
+  user             User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([identifier, token])
   @@index([token])
   @@index([teamId])
+  @@index([userId])
   @@index([secondaryEmailId])
+}
+
+model Passkey {
+  id                   String    @id @default(cuid())
+  userId               Int
+  name                 String
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+  lastUsedAt           DateTime?
+  credentialId         Bytes
+  credentialPublicKey  Bytes
+  counter              BigInt
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String[]
+  User                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PasskeyVerificationToken {
+  id        String   @id @unique @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model InstantMeetingToken {

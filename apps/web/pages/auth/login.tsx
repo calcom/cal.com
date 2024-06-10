@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { browserSupportsWebAuthn, startAuthentication } from "@simplewebauthn/browser";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -40,6 +41,9 @@ interface LoginValues {
 
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+);
+const PasskeyIcon = () => (
+  <img src="/passkey.svg" alt="passkey" className="ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2" />
 );
 export default function Login({
   csrfToken,
@@ -140,6 +144,37 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
       {t("cancel")}
     </Button>
   );
+
+  const { mutateAsync: createPasskeySigninOptions } = trpc.viewer.passkey.createSignInOptions.useMutation();
+
+  const onSignInWithPasskey = async () => {
+    if (!browserSupportsWebAuthn()) {
+      setErrorMessage("Passkeys are not supported on this browser");
+      return;
+    }
+    try {
+      const options = await createPasskeySigninOptions();
+
+      if (options) {
+        const credential = await startAuthentication(options);
+
+        const result = await signIn("webauthn", {
+          credential: JSON.stringify(credential),
+          callbackUrl,
+          redirect: false,
+        });
+
+        if (!result?.url) {
+          setErrorMessage("Invalid credentials");
+          return;
+        } else {
+          window.location.href = result.url;
+        }
+      }
+    } catch (err) {
+      setErrorMessage("Something went wrong, please reload the page and try again.");
+    }
+  };
 
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
@@ -254,6 +289,17 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     {t("signin_with_google")}
                   </Button>
                 )}
+                <Button
+                  color="secondary"
+                  className="w-full justify-center"
+                  disabled={formState.isSubmitting}
+                  CustomStartIcon={<PasskeyIcon />}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    onSignInWithPasskey();
+                  }}>
+                  {t("signin_with_passkey")}
+                </Button>
                 {displaySSOLogin && (
                   <SAMLLogin
                     samlTenantID={samlTenantID}

@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -27,6 +28,9 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+import type { TAuthenticationResponseJSONSchema } from "@calcom/trpc/server/routers/viewer/passkey/types";
+import { ZAuthenticationResponseJSONSchema } from "@calcom/trpc/server/routers/viewer/passkey/types";
+import { getAuthenticatorRegistrationOptions } from "@calcom/trpc/server/routers/viewer/passkey/util";
 
 import { ErrorCode } from "./ErrorCode";
 import { isPasswordValid } from "./isPasswordValid";
@@ -239,6 +243,116 @@ const providers: Provider[] = [
     },
   }),
   ImpersonationProvider,
+  CredentialsProvider({
+    id: "webauthn",
+    name: "Keypass",
+    credentials: {
+      csrfToken: { label: "csrfToken", type: "csrfToken" },
+    },
+    async authorize(credentials, req) {
+      const csrfToken = credentials?.csrfToken;
+
+      if (typeof csrfToken !== "string" || csrfToken.length === 0) {
+        throw new Error("Invalid csrfToken");
+      }
+
+      let requestBodyCrediential: TAuthenticationResponseJSONSchema | null = null;
+
+      try {
+        const parsedBodyCredential = JSON.parse(req.body?.credential);
+        requestBodyCrediential = ZAuthenticationResponseJSONSchema.parse(parsedBodyCredential);
+      } catch {
+        throw new Error("Invalid request");
+      }
+
+      const challengeToken = await prisma.passkeyVerificationToken
+        .delete({
+          where: {
+            id: csrfToken,
+          },
+        })
+        .catch(() => null);
+
+      if (!challengeToken) {
+        return null;
+      }
+
+      if (challengeToken.expiresAt < new Date()) {
+        throw new Error("Challenge token has expired");
+      }
+
+      const passkey = await prisma.passkey.findFirst({
+        where: {
+          credentialId: Buffer.from(requestBodyCrediential.id, "base64"),
+        },
+        include: {
+          User: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      if (!passkey) {
+        throw new Error("Cannot setup passkey");
+      }
+
+      const { rpId, origin } = getAuthenticatorRegistrationOptions();
+
+      const verification = await verifyAuthenticationResponse({
+        response: requestBodyCrediential,
+        expectedChallenge: challengeToken.token,
+        expectedOrigin: origin,
+        expectedRPID: rpId,
+        authenticator: {
+          //@ts-expect-error error
+          credentialID: new Uint8Array(Array.from(passkey.credentialId)),
+          credentialPublicKey: new Uint8Array(passkey.credentialPublicKey),
+          counter: Number(passkey.counter),
+        },
+      }).catch(() => null);
+
+      await prisma.passkey.update({
+        where: {
+          id: passkey.id,
+        },
+        data: {
+          lastUsedAt: new Date(),
+          counter: verification?.authenticationInfo.newCounter,
+        },
+      });
+
+      const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
+        email: passkey.User.email,
+      });
+
+      if (!user) {
+        throw new Error(ErrorCode.IncorrectEmailPassword);
+      }
+
+      if (user.locked) {
+        throw new Error(ErrorCode.UserAccountLocked);
+      }
+
+      await checkRateLimitAndThrowError({
+        identifier: user.email,
+      });
+
+      const hasActiveTeams = checkIfUserBelongsToActiveTeam(user);
+
+      return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        belongsToActiveTeam: hasActiveTeams,
+        locale: user.locale,
+        profile: user.allProfiles[0],
+      };
+    },
+  }),
 ];
 
 if (IS_GOOGLE_LOGIN_ENABLED) {
