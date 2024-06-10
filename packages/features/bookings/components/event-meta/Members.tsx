@@ -78,7 +78,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
       </div>
       <div className="grid hidden grid-cols-1 md:block">
         <AvatarGroup
-          size="sm"
+          size="xl"
           className="border-muted"
           items={[
             ...orgAvatarItem,
