@@ -2468,6 +2468,7 @@
   "creating_oauth_client_error": "An error occurred while creating the OAuth client, please try again later",
   "signin_with_passkey": "Sign in with a passkey",
   "passkeys": "Passkeys",
+  "passkey": "Passkey",
   "passkeys_description": "Manage settings for your account passkeys",
   "create_passkey_dialog_title": "",
   "create_passkey_dialog_description": "",
