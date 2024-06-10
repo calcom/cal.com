@@ -217,6 +217,11 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       durationLimits: true,
       assignAllTeamMembers: true,
       parentId: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
       useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
@@ -1697,7 +1702,16 @@ async function handler(
 
   const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, organizerUserId, teamId, orgId);
+  const workflowsDisabledForUser = isManagedEventType
+    ? !eventType.metadata?.managedEventConfig?.unlockedFields?.workflows
+    : false;
+
+  const workflows = await getAllWorkflows(
+    eventTypeWorkflows,
+    organizerUserId,
+    workflowsDisabledForUser ? eventType.parent?.teamId : undefined,
+    orgId
+  );
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
