@@ -134,11 +134,7 @@ export const TeamEventTypeForm = () => {
             type="submit"
             color="primary"
             className="w-full justify-center"
-            disabled={createMutation.isPending}
-            onClick={() => {
-              const uri = `/settings/teams/${teamId}/profile`;
-              router.push(uri);
-            }}>
+            disabled={createMutation.isPending}>
             {t("finish")}
           </Button>
         </div>
