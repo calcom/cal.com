@@ -1709,7 +1709,7 @@ async function handler(
   const workflows = await getAllWorkflows(
     eventTypeWorkflows,
     organizerUserId,
-    workflowsDisabledForUser ? eventType.parent?.teamId : undefined,
+    workflowsDisabledForUser ? eventType.parent?.teamId : teamId,
     orgId
   );
 
