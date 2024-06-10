@@ -4,7 +4,16 @@ import { useState } from "react";
 import type { Host } from "@calcom/ee/teams/components/TeamAssignList";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogClose, DialogContent, DialogFooter, Label, Select } from "@calcom/ui";
+import {
+  Button,
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  Label,
+  Select,
+  showToast,
+} from "@calcom/ui";
 import { RadioGroup as RadioArea } from "@calcom/ui";
 
 type ReassignDialog = {
@@ -76,8 +85,15 @@ export const ReassignDialog = ({
   const { t } = useLocale();
   const [reassignTarget, setReassignTarget] = useState<"round-robin" | "choose-member">("round-robin");
   const [selectedHost, setSelectedHost] = useState(0);
+  const utils = trpc.useUtils();
 
-  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation();
+  const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
+    onSuccess: async () => {
+      await utils.viewer.bookings.get.invalidate();
+      setIsOpenDialog(false);
+      showToast("Reassigned successfully");
+    },
+  });
 
   return (
     <Dialog
