@@ -117,20 +117,20 @@ export function getSender(
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
-  isReadOperation?: boolean,
+  isWriteOperation?: boolean,
   prisma: PrismaClient = prismaDefault
 ) {
   if (!workflow) {
     return false;
   }
-  if (!isReadOperation) {
+  if (!isWriteOperation) {
     const userWorkflow = await prisma.workflow.findFirst({
       where: {
         id: workflow.id,
         OR: [
           { userId: currentUserId },
           {
-            // for non-read operation every team member has access
+            // for read operation every team member has access
             team: {
               members: {
                 some: {
