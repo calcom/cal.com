@@ -529,11 +529,13 @@ export default function Signup({
               )}
             </div>
             {/* Already have an account & T&C */}
-            <div className="mt-10 flex h-full flex-col justify-end text-xs">
+            <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
-                  <Link href="/auth/login" className="text-emphasis hover:underline">
+                  <Link
+                    href="/auth/login"
+                    className="text-emphasis text-muted-foreground hover-effect cursor-pointer tracking-wide hover:animate-pulse dark:bg-transparent dark:bg-clip-text">
                     {t("sign_in")}
                   </Link>
                 </div>
@@ -561,7 +563,7 @@ export default function Signup({
               </div>
             </div>
           </div>
-          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
+          <div className="border-subtle lg:bg-subtle mx-auto mt-24 w-full max-w-2xl flex-col justify-between rounded-l-2xl pl-4 shadow-md backdrop-blur-md dark:bg-none lg:mt-0 lg:flex lg:max-w-full lg:border lg:py-12 lg:pl-12">
             {IS_CALCOM && (
               <>
                 <div className="-mt-4 mb-6 mr-12 grid w-full grid-cols-3 gap-5 pr-4 sm:gap-3 lg:grid-cols-4">
