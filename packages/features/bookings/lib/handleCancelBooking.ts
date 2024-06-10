@@ -85,6 +85,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             },
           },
           parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
           userId: true,
           recurringEvent: true,
           title: true,
@@ -321,22 +326,35 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  if (bookingToDelete.eventType) {
-    const eventTypeWorkflows =
-      bookingToDelete.eventType?.workflows.map((workflowRel) => workflowRel.workflow) ?? [];
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
+  );
 
-    const workflows = await getAllWorkflows(eventTypeWorkflows, organizerUserId, teamId, orgId);
+  const eventTypeWorkflows =
+    bookingToDelete.eventType?.workflows.map((workflowRel) => workflowRel.workflow) ?? [];
 
-    await sendCancelledReminders({
-      workflows,
-      smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt: {
-        ...evt,
-        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
-      },
-      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-    });
-  }
+  const isManagedEventType = !!bookingToDelete.eventType?.parentId;
+
+  const workflowsLockedForUser = isManagedEventType
+    ? !bookingToDeleteEventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
+    : false;
+
+  const workflows = await getAllWorkflows(
+    eventTypeWorkflows,
+    organizerUserId,
+    workflowsLockedForUser ? bookingToDelete.eventType?.parent?.teamId : teamId,
+    orgId
+  );
+
+  await sendCancelledReminders({
+    workflows,
+    smsReminderNumber: bookingToDelete.smsReminderNumber,
+    evt: {
+      ...evt,
+      ...{ eventType: { slug: bookingToDelete.eventType?.slug } },
+    },
+    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+  });
 
   let updatedBookings: {
     id: number;
@@ -443,10 +461,6 @@ async function handler(req: CustomRequest) {
     bookingToDelete.eventType?.recurringEvent &&
     bookingToDelete.recurringEventId &&
     allRemainingBookings
-  );
-
-  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
-    bookingToDelete.eventType?.metadata || null
   );
 
   const credentials = await getAllCredentials(bookingToDelete.user, {

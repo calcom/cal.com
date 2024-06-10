@@ -48,6 +48,9 @@ export async function handleConfirmation(args: {
       } | null;
       teamId?: number | null;
       parentId?: number | null;
+      parent?: {
+        teamId: number | null;
+      } | null;
       workflows?: {
         workflow: Workflow;
       }[];
@@ -65,22 +68,37 @@ export async function handleConfirmation(args: {
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
 
-  const eventTypeWorkflows = booking.eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
+  const eventType = booking.eventType;
+
+  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
 
   const teamId = await getTeamIdFromEventType({
     eventType: {
-      team: { id: booking.eventType?.teamId ?? null },
-      parentId: booking?.eventType?.parentId ?? null,
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
     },
   });
 
-  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+  const triggerForUser = !teamId || (teamId && eventType?.parentId);
 
   const userId = triggerForUser ? booking.userId : null;
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const workflows = await getAllWorkflows(eventTypeWorkflows, evt.organizer.id, evt.team?.id, orgId);
+  const isManagedEventType = !!eventType?.parentId;
+
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
+  const workflowsLockedForUser = isManagedEventType
+    ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
+    : false;
+
+  const workflows = await getAllWorkflows(
+    eventTypeWorkflows,
+    evt.organizer.id,
+    workflowsLockedForUser ? eventType?.parent?.teamId : teamId,
+    orgId
+  );
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -97,8 +115,6 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
-      const eventType = booking.eventType;
-      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -305,7 +321,7 @@ export async function handleConfirmation(args: {
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: booking.eventType?.teamId,
+      teamId: eventType?.teamId,
       orgId,
     });
 
@@ -339,12 +355,12 @@ export async function handleConfirmation(args: {
     await Promise.all(scheduleTriggerPromises);
 
     const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
+      eventTitle: eventType?.title,
+      eventDescription: eventType?.description,
+      requiresConfirmation: eventType?.requiresConfirmation || null,
+      price: eventType?.price,
+      currency: eventType?.currency,
+      length: eventType?.length,
     };
 
     const promises = subscribersBookingCreated.map((sub) =>
@@ -352,7 +368,7 @@ export async function handleConfirmation(args: {
         ...evt,
         ...eventTypeInfo,
         bookingId,
-        eventTypeId: booking.eventType?.id,
+        eventTypeId: eventType?.id,
         status: "ACCEPTED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
         metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
@@ -372,7 +388,7 @@ export async function handleConfirmation(args: {
         userId,
         eventTypeId: booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamId: booking.eventType?.teamId,
+        teamId: eventType?.teamId,
         orgId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({
@@ -397,9 +413,9 @@ export async function handleConfirmation(args: {
       const paymentMetadata = {
         identifier: "cal.com",
         bookingId,
-        eventTypeId: booking.eventType?.id,
+        eventTypeId: eventType?.id,
         bookerEmail: evt.attendees[0].email,
-        eventTitle: booking.eventType?.title,
+        eventTitle: eventType?.title,
         externalId: paymentExternalId,
       };
       const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
@@ -407,7 +423,7 @@ export async function handleConfirmation(args: {
           ...evt,
           ...eventTypeInfo,
           bookingId,
-          eventTypeId: booking.eventType?.id,
+          eventTypeId: eventType?.id,
           status: "ACCEPTED",
           smsReminderNumber: booking.smsReminderNumber || undefined,
           paymentId: bookingWithPayment?.payment?.[0].id,

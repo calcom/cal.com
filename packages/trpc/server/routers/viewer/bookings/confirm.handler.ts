@@ -86,6 +86,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           },
           customInputs: true,
           parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
         },
       },
       location: true,

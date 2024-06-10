@@ -1702,14 +1702,14 @@ async function handler(
 
   const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
-  const workflowsDisabledForUser = isManagedEventType
+  const workflowsLockedForUser = isManagedEventType
     ? !eventType.metadata?.managedEventConfig?.unlockedFields?.workflows
     : false;
 
   const workflows = await getAllWorkflows(
     eventTypeWorkflows,
     organizerUserId,
-    workflowsDisabledForUser ? eventType.parent?.teamId : teamId,
+    workflowsLockedForUser ? eventType.parent?.teamId : teamId,
     orgId
   );
 

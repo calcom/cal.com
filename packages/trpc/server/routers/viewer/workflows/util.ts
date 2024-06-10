@@ -350,11 +350,11 @@ export async function isAuthorizedToAddActiveOnIds(
 const reminderMethods: {
   [x: string]: (id: number, referenceId: string | null, prisma?: PrismaClient) => void;
 } = {
-  [WorkflowMethods.EMAIL]: (id, referenceId, prisma = defaultPrisma) =>
+  [WorkflowMethods.EMAIL]: (id, referenceId, prisma = prismaDefault) =>
     deleteScheduledEmailReminder(id, referenceId, prisma),
-  [WorkflowMethods.SMS]: (id, referenceId, prisma = defaultPrisma) =>
+  [WorkflowMethods.SMS]: (id, referenceId, prisma = prismaDefault) =>
     deleteScheduledSMSReminder(id, referenceId, prisma),
-  [WorkflowMethods.WHATSAPP]: (id, referenceId, prisma = defaultPrisma) =>
+  [WorkflowMethods.WHATSAPP]: (id, referenceId, prisma = prismaDefault) =>
     deleteScheduledWhatsappReminder(id, referenceId, prisma),
 };
 

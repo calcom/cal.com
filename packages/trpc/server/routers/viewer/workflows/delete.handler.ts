@@ -31,7 +31,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflowToDelete, prisma, ctx.user.id, true);
+  const isUserAuthorized = await isAuthorized(workflowToDelete, ctx.user.id, true);
 
   if (!isUserAuthorized || !workflowToDelete) {
     throw new TRPCError({ code: "UNAUTHORIZED" });

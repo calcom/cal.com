@@ -44,6 +44,11 @@ export async function getBooking(bookingId: number) {
           title: true,
           teamId: true,
           parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
           slug: true,
           workflows: {
             select: {
