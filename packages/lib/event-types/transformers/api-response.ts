@@ -143,28 +143,28 @@ function getResponseEventTypeBookingFields(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
-          options: field.options?.map((option) => option.value) || [],
+          options: "options" in field ? field.options?.map((option) => option.value) : [],
         };
       case "multiselect":
         return {
           type: field.type,
           label: field.label,
           required: field.required,
-          options: field.options?.map((option) => option.value) || [],
+          options: "options" in field ? field.options?.map((option) => option.value) : [],
         };
       case "checkbox":
         return {
           type: field.type,
           label: field.label,
           required: field.required,
-          options: field.options?.map((option) => option.value) || [],
+          options: "options" in field ? field.options?.map((option) => option.value) : [],
         };
       case "radio":
         return {
           type: field.type,
           label: field.label,
           required: field.required,
-          options: field.options?.map((option) => option.value) || [],
+          options: "options" in field ? field.options?.map((option) => option.value) : [],
         };
       default:
         throw new Error(`Unsupported booking field type '${field.type}'.`);

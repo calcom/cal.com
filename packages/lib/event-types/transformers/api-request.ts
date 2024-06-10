@@ -56,14 +56,12 @@ const UserPhoneSchema = z.object({
 const TransformedLocationSchema = z.union([InPersonSchema, LinkSchema, IntegrationSchema, UserPhoneSchema]);
 export const TransformedLocationsSchema = z.array(TransformedLocationSchema);
 
-function transformApiEventTypeBookingFields(
-  inputBookingFields: CreateEventTypeInput["bookingFields"]
-): BookingFields | undefined {
+function transformApiEventTypeBookingFields(inputBookingFields: CreateEventTypeInput["bookingFields"]) {
   if (!inputBookingFields) {
-    return undefined;
+    return [];
   }
 
-  return inputBookingFields.map((field) => {
+  const customBookingFields = inputBookingFields.map((field) => {
     const commonFields: CommonField = {
       name: slugify(field.label),
       type: field.type,
@@ -92,6 +90,8 @@ function transformApiEventTypeBookingFields(
       options,
     };
   });
+
+  return customBookingFields;
 }
 
 function transformSelectOptions(options: string[]) {
@@ -115,6 +115,7 @@ const FieldTypeEnum = z.enum([
   "multiselect",
   "checkbox",
   "radio",
+  "radioInput",
 ]);
 
 const CommonFieldsSchema = z.object({
@@ -134,21 +135,62 @@ const CommonFieldsSchema = z.object({
   placeholder: z.string().optional(),
 });
 
-type CommonField = z.infer<typeof CommonFieldsSchema>;
+const SystemFieldsSchema = z.object({
+  name: z.string(),
+  type: FieldTypeEnum,
+  defaultLabel: z.string(),
+  labe: z.string().optional(),
+  editable: z.enum(["system-but-optional", "system"]),
+  sources: z.array(
+    z.object({
+      id: z.literal("default"),
+      type: z.literal("default"),
+      label: z.literal("Default"),
+    })
+  ),
+  views: z
+    .array(
+      z.object({
+        id: z.enum(["reschedule"]),
+        label: z.string(),
+      })
+    )
+    .optional(),
+  defaultPlaceholder: z.enum(["", "share_additional_notes", "email", "reschedule_placeholder"]).optional(),
+  hidden: z.boolean().optional(),
+  required: z.boolean(),
+  hideWhenJustOneOption: z.boolean().optional(),
+  getOptionsAt: z.enum(["locations"]).optional(),
+  optionsInputs: z
+    .object({
+      attendeeInPerson: z.object({
+        type: z.literal("address"),
+        required: z.boolean(),
+        placeholder: z.string(),
+      }),
+      phone: z.object({
+        type: z.literal("phone"),
+        required: z.boolean(),
+        placeholder: z.string(),
+      }),
+    })
+    .optional(),
+});
 
-// Options schema, assuming it could be undefined
+export type SystemField = z.infer<typeof SystemFieldsSchema>;
+
+export type CommonField = z.infer<typeof CommonFieldsSchema>;
+
 const OptionSchema = z.object({
   label: z.string(),
   value: z.string(),
 });
 
-// Schema for booking fields that might contain options
 const BookingFieldSchema = CommonFieldsSchema.extend({
   options: z.array(OptionSchema).optional(),
 });
+export type OptionsField = z.infer<typeof BookingFieldSchema>;
 
-// Schema for the entire transformed array of booking fields
 export const BookingFieldsSchema = z.array(BookingFieldSchema);
-type BookingFields = z.infer<typeof BookingFieldsSchema>;
 
 export { transformApiEventTypeLocations, transformApiEventTypeBookingFields };
