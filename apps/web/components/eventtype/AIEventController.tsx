@@ -1,11 +1,15 @@
+import { ErrorMessage } from "@hookform/error-message";
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
+import { TEMPLATES_FIELDS } from "@calcom/features/bookings/lib/cal-ai-phone/template-fields-map";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
@@ -17,9 +21,9 @@ import {
   SettingsToggle,
   Divider,
   TextField,
-  TextAreaField,
   PhoneInput,
   showToast,
+  Icon,
 } from "@calcom/ui";
 
 type AIEventControllerProps = {
@@ -30,7 +34,7 @@ type AIEventControllerProps = {
 export default function AIEventController({ eventType, isTeamEvent }: AIEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
-  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.aiPhoneCallConfig?.enabled ?? false);
+  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.aiPhoneCallConfig?.enabled ?? true);
   const formMethods = useFormContext<FormValues>();
 
   const isOrg = !!session.data?.user?.org?.id;
@@ -85,6 +89,56 @@ export default function AIEventController({ eventType, isTeamEvent }: AIEventCon
   );
 }
 
+const TemplateFields = () => {
+  const { t } = useLocale();
+  const formMethods = useFormContext<FormValues>();
+  const { control, formState, watch } = formMethods;
+
+  const templateType = watch("aiPhoneCallConfig.templateType");
+  const fields = TEMPLATES_FIELDS[templateType];
+  console.log("fields", fields);
+
+  return fields?.map((field) => {
+    return (
+      <div key={field.name}>
+        <Controller
+          control={control}
+          name={`aiPhoneCallConfig.${field.name}`}
+          render={({ field: { value, onChange }, fieldState: { error } }) => {
+            return (
+              <div>
+                <ComponentForField
+                  field={{ ...field, label: t(field.defaultLabel) }}
+                  value={value}
+                  readOnly={false}
+                  setValue={(val: unknown) => {
+                    onChange(val);
+                  }}
+                />
+                <ErrorMessage
+                  name="responses"
+                  errors={formState.errors}
+                  render={({ message }: { message: string | undefined }) => {
+                    message = message.replace(/\{[^}]+\}(.*)/, "$1").trim();
+                    return (
+                      <div
+                        data-testid={`error-message-${field.name}`}
+                        className="mt-2 flex items-center text-sm text-red-700 ">
+                        <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
+                        <p>{t(message || "invalid_input")}</p>
+                      </div>
+                    );
+                  }}
+                />
+              </div>
+            );
+          }}
+        />
+      </div>
+    );
+  });
+};
+
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
 
@@ -101,25 +155,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       showToast(t("something_went_wrong"), "error");
     },
   });
-
-  // const [createModalOpen, setCreateModalOpen] = useState(false);
-
-  // const NewPhoneButton = () => {
-  //   const { t } = useLocale();
-  //   return (
-  //     <Button
-  //       color="primary"
-  //       data-testid="new_phone_number"
-  //       StartIcon={Plus}
-  //       onClick={() => setCreateModalOpen(true)}>
-  //       {t("New Phone number")}
-  //     </Button>
-  //   );
-  // };
-
-  // v1 will require the user to log in to Retellai.com to create a phone number, and an agent and
-  // authorize it with the Cal.com API key / OAuth
-  // const retellAuthorized = true; // TODO: call retellAPI here
 
   const handleSubmit = async () => {
     try {
@@ -173,6 +208,44 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
             }}
           />
 
+          <>
+            <RadioGroup.Root
+              defaultValue="CHECK_IN_APPPOINTMENT"
+              onValueChange={(val) => {
+                formMethods.setValue("aiPhoneCallConfig.templateType", val, { shouldDirty: true });
+              }}>
+              <div className="flex gap-2">
+                <RadioGroup.Item
+                  className="h-120 flex w-80 items-start rounded-lg border p-4"
+                  key="CHECK_IN_APPPOINTMENT"
+                  value="CHECK_IN_APPPOINTMENT">
+                  <div>
+                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+
+                    <h2 className="font-semibold">Check-in Assistant</h2>
+                    <p className="text-subtle mt-2">
+                      Makes an outbound call to check if scheduled appointment works or if you want to
+                      reschedule.
+                    </p>
+                  </div>
+                </RadioGroup.Item>
+                <RadioGroup.Item
+                  className="flex h-80 w-80 items-start rounded-lg border p-4"
+                  key="DENTIST_APPOINTMENT"
+                  value="DENTIST_APPOINTMENT">
+                  <div>
+                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+
+                    <h2 className="font-semibold">Dentist Receptionist</h2>
+                    <p className="text-subtle mt-2">
+                      Makes an outbound call to patients to reschedule their appointments.
+                    </p>
+                  </div>
+                </RadioGroup.Item>
+              </div>
+            </RadioGroup.Root>
+          </>
+
           <Label>{t("number_to_call")}</Label>
           <Controller
             name="aiPhoneCallConfig.numberToCall"
@@ -192,10 +265,12 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
             }}
           />
 
+          <TemplateFields />
+
           <Divider />
         </>
 
-        <TextField
+        {/* <TextField
           type="text"
           hint="Variable: {{name}}"
           label={t("guest_name")}
@@ -217,7 +292,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           label={t("guest_company")}
           placeholder="Acme"
           {...formMethods.register("aiPhoneCallConfig.guestCompany")}
-        />
+        /> */}
 
         <TextField
           type="text"
@@ -232,7 +307,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         />
 
         <Divider />
-        <TextAreaField
+        {/* <TextAreaField
           rows={3}
           required
           placeholder={t("general_prompt")}
@@ -251,7 +326,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           onChange={(e) => {
             formMethods.setValue("aiPhoneCallConfig.beginMessage", e.target.value, { shouldDirty: true });
           }}
-        />
+        /> */}
 
         <Button
           disabled={createCallMutation.isPending}
@@ -268,34 +343,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
           and learn how to build workflows.
         </small> */}
       </div>
-
-      {/* TODO:
-        <>
-          <EmptyScreen
-            Icon={Phone}
-            headline={t("Create your phone number")}
-            description={t(
-              "This phone number can be called by guests but can also do proactive outbound calls by the AI agent."
-            )}
-            buttonRaw={
-              <div className="flex justify-between gap-2">
-                <NewPhoneButton />
-                <Button color="secondary">{t("learn_more")}</Button>
-              </div>
-            }
-          />
-          <Dialog open={createModalOpen} onOpenChange={(isOpen) => !isOpen && setCreateModalOpen(false)}>
-            <DialogContent
-              enableOverflow
-              title={t("Create phone number")}
-              description={t("This number can later be called or can do proactive outbound calls")}>
-              <div className="mb-12 mt-4">
-                <TextField placeholder="+415" hint="Area Code" />
-              </div>
-            </DialogContent>
-          </Dialog>
-        </>
-      */}
     </div>
   );
 };

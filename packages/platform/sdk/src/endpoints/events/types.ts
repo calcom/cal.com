@@ -55,6 +55,8 @@ export type Event = {
     guestName: string;
     guestEmail: string;
     guestCompany: string;
+    templateType: string;
+    schedulerName?: string;
   };
   schedulingType: string;
   length: number;

@@ -67,6 +67,8 @@ export type FormValues = {
     guestName: string;
     guestEmail: string;
     guestCompany: string;
+    templateType: string;
+    schedulerName?: string;
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;

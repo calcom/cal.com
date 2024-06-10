@@ -943,10 +943,12 @@ model AIPhoneCallConfiguration {
   id              Int       @id @default(autoincrement())
   eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId     Int
-  generalPrompt   String
+  templateType    String    @default("CHECK_IN_APPPOINTMENT")
+  schedulerName   String?
+  generalPrompt   String?
   yourPhoneNumber String
   numberToCall    String
-  guestName       String
+  guestName       String?
   guestEmail      String?
   guestCompany    String?
   enabled         Boolean   @default(false)
