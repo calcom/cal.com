@@ -76,6 +76,12 @@ const checkIfRecordingBelongsToBooking = async (bookingId: number, recordingId: 
     booking?.references?.find((reference: PartialReference) => reference.type === "daily_video")?.meetingId ??
     undefined;
 
+  if (!roomName)
+    throw new HttpError({
+      statusCode: 404,
+      message: `No Booking Reference with Daily Video found with booking id ${bookingId}`,
+    });
+
   const canUserAccessRecordingId = await checkIfRoomNameMatchesInRecording(roomName, recordingId);
   if (!canUserAccessRecordingId) {
     throw new HttpError({
