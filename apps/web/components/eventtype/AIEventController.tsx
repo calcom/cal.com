@@ -1,12 +1,13 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
-import { useState } from "react";
+import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
 import { getTemplateFieldsSchema } from "@calcom/features/bookings/lib/cal-ai-phone/getTemplateFieldsSchema";
 import { TEMPLATES_FIELDS } from "@calcom/features/bookings/lib/cal-ai-phone/template-fields-map";
+import type { TemplateType } from "@calcom/features/bookings/lib/cal-ai-phone/zod-utils";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
@@ -104,35 +105,35 @@ const TemplateFields = () => {
   const { control, watch } = formMethods;
 
   const templateType = watch("aiPhoneCallConfig.templateType");
-  const fields = TEMPLATES_FIELDS[templateType];
+  const fields = TEMPLATES_FIELDS[templateType as TemplateType];
 
-  if (!fields) return null;
-
-  return fields?.map((field) => {
-    return (
-      <div key={field.name}>
-        <Controller
-          control={control}
-          name={`aiPhoneCallConfig.${field.name}`}
-          render={({ field: { value, onChange }, fieldState: { error } }) => {
-            return (
-              <div>
-                <ComponentForField
-                  field={{ ...field, label: t(field.defaultLabel) }}
-                  value={value}
-                  readOnly={false}
-                  setValue={(val: unknown) => {
-                    onChange(val);
-                  }}
-                />
-                {error?.message && <ErrorMessage message={error.message} fieldName={field.name} />}
-              </div>
-            );
-          }}
-        />
-      </div>
-    );
-  });
+  return (
+    <div>
+      {fields?.map((field) => (
+        <div key={field.name}>
+          <Controller
+            control={control}
+            name={`aiPhoneCallConfig.${field.name}`}
+            render={({ field: { value, onChange }, fieldState: { error } }) => {
+              return (
+                <div>
+                  <ComponentForField
+                    field={{ ...field, label: t(field.defaultLabel) }}
+                    value={value ?? ""}
+                    readOnly={false}
+                    setValue={(val: unknown) => {
+                      onChange(val);
+                    }}
+                  />
+                  {error?.message && <ErrorMessage message={error.message} fieldName={field.name} />}
+                </div>
+              );
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  );
 };
 
 const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
@@ -291,12 +292,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
             setCalApiKey(e.target.value);
           }}
         />
-        {formMethods.formState?.errors?.aiPhoneCallConfig?.["calApiKey"]?.message && (
-          <ErrorMessage
-            fieldName="calApiKey"
-            message={formMethods.formState?.errors?.aiPhoneCallConfig?.["calApiKey"]?.message}
-          />
-        )}
 
         <Divider />
 

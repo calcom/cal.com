@@ -2393,6 +2393,7 @@
   "confirm_email": "Confirm your email",
   "scheduler_first_name": "The first name of the person booking",
   "scheduler_last_name": "The last name of the person booking",
+  "scheduler_name": "Scheduler Name",
   "organizer_first_name": "Your first name",
   "confirm_email_description": "We sent an email to <strong>{{email}}</strong>. Click the link in the email to verify this address.",
   "send_event_details_to": "Send event details to",

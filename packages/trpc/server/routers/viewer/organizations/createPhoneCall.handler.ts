@@ -1,12 +1,12 @@
 import { z } from "zod";
 
+import type { createPhoneCallSchema } from "@calcom/features/bookings/lib/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
 import type { PrismaClient } from "@calcom/prisma";
 import { getRetellLLMSchema } from "@calcom/prisma/zod-utils";
-import type { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type CreatePhoneCallProps = {
@@ -14,7 +14,7 @@ type CreatePhoneCallProps = {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: z.infer<typeof AIPhoneSettingSchema>;
+  input: z.infer<typeof createPhoneCallSchema>;
 };
 
 const createRetellLLMSchema = z
