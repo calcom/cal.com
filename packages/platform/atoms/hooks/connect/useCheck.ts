@@ -5,6 +5,7 @@ import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import { useAtomsContext } from "../useAtomsContext";
 
 export interface UseCheckProps {
   isAuth: boolean;
@@ -14,11 +15,12 @@ export interface UseCheckProps {
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
-export const useCheck = ({ isAuth, onCheckError, calendar }: UseCheckProps) => {
+export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
+  const { isInit } = useAtomsContext();
+
   const { data: check } = useQuery({
     queryKey: getQueryKey(calendar),
-    staleTime: 6000,
-    enabled: isAuth,
+    enabled: isInit,
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/calendars/${calendar}/check`)
