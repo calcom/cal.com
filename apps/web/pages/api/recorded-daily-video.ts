@@ -271,8 +271,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
     });
 
-    // Submit Transcription Batch Processor Job
-    await submitBatchProcessorTranscriptionJob(recording_id);
+    try {
+      // Submit Transcription Batch Processor Job
+      await submitBatchProcessorTranscriptionJob(recording_id);
+    } catch (err) {
+      log.error("Failed to  Submit Transcription Batch Processor Job:", safeStringify(err));
+    }
 
     // send emails to all attendees only when user has team plan
     await sendDailyVideoRecordingEmails(evt, downloadLink);
