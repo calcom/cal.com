@@ -2,6 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
 import type { Host } from "@calcom/ee/teams/components/TeamAssignList";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -92,6 +93,13 @@ export const ReassignDialog = ({
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
       showToast(t("booking_reassigned"), "success");
+    },
+    onError: async (error) => {
+      if (error.message.includes(ErrorCode.NoAvailableUsersFound)) {
+        showToast(t("no_available_hosts"), "error");
+      } else {
+        showToast(t("unexpected_error_try_again"), "error");
+      }
     },
   });
 

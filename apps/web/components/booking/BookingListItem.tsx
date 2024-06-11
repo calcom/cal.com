@@ -19,7 +19,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -49,6 +49,7 @@ import {
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -169,6 +170,45 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
+  const editBookingActions: ActionType[] = [
+    {
+      id: "reschedule",
+      icon: "clock" as const,
+      label: t("reschedule_booking"),
+      href: `${bookerUrl}/reschedule/${booking.uid}${
+        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+      }`,
+    },
+    {
+      id: "reschedule_request",
+      icon: "send" as const,
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      onClick: () => {
+        setIsOpenRescheduleDialog(true);
+      },
+    },
+    {
+      id: "change_location",
+      label: t("edit_location"),
+      onClick: () => {
+        setIsOpenLocationDialog(true);
+      },
+      icon: "map-pin" as const,
+    },
+  ];
+
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    editBookingActions.push({
+      id: "reassign ",
+      label: t("reassign"),
+      onClick: () => {
+        setIsOpenReassignDialog(true);
+      },
+      icon: "users" as const,
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -184,33 +224,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: "clock" as const,
-          label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-          }`,
-        },
-        {
-          id: "reschedule_request",
-          icon: "send" as const,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: "map-pin" as const,
-        },
-      ],
+      actions: editBookingActions,
     },
   ];
 
@@ -247,6 +261,7 @@ function BookingListItem(booking: BookingItemProps) {
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -322,6 +337,19 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenRescheduleDialog}
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
+      />
+      <ReassignDialog
+        isOpenDialog={isOpenReassignDialog}
+        setIsOpenDialog={setIsOpenReassignDialog}
+        bookingId={booking.id}
+        teamId={booking.eventType?.team?.id || 0}
+        eventTypeId={booking.eventType.id}
+        hosts={booking.eventType?.hosts}
+        assignedHosts={
+          booking.user
+            ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))
+            : []
+        }
       />
       <EditLocationDialog
         booking={booking}

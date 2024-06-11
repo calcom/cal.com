@@ -85,6 +85,8 @@ export const roundRobinReassignment = async ({
     }
     return availableUsers;
   }, [] as User[]);
+  console.log("🚀 ~ availableEventTypeUsers ~ availableEventTypeUsers:", availableEventTypeUsers);
+
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
     {

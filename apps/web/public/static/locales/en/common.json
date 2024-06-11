@@ -2481,5 +2481,11 @@
   "USER_ALREADY_INVITED_OR_MEMBER": "User is already invited or a member",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
   "booking_reassigned": "Booking has been reassigned",
+  "reassign": "Reassign",
+  "reassign_to_another_rr_host": "Reassign booking to another available round robin host",
+  "assign_team_member": "Assign team member",
+  "override_team_member_to_assign": "Override which team member you want to assign to.",
+  "no_available_hosts": "No available hosts",
+  "reassign_reound_robin_host": "Reassign round robin host",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
