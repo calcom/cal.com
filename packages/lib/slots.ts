@@ -151,7 +151,6 @@ function buildSlotsWithDateRanges({
   organizerTimeZone,
   offsetStart,
   datesOutOfOffice,
-  seatsMinimumBookingNoticeActive = false,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -161,7 +160,6 @@ function buildSlotsWithDateRanges({
   organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
-  seatsMinimumBookingNoticeActive: boolean;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -191,14 +189,14 @@ function buildSlotsWithDateRanges({
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
     // save for calculaton of starting time
-    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute"); // balthi
-    const startTimeWithoutMinNotice = dayjs.utc();
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
     // if seatsMinimumBookingNoticeActive is true, we use do not use the minimum booking notice, as we need all slots
     // out of bounds check for minimum booking notice happens in getAvailableSlots
-    const startTime = seatsMinimumBookingNoticeActive ? startTimeWithoutMinNotice : startTimeWithMinNotice;
 
-    let slotStartTime = range.start.utc().isAfter(startTime) ? range.start : startTime;
+    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
+      ? range.start
+      : startTimeWithMinNotice;
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
@@ -274,11 +272,10 @@ const getSlots = ({
       frequency,
       eventLength,
       timeZone: getTimeZone(inviteeDate),
-      minimumBookingNotice,
+      minimumBookingNotice: seatsMinimumBookingNoticeActive ? 0 : minimumBookingNotice,
       organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
-      seatsMinimumBookingNoticeActive,
     });
     return slots;
   }
