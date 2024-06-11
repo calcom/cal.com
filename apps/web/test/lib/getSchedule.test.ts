@@ -651,9 +651,14 @@ describe("getSchedule", () => {
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
+          /*
+          Wrong, we need to have straight 7:30 AM slot as the minimum booking notice is 13 hours. This is UTC aligned to straight hours
           `08:00:00.000Z`,
           `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          `12:00:00.000Z`, doesn't appear
+          */
+          `07:30:00.000Z`,
+          `09:30:00.000Z`,
         ],
         {
           dateString: todayDateString,
@@ -673,9 +678,13 @@ describe("getSchedule", () => {
       expect(scheduleForEventWithBookingNotice10Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, - Minimum bookable time slot is 04:30 UTC which is 10hrs from 18:30 */
-          `05:00:00.000Z`,
-          `07:00:00.000Z`,
-          `09:00:00.000Z`,
+          // `05:00:00.000Z`,
+          // `07:00:00.000Z`,
+          // `09:00:00.000Z`,
+          `04:30:00.000Z`,
+          `06:30:00.000Z`,
+          `08:30:00.000Z`,
+          `10:30:00.000Z`,
         ],
         {
           dateString: todayDateString,

@@ -150,6 +150,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone,
   offsetStart,
   datesOutOfOffice,
+  applyMinimumBookingNotice = true,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -159,6 +160,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
+  applyMinimumBookingNotice?: boolean;
 }) {
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
@@ -186,17 +188,47 @@ function buildSlotsWithDateRanges({
 
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-    // applying minimumBookingNotice will happen later in utils/getAvailableSlots()
-    const startTimeWithMinNotice = dayjs.utc();
 
-    let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
-      ? range.start
-      : startTimeWithMinNotice;
+    // save for calculaton of starting time
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute"); // balthi breaks 2 more
+    const startTimeWithoutMinNotice = dayjs.utc().startOf("day");
+
+    const startTime = applyMinimumBookingNotice ? startTimeWithMinNotice : startTimeWithoutMinNotice;
+
+    let slotStartTime = range.start.utc().isAfter(startTime) ? range.start : startTime;
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
+
+    function adjustStartTime(start: Dayjs, frequency: number, important: Dayjs): number {
+      // Calculate the difference in minutes
+      const difference = important.diff(start, "minute");
+
+      // Calculate how many full periods fit in the difference
+      const periods = Math.floor(difference / frequency);
+
+      // Find the slot time just before or at the important time
+      const nearestSlotBeforeOrAtImportant = start.add(periods * frequency, "minute");
+
+      // Calculate adjustment to make this slot the important time
+      const adjustment = important.diff(nearestSlotBeforeOrAtImportant, "minute");
+
+      // If adjustment is positive, we need to subtract to move the start time earlier
+      if (adjustment > 0) {
+        return -(frequency - adjustment);
+      }
+
+      // Otherwise, return the needed subtraction directly
+      return adjustment;
+    }
+    if (minimumBookingNotice > 0 && applyMinimumBookingNotice) {
+      const adjustedOffsetStart = adjustStartTime(slotStartTime, frequency, startTimeWithMinNotice);
+      console.log("adjustedOffsetStart", adjustedOffsetStart);
+      slotStartTime = slotStartTime.add(adjustedOffsetStart, "minutes");
+      console.log("slotStartTime after adjustment", slotStartTime);
+    }
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
@@ -252,6 +284,7 @@ const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
+  applyMinimumBookingNotice = true,
   workingHours = [],
   dateOverrides = [],
   dateRanges,
@@ -259,7 +292,11 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
   datesOutOfOffice,
-}: GetSlots) => {
+}: GetSlots & {
+  applyMinimumBookingNotice?: boolean;
+}) => {
+  console.log("applyMinimumBookingNotice in getSlots", applyMinimumBookingNotice);
+
   if (dateRanges) {
     const slots = buildSlotsWithDateRanges({
       dateRanges,
@@ -267,6 +304,7 @@ const getSlots = ({
       eventLength,
       timeZone: getTimeZone(inviteeDate),
       minimumBookingNotice,
+      applyMinimumBookingNotice,
       organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
@@ -275,7 +313,7 @@ const getSlots = ({
   }
 
   // current date in invitee tz
-  const startDate = dayjs().utcOffset(inviteeDate.utcOffset());
+  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute"); // balthi breaks packages/lib/slots.test.ts > Tests the slot logic > adds minimum booking notice correctly
 
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.

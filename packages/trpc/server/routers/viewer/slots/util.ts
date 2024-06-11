@@ -420,12 +420,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }`
   );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    // hardocde minimum booking notice to 1 min (the least it can logically be)
-    // applying minimumBookingNotice will happen later in utils/getAvailableSlots()
-    console.log("startTimeInput 99999", startTimeInput, timeZone);
-    const startTime = dayjs(startTimeInput).tz(timeZone);
-    console.log("startTime 555", startTime.format());
-    return startTime;
+    const startTimeMin = dayjs.utc().add(1, "minutes"); // balthi - breaks no tests
+    const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
+
+    return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   };
 
   const startTime = getStartTime(startTimeAdjustedForRollingWindowComputation, input.timeZone);
@@ -623,12 +621,15 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
+  console.log("eventType", eventType);
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
+    applyMinimumBookingNotice: !(eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice),
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
@@ -799,6 +800,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           foundAFutureLimitViolation = true;
         }
 
+        // balthi
         let isOutOfBounds = false;
         console.log("filtering slot:", slot.time);
         if (eventType.seatsPerTimeSlot && slot.attendees && slot.attendees > 0) {
