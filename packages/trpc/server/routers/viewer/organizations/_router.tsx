@@ -1,4 +1,4 @@
-import { createPhoneCallSchema } from "@calcom/features/bookings/lib/cal-ai-phone/zod-utils";
+import { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {

@@ -5,9 +5,9 @@ import React, { useState } from "react";
 import { useFormContext, Controller } from "react-hook-form";
 import { z } from "zod";
 
-import { getTemplateFieldsSchema } from "@calcom/features/bookings/lib/cal-ai-phone/getTemplateFieldsSchema";
-import { TEMPLATES_FIELDS } from "@calcom/features/bookings/lib/cal-ai-phone/template-fields-map";
-import type { TemplateType } from "@calcom/features/bookings/lib/cal-ai-phone/zod-utils";
+import { getTemplateFieldsSchema } from "@calcom/features/ee/cal-ai-phone/getTemplateFieldsSchema";
+import { TEMPLATES_FIELDS } from "@calcom/features/ee/cal-ai-phone/template-fields-map";
+import type { TemplateType } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { ComponentForField } from "@calcom/features/form-builder/FormBuilderField";
@@ -158,7 +158,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const handleSubmit = async () => {
     try {
       const values = formMethods.getValues("aiPhoneCallConfig");
-      console.log("values", values);
 
       const schema = getTemplateFieldsSchema({ templateType });
 
