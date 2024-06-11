@@ -43,7 +43,7 @@ const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
 );
 const PasskeyIcon = () => (
-  <img src="/passkey.svg" alt="passkey" className="ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2" />
+  <img src="/passkey.svg" alt="passkey" className="text-subtle mr-2 h-4 w-4 dark:invert" />
 );
 export default function Login({
   csrfToken,
@@ -149,7 +149,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
 
   const onSignInWithPasskey = async () => {
     if (!browserSupportsWebAuthn()) {
-      setErrorMessage("Passkeys are not supported on this browser");
+      setErrorMessage(t("passkeys_not_supported"));
       return;
     }
     try {
@@ -165,14 +165,14 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
         });
 
         if (!result?.url) {
-          setErrorMessage("Invalid credentials");
+          setErrorMessage(t("invalid_credentials"));
           return;
         } else {
           window.location.href = result.url;
         }
       }
     } catch (err) {
-      setErrorMessage("Something went wrong, please reload the page and try again.");
+      setErrorMessage(t("something_went_wrong_please_reload"));
     }
   };
 
@@ -273,7 +273,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
+              <hr className="border-subtle my-8" />
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -293,7 +293,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                 )}
                 <Button
                   color="secondary"
-                  className="w-full justify-center"
+                  className="flex w-full justify-center"
                   disabled={formState.isSubmitting}
                   CustomStartIcon={<PasskeyIcon />}
                   onClick={async (e) => {

@@ -283,7 +283,7 @@ const providers: Provider[] = [
 
       const passkey = await prisma.passkey.findFirst({
         where: {
-          credentialId: Buffer.from(requestBodyCrediential.id, "base64"),
+          credentialId: Buffer.from(requestBodyCrediential.id),
         },
         include: {
           User: {

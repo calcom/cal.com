@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const ZDeleteInputSchema = z.object({
-  UserId: z.number(),
   passkeyId: z.string(),
 });
 

@@ -1,4 +1,4 @@
-import Page from "@pages/settings/security/passkey";
+import Page from "@pages/settings/security/passkeys";
 import { _generateMetadata } from "app/_utils";
 
 export const generateMetadata = async () =>

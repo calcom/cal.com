@@ -47,7 +47,7 @@ export const createRegistrationOptionsHandler = async ({ ctx }: createRegistrati
 
     await prisma.verificationToken.create({
       data: {
-        id: ctx.user.id,
+        userId: ctx.user.id,
         token: options.challenge,
         expires: DateTime.now().plus({ minutes: 2 }).toJSDate(),
         identifier: "PASSKEY_CHALLENGE",

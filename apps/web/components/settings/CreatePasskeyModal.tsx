@@ -7,7 +7,17 @@ import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Dialog, DialogContent, DialogFooter, DialogClose, Form, Input, Button, showToast } from "@calcom/ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogClose,
+  Form,
+  Input,
+  Button,
+  showToast,
+  Label,
+} from "@calcom/ui";
 
 export type CreatePasskeyDialogProps = {
   open: boolean;
@@ -24,6 +34,7 @@ const parser = new UAParser();
 
 const CreatePasskeyDialog = ({ open, setOpen }: CreatePasskeyDialogProps) => {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const form = useForm<TCreatePasskeyFormSchema>({
     resolver: zodResolver(ZCreatePasskeyFormSchema),
     defaultValues: {
@@ -47,12 +58,12 @@ const CreatePasskeyDialog = ({ open, setOpen }: CreatePasskeyDialogProps) => {
         verificationResponse: registrationResult,
       });
 
-      showToast("Successfully created passkey", "success");
-
+      utils.viewer.passkey.find.invalidate();
+      showToast(t("successfully_created_passkey"), "success");
       setOpen(false);
     } catch (err) {
       console.log(err);
-      showToast("Failed to create passkey", "error");
+      showToast(t("failed_to_create_passkey"), "error");
     }
   };
 
@@ -88,11 +99,9 @@ const CreatePasskeyDialog = ({ open, setOpen }: CreatePasskeyDialogProps) => {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        title={t("create_passkey_dialog_title")}
-        description={t("create_passkey_dialog_description")}
-        type="creation">
+      <DialogContent title={t("add_passkey")} type="creation">
         <Form form={form} handleSubmit={onFormSubmit}>
+          <Label htmlFor="passkey">{t("passkey_name")}</Label>
           <Controller
             name="passkeyName"
             control={form.control}
@@ -102,7 +111,7 @@ const CreatePasskeyDialog = ({ open, setOpen }: CreatePasskeyDialogProps) => {
           <DialogFooter>
             <DialogClose />
             <Button type="submit" loading={form.formState.isSubmitting}>
-              {t("create")}
+              {t("add")}
             </Button>
           </DialogFooter>
         </Form>

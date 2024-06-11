@@ -29,7 +29,7 @@ export const findHandler = async ({ ctx }: findOptions) => {
       },
     });
 
-    return { data };
+    return data;
   } catch (err) {
     throw new TRPCError({
       code: "BAD_REQUEST",
