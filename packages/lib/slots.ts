@@ -18,6 +18,7 @@ export type GetSlots = {
   offsetStart?: number;
   organizerTimeZone: string;
   datesOutOfOffice?: IOutOfOfficeData;
+  seatsMinimumBookingNoticeActive?: boolean;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -150,7 +151,7 @@ function buildSlotsWithDateRanges({
   organizerTimeZone,
   offsetStart,
   datesOutOfOffice,
-  applyMinimumBookingNotice = true,
+  seatsMinimumBookingNoticeActive = false,
 }: {
   dateRanges: DateRange[];
   frequency: number;
@@ -160,9 +161,8 @@ function buildSlotsWithDateRanges({
   organizerTimeZone: string;
   offsetStart?: number;
   datesOutOfOffice?: IOutOfOfficeData;
-  applyMinimumBookingNotice?: boolean;
+  seatsMinimumBookingNoticeActive: boolean;
 }) {
-  console.log("applyMinimumBookingNotice in buildSlotsWithDateRanges", applyMinimumBookingNotice);
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
@@ -194,18 +194,16 @@ function buildSlotsWithDateRanges({
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute"); // balthi
     const startTimeWithoutMinNotice = dayjs.utc();
 
-    const startTime = applyMinimumBookingNotice ? startTimeWithMinNotice : startTimeWithoutMinNotice;
+    // if seatsMinimumBookingNoticeActive is true, we use do not use the minimum booking notice, as we need all slots
+    // out of bounds check for minimum booking notice happens in getAvailableSlots
+    const startTime = seatsMinimumBookingNoticeActive ? startTimeWithoutMinNotice : startTimeWithMinNotice;
 
     let slotStartTime = range.start.utc().isAfter(startTime) ? range.start : startTime;
-
-    console.log("slotStartTime before", slotStartTime);
 
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
-
-    console.log("slotStartTime after", slotStartTime);
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end
@@ -261,7 +259,6 @@ const getSlots = ({
   inviteeDate,
   frequency,
   minimumBookingNotice,
-  applyMinimumBookingNotice = true,
   workingHours = [],
   dateOverrides = [],
   dateRanges,
@@ -269,11 +266,8 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
   datesOutOfOffice,
-}: GetSlots & {
-  applyMinimumBookingNotice?: boolean;
-}) => {
-  console.log("applyMinimumBookingNotice in getSlots", applyMinimumBookingNotice);
-
+  seatsMinimumBookingNoticeActive = false,
+}: GetSlots) => {
   if (dateRanges) {
     const slots = buildSlotsWithDateRanges({
       dateRanges,
@@ -281,16 +275,16 @@ const getSlots = ({
       eventLength,
       timeZone: getTimeZone(inviteeDate),
       minimumBookingNotice,
-      applyMinimumBookingNotice,
       organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
+      seatsMinimumBookingNoticeActive,
     });
     return slots;
   }
 
   // current date in invitee tz
-  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute"); // balthi breaks packages/lib/slots.test.ts > Tests the slot logic > adds minimum booking notice correctly
+  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
 
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.
