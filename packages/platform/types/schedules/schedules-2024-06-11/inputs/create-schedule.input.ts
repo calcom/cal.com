@@ -15,7 +15,7 @@ import {
 import type { WeekDay } from "../constants";
 import { TIME_FORMAT_HH_MM, WEEK_DAYS } from "../constants";
 
-export class ScheduleAvailabilityInput_2024_11_06 {
+export class ScheduleAvailabilityInput_2024_06_11 {
   @IsArray()
   @IsIn(WEEK_DAYS, { each: true })
   @ApiProperty({ example: ["Monday", "Tuesday"] })
@@ -32,7 +32,7 @@ export class ScheduleAvailabilityInput_2024_11_06 {
   endTime!: string;
 }
 
-export class ScheduleOverrideInput_2024_11_06 {
+export class ScheduleOverrideInput_2024_06_11 {
   @IsISO8601({ strict: true })
   @ApiProperty({ example: "2024-05-20" })
   date!: string;
@@ -48,7 +48,7 @@ export class ScheduleOverrideInput_2024_11_06 {
   endTime!: string;
 }
 
-export class CreateScheduleInput_2024_11_06 {
+export class CreateScheduleInput_2024_06_11 {
   @IsString()
   @ApiProperty({ example: "One-on-one coaching" })
   name!: string;
@@ -60,9 +60,9 @@ export class CreateScheduleInput_2024_11_06 {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailabilityInput_2024_11_06)
+  @Type(() => ScheduleAvailabilityInput_2024_06_11)
   @ApiProperty({
-    type: [ScheduleAvailabilityInput_2024_11_06],
+    type: [ScheduleAvailabilityInput_2024_06_11],
     example: [
       {
         days: ["Monday", "Tuesday"],
@@ -72,7 +72,7 @@ export class CreateScheduleInput_2024_11_06 {
     ],
     required: false,
   })
-  availability?: ScheduleAvailabilityInput_2024_11_06[];
+  availability?: ScheduleAvailabilityInput_2024_06_11[];
 
   @IsBoolean()
   @ApiProperty({ example: true })
@@ -81,9 +81,9 @@ export class CreateScheduleInput_2024_11_06 {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverrideInput_2024_11_06)
+  @Type(() => ScheduleOverrideInput_2024_06_11)
   @ApiProperty({
-    type: [ScheduleOverrideInput_2024_11_06],
+    type: [ScheduleOverrideInput_2024_06_11],
     example: [
       {
         date: "2024-05-20",
@@ -93,5 +93,5 @@ export class CreateScheduleInput_2024_11_06 {
     ],
     required: false,
   })
-  overrides?: ScheduleOverrideInput_2024_11_06[];
+  overrides?: ScheduleOverrideInput_2024_06_11[];
 }

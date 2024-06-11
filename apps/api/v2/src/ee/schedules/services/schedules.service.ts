@@ -14,7 +14,7 @@ import {
   transformAvailabilityForClient,
   transformDateOverridesForClient,
 } from "@calcom/platform-libraries-0.0.2";
-import { UpdateScheduleInput_2024_15_04 } from "@calcom/platform-types";
+import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
 export class SchedulesService {
@@ -79,7 +79,7 @@ export class SchedulesService {
   async updateUserSchedule(
     user: UserWithProfile,
     scheduleId: number,
-    bodySchedule: UpdateScheduleInput_2024_15_04
+    bodySchedule: UpdateScheduleInput_2024_04_15
   ) {
     const existingSchedule = await this.schedulesRepository.getScheduleById(scheduleId);
 

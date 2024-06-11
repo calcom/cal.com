@@ -11,11 +11,11 @@ import {
 } from "class-validator";
 
 import {
-  ScheduleAvailabilityInput_2024_11_06,
-  ScheduleOverrideInput_2024_11_06,
+  ScheduleAvailabilityInput_2024_06_11,
+  ScheduleOverrideInput_2024_06_11,
 } from "../inputs/create-schedule.input";
 
-export class ScheduleOutput_2024_11_06 {
+export class ScheduleOutput_2024_06_11 {
   @IsNumber()
   @ApiProperty({ example: 254 })
   id!: number;
@@ -34,9 +34,9 @@ export class ScheduleOutput_2024_11_06 {
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailabilityInput_2024_11_06)
+  @Type(() => ScheduleAvailabilityInput_2024_06_11)
   @ApiProperty({
-    type: [ScheduleAvailabilityInput_2024_11_06],
+    type: [ScheduleAvailabilityInput_2024_06_11],
     example: [
       {
         days: ["Monday", "Tuesday"],
@@ -45,7 +45,7 @@ export class ScheduleOutput_2024_11_06 {
       },
     ],
   })
-  availability!: ScheduleAvailabilityInput_2024_11_06[];
+  availability!: ScheduleAvailabilityInput_2024_06_11[];
 
   @IsBoolean()
   @ApiProperty({ example: true })
@@ -54,9 +54,9 @@ export class ScheduleOutput_2024_11_06 {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverrideInput_2024_11_06)
+  @Type(() => ScheduleOverrideInput_2024_06_11)
   @ApiProperty({
-    type: [ScheduleOverrideInput_2024_11_06],
+    type: [ScheduleOverrideInput_2024_06_11],
     example: [
       {
         date: "2024-05-20",
@@ -65,5 +65,5 @@ export class ScheduleOutput_2024_11_06 {
       },
     ],
   })
-  overrides!: ScheduleOverrideInput_2024_11_06[];
+  overrides!: ScheduleOverrideInput_2024_06_11[];
 }

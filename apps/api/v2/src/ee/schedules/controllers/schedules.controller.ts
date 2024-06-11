@@ -27,7 +27,7 @@ import { ApiResponse, ApiTags as DocsTags } from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateScheduleInput_2024_15_04 } from "@calcom/platform-types";
+import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
 import { CreateScheduleInput } from "../inputs/create-schedule.input";
 
@@ -103,7 +103,7 @@ export class SchedulesController {
   @Permissions([SCHEDULE_WRITE])
   async updateSchedule(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: UpdateScheduleInput_2024_15_04,
+    @Body() bodySchedule: UpdateScheduleInput_2024_04_15,
     @Param("scheduleId") scheduleId: string
   ): Promise<UpdateScheduleOutput> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule(

@@ -4,27 +4,27 @@ import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsDate } from
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-const scheduleSchema_2024_15_04 = z.object({
+const scheduleSchema_2024_04_15 = z.object({
   id: z.number().int(),
   userId: z.number().int(),
   name: z.string(),
   timeZone: z.string().nullish(),
 });
 
-const availabilitySchema_2024_15_04 = z.object({
+const availabilitySchema_2024_04_15 = z.object({
   id: z.number().int(),
   days: z.number().int().array(),
   startTime: z.date(),
   endTime: z.date(),
 });
 
-export const schemaScheduleResponse_2024_15_04 = z
+export const schemaScheduleResponse_2024_04_15 = z
   .object({})
-  .merge(scheduleSchema_2024_15_04)
+  .merge(scheduleSchema_2024_04_15)
   .merge(
     z.object({
       availability: z
-        .array(availabilitySchema_2024_15_04)
+        .array(availabilitySchema_2024_04_15)
         .transform((availabilities) =>
           availabilities.map((availability) => ({
             ...availability,
@@ -36,7 +36,7 @@ export const schemaScheduleResponse_2024_15_04 = z
     })
   );
 
-export type ScheduleResponse = z.infer<typeof schemaScheduleResponse_2024_15_04>;
+export type ScheduleResponse = z.infer<typeof schemaScheduleResponse_2024_04_15>;
 
 class ScheduleItem {
   @IsString()
@@ -56,7 +56,7 @@ class DateOverride {
   end!: Date;
 }
 
-export class UpdateScheduleInput_2024_15_04 {
+export class UpdateScheduleInput_2024_04_15 {
   @IsString()
   @IsOptional()
   @DocsProperty()
