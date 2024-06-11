@@ -24,7 +24,11 @@ export const ZInviteMemberInputSchema = z.object({
         if (typeof item === "string") {
           return item.trim().toLowerCase();
         }
-        return item;
+
+        return {
+          ...item,
+          email: item.email.trim().toLowerCase(),
+        };
       });
     })
     .refine(

@@ -4,16 +4,20 @@ import type { TFunction } from "next-i18next";
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { sendTeamInviteEmail } from "@calcom/emails";
 import { ENABLE_PROFILE_SWITCHER, WEBAPP_URL } from "@calcom/lib/constants";
+import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import { prisma } from "@calcom/prisma";
 import type { Membership, OrganizationSettings, Team } from "@calcom/prisma/client";
-import { type User as UserType, type UserPassword } from "@calcom/prisma/client";
+import { type User as UserType, type UserPassword, Prisma } from "@calcom/prisma/client";
 import type { Profile as ProfileType } from "@calcom/prisma/client";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -33,6 +37,18 @@ export type UserWithMembership = Invitee & {
   teams?: Pick<Membership, "userId" | "teamId" | "accepted" | "role">[];
   profiles: ProfileType[];
   password: UserPassword | null;
+};
+
+type Invitation = {
+  usernameOrEmail: string;
+  role: MembershipRole;
+};
+
+type ExistingUserWithInviteStatus = Awaited<ReturnType<typeof getExistingUsersWithInviteStatus>>[number];
+type ExistingUserWithInviteStatusAndProfile = ExistingUserWithInviteStatus & {
+  profile: {
+    username: string;
+  } | null;
 };
 
 export async function checkPermissions({
@@ -85,33 +101,26 @@ export async function getTeamOrThrow(teamId: number) {
   return { ...team, metadata: teamMetadataSchema.parse(team.metadata) };
 }
 
-export async function getUniqueUsernameOrEmailsOrThrow(
-  usernamesOrEmails: {
-    usernameOrEmail: string;
-    role: MembershipRole;
-  }[]
-) {
+export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation[]) {
   const usernamesOrEmailsSet = new Set();
-  const uniqueUsernamesOrEmails: {
-    usernameOrEmail: string;
-    role: MembershipRole;
-  }[] = [];
-  usernamesOrEmails.forEach((usernameOrEmail) => {
+  const uniqueInvitations: Invitation[] = [];
+
+  invitations.forEach((usernameOrEmail) => {
     if (usernamesOrEmailsSet.has(usernameOrEmail)) {
       return;
     }
-    uniqueUsernamesOrEmails.push(usernameOrEmail);
+    uniqueInvitations.push(usernameOrEmail);
     usernamesOrEmailsSet.add(usernameOrEmail.usernameOrEmail);
   });
 
-  if (uniqueUsernamesOrEmails.length === 0) {
+  if (uniqueInvitations.length === 0) {
     throw new TRPCError({
       code: "BAD_REQUEST",
       message: "You must provide at least one email address to invite.",
     });
   }
 
-  return uniqueUsernamesOrEmails;
+  return uniqueInvitations;
 }
 
 export const enum INVITE_STATUS {
@@ -155,18 +164,6 @@ export function canBeInvited(invitee: UserWithMembership, team: TeamWithParent) 
   return INVITE_STATUS.CAN_BE_INVITED;
 }
 
-type Invitation = {
-  usernameOrEmail: string;
-  role: MembershipRole;
-};
-
-type ExistingUserWithInviteStatus = Awaited<ReturnType<typeof getExistingUsersWithInviteStatus>>[number];
-type ExistingUserWithInviteStatusAndProfile = ExistingUserWithInviteStatus & {
-  profile: {
-    username: string;
-  } | null;
-};
-
 export async function getExistingUsersWithInviteStatus({
   invitations,
   team,
@@ -203,23 +200,30 @@ export async function getExistingUsersWithInviteStatus({
     },
   });
 
-  const userToRoleMap = new Map<string, MembershipRole>();
-  invitations.forEach((invitation) => {
-    userToRoleMap.set(invitation.usernameOrEmail, invitation.role);
-  });
-
+  const userToRoleMap = buildUserToRoleMap();
+  const defaultMemberRole = MembershipRole.MEMBER;
   // Check if the users found in the database can be invited to join the team/org
   return inviteesFromDb.map((inviteeFromDb) => {
-    const newRole =
-      userToRoleMap.get(inviteeFromDb.email) ||
-      (inviteeFromDb.username ? userToRoleMap.get(inviteeFromDb.username) : MembershipRole.MEMBER);
+    const newRole = getRoleForUser({ email: inviteeFromDb.email, username: inviteeFromDb.username });
 
     return {
       ...inviteeFromDb,
-      newRole: newRole ?? MembershipRole.MEMBER,
+      newRole: newRole ?? defaultMemberRole,
       canBeInvited: canBeInvited(inviteeFromDb, team),
     };
   });
+
+  function buildUserToRoleMap() {
+    const userToRoleMap = new Map<string, MembershipRole>();
+    invitations.forEach((invitation) => {
+      userToRoleMap.set(invitation.usernameOrEmail, invitation.role);
+    });
+    return userToRoleMap;
+  }
+
+  function getRoleForUser({ email, username }: { email: string; username: string | null }) {
+    return userToRoleMap.get(email) || (username ? userToRoleMap.get(username) : defaultMemberRole);
+  }
 }
 
 export function getOrgConnectionInfo({
@@ -230,7 +234,7 @@ export function getOrgConnectionInfo({
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
-  orgVerified: boolean;
+  orgVerified: boolean | null;
   usersEmail: string;
   team: TeamWithParent;
   isOrg: boolean;
@@ -244,7 +248,7 @@ export function getOrgConnectionInfo({
       // We discourage self-served organizations from being able to auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
       // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
       // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
-      autoAccept = orgVerified;
+      autoAccept = !!orgVerified;
     } else {
       orgId = undefined;
       autoAccept = false;
@@ -270,7 +274,7 @@ export async function createNewUsersConnectToOrgIfExists({
   isOrg: boolean;
   teamId: number;
   parentId?: number | null;
-  autoAcceptEmailDomain?: string;
+  autoAcceptEmailDomain: string | null;
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
   isPlatformManaged?: boolean;
   timeFormat?: number;
@@ -399,8 +403,11 @@ export async function createMemberships({
       }),
     });
   } catch (e) {
-    console.error(e);
-    throw e;
+    if (e instanceof Prisma.PrismaClientKnownRequestError) {
+      logger.error("Failed to create memberships", input.teamId);
+    } else {
+      throw e;
+    }
   }
 }
 
@@ -413,7 +420,7 @@ export async function sendSignupToOrganizationEmail({
   isOrg,
 }: {
   usernameOrEmail: string;
-  team: Awaited<ReturnType<typeof getTeamOrThrow>>;
+  team: { name: string; parent: { name: string } | null };
   translation: TFunction;
   inviterName: string;
   teamId: number;
@@ -482,12 +489,10 @@ export function getOrgState(
 
   return {
     isInOrgScope: false,
-  } as {
-    isInOrgScope: false;
-    orgVerified: never;
-    autoAcceptEmailDomain: never;
-    orgConfigured: never;
-    orgPublished: never;
+    orgVerified: null,
+    autoAcceptEmailDomain: null,
+    orgConfigured: null,
+    orgPublished: null,
   };
 }
 
@@ -673,3 +678,194 @@ export const sendExistingUserTeamInviteEmails = async ({
 
   await sendEmails(sendEmailsPromises);
 };
+
+export async function handleExistingUsersInvites({
+  invitableExistingUsers,
+  team,
+  orgConnectInfoByUsernameOrEmail,
+  input,
+  inviter,
+  orgSlug,
+}: {
+  invitableExistingUsers: Awaited<ReturnType<typeof getExistingUsersWithInviteStatus>>;
+  team: TeamWithParent;
+  orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+  input: {
+    teamId: number;
+    role?: "ADMIN" | "MEMBER" | "OWNER";
+    isOrg: boolean;
+    language: string;
+  };
+  inviter: {
+    name: string | null;
+  };
+  orgSlug: string | null;
+}) {
+  if (!invitableExistingUsers.length) {
+    return;
+  }
+
+  const translation = await getTranslation(input.language ?? "en", "common");
+  if (!team.isOrganization) {
+    const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
+      existingUsersWithMemberships: invitableExistingUsers.map((u) => {
+        return {
+          ...u,
+          profile: null,
+        };
+      }),
+      team,
+      connectionInfoMap: orgConnectInfoByUsernameOrEmail,
+    });
+
+    log.debug(
+      "Inviting existing users to a team",
+      safeStringify({
+        autoJoinUsers,
+        regularUsers,
+      })
+    );
+
+    // invited users can autojoin, create their memberships in org
+    if (autoJoinUsers.length) {
+      await createMemberships({
+        input,
+        invitees: autoJoinUsers,
+        parentId: team.parentId,
+        accepted: true,
+      });
+
+      await Promise.all(
+        autoJoinUsers.map(async (userToAutoJoin) => {
+          await updateNewTeamMemberEventTypes(userToAutoJoin.id, team.id);
+        })
+      );
+
+      await sendExistingUserTeamInviteEmails({
+        currentUserName: inviter.name,
+        currentUserTeamName: team?.name,
+        existingUsersWithMemberships: autoJoinUsers,
+        language: translation,
+        isOrg: input.isOrg,
+        teamId: team.id,
+        isAutoJoin: true,
+        currentUserParentTeamName: team?.parent?.name,
+        orgSlug,
+      });
+    }
+
+    // invited users cannot autojoin, create provisional memberships and send email
+    if (regularUsers.length) {
+      await createMemberships({
+        input,
+        invitees: regularUsers,
+        parentId: team.parentId,
+        accepted: false,
+      });
+      await sendExistingUserTeamInviteEmails({
+        currentUserName: inviter.name,
+        currentUserTeamName: team?.name,
+        existingUsersWithMemberships: regularUsers,
+        language: translation,
+        isOrg: input.isOrg,
+        teamId: team.id,
+        isAutoJoin: false,
+        currentUserParentTeamName: team?.parent?.name,
+        orgSlug,
+      });
+    }
+
+    const parentOrganization = team.parent;
+    if (parentOrganization) {
+      const parsedOrg = getParsedTeam(parentOrganization);
+      // Create profiles if needed
+      await Promise.all([
+        autoJoinUsers
+          .concat(regularUsers)
+          .filter((u) => u.needToCreateProfile)
+          .map((user) =>
+            createAProfileForAnExistingUser({
+              user: {
+                id: user.id,
+                email: user.email,
+                currentUsername: user.username,
+              },
+              organizationId: parsedOrg.id,
+            })
+          ),
+      ]);
+    }
+  } else {
+    const organization = team;
+    log.debug(
+      "Inviting existing users to an organization",
+      safeStringify({
+        invitableExistingUsers,
+      })
+    );
+
+    const existingUsersWithMembershipsNew = await Promise.all(
+      invitableExistingUsers.map(async (user) => {
+        const shouldAutoAccept = orgConnectInfoByUsernameOrEmail[user.email].autoAccept;
+        let profile = null;
+        if (shouldAutoAccept) {
+          profile = await createAProfileForAnExistingUser({
+            user: {
+              id: user.id,
+              email: user.email,
+              currentUsername: user.username,
+            },
+            organizationId: organization.id,
+          });
+        }
+
+        await prisma.membership.create({
+          data: {
+            userId: user.id,
+            teamId: team.id,
+            accepted: shouldAutoAccept,
+            role: user.newRole,
+          },
+        });
+        return {
+          ...user,
+          profile,
+        };
+      })
+    );
+
+    const autoJoinUsers = existingUsersWithMembershipsNew.filter(
+      (user) => orgConnectInfoByUsernameOrEmail[user.email].autoAccept
+    );
+
+    const regularUsers = existingUsersWithMembershipsNew.filter(
+      (user) => !orgConnectInfoByUsernameOrEmail[user.email].autoAccept
+    );
+
+    // Send emails to user who auto-joined
+    await sendExistingUserTeamInviteEmails({
+      currentUserName: inviter.name,
+      currentUserTeamName: team?.name,
+      existingUsersWithMemberships: autoJoinUsers,
+      language: translation,
+      isOrg: input.isOrg,
+      teamId: team.id,
+      isAutoJoin: true,
+      currentUserParentTeamName: team?.parent?.name,
+      orgSlug,
+    });
+
+    // Send emails to user who need to accept invite
+    await sendExistingUserTeamInviteEmails({
+      currentUserName: inviter.name,
+      currentUserTeamName: team?.name,
+      existingUsersWithMemberships: regularUsers,
+      language: translation,
+      isOrg: input.isOrg,
+      teamId: team.id,
+      isAutoJoin: false,
+      currentUserParentTeamName: team?.parent?.name,
+      orgSlug,
+    });
+  }
+}

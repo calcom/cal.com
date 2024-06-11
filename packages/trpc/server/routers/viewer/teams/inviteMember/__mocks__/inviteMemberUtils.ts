@@ -1,16 +1,20 @@
-import { beforeEach, vi } from "vitest";
+import { beforeEach, vi, expect } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
+
+import type { MembershipRole } from "@calcom/prisma/enums";
 
 import type * as inviteMemberUtils from "../utils";
 
-vi.mock("../utils", () => inviteMemberUtilsMock);
+vi.mock("../utils", async () => {
+  return inviteMemberUtilsMock;
+});
 
 beforeEach(() => {
   mockReset(inviteMemberUtilsMock);
 });
 const inviteMemberUtilsMock = mockDeep<typeof inviteMemberUtils>();
 
-export const mock = {
+export const inviteMemberutilsScenarios = {
   checkPermissions: {
     fakePassed: () =>
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -18,21 +22,29 @@ export const mock = {
       inviteMemberUtilsMock.checkPermissions.mockResolvedValue(undefined),
   },
   getTeamOrThrow: {
-    fakeReturnTeam: (team: { id: number } & Record<string, any>, forInput: { teamId: number }) =>
+    fakeReturnTeam: (team: { id: number } & Record<string, any>, forInput: { teamId: number }) => {
+      const fakedVal = {
+        organizationSettings: null,
+        parent: null,
+        parentId: null,
+        ...team,
+      };
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       inviteMemberUtilsMock.getTeamOrThrow.mockImplementation((teamId) => {
         if (forInput.teamId === teamId) {
-          return {
-            organizationSettings: null,
-            parent: null,
-            ...team,
-          };
+          return fakedVal;
         }
         throw new Error("Mock Error: Unhandled input");
-      }),
+      });
+      return fakedVal;
+    },
   },
   getOrgState: {
+    /**
+     * `getOrgState` completely generates the return value from input without using any outside variable like DB, etc.
+     * So, it makes sense to let it use the actual implementation instead of mocking the output based on input
+     */
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
@@ -41,26 +53,73 @@ export const mock = {
       return inviteMemberUtilsMock.getOrgState.mockImplementation(actualImport.getOrgState);
     },
   },
-  getUniqueUsernameOrEmailsOrThrow: {
+  getUniqueInvitationsOrThrowIfEmpty: {
     useActual: async function () {
       const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
 
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
-      return inviteMemberUtilsMock.getUniqueUsernameOrEmailsOrThrow.mockImplementation(
-        actualImport.getUniqueUsernameOrEmailsOrThrow
+      return inviteMemberUtilsMock.getUniqueInvitationsOrThrowIfEmpty.mockImplementation(
+        actualImport.getUniqueInvitationsOrThrowIfEmpty
       );
     },
   },
   getExistingUsersWithInviteStatus: {
     useAdvancedMock: function (
-      returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.getExistingUsersWithInviteStatus>>
+      returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.getExistingUsersWithInviteStatus>>,
+      forInput: {
+        team: any;
+        invitations: {
+          newRole: MembershipRole;
+          usernameOrEmail: string;
+        }[];
+      }
     ) {
-      return inviteMemberUtilsMock.getExistingUsersWithInviteStatus.mockImplementation(() => {
-        return returnVal;
+      inviteMemberUtilsMock.getExistingUsersWithInviteStatus.mockImplementation(({ invitations, team }) => {
+        const allInvitationsExist = invitations.every((invitation) =>
+          forInput.invitations.find((i) => i.usernameOrEmail === invitation.usernameOrEmail)
+        );
+        if (forInput.team.id == team.id && allInvitationsExist) return returnVal;
       });
+      return returnVal;
+    },
+  },
+  getOrgConnectionInfo: {
+    useActual: async function () {
+      const actualImport = await vi.importActual<typeof inviteMemberUtils>("../utils");
+
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      return inviteMemberUtilsMock.getOrgConnectionInfo.mockImplementation(actualImport.getOrgConnectionInfo);
     },
   },
 };
 
+export const expects = {
+  expectSignupEmailsToBeSent: ({
+    emails,
+    team,
+    inviterName,
+    isOrg,
+    teamId,
+  }: {
+    emails: string[];
+    team;
+    inviterName: string;
+    teamId: number;
+    isOrg: boolean;
+  }) => {
+    emails.forEach((email, index) => {
+      expect(inviteMemberUtilsMock.sendSignupToOrganizationEmail.mock.calls[index][0]).toEqual(
+        expect.objectContaining({
+          usernameOrEmail: email,
+          team: team,
+          inviterName: inviterName,
+          teamId: teamId,
+          isOrg: isOrg,
+        })
+      );
+    });
+  },
+};
 export default inviteMemberUtilsMock;

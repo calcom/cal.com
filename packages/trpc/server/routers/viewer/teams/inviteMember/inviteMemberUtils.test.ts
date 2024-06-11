@@ -11,7 +11,7 @@ import type { UserWithMembership } from "./utils";
 import { INVITE_STATUS } from "./utils";
 import {
   checkPermissions,
-  getUniqueUsernameOrEmailsOrThrow,
+  getUniqueInvitationsOrThrowIfEmpty,
   getOrgState,
   getOrgConnectionInfo,
   canBeInvited,
@@ -141,13 +141,13 @@ describe("Invite Member Utils", () => {
       await expect(checkPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
     });
   });
-  describe("getUniqueUsernameOrEmailsOrThrow", () => {
+  describe("getUniqueInvitationsOrThrowIfEmpty", () => {
     it("should throw a TRPCError with code BAD_REQUEST if no emails are provided", async () => {
-      await expect(getUniqueUsernameOrEmailsOrThrow([])).rejects.toThrow(TRPCError);
+      await expect(getUniqueInvitationsOrThrowIfEmpty([])).rejects.toThrow(TRPCError);
     });
 
     it("should return an array with multiple emails if an array is provided", async () => {
-      const result = await getUniqueUsernameOrEmailsOrThrow(["test1@example.com", "test2@example.com"]);
+      const result = await getUniqueInvitationsOrThrowIfEmpty(["test1@example.com", "test2@example.com"]);
       expect(result).toEqual(["test1@example.com", "test2@example.com"]);
     });
   });
@@ -285,6 +285,10 @@ describe("Invite Member Utils", () => {
       const result = getOrgState(false, { ...mockedRegularTeam, ...team });
       expect(result).toEqual({
         isInOrgScope: false,
+        orgVerified: null,
+        orgConfigured: null,
+        orgPublished: null,
+        autoAcceptEmailDomain: null,
       });
     });
   });
