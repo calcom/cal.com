@@ -38,7 +38,6 @@ export type AppProps = Omit<
         themeBasis?: string;
         session: Session;
         i18n?: SSRConfig;
-        isPlatformUser?: boolean;
       }>
     >
   >,
