@@ -6,7 +6,6 @@ import { Button } from "@calcom/ui";
 import type { OnCheckErrorType } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
 import { useConnect } from "../hooks/connect/useConnect";
-import { useAtomsContext } from "../hooks/useAtomsContext";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import { cn } from "../src/lib/utils";
 
@@ -28,16 +27,14 @@ export const OAuthConnect: FC<OAuthConnectProps & { calendar: (typeof CALENDARS)
   calendar,
   redir,
 }) => {
-  const { isAuth } = useAtomsContext();
   const { connect } = useConnect(calendar, redir);
 
   const { allowConnect, checked } = useCheck({
-    isAuth,
     onCheckError,
     calendar: calendar,
   });
 
-  const isChecking = !isAuth || !checked;
+  const isChecking = !checked;
   const isDisabled = isChecking || !allowConnect;
 
   let displayedLabel = label;
