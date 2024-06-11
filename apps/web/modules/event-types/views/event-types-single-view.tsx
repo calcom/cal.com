@@ -5,7 +5,9 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -113,6 +115,8 @@ const EventAITab = dynamic(() => import("@components/eventtype/EventAITab").then
 
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
 
+const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
+
 export type Host = { isFixed: boolean; userId: number; priority: number };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -154,6 +158,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
+  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
+  const [pendingRoute, setPendingRoute] = useState("");
+  const leaveWithoutAssigningHosts = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -195,6 +202,32 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
+
+  const router = useRouter();
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const paths = url.split("/");
+      if (
+        !!team &&
+        eventType.hosts.length === 0 &&
+        !leaveWithoutAssigningHosts.current &&
+        (url === "/event-types" || paths[1] !== "event-types")
+      ) {
+        setIsOpenAssignmentWarnDialog(true);
+        setPendingRoute(url);
+        router.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
+        throw "Aborted";
+      }
+    };
+    router.events.on("routeChangeStart", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router]);
 
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
@@ -774,7 +807,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
       </EventTypeSingleLayout>
-
       {slugExistsChildrenDialogOpen.length ? (
         <ManagedEventTypeDialog
           slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
@@ -791,10 +823,17 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }}
         />
       ) : null}
+      <AssignmentWarningDialog
+        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        pendingRoute={pendingRoute}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
+      />
+      ;
     </>
   );
 };
-
 const EventTypePageWrapper: React.FC<PageProps> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
