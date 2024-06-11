@@ -43,6 +43,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       userId: true,
       isActiveOnAll: true,
       trigger: true,
+      time: true,
+      timeUnit: true,
       team: {
         select: {
           isOrganization: true,
@@ -116,7 +118,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     if (userWorkflow.isActiveOnAll) {
       oldActiveOnEventTypes = await ctx.prisma.eventType.findMany({
         where: {
-          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }), // is it ok to fetch managed event tyeps here for user workflows?
+          ...(userWorkflow.teamId ? { teamId: userWorkflow.teamId } : { userId: userWorkflow.userId }),
         },
         select: {
           id: true,
@@ -253,13 +255,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
   }
 
-  //todo: test this
-  if (userWorkflow.trigger !== trigger) {
+  if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
     //if trigger changed, delete all reminders from steps before change
     await deleteRemindersOfActiveOnIds(oldActiveOnIds, userWorkflow.steps, isOrg);
 
     await scheduleWorkflowNotifications(
-      activeOn, // schedule for activeOn that stayed the same (old reminders were deleted) + new active on
+      activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
       isOrg,
       userWorkflow.steps, // use old steps here, edited and deleted steps are handled below
       time,
@@ -492,7 +493,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   });
 
   if (!smsReminderNumberNeeded) {
-    await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId: id, isOrg }); //here not children??
+    await removeSmsReminderFieldForEventTypes({
+      activeOnToRemove: activeOnWithChildren,
+      workflowId: id,
+      isOrg,
+    });
   } else {
     await upsertSmsReminderFieldForEventTypes({
       activeOn: activeOnWithChildren,
