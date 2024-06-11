@@ -1,8 +1,6 @@
 import { beforeEach, vi, expect } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type { MembershipRole } from "@calcom/prisma/enums";
-
 import type * as inviteMemberUtils from "../utils";
 
 vi.mock("../utils", async () => {
@@ -70,7 +68,6 @@ export const inviteMemberutilsScenarios = {
       forInput: {
         team: any;
         invitations: {
-          newRole: MembershipRole;
           usernameOrEmail: string;
         }[];
       }

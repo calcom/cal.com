@@ -10,7 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -39,7 +39,7 @@ export type UserWithMembership = Invitee & {
   password: UserPassword | null;
 };
 
-type Invitation = {
+export type Invitation = {
   usernameOrEmail: string;
   role: MembershipRole;
 };
@@ -55,7 +55,9 @@ export async function checkPermissions({
   userId,
   teamId,
   isOrg,
+  isNewRoleOwner,
 }: {
+  isNewRoleOwner: boolean;
   userId: number;
   teamId: number;
   isOrg?: boolean;
@@ -63,6 +65,8 @@ export async function checkPermissions({
   // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
     if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+    if (isNewRoleOwner && !(await isOrganisationOwner(userId, teamId)))
+      throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
     // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
     if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
@@ -102,11 +106,11 @@ export async function getTeamOrThrow(teamId: number) {
 }
 
 export async function getUniqueInvitationsOrThrowIfEmpty(invitations: Invitation[]) {
-  const usernamesOrEmailsSet = new Set();
+  const usernamesOrEmailsSet = new Set<string>();
   const uniqueInvitations: Invitation[] = [];
 
   invitations.forEach((usernameOrEmail) => {
-    if (usernamesOrEmailsSet.has(usernameOrEmail)) {
+    if (usernamesOrEmailsSet.has(usernameOrEmail.usernameOrEmail)) {
       return;
     }
     uniqueInvitations.push(usernameOrEmail);
@@ -230,13 +234,13 @@ export function getOrgConnectionInfo({
   orgAutoAcceptDomain,
   orgVerified,
   isOrg,
-  usersEmail,
+  email,
   team,
 }: {
   orgAutoAcceptDomain?: string | null;
   orgVerified: boolean | null;
-  usersEmail: string;
-  team: TeamWithParent;
+  email: string;
+  team: Pick<TeamWithParent, "parentId" | "id">;
   isOrg: boolean;
 }) {
   let orgId: number | undefined = undefined;
@@ -244,7 +248,7 @@ export function getOrgConnectionInfo({
 
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
-    if (usersEmail.split("@")[1] == orgAutoAcceptDomain) {
+    if (email.split("@")[1] == orgAutoAcceptDomain) {
       // We discourage self-served organizations from being able to auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
       // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
       // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
@@ -264,7 +268,7 @@ export async function createNewUsersConnectToOrgIfExists({
   teamId,
   parentId,
   autoAcceptEmailDomain,
-  connectionInfoMap,
+  orgConnectInfoByUsernameOrEmail,
   isPlatformManaged,
   timeFormat,
   weekStart,
@@ -275,7 +279,7 @@ export async function createNewUsersConnectToOrgIfExists({
   teamId: number;
   parentId?: number | null;
   autoAcceptEmailDomain: string | null;
-  connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
+  orgConnectInfoByUsernameOrEmail: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
   isPlatformManaged?: boolean;
   timeFormat?: number;
   weekStart?: string;
@@ -290,7 +294,7 @@ export async function createNewUsersConnectToOrgIfExists({
       for (let index = 0; index < invitations.length; index++) {
         const invitation = invitations[index];
         // Weird but orgId is defined only if the invited user email matches orgAutoAcceptEmail
-        const { orgId, autoAccept } = connectionInfoMap[invitation.usernameOrEmail];
+        const { orgId, autoAccept } = orgConnectInfoByUsernameOrEmail[invitation.usernameOrEmail];
         const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
 
         // An org member can't change username during signup, so we set the username
@@ -679,6 +683,13 @@ export const sendExistingUserTeamInviteEmails = async ({
   await sendEmails(sendEmailsPromises);
 };
 
+type inviteMemberHandlerInput = {
+  teamId: number;
+  role?: "ADMIN" | "MEMBER" | "OWNER";
+  isOrg: boolean;
+  language: string;
+};
+
 export async function handleExistingUsersInvites({
   invitableExistingUsers,
   team,
@@ -690,21 +701,12 @@ export async function handleExistingUsersInvites({
   invitableExistingUsers: Awaited<ReturnType<typeof getExistingUsersWithInviteStatus>>;
   team: TeamWithParent;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
-  input: {
-    teamId: number;
-    role?: "ADMIN" | "MEMBER" | "OWNER";
-    isOrg: boolean;
-    language: string;
-  };
+  input: inviteMemberHandlerInput;
   inviter: {
     name: string | null;
   };
   orgSlug: string | null;
 }) {
-  if (!invitableExistingUsers.length) {
-    return;
-  }
-
   const translation = await getTranslation(input.language ?? "en", "common");
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
@@ -868,4 +870,47 @@ export async function handleExistingUsersInvites({
       orgSlug,
     });
   }
+}
+
+export async function handleNewUsersInvites({
+  invitationsForNewUsers,
+  team,
+  orgConnectInfoByUsernameOrEmail,
+  input,
+  autoAcceptEmailDomain,
+  inviter,
+}: {
+  invitationsForNewUsers: Invitation[];
+  input: inviteMemberHandlerInput;
+  orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
+  autoAcceptEmailDomain: string | null;
+  team: TeamWithParent;
+  inviter: {
+    name: string | null;
+  };
+}) {
+  const translation = await getTranslation(input.language ?? "en", "common");
+
+  await createNewUsersConnectToOrgIfExists({
+    invitations: invitationsForNewUsers,
+    isOrg: input.isOrg,
+    teamId: input.teamId,
+    orgConnectInfoByUsernameOrEmail,
+    autoAcceptEmailDomain: autoAcceptEmailDomain,
+    parentId: team.parentId,
+  });
+  const sendVerifyEmailsPromises = invitationsForNewUsers.map((invitation) => {
+    return sendSignupToOrganizationEmail({
+      usernameOrEmail: invitation.usernameOrEmail,
+      team: {
+        name: team.name,
+        parent: team.parent,
+      },
+      translation,
+      inviterName: inviter.name ?? "",
+      teamId: input.teamId,
+      isOrg: input.isOrg,
+    });
+  });
+  sendEmails(sendVerifyEmailsPromises);
 }
