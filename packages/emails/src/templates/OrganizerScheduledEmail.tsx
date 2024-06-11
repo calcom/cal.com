@@ -27,6 +27,7 @@ export const OrganizerScheduledEmail = (
   } else {
     title = "new_event_scheduled";
   }
+
   const t = props.teamMember?.language.translate || props.calEvent.organizer.language.translate;
   const locale = props.teamMember?.language.locale || props.calEvent.organizer.language.locale;
   const timeFormat = props.teamMember?.timeFormat || props.calEvent.organizer?.timeFormat;

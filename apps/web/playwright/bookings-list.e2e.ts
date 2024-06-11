@@ -62,6 +62,77 @@ test.describe("Bookings", () => {
       ).toBeVisible();
     });
   });
+  test.describe("Past bookings", () => {
+    test("Mark first guest as no-show", async ({ page, users, bookings }) => {
+      const firstUser = await users.create();
+      const secondUser = await users.create();
+
+      const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
+        title: "Booking as organizer",
+        bookingsFixture: bookings,
+        // Create a booking 3 days ago
+        relativeDate: -3,
+        organizer: firstUser,
+        organizerEventType: firstUser.eventTypes[0],
+        attendees: [
+          { name: "First", email: "first@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Second", email: "second@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Third", email: "third@cal.com", timeZone: "Europe/Berlin" },
+        ],
+      });
+      const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
+
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/past`);
+      const pastBookings = page.locator('[data-testid="past-bookings"]');
+      const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
+      const firstGuest = firstPastBooking.locator('[data-testid="guest"]').nth(0);
+      await firstGuest.click();
+      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeHidden();
+      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeVisible();
+      await titleAndAttendees.locator('[data-testid="mark-no-show"]').click();
+      await firstGuest.click();
+      await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
+      await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+    });
+    test("Mark 3rd attendee as no-show", async ({ page, users, bookings }) => {
+      const firstUser = await users.create();
+      const secondUser = await users.create();
+
+      const bookingWhereFirstUserIsOrganizerFixture = await createBooking({
+        title: "Booking as organizer",
+        bookingsFixture: bookings,
+        // Create a booking 4 days ago
+        relativeDate: -4,
+        organizer: firstUser,
+        organizerEventType: firstUser.eventTypes[0],
+        attendees: [
+          { name: "First", email: "first@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Second", email: "second@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Third", email: "third@cal.com", timeZone: "Europe/Berlin" },
+          { name: "Fourth", email: "fourth@cal.com", timeZone: "Europe/Berlin" },
+        ],
+      });
+      const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
+
+      await firstUser.apiLogin();
+      await page.goto(`/bookings/past`);
+      const pastBookings = page.locator('[data-testid="past-bookings"]');
+      const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
+      const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
+      const moreGuests = firstPastBooking.locator('[data-testid="more-guests"]');
+      await moreGuests.click();
+      const firstGuestInMore = page.getByRole("menuitemcheckbox").nth(0);
+      await expect(firstGuestInMore).toBeChecked({ checked: false });
+      await firstGuestInMore.click();
+      await expect(firstGuestInMore).toBeChecked({ checked: true });
+      const updateNoShow = firstPastBooking.locator('[data-testid="update-no-show"]');
+      await updateNoShow.click();
+      await moreGuests.click();
+      await expect(firstGuestInMore).toBeChecked({ checked: true });
+    });
+  });
 });
 
 async function createBooking({
@@ -71,6 +142,7 @@ async function createBooking({
   attendees,
   /**
    * Relative date from today
+   * -1 means yesterday
    * 0 means today
    * 1 means tomorrow
    */

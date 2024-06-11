@@ -175,20 +175,6 @@ export async function getBookings({
         eventName: true,
         price: true,
         recurringEvent: true,
-        schedulingType: true,
-        hosts: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                username: true,
-              },
-            },
-            isFixed: true,
-          },
-        },
         currency: true,
         metadata: true,
         seatsShowAttendees: true,
@@ -197,12 +183,6 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
-            members: {
-              select: {
-                userId: true,
-                role: true,
-              },
-            },
           },
         },
       },

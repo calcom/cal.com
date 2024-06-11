@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 
 import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
 import {
@@ -15,9 +16,10 @@ import classNames from "@calcom/lib/classNames";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
+import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -35,11 +37,18 @@ import {
   TableActions,
   TextAreaField,
   Tooltip,
+  Dropdown,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+  DropdownItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
 } from "@calcom/ui";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
-import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -49,7 +58,6 @@ type BookingItem = RouterOutputs["viewer"]["bookings"]["get"]["bookings"][number
 type BookingItemProps = BookingItem & {
   listingStatus: BookingListingStatus;
   recurringInfo: RouterOutputs["viewer"]["bookings"]["get"]["recurringInfo"][number] | undefined;
-  isOrgAdminOrOwner: boolean;
   loggedInUser: {
     userId: number | undefined;
     userTimeZone: string | undefined;
@@ -61,7 +69,6 @@ type BookingItemProps = BookingItem & {
 function BookingListItem(booking: BookingItemProps) {
   const bookerUrl = useBookerUrl();
   const { userId, userTimeZone, userTimeFormat, userEmail } = booking.loggedInUser;
-  const { isOrgAdminOrOwner } = booking;
 
   const {
     t,
@@ -90,7 +97,7 @@ function BookingListItem(booking: BookingItemProps) {
   });
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
-  const isPast = new Date(booking.endTime) < new Date();
+  const isBookingInPast = new Date(booking.endTime) < new Date();
   const isCancelled = booking.status === BookingStatus.CANCELLED;
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   const isRejected = booking.status === BookingStatus.REJECTED;
@@ -162,58 +169,6 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
-  const editBookingActions: ActionType[] = [
-    {
-      id: "reschedule",
-      icon: "clock" as const,
-      label: t("reschedule_booking"),
-      href: `${bookerUrl}/reschedule/${booking.uid}${
-        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-      }`,
-    },
-    {
-      id: "reschedule_request",
-      icon: "send" as const,
-      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-      label: t("send_reschedule_request"),
-      onClick: () => {
-        setIsOpenRescheduleDialog(true);
-      },
-    },
-    {
-      id: "change_location",
-      label: t("edit_location"),
-      onClick: () => {
-        setIsOpenLocationDialog(true);
-      },
-      icon: "map-pin" as const,
-    },
-  ];
-
-  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    const isUserAttendingRREvent =
-      booking.user.id === booking.loggedInUser.userId ||
-      booking.attendees.some((attendee) => attendee.email === booking.loggedInUser.userEmail);
-
-    const isAdminOrOwner =
-      isOrgAdminOrOwner ||
-      !!booking.eventType.team.members.find(
-        (member) => userId === member.userId && (member.role === "ADMIN" || member.role === "OWNER")
-      );
-
-    //only add for team admin or owner
-    if (isUserAttendingRREvent || isAdminOrOwner) {
-      editBookingActions.push({
-        id: "reassign ",
-        label: t("reassign"),
-        onClick: () => {
-          setIsOpenReassignDialog(true);
-        },
-        icon: "users" as const,
-      });
-    }
-  }
-
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -229,7 +184,33 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit"),
-      actions: editBookingActions,
+      actions: [
+        {
+          id: "reschedule",
+          icon: "clock" as const,
+          label: t("reschedule_booking"),
+          href: `${bookerUrl}/reschedule/${booking.uid}${
+            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+          }`,
+        },
+        {
+          id: "reschedule_request",
+          icon: "send" as const,
+          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+          label: t("send_reschedule_request"),
+          onClick: () => {
+            setIsOpenRescheduleDialog(true);
+          },
+        },
+        {
+          id: "change_location",
+          label: t("edit_location"),
+          onClick: () => {
+            setIsOpenLocationDialog(true);
+          },
+          icon: "map-pin" as const,
+        },
+      ],
     },
   ];
 
@@ -249,7 +230,7 @@ function BookingListItem(booking: BookingItemProps) {
     bookedActions = bookedActions.filter((action) => action.id !== "edit_booking");
   }
 
-  if (isPast && isPending && !isConfirmed) {
+  if (isBookingInPast && isPending && !isConfirmed) {
     bookedActions = bookedActions.filter((action) => action.id !== "cancel");
   }
 
@@ -266,7 +247,6 @@ function BookingListItem(booking: BookingItemProps) {
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
-  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
     onSuccess: () => {
@@ -308,9 +288,9 @@ function BookingListItem(booking: BookingItemProps) {
 
   const title = booking.title;
 
-  const showViewRecordingsButton = !!(booking.isRecorded && isPast && isConfirmed);
+  const showViewRecordingsButton = !!(booking.isRecorded && isBookingInPast && isConfirmed);
   const showCheckRecordingButton =
-    isPast &&
+    isBookingInPast &&
     isConfirmed &&
     !booking.isRecorded &&
     (!booking.location || booking.location === "integrations:daily" || booking?.location?.trim() === "");
@@ -328,7 +308,14 @@ function BookingListItem(booking: BookingItemProps) {
   ];
 
   const showPendingPayment = paymentAppData.enabled && booking.payment.length && !booking.paid;
-
+  const attendeeList = booking.attendees.map((attendee) => {
+    return {
+      name: attendee.name,
+      email: attendee.email,
+      id: attendee.id,
+      noShow: attendee.noShow || false,
+    };
+  });
   return (
     <>
       <RescheduleDialog
@@ -342,19 +329,6 @@ function BookingListItem(booking: BookingItemProps) {
         isOpenDialog={isOpenSetLocationDialog}
         setShowLocationModal={setIsOpenLocationDialog}
         teamId={booking.eventType?.team?.id}
-      />
-      <ReassignDialog
-        isOpenDialog={isOpenReassignDialog}
-        setIsOpenDialog={setIsOpenReassignDialog}
-        hosts={booking.eventType?.hosts}
-        assignedHosts={
-          booking.user
-            ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))
-            : []
-        }
-        eventTypeId={booking.eventType?.id}
-        teamId={booking.eventType?.team?.id}
-        bookingId={booking.id}
       />
       {booking.paid && booking.payment[0] && (
         <ChargeCardDialog
@@ -479,7 +453,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className={`w-full px-4${isRejected ? " line-through" : ""}`}>
+        <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
             {/* Time and Badges for mobile */}
             <div className="w-full pb-2 pt-4 sm:hidden">
@@ -550,9 +524,11 @@ function BookingListItem(booking: BookingItemProps) {
               )}
               {booking.attendees.length !== 0 && (
                 <DisplayAttendees
-                  attendees={booking.attendees}
+                  attendees={attendeeList}
                   user={booking.user}
                   currentEmail={userEmail}
+                  bookingUid={booking.uid}
+                  isBookingInPast={isBookingInPast}
                 />
               )}
               {isCancelled && booking.rescheduled && (
@@ -571,7 +547,7 @@ function BookingListItem(booking: BookingItemProps) {
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
           ) : null}
-          {isPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {(showViewRecordingsButton || showCheckRecordingButton) && (
             <TableActions actions={showRecordingActions} />
           )}
@@ -697,13 +673,215 @@ const FirstAttendee = ({
 type AttendeeProps = {
   name?: string;
   email: string;
+  id: number;
+  noShow: boolean;
 };
 
-const Attendee = ({ email, name }: AttendeeProps) => {
+type NoShowProps = {
+  bookingUid: string;
+  isBookingInPast: boolean;
+};
+
+const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
+  const { email, name, bookingUid, isBookingInPast, noShow: noShowAttendee } = attendeeProps;
+  const { t } = useLocale();
+
+  const [noShow, setNoShow] = useState(noShowAttendee);
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const { copyToClipboard, isCopied } = useCopy();
+
+  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+    onSuccess: async () => {
+      showToast(
+        t(noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
+          x: name || email,
+        }),
+        "success"
+      );
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  function toggleNoShow({
+    attendee,
+    bookingUid,
+  }: {
+    attendee: { email: string; noShow: boolean };
+    bookingUid: string;
+  }) {
+    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
+    setNoShow(!noShow);
+  }
+
   return (
-    <a className="hover:text-blue-500" href={`mailto:${email}`} onClick={(e) => e.stopPropagation()}>
-      {name || email}
-    </a>
+    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+      <DropdownMenuTrigger asChild>
+        <button
+          data-testid="guest"
+          onClick={(e) => e.stopPropagation()}
+          className="radix-state-open:text-blue-500 hover:text-blue-500">
+          {noShow ? (
+            <s>
+              {name || email} <Icon name="eye-off" className="inline h-4" />
+            </s>
+          ) : (
+            <>{name || email}</>
+          )}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem
+            StartIcon="mail"
+            href={`mailto:${email}`}
+            onClick={(e) => {
+              setOpenDropdown(false);
+              e.stopPropagation();
+            }}>
+            <a href={`mailto:${email}`}>{t("email")}</a>
+          </DropdownItem>
+        </DropdownMenuItem>
+        <DropdownMenuItem className="focus:outline-none">
+          <DropdownItem
+            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+            onClick={(e) => {
+              e.preventDefault();
+              copyToClipboard(email);
+              setOpenDropdown(false);
+              showToast(t("email_copied"), "success");
+            }}>
+            {!isCopied ? t("copy") : t("copied")}
+          </DropdownItem>
+        </DropdownMenuItem>
+        {isBookingInPast && (
+          <DropdownMenuItem className="focus:outline-none">
+            {noShow ? (
+              <DropdownItem
+                data-testid="unmark-no-show"
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
+                  e.preventDefault();
+                }}
+                StartIcon="eye">
+                {t("unmark_as_no_show")}
+              </DropdownItem>
+            ) : (
+              <DropdownItem
+                data-testid="mark-no-show"
+                onClick={(e) => {
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
+                  e.preventDefault();
+                }}
+                StartIcon="eye-off">
+                {t("mark_as_no_show")}
+              </DropdownItem>
+            )}
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
+type GroupedAttendeeProps = {
+  attendees: AttendeeProps[];
+  bookingUid: string;
+};
+
+const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
+  const { bookingUid } = groupedAttendeeProps;
+  const attendees = groupedAttendeeProps.attendees.map((attendee) => {
+    return {
+      id: attendee.id,
+      email: attendee.email,
+      name: attendee.name,
+      noShow: attendee.noShow || false,
+    };
+  });
+  const { t } = useLocale();
+  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+    onSuccess: async () => {
+      showToast(t("no_show_updated"), "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+  const { control, handleSubmit } = useForm<{
+    attendees: AttendeeProps[];
+  }>({
+    defaultValues: {
+      attendees,
+    },
+    mode: "onBlur",
+  });
+
+  const { fields } = useFieldArray({
+    control,
+    name: "attendees",
+  });
+
+  const onSubmit = (data: { attendees: AttendeeProps[] }) => {
+    const filteredData = data.attendees.slice(1);
+    noShowMutation.mutate({ bookingUid, attendees: filteredData });
+    setOpenDropdown(false);
+  };
+
+  const [openDropdown, setOpenDropdown] = useState(false);
+
+  return (
+    <Dropdown open={openDropdown} onOpenChange={setOpenDropdown}>
+      <DropdownMenuTrigger asChild>
+        <button
+          data-testid="more-guests"
+          onClick={(e) => e.stopPropagation()}
+          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          {t("plus_more", { count: attendees.length - 1 })}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel className="text-xs font-medium uppercase">
+          {t("mark_as_no_show_title")}
+        </DropdownMenuLabel>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          {fields.slice(1).map((field, index) => (
+            <Controller
+              key={field.id}
+              name={`attendees.${index + 1}.noShow`}
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <DropdownMenuCheckboxItem
+                  checked={value || false}
+                  onCheckedChange={onChange}
+                  className="pr-8 focus:outline-none"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onChange(!value);
+                  }}>
+                  <span className={value ? "line-through" : ""}>{field.email}</span>
+                </DropdownMenuCheckboxItem>
+              )}
+            />
+          ))}
+          <DropdownMenuSeparator />
+          <div className=" flex justify-end p-2">
+            <Button
+              data-testid="update-no-show"
+              color="secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(onSubmit)();
+              }}>
+              {t("mark_as_no_show_title")}
+            </Button>
+          </div>
+        </form>
+      </DropdownMenuContent>
+    </Dropdown>
   );
 };
 
@@ -711,17 +889,23 @@ const DisplayAttendees = ({
   attendees,
   user,
   currentEmail,
+  bookingUid,
+  isBookingInPast,
 }: {
   attendees: AttendeeProps[];
   user: UserProps | null;
   currentEmail?: string | null;
+  bookingUid: string;
+  isBookingInPast: boolean;
 }) => {
   const { t } = useLocale();
+  attendees.sort((a, b) => a.id - b.id);
+
   return (
     <div className="text-emphasis text-sm">
       {user && <FirstAttendee user={user} currentEmail={currentEmail} />}
       {attendees.length > 1 ? <span>,&nbsp;</span> : <span>&nbsp;{t("and")}&nbsp;</span>}
-      <Attendee {...attendees[0]} />
+      <Attendee {...attendees[0]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
       {attendees.length > 1 && (
         <>
           <div className="text-emphasis inline-block text-sm">&nbsp;{t("and")}&nbsp;</div>
@@ -729,13 +913,13 @@ const DisplayAttendees = ({
             <Tooltip
               content={attendees.slice(1).map((attendee) => (
                 <p key={attendee.email}>
-                  <Attendee {...attendee} />
+                  <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
                 </p>
               ))}>
-              <div className="inline-block">{t("plus_more", { count: attendees.length - 1 })}</div>
+              {isBookingInPast && <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />}
             </Tooltip>
           ) : (
-            <Attendee {...attendees[1]} />
+            <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
           )}
         </>
       )}

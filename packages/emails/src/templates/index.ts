@@ -33,7 +33,6 @@ export { OrgAutoInviteEmail } from "./OrgAutoInviteEmail";
 export { MonthlyDigestEmail } from "./MonthlyDigestEmail";
 export { AdminOrganizationNotificationEmail } from "./AdminOrganizationNotificationEmail";
 export { BookingRedirectEmailNotification } from "./BookingRedirectEmailNotification";
-export { OriginalHostReassignEmail } from "./OriginalHostReassignEmail";
 export { VerifyEmailChangeEmail } from "./VerifyEmailChangeEmail";
 export { OrganizationCreationEmail } from "./OrganizationCreationEmail";
 export { OrganizationAdminNoSlotsEmail } from "./OrganizationAdminNoSlots";

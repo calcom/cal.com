@@ -18,7 +18,6 @@ import { hasTeamPlan } from "./procedures/hasTeamPlan";
 import { ZPublishInputSchema } from "./publish.schema";
 import { ZRemoveMemberInputSchema } from "./removeMember.schema";
 import { ZResendInvitationInputSchema } from "./resendInvitation.schema";
-import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.schema";
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
@@ -152,13 +151,6 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("resendInvitation"),
       () => import("./resendInvitation.handler")
-    );
-    return handler(opts);
-  }),
-  roundRobinReassign: authedProcedure.input(ZRoundRobinReassignInputSchema).mutation(async (opts) => {
-    const handler = await importHandler(
-      namespaced("reassign"),
-      () => import("./roundRobin/roundRobinReassign.handler")
     );
     return handler(opts);
   }),

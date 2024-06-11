@@ -513,11 +513,3 @@ export const sendAdminOrganizationNotification = async (input: OrganizationNotif
 export const sendBookingRedirectNotification = async (bookingRedirect: IBookingRedirect) => {
   await sendEmail(() => new BookingRedirectEmailNotification(bookingRedirect));
 };
-
-// export const sendNewHostReassignEmail = async (calEvent: CalendarEvent, newHost: Person) => {
-//   await sendEmail(() => new OrganizerRescheduledEmail({ calEvent, teamMember: newHost }));
-// };
-
-// export const sendOriginalHostReassignEmail = async (attendee: OrignalHostProps) => {
-//   await sendEmail(() => new OriginalHostReassignEmail(attendee));
-// };

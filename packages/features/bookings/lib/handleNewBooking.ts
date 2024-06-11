@@ -70,6 +70,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -115,7 +116,7 @@ import type { BookingSeat } from "./handleSeats/types";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
-export type User = Prisma.UserGetPayload<typeof userSelect>;
+type User = Prisma.UserGetPayload<typeof userSelect>;
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
@@ -1639,6 +1640,7 @@ async function handler(
     platformCancelUrl,
     platformBookingUrl,
   };
+
   if (req.body.thirdPartyRecurringEventId) {
     evt.existingRecurringEvent = {
       recurringEventId: req.body.thirdPartyRecurringEventId,
@@ -1662,11 +1664,16 @@ async function handler(
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
 
+  const organizerUserId = triggerForUser ? organizerUser.id : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: triggerForUser ? organizerUser.id : null,
+    userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
+    orgId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1680,6 +1687,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
+    orgId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -1687,6 +1695,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
+    orgId,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2334,6 +2343,7 @@ async function handler(
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
+      orgId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2480,7 +2490,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: true,
+      isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
     });
