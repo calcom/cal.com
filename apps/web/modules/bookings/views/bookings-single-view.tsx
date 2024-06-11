@@ -37,7 +37,6 @@ import {
   formatToLocalizedTime,
   formatToLocalizedTimezone,
 } from "@calcom/lib/date-fns";
-import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
@@ -55,7 +54,6 @@ import {
   Button,
   EmailInput,
   HeadSeo,
-  useCalcomTheme,
   TextArea,
   showToast,
   EmptyScreen,
@@ -66,6 +64,7 @@ import CancelBooking from "@calcom/web/components/booking/CancelBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
+import useBrandColors from "../lib/useBrandColors";
 import type { PageProps } from "./bookings-single-view.getServerSideProps";
 
 const stringToBoolean = z
@@ -88,20 +87,6 @@ const querySchema = z.object({
   noShow: stringToBoolean,
 });
 
-const useBrandColors = ({
-  brandColor,
-  darkBrandColor,
-}: {
-  brandColor?: string | null;
-  darkBrandColor?: string | null;
-}) => {
-  const brandTheme = useGetBrandingColours({
-    lightVal: brandColor,
-    darkVal: darkBrandColor,
-  });
-  useCalcomTheme(brandTheme);
-};
-
 export default function Success(props: PageProps) {
   const { t } = useLocale();
   const router = useRouter();
@@ -109,6 +94,11 @@ export default function Success(props: PageProps) {
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
   const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug } = props;
+
+  useBrandColors({
+    brandColor: props.profile.brandColor,
+    darkBrandColor: props.profile.darkBrandColor,
+  });
 
   const {
     allRemainingBookings,
@@ -1026,7 +1016,52 @@ type RecurringBookingsProps = {
   tz: string;
 };
 
-function RecurringBookings({
+const sortRecurringBookings = (recurringBookings: ConfigType[]) => {
+  return recurringBookings.sort((a, b) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1));
+};
+
+const formatDateTime = (dateStr: string, tz: string, language: string, is24h: boolean, duration: number) => {
+  const date = dayjs.tz(dateStr, tz);
+  return {
+    date: formatToLocalizedDate(date, language, "full", tz),
+    timeRange: `${formatToLocalizedTime(date, language, undefined, !is24h, tz)} - ${formatToLocalizedTime(
+      date.add(duration, "m"),
+      language,
+      undefined,
+      !is24h,
+      tz
+    )}`,
+    timeZone: formatToLocalizedTimezone(date, language, tz),
+  };
+};
+
+const RecurringEvent = ({
+  dateStr,
+  tz,
+  language,
+  is24h,
+  duration,
+  isCancelled,
+}: {
+  dateStr: string;
+  tz: string;
+  language: string;
+  is24h: boolean;
+  duration: number;
+  isCancelled: boolean;
+}) => {
+  const { date, timeRange, timeZone } = formatDateTime(dateStr, tz, language, is24h, duration);
+
+  return (
+    <div className={classNames("mb-2", isCancelled ? "line-through" : "")}>
+      {date}
+      <br />
+      {timeRange} <span className="text-bookinglight">({timeZone})</span>
+    </div>
+  );
+};
+
+const RecurringBookings = ({
   eventType,
   recurringBookings,
   duration,
@@ -1035,15 +1070,13 @@ function RecurringBookings({
   is24h,
   isCancelled,
   tz,
-}: RecurringBookingsProps) {
+}: RecurringBookingsProps) => {
   const [moreEventsVisible, setMoreEventsVisible] = useState(false);
   const {
     t,
     i18n: { language },
   } = useLocale();
-  const recurringBookingsSorted = recurringBookings
-    ? recurringBookings.sort((a: ConfigType, b: ConfigType) => (dayjs(a).isAfter(dayjs(b)) ? 1 : -1))
-    : null;
+  const recurringBookingsSorted = recurringBookings ? sortRecurringBookings(recurringBookings) : null;
 
   if (!duration) return null;
 
@@ -1060,17 +1093,19 @@ function RecurringBookings({
           </span>
         )}
         {eventType.recurringEvent?.count &&
-          recurringBookingsSorted.slice(0, 4).map((dateStr: string, idx: number) => (
-            <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-              {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
-              <br />
-              {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-              {formatToLocalizedTime(dayjs(dateStr).add(duration, "m"), language, undefined, !is24h, tz)}{" "}
-              <span className="text-bookinglight">
-                ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
-              </span>
-            </div>
-          ))}
+          recurringBookingsSorted
+            .slice(0, 4)
+            .map((dateStr, idx) => (
+              <RecurringEvent
+                key={idx}
+                dateStr={dateStr ?? ""}
+                tz={tz}
+                language={language}
+                is24h={is24h}
+                duration={duration}
+                isCancelled={isCancelled}
+              />
+            ))}
         {recurringBookingsSorted.length > 4 && (
           <Collapsible open={moreEventsVisible} onOpenChange={() => setMoreEventsVisible(!moreEventsVisible)}>
             <CollapsibleTrigger
@@ -1080,23 +1115,19 @@ function RecurringBookings({
             </CollapsibleTrigger>
             <CollapsibleContent>
               {eventType.recurringEvent?.count &&
-                recurringBookingsSorted.slice(4).map((dateStr: string, idx: number) => (
-                  <div key={idx} className={classNames("mb-2", isCancelled ? "line-through" : "")}>
-                    {formatToLocalizedDate(dayjs.tz(dateStr, tz), language, "full", tz)}
-                    <br />
-                    {formatToLocalizedTime(dayjs(dateStr), language, undefined, !is24h, tz)} -{" "}
-                    {formatToLocalizedTime(
-                      dayjs(dateStr).add(duration, "m"),
-                      language,
-                      undefined,
-                      !is24h,
-                      tz
-                    )}{" "}
-                    <span className="text-bookinglight">
-                      ({formatToLocalizedTimezone(dayjs(dateStr), language, tz)})
-                    </span>
-                  </div>
-                ))}
+                recurringBookingsSorted
+                  .slice(4)
+                  .map((dateStr, idx) => (
+                    <RecurringEvent
+                      key={idx}
+                      dateStr={dateStr}
+                      tz={tz}
+                      language={language}
+                      is24h={is24h}
+                      duration={duration}
+                      isCancelled={isCancelled}
+                    />
+                  ))}
             </CollapsibleContent>
           </Collapsible>
         )}
@@ -1113,4 +1144,4 @@ function RecurringBookings({
       <span className="text-bookinglight">({formatToLocalizedTimezone(date, language, tz)})</span>
     </div>
   );
-}
+};
