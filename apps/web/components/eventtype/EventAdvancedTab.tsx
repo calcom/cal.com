@@ -511,10 +511,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       <div className="mt-4 w-full">
                         <Label htmlFor="seats_minimum_booking_notice">
                           {t("seats_minimum_booking_notice")}
-                          {/* {shouldLockIndicator("minimumBookingNotice")} */}
                         </Label>
                         <MinimumBookingNoticeInput
-                          disabled={false}
+                          disabled={seatsLocked.disabled}
                           {...formMethods.register("seatsMinimumBookingNotice")}
                         />
                       </div>
