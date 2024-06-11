@@ -51,7 +51,7 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
   return (
     <>
       <AvatarGroup
-        size="sm"
+        size="md"
         className="border-muted"
         items={[
           ...orgOrTeamAvatarItem,
