@@ -41,7 +41,7 @@ env:
 jobs:
   e2e-embed:
     timeout-minutes: 20
-    name: E2E Embed Core (${{ matrix.shard }}/${{ strategy.job-total }})
+    name: E2E Embed Core
     runs-on: buildjet-4vcpu-ubuntu-2204
     services:
       postgres:
@@ -70,9 +70,6 @@ jobs:
           - 1025:1025
     strategy:
       fail-fast: false
-      matrix:
-        ## There aren't many tests for embed-core. So, just start with 2 shards. Increase if needed.
-        shard: [1, 2]
 
     steps:
       - uses: docker/login-action@v3
@@ -86,10 +83,10 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: yarn e2e:embed --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+        run: yarn e2e:embed
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: embed-core-results-${{ matrix.shard }}_${{ strategy.job-total }}
+          name: embed-core-results
           path: test-results
