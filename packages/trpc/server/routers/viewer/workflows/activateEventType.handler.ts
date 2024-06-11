@@ -158,6 +158,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
                 user: {
                   select: {
                     email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
                   },
                 },
               },
@@ -211,11 +216,11 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             case WorkflowActions.EMAIL_HOST:
               sendTo = [bookingInfo.organizer?.email];
               const schedulingType = bookingInfo.eventType?.schedulingType;
-              const hosts = bookingInfo.attendees
-                .filter((attendee) =>
-                  bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+              const hosts = bookingInfo.eventType.hosts
+                ?.filter((host) =>
+                  bookingInfo.attendees.some((attendee) => host.user.email === attendee.email)
                 )
-                .map((host) => host.email);
+                .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
               if (
                 (schedulingType === SchedulingType.ROUND_ROBIN ||
                   schedulingType === SchedulingType.COLLECTIVE) &&

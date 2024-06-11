@@ -21,7 +21,7 @@ type ExtendedCalendarEvent = CalendarEvent & {
   eventType: {
     slug?: string;
     schedulingType?: SchedulingType | null;
-    hosts?: { user: { email: string } }[];
+    hosts?: { user: { email: string; destinationCalendar?: { primaryEmail: string | null } | null } }[];
   };
 };
 

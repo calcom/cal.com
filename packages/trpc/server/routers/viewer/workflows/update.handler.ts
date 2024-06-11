@@ -309,6 +309,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                   user: {
                     select: {
                       email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
                     },
                   },
                 },
@@ -367,11 +372,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
                   const schedulingType = bookingInfo.eventType.schedulingType;
-                  const hosts = bookingInfo.attendees
-                    .filter((attendee) =>
-                      bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                  const hosts = bookingInfo.eventType.hosts
+                    ?.filter((host) =>
+                      bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
                     )
-                    .map((host) => host.email);
+                    .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
                   if (
                     hosts &&
                     (schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -575,6 +580,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                     user: {
                       select: {
                         email: true,
+                        destinationCalendar: {
+                          select: {
+                            primaryEmail: true,
+                          },
+                        },
                       },
                     },
                   },
@@ -626,11 +636,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = [bookingInfo.organizer?.email];
                 const schedulingType = bookingInfo.eventType.schedulingType;
-                const hosts = bookingInfo.attendees
-                  .filter((attendee) =>
-                    bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                const hosts = bookingInfo.eventType.hosts
+                  ?.filter((host) =>
+                    bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
                   )
-                  .map((host) => host.email);
+                  .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
                 if (
                   hosts &&
                   (schedulingType === SchedulingType.ROUND_ROBIN ||
@@ -750,6 +760,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                       user: {
                         select: {
                           email: true,
+                          destinationCalendar: {
+                            select: {
+                              primaryEmail: true,
+                            },
+                          },
                         },
                       },
                     },
@@ -802,11 +817,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
                   const schedulingType = bookingInfo.eventType.schedulingType;
-                  const hosts = bookingInfo.attendees
-                    .filter((attendee) =>
-                      bookingInfo.eventType.hosts?.some((host) => host.user.email === attendee.email)
+                  const hosts = bookingInfo.eventType.hosts
+                    ?.filter((host) =>
+                      bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
                     )
-                    .map((host) => host.email);
+                    .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
                   if (
                     hosts &&
                     (schedulingType === SchedulingType.ROUND_ROBIN ||

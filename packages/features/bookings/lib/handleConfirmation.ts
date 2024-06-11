@@ -131,6 +131,14 @@ export async function handleConfirmation(args: {
       bookingFields: Prisma.JsonValue | null;
       slug: string;
       schedulingType: SchedulingType | null;
+      hosts: {
+        user: {
+          email: string;
+          destinationCalendar?: {
+            primaryEmail: string | null;
+          } | null;
+        };
+      }[];
       owner: {
         hideBranding?: boolean | null;
       } | null;
@@ -177,6 +185,20 @@ export async function handleConfirmation(args: {
               slug: true,
               bookingFields: true,
               schedulingType: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
               owner: {
                 select: {
                   hideBranding: true,
@@ -237,6 +259,20 @@ export async function handleConfirmation(args: {
                 hideBranding: true,
               },
             },
+            hosts: {
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                    destinationCalendar: {
+                      select: {
+                        primaryEmail: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             workflows: {
               include: {
                 workflow: {
@@ -273,6 +309,7 @@ export async function handleConfirmation(args: {
         eventType: {
           slug: eventTypeSlug,
           schedulingType: updatedBookings[index].eventType?.schedulingType,
+          hosts: updatedBookings[index].eventType?.hosts,
         },
       };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
