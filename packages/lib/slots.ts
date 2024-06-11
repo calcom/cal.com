@@ -190,17 +190,21 @@ function buildSlotsWithDateRanges({
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
 
     // save for calculaton of starting time
-    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute"); // balthi breaks 2 more
-    const startTimeWithoutMinNotice = dayjs.utc().startOf("day");
+    const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute"); // balthi
+    const startTimeWithoutMinNotice = dayjs.utc();
 
     const startTime = applyMinimumBookingNotice ? startTimeWithMinNotice : startTimeWithoutMinNotice;
 
     let slotStartTime = range.start.utc().isAfter(startTime) ? range.start : startTime;
 
+    console.log("slotStartTime before", slotStartTime);
+
     slotStartTime =
       slotStartTime.minute() % interval !== 0
         ? slotStartTime.startOf("hour").add(Math.ceil(slotStartTime.minute() / interval) * interval, "minute")
         : slotStartTime;
+
+    console.log("slotStartTime after", slotStartTime);
 
     function adjustStartTime(start: Dayjs, frequency: number, important: Dayjs): number {
       // Calculate the difference in minutes
