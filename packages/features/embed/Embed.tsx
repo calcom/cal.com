@@ -67,36 +67,37 @@ function useRouterHelpers() {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
 
-  const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams ?? undefined);
-    Object.keys(newSearchParams).forEach((key) => {
-      newQuery.set(key, newSearchParams[key]);
-    });
-
-    router.push(`${pathname}?${newQuery.toString()}`);
-  };
-
-  const removeQueryParams = (queryParams: string[]) => {
+  const updateSearchParams = (updater: (params: URLSearchParams) => void) => {
     const params = new URLSearchParams(searchParams ?? undefined);
-
-    queryParams.forEach((param) => {
-      params.delete(param);
-    });
-
+    updater(params);
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  return { goto, removeQueryParams };
+  return {
+    router,
+    searchParams,
+    pathname,
+    goto: (newSearchParams: Record<string, string>) =>
+      updateSearchParams((params) => {
+        Object.entries(newSearchParams).forEach(([key, value]) => params.set(key, value));
+      }),
+    removeQueryParams: (queryParams: string[]) =>
+      updateSearchParams((params) => {
+        queryParams.forEach(params.delete);
+      }),
+  };
 }
 
-const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
-  return (
-    <components.Control {...props}>
-      <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
-      {children}
-    </components.Control>
-  );
-};
+const IconSelectControl = ({
+  children,
+  iconName,
+  ...props
+}: ControlProps<any, false> & { iconName: string }) => (
+  <components.Control {...props}>
+    <Icon name={iconName} className="text-subtle mr-2 h-4 w-4" />
+    {children}
+  </components.Control>
+);
 
 const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   const { t } = useLocale();
@@ -172,7 +173,12 @@ const EmailEmbed = ({
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent({ orgSlug });
+
+  const schedule = useScheduleForEvent({
+    eventType: eventType?.id,
+    orgSlug,
+  });
+
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -1130,21 +1136,18 @@ export const EmbedDialog = ({
   eventTypeHideOptionDisabled: boolean;
 }) => {
   const searchParams = useCompatSearchParams();
-  const embedUrl = (searchParams?.get("embedUrl") || "") as string;
-  const namespace = (searchParams?.get("namespace") || "") as string;
+  const [embedTypeSelected, setEmbedTypeSelected] = useState(!!searchParams?.get("embedType"));
+
+  const handleEmbedTypeSelect = (embedType: EmbedType) => {
+    setEmbedTypeSelected(true);
+  };
+
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
-      {!searchParams?.get("embedType") ? (
-        <ChooseEmbedTypesDialogContent types={types} />
+      {embedTypeSelected ? (
+        <EmbedTypeCodeAndPreviewDialogContent embedType={searchParams?.get("embedType") as EmbedType} />
       ) : (
-        <EmbedTypeCodeAndPreviewDialogContent
-          embedType={searchParams?.get("embedType") as EmbedType}
-          embedUrl={embedUrl}
-          namespace={namespace}
-          tabs={tabs}
-          types={types}
-          eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
-        />
+        <ChooseEmbedTypesDialogContent types={types} onSelect={handleEmbedTypeSelect} />
       )}
     </Dialog>
   );
