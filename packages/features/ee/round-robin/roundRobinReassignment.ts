@@ -76,12 +76,10 @@ export const roundRobinReassignment = async ({
       !booking?.attendees.some((attendee) => attendee.email === user.email) &&
       user.email !== booking.user?.email
     ) {
-      console.log("This is being triggered for user", user.email);
       availableUsers.push(user);
     }
     return availableUsers;
   }, [] as User[]);
-
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
     {
@@ -195,7 +193,6 @@ export const roundRobinReassignment = async ({
     },
     customInputs: booking.customInputs,
     userFieldsResponses: booking.responses,
-    // TODO complete this evt object
   };
 
   // If changed owner, also change destination calendar
@@ -292,6 +289,6 @@ export const roundRobinReassignment = async ({
 
   // TODO create relationship between reminder and userId in order to determine which one to delete
   // deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-
-  return;
 };
+
+export default roundRobinReassignment;
