@@ -31,7 +31,7 @@ const useUpdateSchedule = (
     UpdateScheduleInput_2024_06_11 & { id: number }
   >({
     mutationFn: (data) => {
-      const pathname = `/${V2_ENDPOINTS.availability}/${data.id}?for=atom`;
+      const pathname = `/${V2_ENDPOINTS.availability}/${data.id}`;
 
       return http.patch<ApiResponse<ScheduleOutput_2024_06_11>>(pathname, data).then((res) => {
         return res.data;
