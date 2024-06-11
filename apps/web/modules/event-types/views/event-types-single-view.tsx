@@ -841,8 +841,6 @@ const EventTypePageWrapper: React.FC<PageProps> & {
 } = (props) => {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
-  console.log("EventTypePageWrapper data", data);
-
   if (!data) return null;
   return <EventTypePage {...(data as EventTypeSetupProps)} />;
 };

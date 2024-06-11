@@ -2,8 +2,8 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import type { Key } from "react";
-import React, { useEffect, useState } from "react";
-import type { UseFormRegisterReturn, UseFormReturn } from "react-hook-form";
+import React, { useState } from "react";
+import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 import type { SingleValue } from "react-select";
 
@@ -12,15 +12,13 @@ import { getDefinedBufferTimes } from "@calcom/features/eventtypes/lib/getDefine
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK } from "@calcom/lib/constants";
-import type { DurationType } from "@calcom/lib/convertToNewDurationType";
-import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
-import findDurationType from "@calcom/lib/findDurationType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { ascendingLimitKeys, intervalLimitKeyToUnit } from "@calcom/lib/intervalLimit";
 import { PeriodType } from "@calcom/prisma/enums";
 import type { IntervalLimit } from "@calcom/types/Calendar";
-import { Button, DateRangePicker, InputField, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
+import { Button, DateRangePicker, Label, Select, SettingsToggle, TextField } from "@calcom/ui";
 
+import { MinimumBookingNoticeInput } from "@components/eventtype/MinimumBookingNotice";
 import CheckboxField from "@components/ui/form/CheckboxField";
 
 type IPeriodType = (typeof PeriodType)[keyof typeof PeriodType];
@@ -197,96 +195,6 @@ function RollingLimitRadioItem({
     </div>
   );
 }
-
-const MinimumBookingNoticeInput = React.forwardRef<
-  HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
->(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {
-  const { t } = useLocale();
-  const { setValue, getValues } = useFormContext<FormValues>();
-  const durationTypeOptions: {
-    value: DurationType;
-    label: string;
-  }[] = [
-    {
-      label: t("minutes"),
-      value: "minutes",
-    },
-    {
-      label: t("hours"),
-      value: "hours",
-    },
-    {
-      label: t("days"),
-      value: "days",
-    },
-  ];
-
-  const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
-    type: DurationType;
-    value: number;
-  }>({
-    type: findDurationType(getValues(passThroughProps.name)),
-    value: convertToNewDurationType(
-      "minutes",
-      findDurationType(getValues(passThroughProps.name)),
-      getValues(passThroughProps.name)
-    ),
-  });
-  // keep hidden field in sync with minimumBookingNoticeDisplayValues
-  useEffect(() => {
-    setValue(
-      passThroughProps.name,
-      convertToNewDurationType(
-        minimumBookingNoticeDisplayValues.type,
-        "minutes",
-        minimumBookingNoticeDisplayValues.value
-      ),
-      { shouldDirty: true }
-    );
-  }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
-
-  return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
-        <InputField
-          required
-          disabled={passThroughProps.disabled}
-          defaultValue={minimumBookingNoticeDisplayValues.value}
-          onChange={(e) =>
-            setMinimumBookingNoticeDisplayValues({
-              ...minimumBookingNoticeDisplayValues,
-              value: parseInt(e.target.value || "0", 10),
-            })
-          }
-          label={t("minimum_booking_notice")}
-          type="number"
-          placeholder="0"
-          min={0}
-          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
-        />
-        <input type="hidden" ref={ref} {...passThroughProps} />
-      </div>
-      <Select
-        isSearchable={false}
-        isDisabled={passThroughProps.disabled}
-        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
-        defaultValue={durationTypeOptions.find(
-          (option) => option.value === minimumBookingNoticeDisplayValues.type
-        )}
-        onChange={(input) => {
-          if (input) {
-            setMinimumBookingNoticeDisplayValues({
-              ...minimumBookingNoticeDisplayValues,
-              type: input.value,
-            });
-          }
-        }}
-        options={durationTypeOptions}
-      />
-    </div>
-  );
-});
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
