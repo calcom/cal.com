@@ -4066,6 +4066,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
+    "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -4225,6 +4226,7 @@ __metadata:
     "@radix-ui/react-toast": ^1.1.5
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.15
+    "@types/jest": ^29.5.12
     "@types/node": ^20.3.1
     "@types/react": 18.0.26
     "@types/react-dom": ^18.0.9
@@ -4233,6 +4235,7 @@ __metadata:
     autoprefixer: ^10.4.19
     class-variance-authority: ^0.4.0
     clsx: ^2.0.0
+    jest: ^29.7.0
     lucide-react: ^0.364.0
     postcss: ^8.4.38
     postcss-import: ^16.1.0
@@ -4243,6 +4246,7 @@ __metadata:
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     tailwindcss-animate: ^1.0.6
+    ts-jest: ^29.1.2
     typescript: ^4.9.4
     vite: ^5.0.10
     vite-plugin-dts: ^3.7.3
@@ -5019,6 +5023,17 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries-0.0.4@npm:@calcom/platform-libraries@0.0.4":
+  version: 0.0.4
+  resolution: "@calcom/platform-libraries@npm:0.0.4"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 3e8cba76f767398f9ffb95575913514925b7a51a15791741a521284eabdaba5d52f85fbcd9f032b3f2f3a6130520e67049cd8ba6f96ae4f87597de5019710c7f
   languageName: node
   linkType: hard
 
@@ -15657,9 +15672,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-arm64@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-darwin-arm64@npm:1.5.27"
+"@swc/core-darwin-arm64@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-darwin-arm64@npm:1.5.28"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -15671,16 +15686,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-darwin-x64@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-darwin-x64@npm:1.5.27"
+"@swc/core-darwin-x64@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-darwin-x64@npm:1.5.28"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm-gnueabihf@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.5.27"
+"@swc/core-linux-arm-gnueabihf@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-linux-arm-gnueabihf@npm:1.5.28"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -15692,9 +15707,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-gnu@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-linux-arm64-gnu@npm:1.5.27"
+"@swc/core-linux-arm64-gnu@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-linux-arm64-gnu@npm:1.5.28"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -15706,9 +15721,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-arm64-musl@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-linux-arm64-musl@npm:1.5.27"
+"@swc/core-linux-arm64-musl@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-linux-arm64-musl@npm:1.5.28"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -15720,9 +15735,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-gnu@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-linux-x64-gnu@npm:1.5.27"
+"@swc/core-linux-x64-gnu@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-linux-x64-gnu@npm:1.5.28"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -15734,9 +15749,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-linux-x64-musl@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-linux-x64-musl@npm:1.5.27"
+"@swc/core-linux-x64-musl@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-linux-x64-musl@npm:1.5.28"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -15748,9 +15763,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-arm64-msvc@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-win32-arm64-msvc@npm:1.5.27"
+"@swc/core-win32-arm64-msvc@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-win32-arm64-msvc@npm:1.5.28"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -15762,9 +15777,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-ia32-msvc@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-win32-ia32-msvc@npm:1.5.27"
+"@swc/core-win32-ia32-msvc@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-win32-ia32-msvc@npm:1.5.28"
   conditions: os=win32 & cpu=ia32
   languageName: node
   linkType: hard
@@ -15776,9 +15791,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/core-win32-x64-msvc@npm:1.5.27":
-  version: 1.5.27
-  resolution: "@swc/core-win32-x64-msvc@npm:1.5.27"
+"@swc/core-win32-x64-msvc@npm:1.5.28":
+  version: 1.5.28
+  resolution: "@swc/core-win32-x64-msvc@npm:1.5.28"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -15827,19 +15842,19 @@ __metadata:
   linkType: hard
 
 "@swc/core@npm:^1.5.7":
-  version: 1.5.27
-  resolution: "@swc/core@npm:1.5.27"
+  version: 1.5.28
+  resolution: "@swc/core@npm:1.5.28"
   dependencies:
-    "@swc/core-darwin-arm64": 1.5.27
-    "@swc/core-darwin-x64": 1.5.27
-    "@swc/core-linux-arm-gnueabihf": 1.5.27
-    "@swc/core-linux-arm64-gnu": 1.5.27
-    "@swc/core-linux-arm64-musl": 1.5.27
-    "@swc/core-linux-x64-gnu": 1.5.27
-    "@swc/core-linux-x64-musl": 1.5.27
-    "@swc/core-win32-arm64-msvc": 1.5.27
-    "@swc/core-win32-ia32-msvc": 1.5.27
-    "@swc/core-win32-x64-msvc": 1.5.27
+    "@swc/core-darwin-arm64": 1.5.28
+    "@swc/core-darwin-x64": 1.5.28
+    "@swc/core-linux-arm-gnueabihf": 1.5.28
+    "@swc/core-linux-arm64-gnu": 1.5.28
+    "@swc/core-linux-arm64-musl": 1.5.28
+    "@swc/core-linux-x64-gnu": 1.5.28
+    "@swc/core-linux-x64-musl": 1.5.28
+    "@swc/core-win32-arm64-msvc": 1.5.28
+    "@swc/core-win32-ia32-msvc": 1.5.28
+    "@swc/core-win32-x64-msvc": 1.5.28
     "@swc/counter": ^0.1.3
     "@swc/types": ^0.1.8
   peerDependencies:
@@ -15868,7 +15883,7 @@ __metadata:
   peerDependenciesMeta:
     "@swc/helpers":
       optional: true
-  checksum: a7082899f92efd623a31b225f1571019fa02d316714d9f33c5ecc793c4000a47b7e062571be70a6f0ecb3d8781776198b3bb4107b466ed9c19b72b7012cc9d04
+  checksum: 9bd81dff298989d840859e957121740d8dc3154d574092c7faca874382866143b2d8279b9d6a20355221de05b2d58305581d09cf229357d97acaa5d55221b14a
   languageName: node
   linkType: hard
 
@@ -17037,7 +17052,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/jest@npm:^29.5.10":
+"@types/jest@npm:^29.5.10, @types/jest@npm:^29.5.12":
   version: 29.5.12
   resolution: "@types/jest@npm:29.5.12"
   dependencies:
@@ -21420,11 +21435,11 @@ __metadata:
   linkType: hard
 
 "castable-video@npm:~1.0.6":
-  version: 1.0.9
-  resolution: "castable-video@npm:1.0.9"
+  version: 1.0.10
+  resolution: "castable-video@npm:1.0.10"
   dependencies:
-    custom-media-element: ~1.3.1
-  checksum: 85600d7a257458e3ea4771a056209abada26e6a7a97e42b03402e78acd0c622923d9a55d58332937693346433c4264f578a4bfc0a49f7817cd83dd65ffe7d877
+    custom-media-element: ~1.3.2
+  checksum: 5b7a27aacf305f40c6867e96e773f4290260f6eb8b01fe1f209506f8f6dec4cd099f3e35ee57de098829e4bcc688ccdc2cbb2fc86c509712dd573eadf66d42cc
   languageName: node
   linkType: hard
 
@@ -23492,10 +23507,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"custom-media-element@npm:~1.3.1":
-  version: 1.3.1
-  resolution: "custom-media-element@npm:1.3.1"
-  checksum: d8dd50cca0e93746182e4c06290f5d96d7bf0b76d6d97fb2edbf74fd8245285e5e1c40a83f8b752aad8e9a140aff0f1a2fbbb7385c6e9f6c8d05053fd2aefeb1
+"custom-media-element@npm:~1.3.2":
+  version: 1.3.2
+  resolution: "custom-media-element@npm:1.3.2"
+  checksum: 9ec2ff88c3c5ba7d20b9484c0359b4cfe08ad6804f3116934ffbae2f2e0e04d2a832beb6f0bec56027a969ab366727d217406f750890613c988de6de5330cb4f
   languageName: node
   linkType: hard
 
@@ -27540,8 +27555,8 @@ __metadata:
   linkType: hard
 
 "framer-motion@npm:^11.0.25":
-  version: 11.1.7
-  resolution: "framer-motion@npm:11.1.7"
+  version: 11.2.10
+  resolution: "framer-motion@npm:11.2.10"
   dependencies:
     tslib: ^2.4.0
   peerDependencies:
@@ -27555,7 +27570,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: ba4f2f0823eec7b78fa87180545cf8c832929ce52de8bab34312a67bfd6dee4ab6ad17143b9df2efcd4ede7cb87fc326843a1101a6cad3031c89a6ad2160e037
+  checksum: d124bba0d59856b5b17db2d55f6a627d8035e7b7728a610669e6f8dd215b8bbe1be1ee4a0d62d7ae365496bc2ebe8761b2bf4cf2e9c4760b4bfd7fdfd47a43f1
   languageName: node
   linkType: hard
 
@@ -29232,9 +29247,9 @@ __metadata:
   linkType: hard
 
 "hls.js@npm:~1.5.8":
-  version: 1.5.9
-  resolution: "hls.js@npm:1.5.9"
-  checksum: cc98c40079df0a4b454954bd551696487573235109fb39261fc7b6728ae1fb187391a703dbed404174aef384a6eb115c82e2cd0ded99cbbb86cba0e0b6f99a2b
+  version: 1.5.11
+  resolution: "hls.js@npm:1.5.11"
+  checksum: 04ce982633d33911005fe0d536ae11ffe966ee045fa29c3a06a700aa166d8743e9e500cfc768bf0562be6d124166ae1fb39d3acdae2bfbc69931d3c73ae85d2a
   languageName: node
   linkType: hard
 
@@ -34605,9 +34620,9 @@ __metadata:
   linkType: hard
 
 "media-tracks@npm:~0.3.0":
-  version: 0.3.2
-  resolution: "media-tracks@npm:0.3.2"
-  checksum: c08ea931ded4e6b3db7e0fd47259622448d9d0e965795610953f32a2d6a52bc0025870f051c2c7934c823d4b1675dac736e428445e7cbcba4326b45bb59969cb
+  version: 0.3.3
+  resolution: "media-tracks@npm:0.3.3"
+  checksum: 4795af3f171d7ad3a68d1ac1c1e8166a735244fe57d3fc0ec53b1c7410799e524756fc0bfb389632aebb148436b03baade36ca34a3f5377776c3968f6d2cc580
   languageName: node
   linkType: hard
 
@@ -40555,15 +40570,15 @@ __metadata:
   linkType: hard
 
 "react-intersection-observer@npm:^9.4.3":
-  version: 9.10.2
-  resolution: "react-intersection-observer@npm:9.10.2"
+  version: 9.10.3
+  resolution: "react-intersection-observer@npm:9.10.3"
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
   peerDependenciesMeta:
     react-dom:
       optional: true
-  checksum: fea1104ae5515f01b6c13f8f8259bf04e44fc624e8ff5aecb1b24cca25cc04b62f7551586acd838a2c475d55fb07d9c042a412f90cd4c8e39ff4575d5a5a76ac
+  checksum: 482c89a432e582749f3cb3dd696e08638a92e41fbcb81bcb3dc3cadebcf8b40bc47e7a52d2a7e8c4f9eb2a3c1c29b4cb0f21007c1540da05893b5abb11d7a761
   languageName: node
   linkType: hard
 
@@ -40674,12 +40689,12 @@ __metadata:
   linkType: hard
 
 "react-parallax-tilt@npm:^1.7.226":
-  version: 1.7.227
-  resolution: "react-parallax-tilt@npm:1.7.227"
+  version: 1.7.228
+  resolution: "react-parallax-tilt@npm:1.7.228"
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 07a1ef95e56d35a40942976f7e9960d985f50a3330d626884b8ef75860bac1bea4c40b09b610a44c0aaa200603845ffe4975deda56c540cc364b8a26feef703d
+  checksum: 07ad03a35138efeafc991ed470577a0d2a1f816bd730f4f3dea10869d42936eb296cfc2e4035f7871e0637b12805ac9f4cf9cc583fd69582f228bf8591157089
   languageName: node
   linkType: hard
 
@@ -45876,6 +45891,42 @@ __metadata:
   bin:
     ts-jest: cli.js
   checksum: a0ce0affc1b716c78c9ab55837829c42cb04b753d174a5c796bb1ddf9f0379fc20647b76fbe30edb30d9b23181908138d6b4c51ef2ae5e187b66635c295cefd5
+  languageName: node
+  linkType: hard
+
+"ts-jest@npm:^29.1.2":
+  version: 29.1.4
+  resolution: "ts-jest@npm:29.1.4"
+  dependencies:
+    bs-logger: 0.x
+    fast-json-stable-stringify: 2.x
+    jest-util: ^29.0.0
+    json5: ^2.2.3
+    lodash.memoize: 4.x
+    make-error: 1.x
+    semver: ^7.5.3
+    yargs-parser: ^21.0.1
+  peerDependencies:
+    "@babel/core": ">=7.0.0-beta.0 <8"
+    "@jest/transform": ^29.0.0
+    "@jest/types": ^29.0.0
+    babel-jest: ^29.0.0
+    jest: ^29.0.0
+    typescript: ">=4.3 <6"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@jest/transform":
+      optional: true
+    "@jest/types":
+      optional: true
+    babel-jest:
+      optional: true
+    esbuild:
+      optional: true
+  bin:
+    ts-jest: cli.js
+  checksum: e36cba389adbb3700b46422e883c8d25e76febcc01c4a39c801ef15e6edbd6da1695bdd144100153e992f98a754aea4099906955b1b9a83c3c72d77009c3d7e2
   languageName: node
   linkType: hard
 

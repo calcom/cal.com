@@ -30,7 +30,9 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {
       const headerVersion = (request as Request)?.headers[CAL_API_VERSION_HEADER] as string | undefined;
+      console.log("asap header headerVersion", headerVersion);
       if (headerVersion && API_VERSIONS.includes(headerVersion as API_VERSIONS_ENUM)) {
+        console.log("asap return header headerVersion", headerVersion);
         return headerVersion;
       }
       return VERSION_2024_04_15;
