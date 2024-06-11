@@ -18,7 +18,7 @@ import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.r
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_04_15 } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
@@ -79,6 +79,7 @@ describe("Schedules Endpoints", () => {
 
       return request(app.getHttpServer())
         .post("/api/v2/schedules")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         .send(body)
         .expect(201)
         .then(async (response) => {
@@ -153,6 +154,7 @@ describe("Schedules Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/schedules/${createdSchedule.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         .send(body)
         .expect(200)
         .then((response: any) => {
