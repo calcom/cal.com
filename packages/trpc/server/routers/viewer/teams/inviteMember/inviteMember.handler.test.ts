@@ -3,7 +3,6 @@ import { mock as getTranslationMock } from "../../../../../../../tests/libs/__mo
 import {
   inviteMemberutilsScenarios as inviteMemberUtilsScenarios,
   default as inviteMemberUtilsMock,
-  expects as inviteMemberUtilsExpects,
 } from "./__mocks__/inviteMemberUtils";
 import { default as paymentsMock } from "@calcom/features/ee/teams/lib/__mocks__/payments";
 import { constantsScenarios } from "@calcom/lib/__mocks__/constants";
@@ -35,11 +34,11 @@ vi.mock("@trpc/server", () => {
 function fakeNoUsersFoundMatchingInvitations(args: {
   team: any;
   invitations: {
-    newRole: MembershipRole;
+    role: MembershipRole;
     usernameOrEmail: string;
   }[];
 }) {
-  inviteMemberUtilsScenarios.getExistingUsersWithInviteStatus.useAdvancedMock([], args);
+  inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock([], args);
 }
 
 function getPersonalProfile({ username }: { username: string }) {
@@ -125,23 +124,25 @@ describe("inviteMemberHandler", () => {
           parent: null,
         };
 
-        const teamFromDb = inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
+        const retValueOfGetTeamOrThrowError = inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
           teamId: input.teamId,
         });
 
+        const allExpectedInvitations = [
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[0].email,
+          },
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[1].email,
+          },
+        ];
         fakeNoUsersFoundMatchingInvitations({
           team,
-          invitations: [
-            {
-              newRole: input.role,
-              usernameOrEmail: usersToBeInvited[0].email,
-            },
-            {
-              newRole: input.role,
-              usernameOrEmail: usersToBeInvited[1].email,
-            },
-          ],
+          invitations: allExpectedInvitations,
         });
+
         const ctx = {
           user: loggedInUser,
         };
@@ -159,46 +160,29 @@ describe("inviteMemberHandler", () => {
           },
         };
 
-        expect(inviteMemberUtilsMock.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith({
+        expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
+          invitationsForNewUsers: allExpectedInvitations,
+          team: retValueOfGetTeamOrThrowError,
+          orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
+          input,
+          inviter: loggedInUser,
           autoAcceptEmailDomain: null,
-          connectionInfoMap: expectedConnectionInfoMap,
-          invitations: [
-            {
-              usernameOrEmail: usersToBeInvited[0].email,
-              role: input.role,
-            },
-            {
-              usernameOrEmail: usersToBeInvited[1].email,
-              role: input.role,
-            },
-          ],
-          isOrg: false,
-          parentId: null,
-          teamId: input.teamId,
-        });
-
-        inviteMemberUtilsExpects.expectSignupEmailsToBeSent({
-          emails: usersToBeInvited.map((u) => u.email),
-          team: {
-            name: team.name,
-            parent: team.parent,
-          },
-          inviterName: loggedInUser.name as string,
-          teamId: 1,
-          isOrg: false,
         });
 
         expect(paymentsMock.updateQuantitySubscriptionFromStripe).toHaveBeenCalledWith(input.teamId);
 
-        expect(inviteMemberUtilsMock.handleExistingUsersInvites).toHaveBeenCalledWith({
-          existingUsersWithMemberships: [],
-          input: input,
-          inviter: loggedInUser,
-          orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
-          orgSlug: null,
-          team: teamFromDb,
-        });
+        expect(inviteMemberUtilsMock.handleExistingUsersInvites).not.toHaveBeenCalled();
 
+        expect(inviteMemberUtilsMock.getUniqueInvitationsOrThrowIfEmpty).toHaveBeenCalledWith([
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[0].email,
+          },
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[1].email,
+          },
+        ]);
         // Assert the result
         expect(result).toEqual({
           ...input,
@@ -208,7 +192,7 @@ describe("inviteMemberHandler", () => {
     });
 
     describe("with 2 emails in input and when there is one user matching the email", () => {
-      it("should call appropriate utilities to send email, add users and update in stripe. It should return `numUsersInvited=2`", async () => {
+      it("should call appropriate utilities to add users and update in stripe. It should return `numUsersInvited=2`", async () => {
         const usersToBeInvited = [
           buildExistingUser({
             id: 1,
@@ -241,8 +225,19 @@ describe("inviteMemberHandler", () => {
           teamId: input.teamId,
         });
 
-        const retValueOfGetExistingUsersWithInviteStatus =
-          inviteMemberUtilsScenarios.getExistingUsersWithInviteStatus.useAdvancedMock(
+        const allExpectedInvitations = [
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[0].email,
+          },
+          {
+            role: input.role,
+            usernameOrEmail: usersToBeInvited[1].email,
+          },
+        ];
+
+        const retValueOffindUsersWithInviteStatus =
+          inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock(
             [
               {
                 ...usersToBeInvited[0],
@@ -251,16 +246,7 @@ describe("inviteMemberHandler", () => {
               },
             ],
             {
-              invitations: [
-                {
-                  newRole: input.role,
-                  usernameOrEmail: usersToBeInvited[0].email,
-                },
-                {
-                  newRole: input.role,
-                  usernameOrEmail: usersToBeInvited[1].email,
-                },
-              ],
+              invitations: allExpectedInvitations,
               team,
             }
           );
@@ -281,35 +267,19 @@ describe("inviteMemberHandler", () => {
           },
         };
 
-        expect(inviteMemberUtilsMock.createNewUsersConnectToOrgIfExists).toHaveBeenCalledWith({
+        expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
+          invitationsForNewUsers: allExpectedInvitations.slice(1),
+          team: retValueOfGetTeamOrThrowError,
+          orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
+          input,
+          inviter: loggedInUser,
           autoAcceptEmailDomain: null,
-          connectionInfoMap: expectedConnectionInfoMap,
-          invitations: [
-            {
-              usernameOrEmail: usersToBeInvited[1].email,
-              role: input.role,
-            },
-          ],
-          isOrg: false,
-          parentId: null,
-          teamId: input.teamId,
-        });
-
-        inviteMemberUtilsExpects.expectSignupEmailsToBeSent({
-          emails: [usersToBeInvited[1].email],
-          team: {
-            name: team.name,
-            parent: team.parent,
-          },
-          inviterName: loggedInUser.name as string,
-          teamId: 1,
-          isOrg: false,
         });
 
         expect(paymentsMock.updateQuantitySubscriptionFromStripe).toHaveBeenCalledWith(input.teamId);
 
         expect(inviteMemberUtilsMock.handleExistingUsersInvites).toHaveBeenCalledWith({
-          existingUsersWithMemberships: retValueOfGetExistingUsersWithInviteStatus,
+          invitableExistingUsers: retValueOffindUsersWithInviteStatus,
           input: input,
           inviter: loggedInUser,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
@@ -352,7 +322,7 @@ describe("inviteMemberHandler", () => {
         teamId: input.teamId,
       });
 
-      inviteMemberUtilsScenarios.getExistingUsersWithInviteStatus.useAdvancedMock(
+      inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock(
         [
           {
             ...userToBeInvited,

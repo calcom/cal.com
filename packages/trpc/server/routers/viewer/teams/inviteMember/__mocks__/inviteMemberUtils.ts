@@ -1,8 +1,6 @@
 import { beforeEach, vi, expect } from "vitest";
 import { mockReset, mockDeep } from "vitest-mock-extended";
 
-import type { MembershipRole } from "@calcom/prisma/enums";
-
 import type * as inviteMemberUtils from "../utils";
 
 vi.mock("../utils", async () => {
@@ -64,18 +62,17 @@ export const inviteMemberutilsScenarios = {
       );
     },
   },
-  getExistingUsersWithInviteStatus: {
+  findUsersWithInviteStatus: {
     useAdvancedMock: function (
-      returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.getExistingUsersWithInviteStatus>>,
+      returnVal: Awaited<ReturnType<typeof inviteMemberUtilsMock.findUsersWithInviteStatus>>,
       forInput: {
         team: any;
         invitations: {
-          newRole: MembershipRole;
           usernameOrEmail: string;
         }[];
       }
     ) {
-      inviteMemberUtilsMock.getExistingUsersWithInviteStatus.mockImplementation(({ invitations, team }) => {
+      inviteMemberUtilsMock.findUsersWithInviteStatus.mockImplementation(({ invitations, team }) => {
         const allInvitationsExist = invitations.every((invitation) =>
           forInput.invitations.find((i) => i.usernameOrEmail === invitation.usernameOrEmail)
         );

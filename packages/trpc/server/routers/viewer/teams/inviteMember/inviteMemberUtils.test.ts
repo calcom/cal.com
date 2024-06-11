@@ -1,7 +1,7 @@
 import { describe, it, vi, expect } from "vitest";
 
 import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -28,6 +28,7 @@ vi.mock("@calcom/lib/server/queries", () => {
 vi.mock("@calcom/lib/server/queries/organisations", () => {
   return {
     isOrganisationAdmin: vi.fn(),
+    isOrganisationOwner: vi.fn(),
   };
 });
 
@@ -126,29 +127,54 @@ describe("Invite Member Utils", () => {
   describe("checkPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
-      await expect(checkPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow();
+      await expect(
+        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: false })
+      ).rejects.toThrow("UNAUTHORIZED");
     });
+
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(checkPermissions({ userId: 1, teamId: 1, isOrg: true })).resolves.not.toThrow();
+      await expect(
+        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: false })
+      ).resolves.not.toThrow();
     });
+
     it("It should throw an error if the user is not an admin of the team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(checkPermissions({ userId: 1, teamId: 1 })).rejects.toThrow();
+      await expect(checkPermissions({ userId: 1, teamId: 1, isNewRoleOwner: false })).rejects.toThrow(
+        "UNAUTHORIZED"
+      );
     });
+
     it("It should NOT throw an error if the user is an admin of a team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(checkPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
+      await expect(checkPermissions({ userId: 1, teamId: 1, isNewRoleOwner: false })).resolves.not.toThrow();
+    });
+
+    it("should throw error if isNewRoleOwner is true but user is not owner", async () => {
+      vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
+      vi.mocked(isOrganisationOwner).mockResolvedValue(false);
+
+      await expect(
+        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: true })
+      ).rejects.toThrow("UNAUTHORIZED");
     });
   });
+
   describe("getUniqueInvitationsOrThrowIfEmpty", () => {
     it("should throw a TRPCError with code BAD_REQUEST if no emails are provided", async () => {
       await expect(getUniqueInvitationsOrThrowIfEmpty([])).rejects.toThrow(TRPCError);
     });
 
     it("should return an array with multiple emails if an array is provided", async () => {
-      const result = await getUniqueInvitationsOrThrowIfEmpty(["test1@example.com", "test2@example.com"]);
-      expect(result).toEqual(["test1@example.com", "test2@example.com"]);
+      const result = await getUniqueInvitationsOrThrowIfEmpty([
+        { usernameOrEmail: "test1@example.com", role: MembershipRole.MEMBER },
+        { usernameOrEmail: "test2@example.com", role: MembershipRole.MEMBER },
+      ]);
+      expect(result).toEqual([
+        { usernameOrEmail: "test1@example.com", role: MembershipRole.MEMBER },
+        { usernameOrEmail: "test2@example.com", role: MembershipRole.MEMBER },
+      ]);
     });
   });
   describe("checkInputEmailIsValid", () => {
@@ -167,13 +193,13 @@ describe("Invite Member Utils", () => {
   });
   describe("getOrgConnectionInfo", () => {
     const orgAutoAcceptDomain = "example.com";
-    const usersEmail = "user@example.com";
+    const email = "user@example.com";
 
-    it("should return autoAccept:false when orgVerified is false even if usersEmail domain matches orgAutoAcceptDomain", () => {
+    it("should return autoAccept:false when orgVerified is false even if email domain matches orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: false,
-        usersEmail,
+        email,
         team: {
           ...mockedRegularTeam,
           parentId: 2,
@@ -183,11 +209,11 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual({ orgId: 2, autoAccept: false });
     });
 
-    it("should return orgId and autoAccept as false if team has parent and usersEmail domain does not match orgAutoAcceptDomain", () => {
+    it("should return orgId and autoAccept as false if team has parent and email domain does not match orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: true,
-        usersEmail: "user@other.com",
+        email: "user@other.com",
         team: {
           ...mockedRegularTeam,
           parentId: 2,
@@ -197,33 +223,33 @@ describe("Invite Member Utils", () => {
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
     });
 
-    it("should return orgId and autoAccept as true if team has no parent and isOrg is true and usersEmail domain matches orgAutoAcceptDomain", () => {
+    it("should return orgId and autoAccept as true if team has no parent and isOrg is true and email domain matches orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: true,
-        usersEmail,
+        email,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
       expect(result).toEqual({ orgId: 1, autoAccept: true });
     });
 
-    it("should return orgId and autoAccept as false if team has no parent and isOrg is true and usersEmail domain does not match orgAutoAcceptDomain", () => {
+    it("should return orgId and autoAccept as false if team has no parent and isOrg is true and email domain does not match orgAutoAcceptDomain", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: false,
-        usersEmail: "user@other.com",
+        email: "user@other.com",
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
       expect(result).toEqual({ orgId: undefined, autoAccept: false });
     });
 
-    it("should return orgId and autoAccept as false if team has no parent and isOrg is true and usersEmail domain matches orgAutoAcceptDomain but orgVerified is false", () => {
+    it("should return orgId and autoAccept as false if team has no parent and isOrg is true and email domain matches orgAutoAcceptDomain but orgVerified is false", () => {
       const result = getOrgConnectionInfo({
         orgAutoAcceptDomain,
         orgVerified: false,
-        usersEmail,
+        email,
         team: { ...mockedRegularTeam, parentId: null },
         isOrg: true,
       });
