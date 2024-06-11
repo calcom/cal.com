@@ -22,8 +22,6 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     identifier: `createPhoneCall:${ctx.user.id}`,
   });
 
-  // Add check event type belongs to user and Your Phone Number belongs to user
-
   const {
     yourPhoneNumber,
     numberToCall,
@@ -80,10 +78,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     },
   });
 
-  let llmWebSocketUrlToBeUpdated = null;
-
   if (!aiPhoneCallConfig.llmId) {
-    const createdRetellLLM = await retellAI.createRetellLLM();
+    const createdRetellLLM = await retellAI.createRetellLLMAndWebsocketUrl();
 
     await ctx.prisma.aIPhoneCallConfiguration.update({
       where: {
@@ -93,27 +89,16 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
         llmId: createdRetellLLM.llm_id,
       },
     });
-
-    llmWebSocketUrlToBeUpdated = createdRetellLLM.llm_websocket_url;
   } else {
     const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId);
 
     if (retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage) {
-      const updatedRetellLLM = await retellAI.updatedRetellLLM(aiPhoneCallConfig.llmId);
+      const updatedRetellLLM = await retellAI.updatedRetellLLMAndWebsocketUrl(aiPhoneCallConfig.llmId);
       logger.debug("updated Retell LLM", updatedRetellLLM);
-      llmWebSocketUrlToBeUpdated = updatedRetellLLM.llm_websocket_url;
     }
   }
 
-  if (llmWebSocketUrlToBeUpdated) {
-    const getPhoneNumberDetails = await retellAI.getPhoneNumberDetails();
-    const updated = await retellAI.updateAgent(getPhoneNumberDetails.agent_id, llmWebSocketUrlToBeUpdated);
-
-    logger.debug("updated Retell Agent", updated);
-  }
-
   const createPhoneCallRes = await retellAI.createRetellPhoneCall(numberToCall);
-
   logger.debug("Create Call Response", createPhoneCallRes);
 
   return createPhoneCallRes;

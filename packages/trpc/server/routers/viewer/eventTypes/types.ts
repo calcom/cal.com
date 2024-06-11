@@ -17,6 +17,7 @@ export const EventTypeUpdateInput = _EventTypeModel
         numberToCall: z.string().default(""),
         guestName: z
           .string()
+          .nullable()
           .optional()
           .transform((val) => (!!val ? val : undefined)),
         guestEmail: z.string().nullable().default(null),

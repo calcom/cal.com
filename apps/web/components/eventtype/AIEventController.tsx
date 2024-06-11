@@ -34,7 +34,7 @@ type AIEventControllerProps = {
 export default function AIEventController({ eventType, isTeamEvent }: AIEventControllerProps) {
   const { t } = useLocale();
   const session = useSession();
-  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.aiPhoneCallConfig?.enabled ?? true);
+  const [aiEventState, setAIEventState] = useState<boolean>(eventType?.aiPhoneCallConfig?.enabled ?? false);
   const formMethods = useFormContext<FormValues>();
 
   const isOrg = !!session.data?.user?.org?.id;
@@ -170,15 +170,17 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         calApiKey,
       });
 
-      // createCallMutation.mutate(data);
+      createCallMutation.mutate(data);
     } catch (err) {
       if (err instanceof z.ZodError) {
         const fieldName = err.issues?.[0]?.path?.[0];
         const message = err.issues?.[0]?.message;
         showToast(`Error on ${fieldName}: ${message} `, "error");
+
         const issues = err.issues;
         for (const issue of issues) {
-          formMethods.setError(`aiPhoneCallConfig.${issue.path[0]}`, {
+          const fieldName = `aiPhoneCallConfig.${issue.path[0]}` as unknown as keyof FormValues;
+          formMethods.setError(fieldName, {
             type: "custom",
             message: issue.message,
           });

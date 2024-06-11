@@ -52,9 +52,9 @@ export type Event = {
     beginMessage: string | null;
     yourPhoneNumber: string;
     numberToCall: string;
-    guestName: string;
-    guestEmail: string;
-    guestCompany: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestCompany?: string;
     templateType: string;
     schedulerName?: string;
   };

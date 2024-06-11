@@ -1,6 +1,5 @@
 import type { Prisma } from "@prisma/client";
 import type { UnitTypeLongPlural } from "dayjs";
-import { isValidPhoneNumber } from "libphonenumber-js";
 import type { TFunction } from "next-i18next";
 import z, { ZodNullable, ZodObject, ZodOptional } from "zod";
 import type {
@@ -701,64 +700,3 @@ export const bookingSeatDataSchema = z.object({
   description: z.string().optional(),
   responses: bookingResponses,
 });
-
-export const AIPhoneSettingSchema = z.object({
-  yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
-  numberToCall: z.string().refine((val) => isValidPhoneNumber(val)),
-  guestName: z.string().trim().min(1, {
-    message: "Please enter Guest Name",
-  }),
-  guestEmail: z.string().email().nullable().optional(),
-  guestCompany: z.string().nullable().optional(),
-  generalPrompt: z.string().trim().min(1, {
-    message: "Please enter prompt",
-  }),
-  beginMessage: z.string().nullable(),
-  eventTypeId: z.number(),
-  calApiKey: z.string().trim().min(1, {
-    message: "Please enter CAL API Key",
-  }),
-});
-
-export const getRetellLLMSchema = z
-  .object({
-    general_prompt: z.string(),
-    begin_message: z.string().nullable(),
-    llm_id: z.string(),
-    llm_websocket_url: z.string(),
-    general_tools: z.array(
-      z
-        .object({
-          name: z.string(),
-          type: z.string(),
-          cal_api_key: z.string().optional(),
-          event_type_id: z.number().optional(),
-          timezone: z.string().optional(),
-        })
-        .passthrough()
-    ),
-    states: z
-      .array(
-        z
-          .object({
-            name: z.string(),
-            tools: z.array(
-              z
-                .object({
-                  name: z.string(),
-                  type: z.string(),
-                  cal_api_key: z.string().optional(),
-                  event_type_id: z.number().optional(),
-                  timezone: z.string().optional(),
-                })
-                .passthrough()
-            ),
-          })
-          .passthrough()
-      )
-      .nullable()
-      .optional(),
-  })
-  .passthrough();
-
-export type TGetRetellLLMSchema = z.infer<typeof getRetellLLMSchema>;

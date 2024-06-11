@@ -1,6 +1,8 @@
 import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { handleErrorsJson } from "@calcom/lib/errors";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import type {
   TCreateRetellLLMSchema,
@@ -17,6 +19,8 @@ import {
   ZGetPhoneNumberSchema,
 } from "./zod-utils";
 
+const log = logger.getSubLogger({ prefix: ["retellAIRepository"] });
+
 export const fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
   return fetch(`https://api.retellai.com${endpoint}`, {
     method: "GET",
@@ -30,11 +34,11 @@ export const fetcher = async (endpoint: string, init?: RequestInit | undefined) 
 };
 
 interface RetellAIRepositoryInterface {
-  createRetellLLM(): Promise<TCreateRetellLLMSchema>;
+  createRetellLLMAndWebsocketUrl(): Promise<TCreateRetellLLMSchema>;
   getRetellLLM(llmId: string): Promise<TGetRetellLLMSchema>;
-  updatedRetellLLM(llmId: string): Promise<TGetRetellLLMSchema>;
+  updatedRetellLLMAndWebsocketUrl(llmId: string): Promise<TGetRetellLLMSchema>;
   getPhoneNumberDetails(): Promise<TGetPhoneNumberSchema>;
-  updateAgent(agentId: string, llmWebsocketUrl: string): Promise<void>;
+  updateAgentWebsocketUrl(agentId: string, llmWebsocketUrl: string): Promise<void>;
   createRetellPhoneCall(numberToCall: string): Promise<TCreatePhoneSchema>;
 }
 
@@ -81,7 +85,7 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
     this.beginMessage = beginMessage;
   }
 
-  async createRetellLLM(): Promise<TCreateRetellLLMSchema> {
+  async createRetellLLMAndWebsocketUrl(): Promise<TCreateRetellLLMSchema> {
     try {
       const generalPrompt = PROMPT_TEMPLATES[this.templateType].generalPrompt;
 
@@ -115,8 +119,13 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
         }),
       }).then(ZCreateRetellLLMSchema.parse);
 
+      const llmWebSocketUrlToBeUpdated = createdRetellLLM.llm_websocket_url;
+      const updated = await this.updateAgentWebsocketUrl(llmWebSocketUrlToBeUpdated);
+      logger.debug("updated Retell Agent", updated);
+
       return Promise.resolve(createdRetellLLM);
     } catch (error) {
+      log.error("Unable to Create Retell LLM", safeStringify(error));
       throw new Error("Something went wrong! Unable to Create Retell LLM");
     }
   }
@@ -127,11 +136,12 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
 
       return Promise.resolve(retellLLM);
     } catch (err) {
-      throw new Error("Something went wrong! Unable to Create Retell LLM");
+      log.error("Unable to get Retell LLM", safeStringify(err));
+      throw new Error("Something went wrong! Unable to get Retell LLM");
     }
   }
 
-  async updatedRetellLLM(llmId: string): Promise<TGetRetellLLMSchema> {
+  async updatedRetellLLMAndWebsocketUrl(llmId: string): Promise<TGetRetellLLMSchema> {
     try {
       const generalPrompt = PROMPT_TEMPLATES[this.templateType].generalPrompt;
 
@@ -144,8 +154,13 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
         }),
       }).then(ZGetRetellLLMSchema.parse);
 
+      const llmWebSocketUrlToBeUpdated = updatedRetellLLM.llm_websocket_url;
+      const updated = await this.updateAgentWebsocketUrl(llmWebSocketUrlToBeUpdated);
+      logger.debug("updated Retell Agent", updated);
+
       return Promise.resolve(updatedRetellLLM);
     } catch (err) {
+      log.error("Unable to Update Retell LLM", safeStringify(err));
       throw new Error("Something went wrong! Unable to Update Retell LLM");
     }
   }
@@ -158,19 +173,22 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
 
       return Promise.resolve(getPhoneNumberDetails);
     } catch (err) {
+      log.error("Unable to Get Phone number", safeStringify(err));
       throw new Error("Something went wrong! Unable to Get Phone number");
     }
   }
 
-  async updateAgent(agentId: string, llmWebsocketUrl: string): Promise<void> {
+  async updateAgentWebsocketUrl(llmWebsocketUrl: string): Promise<void> {
     try {
-      const updated = await fetcher(`/update-agent/${agentId}`, {
+      const phoneNumberDetails = await this.getPhoneNumberDetails();
+      const updated = await fetcher(`/update-agent/${phoneNumberDetails.agent_id}`, {
         method: "PATCH",
         body: JSON.stringify({
           llm_websocket_url: llmWebsocketUrl,
         }),
       });
     } catch (err) {
+      log.error("Unable to Update Agent", safeStringify(err));
       throw new Error("Something went wrong! Unable to Update Agent");
     }
   }
@@ -192,6 +210,7 @@ export class RetellAIRepository implements RetellAIRepositoryInterface {
 
       return Promise.resolve(createPhoneCallRes);
     } catch (err) {
+      log.error("Unable to Get Phone number", safeStringify(err));
       throw new Error("Something went wrong! Unable to Get Phone number");
     }
   }
