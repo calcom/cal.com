@@ -593,7 +593,6 @@ describe("getSchedule", () => {
     });
 
     test("minimumBookingNotice is respected", async () => {
-      console.log("testing logs 89898");
       await createBookingScenario({
         eventTypes: [
           {
@@ -643,11 +642,6 @@ describe("getSchedule", () => {
         },
       });
 
-      console.log(
-        "123 scheduleForEventWithBookingNotice13Hrs",
-        JSON.stringify(scheduleForEventWithBookingNotice13Hrs, null, 2)
-      );
-
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
           /*`04:00:00.000Z`, `06:00:00.000Z`, - Minimum time slot is 07:30 UTC which is 13hrs from 18:30*/
@@ -676,10 +670,6 @@ describe("getSchedule", () => {
           `05:00:00.000Z`,
           `07:00:00.000Z`,
           `09:00:00.000Z`,
-          // `04:30:00.000Z`,
-          // `06:30:00.000Z`,
-          // `08:30:00.000Z`,
-          // `10:30:00.000Z`,
         ],
         {
           dateString: todayDateString,

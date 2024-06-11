@@ -619,13 +619,16 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
+  const seatsMinimumBookingNoticeActive = !!(
+    eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice
+  );
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
-    minimumBookingNotice: eventType.minimumBookingNotice,
-    seatsMinimumBookingNoticeActive: !!(eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice),
+    minimumBookingNotice: seatsMinimumBookingNoticeActive ? 0 : eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,

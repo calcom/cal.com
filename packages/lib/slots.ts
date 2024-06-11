@@ -18,7 +18,6 @@ export type GetSlots = {
   offsetStart?: number;
   organizerTimeZone: string;
   datesOutOfOffice?: IOutOfOfficeData;
-  seatsMinimumBookingNoticeActive?: boolean;
 };
 export type TimeFrame = { userIds?: number[]; startTime: number; endTime: number };
 
@@ -264,7 +263,6 @@ const getSlots = ({
   offsetStart = 0,
   organizerTimeZone,
   datesOutOfOffice,
-  seatsMinimumBookingNoticeActive = false,
 }: GetSlots) => {
   if (dateRanges) {
     const slots = buildSlotsWithDateRanges({
@@ -272,7 +270,7 @@ const getSlots = ({
       frequency,
       eventLength,
       timeZone: getTimeZone(inviteeDate),
-      minimumBookingNotice: seatsMinimumBookingNoticeActive ? 0 : minimumBookingNotice,
+      minimumBookingNotice,
       organizerTimeZone,
       offsetStart,
       datesOutOfOffice,
