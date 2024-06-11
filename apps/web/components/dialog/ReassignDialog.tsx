@@ -91,7 +91,7 @@ export const ReassignDialog = ({
     onSuccess: async () => {
       await utils.viewer.bookings.get.invalidate();
       setIsOpenDialog(false);
-      showToast("Reassigned successfully");
+      showToast(t("booking_reassigned"), "success");
     },
   });
 
