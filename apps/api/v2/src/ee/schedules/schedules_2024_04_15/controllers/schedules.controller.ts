@@ -1,11 +1,11 @@
-import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
-import { DeleteScheduleOutput } from "@/ee/schedules/outputs/delete-schedule.output";
-import { GetDefaultScheduleOutput } from "@/ee/schedules/outputs/get-default-schedule.output";
-import { GetScheduleOutput } from "@/ee/schedules/outputs/get-schedule.output";
-import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
-import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
+import { DeleteScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/delete-schedule.output";
+import { GetDefaultScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-default-schedule.output";
+import { GetScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedule.output";
+import { GetSchedulesOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedules.output";
+import { UpdateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/update-schedule.output";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -29,23 +29,23 @@ import { Throttle } from "@nestjs/throttler";
 import { SCHEDULE_READ, SCHEDULE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
-import { CreateScheduleInput } from "../inputs/create-schedule.input";
+import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input";
 
 @Controller({
   path: "/v2/schedules",
-  version: API_VERSIONS_VALUES,
+  version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")
-export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) {}
+export class SchedulesController_2024_04_15 {
+  constructor(private readonly schedulesService: SchedulesService_2024_04_15) {}
 
   @Post("/")
   @Permissions([SCHEDULE_WRITE])
   async createSchedule(
     @GetUser() user: UserWithProfile,
-    @Body() bodySchedule: CreateScheduleInput
-  ): Promise<CreateScheduleOutput> {
+    @Body() bodySchedule: CreateScheduleInput_2024_04_15
+  ): Promise<CreateScheduleOutput_2024_04_15> {
     const schedule = await this.schedulesService.createUserSchedule(user.id, bodySchedule);
     const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
@@ -57,8 +57,14 @@ export class SchedulesController {
 
   @Get("/default")
   @Permissions([SCHEDULE_READ])
-  @ApiResponse({ status: 200, description: "Returns the default schedule", type: GetDefaultScheduleOutput })
-  async getDefaultSchedule(@GetUser() user: UserWithProfile): Promise<GetDefaultScheduleOutput | null> {
+  @ApiResponse({
+    status: 200,
+    description: "Returns the default schedule",
+    type: GetDefaultScheduleOutput_2024_04_15,
+  })
+  async getDefaultSchedule(
+    @GetUser() user: UserWithProfile
+  ): Promise<GetDefaultScheduleOutput_2024_04_15 | null> {
     const schedule = await this.schedulesService.getUserScheduleDefault(user.id);
     const scheduleFormatted = schedule
       ? await this.schedulesService.formatScheduleForAtom(user, schedule)
@@ -76,7 +82,7 @@ export class SchedulesController {
   async getSchedule(
     @GetUser() user: UserWithProfile,
     @Param("scheduleId") scheduleId: number
-  ): Promise<GetScheduleOutput> {
+  ): Promise<GetScheduleOutput_2024_04_15> {
     const schedule = await this.schedulesService.getUserSchedule(user.id, scheduleId);
     const scheduleFormatted = await this.schedulesService.formatScheduleForAtom(user, schedule);
 
@@ -88,7 +94,7 @@ export class SchedulesController {
 
   @Get("/")
   @Permissions([SCHEDULE_READ])
-  async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput> {
+  async getSchedules(@GetUser() user: UserWithProfile): Promise<GetSchedulesOutput_2024_04_15> {
     const schedules = await this.schedulesService.getUserSchedules(user.id);
     const schedulesFormatted = await this.schedulesService.formatSchedulesForAtom(user, schedules);
 
@@ -105,7 +111,7 @@ export class SchedulesController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateScheduleInput_2024_04_15,
     @Param("scheduleId") scheduleId: string
-  ): Promise<UpdateScheduleOutput> {
+  ): Promise<UpdateScheduleOutput_2024_04_15> {
     const updatedSchedule = await this.schedulesService.updateUserSchedule(
       user,
       Number(scheduleId),
@@ -124,7 +130,7 @@ export class SchedulesController {
   async deleteSchedule(
     @GetUser("id") userId: number,
     @Param("scheduleId") scheduleId: number
-  ): Promise<DeleteScheduleOutput> {
+  ): Promise<DeleteScheduleOutput_2024_04_15> {
     await this.schedulesService.deleteUserSchedule(userId, scheduleId);
 
     return {

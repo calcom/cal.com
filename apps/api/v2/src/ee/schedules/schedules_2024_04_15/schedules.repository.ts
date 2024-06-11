@@ -1,18 +1,18 @@
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { CreateAvailabilityInput } from "@/modules/availabilities/inputs/create-availability.input";
+import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
 @Injectable()
-export class SchedulesRepository {
+export class SchedulesRepository_2024_04_15 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createScheduleWithAvailabilities(
     userId: number,
-    schedule: CreateScheduleInput,
-    availabilities: CreateAvailabilityInput[]
+    schedule: CreateScheduleInput_2024_04_15,
+    availabilities: CreateAvailabilityInput_2024_04_15[]
   ) {
     const createScheduleData: Prisma.ScheduleCreateInput = {
       user: {

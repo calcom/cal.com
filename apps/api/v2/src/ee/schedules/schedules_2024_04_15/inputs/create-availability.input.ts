@@ -3,7 +3,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
 import { IsArray, IsDate, IsNumber } from "class-validator";
 
-export class CreateAvailabilityInput {
+export class CreateAvailabilityInput_2024_04_15 {
   @IsArray()
   @IsNumber({}, { each: true })
   @ApiProperty({ example: [1, 2] })

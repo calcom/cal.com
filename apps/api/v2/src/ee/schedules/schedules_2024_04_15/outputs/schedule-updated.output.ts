@@ -1,7 +1,7 @@
 import { Type } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString, ValidateNested, IsArray } from "class-validator";
 
-class EventTypeModel {
+class EventTypeModel_2024_04_15 {
   @IsInt()
   id!: number;
 
@@ -10,7 +10,7 @@ class EventTypeModel {
   eventName?: string | null;
 }
 
-class AvailabilityModel {
+class AvailabilityModel_2024_04_15 {
   @IsInt()
   id!: number;
 
@@ -46,7 +46,7 @@ class AvailabilityModel {
   date?: Date | null;
 }
 
-class ScheduleModel {
+class ScheduleModel_2024_04_15 {
   @IsInt()
   id!: number;
 
@@ -62,21 +62,21 @@ class ScheduleModel {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => EventTypeModel)
+  @Type(() => EventTypeModel_2024_04_15)
   @IsArray()
-  eventType?: EventTypeModel[];
+  eventType?: EventTypeModel_2024_04_15[];
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => AvailabilityModel)
+  @Type(() => AvailabilityModel_2024_04_15)
   @IsArray()
-  availability?: AvailabilityModel[];
+  availability?: AvailabilityModel_2024_04_15[];
 }
 
-export class UpdatedScheduleOutput {
+export class UpdatedScheduleOutput_2024_04_15 {
   @ValidateNested()
-  @Type(() => ScheduleModel)
-  schedule!: ScheduleModel;
+  @Type(() => ScheduleModel_2024_04_15)
+  schedule!: ScheduleModel_2024_04_15;
 
   @IsBoolean()
   isDefault!: boolean;

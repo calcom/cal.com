@@ -1,7 +1,7 @@
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { ScheduleOutput } from "@/ee/schedules/outputs/schedule.output";
-import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { AvailabilitiesService } from "@/modules/availabilities/availabilities.service";
+import { CreateAvailabilityInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-availability.input";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { ScheduleOutput } from "@/ee/schedules/schedules_2024_04_15/outputs/schedule.output";
+import { SchedulesRepository_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 import { Schedule } from "@prisma/client";
@@ -17,10 +17,9 @@ import {
 import { UpdateScheduleInput_2024_04_15 } from "@calcom/platform-types";
 
 @Injectable()
-export class SchedulesService {
+export class SchedulesService_2024_04_15 {
   constructor(
-    private readonly schedulesRepository: SchedulesRepository,
-    private readonly availabilitiesService: AvailabilitiesService,
+    private readonly schedulesRepository: SchedulesRepository_2024_04_15,
     private readonly usersRepository: UsersRepository
   ) {}
 
@@ -34,10 +33,10 @@ export class SchedulesService {
     return this.createUserSchedule(userId, schedule);
   }
 
-  async createUserSchedule(userId: number, schedule: CreateScheduleInput) {
+  async createUserSchedule(userId: number, schedule: CreateScheduleInput_2024_04_15) {
     const availabilities = schedule.availabilities?.length
       ? schedule.availabilities
-      : [this.availabilitiesService.getDefaultAvailabilityInput()];
+      : [this.getDefaultAvailabilityInput()];
 
     const createdSchedule = await this.schedulesRepository.createScheduleWithAvailabilities(
       userId,
@@ -161,5 +160,16 @@ export class SchedulesService {
     if (userId !== schedule.userId) {
       throw new ForbiddenException(`User with ID=${userId} does not own schedule with ID=${schedule.id}`);
     }
+  }
+
+  getDefaultAvailabilityInput(): CreateAvailabilityInput_2024_04_15 {
+    const startTime = new Date(new Date().setUTCHours(9, 0, 0, 0));
+    const endTime = new Date(new Date().setUTCHours(17, 0, 0, 0));
+
+    return {
+      days: [1, 2, 3, 4, 5],
+      startTime,
+      endTime,
+    };
   }
 }

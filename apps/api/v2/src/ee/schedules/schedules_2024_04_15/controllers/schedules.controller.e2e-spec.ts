@@ -1,12 +1,11 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { CreateScheduleOutput } from "@/ee/schedules/outputs/create-schedule.output";
-import { GetSchedulesOutput } from "@/ee/schedules/outputs/get-schedules.output";
-import { UpdateScheduleOutput } from "@/ee/schedules/outputs/update-schedule.output";
-import { SchedulesModule } from "@/ee/schedules/schedules.module";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { CreateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/create-schedule.output";
+import { GetSchedulesOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/get-schedules.output";
+import { UpdateScheduleOutput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/outputs/update-schedule.output";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -32,7 +31,7 @@ describe("Schedules Endpoints", () => {
     const userEmail = "schedules-controller-e2e@api.com";
     let user: User;
 
-    let createdSchedule: CreateScheduleOutput["data"];
+    let createdSchedule: CreateScheduleOutput_2024_04_15["data"];
     const defaultAvailabilityDays = [1, 2, 3, 4, 5];
     const defaultAvailabilityStartTime = "1970-01-01T09:00:00.000Z";
     const defaultAvailabilityEndTime = "1970-01-01T17:00:00.000Z";
@@ -41,14 +40,7 @@ describe("Schedules Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [
-            AppModule,
-            PrismaModule,
-            AvailabilitiesModule,
-            UsersModule,
-            TokensModule,
-            SchedulesModule,
-          ],
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -79,7 +71,7 @@ describe("Schedules Endpoints", () => {
       const scheduleTimeZone = "Europe/Rome";
       const isDefault = true;
 
-      const body: CreateScheduleInput = {
+      const body: CreateScheduleInput_2024_04_15 = {
         name: scheduleName,
         timeZone: scheduleTimeZone,
         isDefault,
@@ -90,7 +82,7 @@ describe("Schedules Endpoints", () => {
         .send(body)
         .expect(201)
         .then(async (response) => {
-          const responseData: CreateScheduleOutput = response.body;
+          const responseData: CreateScheduleOutput_2024_04_15 = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
           expect(responseData.data).toBeDefined();
           expect(responseData.data.isDefault).toEqual(isDefault);
@@ -117,7 +109,7 @@ describe("Schedules Endpoints", () => {
         .get("/api/v2/schedules/default")
         .expect(200)
         .then(async (response) => {
-          const responseData: CreateScheduleOutput = response.body;
+          const responseData: CreateScheduleOutput_2024_04_15 = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
           expect(responseData.data).toBeDefined();
           expect(responseData.data.id).toEqual(createdSchedule.id);
@@ -137,7 +129,7 @@ describe("Schedules Endpoints", () => {
         .get(`/api/v2/schedules`)
         .expect(200)
         .then((response) => {
-          const responseData: GetSchedulesOutput = response.body;
+          const responseData: GetSchedulesOutput_2024_04_15 = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
           expect(responseData.data).toBeDefined();
           expect(responseData.data?.[0].id).toEqual(createdSchedule.id);
@@ -164,7 +156,7 @@ describe("Schedules Endpoints", () => {
         .send(body)
         .expect(200)
         .then((response: any) => {
-          const responseData: UpdateScheduleOutput = response.body;
+          const responseData: UpdateScheduleOutput_2024_04_15 = response.body;
           expect(responseData.status).toEqual(SUCCESS_STATUS);
           expect(responseData.data).toBeDefined();
           expect(responseData.data.schedule.name).toEqual(newScheduleName);
