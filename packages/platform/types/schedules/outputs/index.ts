@@ -1,5 +1,5 @@
 export * from "./schedule.output";
-export * from "./get-schedule.output.ts";
+export * from "./get-schedule.output";
 export * from "./get-schedules.output";
 export * from "./get-default-schedule.output";
 export * from "./create-schedule.output";
