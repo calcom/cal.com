@@ -29,7 +29,7 @@ import { getTranscriptFromRecordingId } from "~/lib/validations/shared/queryIdTr
  *         schema:
  *           type: string
  *         required: true
- *         description: ID of the rocording for which transcripts need to be fetched.
+ *         description: ID of the recording(daily.co recording id) for which transcripts need to be fetched.
  *       - in: query
  *         name: apiKey
  *         required: true
