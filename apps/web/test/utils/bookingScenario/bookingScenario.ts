@@ -295,11 +295,17 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
       eventType.users?.map((userWithJustId) => {
         return usersStore.find((user) => user.id === userWithJustId.id);
       }) || [];
+    const hosts =
+      eventType.users?.map((host) => {
+        const user = usersStore.find((user) => user.id === host.id);
+        return { ...host, user };
+      }) || [];
     return {
       ...baseEventType,
       ...eventType,
       workflows: [],
       users,
+      hosts,
       destinationCalendar: eventType.destinationCalendar
         ? {
             create: eventType.destinationCalendar,
@@ -367,7 +373,7 @@ async function addBookingsToDb(
   );
 }
 
-async function addBookings(bookings: InputBooking[]) {
+export async function addBookings(bookings: InputBooking[]) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
@@ -488,24 +494,28 @@ export async function addUsersToDb(
     data: users,
   });
 
+  const allUsers = await prismock.user.findMany({
+    include: {
+      credentials: true,
+      teams: true,
+      profiles: true,
+      schedules: {
+        include: {
+          availability: true,
+        },
+      },
+      destinationCalendar: true,
+    },
+  });
+
   log.silly(
     "Added users to Db",
     safeStringify({
-      allUsers: await prismock.user.findMany({
-        include: {
-          credentials: true,
-          teams: true,
-          profiles: true,
-          schedules: {
-            include: {
-              availability: true,
-            },
-          },
-          destinationCalendar: true,
-        },
-      }),
+      allUsers,
     })
   );
+
+  return allUsers;
 }
 
 export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
@@ -529,7 +539,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
   return addedTeams;
 }
 
-async function addUsers(users: InputUser[]) {
+export async function addUsers(users: InputUser[]) {
   const prismaUsersCreate = [];
   for (let i = 0; i < users.length; i++) {
     const newUser = users[i];
@@ -600,7 +610,7 @@ async function addUsers(users: InputUser[]) {
   }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  await addUsersToDb(prismaUsersCreate);
+  return await addUsersToDb(prismaUsersCreate);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
