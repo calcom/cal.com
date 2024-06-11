@@ -44,7 +44,7 @@ export class PlatformOAuthClientDto {
   @IsNumber()
   organizationId!: number;
 
-  @ApiProperty({ example: new Date(), type: Date })
+  @ApiProperty({ example: "2024-03-23T08:33:21.851Z", type: Date })
   @IsDate()
   createdAt!: Date;
 }

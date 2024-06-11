@@ -19,7 +19,6 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     id: input.teamId,
     currentOrg: ctx.user.profile?.organization ?? null,
     userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
-    includeTeamLogo: input.includeTeamLogo,
     isOrgView: input?.isOrg,
   });
 
@@ -37,15 +36,27 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
   // Hide Members of team when 1) Org is private and logged in user is not admin or owner
   // OR
   // 2)Team is private and logged in user is not admin or owner of team or Organization's admin or owner
-  const hideMembers =
-    (ctx.user.profile?.organization?.isPrivate && !ctx.user.organization?.isOrgAdmin) ||
-    (team.isPrivate &&
-      !(membership.role === MembershipRole.OWNER || membership.role === MembershipRole.ADMIN) &&
-      !ctx.user.organization?.isOrgAdmin);
+  function shouldHideMembers() {
+    const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
+    const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
+    const isTargetingOrg = input.teamId === ctx.user.organizationId;
+
+    if (isTargetingOrg) {
+      return isOrgPrivate && !isOrgAdminOrOwner;
+    }
+
+    const isTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
+    if (team?.isPrivate && !isTeamAdminOrOwner && !isOrgAdminOrOwner) {
+      return true;
+    }
+    return false;
+  }
 
   return {
     ...restTeam,
-    members: hideMembers ? [] : members,
+    members: shouldHideMembers() ? [] : members,
     safeBio: markdownToSafeHTML(team.bio),
     membership: {
       role: membership.role,

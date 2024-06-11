@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
+import { IS_PRODUCTION } from "@calcom/lib/constants";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
@@ -79,12 +80,12 @@ import { schemaTeamCreateBodyParams, schemaTeamReadPublic } from "~/lib/validati
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { body, userId, isAdmin } = req;
+  const { body, userId, isSystemWideAdmin } = req;
   const { ownerId, ...data } = schemaTeamCreateBodyParams.parse(body);
 
   await checkPermissions(req);
 
-  const effectiveUserId = isAdmin && ownerId ? ownerId : userId;
+  const effectiveUserId = isSystemWideAdmin && ownerId ? ownerId : userId;
 
   if (data.slug) {
     const alreadyExist = await prisma.team.findFirst({
@@ -161,11 +162,11 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   const body = schemaTeamCreateBodyParams.parse(req.body);
 
   /* Non-admin users can only create teams for themselves */
-  if (!isAdmin && body.ownerId)
+  if (!isSystemWideAdmin && body.ownerId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `ownerId`",
@@ -197,8 +198,9 @@ const generateTeamCheckoutSession = async ({
     customer_update: {
       address: "auto",
     },
+    // Disabled when testing locally as usually developer doesn't setup Tax in Stripe Test mode
     automatic_tax: {
-      enabled: true,
+      enabled: IS_PRODUCTION,
     },
     metadata: {
       pendingPaymentTeamId,

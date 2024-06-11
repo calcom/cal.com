@@ -25,6 +25,7 @@ export interface IUseBookings {
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
+  teamMemberEmail?: string;
 }
 
 export interface IUseBookingLoadingStates {
@@ -39,7 +40,7 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
@@ -49,6 +50,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
   const bookingSuccessRedirect = useBookingSuccessRedirect();
   const bookerFormErrorRef = useRef<HTMLDivElement>(null);
   const [instantMeetingTokenExpiryTime, setExpiryTime] = useState<Date | undefined>();
+  const [instantVideoMeetingUrl, setInstantVideoMeetingUrl] = useState<string | undefined>();
   const duration = useBookerStore((state) => state.selectedDuration);
 
   const isRescheduling = !!rescheduleUid && !!bookingData;
@@ -71,14 +73,12 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
 
       if (!data) return;
       try {
-        showToast(t("something_went_wrong_on_our_end"), "error");
-
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
         )?.videoCallUrl;
 
         if (locationVideoCallUrl) {
-          router.push(locationVideoCallUrl);
+          setInstantVideoMeetingUrl(locationVideoCallUrl);
         } else {
           showToast(t("something_went_wrong_on_our_end"), "error");
         }
@@ -104,7 +104,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data?.length;
-
+      const eventPayload = {
+        uid: responseData.uid,
+        title: responseData.title,
+        startTime: responseData.startTime,
+        endTime: responseData.endTime,
+        eventTypeId: responseData.eventTypeId,
+        status: responseData.status,
+        paymentRequired: responseData.paymentRequired,
+      };
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
           booking: responseData,
@@ -118,6 +126,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", eventPayload);
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
           booking: responseData,
@@ -131,6 +140,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+
+        sdkActionManager?.fire("bookingSuccessfulV2", eventPayload);
       }
 
       if (paymentUid) {
@@ -164,6 +175,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
         booking: responseData,
+        forwardParamsSuccessRedirect:
+          event?.data?.forwardParamsSuccessRedirect === undefined
+            ? true
+            : event?.data?.forwardParamsSuccessRedirect,
       });
     },
     onError: (err, _, ctx) => {
@@ -213,6 +228,10 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
         booking,
+        forwardParamsSuccessRedirect:
+          event?.data?.forwardParamsSuccessRedirect === undefined
+            ? true
+            : event?.data?.forwardParamsSuccessRedirect,
       });
     },
   });
@@ -222,6 +241,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookingForm,
     hashedLink,
     metadata,
+    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
@@ -254,5 +274,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookerFormErrorRef,
     errors,
     loadingStates,
+    instantVideoMeetingUrl,
   };
 };

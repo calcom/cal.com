@@ -1,4 +1,3 @@
-import { InfoIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -30,15 +29,15 @@ import {
   Button,
   Badge,
   CheckboxField,
+  Icon,
   Label,
   SelectField,
   SettingsToggle,
-  showToast,
   Switch,
   TextField,
   Tooltip,
+  showToast,
 } from "@calcom/ui";
-import { Copy, Edit, Info } from "@calcom/ui/components/icon";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
@@ -66,6 +65,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     bookingFields[name] = `${name} input`;
   });
 
+  const nameBookingField = formMethods.getValues().bookingFields.find((field) => field.name === "name");
+  const isSplit = (nameBookingField && nameBookingField.variant === "firstAndLastName") ?? false;
+
   const eventNameObject: EventNameObjectType = {
     attendeeName: t("scheduler"),
     eventType: formMethods.getValues("title"),
@@ -80,6 +82,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
   const placeholderHashedLink = `${WEBSITE_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
+  const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
@@ -180,7 +183,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   aria-label="edit custom name"
                   className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
                   onClick={() => setShowEventNameTip((old) => !old)}>
-                  <Edit className="h-4 w-4" />
+                  <Icon name="pencil" className="h-4 w-4" />
                 </Button>
               }
             />
@@ -194,7 +197,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 label={
                   <>
                     {t("display_add_to_calendar_organizer")}
-                    <InfoIcon className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md" />
+                    <Icon
+                      name="info"
+                      className="text-default hover:text-attention hover:bg-attention ms-1 inline h-4 w-4 rounded-md"
+                    />
                   </>
                 }
                 checked={useEventTypeDestinationCalendarEmail}
@@ -319,6 +325,20 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                   type="text"
                   {...formMethods.register("successRedirectUrl")}
                 />
+
+                <div className="mt-4">
+                  <Controller
+                    name="forwardParamsSuccessRedirect"
+                    render={({ field: { value, onChange } }) => (
+                      <CheckboxField
+                        description={t("forward_params_redirect")}
+                        disabled={successRedirectUrlLocked.disabled}
+                        onChange={(e) => onChange(e)}
+                        checked={value}
+                      />
+                    )}
+                  />
+                </div>
                 <div
                   className={classNames(
                     "p-1 text-sm text-orange-600",
@@ -348,7 +368,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             target="_blank"
             rel="noreferrer"
             href="https://cal.com/docs/core-features/event-types/single-use-private-links">
-            <Info className="ml-1.5 h-4 w-4 cursor-pointer" />
+            <Icon name="info" className="ml-1.5 h-4 w-4 cursor-pointer" />
           </a>
         }
         {...shouldLockDisableProps("hashedLink")}
@@ -389,7 +409,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                           showToast(t("enabled_after_update_description"), "warning");
                         }
                       }}>
-                      <Copy className="h-4 w-4" />
+                      <Icon name="copy" className="h-4 w-4" />
                     </Button>
                   </Tooltip>
                 }
@@ -415,7 +435,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               {...seatsLocked}
               description={t("offer_seats_description")}
               checked={value}
-              disabled={noShowFeeEnabled}
+              disabled={noShowFeeEnabled || multiLocation}
+              tooltip={
+                multiLocation
+                  ? t("multilocation_doesnt_support_seats")
+                  : noShowFeeEnabled
+                  ? t("no_show_fee_doesnt_support_seats")
+                  : undefined
+              }
               onCheckedChange={(e) => {
                 // Enabling seats will disable guests and requiring confirmation until fully supported
                 if (e) {
@@ -548,6 +575,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           setValue={(val: string) => formMethods.setValue("eventName", val, { shouldDirty: true })}
           defaultValue={formMethods.getValues("eventName")}
           placeHolder={eventNamePlaceholder}
+          isNameFieldSplit={isSplit}
           event={eventNameObject}
         />
       )}

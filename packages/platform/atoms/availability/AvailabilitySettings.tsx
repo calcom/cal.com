@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -10,6 +10,7 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
   Button,
@@ -27,7 +28,7 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import { ArrowLeft, Info, MoreVertical, Plus, Trash } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { Shell as PlatformShell } from "../src/components/ui/shell";
 import { cn } from "../src/lib/utils";
@@ -74,6 +75,7 @@ type AvailabilitySettingsProps = {
     timeZone: string;
     schedule: Schedule[];
   };
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   handleDelete: () => void;
   isDeleting: boolean;
   isSaving: boolean;
@@ -84,6 +86,7 @@ type AvailabilitySettingsProps = {
   handleSubmit: (data: AvailabilityFormValues) => Promise<void>;
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
+  disableEditableHeading?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -105,7 +108,7 @@ const DeleteDialogButton = ({
     <Dialog>
       <DialogTrigger asChild>
         <Button
-          StartIcon={Trash}
+          StartIcon="trash"
           variant="icon"
           color="destructive"
           aria-label={t("delete")}
@@ -143,9 +146,13 @@ const useExcludedDates = () => {
 const DateOverride = ({
   workingHours,
   userTimeFormat,
+  travelSchedules,
+  weekStart,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
+  travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -158,7 +165,7 @@ const DateOverride = ({
         {t("date_overrides")}{" "}
         <Tooltip content={t("date_overrides_info")}>
           <span className="inline-block align-middle">
-            <Info className="h-4 w-4" />
+            <Icon name="info" className="h-4 w-4" />
           </span>
         </Tooltip>
       </h3>
@@ -168,17 +175,20 @@ const DateOverride = ({
           excludedDates={excludedDates}
           replace={replace}
           fields={fields}
+          weekStart={weekStart}
           workingHours={workingHours}
           userTimeFormat={userTimeFormat}
           hour12={Boolean(userTimeFormat === 12)}
+          travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
           userTimeFormat={userTimeFormat}
+          weekStart={weekStart}
           Trigger={
-            <Button color="secondary" StartIcon={Plus} data-testid="add-override">
+            <Button color="secondary" StartIcon="plus" data-testid="add-override">
               {t("add_an_override")}
             </Button>
           }
@@ -210,6 +220,7 @@ const SmallScreenSideBar = ({ open, children }: { open: boolean; children: JSX.E
 
 export function AvailabilitySettings({
   schedule,
+  travelSchedules,
   handleDelete,
   isDeleting,
   isLoading,
@@ -220,6 +231,7 @@ export function AvailabilitySettings({
   handleSubmit,
   isPlatform = false,
   customClassNames,
+  disableEditableHeading = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -231,6 +243,21 @@ export function AvailabilitySettings({
     },
   });
 
+  useEffect(() => {
+    const subscription = form.watch(
+      (value, { name }) => {
+        console.log(name);
+        if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
+          handleSubmit(value as AvailabilityFormValues);
+      },
+      {
+        ...schedule,
+        schedule: schedule.availability || [],
+      }
+    );
+    return () => subscription.unsubscribe();
+  }, [form.watch]);
+
   const [Shell, Schedule, TimezoneSelect] = useMemo(() => {
     return isPlatform
       ? [PlatformShell, PlatformSchedule, PlatformTimzoneSelect]
@@ -241,7 +268,7 @@ export function AvailabilitySettings({
     <Shell
       headerClassName={cn(customClassNames?.containerClassName)}
       backPath={backPath}
-      title={schedule.name ? `${schedule.name} | t("availability")}` : t("availability")}
+      title={schedule.name ? `${schedule.name} | ${t("availability")}` : t("availability")}
       heading={
         <Controller
           control={form.control}
@@ -250,6 +277,7 @@ export function AvailabilitySettings({
             <EditableHeading
               className={cn(customClassNames?.editableHeadingClassName)}
               isReady={!isLoading}
+              disabled={disableEditableHeading}
               {...field}
               data-testid="availablity-title"
             />
@@ -321,7 +349,7 @@ export function AvailabilitySettings({
                     openSidebar ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"
                   )}>
                   <div className="flex flex-row items-center pt-5">
-                    <Button StartIcon={ArrowLeft} color="minimal" onClick={() => setOpenSidebar(false)} />
+                    <Button StartIcon="arrow-left" color="minimal" onClick={() => setOpenSidebar(false)} />
                     <p className="-ml-2">{t("availability_settings")}</p>
                     <DeleteDialogButton
                       buttonClassName="ml-16 inline"
@@ -434,7 +462,7 @@ export function AvailabilitySettings({
           </Button>
           <Button
             className="ml-3 sm:hidden"
-            StartIcon={MoreVertical}
+            StartIcon="ellipsis-vertical"
             variant="icon"
             color="secondary"
             onClick={() => setOpenSidebar(true)}
@@ -465,6 +493,7 @@ export function AvailabilitySettings({
                     control={form.control}
                     name="schedule"
                     userTimeFormat={timeFormat}
+                    handleSubmit={handleSubmit}
                     weekStart={
                       ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
                         weekStart
@@ -476,8 +505,17 @@ export function AvailabilitySettings({
             </div>
             {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
-                {schedule.workingHours && (
-                  <DateOverride workingHours={schedule.workingHours} userTimeFormat={timeFormat} />
+                {schedule?.workingHours && (
+                  <DateOverride
+                    workingHours={schedule.workingHours}
+                    userTimeFormat={timeFormat}
+                    travelSchedules={travelSchedules}
+                    weekStart={
+                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                        weekStart
+                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                    }
+                  />
                 )}
               </div>
             ) : (

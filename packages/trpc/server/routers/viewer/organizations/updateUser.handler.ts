@@ -1,11 +1,12 @@
 import type { Prisma, PrismaPromise, User, Membership, Profile } from "@prisma/client";
 
+import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensureOrganizationIsReviewed";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { uploadAvatar } from "@calcom/trpc/server/routers/loggedInViewer/updateProfile.handler";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -41,6 +42,8 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });
 
   if (!(await isOrganisationAdmin(userId, organizationId))) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  await ensureOrganizationIsReviewed(organizationId);
 
   const isUpdaterAnOwner = await isOrganisationOwner(userId, organizationId);
   // only OWNER can update the role to OWNER
@@ -108,7 +111,6 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
     name: input.name,
     timeZone: input.timeZone,
     username: input.username,
-    avatar: undefined,
   };
 
   if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
@@ -117,11 +119,9 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
       avatar,
       userId: user.id,
     });
-    data.avatar = avatar;
   }
   if (input.avatar === "") {
     data.avatarUrl = null;
-    data.avatar = null;
   }
 
   // Update user

@@ -1,17 +1,19 @@
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
-import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { deletePayment } from "@calcom/lib/payment/deletePayment";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -25,6 +27,21 @@ type DeleteCredentialOptions = {
   };
   input: TDeleteCredentialInputSchema;
 };
+
+type App = {
+  slug: string;
+  categories: AppCategories[];
+  dirName: string;
+} | null;
+
+const isVideoOrConferencingApp = (app: App) =>
+  app?.categories.includes(AppCategories.video) || app?.categories.includes(AppCategories.conferencing);
+
+const getRemovedIntegrationNameFromAppSlug = (slug: string) =>
+  slug === "msteams" ? "office365_video" : slug.split("-")[0];
+
+const locationsSchema = z.array(z.object({ type: z.string() }));
+type TlocationsSchema = z.infer<typeof locationsSchema>;
 
 export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOptions) => {
   const { user } = ctx;
@@ -81,40 +98,38 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
 
   // TODO: Improve this uninstallation cleanup per event by keeping a relation of EventType to App which has the data.
   for (const eventType of eventTypes) {
-    if (eventType.locations) {
-      // If it's a video, replace the location with Cal video
-      if (
-        credential.app?.categories.includes(AppCategories.video) ||
-        credential.app?.categories.includes(AppCategories.conferencing)
-      ) {
-        // Find the user's event types
+    // If it's a video, replace the location with Cal video
+    if (eventType.locations && isVideoOrConferencingApp(credential.app)) {
+      // Find the user's event types
 
-        // Look for integration name from app slug
-        const integrationQuery =
-          credential.app?.slug === "msteams" ? "office365_video" : credential.app?.slug.split("-")[0];
+      const integrationQuery = getRemovedIntegrationNameFromAppSlug(credential.app?.slug ?? "");
 
-        // Check if the event type uses the deleted integration
+      // Check if the event type uses the deleted integration
 
-        // To avoid type errors, need to stringify and parse JSON to use array methods
-        const locationsSchema = z.array(z.object({ type: z.string() }));
-        const locations = locationsSchema.parse(eventType.locations);
+      // To avoid type errors, need to stringify and parse JSON to use array methods
+      const locations = locationsSchema.parse(eventType.locations);
 
-        const updatedLocations = locations.map((location: { type: string }) => {
-          if (location.type.includes(integrationQuery)) {
-            return { type: DailyLocationType };
-          }
-          return location;
-        });
+      const doesDailyVideoAlreadyExists = locations.some((location) =>
+        location.type.includes(DailyLocationType)
+      );
 
-        await prisma.eventType.update({
-          where: {
-            id: eventType.id,
-          },
-          data: {
-            locations: updatedLocations,
-          },
-        });
-      }
+      const updatedLocations: TlocationsSchema = locations.reduce((acc: TlocationsSchema, location) => {
+        if (location.type.includes(integrationQuery)) {
+          if (!doesDailyVideoAlreadyExists) acc.push({ type: DailyLocationType });
+        } else {
+          acc.push(location);
+        }
+        return acc;
+      }, []);
+
+      await prisma.eventType.update({
+        where: {
+          id: eventType.id,
+        },
+        data: {
+          locations: updatedLocations,
+        },
+      });
     }
 
     // If it's a calendar, remove the destination calendar from the event type
@@ -137,13 +152,13 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       }
     }
 
-    const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+    if (credential.app?.categories.includes(AppCategories.crm)) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlugToDelete = credential.app?.slug;
 
-    const stripeAppData = getPaymentAppData({ ...eventType, metadata });
+      if (appSlugToDelete) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlugToDelete, metadata);
 
-    // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
-    if (credential.app?.categories.includes(AppCategories.payment)) {
-      if (stripeAppData.price) {
         await prisma.$transaction(async () => {
           await prisma.eventType.update({
             where: {
@@ -154,12 +169,33 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               metadata: {
                 ...metadata,
                 apps: {
-                  ...metadata?.apps,
-                  stripe: {
-                    ...metadata?.apps?.stripe,
-                    enabled: false,
-                    price: 0,
-                  },
+                  ...appMetadata,
+                },
+              },
+            },
+          });
+        });
+      }
+    }
+
+    // If it's a payment, hide the event type and set the price to 0. Also cancel all pending bookings
+    if (credential.app?.categories.includes(AppCategories.payment)) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
+        const appMetadata = removeAppFromEventTypeMetadata(appSlug, metadata);
+
+        await prisma.$transaction(async () => {
+          await prisma.eventType.update({
+            where: {
+              id: eventType.id,
+            },
+            data: {
+              hidden: true,
+              metadata: {
+                ...metadata,
+                apps: {
+                  ...appMetadata,
                 },
               },
             },
@@ -308,6 +344,28 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
           }
         });
       }
+    } else if (
+      appStoreMetadata[credential.app?.slug as keyof typeof appStoreMetadata]?.extendsFeature === "EventType"
+    ) {
+      const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
+      const appSlug = credential.app?.slug;
+      if (appSlug) {
+        await prisma.eventType.update({
+          where: {
+            id: eventType.id,
+          },
+          data: {
+            hidden: true,
+            metadata: {
+              ...metadata,
+              apps: {
+                ...metadata?.apps,
+                [appSlug]: undefined,
+              },
+            },
+          },
+        });
+      }
     }
   }
 
@@ -325,17 +383,29 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
         appId: "zapier",
       },
     });
-    const bookingsWithScheduledJobs = await prisma.booking.findMany({
+
+    deleteWebhookScheduledTriggers({
+      appId: credential.appId,
+      userId: teamId ? undefined : ctx.user.id,
+      teamId,
+    });
+  }
+
+  let metadata = userMetadata.parse(user.metadata);
+
+  if (credential.app?.slug === metadata?.defaultConferencingApp?.appSlug) {
+    metadata = {
+      ...metadata,
+      defaultConferencingApp: undefined,
+    };
+    await prisma.user.update({
       where: {
-        userId: ctx.user.id,
-        scheduledJobs: {
-          isEmpty: false,
-        },
+        id: user.id,
+      },
+      data: {
+        metadata,
       },
     });
-    for (const booking of bookingsWithScheduledJobs) {
-      cancelScheduledJobs(booking, credential.appId);
-    }
   }
 
   // Backwards compatibility. Selected calendars cascade on delete when deleting a credential
@@ -371,4 +441,20 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
       id: id,
     },
   });
+};
+
+const removeAppFromEventTypeMetadata = (
+  appSlugToDelete: string,
+  eventTypeMetadata: z.infer<typeof EventTypeMetaDataSchema>
+) => {
+  const appMetadata = eventTypeMetadata?.apps
+    ? Object.entries(eventTypeMetadata.apps).reduce((filteredApps, [appName, appData]) => {
+        if (appName !== appSlugToDelete) {
+          filteredApps[appName as keyof typeof eventTypeMetadata.apps] = appData;
+        }
+        return filteredApps;
+      }, {} as z.infer<typeof EventTypeAppMetadataSchema>)
+    : {};
+
+  return appMetadata;
 };

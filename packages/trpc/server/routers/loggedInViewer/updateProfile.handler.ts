@@ -2,17 +2,16 @@ import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
-import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
-import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetRequest";
 import { sendChangeOfEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -20,7 +19,6 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -38,52 +36,23 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
-export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
-  const objectKey = uuidv4();
-
-  await prisma.avatar.upsert({
-    where: {
-      teamId_userId_isBanner: {
-        teamId: 0,
-        userId,
-        isBanner: false,
-      },
-    },
-    create: {
-      userId: userId,
-      data,
-      objectKey,
-      isBanner: false,
-    },
-    update: {
-      data,
-      objectKey,
-    },
-  });
-
-  return `/api/avatar/${objectKey}.png`;
-};
-
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
+  const { travelSchedules, ...rest } = input;
+
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
 
   const data: Prisma.UserUpdateInput = {
-    ...input,
-    // DO NOT OVERWRITE AVATAR.
-    avatar: undefined,
+    ...rest,
     metadata: userMetadata,
     secondaryEmails: undefined,
   };
 
-  // some actions can invalidate a user session.
-  let signOutUser = false;
-  let passwordReset = false;
   let isPremiumUsername = false;
 
   const layoutError = validateBookerLayouts(input?.metadata?.defaultBookerLayouts || null);
@@ -142,11 +111,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
   const hasEmailBeenChanged = data.email && user.email !== data.email;
 
-  // check if we are changing email and identity provider is not CAL
-  const hasEmailChangedOnNonCalProvider =
-    hasEmailBeenChanged && user.identityProvider !== IdentityProvider.CAL;
-  const hasEmailChangedOnCalProvider = hasEmailBeenChanged && user.identityProvider === IdentityProvider.CAL;
-
   let secondaryEmail:
     | {
         id: number;
@@ -166,7 +130,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         emailVerified: true,
       },
     });
-    if (emailVerification && hasEmailChangedOnCalProvider) {
+    if (emailVerification) {
       if (secondaryEmail?.emailVerified) {
         data.emailVerified = secondaryEmail.emailVerified;
       } else {
@@ -186,28 +150,14 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     }
   }
 
-  if (hasEmailChangedOnNonCalProvider) {
-    // Only validate if we're changing email
-    data.identityProvider = IdentityProvider.CAL;
-    data.identityProviderId = null;
-  }
-
-  // if defined AND a base 64 string, upload and set the avatar URL
-  if (input.avatar && input.avatar.startsWith("data:image/png;base64,")) {
-    const avatar = await resizeBase64Image(input.avatar);
+  // if defined AND a base 64 string, upload and update the avatar URL
+  if (input.avatarUrl && input.avatarUrl.startsWith("data:image/png;base64,")) {
     data.avatarUrl = await uploadAvatar({
-      avatar,
+      avatar: await resizeBase64Image(input.avatarUrl),
       userId: user.id,
     });
-    // as this is still used in the backwards compatible endpoint, we also write it here
-    // to ensure no data loss.
-    data.avatar = avatar;
   }
-  // Unset avatar url if avatar is empty string.
-  if ("" === input.avatar) {
-    data.avatarUrl = null;
-    data.avatar = null;
-  }
+
   if (input.completedOnboarding) {
     const userTeams = await prisma.user.findFirst({
       where: {
@@ -228,6 +178,41 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
         })
       );
     }
+  }
+
+  if (travelSchedules) {
+    const existingSchedules = await prisma.travelSchedule.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const schedulesToDelete = existingSchedules.filter(
+      (schedule) =>
+        !travelSchedules || !travelSchedules.find((scheduleInput) => scheduleInput.id === schedule.id)
+    );
+
+    await prisma.travelSchedule.deleteMany({
+      where: {
+        userId: user.id,
+        id: {
+          in: schedulesToDelete.map((schedule) => schedule.id) as number[],
+        },
+      },
+    });
+
+    await prisma.travelSchedule.createMany({
+      data: travelSchedules
+        .filter((schedule) => !schedule.id)
+        .map((schedule) => {
+          return {
+            userId: user.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate,
+            timeZone: schedule.timeZone,
+          };
+        }),
+    });
   }
 
   const updatedUserSelect = Prisma.validator<Prisma.UserDefaultArgs>()({
@@ -297,14 +282,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (hasEmailChangedOnNonCalProvider) {
-    // Because the email has changed, we are now attempting to use the CAL provider-
-    // which has no password yet. We have to send the reset password email.
-    await passwordResetRequest(updatedUser);
-    signOutUser = true;
-    passwordReset = true;
-  }
-
   // Sync Services
   await syncServicesUpdateWebUser(updatedUser);
 
@@ -320,7 +297,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
     });
   }
 
-  if (updatedUser && hasEmailChangedOnCalProvider) {
+  if (updatedUser && hasEmailBeenChanged) {
     // Skip sending verification email when user tries to change his primary email to a verified secondary email
     if (secondaryEmail?.emailVerified) {
       secondaryEmails.push({
@@ -340,9 +317,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       });
     }
   }
-
-  // don't return avatar, we don't need it anymore.
-  delete input.avatar;
 
   if (secondaryEmails.length) {
     const recordsToDelete = secondaryEmails
@@ -398,12 +372,7 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   return {
     ...input,
-    email:
-      emailVerification && hasEmailChangedOnCalProvider && !secondaryEmail?.emailVerified
-        ? user.email
-        : input.email,
-    signOutUser,
-    passwordReset,
+    email: emailVerification && !secondaryEmail?.emailVerified ? user.email : input.email,
     avatarUrl: updatedUser.avatarUrl,
     hasEmailBeenChanged,
     sendEmailVerification: emailVerification && !secondaryEmail?.emailVerified,

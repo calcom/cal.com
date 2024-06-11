@@ -13,7 +13,7 @@ export type useScheduleForEventReturnType = ReturnType<typeof useScheduleForEven
 
 /**
  * Wrapper hook around the trpc query that fetches
- * the event curently viewed in the booker. It will get
+ * the event currently viewed in the booker. It will get
  * the current event slug and username from the booker store.
  *
  * Using this hook means you only need to use one hook, instead
@@ -25,7 +25,12 @@ export const useEvent = () => {
   const org = useBookerStore((state) => state.org);
 
   const event = trpc.viewer.public.event.useQuery(
-    { username: username ?? "", eventSlug: eventSlug ?? "", isTeamEvent, org: org ?? null },
+    {
+      username: username ?? "",
+      eventSlug: eventSlug ?? "",
+      isTeamEvent,
+      org: org ?? null,
+    },
     { refetchOnWindowFocus: false, enabled: Boolean(username) && Boolean(eventSlug) }
   );
 
@@ -60,6 +65,7 @@ export const useScheduleForEvent = ({
   dayCount,
   selectedDate,
   orgSlug,
+  bookerEmail,
 }: {
   prefetchNextMonth?: boolean;
   username?: string | null;
@@ -71,6 +77,7 @@ export const useScheduleForEvent = ({
   dayCount?: number | null;
   selectedDate?: string | null;
   orgSlug?: string;
+  bookerEmail?: string;
 } = {}) => {
   const { timezone } = useTimePreferences();
   const event = useEvent();
@@ -100,6 +107,7 @@ export const useScheduleForEvent = ({
     duration: durationFromStore ?? duration,
     isTeamEvent: pathname?.indexOf("/team/") !== -1 || isTeam,
     orgSlug,
+    bookerEmail,
   });
 
   return {

@@ -1,12 +1,11 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { SchedulesRepository } from "@/ee/schedules/schedules.repository";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { SchedulesModule } from "@/ee/schedules/schedules.module";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
-import { UpdateUserInput } from "@/modules/users/inputs/update-user.input";
+import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
@@ -35,8 +34,14 @@ describe("Me Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, TokensModule],
-          providers: [SchedulesRepository, SchedulesService],
+          imports: [
+            AppModule,
+            PrismaModule,
+            AvailabilitiesModule,
+            UsersModule,
+            TokensModule,
+            SchedulesModule,
+          ],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -50,6 +55,7 @@ describe("Me Endpoints", () => {
 
       user = await userRepositoryFixture.create({
         email: userEmail,
+        username: userEmail,
       });
 
       app = moduleRef.createNestApplication();
@@ -65,7 +71,7 @@ describe("Me Endpoints", () => {
 
     it("should get user associated with access token", async () => {
       return request(app.getHttpServer())
-        .get("/api/v2/me")
+        .get("/v2/me")
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<UserResponse> = response.body;
@@ -81,10 +87,10 @@ describe("Me Endpoints", () => {
     });
 
     it("should update user associated with access token", async () => {
-      const body: UpdateUserInput = { timeZone: "Europe/Rome" };
+      const body: UpdateManagedUserInput = { timeZone: "Europe/Rome" };
 
       return request(app.getHttpServer())
-        .patch("/api/v2/me")
+        .patch("/v2/me")
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -106,21 +112,21 @@ describe("Me Endpoints", () => {
     });
 
     it("should not update user associated with access token given invalid timezone", async () => {
-      const bodyWithIncorrectTimeZone: UpdateUserInput = { timeZone: "Narnia/Woods" };
+      const bodyWithIncorrectTimeZone: UpdateManagedUserInput = { timeZone: "Narnia/Woods" };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeZone).expect(400);
     });
 
     it("should not update user associated with access token given invalid time format", async () => {
-      const bodyWithIncorrectTimeFormat: UpdateUserInput = { timeFormat: 100 };
+      const bodyWithIncorrectTimeFormat: UpdateManagedUserInput = { timeFormat: 100 };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectTimeFormat).expect(400);
     });
 
     it("should not update user associated with access token given invalid week start", async () => {
-      const bodyWithIncorrectWeekStart: UpdateUserInput = { weekStart: "waba luba dub dub" };
+      const bodyWithIncorrectWeekStart: UpdateManagedUserInput = { weekStart: "waba luba dub dub" };
 
-      return request(app.getHttpServer()).patch("/api/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
+      return request(app.getHttpServer()).patch("/v2/me").send(bodyWithIncorrectWeekStart).expect(400);
     });
 
     afterAll(async () => {

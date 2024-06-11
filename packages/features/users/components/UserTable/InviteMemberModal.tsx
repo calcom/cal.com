@@ -14,7 +14,7 @@ interface Props {
 
 export function InviteMemberModal(props: Props) {
   const { data: session } = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t, i18n } = useLocale();
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation({
     async onSuccess(data) {
@@ -27,7 +27,7 @@ export function InviteMemberModal(props: Props) {
       if (Array.isArray(data.usernameOrEmail)) {
         showToast(
           t("email_invite_team_bulk", {
-            userCount: data.usernameOrEmail.length,
+            userCount: data.numUsersInvited,
           }),
           "success"
         );

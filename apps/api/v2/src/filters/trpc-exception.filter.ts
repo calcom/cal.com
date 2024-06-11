@@ -1,7 +1,8 @@
 import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
+import { Request } from "express";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
-import { TRPCError } from "@calcom/platform-libraries";
+import { TRPCError } from "@calcom/platform-libraries-0.0.2";
 import { Response } from "@calcom/platform-types";
 
 @Catch(TRPCError)
@@ -11,7 +12,8 @@ export class TRPCExceptionFilter implements ExceptionFilter {
   catch(exception: TRPCError, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request = ctx.getRequest<Request>();
+
     let statusCode = 500;
     switch (exception.code) {
       case "UNAUTHORIZED":
@@ -38,9 +40,18 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         statusCode = 500;
         break;
     }
+
+    const requestId = request.headers["X-Request-Id"];
+
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
+      body: request.body,
+      headers: request.headers,
+      url: request.url,
+      method: request.method,
+      requestId,
     });
+
     response.status(statusCode).json({
       status: ERROR_STATUS,
       timestamp: new Date().toISOString(),

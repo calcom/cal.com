@@ -1,3 +1,4 @@
+import { compareMembership } from "@calcom/lib/event-types/getEventTypesByViewer";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { prisma } from "@calcom/prisma";
 import type { Webhook } from "@calcom/prisma/client";
@@ -5,8 +6,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
-
-import { compareMembership } from "../eventTypes/getByViewer.handler";
 
 type GetByViewerOptions = {
   ctx: {
@@ -54,7 +53,7 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     },
     select: {
       username: true,
-      avatar: true,
+      avatarUrl: true,
       name: true,
       webhooks: true,
       teams: {
@@ -112,37 +111,29 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     membershipRole: membership.role,
   }));
 
-  const teamWebhookGroups: WebhookGroup[] = user.teams
-    .filter((mmship) => {
-      return !mmship.team.isOrganization;
-    })
-    .map((membership) => {
-      const orgMembership = teamMemberships.find(
-        (teamM) => teamM.teamId === membership.team.parentId
-      )?.membershipRole;
-      return {
-        teamId: membership.team.id,
-        profile: {
-          name: membership.team.name,
-          slug: membership.team.slug
-            ? !membership.team.parentId
-              ? `/team`
-              : `${membership.team.slug}`
-            : null,
-          image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
-        },
-        metadata: {
-          readOnly:
-            membership.role ===
-            (membership.team.parentId
-              ? orgMembership && compareMembership(orgMembership, membership.role)
-                ? orgMembership
-                : MembershipRole.MEMBER
-              : MembershipRole.MEMBER),
-        },
-        webhooks: membership.team.webhooks.filter(filterWebhooks),
-      };
-    });
+  const teamWebhookGroups: WebhookGroup[] = user.teams.map((membership) => {
+    const orgMembership = teamMemberships.find(
+      (teamM) => teamM.teamId === membership.team.parentId
+    )?.membershipRole;
+    return {
+      teamId: membership.team.id,
+      profile: {
+        name: membership.team.name,
+        slug: membership.team.slug ? (!membership.team.parentId ? `/team` : `${membership.team.slug}`) : null,
+        image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
+      },
+      metadata: {
+        readOnly:
+          membership.role ===
+          (membership.team.parentId
+            ? orgMembership && compareMembership(orgMembership, membership.role)
+              ? orgMembership
+              : MembershipRole.MEMBER
+            : MembershipRole.MEMBER),
+      },
+      webhooks: membership.team.webhooks.filter(filterWebhooks),
+    };
+  });
 
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
 

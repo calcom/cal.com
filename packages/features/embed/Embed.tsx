@@ -10,8 +10,7 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimesHeader } from "@calcom/features/bookings";
-import { AvailableTimes } from "@calcom/features/bookings";
+import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
@@ -33,6 +32,7 @@ import {
   DialogContent,
   DialogFooter,
   HorizontalTabs,
+  Icon,
   Label,
   Select,
   showToast,
@@ -40,7 +40,6 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
-import { ArrowLeft, Sun } from "@calcom/ui/components/icon";
 
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -93,7 +92,7 @@ function useRouterHelpers() {
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Sun className="text-subtle mr-2 h-4 w-4" />
+      <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -419,7 +418,13 @@ const EmailEmbedPreview = ({
                                   <tr style={{ height: "25px" }}>
                                     {selectedDateAndTime[key]?.length > 0 &&
                                       selectedDateAndTime[key].map((time) => {
-                                        const bookingURL = `${WEBSITE_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                        // If teamId is present on eventType and is not null, it means it is a team event.
+                                        // So we add 'team/' to the url.
+                                        const bookingURL = `${WEBSITE_URL}/${
+                                          eventType.teamId !== null ? "team/" : ""
+                                        }${username}/${eventType.slug}?duration=${
+                                          eventType.length
+                                        }&date=${key}&month=${month}&slot=${time}`;
                                         return (
                                           <td
                                             key={time}
@@ -727,7 +732,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 removeQueryParams(["embedType", "embedTabName"]);
               }}>
-              <ArrowLeft className="mr-4 w-4" />
+              <Icon name="arrow-left" className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
@@ -1154,7 +1159,7 @@ type EmbedButtonProps<T> = {
   eventId?: number;
 };
 
-export const EmbedButton = <T extends React.ElementType>({
+export const EmbedButton = <T extends React.ElementType = typeof Button>({
   embedUrl,
   children,
   className = "",

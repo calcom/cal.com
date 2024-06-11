@@ -27,9 +27,7 @@ export const useCreateRecurringBooking = (
     RecurringBookingCreateBody[]
   >({
     mutationFn: (data) => {
-      return http
-        .post<ApiResponse<BookingResponse[]>>("/ee/bookings/recurring", data)
-        .then((res) => res.data);
+      return http.post<ApiResponse<BookingResponse[]>>("/bookings/recurring", data).then((res) => res.data);
     },
     onSuccess: (data) => {
       if (data.status === SUCCESS_STATUS) {

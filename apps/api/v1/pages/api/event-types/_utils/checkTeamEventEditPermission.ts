@@ -10,9 +10,9 @@ export default async function checkTeamEventEditPermission(
   req: NextApiRequest,
   body: Pick<z.infer<typeof schemaEventTypeCreateBodyParams>, "teamId" | "userId">
 ) {
-  const { isAdmin } = req;
+  const { isSystemWideAdmin } = req;
   let userId = req.userId;
-  if (isAdmin && body.userId) {
+  if (isSystemWideAdmin && body.userId) {
     userId = body.userId;
   }
   if (body.teamId) {
@@ -26,7 +26,7 @@ export default async function checkTeamEventEditPermission(
 
     if (!membership?.role || !["ADMIN", "OWNER"].includes(membership.role)) {
       throw new HttpError({
-        statusCode: 401,
+        statusCode: 403,
         message: "No permission to operate on event-type for this team",
       });
     }

@@ -1,10 +1,11 @@
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";
-import { useMemo, useCallback } from "react";
+import { useMemo, useCallback, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
 import dayjs from "@calcom/dayjs";
+import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { Booker as BookerComponent } from "@calcom/features/bookings/Booker";
 import { useBookerLayout } from "@calcom/features/bookings/Booker/components/hooks/useBookerLayout";
@@ -39,6 +40,11 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("bookingUid") : null;
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
+  useEffect(() => {
+    // This event isn't processed by BookingPageTagManager because BookingPageTagManager hasn't loaded when it is fired. I think we should have a queue in fire method to handle this.
+    sdkActionManager?.fire("navigatedToBooker", {});
+  }, []);
+
   useInitializeBookerStore({
     ...props,
     eventId: event?.data?.id,
@@ -50,6 +56,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const [bookerState, _] = useBookerStore((state) => [state.state, state.setState], shallow);
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
+
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
@@ -81,12 +88,6 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
-  });
-  const bookings = useBookings({
-    event,
-    hashedLink: props.hashedLink,
-    bookingForm: bookerForm.bookingForm,
-    metadata: metadata ?? {},
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
@@ -124,6 +125,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     month: props.month,
     duration: props.duration,
     selectedDate,
+    bookerEmail: bookerForm.formEmail,
+  });
+  const bookings = useBookings({
+    event,
+    hashedLink: props.hashedLink,
+    bookingForm: bookerForm.bookingForm,
+    metadata: metadata ?? {},
+    teamMemberEmail: schedule.data?.teamMember,
   });
 
   const verifyCode = useVerifyCode({

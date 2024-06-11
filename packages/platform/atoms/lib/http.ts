@@ -1,5 +1,7 @@
 import axios from "axios";
 
+import { CAL_API_VERSION_HEADER, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
+
 // Immediately Invoked Function Expression to create simple singleton class like
 
 const http = (function () {
@@ -33,6 +35,18 @@ const http = (function () {
     },
     getAuthorizationHeader: () => {
       return instance.defaults.headers.common?.["Authorization"]?.toString() ?? "";
+    },
+    setClientIdHeader: (clientId: string) => {
+      instance.defaults.headers.common[X_CAL_CLIENT_ID] = clientId;
+    },
+    getClientIdHeader: () => {
+      return instance.defaults.headers.common?.[X_CAL_CLIENT_ID]?.toString() ?? "";
+    },
+    setVersionHeader: (clientId: string) => {
+      instance.defaults.headers.common[CAL_API_VERSION_HEADER] = clientId;
+    },
+    getVersionHeader: () => {
+      return instance.defaults.headers.common?.[X_CAL_CLIENT_ID]?.toString() ?? "";
     },
     refreshTokens: async (refreshUrl: string): Promise<string> => {
       const response = await fetch(`${refreshUrl}`, {
