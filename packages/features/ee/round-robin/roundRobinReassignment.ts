@@ -67,14 +67,19 @@ export const roundRobinReassignment = async ({
     throw new Error("Booking not found");
   }
 
+  if (!booking?.user) {
+    console.error(`No user associated with booking ${bookingId}`);
+    throw new Error("Booking not found");
+  }
+
   const previousOrganizer = booking.user;
-  const previousOrganizerT = await getTranslation(previousOrganizer.locale || "en", "common");
+  const previousOrganizerT = await getTranslation(previousOrganizer?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
   const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
     if (
       !booking?.attendees.some((attendee) => attendee.email === user.email) &&
-      user.email !== booking.user?.email
+      user.email !== previousOrganizer.email
     ) {
       console.log("This is being triggered for user", user.email);
       availableUsers.push(user);
@@ -87,7 +92,7 @@ export const roundRobinReassignment = async ({
     {
       dateFrom: dayjs(booking.startTime).format(),
       dateTo: dayjs(booking.endTime).format(),
-      timeZone: eventType.timeZone || booking.user.timeZone,
+      timeZone: eventType.timeZone || previousOrganizer.timeZone,
     },
     roundRobinReassignLogger
   );

@@ -111,14 +111,15 @@ export const ReassignDialog = ({
             <strong className="mb-1">{t("round_robin")}</strong>
             <p>{t("reassign_to_another_rr_host")}</p>
           </RadioArea.Item>
-          <RadioArea.Item
+          {/* TODO */}
+          {/* <RadioArea.Item
             className="text-sm"
             value="choose-member"
             checked={reassignTarget === "choose-member"}
             onClick={() => setReassignTarget("choose-member")}>
             <strong className="mb-1">{t("assign_team_member")}</strong>
             <p>{t("override_team_member_to_assign")}</p>
-          </RadioArea.Item>
+          </RadioArea.Item> */}
         </RadioArea.Group>
         {reassignTarget === "choose-member" ? (
           <MemberReassignStep

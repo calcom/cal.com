@@ -115,7 +115,7 @@ import type { BookingSeat } from "./handleSeats/types";
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
 
-type User = Prisma.UserGetPayload<typeof userSelect>;
+export type User = Prisma.UserGetPayload<typeof userSelect>;
 type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 export type NewBookingEventType =
