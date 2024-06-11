@@ -162,6 +162,7 @@ function buildSlotsWithDateRanges({
   datesOutOfOffice?: IOutOfOfficeData;
   applyMinimumBookingNotice?: boolean;
 }) {
+  console.log("applyMinimumBookingNotice in buildSlotsWithDateRanges", applyMinimumBookingNotice);
   // keep the old safeguards in; may be needed.
   frequency = minimumOfOne(frequency);
   eventLength = minimumOfOne(eventLength);
@@ -205,34 +206,6 @@ function buildSlotsWithDateRanges({
         : slotStartTime;
 
     console.log("slotStartTime after", slotStartTime);
-
-    function adjustStartTime(start: Dayjs, frequency: number, important: Dayjs): number {
-      // Calculate the difference in minutes
-      const difference = important.diff(start, "minute");
-
-      // Calculate how many full periods fit in the difference
-      const periods = Math.floor(difference / frequency);
-
-      // Find the slot time just before or at the important time
-      const nearestSlotBeforeOrAtImportant = start.add(periods * frequency, "minute");
-
-      // Calculate adjustment to make this slot the important time
-      const adjustment = important.diff(nearestSlotBeforeOrAtImportant, "minute");
-
-      // If adjustment is positive, we need to subtract to move the start time earlier
-      if (adjustment > 0) {
-        return -(frequency - adjustment);
-      }
-
-      // Otherwise, return the needed subtraction directly
-      return adjustment;
-    }
-    if (minimumBookingNotice > 0 && applyMinimumBookingNotice) {
-      const adjustedOffsetStart = adjustStartTime(slotStartTime, frequency, startTimeWithMinNotice);
-      console.log("adjustedOffsetStart", adjustedOffsetStart);
-      slotStartTime = slotStartTime.add(adjustedOffsetStart, "minutes");
-      console.log("slotStartTime after adjustment", slotStartTime);
-    }
 
     // Adding 1 minute to date ranges that end at midnight to ensure that the last slot is included
     const rangeEnd = range.end

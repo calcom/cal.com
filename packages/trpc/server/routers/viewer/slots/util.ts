@@ -623,13 +623,15 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   console.log("eventType", eventType);
 
+  const seatsMinimumBookingNoticeActive = eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice;
+
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
-    applyMinimumBookingNotice: !(eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice),
+    applyMinimumBookingNotice: !seatsMinimumBookingNoticeActive, // default is true, only set to false when seatsMinimumBookingNotice is active
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
