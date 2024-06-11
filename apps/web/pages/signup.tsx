@@ -529,7 +529,7 @@ export default function Signup({
               )}
             </div>
             {/* Already have an account & T&C */}
-            <div className="mt-10 flex h-full flex-col justify-end text-xs">
+            <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
