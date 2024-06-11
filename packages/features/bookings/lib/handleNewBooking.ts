@@ -24,7 +24,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
-import { getUserAvailability } from "@calcom/core/getUserAvailability";
+import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
@@ -53,7 +53,10 @@ import {
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs, scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import {
+  deleteWebhookScheduledTriggers,
+  scheduleTrigger,
+} from "@calcom/features/webhooks/lib/scheduleTrigger";
 import {
   isPrismaObjOrUndefined,
   parseBookingLimit,
@@ -61,10 +64,13 @@ import {
   parseRecurringEvent,
 } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
+import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -362,24 +368,25 @@ export async function ensureAvailableUsers(
     });
   }
 
-  for (const user of eventType.users) {
-    const { oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes } = await getUserAvailability(
-      {
+  (
+    await getUsersAvailability({
+      users: eventType.users,
+      query: {
         ...input,
-        userId: user.id,
         eventTypeId: eventType.id,
         duration: originalBookingDuration,
         returnDateOverrides: false,
         dateFrom: startDateTimeUtc.format(),
         dateTo: endDateTimeUtc.format(),
       },
-      {
-        user,
+      initialData: {
         eventType,
         rescheduleUid: input.originalRescheduledBooking?.uid ?? null,
         busyTimesFromLimitsBookings: busyTimesFromLimitsBookingsAllUsers,
-      }
-    );
+      },
+    })
+  ).forEach(({ oooExcludedDateRanges: dateRanges, busy: bufferedBusyTimes }, index) => {
+    const user = eventType.users[index];
 
     log.debug(
       "calendarBusyTimes==>>>",
@@ -395,7 +402,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     let foundConflict = false;
@@ -422,7 +429,7 @@ export async function ensureAvailableUsers(
           input,
         })
       );
-      continue;
+      return;
     }
 
     try {
@@ -434,7 +441,8 @@ export async function ensureAvailableUsers(
     if (!foundConflict) {
       availableUsers.push(user);
     }
-  }
+  });
+
   if (!availableUsers.length) {
     loggerWithEventDetails.error(
       `No available users found.`,
@@ -908,6 +916,65 @@ type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
 
+const checkIfBookerEmailIsBlocked = async ({
+  bookerEmail,
+  loggedInUserId,
+}: {
+  bookerEmail: string;
+  loggedInUserId?: number;
+}) => {
+  const baseEmail = extractBaseEmail(bookerEmail);
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const blacklistedEmail = blacklistedGuestEmails.find(
+    (guestEmail: string) => guestEmail.toLowerCase() === baseEmail.toLowerCase()
+  );
+
+  if (!blacklistedEmail) {
+    return false;
+  }
+
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        {
+          email: baseEmail,
+          emailVerified: {
+            not: null,
+          },
+        },
+        {
+          secondaryEmails: {
+            some: {
+              email: baseEmail,
+              emailVerified: {
+                not: null,
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      id: true,
+      email: true,
+    },
+  });
+
+  if (!user) {
+    throw new HttpError({ statusCode: 403, message: "Cannot use this email to create the booking." });
+  }
+
+  if (user.id !== loggedInUserId) {
+    throw new HttpError({
+      statusCode: 403,
+      message: `Attendee email has been blocked. Make sure to login as ${bookerEmail} to use this email for creating a booking.`,
+    });
+  }
+};
+
 async function handler(
   req: NextApiRequest & {
     userId?: number | undefined;
@@ -970,6 +1037,8 @@ async function handler(
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
+  await checkIfBookerEmailIsBlocked({ loggedInUserId: userId, bookerEmail });
+
   if (isEventTypeLoggingEnabled({ eventTypeId, usernameOrTeamName: reqBody.user })) {
     logger.settings.minLevel = 0;
   }
@@ -1022,6 +1091,7 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
+        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
       },
       eventType.minimumBookingNotice
     );
@@ -1260,7 +1330,12 @@ async function handler(
         loggerWithEventDetails
       );
       const luckyUsers: typeof users = [];
-      const luckyUserPool = availableUsers.filter((user) => !user.isFixed);
+      const luckyUserPool: IsFixedAwareUser[] = [];
+      const fixedUserPool: IsFixedAwareUser[] = [];
+      availableUsers.forEach((user) => {
+        user.isFixed ? fixedUserPool.push(user) : luckyUserPool.push(user);
+      });
+
       const notAvailableLuckyUsers: typeof users = [];
 
       loggerWithEventDetails.debug(
@@ -1270,6 +1345,17 @@ async function handler(
           luckyUserPool: luckyUserPool.map((user) => user.id),
         })
       );
+
+      if (reqBody.teamMemberEmail) {
+        // If requested user is not a fixed host, assign the lucky user as the team member
+        if (!fixedUserPool.some((user) => user.email === reqBody.teamMemberEmail)) {
+          const teamMember = availableUsers.find((user) => user.email === reqBody.teamMemberEmail);
+          if (teamMember) {
+            luckyUsers.push(teamMember);
+          }
+        }
+      }
+
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
         const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
@@ -1317,13 +1403,11 @@ async function handler(
         }
       }
       // ALL fixed users must be available
-      if (
-        availableUsers.filter((user) => user.isFixed).length !== users.filter((user) => user.isFixed).length
-      ) {
+      if (fixedUserPool.length !== users.filter((user) => user.isFixed).length) {
         throw new Error(ErrorCode.HostsUnavailableForBooking);
       }
       // Pushing fixed user before the luckyUser guarantees the (first) fixed user as the organizer.
-      users = [...availableUsers.filter((user) => user.isFixed), ...luckyUsers];
+      users = [...fixedUserPool, ...luckyUsers];
       luckyUserResponse = { luckyUsers: luckyUsers.map((u) => u.id) };
     } else if (req.body.allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
       // all recurring slots except the first one
@@ -1340,7 +1424,10 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  const [organizerUser] = users;
+  // If the team member is requested then they should be the organizer
+  const organizerUser = reqBody.teamMemberEmail
+    ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
+    : users[0];
 
   const tOrganizer = await getTranslation(organizerUser?.locale ?? "en", "common");
   const allCredentials = await getAllCredentials(organizerUser, eventType);
@@ -1391,7 +1478,17 @@ async function handler(
     },
   ];
 
+  const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+    ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")
+    : [];
+
+  const guestsRemoved: string[] = [];
   const guests = (reqGuests || []).reduce((guestArray, guest) => {
+    const baseGuestEmail = extractBaseEmail(guest).toLowerCase();
+    if (blacklistedGuestEmails.some((e) => e.toLowerCase() === baseGuestEmail)) {
+      guestsRemoved.push(guest);
+      return guestArray;
+    }
     // If it's a team event, remove the team member from guests
     if (isTeamEventType && users.some((user) => user.email === guest)) {
       return guestArray;
@@ -1406,6 +1503,10 @@ async function handler(
     });
     return guestArray;
   }, [] as Invitee);
+
+  if (guestsRemoved.length > 0) {
+    log.info("Removed guests from the booking", guestsRemoved);
+  }
 
   const seed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}:${new Date().getTime()}`;
   const uid = translator.fromUUID(uuidv5(seed, uuidv5.URL));
@@ -1423,29 +1524,31 @@ async function handler(
   const teamDestinationCalendars: DestinationCalendar[] = [];
 
   // Organizer or user owner of this event type it's not listed as a team member.
-  const teamMemberPromises = users.slice(1).map(async (user) => {
-    // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
-    // push to teamDestinationCalendars if it's a team event but collective only
-    if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
-      teamDestinationCalendars.push({
-        ...user.destinationCalendar,
-        externalId: processExternalId(user.destinationCalendar),
-      });
-    }
+  const teamMemberPromises = users
+    .filter((user) => user.email !== organizerUser.email)
+    .map(async (user) => {
+      // TODO: Add back once EventManager tests are ready https://github.com/calcom/cal.com/pull/14610#discussion_r1567817120
+      // push to teamDestinationCalendars if it's a team event but collective only
+      if (isTeamEventType && eventType.schedulingType === "COLLECTIVE" && user.destinationCalendar) {
+        teamDestinationCalendars.push({
+          ...user.destinationCalendar,
+          externalId: processExternalId(user.destinationCalendar),
+        });
+      }
 
-    return {
-      id: user.id,
-      email: user.email ?? "",
-      name: user.name ?? "",
-      firstName: "",
-      lastName: "",
-      timeZone: user.timeZone,
-      language: {
-        translate: await getTranslation(user.locale ?? "en", "common"),
-        locale: user.locale ?? "en",
-      },
-    };
-  });
+      return {
+        id: user.id,
+        email: user.email ?? "",
+        name: user.name ?? "",
+        firstName: "",
+        lastName: "",
+        timeZone: user.timeZone,
+        language: {
+          translate: await getTranslation(user.locale ?? "en", "common"),
+          locale: user.locale ?? "en",
+        },
+      };
+    });
   const teamMembers = await Promise.all(teamMemberPromises);
 
   const attendeesList = [...invitee, ...guests];
@@ -1561,11 +1664,16 @@ async function handler(
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
 
+  const organizerUserId = triggerForUser ? organizerUser.id : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: triggerForUser ? organizerUser.id : null,
+    userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
+    orgId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1579,6 +1687,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
+    orgId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -1586,6 +1695,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
+    orgId,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -1629,8 +1739,8 @@ async function handler(
           ...newBooking.user,
           email: null,
         },
+        paymentRequired: false,
       };
-
       return {
         ...bookingResponse,
         ...luckyUserResponse,
@@ -1866,7 +1976,11 @@ async function handler(
             });
           }
 
-          if (googleCalResult?.createdEvent?.hangoutLink) {
+          const googleHangoutLink = Array.isArray(googleCalResult?.updatedEvent)
+            ? googleCalResult.updatedEvent[0]?.hangoutLink
+            : googleCalResult?.updatedEvent?.hangoutLink ?? googleCalResult?.createdEvent?.hangoutLink;
+
+          if (googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: true,
@@ -1875,31 +1989,33 @@ async function handler(
             // Add google_meet to referencesToCreate in the same index as google_calendar
             updateManager.referencesToCreate[googleCalIndex] = {
               ...updateManager.referencesToCreate[googleCalIndex],
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
             };
 
             // Also create a new referenceToCreate with type video for google_meet
             updateManager.referencesToCreate.push({
               type: "google_meet_video",
-              meetingUrl: googleCalResult.createdEvent.hangoutLink,
+              meetingUrl: googleHangoutLink,
               uid: googleCalResult.uid,
               credentialId: updateManager.referencesToCreate[googleCalIndex].credentialId,
             });
-          } else if (googleCalResult && !googleCalResult.createdEvent?.hangoutLink) {
+          } else if (googleCalResult && !googleHangoutLink) {
             results.push({
               ...googleMeetResult,
               success: false,
             });
           }
         }
-
-        metadata.hangoutLink = results[0].createdEvent?.hangoutLink;
-        metadata.conferenceData = results[0].createdEvent?.conferenceData;
-        metadata.entryPoints = results[0].createdEvent?.entryPoints;
+        const createdOrUpdatedEvent = Array.isArray(results[0]?.updatedEvent)
+          ? results[0]?.updatedEvent[0]
+          : results[0]?.updatedEvent ?? results[0]?.createdEvent;
+        metadata.hangoutLink = createdOrUpdatedEvent?.hangoutLink;
+        metadata.conferenceData = createdOrUpdatedEvent?.conferenceData;
+        metadata.entryPoints = createdOrUpdatedEvent?.entryPoints;
         evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
         videoCallUrl =
           metadata.hangoutLink ||
-          results[0].createdEvent?.url ||
+          createdOrUpdatedEvent?.url ||
           organizerOrFirstDynamicGroupMemberDefaultLocationUrl ||
           getVideoCallUrlFromCalEvent(evt) ||
           videoCallUrl;
@@ -2227,6 +2343,7 @@ async function handler(
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
+      orgId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2240,7 +2357,7 @@ async function handler(
     req.statusCode = 201;
     // TODO: Refactor better so this booking object is not passed
     // all around and instead the individual fields are sent as args.
-    const bookingReponse = {
+    const bookingResponse = {
       ...booking,
       user: {
         ...booking.user,
@@ -2249,9 +2366,10 @@ async function handler(
     };
 
     return {
-      ...bookingReponse,
+      ...bookingResponse,
       ...luckyUserResponse,
       message: "Payment required",
+      paymentRequired: true,
       paymentUid: payment?.uid,
       paymentId: payment?.id,
     };
@@ -2261,38 +2379,49 @@ async function handler(
 
   // We are here so, booking doesn't require payment and booking is also created in DB already, through createBooking call
   if (isConfirmedByDefault) {
-    try {
-      const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
-      const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
+    const subscribersMeetingEnded = await getWebhooks(subscriberOptionsMeetingEnded);
+    const subscribersMeetingStarted = await getWebhooks(subscriberOptionsMeetingStarted);
 
-      subscribersMeetingEnded.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
-        }
+    let deleteWebhookScheduledTriggerPromise: Promise<unknown> = Promise.resolve();
+    const scheduleTriggerPromises = [];
+
+    if (rescheduleUid && originalRescheduledBooking) {
+      //delete all scheduled triggers for meeting ended and meeting started of booking
+      deleteWebhookScheduledTriggerPromise = deleteWebhookScheduledTriggers({
+        booking: originalRescheduledBooking,
       });
+    }
 
-      subscribersMeetingStarted.forEach((subscriber) => {
-        if (rescheduleUid && originalRescheduledBooking) {
-          cancelScheduledJobs(originalRescheduledBooking, undefined, true);
-        }
-        if (booking && booking.status === BookingStatus.ACCEPTED) {
-          scheduleTrigger(
+    if (booking && booking.status === BookingStatus.ACCEPTED) {
+      for (const subscriber of subscribersMeetingEnded) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
             booking,
-            subscriber.subscriberUrl,
+            subscriberUrl: subscriber.subscriberUrl,
             subscriber,
-            WebhookTriggerEvents.MEETING_STARTED
-          );
-        }
-      });
-    } catch (error) {
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
+      }
+
+      for (const subscriber of subscribersMeetingStarted) {
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
+      }
+    }
+
+    await Promise.all([deleteWebhookScheduledTriggerPromise, ...scheduleTriggerPromises]).catch((error) => {
       loggerWithEventDetails.error(
-        "Error while running scheduledJobs for booking",
+        "Error while scheduling or canceling webhook triggers",
         JSON.stringify({ error })
       );
-    }
+    });
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
@@ -2361,7 +2490,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: true,
+      isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
     });
@@ -2380,6 +2509,7 @@ async function handler(
       ...booking.user,
       email: null,
     },
+    paymentRequired: false,
   };
 
   return {
