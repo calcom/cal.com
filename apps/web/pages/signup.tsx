@@ -533,9 +533,7 @@ export default function Signup({
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
-                  <Link
-                    href="/auth/login"
-                    className="text-emphasis text-muted-foreground hover-effect cursor-pointer tracking-wide hover:animate-pulse dark:bg-transparent dark:bg-clip-text">
+                  <Link href="/auth/login" className="text-emphasis hover:underline">
                     {t("sign_in")}
                   </Link>
                 </div>
