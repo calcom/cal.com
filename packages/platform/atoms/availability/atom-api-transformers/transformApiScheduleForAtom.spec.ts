@@ -57,6 +57,11 @@ describe("transformScheduleForAtom", () => {
       overrides: [],
     };
 
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
     const expectedResult = {
       id: 139,
       name: "Default",
@@ -83,32 +88,52 @@ describe("transformScheduleForAtom", () => {
         [],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [],
