@@ -15,7 +15,7 @@ import {
 import type { WeekDay } from "../constants";
 import { TIME_FORMAT_HH_MM, WEEK_DAYS } from "../constants";
 
-export class ScheduleAvailabilityInput {
+export class ScheduleAvailabilityInput_2024_11_06 {
   @IsArray()
   @IsIn(WEEK_DAYS, { each: true })
   @ApiProperty({ example: ["Monday", "Tuesday"] })
@@ -32,7 +32,7 @@ export class ScheduleAvailabilityInput {
   endTime!: string;
 }
 
-export class ScheduleOverrideInput {
+export class ScheduleOverrideInput_2024_11_06 {
   @IsISO8601({ strict: true })
   @ApiProperty({ example: "2024-05-20" })
   date!: string;
@@ -48,7 +48,7 @@ export class ScheduleOverrideInput {
   endTime!: string;
 }
 
-export class CreateScheduleInput {
+export class CreateScheduleInput_2024_11_06 {
   @IsString()
   @ApiProperty({ example: "One-on-one coaching" })
   name!: string;
@@ -60,9 +60,9 @@ export class CreateScheduleInput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailabilityInput)
+  @Type(() => ScheduleAvailabilityInput_2024_11_06)
   @ApiProperty({
-    type: [ScheduleAvailabilityInput],
+    type: [ScheduleAvailabilityInput_2024_11_06],
     example: [
       {
         days: ["Monday", "Tuesday"],
@@ -72,7 +72,7 @@ export class CreateScheduleInput {
     ],
     required: false,
   })
-  availability?: ScheduleAvailabilityInput[];
+  availability?: ScheduleAvailabilityInput_2024_11_06[];
 
   @IsBoolean()
   @ApiProperty({ example: true })
@@ -81,9 +81,9 @@ export class CreateScheduleInput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverrideInput)
+  @Type(() => ScheduleOverrideInput_2024_11_06)
   @ApiProperty({
-    type: [ScheduleOverrideInput],
+    type: [ScheduleOverrideInput_2024_11_06],
     example: [
       {
         date: "2024-05-20",
@@ -93,5 +93,5 @@ export class CreateScheduleInput {
     ],
     required: false,
   })
-  overrides?: ScheduleOverrideInput[];
+  overrides?: ScheduleOverrideInput_2024_11_06[];
 }

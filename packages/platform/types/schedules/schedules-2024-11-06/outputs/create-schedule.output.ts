@@ -4,17 +4,17 @@ import { IsEnum, IsNotEmptyObject, ValidateNested } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
-import { ScheduleOutput } from "./schedule.output";
+import { ScheduleOutput_2024_11_06 } from "./schedule.output";
 
-export class GetDefaultScheduleOutput {
+export class CreateScheduleOutput_2024_11_06 {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
   @ApiProperty({
-    type: ScheduleOutput,
+    type: ScheduleOutput_2024_11_06,
   })
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => ScheduleOutput)
-  data!: ScheduleOutput | null;
+  @Type(() => ScheduleOutput_2024_11_06)
+  data!: ScheduleOutput_2024_11_06;
 }

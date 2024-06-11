@@ -2,9 +2,12 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsBoolean, IsOptional, ValidateNested, IsArray, IsTimeZone } from "class-validator";
 
-import { ScheduleAvailabilityInput, ScheduleOverrideInput } from "./create-schedule.input";
+import {
+  ScheduleAvailabilityInput_2024_11_06,
+  ScheduleOverrideInput_2024_11_06,
+} from "./create-schedule.input";
 
-export class UpdateScheduleInput {
+export class UpdateScheduleInput_2024_11_06 {
   @IsString()
   @IsOptional()
   @ApiProperty({ example: "One-on-one coaching", required: false })
@@ -18,9 +21,9 @@ export class UpdateScheduleInput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleAvailabilityInput)
+  @Type(() => ScheduleAvailabilityInput_2024_11_06)
   @ApiProperty({
-    type: [ScheduleAvailabilityInput],
+    type: [ScheduleAvailabilityInput_2024_11_06],
     example: [
       {
         days: ["Monday", "Tuesday"],
@@ -30,7 +33,7 @@ export class UpdateScheduleInput {
     ],
     required: false,
   })
-  availability?: ScheduleAvailabilityInput[];
+  availability?: ScheduleAvailabilityInput_2024_11_06[];
 
   @IsBoolean()
   @IsOptional()
@@ -40,9 +43,9 @@ export class UpdateScheduleInput {
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleOverrideInput)
+  @Type(() => ScheduleOverrideInput_2024_11_06)
   @ApiProperty({
-    type: [ScheduleOverrideInput],
+    type: [ScheduleOverrideInput_2024_11_06],
     example: [
       {
         date: "2024-05-20",
@@ -52,5 +55,5 @@ export class UpdateScheduleInput {
     ],
     required: false,
   })
-  overrides?: ScheduleOverrideInput[];
+  overrides?: ScheduleOverrideInput_2024_11_06[];
 }

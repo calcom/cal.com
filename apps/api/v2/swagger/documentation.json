@@ -923,7 +923,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateScheduleInput"
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_15_04"
               }
             }
           }
@@ -3299,7 +3299,7 @@
           "data"
         ]
       },
-      "UpdateScheduleInput": {
+      "UpdateScheduleInput_2024_15_04": {
         "type": "object",
         "properties": {
           "timeZone": {

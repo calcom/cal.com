@@ -20,7 +20,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { UpdateScheduleInput } from "@calcom/platform-types";
+import { UpdateScheduleInput_2024_15_04 } from "@calcom/platform-types";
 
 describe("Schedules Endpoints", () => {
   describe("User Authentication", () => {
@@ -155,7 +155,7 @@ describe("Schedules Endpoints", () => {
     it("should update schedule name", async () => {
       const newScheduleName = "new-schedule-name";
 
-      const body: UpdateScheduleInput = {
+      const body: UpdateScheduleInput_2024_15_04 = {
         name: newScheduleName,
       };
 
