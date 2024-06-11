@@ -808,25 +808,15 @@
     },
     "/v2/schedules": {
       "post": {
-        "operationId": "SchedulesController_2024_04_15_createSchedule",
+        "operationId": "SchedulesController_2024_06_11_createSchedule",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput_2024_04_15"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CreateScheduleOutput_2024_04_15"
+                  "$ref": "#/components/schemas/CreateScheduleOutput_2024_06_11"
                 }
               }
             }
@@ -837,7 +827,7 @@
         ]
       },
       "get": {
-        "operationId": "SchedulesController_2024_04_15_getSchedules",
+        "operationId": "SchedulesController_2024_06_11_getSchedules",
         "parameters": [],
         "responses": {
           "200": {
@@ -845,7 +835,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_04_15"
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
                 }
               }
             }
@@ -858,18 +848,11 @@
     },
     "/v2/schedules/default": {
       "get": {
-        "operationId": "SchedulesController_2024_04_15_getDefaultSchedule",
+        "operationId": "SchedulesController_2024_06_11_getDefaultSchedule",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultScheduleOutput_2024_04_15"
-                }
-              }
-            }
+            "description": "Returns the default schedule"
           }
         },
         "tags": [
@@ -879,7 +862,7 @@
     },
     "/v2/schedules/{scheduleId}": {
       "get": {
-        "operationId": "SchedulesController_2024_04_15_getSchedule",
+        "operationId": "SchedulesController_2024_06_11_getSchedule",
         "parameters": [
           {
             "name": "scheduleId",
@@ -896,7 +879,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetScheduleOutput_2024_04_15"
+                  "$ref": "#/components/schemas/GetScheduleOutput_2024_06_11"
                 }
               }
             }
@@ -907,7 +890,7 @@
         ]
       },
       "patch": {
-        "operationId": "SchedulesController_2024_04_15_updateSchedule",
+        "operationId": "SchedulesController_2024_06_11_updateSchedule",
         "parameters": [
           {
             "name": "scheduleId",
@@ -924,7 +907,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UpdateScheduleOutput_2024_04_15"
+                  "$ref": "#/components/schemas/UpdateScheduleOutput_2024_06_11"
                 }
               }
             }
@@ -935,7 +918,7 @@
         ]
       },
       "delete": {
-        "operationId": "SchedulesController_2024_04_15_deleteSchedule",
+        "operationId": "SchedulesController_2024_06_11_deleteSchedule",
         "parameters": [
           {
             "name": "scheduleId",
@@ -952,7 +935,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DeleteScheduleOutput_2024_04_15"
+                  "$ref": "#/components/schemas/DeleteScheduleOutput_2024_06_11"
                 }
               }
             }
@@ -3519,6 +3502,236 @@
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "ScheduleAvailabilityInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "days": {
+            "example": [
+              "Monday",
+              "Tuesday"
+            ],
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "startTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "09:00"
+          },
+          "endTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "10:00"
+          }
+        },
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "ScheduleOverrideInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2024-05-20"
+          },
+          "startTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "12:00"
+          },
+          "endTime": {
+            "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
+            "example": "13:00"
+          }
+        },
+        "required": [
+          "date",
+          "startTime",
+          "endTime"
+        ]
+      },
+      "ScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 254
+          },
+          "ownerId": {
+            "type": "number",
+            "example": 478
+          },
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "13:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "timeZone",
+          "availability",
+          "isDefault",
+          "overrides"
+        ]
+      },
+      "CreateScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+              }
+            ]
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetSchedulesOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+            }
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
           "status": {
