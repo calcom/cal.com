@@ -458,9 +458,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
-  if (eventType.schedulingType) {
+  if (eventType.schedulingType && eventType.team) {
     //remove pending members  to avoid blocking availability for all
-    const teamMembers = eventType.team?.members || [];
+    const teamMembers = eventType.team.members || [];
     usersWithCredentials = usersWithCredentials.filter((user) =>
       teamMembers.some((member) => member.userId === user.id && member.accepted === true)
     );
