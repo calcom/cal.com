@@ -173,6 +173,14 @@ export class UsersRepository {
       },
     });
   }
+
+  async getUserScheduleDefaultId(userId: number) {
+    const user = await this.findById(userId);
+
+    if (!user?.defaultScheduleId) return null;
+
+    return user?.defaultScheduleId;
+  }
 }
 
 function capitalizeTimezone(timezone: string) {

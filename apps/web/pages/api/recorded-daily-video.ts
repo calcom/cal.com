@@ -3,7 +3,10 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import {
+  getDownloadLinkOfCalVideoByRecordingId,
+  submitBatchProcessorTranscriptionJob,
+} from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
@@ -267,6 +270,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         teamId,
       },
     });
+
+    try {
+      // Submit Transcription Batch Processor Job
+      await submitBatchProcessorTranscriptionJob(recording_id);
+    } catch (err) {
+      log.error("Failed to  Submit Transcription Batch Processor Job:", safeStringify(err));
+    }
 
     // send emails to all attendees only when user has team plan
     await sendDailyVideoRecordingEmails(evt, downloadLink);
