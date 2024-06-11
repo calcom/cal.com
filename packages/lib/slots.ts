@@ -183,14 +183,11 @@ function buildSlotsWithDateRanges({
       break;
     }
   }
-  console.log("iterating the dateRanges and building slots?");
+
   dateRanges.forEach((range) => {
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
-    // hardocde minimum booking notice to 1 min (the least it can logically be)
     // applying minimumBookingNotice will happen later in utils/getAvailableSlots()
-    const startTimeWithMinNotice = dayjs.utc().add(1, "minute");
-    console.log("dateYYYMMDD (range.start)", dateYYYYMMDD);
-    console.log("startTimeWithMinNotice", startTimeWithMinNotice);
+    const startTimeWithMinNotice = dayjs.utc();
 
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
@@ -264,7 +261,6 @@ const getSlots = ({
   datesOutOfOffice,
 }: GetSlots) => {
   if (dateRanges) {
-    console.log("");
     const slots = buildSlotsWithDateRanges({
       dateRanges,
       frequency,
@@ -275,12 +271,11 @@ const getSlots = ({
       offsetStart,
       datesOutOfOffice,
     });
-    console.log("slots (if dateRanges exists)", slots);
     return slots;
   }
 
   // current date in invitee tz
-  const startDate = dayjs().utcOffset(inviteeDate.utcOffset()).add(minimumBookingNotice, "minute");
+  const startDate = dayjs().utcOffset(inviteeDate.utcOffset());
 
   // This code is ran client side, startOf() does some conversions based on the
   // local tz of the client. Sometimes this shifts the day incorrectly.

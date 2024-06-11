@@ -593,6 +593,7 @@ describe("getSchedule", () => {
     });
 
     test("minimumBookingNotice is respected", async () => {
+      console.log("testing logs 89898");
       await createBookingScenario({
         eventTypes: [
           {
@@ -641,6 +642,11 @@ describe("getSchedule", () => {
           isTeamEvent: false,
         },
       });
+
+      console.log(
+        "123 scheduleForEventWithBookingNotice13Hrs",
+        JSON.stringify(scheduleForEventWithBookingNotice13Hrs, null, 2)
+      );
 
       expect(scheduleForEventWithBookingNotice13Hrs).toHaveTimeSlots(
         [
