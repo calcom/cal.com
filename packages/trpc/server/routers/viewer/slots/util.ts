@@ -41,6 +41,15 @@ import type { GetScheduleOptions } from "./getSchedule.handler";
 import type { TGetScheduleInputSchema } from "./getSchedule.schema";
 import { handleNotificationWhenNoSlots } from "./handleNotificationWhenNoSlots";
 
+interface EventBusyDate {
+  start: string;
+  end: string;
+}
+
+interface CurrentSeats {
+  startTime: Dayjs;
+}
+
 export const checkIfIsAvailable = ({
   time,
   busy,
@@ -50,44 +59,36 @@ export const checkIfIsAvailable = ({
   time: Dayjs;
   busy: EventBusyDate[];
   eventLength: number;
-  currentSeats?: CurrentSeats;
+  currentSeats?: CurrentSeats[];
 }): boolean => {
-  if (currentSeats?.some((booking) => booking.startTime.toISOString() === time.toISOString())) {
+  if (isTimeInCurrentSeats(time, currentSeats)) {
     return true;
   }
 
   const slotEndTime = time.add(eventLength, "minutes").utc();
   const slotStartTime = time.utc();
 
-  return busy.every((busyTime) => {
-    const startTime = dayjs.utc(busyTime.start).utc();
-    const endTime = dayjs.utc(busyTime.end);
+  return busy.every(busyTime => isSlotAvailable(slotStartTime, slotEndTime, busyTime));
+};
 
-    if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
-      return true;
-    }
+const isTimeInCurrentSeats = (time: Dayjs, currentSeats?: CurrentSeats[]): boolean => {
+  return currentSeats?.some(booking => booking.startTime.toISOString() === time.toISOString()) || false;
+};
 
-    if (slotStartTime.isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    } else if (slotEndTime.isBetween(startTime, endTime, null, "(]")) {
-      return false;
-    }
+const isSlotAvailable = (slotStartTime: Dayjs, slotEndTime: Dayjs, busyTime: EventBusyDate): boolean => {
+  const startTime = dayjs.utc(busyTime.start);
+  const endTime = dayjs.utc(busyTime.end);
 
-    // Check if start times are the same
-    if (time.utc().isBetween(startTime, endTime, null, "[)")) {
-      return false;
-    }
-    // Check if slot end time is between start and end time
-    else if (slotEndTime.isBetween(startTime, endTime)) {
-      return false;
-    }
-    // Check if startTime is between slot
-    else if (startTime.isBetween(time, slotEndTime)) {
-      return false;
-    }
-
+  if (endTime.isBefore(slotStartTime) || startTime.isAfter(slotEndTime)) {
     return true;
-  });
+  }
+
+  return !(
+    slotStartTime.isBetween(startTime, endTime, null, "[)") ||
+    slotEndTime.isBetween(startTime, endTime, null, "(]") ||
+    startTime.isBetween(slotStartTime, slotEndTime) ||
+    slotEndTime.isBetween(startTime, endTime)
+  );
 };
 
 async function getEventTypeId({
@@ -132,26 +133,50 @@ async function getEventTypeId({
   return eventType?.id;
 }
 
+interface OrganizationDetails {
+  currentOrgDomain: string | null;
+  isValidOrgDomain: boolean;
+}
+
 export async function getEventType(
   input: TGetScheduleInputSchema,
-  organizationDetails: { currentOrgDomain: string | null; isValidOrgDomain: boolean }
+  organizationDetails: OrganizationDetails
 ) {
-  const { eventTypeSlug, usernameList, isTeamEvent } = input;
-  const eventTypeId =
-    input.eventTypeId ||
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    (await getEventTypeId({
-      slug: usernameList?.[0],
-      eventTypeSlug: eventTypeSlug,
-      isTeamEvent,
-      organizationDetails,
-    }));
-
+  const eventTypeId = await getEventTypeIdFromInput(input, organizationDetails);
   if (!eventTypeId) {
     return null;
   }
 
-  const eventType = await prisma.eventType.findUnique({
+  const eventType = await fetchEventTypeById(eventTypeId);
+  if (!eventType) {
+    return null;
+  }
+
+  return {
+    ...eventType,
+    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
+  };
+}
+
+async function getEventTypeIdFromInput(
+  input: TGetScheduleInputSchema,
+  organizationDetails: OrganizationDetails
+): Promise<string | null> {
+  const { eventTypeSlug, usernameList, isTeamEvent } = input;
+  if (input.eventTypeId) {
+    return input.eventTypeId;
+  }
+
+  return await getEventTypeId({
+    slug: usernameList?.[0],
+    eventTypeSlug: eventTypeSlug,
+    isTeamEvent,
+    organizationDetails,
+  });
+}
+
+async function fetchEventTypeById(eventTypeId: string) {
+  return await prisma.eventType.findUnique({
     where: {
       id: eventTypeId,
     },
@@ -218,15 +243,6 @@ export async function getEventType(
       },
     },
   });
-
-  if (!eventType) {
-    return null;
-  }
-
-  return {
-    ...eventType,
-    metadata: EventTypeMetaDataSchema.parse(eventType.metadata),
-  };
 }
 
 export async function getDynamicEventType(
@@ -339,40 +355,48 @@ async function getCRMContactOwnerForRRLeadSkip(
   }
 }
 
-async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
-  let crmRoundRobinLeadSkip;
-  for (const appKey in apps) {
-    const app = apps[appKey as keyof typeof apps];
-    if (
-      app.enabled &&
-      typeof app.appCategories === "object" &&
-      app.appCategories.some((category: string) => category === "crm") &&
-      app.roundRobinLeadSkip
-    ) {
-      crmRoundRobinLeadSkip = app;
-      break;
-    }
-  }
+async function getCRMManagerWithRRLeadSkip(apps) {
+  const crmRoundRobinLeadSkip = findCRMApp(apps);
 
-  if (crmRoundRobinLeadSkip) {
-    const crmCredential = await prisma.credential.findUnique({
-      where: {
-        id: crmRoundRobinLeadSkip.credentialId,
-      },
-      include: {
-        user: {
-          select: {
-            email: true,
-          },
+  if (!crmRoundRobinLeadSkip) return;
+
+  const crmCredential = await prisma.credential.findUnique({
+    where: {
+      id: crmRoundRobinLeadSkip.credentialId,
+    },
+    include: {
+      user: {
+        select: {
+          email: true,
         },
       },
-    });
-    if (crmCredential) {
-      return new CrmManager(crmCredential);
+    },
+  });
+
+  if (!crmCredential) return;
+
+  return new CrmManager(crmCredential);
+}
+
+function findCRMApp(apps) {
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof apps];
+    if (isCRMAppWithRoundRobinLeadSkip(app)) {
+      return app;
     }
   }
-  return;
+  return null;
 }
+
+function isCRMAppWithRoundRobinLeadSkip(app: any) {
+  return (
+    app.enabled &&
+    typeof app.appCategories === "object" &&
+    app.appCategories.includes("crm") &&
+    app.roundRobinLeadSkip
+  );
+}
+
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
   const orgDetails = input?.orgSlug
@@ -410,7 +434,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
 
   const loggerWithEventDetails = logger.getSubLogger({
-    prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
+    prefix: ["getAvailableSlots", ${eventType.id}:${input.usernameList}/${input.eventTypeSlug}],
   });
 
   loggerWithEventDetails.debug(
@@ -809,12 +833,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     {} as typeof slotsMappedToDate
   );
 
-  loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
+  loggerWithEventDetails.debug(getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times);
 
   loggerWithEventDetails.debug(
-    `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
+    checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times
   );
-  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
+  loggerWithEventDetails.debug(Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)});
 
   // We only want to run this on single targeted events and not dynamic
   if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
