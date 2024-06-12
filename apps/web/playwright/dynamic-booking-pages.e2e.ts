@@ -72,7 +72,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   await page.waitForLoadState("networkidle");
 
-  const badgeByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
+  const badgeByDurationTestId = (duration: number) => `toggle-group-item-${duration}`;
 
   let badgeLocator = await page.getByTestId(badgeByDurationTestId(duration));
   let activeState = await badgeLocator.getAttribute("data-active");

@@ -3,9 +3,8 @@ import { useEffect } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Badge } from "@calcom/ui";
+import { ToggleGroup } from "@calcom/ui";
 
 import type { PublicEvent } from "../../types";
 
@@ -20,16 +19,16 @@ export const getDurationFormatted = (mins: number | undefined, t: TFunction) => 
   if (mins > 0) {
     minStr =
       mins === 1
-        ? t("minute_one", { count: 1 })
-        : t("multiple_duration_timeUnit", { count: mins, unit: "minute" });
+        ? t("minute_one_short", { count: 1 })
+        : t("multiple_duration_timeUnit_short", { count: mins, unit: "minute" });
   }
   // format hours string
   let hourStr = "";
   if (hours > 0) {
     hourStr =
       hours === 1
-        ? t("hour_one", { count: 1 })
-        : t("multiple_duration_timeUnit", { count: hours, unit: "hour" });
+        ? t("hour_one_short", { count: 1 })
+        : t("multiple_duration_timeUnit_short", { count: hours, unit: "hour" });
   }
 
   if (hourStr && minStr) return `${hourStr} ${minStr}`;
@@ -59,22 +58,17 @@ export const EventDuration = ({ event }: { event: PublicEvent }) => {
 
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
 
-  return (
-    <div className="flex flex-wrap gap-2">
-      {durations
+  return selectedDuration ? (
+    <ToggleGroup
+      className="md:block"
+      onValueChange={(duration) => setSelectedDuration(Number(duration))}
+      defaultValue={selectedDuration.toString()}
+      options={durations
         .filter((dur) => state !== "booking" || dur === selectedDuration)
-        .map((duration) => (
-          <Badge
-            data-testId={`multiple-choice-${duration}mins`}
-            data-active={selectedDuration === duration ? "true" : "false"}
-            variant="gray"
-            className={classNames(selectedDuration === duration && "bg-brand-default text-brand")}
-            size="md"
-            key={duration}
-            onClick={() => setSelectedDuration(duration)}>
-            {getDurationFormatted(duration, t)}
-          </Badge>
-        ))}
-    </div>
-  );
+        .map((duration) => ({
+          value: duration.toString(),
+          label: getDurationFormatted(duration, t),
+        }))}
+    />
+  ) : null;
 };
