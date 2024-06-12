@@ -1,6 +1,7 @@
 import { GetMeOutput } from "@/ee/me/outputs/get-me.output";
 import { UpdateMeOutput } from "@/ee/me/outputs/update-me.output";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -14,15 +15,15 @@ import { PROFILE_READ, PROFILE_WRITE, SUCCESS_STATUS } from "@calcom/platform-co
 import { userSchemaResponse } from "@calcom/platform-types";
 
 @Controller({
-  path: "/me",
-  version: "2",
+  path: "/v2/me",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Me")
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly schedulesRepository: SchedulesService
+    private readonly schedulesRepository: SchedulesService_2024_04_15
   ) {}
 
   @Get("/")

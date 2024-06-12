@@ -16,6 +16,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -290,13 +291,16 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
+  const userId = triggerForUser ? bookingToReschedule.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToReschedule.userId : null,
+    userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
 
   // await handleAuditLogTrigger({
