@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
-import saveFieldSubstitutersWorker from "audit-log/saveFieldSubstitutersWorker";
 
 import saveAuditLogWorker from "@calcom/features/audit-log/saveAuditLogWorker";
+import saveFieldSubstitutersWorker from "@calcom/features/audit-log/saveFieldSubstitutersWorker";
 import type { BookingWithAttendees } from "@calcom/features/audit-log/types/BookingAuditLogTypes";
 import { BookingAuditLogOption } from "@calcom/features/audit-log/types/BookingAuditLogTypes";
 import { EventTypeAuditLogOption } from "@calcom/features/audit-log/types/EventTypeAuditLogTypes";
