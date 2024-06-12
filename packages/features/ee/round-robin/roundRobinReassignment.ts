@@ -24,6 +24,7 @@ export const roundRobinReassignment = async ({
   });
 
   const eventType = await getEventTypesFromDB(eventTypeId);
+  console.log("🚀 ~ eventType:", eventType.hosts[0].user.credentials);
 
   if (!eventType) {
     console.error(`Event type ${eventTypeId} not found`);
@@ -52,26 +53,8 @@ export const roundRobinReassignment = async ({
           destinationCalendar: true,
         },
       },
-      attendees: {
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          timeZone: true,
-          locale: true,
-        },
-      },
-      references: {
-        select: {
-          credentialId: true,
-        },
-      },
-    },
-    include: {
-      user: true,
       attendees: true,
       references: true,
-      destinationCalendar: true,
     },
   });
 
@@ -111,7 +94,7 @@ export const roundRobinReassignment = async ({
   // Filter out the current attendees of the booking from the event type
   const availableEventTypeUsers = eventType.users.reduce(async (availableUsers, user) => {
     if (!attendeeEmailsSet.has(user.email) && user.email !== originalOrganizer.email) {
-      const userCredentials = await prisma.credentials.findMany({
+      const userCredentials = await prisma.credential.findMany({
         where: {
           userId: user.id,
         },
