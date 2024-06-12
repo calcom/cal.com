@@ -128,6 +128,28 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
   };
 };
 
+export const buildCredential = (credential?: Partial<Credential>): Credential => {
+  return {
+    id: 0,
+    type: "auditLogs",
+    key: {
+      apiKey: "test",
+      projectId: "10",
+      endpoint: "localhost:3000",
+      disabledEvents: [],
+    },
+    userId: 1,
+    teamId: null,
+    appId: "boxyhq-retraced",
+    subscriptionId: null,
+    paymentStatus: null,
+    billingCycleStart: null,
+    invalid: false,
+    settings: {},
+    ...credential,
+  };
+};
+
 export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
   return {
     id: faker.datatype.uuid(),
