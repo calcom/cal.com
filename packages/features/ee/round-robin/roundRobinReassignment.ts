@@ -92,14 +92,9 @@ export const roundRobinReassignment = async ({
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
-  const availableEventTypeUsers = eventType.users.reduce(async (availableUsers, user) => {
+  const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
     if (!attendeeEmailsSet.has(user.email) && user.email !== originalOrganizer.email) {
-      const userCredentials = await prisma.credential.findMany({
-        where: {
-          userId: user.id,
-        },
-      });
-      availableUsers.push({ ...user, credentials: userCredentials });
+      availableUsers.push(user);
     }
     return availableUsers;
   }, [] as User[]);
