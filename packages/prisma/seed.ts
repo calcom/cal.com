@@ -49,6 +49,7 @@ const checkUnpublishedTeam = async (slug: string) => {
     },
   });
 };
+
 const setupPlatformUser = async (user: PlatformUser) => {
   const { password: _password, ...restOfUser } = user;
   const userData = {
