@@ -1,7 +1,7 @@
 import type { User, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import saveFieldSubstitutersWorker from "audit-log/saveFieldSubstitutersWorker";
 
+import saveFieldSubstitutersWorker from "@calcom/features/audit-log/saveFieldSubstitutersWorker";
 import { FieldSubstituterOption } from "@calcom/features/audit-log/types/TFieldSubstituterInput";
 import { prisma } from "@calcom/prisma";
 
