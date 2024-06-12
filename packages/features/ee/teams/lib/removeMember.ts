@@ -49,25 +49,33 @@ const removeMember = async ({
     },
   });
 
-  if (!team) throw new TRPCError({ code: "NOT_FOUND" });
+  const foundUser = await prisma.user.findUnique({
+    where: { id: memberId },
+    select: {
+      id: true,
+      movedToProfileId: true,
+      email: true,
+      username: true,
+      completedOnboarding: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              parentId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!team || !foundUser) throw new TRPCError({ code: "NOT_FOUND" });
 
   if (isOrg) {
     log.debug("Removing a member from the organization");
 
     // Deleting membership from all child teams
-    const foundUser = await prisma.user.findUnique({
-      where: { id: memberId },
-      select: {
-        id: true,
-        movedToProfileId: true,
-        email: true,
-        username: true,
-        completedOnboarding: true,
-      },
-    });
-
-    if (!foundUser) throw new TRPCError({ code: "NOT_FOUND" });
-
     // Delete all sub-team memberships where this team is the organization
     await prisma.membership.deleteMany({
       where: {
@@ -140,6 +148,10 @@ const removeMember = async ({
 
   // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
   if (team.parentId) {
+    const isUserActiveOnOtherTeam = !!foundUser.teams.filter(
+      (userTeam) => userTeam.team.id !== team.id && !!userTeam.team.parentId
+    ).length;
+
     const removedWorkflows = await prisma.workflow.findMany({
       where: {
         activeOnTeams: {
@@ -157,7 +169,9 @@ const removeMember = async ({
             },
           },
         },
-        isActiveOnAll: false,
+        ...(isUserActiveOnOtherTeam && {
+          isActiveOnAll: false,
+        }),
       },
     });
 
