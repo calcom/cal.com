@@ -415,7 +415,7 @@ async function getRemindersFromRemovedTeams(
             //team event types + children managed event types
             booking: {
               eventType: {
-                OR: [{ teamId: teamId }, { parentId: teamId, teamId: null }],
+                OR: [{ teamId }, { teamId: null, parent: { teamId } }],
               },
             },
           },
@@ -562,8 +562,10 @@ async function getBookings(
                 },
                 {
                   teamId: null,
-                  parentId: {
-                    in: activeOn,
+                  parent: {
+                    teamId: {
+                      in: activeOn,
+                    },
                   },
                 },
               ],
