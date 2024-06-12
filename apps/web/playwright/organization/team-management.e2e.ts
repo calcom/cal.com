@@ -71,11 +71,10 @@ test.describe("Teams", () => {
 
     await test.step("Can finish team creation", async () => {
       await page.getByTestId("finish-button").click();
-      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
       await page.getByTestId("disband-team-button").click();
       await page.getByTestId("dialog-confirmation").click();
       await page.waitForURL("/teams");
