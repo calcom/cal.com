@@ -10,7 +10,7 @@ import type { WorkflowActions } from "@calcom/prisma/enums";
 import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField } from "@calcom/ui";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField, CheckboxField, InfoBadge } from "@calcom/ui";
 
 import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
@@ -107,7 +107,16 @@ export default function WorkflowDetailsPage(props: Props) {
               {...form.register("name")}
             />
           </div>
-          <Label>{isOrg ? t("which_team_apply") : t("which_event_type_apply")}</Label>
+          {isOrg ? (
+            <div className="flex">
+              <Label>{t("which_team_apply")}</Label>
+              <div className="-mt-0.5">
+                <InfoBadge content={t("team_select_info")} />
+              </div>
+            </div>
+          ) : (
+            <Label>{t("which_event_type_apply")}</Label>
+          )}
           <Controller
             name="activeOn"
             control={form.control}

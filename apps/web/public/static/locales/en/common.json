@@ -2485,6 +2485,7 @@
   "mark_as_no_show_title": "Mark as no show",
   "x_marked_as_no_show": "{{x}} marked as no-show",
   "x_unmarked_as_no_show": "{{x}} unmarked as no-show",
+  "team_select_info": "triggers for all team event types and all team members' personal event types",
   "no_show_updated": "No-show status updated for attendees",
   "email_copied": "Email copied",
   "USER_PENDING_MEMBER_OF_THE_ORG": "User is a pending member of the organization",
