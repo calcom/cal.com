@@ -10,6 +10,7 @@ import { Toaster } from "react-hot-toast";
 import dayjs from "@calcom/dayjs";
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import UnconfirmedBookingBadge from "@calcom/features/bookings/UnconfirmedBookingBadge";
+import DemoBanner from "@calcom/features/demo/DemoBanner";
 import ImpersonatingBanner, {
   type ImpersonatingBannerProps,
 } from "@calcom/features/ee/impersonation/components/ImpersonatingBanner";
@@ -256,6 +257,8 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
+            <DemoBanner />
+
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
