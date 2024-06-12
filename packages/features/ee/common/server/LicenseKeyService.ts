@@ -73,7 +73,7 @@ class LicenseKeyService {
       });
       return await response.json();
     } catch (error) {
-      console.error("Error incrementing usage:", error);
+      console.error("Incrementing usage failed:", error);
       throw error;
     }
   }
