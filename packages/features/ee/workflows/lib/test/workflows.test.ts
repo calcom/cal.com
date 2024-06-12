@@ -203,7 +203,7 @@ async function createWorkflowRemindersForWorkflow(workflowName: string) {
   return workflow;
 }
 
-describe("deleteRemindersFromRemovedActiveOn", () => {
+describe("deleteRemindersOfActiveOnIds", () => {
   test("should delete all reminders from removed event types", async ({}) => {
     const organizer = getOrganizer({
       name: "Organizer",
