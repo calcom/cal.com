@@ -163,4 +163,8 @@ describe("roundRobinReassignment test", () => {
 
     expectWorkflowToBeTriggered({ emailsToReceive: [newHost.email], emails });
   });
+
+  // TODO: add fixed hosts test
+  // TODO: ensure calendar event is updated
+  // TODO: ensure destination calendar changes
 });
