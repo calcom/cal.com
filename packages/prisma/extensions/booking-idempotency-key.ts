@@ -8,27 +8,43 @@ export function bookingIdempotencyKeyExtension() {
     query: {
       booking: {
         async create({ args, query }) {
-          const uniqueEmailJoinInput: string[] = [];
+          const uniqueJoinInput: string[] = [];
           if (
             args.data.attendees?.create &&
             !Array.isArray(args.data.attendees?.create) &&
             args.data.attendees?.create.email
           ) {
-            uniqueEmailJoinInput.push(args.data.attendees?.create.email);
+            uniqueJoinInput.push(args.data.attendees?.create.email);
           }
+
+          // Check for phone numbers in single attendee create
+          if (
+            args.data.attendees?.create &&
+            !Array.isArray(args.data.attendees?.create) &&
+            args.data.attendees?.create.phoneNumber
+          ) {
+            uniqueJoinInput.push(args.data.attendees?.create.phoneNumber);
+          }
+
           if (args.data.attendees?.createMany && Array.isArray(args.data.attendees?.createMany.data)) {
-            uniqueEmailJoinInput.push(
+            uniqueJoinInput.push(
               ...args.data.attendees?.createMany.data
                 .map((record) => record.email)
                 .filter((email): email is string => !!email)
             );
+
+            // Check for phone numbers in attendees createMany
+            uniqueJoinInput.push(
+              ...args.data.attendees?.createMany.data
+                .map((record) => record.phoneNumber)
+                .filter((phoneNumber): phoneNumber is string => !!phoneNumber)
+            );
           }
+
           const idempotencyKey = uuidv5(
             `${
               args.data.eventType?.connect?.id
-            }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${uniqueEmailJoinInput.join(
-              ","
-            )}`,
+            }.${args.data.startTime.valueOf()}.${args.data.endTime.valueOf()}.${uniqueJoinInput.join(",")}`,
             uuidv5.URL
           );
           args.data.idempotencyKey = idempotencyKey;

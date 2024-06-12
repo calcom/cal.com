@@ -1865,6 +1865,7 @@
   "not_enough_seats": "Not enough seats",
   "form_builder_field_already_exists": "A field with this name already exists",
   "show_on_booking_page": "Show on booking page",
+  "visit_cancelled_booking": "You can visit the cancelled booking page",
   "get_started_zapier_templates": "Get started with Zapier templates",
   "team_is_unpublished": "{{team}} is unpublished",
   "org_is_unpublished_description": "This organization link is currently not available. Please contact the organization owner or ask them to publish it.",

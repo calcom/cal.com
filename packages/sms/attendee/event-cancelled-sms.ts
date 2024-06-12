@@ -16,8 +16,8 @@ export default class EventCancelledSMS extends SMSManager {
         title: this.calEvent.title,
         date: this.getFormattedDate(attendee.timeZone, attendee.language.locale),
       }
-    )}. /n/n ${t("need_to_reschedule_or_cancel")} ${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${
+    )}. /n/n ${t("visit_cancelled_booking")} ${this.calEvent.bookerUrl ?? WEBAPP_URL}/booking/${
       this.calEvent.uid
-    }?changes=true `;
+    } `;
   }
 }

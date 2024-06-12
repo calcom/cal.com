@@ -59,9 +59,6 @@ export const getCalEventResponses = ({
         };
       }
 
-      // const isEmailFieldValueFalsy =
-      //   field.name === "email" && !field.required && !!!backwardCompatibleResponses[field.name];
-
       calEventResponses[field.name] = {
         label,
         value: backwardCompatibleResponses[field.name],

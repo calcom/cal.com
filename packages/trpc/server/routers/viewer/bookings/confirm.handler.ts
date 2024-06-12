@@ -73,6 +73,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           locations: true,
           team: {
             select: {
+              id: true,
+              name: true,
               parentId: true,
             },
           },
@@ -212,6 +214,13 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       : [],
     requiresConfirmation: booking?.eventType?.requiresConfirmation ?? false,
     eventTypeId: booking.eventType?.id,
+    team: !!booking.eventType?.team
+      ? {
+          name: booking.eventType.team.name,
+          id: booking.eventType.team.id,
+          members: [],
+        }
+      : undefined,
   };
 
   const recurringEvent = parseRecurringEvent(booking.eventType?.recurringEvent);

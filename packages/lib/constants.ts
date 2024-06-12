@@ -175,4 +175,4 @@ export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/stop-recording.svg`
   : `https://app.cal.com/stop-recording.svg`;
 
-export const BOOKED_WITH_SMS_EMAIL = "booked-with-sms@cal.com";
+export const BOOKED_WITH_SMS_EMAIL = process.env.BOOKED_WITH_SMS_EMAIL ?? "booked-with-sms@cal.com";
