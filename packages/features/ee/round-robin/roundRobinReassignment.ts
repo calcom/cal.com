@@ -81,16 +81,16 @@ export const roundRobinReassignment = async ({
 
   const originalOrganizer = booking.user;
 
-  const attendeesSet = new Set(booking.attendees.map((attendee) => attendee.email));
+  const attendeeEmailsSet = new Set(booking.attendees.map((attendee) => attendee.email));
 
   // Find the current round robin host assigned
   const previousRRHost = (() => {
     for (const host of roundRobinHosts) {
       if (host.userId === booking.userId) {
-        return host;
+        return host.user;
       }
-      if (attendeesSet.has(host.user.email)) {
-        return host;
+      if (attendeeEmailsSet.has(host.user.email)) {
+        return host.user;
       }
     }
   })();
@@ -124,7 +124,7 @@ export const roundRobinReassignment = async ({
   });
 
   const hasOrganizerChanged = booking.userId === previousRRHost;
-  const organizer = hasOrganizerChanged ? reassignedRRHost.user : booking.user;
+  const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation((organizer?.locale || "en", "common"));
 
   // See if user is the assigned user or an attendee
@@ -145,7 +145,7 @@ export const roundRobinReassignment = async ({
     });
   } else {
     const previousRRHostAttendee = booking.attendees.find(
-      (attendee) => attendee.email === previousRRHost.user.email
+      (attendee) => attendee.email === previousRRHost.email
     );
     await prisma.attendee.update({
       where: {
@@ -172,21 +172,40 @@ export const roundRobinReassignment = async ({
   for (const teamMember of eventType.hosts) {
     const user = teamMember.user;
     // Need to skip over the reassigned user and the lucky user
-    if (user.email === reassignedRRHost.email || user.email === originalOrganizer.email) {
+    if (user.email === previousRRHost.email || user.email === organizer.email) {
       continue;
     }
-    const tTeamMember = await getTranslation(user.locale ?? "en", "common");
 
-    teamMemberPromises.push({
-      id: user.id,
-      email: user.email,
-      name: user.name || "",
-      timeZone: user.timeZone,
-      language: { translate: tTeamMember, locale: user.locale ?? "en" },
-    });
+    if (attendeeEmailsSet.has(user.email)) {
+      const tTeamMember = await getTranslation(user.locale ?? "en", "common");
+
+      teamMemberPromises.push({
+        id: user.id,
+        email: user.email,
+        name: user.name || "",
+        timeZone: user.timeZone,
+        language: { translate: tTeamMember, locale: user.locale ?? "en" },
+      });
+    }
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
+  console.log("🚀 ~ teamMembers:", teamMembers);
+
+  // Assume the RR host was labelled as a team member
+  if (reassignedRRHost.email !== organizer.email) {
+    teamMembers.push({
+      id: reassignedRRHost.id,
+      email: reassignedRRHost.email,
+      name: reassignedRRHost.name,
+      timeZone: reassignedRRHost.timeZone,
+      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale ?? "en" },
+    });
+  }
+  console.log("🚀 ~ teamMembers:", teamMembers);
+
+  console.log("🚀 ~ previousRRHost.user:", previousRRHost);
+  console.log("🚀 ~ reassignedRRHost.user:", reassignedRRHost);
 
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
@@ -208,8 +227,9 @@ export const roundRobinReassignment = async ({
   }
 
   const attendeeList = await Promise.all(attendeePromises);
+  console.log("🚀 ~ attendeeList:", attendeeList);
 
-  const destinationCalendar = (async () => {
+  const destinationCalendar = await (async () => {
     if (eventType?.destinationCalendar) {
       return [eventType.destinationCalendar];
     }
