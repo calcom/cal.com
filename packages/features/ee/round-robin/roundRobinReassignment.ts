@@ -2,7 +2,7 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
 import { ensureAvailableUsers, getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
-import type { User } from "@calcom/features/bookings/lib/handleNewBooking";
+import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -24,14 +24,13 @@ export const roundRobinReassignment = async ({
   });
 
   const eventType = await getEventTypesFromDB(eventTypeId);
-  console.log("🚀 ~ eventType:", eventType.hosts[0].user.credentials);
 
   if (!eventType) {
     console.error(`Event type ${eventTypeId} not found`);
     throw new Error("Event type not found");
   }
 
-  eventType.users = eventType.hosts.map((host) => ({ ...host.user }));
+  eventType.users = eventType.hosts.map((host) => ({ ...host.user, isFixed: host.isFixed }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -92,12 +91,12 @@ export const roundRobinReassignment = async ({
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
-  const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
-    if (!attendeeEmailsSet.has(user.email) && user.email !== originalOrganizer.email) {
-      availableUsers.push(user);
+  const availableEventTypeUsers = eventType.hosts.reduce((availableUsers, host) => {
+    if (!attendeeEmailsSet.has(host.user.email) && host.user.email !== originalOrganizer.email) {
+      availableUsers.push({ ...host.user });
     }
     return availableUsers;
-  }, [] as User[]);
+  }, [] as IsFixedAwareUser[]);
 
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
