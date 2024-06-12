@@ -13,7 +13,7 @@ const log = logger.getSubLogger({ prefix: ["AuditLogManager", config.slug] });
 export default class GenericAuditLogManager implements AuditLogsManager {
   private client: undefined | GenericAuditLogClient;
 
-  constructor(appKeys: AppKeys) {
+  constructor(appKeys: AppKeys, id: number) {
     log.silly("Initializing GenericAuditLogManager");
 
     // This is where your audit log client goes. Should be edited.
