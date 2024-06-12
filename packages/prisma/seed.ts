@@ -19,40 +19,6 @@ import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
 
-const checkUnpublishedTeam = async (slug: string) => {
-  return await prisma.team.findFirst({
-    where: {
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
-};
-
-const createTeam = async (team: Prisma.TeamCreateInput) => {
-  try {
-    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
-    if (requestedSlug) {
-      const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
-      if (unpublishedTeam) {
-        throw Error("Unique constraint failed on the fields");
-      }
-    }
-    return await prisma.team.create({
-      data: {
-        ...team,
-      },
-    });
-  } catch (_err) {
-    if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
-      console.log(`Team '${team.name}' already exists, skipping.`);
-      return;
-    }
-    throw _err;
-  }
-};
-
 type PlatformUser = {
   email: string;
   password: string;
@@ -65,15 +31,25 @@ type PlatformUser = {
   avatarUrl?: string | null;
 };
 
-async function createPlatformAndSetupUser({
-  teamInput,
-  user,
-}: {
-  teamInput: Prisma.TeamCreateInput;
-  user: PlatformUser;
-}) {
-  const team = await createTeam(teamInput);
+type AssociateUserAndOrgProps = {
+  teamId: number;
+  userId: number;
+  role: MembershipRole;
+  username: string;
+};
 
+const checkUnpublishedTeam = async (slug: string) => {
+  return await prisma.team.findFirst({
+    where: {
+      metadata: {
+        path: ["requestedSlug"],
+        equals: slug,
+      },
+    },
+  });
+};
+
+const setupPlatformUser = async (user: PlatformUser) => {
   const { password: _password, ...restOfUser } = user;
   const userData = {
     ...restOfUser,
@@ -116,42 +92,84 @@ async function createPlatformAndSetupUser({
     },
   });
 
+  return platformUser;
+};
+
+const createTeam = async (team: Prisma.TeamCreateInput) => {
+  try {
+    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
+    if (requestedSlug) {
+      const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
+      if (unpublishedTeam) {
+        throw Error("Unique constraint failed on the fields");
+      }
+    }
+    return await prisma.team.create({
+      data: {
+        ...team,
+      },
+    });
+  } catch (_err) {
+    if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
+      console.log(`Team '${team.name}' already exists, skipping.`);
+      return;
+    }
+    throw _err;
+  }
+};
+
+const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
+  await prisma.membership.create({
+    data: {
+      teamId,
+      userId,
+      role: role as MembershipRole,
+      accepted: true,
+    },
+  });
+
+  const profile = await prisma.profile.create({
+    data: {
+      uid: uuid(),
+      username,
+      organizationId: teamId,
+      userId,
+    },
+  });
+
+  await prisma.user.update({
+    data: {
+      movedToProfileId: profile.id,
+    },
+    where: {
+      id: userId,
+    },
+  });
+};
+
+async function createPlatformAndSetupUser({
+  teamInput,
+  user,
+}: {
+  teamInput: Prisma.TeamCreateInput;
+  user: PlatformUser;
+}) {
+  const team = await createTeam(teamInput);
+
+  const platformUser = await setupPlatformUser(user);
+
   console.log(
     `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
   const { role = MembershipRole.OWNER, username } = platformUser;
 
-  console.log(team, "team valueeeee".toLocaleUpperCase());
-
-  if (!team) console.log("there is no team present for this platform user".toLocaleUpperCase());
-
   if (!!team) {
-    await prisma.membership.create({
-      data: {
-        teamId: team.id,
-        userId: platformUser.id,
-        role: role as MembershipRole,
-        accepted: true,
-      },
-    });
-
-    const profile = await prisma.profile.create({
-      data: {
-        uid: uuid(),
-        username: user.username,
-        organizationId: team.id || 111,
-        userId: platformUser.id,
-      },
-    });
-
-    await prisma.user.update({
-      data: {
-        movedToProfileId: profile.id,
-      },
-      where: {
-        id: platformUser.id,
-      },
+    await associateUserAndOrg({
+      teamId: team.id,
+      userId: platformUser.id,
+      role: role as MembershipRole,
+      username: user.username,
     });
 
     await prisma.platformBilling.create({
