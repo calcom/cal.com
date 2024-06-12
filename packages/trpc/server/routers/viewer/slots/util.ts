@@ -635,7 +635,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   });
 
   let availableTimeSlots: typeof timeSlots = [];
-
   // Load cached busy slots
   const selectedSlots =
     /* FIXME: For some reason this returns undefined while testing in Jest */
@@ -768,7 +767,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
-
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
   const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -782,7 +780,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     utcOffset,
   });
   let foundAFutureLimitViolation = false;
-
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
     (withinBoundsSlotsMappedToDate, [date, slots]) => {
       // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
@@ -831,7 +828,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
         return withinBoundsSlotsMappedToDate;
       }
-
       withinBoundsSlotsMappedToDate[date] = filteredSlots;
       return withinBoundsSlotsMappedToDate;
     },
