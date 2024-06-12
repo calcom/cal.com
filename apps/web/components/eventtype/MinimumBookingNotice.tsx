@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
@@ -39,17 +39,11 @@ export const MinimumBookingNoticeInput = React.forwardRef<
     value: convertToNewDurationType("minutes", findDurationType(getValues(name)), getValues(name)),
   });
 
-  useEffect(() => {
-    setValue(
-      name,
-      convertToNewDurationType(
-        minimumBookingNoticeDisplayValues.type,
-        "minutes",
-        minimumBookingNoticeDisplayValues.value
-      ),
-      { shouldDirty: true }
-    );
-  }, [minimumBookingNoticeDisplayValues, setValue, name]);
+  const syncHiddenField = (newValue: number) => {
+    setValue(name, convertToNewDurationType(minimumBookingNoticeDisplayValues.type, "minutes", newValue), {
+      shouldDirty: true,
+    });
+  };
 
   return (
     <div className="flex items-end justify-end">
@@ -58,12 +52,14 @@ export const MinimumBookingNoticeInput = React.forwardRef<
           required
           disabled={passThroughProps.disabled}
           defaultValue={minimumBookingNoticeDisplayValues.value}
-          onChange={(e) =>
+          onChange={(e) => {
+            const newValue = parseInt(e.target.value || "0", 10);
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
-              value: parseInt(e.target.value || "0", 10),
-            })
-          }
+              value: newValue,
+            });
+            syncHiddenField(newValue);
+          }}
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
