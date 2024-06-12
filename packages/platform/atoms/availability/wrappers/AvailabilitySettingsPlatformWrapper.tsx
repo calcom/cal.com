@@ -1,16 +1,18 @@
 import type { ScheduleLabelsType } from "@calcom/features/schedules/components/Schedule";
-import type { ScheduleWithAvailabilitiesForWeb, UpdateScheduleOutputType } from "@calcom/platform-libraries";
-import type { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
+import type { ApiErrorResponse, ApiResponse, ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 
-import useClientSchedule from "../../hooks/useClientSchedule";
-import useDeleteSchedule from "../../hooks/useDeleteSchedule";
+import useDeleteSchedule from "../../hooks/schedules/useDeleteSchedule";
+import { useSchedule } from "../../hooks/schedules/useSchedule";
+import { useSchedules } from "../../hooks/schedules/useSchedules";
+import useUpdateSchedule from "../../hooks/schedules/useUpdateSchedule";
 import { useMe } from "../../hooks/useMe";
-import useUpdateSchedule from "../../hooks/useUpdateSchedule";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
-import type { Schedule } from "../AvailabilitySettings";
+import type { Availability } from "../AvailabilitySettings";
 import type { CustomClassNames } from "../AvailabilitySettings";
 import { AvailabilitySettings } from "../AvailabilitySettings";
+import { transformApiScheduleForAtom } from "../atom-api-transformers/transformApiScheduleForAtom";
+import { transformAtomScheduleForApi } from "../atom-api-transformers/transformAtomScheduleForApi";
 import type { AvailabilityFormValues } from "../types";
 
 type AvailabilitySettingsPlatformWrapperProps = {
@@ -19,7 +21,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
     tooltips: Partial<ScheduleLabelsType>;
   };
   customClassNames?: Partial<CustomClassNames>;
-  onUpdateSuccess?: (res: ApiResponse<UpdateScheduleOutputType>) => void;
+  onUpdateSuccess?: (res: ApiResponse<ScheduleOutput_2024_06_11>) => void;
   onUpdateError?: (err: ApiErrorResponse) => void;
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
@@ -35,10 +37,10 @@ export const AvailabilitySettingsPlatformWrapper = ({
   onUpdateSuccess,
   disableEditableHeading = false,
 }: AvailabilitySettingsPlatformWrapperProps) => {
-  const { isLoading, data: schedule } = useClientSchedule(id);
-  const mySchedule = schedule as ApiSuccessResponse<ScheduleWithAvailabilitiesForWeb>;
+  const { isLoading, data: schedule } = useSchedule(id);
+  const { data: schedules } = useSchedules();
   const { data: me } = useMe();
-  const userSchedule = mySchedule?.data;
+  const atomSchedule = transformApiScheduleForAtom(me?.data, schedule, schedules?.length || 0);
   const { timeFormat } = me?.data || { timeFormat: null };
   const { toast } = useToast();
 
@@ -77,48 +79,43 @@ export const AvailabilitySettingsPlatformWrapper = ({
   };
 
   const handleUpdate = async (id: number, body: AvailabilityFormValues) => {
-    const transformedDateOverrides =
-      body.dateOverrides.flatMap(
-        (dateOverridesRanges) =>
-          dateOverridesRanges?.ranges?.map((range) => ({ start: range.start, end: range.end })) ?? []
-      ) ?? [];
-
-    await updateSchedule({ ...body, scheduleId: id, dateOverrides: transformedDateOverrides });
+    const updateBody = transformAtomScheduleForApi(body);
+    updateSchedule({ id, ...updateBody });
   };
 
   if (isLoading) return <div className="px-10 py-4 text-xl">Loading...</div>;
 
-  if (!userSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
+  if (!atomSchedule) return <div className="px-10 py-4 text-xl">No user schedule present</div>;
 
   return (
     <AtomsWrapper>
       <AvailabilitySettings
         disableEditableHeading={disableEditableHeading}
         handleDelete={() => {
-          userSchedule.id && handleDelete(userSchedule.id);
+          atomSchedule.id && handleDelete(atomSchedule.id);
         }}
         handleSubmit={async (data) => {
-          userSchedule.id && handleUpdate(userSchedule.id, data);
+          atomSchedule.id && handleUpdate(atomSchedule.id, data);
         }}
         weekStart="Sunday"
         timeFormat={timeFormat}
         isLoading={isLoading}
         schedule={{
-          name: userSchedule.name,
-          id: userSchedule.id,
-          isLastSchedule: userSchedule.isLastSchedule,
-          isDefault: userSchedule.isDefault,
-          workingHours: userSchedule.workingHours,
-          dateOverrides: userSchedule.dateOverrides,
-          timeZone: userSchedule.timeZone,
-          availability: userSchedule.availability,
+          name: atomSchedule.name,
+          id: atomSchedule.id,
+          isLastSchedule: atomSchedule.isLastSchedule,
+          isDefault: atomSchedule.isDefault,
+          workingHours: atomSchedule.workingHours,
+          dateOverrides: atomSchedule.dateOverrides,
+          timeZone: atomSchedule.timeZone,
+          availability: atomSchedule.availability,
           schedule:
-            userSchedule.schedule.reduce(
-              (acc: Schedule[], avail: Schedule) => [
+            atomSchedule.schedule.reduce(
+              (acc: Availability[], avail: Availability) => [
                 ...acc,
-                { ...avail, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
+                { days: avail.days, startTime: new Date(avail.startTime), endTime: new Date(avail.endTime) },
               ],
-              [] as Schedule[]
+              []
             ) || [],
         }}
         isDeleting={isDeletionInProgress}
