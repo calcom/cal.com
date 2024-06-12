@@ -110,8 +110,6 @@ export const useScheduleForEvent = ({
     bookerEmail,
   });
 
-  console.log("schedule in 678", schedule);
-
   return {
     data: schedule?.data,
     isPending: schedule?.isPending,

@@ -40,7 +40,8 @@ import {
 } from "@calcom/ui";
 
 import { MinimumBookingNoticeInput } from "@components/eventtype/MinimumBookingNotice";
-import RequiresConfirmationController from "@components/eventtype/RequiresConfirmationController";
+
+import RequiresConfirmationController from "./RequiresConfirmationController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
