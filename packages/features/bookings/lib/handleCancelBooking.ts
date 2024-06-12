@@ -7,7 +7,7 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
+import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -18,6 +18,7 @@ import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/sc
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getIP from "@calcom/lib/getIP";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -303,15 +304,18 @@ async function handler(req: CustomRequest) {
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
   handleAuditLogTrigger({
-    req,
-    bookingData: {
+    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+    user: {
+      id: req.userId ?? -1,
+      name: "TODO UPDATE",
+    },
+    sourceIp: getIP(req),
+    data: {
       ...evt,
       ...eventTypeInfo,
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
     },
-    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-    crud: CRUD.UPDATE,
   });
 
   // If it's just an attendee of a booking then just remove them from that booking
