@@ -94,7 +94,7 @@ function transformApiEventTypeBookingFields(inputBookingFields: CreateEventTypeI
   return customBookingFields;
 }
 
-function transformSelectOptions(options: string[]) {
+export function transformSelectOptions(options: string[]) {
   return options.map((option) => ({
     label: option,
     value: option,

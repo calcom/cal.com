@@ -4050,6 +4050,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa":
+  version: 0.0.0-use.local
+  resolution: "@calcom/baa-for-hipaa@workspace:packages/app-store/baa-for-hipaa"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/base@workspace:packages/platform/examples/base":
   version: 0.0.0-use.local
   resolution: "@calcom/base@workspace:packages/platform/examples/base"
@@ -4648,18 +4657,21 @@ __metadata:
     "@formbricks/api": ^1.1.0
     "@formbricks/js": ^1.5.0
     "@sendgrid/client": ^7.7.0
+    "@types/jest": ^29.5.12
     "@vercel/og": ^0.5.0
     bcryptjs: ^2.4.3
     city-timezones: ^1.2.1
     i18next: ^23.2.3
     ical.js: ^1.4.0
     ics: ^2.37.0
+    jest: ^29.7.0
     jimp: ^0.16.1
     next-collect: ^0.2.1
     next-i18next: ^13.2.2
     react-hot-toast: ^2.3.0
     rrule: ^2.7.1
     tailwind-merge: ^1.13.2
+    ts-jest: ^29.1.4
     tsdav: 2.0.3
     tslog: ^4.9.2
     typescript: ^4.9.4
@@ -44756,6 +44768,42 @@ __metadata:
   bin:
     ts-jest: cli.js
   checksum: a0ce0affc1b716c78c9ab55837829c42cb04b753d174a5c796bb1ddf9f0379fc20647b76fbe30edb30d9b23181908138d6b4c51ef2ae5e187b66635c295cefd5
+  languageName: node
+  linkType: hard
+
+"ts-jest@npm:^29.1.4":
+  version: 29.1.4
+  resolution: "ts-jest@npm:29.1.4"
+  dependencies:
+    bs-logger: 0.x
+    fast-json-stable-stringify: 2.x
+    jest-util: ^29.0.0
+    json5: ^2.2.3
+    lodash.memoize: 4.x
+    make-error: 1.x
+    semver: ^7.5.3
+    yargs-parser: ^21.0.1
+  peerDependencies:
+    "@babel/core": ">=7.0.0-beta.0 <8"
+    "@jest/transform": ^29.0.0
+    "@jest/types": ^29.0.0
+    babel-jest: ^29.0.0
+    jest: ^29.0.0
+    typescript: ">=4.3 <6"
+  peerDependenciesMeta:
+    "@babel/core":
+      optional: true
+    "@jest/transform":
+      optional: true
+    "@jest/types":
+      optional: true
+    babel-jest:
+      optional: true
+    esbuild:
+      optional: true
+  bin:
+    ts-jest: cli.js
+  checksum: e36cba389adbb3700b46422e883c8d25e76febcc01c4a39c801ef15e6edbd6da1695bdd144100153e992f98a754aea4099906955b1b9a83c3c72d77009c3d7e2
   languageName: node
   linkType: hard
 
