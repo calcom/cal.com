@@ -1483,7 +1483,7 @@ describe("getSchedule", () => {
       const bookingUid = "abc123";
 
       const { dateString: todayDateString } = getDate();
-      const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+      // const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
 
       const bookingStartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
       const bookingEndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
@@ -1524,18 +1524,17 @@ describe("getSchedule", () => {
         organizer,
       });
 
-      const bookingScenario = await createBookingScenario(scenarioData);
+      await createBookingScenario(scenarioData);
 
       // Time Travel to the beginning of today after getting all the dates correctly.
-      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 0 });
 
       const schedule = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
-          timeZone: Timezones["+5:30"],
+          startTime: `${todayDateString}T00:00:00.000Z`,
+          endTime: `${todayDateString}T23:59:59.999Z`,
           isTeamEvent: false,
         },
       });

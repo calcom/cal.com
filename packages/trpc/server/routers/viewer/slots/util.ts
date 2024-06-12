@@ -420,7 +420,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     }`
   );
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    const startTimeMin = dayjs.utc().add(1, "minutes"); // balthi - breaks no tests
+    const startTimeMin = dayjs.utc().add(1, "minutes");
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
@@ -622,7 +622,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const seatsMinimumBookingNoticeActive = !!(
     eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice
   );
-
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -636,6 +635,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   });
 
   let availableTimeSlots: typeof timeSlots = [];
+
   // Load cached busy slots
   const selectedSlots =
     /* FIXME: For some reason this returns undefined while testing in Jest */
@@ -768,6 +768,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   const availableDates = Object.keys(slotsMappedToDate);
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
+
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
   const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
@@ -800,8 +801,10 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         }
 
         // Before enabling minimum booking notice for seats, the following outOfBounds check was redundant.
-        // Now its needed, because when seats have a minimum booking notice, minimumBookingNotice is not applied
-        // in getSlots, so we need to filter out the slots that are out of bounds here.
+        // Now its needed, because when seats have a minimum booking notice (seatsMinimumBookingNotice),
+        // minimumBookingNotice is not applied in getSlots, so we need to filter out the slots that
+        // are out of bounds here.
+
         let isOutOfBounds = false;
         if (eventType.seatsPerTimeSlot && slot.attendees && slot.attendees > 0) {
           // logic for handling eventType.seatsMinimumBookingNotice if the eventType has seats
