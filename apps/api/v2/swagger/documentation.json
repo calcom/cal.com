@@ -1833,12 +1833,16 @@
           },
           "refreshToken": {
             "type": "string"
+          },
+          "accessTokenExpiresAt": {
+            "type": "number"
           }
         },
         "required": [
           "user",
           "accessToken",
-          "refreshToken"
+          "refreshToken",
+          "accessTokenExpiresAt"
         ]
       },
       "CreateManagedUserOutput": {

@@ -91,6 +91,7 @@ export class OAuthClientUsersController {
       data: {
         user: this.getResponseUser(user),
         accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
       },
     };
