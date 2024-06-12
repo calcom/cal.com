@@ -17,7 +17,12 @@ export default class GenericAuditLogManager implements AuditLogsManager {
     log.silly("Initializing GenericAuditLogManager");
 
     // This is where your audit log client goes. Should be edited.
-    this.client = getGenericAuditLogClient(appKeys.apiKey, appKeys.projectId, appKeys.endpoint);
+    this.client = getGenericAuditLogClient(
+      appKeys.apiKey,
+      appKeys.projectId,
+      appKeys.endpoint,
+      appKeys.disabledEvents
+    );
   }
 
   public async reportEvent(event: AuditLogEvent) {
