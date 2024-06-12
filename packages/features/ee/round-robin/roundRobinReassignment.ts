@@ -32,6 +32,8 @@ export const roundRobinReassignment = async ({
 
   eventType.users = eventType.hosts.map((host) => ({ ...host.user }));
 
+  const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
+
   let booking = await prisma.booking.findUnique({
     where: {
       id: bookingId,
@@ -45,9 +47,14 @@ export const roundRobinReassignment = async ({
       customInputs: true,
       responses: true,
       destinationCalendar: true,
-      user: true,
+      user: {
+        include: {
+          destinationCalendar: true,
+        },
+      },
       attendees: {
         select: {
+          id: true,
           email: true,
           name: true,
           timeZone: true,
@@ -72,66 +79,100 @@ export const roundRobinReassignment = async ({
     throw new Error("Booking not found");
   }
 
-  const previousOrganizer = booking.user;
-  const previousOrganizerT = await getTranslation(previousOrganizer?.locale || "en", "common");
+  const originalOrganizer = booking.user;
+
+  const attendeesSet = new Set(booking.attendees.map((attendee) => attendee.email));
+
+  // Find the current round robin host assigned
+  const previousRRHost = (() => {
+    for (const host of roundRobinHosts) {
+      if (host.userId === booking.userId) {
+        return host;
+      }
+      if (attendeesSet.has(host.user.email)) {
+        return host;
+      }
+    }
+  })();
+
+  const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
   const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
     if (
       !booking?.attendees.some((attendee) => attendee.email === user.email) &&
-      user.email !== previousOrganizer.email
+      user.email !== originalOrganizer.email
     ) {
       availableUsers.push(user);
     }
     return availableUsers;
   }, [] as User[]);
-  console.log("🚀 ~ availableEventTypeUsers ~ availableEventTypeUsers:", availableEventTypeUsers);
 
   const availableUsers = await ensureAvailableUsers(
     { ...eventType, users: availableEventTypeUsers },
     {
       dateFrom: dayjs(booking.startTime).format(),
       dateTo: dayjs(booking.endTime).format(),
-      timeZone: eventType.timeZone || previousOrganizer.timeZone,
+      timeZone: eventType.timeZone || originalOrganizer.timeZone,
     },
     roundRobinReassignLogger
   );
 
-  const luckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+  const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
     eventTypeId: eventTypeId,
   });
 
+  const hasOrganizerChanged = booking.userId === previousRRHost;
+  const organizer = hasOrganizerChanged ? reassignedRRHost.user : booking.user;
+  const organizerT = await getTranslation((organizer?.locale || "en", "common"));
+
   // See if user is the assigned user or an attendee
+  if (hasOrganizerChanged) {
+    booking = await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        userId: reassignedRRHost.id,
+      },
+      include: {
+        user: true,
+        attendees: true,
+        references: true,
+        destinationCalendar: true,
+      },
+    });
+  } else {
+    const previousRRHostAttendee = booking.attendees.find(
+      (attendee) => attendee.email === previousRRHost.user.email
+    );
+    await prisma.attendee.update({
+      where: {
+        id: previousRRHostAttendee.id,
+      },
+      data: {
+        name: reassignedRRHost.name,
+        email: reassignedRRHost.email,
+        timeZone: reassignedRRHost.timeZone,
+        locale: reassignedRRHost.locale,
+      },
+    });
+  }
 
-  booking = await prisma.booking.update({
+  const reassignedRRHostDestinationCalendar = await prisma.destinationCalendar.findFirst({
     where: {
-      id: bookingId,
-    },
-    data: {
-      userId: luckyUser.id,
-    },
-    include: {
-      user: true,
-      attendees: true,
-      references: true,
-      destinationCalendar: true,
+      userId: reassignedRRHost.id,
     },
   });
 
-  const luckyUserDestinationCalendar = await prisma.destinationCalendar.findFirst({
-    where: {
-      userId: luckyUser.id,
-    },
-  });
-
-  const luckyUserT = await getTranslation(luckyUser.locale || "en", "common");
+  const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
   const teamMemberPromises = [];
   for (const teamMember of eventType.hosts) {
     const user = teamMember.user;
     // Need to skip over the reassigned user and the lucky user
-    if (user.email === luckyUser.email || user.email === previousOrganizer.email) {
+    if (user.email === reassignedRRHost.email || user.email === originalOrganizer.email) {
       continue;
     }
     const tTeamMember = await getTranslation(user.locale ?? "en", "common");
@@ -150,8 +191,8 @@ export const roundRobinReassignment = async ({
   const attendeePromises = [];
   for (const attendee of booking.attendees) {
     if (
-      attendee.email === luckyUser.email ||
-      attendee.email === previousOrganizer.email ||
+      attendee.email === reassignedRRHost.email ||
+      attendee.email === previousRRHost.email ||
       teamMembers.some((member) => member.email === attendee.email)
     ) {
       continue;
@@ -168,22 +209,32 @@ export const roundRobinReassignment = async ({
 
   const attendeeList = await Promise.all(attendeePromises);
 
-  const destinationCalendar = eventType.destinationCalendar
-    ? [eventType.destinationCalendar]
-    : luckyUserDestinationCalendar
-    ? [luckyUserDestinationCalendar]
-    : null;
+  const destinationCalendar = (async () => {
+    if (eventType?.destinationCalendar) {
+      return [eventType.destinationCalendar];
+    }
+
+    if (hasOrganizerChanged) {
+      return await prisma.destinationCalendar.findMany({
+        where: {
+          userId: reassignedRRHost,
+        },
+      });
+    } else {
+      return [booking.user?.destinationCalendar];
+    }
+  })();
 
   const evt: CalendarEvent = {
     organizer: {
-      name: luckyUser.name || "",
-      email: luckyUser.email,
+      name: organizer.name || "",
+      email: organizer.email,
       language: {
-        locale: luckyUser.locale || "en",
-        translate: luckyUserT,
+        locale: organizer.locale || "en",
+        translate: organizerT,
       },
-      timeZone: luckyUser.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(luckyUser.timeFormat),
+      timeZone: organizer.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(organizer.timeFormat),
     },
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
@@ -205,13 +256,13 @@ export const roundRobinReassignment = async ({
   // If changed owner, also change destination calendar
   const previousHostDestinationCalendar = await prisma.destinationCalendar.findFirst({
     where: {
-      userId: previousOrganizer.id,
+      userId: originalOrganizer.id,
     },
   });
 
   const credentials = await prisma.credential.findMany({
     where: {
-      userId: luckyUser.id,
+      userId: organizer.id,
     },
     include: {
       user: {
@@ -222,26 +273,27 @@ export const roundRobinReassignment = async ({
     },
   });
 
-  // TODO: update calendar event
   // See if the reassigned member is the organizer
-  const eventManager = new EventManager({ ...luckyUser, credentials: [...credentials] });
+  const eventManager = new EventManager({ ...organizer, credentials: [...credentials] });
 
-  await eventManager.reschedule(evt, booking.uid, undefined, true, [previousHostDestinationCalendar]);
+  await eventManager.reschedule(evt, booking.uid, undefined, hasOrganizerChanged, [
+    previousHostDestinationCalendar,
+  ]);
 
   // Send to new RR host
   await sendRoundRobinScheduledEmails(evt, [
     {
-      ...luckyUser,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(luckyUser.timeFormat),
-      language: { translate: luckyUserT, locale: luckyUser.locale || "en" },
+      ...reassignedRRHost,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
+      language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
     },
   ]);
   // Send to cancelled RR host
   await sendRoundRobinCancelledEmails(evt, [
     {
-      ...previousOrganizer,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(previousOrganizer.timeFormat),
-      language: { translate: previousOrganizerT, locale: previousOrganizer.locale || "en" },
+      ...previousRRHost,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+      language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
     },
   ]);
 
@@ -288,7 +340,7 @@ export const roundRobinReassignment = async ({
           time: workflow.time,
           timeUnit: workflow.timeUnit,
         },
-        sendTo: luckyUser.email,
+        sendTo: reassignedRRHost.email,
         template: step.template,
       });
     }
