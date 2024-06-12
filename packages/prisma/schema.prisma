@@ -171,8 +171,6 @@ model Credential {
   selectedCalendars    SelectedCalendar[]
   invalid              Boolean?              @default(false)
   CalendarCache        CalendarCache[]
-  /// Note: settings type depends on implementation/slug this credential belongs to.
-  settings             Json                  @default("{ \"empty\": \"true\" }")
 
   @@index([userId])
   @@index([appId])
@@ -716,9 +714,13 @@ enum AuditLogBookingTriggerEvents {
 enum AuditLogSystemTriggerEvents {
   SYSTEM_PING
   SYSTEM_CREDENTIALS_UPDATED
-  SYSTEM_TEMPLATE_UPDATED
   SYSTEM_EVENT_OFF
   SYSTEM_EVENT_ON
+  SYSTEM_MISC
+}
+
+enum AuditLogAppTriggerEvents {
+  APP_KEYS_UPDATED
 }
 
 enum AuditLogTriggerTargets {
