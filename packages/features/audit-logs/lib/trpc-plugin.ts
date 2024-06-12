@@ -1,4 +1,4 @@
-import { handleAuditLogTriggerTemp } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { experimental_trpcMiddleware } from "@trpc/server";
@@ -8,11 +8,11 @@ export const auditLogMiddleware = experimental_trpcMiddleware<{
 }>().create(async (opts) => {
   const result = await opts.next();
 
-  await handleAuditLogTriggerTemp({
+  await handleAuditLogTrigger({
     path: opts.path,
     user: opts.ctx.user,
     sourceIp: opts.ctx.sourceIp,
-    credential: result.data.oldCredential,
+    data: result.data,
   });
 
   return result;
