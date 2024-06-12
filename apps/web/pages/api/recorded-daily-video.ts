@@ -100,6 +100,7 @@ const testRequestSchema = z.object({
 });
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { userId } = req;
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
     return res.status(405).json({ message: "No SendGrid API key or email" });
   }
@@ -227,6 +228,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       },
       data: {
         isRecorded: true,
+        actorUserId: userId ?? null,
       },
     });
 

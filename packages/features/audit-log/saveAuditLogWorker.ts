@@ -4,14 +4,18 @@ import type { BookingWithAttendees } from "./types/BookingAuditLogTypes";
 import { BookingAuditLogOption } from "./types/BookingAuditLogTypes";
 import { EventTypeAuditLogOption } from "./types/EventTypeAuditLogTypes";
 import type TAuditLogInput from "./types/TAuditLogInput";
-import { saveBookingCreate, saveBookingUpdate, saveBookingUpdateMany } from "./util/saveBooking";
+import {
+  saveBookingCreate,
+  saveBookingUpdate,
+  saveBookingUpdateMany,
+} from "./util/auditLogSavers/saveBooking";
 import {
   saveEventTypeCreate,
   saveEventTypeUpdate,
   saveEventTypeUpdateMany,
   saveEventTypeDelete,
   saveEventTypeDeleteMany,
-} from "./util/saveEventType";
+} from "./util/auditLogSavers/saveEventType";
 
 async function saveAuditLogWorker(input: TAuditLogInput) {
   switch (input.triggeredEvent) {

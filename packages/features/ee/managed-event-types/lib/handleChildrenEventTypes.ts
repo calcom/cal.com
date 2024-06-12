@@ -257,6 +257,7 @@ export default async function handleChildrenEventTypes({
           data: {
             ...updatePayloadFiltered,
             hashedLink: "hashedLink" in unlockedFieldProps ? undefined : hashedLinkQuery(userId),
+            actorUserId: currentUserId ?? null,
           },
         });
       })

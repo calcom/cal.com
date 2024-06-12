@@ -173,6 +173,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   ...appMetadata,
                 },
               },
+              actorUserId: ctx.user.id ?? null,
             },
           });
         });
@@ -199,6 +200,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   ...appMetadata,
                 },
               },
+              actorUserId: ctx.user.id ?? null,
             },
           });
 
@@ -365,6 +367,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 [appSlug]: undefined,
               },
             },
+            actorUserId: ctx.user.id ?? null,
           },
         });
       }

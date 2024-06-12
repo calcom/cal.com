@@ -5,8 +5,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import auditLogExtension from "./extensions/audit-log-extension";
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import fieldSustitutersExtension from "./extensions/field-substituter-extension";
-import nullifyActorUserId from "./extensions/nullify-actorUserId-extension";
+import nullifyActorUserId_and_SubsitituteAuditLogFields from "./extensions/nullify-actorUserId-and-subsititute-audit-log-fields-extension";
 import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
@@ -28,13 +27,11 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
   isAuditLogEnabled
     ? new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
         .$extends(auditLogExtension())
-        .$extends(fieldSustitutersExtension())
         .$extends(excludePendingPaymentsExtension())
         .$extends(bookingIdempotencyKeyExtension())
         .$extends(withAccelerate())
     : new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
-        .$extends(nullifyActorUserId())
-        .$extends(fieldSustitutersExtension())
+        .$extends(nullifyActorUserId_and_SubsitituteAuditLogFields())
         .$extends(excludePendingPaymentsExtension())
         .$extends(bookingIdempotencyKeyExtension())
         .$extends(withAccelerate());
@@ -52,7 +49,7 @@ const prismaWithClientExtensions = isAuditLogEnabled
       .$extends(bookingIdempotencyKeyExtension())
       .$extends(withAccelerate())
   : prismaWithoutClientExtensions
-      .$extends(nullifyActorUserId())
+      .$extends(nullifyActorUserId_and_SubsitituteAuditLogFields())
       .$extends(excludePendingPaymentsExtension())
       .$extends(bookingIdempotencyKeyExtension())
       .$extends(withAccelerate());
