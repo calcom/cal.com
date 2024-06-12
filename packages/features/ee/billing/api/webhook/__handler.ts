@@ -13,10 +13,12 @@ export type SWHMap = {
   };
 };
 
+export type LazyModule<D> = Promise<{
+  default: (data: D) => unknown | Promise<unknown>;
+}>;
+
 type SWHandlers = {
-  [K in keyof SWHMap]?: Promise<{
-    default: (data: SWHMap[K]["data"]) => unknown | Promise<unknown>;
-  }>;
+  [K in keyof SWHMap]?: LazyModule<SWHMap[K]["data"]>;
 };
 
 /** Just a shorthand for HttpError  */
