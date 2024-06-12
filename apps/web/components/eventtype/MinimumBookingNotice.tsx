@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 
@@ -31,19 +31,27 @@ export const MinimumBookingNoticeInput = React.forwardRef<
     { label: t("days"), value: "days" },
   ];
 
+  const initialValue = getValues(name) ?? 0;
+
   const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
     type: DurationType;
     value: number;
   }>({
-    type: findDurationType(getValues(name)),
-    value: convertToNewDurationType("minutes", findDurationType(getValues(name)), getValues(name)),
+    type: findDurationType(initialValue),
+    value: convertToNewDurationType("minutes", findDurationType(initialValue), initialValue),
   });
 
-  const syncHiddenField = (newValue: number) => {
-    setValue(name, convertToNewDurationType(minimumBookingNoticeDisplayValues.type, "minutes", newValue), {
-      shouldDirty: true,
-    });
-  };
+  useEffect(() => {
+    setValue(
+      name,
+      convertToNewDurationType(
+        minimumBookingNoticeDisplayValues.type,
+        "minutes",
+        minimumBookingNoticeDisplayValues.value
+      ),
+      { shouldDirty: true }
+    );
+  }, [minimumBookingNoticeDisplayValues, setValue, name]);
 
   return (
     <div className="flex items-end justify-end">
@@ -52,14 +60,12 @@ export const MinimumBookingNoticeInput = React.forwardRef<
           required
           disabled={passThroughProps.disabled}
           defaultValue={minimumBookingNoticeDisplayValues.value}
-          onChange={(e) => {
-            const newValue = parseInt(e.target.value || "0", 10);
+          onChange={(e) =>
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
-              value: newValue,
-            });
-            syncHiddenField(newValue);
-          }}
+              value: parseInt(e.target.value || "0", 10),
+            })
+          }
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
