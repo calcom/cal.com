@@ -70,6 +70,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -1452,15 +1453,26 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // If location passed is empty , use default location of event
+  // If location of event is not set , use host default
+  if (locationBodyString.trim().length == 0) {
+    if (eventType.locations.length > 0) {
+      locationBodyString = eventType.locations[0].type;
+    } else {
+      locationBodyString = OrganizerDefaultConferencingAppType;
+    }
+  }
   // use host default
-  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-        organizerMetadata?.defaultConferencingApp?.appLink;
+      if (isManagedEventType || isTeamEventType) {
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+          organizerMetadata?.defaultConferencingApp?.appLink;
+      }
     } else {
       locationBodyString = "integrations:daily";
     }
@@ -1600,6 +1612,12 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
+  //udpate cal event responses with latest location value , later used by webhook
+  if (reqBody.calEventResponses)
+    reqBody.calEventResponses["location"].value = {
+      value: platformBookingLocation ?? bookingLocation,
+      optionValue: "",
+    };
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1663,11 +1681,16 @@ async function handler(
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
 
+  const organizerUserId = triggerForUser ? organizerUser.id : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: triggerForUser ? organizerUser.id : null,
+    userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
+    orgId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1681,6 +1704,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
+    orgId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -1688,6 +1712,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
+    orgId,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -2335,6 +2360,7 @@ async function handler(
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
+      orgId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2481,7 +2507,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: true,
+      isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
     });
