@@ -554,3 +554,87 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
     expect(hostNameSecondBooking).toBe("teammate-1"); // teammate-1 should be booked again
   });
 });
+
+testBothFutureAndLegacyRoutes.describe("Booking round robin event with pending members", () => {
+  test("No availability as all members are pending", async ({ page, users }) => {
+    const dateRanges: TimeRange = {
+      start: new Date(new Date().setUTCHours(10, 0, 0, 0)),
+      end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+    };
+
+    const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
+
+    const testUser = await users.create(
+      { schedule },
+      {
+        hasTeam: true,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        teamEventLength: 120,
+        membershipAccepted: false,
+      }
+    );
+    const team = await testUser.getFirstTeamMembership();
+
+    await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("networkidle");
+
+    // Click first event type (round robin)
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.waitForLoadState("networkidle");
+
+    const availableDaysCount = await page.locator('[data-testid="day"][data-disabled="false"]').count();
+    expect(availableDaysCount).toBe(0);
+  });
+
+  test("Should booking non pending member", async ({ page, users }) => {
+    const teamMatesObj = [{ name: "teammate-1" }];
+    const dateRanges: TimeRange = {
+      start: new Date(new Date().setUTCHours(10, 0, 0, 0)), //one hour after default schedule (teammate-1's schedule)
+      end: new Date(new Date().setUTCHours(17, 0, 0, 0)),
+    };
+
+    const schedule: Schedule = [[], [dateRanges], [dateRanges], [dateRanges], [dateRanges], [dateRanges], []];
+
+    const testUser = await users.create(
+      { schedule },
+      {
+        hasTeam: true,
+        schedulingType: SchedulingType.ROUND_ROBIN,
+        teamEventLength: 120,
+        membershipAccepted: false,
+        teammates: teamMatesObj,
+      }
+    );
+    const team = await testUser.getFirstTeamMembership();
+    await page.goto(`/team/${team.team.slug}`);
+    await page.waitForLoadState("networkidle");
+    // Click first event type (round robin)
+    await page.click('[data-testid="event-type-link"]');
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[data-testid="time"]').nth(0).click();
+
+    await page.waitForLoadState("networkidle");
+
+    await page.locator('[name="name"]').fill("Test name");
+    await page.locator('[name="email"]').fill(`${randomString(4)}@example.com`);
+
+    await page.click('[data-testid="confirm-book-button"]');
+
+    await page.waitForURL((url) => {
+      return url.pathname.startsWith("/booking");
+    });
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+
+    const host = page.locator('[data-testid="booking-host-name"]');
+    const hostName = await host.innerText();
+
+    //expect teammate-1 to be booked, test-user membership is pending
+    expect(hostName).toBe("teammate-1");
+  });
+});
