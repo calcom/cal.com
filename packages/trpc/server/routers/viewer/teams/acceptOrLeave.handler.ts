@@ -64,15 +64,40 @@ export const acceptOrLeaveHandler = async ({ ctx, input }: AcceptOrLeaveOptions)
       //get team owner so we can alter their subscription seat count
       const ownerMembership = await prisma.membership.findFirst({
         where: { teamId: input.teamId, role: MembershipRole.OWNER },
-        include: { team: true },
+        include: {
+          team: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
       const membership = await prisma.membership.delete({
         where: {
           userId_teamId: { userId: ctx.user.id, teamId: input.teamId },
         },
-        include: {
-          team: true,
+        select: {
+          role: true,
+          team: {
+            select: {
+              parentId: true,
+              eventTypes: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await prisma.host.deleteMany({
+        where: {
+          userId: ctx.user.id,
+          eventTypeId: {
+            in: membership.team.eventTypes.map((e) => e.id),
+          },
         },
       });
 
