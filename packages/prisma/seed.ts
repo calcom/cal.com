@@ -120,7 +120,7 @@ async function createPlatformAndSetupUser({
     `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
   );
 
-  const { role = MembershipRole.OWNER, id, username } = platformUser;
+  const { role = MembershipRole.OWNER, username } = platformUser;
 
   console.log(team, "team valueeeee".toLocaleUpperCase());
 
@@ -131,7 +131,7 @@ async function createPlatformAndSetupUser({
       data: {
         teamId: team.id,
         userId: platformUser.id,
-        role: role,
+        role: role as MembershipRole,
         accepted: true,
       },
     });
