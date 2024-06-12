@@ -49,8 +49,6 @@ const MemberReassignStep = ({
       return { label: host.user.name || "", value: host.user.id };
     }) || [];
 
-  // only show available hosts, backend work needed
-
   if (!hostsToReassignOptions) {
     return <div>{t("no_available_hosts")}</div>;
   }
@@ -146,7 +144,6 @@ export const ReassignDialog = ({
             onClick={() => {
               if (reassignTarget === "round-robin") {
                 roundRobinReassignMutation.mutate({ teamId, eventTypeId, bookingId });
-                //assign to the least recently booked available rr host, backend work needed
               } else {
                 // assign to selected host, backend work needed
               }
