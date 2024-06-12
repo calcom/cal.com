@@ -2,8 +2,9 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
-import { SchedulesModule } from "@/ee/schedules/schedules.module";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -18,8 +19,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
-import { CreateScheduleInput } from "@calcom/platform-types";
+import { handleNewBooking } from "@calcom/platform-libraries-0.0.2";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
@@ -28,7 +28,7 @@ describe("Bookings Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
-    let schedulesService: SchedulesService;
+    let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     const userEmail = "bookings-controller-e2e@api.com";
@@ -42,7 +42,7 @@ describe("Bookings Endpoints", () => {
       const moduleRef = await withAccessTokenAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule],
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -54,13 +54,13 @@ describe("Bookings Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      schedulesService = moduleRef.get<SchedulesService>(SchedulesService);
+      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
       });
 
-      const userSchedule: CreateScheduleInput = {
+      const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
         timeZone: "Europe/Rome",
         isDefault: true,

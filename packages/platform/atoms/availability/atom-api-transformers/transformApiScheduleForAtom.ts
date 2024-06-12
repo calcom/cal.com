@@ -5,12 +5,12 @@ import {
   transformApiScheduleOverrides,
   transformWorkingHoursForAtom,
 } from "@calcom/lib/schedules/transformers";
-import type { ScheduleOutput } from "@calcom/platform-types";
+import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
 export function transformApiScheduleForAtom(
   user: Pick<User, "id" | "defaultScheduleId" | "timeZone"> | undefined,
-  schedule: ScheduleOutput | null | undefined,
+  schedule: ScheduleOutput_2024_06_11 | null | undefined,
   userSchedulesCount: number
 ) {
   if (!user || !schedule) {

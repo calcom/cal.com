@@ -24,5 +24,6 @@
       ]
     }
   },
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "isOAuth": false
 }

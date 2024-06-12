@@ -6,7 +6,6 @@ import type { BookingReference, Attendee, Booking, Membership } from "@prisma/cl
 import type { Prisma } from "@prisma/client";
 import type { WebhookTriggerEvents } from "@prisma/client";
 import type Stripe from "stripe";
-import type { getMockRequestDataForBooking } from "test/utils/bookingScenario/getMockRequestDataForBooking";
 import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 import type { z } from "zod";
@@ -28,6 +27,7 @@ import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 
 import { getMockPaymentService } from "./MockPaymentService";
+import type { getMockRequestDataForBooking } from "./getMockRequestDataForBooking";
 
 logger.settings.minLevel = 0;
 const log = logger.getSubLogger({ prefix: ["[bookingScenario]"] });
@@ -136,6 +136,7 @@ export type InputEventType = {
   bookingLimits?: IntervalLimit;
   durationLimits?: IntervalLimit;
   owner?: number;
+  metadata?: any;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -165,27 +166,40 @@ type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & Whit
 export const Timezones = {
   "+5:30": "Asia/Kolkata",
   "+6:00": "Asia/Dhaka",
+  "-11:00": "Pacific/Pago_Pago",
 };
 
 async function addHostsToDb(eventTypes: InputEventType[]) {
   for (const eventType of eventTypes) {
-    if (eventType.hosts && eventType.hosts.length > 0) {
-      await prismock.host.createMany({
-        data: eventType.hosts.map((host) => ({
-          userId: host.userId,
-          eventTypeId: eventType.id,
-          isFixed: host.isFixed ?? false,
-        })),
+    if (!eventType.hosts?.length) continue;
+    for (const host of eventType.hosts) {
+      const data: Prisma.HostCreateInput = {
+        eventType: {
+          connect: {
+            id: eventType.id,
+          },
+        },
+        isFixed: host.isFixed ?? false,
+        user: {
+          connect: {
+            id: host.userId,
+          },
+        },
+      };
+
+      await prismock.host.create({
+        data,
       });
     }
   }
 }
 
-async function addEventTypesToDb(
+export async function addEventTypesToDb(
   eventTypes: (Omit<
     Prisma.EventTypeCreateInput,
     "users" | "worflows" | "destinationCalendar" | "schedule"
   > & {
+    id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -194,6 +208,7 @@ async function addEventTypesToDb(
     destinationCalendar?: any;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     schedule?: any;
+    metadata?: any;
   })[]
 ) {
   log.silly("TestData: Add EventTypes to DB", JSON.stringify(eventTypes));
@@ -247,7 +262,7 @@ async function addEventTypesToDb(
   return allEventTypes;
 }
 
-async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
+export async function addEventTypes(eventTypes: InputEventType[], usersStore: InputUser[]) {
   const baseEventType = {
     title: "Base EventType Title",
     slug: "base-event-type-slug",
@@ -465,7 +480,9 @@ async function addWorkflows(workflows: InputWorkflow[]) {
   await addWorkflowsToDb(workflows);
 }
 
-async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[] })[]) {
+export async function addUsersToDb(
+  users: (Prisma.UserCreateInput & { schedules: Prisma.ScheduleCreateInput[]; id?: number })[]
+) {
   log.silly("TestData: Creating Users", JSON.stringify(users));
   await prismock.user.createMany({
     data: users,
@@ -491,7 +508,7 @@ async function addUsersToDb(users: (Prisma.UserCreateInput & { schedules: Prisma
   );
 }
 
-async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
+export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
   await prismock.team.createMany({
     data: teams,
@@ -640,6 +657,21 @@ export async function createOrganization(orgData: {
   return org;
 }
 
+export async function createCredentials(
+  credentialData: {
+    type: string;
+    key: any;
+    id?: number;
+    userId?: number | null;
+    teamId?: number | null;
+  }[]
+) {
+  const credentials = await prismock.credential.createMany({
+    data: credentialData,
+  });
+  return credentials;
+}
+
 // async function addPaymentsToDb(payments: Prisma.PaymentCreateInput[]) {
 //   await prismaMock.payment.createMany({
 //     data: payments,
@@ -653,6 +685,8 @@ export async function createOrganization(orgData: {
  * - `monthIncrement` adds the increment to current month
  * - `yearIncrement` adds the increment to current year
  * - `fromDate` starts incrementing from this date (default: today)
+ *  @deprecated Stop using this function as it is not timezone aware and can return wrong date depending on the time of the day and timezone. Instead
+ *  use vi.setSystemTime to fix the date and time and then use hardcoded days instead of dynamic date calculation.
  */
 export const getDate = (
   param: {
@@ -812,6 +846,7 @@ export const TestData = {
   },
   schedules: {
     IstWorkHours: {
+      id: 1,
       name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
       availability: [
         {
@@ -837,6 +872,23 @@ export const TestData = {
           days: [0, 1, 2, 3, 4, 5, 6],
           startTime: new Date("1970-01-01T09:30:00.000Z"),
           endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
+    /**
+     * Has an overlap with IstMorningShift and IstEveningShift
+     */
+    IstMidShift: {
+      name: "12:30AM to 8PM in India - 7:00AM to 14:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [0, 1, 2, 3, 4, 5, 6],
+          startTime: new Date("1970-01-01T12:30:00.000Z"),
+          endTime: new Date("1970-01-01T20:00:00.000Z"),
           date: null,
         },
       ],
@@ -877,6 +929,21 @@ export const TestData = {
       ],
       timeZone: Timezones["+5:30"],
     }),
+    IstWorkHoursNoWeekends: {
+      id: 1,
+      name: "9:30AM to 6PM in India - 4:00AM to 12:30PM in GMT",
+      availability: [
+        {
+          // userId: null,
+          // eventTypeId: null,
+          days: [/*0*/ 1, 2, 3, 4, 5 /*6*/],
+          startTime: new Date("1970-01-01T09:30:00.000Z"),
+          endTime: new Date("1970-01-01T18:00:00.000Z"),
+          date: null,
+        },
+      ],
+      timeZone: Timezones["+5:30"],
+    },
   },
   users: {
     example: {
@@ -1441,6 +1508,74 @@ export function mockErrorOnVideoMeetingCreation({
   });
 }
 
+export function mockCrmApp(
+  metadataLookupKey: string,
+  crmData?: {
+    createContacts?: {
+      id: string;
+      email: string;
+    }[];
+    getContacts?: {
+      id: string;
+      email: string;
+      ownerEmail: string;
+    }[];
+  }
+) {
+  let contactsCreated: {
+    id: string;
+    email: string;
+  }[] = [];
+  let contactsQueried: {
+    id: string;
+    email: string;
+    ownerEmail: string;
+  }[] = [];
+  const eventsCreated: boolean[] = [];
+  const app = appStoreMetadata[metadataLookupKey as keyof typeof appStoreMetadata];
+  const appMock = appStoreMock.default[metadataLookupKey as keyof typeof appStoreMock.default];
+  appMock &&
+    `mockResolvedValue` in appMock &&
+    appMock.mockResolvedValue({
+      lib: {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        CrmService: class {
+          constructor() {
+            log.debug("Create CrmSerive");
+          }
+
+          createContact() {
+            if (crmData?.createContacts) {
+              contactsCreated = crmData.createContacts;
+              return Promise.resolve(crmData?.createContacts);
+            }
+          }
+
+          getContacts(email: string) {
+            if (crmData?.getContacts) {
+              contactsQueried = crmData?.getContacts;
+              const contactsOfEmail = contactsQueried.filter((contact) => contact.email === email);
+
+              return Promise.resolve(contactsOfEmail);
+            }
+          }
+
+          createEvent() {
+            eventsCreated.push(true);
+            return Promise.resolve({});
+          }
+        },
+      },
+    });
+
+  return {
+    contactsCreated,
+    contactsQueried,
+    eventsCreated,
+  };
+}
+
 export function getBooker({ name, email }: { name: string; email: string }) {
   return {
     name,
@@ -1549,4 +1684,10 @@ export const getMockFailingAppStatus = ({ slug }: { slug: string }) => {
 
 export const getMockPassingAppStatus = ({ slug, overrideName }: { slug: string; overrideName?: string }) => {
   return getMockAppStatus({ slug, overrideName, failures: 0, success: 1 });
+};
+
+export const replaceDates = (dates: string[], replacement: Record<string, string>) => {
+  return dates.map((date) => {
+    return date.replace(/(.*)T/, (_, group1) => `${replacement[group1]}T`);
+  });
 };

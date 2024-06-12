@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { GetSchedulesOutput } from "@calcom/platform-types";
+import type { GetSchedulesOutput_2024_06_11 } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
@@ -13,7 +13,7 @@ export const useSchedules = () => {
   const { isLoading, error, data } = useQuery({
     queryKey: [QUERY_KEY],
     queryFn: () => {
-      return http.get<GetSchedulesOutput>(pathname).then((res) => {
+      return http.get<GetSchedulesOutput_2024_06_11>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
           return res.data.data;
         }

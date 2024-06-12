@@ -1,3 +1,4 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -32,8 +33,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
 
 @Controller({
-  path: "oauth-clients/:clientId/users",
-  version: "2",
+  path: "/v2/oauth-clients/:clientId/users",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(OAuthClientCredentialsGuard)
 @DocsTags("Managed users")
@@ -90,6 +91,7 @@ export class OAuthClientUsersController {
       data: {
         user: this.getResponseUser(user),
         accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
       },
     };

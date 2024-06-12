@@ -7,16 +7,6 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { resetTestEmails } from "@calcom/lib/testEmails";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getDate,
@@ -57,6 +47,17 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
+
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe, expect } from "vitest";
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { resetTestEmails } from "@calcom/lib/testEmails";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -1003,6 +1004,273 @@ describe("handleNewBooking", () => {
             location: BookingLocations.CalVideo,
             subscriberUrl: "http://my-webhook.example.com",
             videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
+          });
+        },
+        timeout
+      );
+    });
+
+    describe("Event's first location should be used when location is unspecied", () => {
+      test(
+        `should create a successful booking with right location app when event has location option as video client`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getZoomAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                },
+              },
+            }),
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [
+                  {
+                    type: BookingLocations.ZoomVideo,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["zoomvideo"]],
+          });
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "zoomvideo",
+          });
+          await createBookingScenario(scenarioData);
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking).toContain({
+            location: BookingLocations.ZoomVideo,
+          });
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+          expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
+            booker,
+            organizer,
+            emails,
+            iCalUID,
+          });
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.ZoomVideo,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: "http://mock-zoomvideo.example.com",
+          });
+        },
+        timeout
+      );
+      test(
+        `should create a successful booking with right location when event's location is not a conferencing app
+        `,
+        //test with inPerson event type
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [],
+            selectedCalendars: [TestData.selectedCalendars.google],
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                },
+              },
+            }),
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+                locations: [{ type: "inPerson", address: "Seoul" }],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["daily-video"]],
+          });
+          await createBookingScenario(scenarioData);
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking).toContain({
+            location: "Seoul",
+          });
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+          expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
+            booker,
+            organizer,
+            emails,
+            iCalUID,
+          });
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: "Seoul",
+            subscriberUrl: "http://my-webhook.example.com",
+          });
+        },
+        timeout
+      );
+      test(
+        `should create a successful booking with organizer default conferencing app when event's location is not set`,
+        async ({ emails }) => {
+          const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+          const booker = getBooker({
+            email: "booker@example.com",
+            name: "Booker",
+          });
+
+          const organizer = getOrganizer({
+            name: "Organizer",
+            email: "organizer@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstWorkHours],
+            credentials: [getZoomAppCredential()],
+            selectedCalendars: [TestData.selectedCalendars.google],
+            metadata: {
+              defaultConferencingApp: {
+                appSlug: "zoom",
+              },
+            },
+          });
+
+          const { req } = createMockNextJsRequest({
+            method: "POST",
+            body: getMockRequestDataForBooking({
+              data: {
+                eventTypeId: 1,
+                responses: {
+                  email: booker.email,
+                  name: booker.name,
+                },
+              },
+            }),
+          });
+
+          const scenarioData = getScenarioData({
+            webhooks: [
+              {
+                userId: organizer.id,
+                eventTriggers: ["BOOKING_CREATED"],
+                subscriberUrl: "http://my-webhook.example.com",
+                active: true,
+                eventTypeId: 1,
+                appId: null,
+              },
+            ],
+            eventTypes: [
+              {
+                id: 1,
+                slotInterval: 30,
+                length: 30,
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            organizer,
+            apps: [TestData.apps["zoomvideo"], TestData.apps["daily-video"]],
+          });
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "zoomvideo",
+          });
+          await createBookingScenario(scenarioData);
+          const createdBooking = await handleNewBooking(req);
+          expect(createdBooking).toContain({
+            location: BookingLocations.ZoomVideo,
+          });
+          const iCalUID = expectICalUIDAsString(createdBooking.iCalUID);
+          expectSuccessfulBookingCreationEmails({
+            booking: {
+              uid: createdBooking.uid!,
+            },
+            booker,
+            organizer,
+            emails,
+            iCalUID,
+          });
+          expectBookingCreatedWebhookToHaveBeenFired({
+            booker,
+            organizer,
+            location: BookingLocations.ZoomVideo,
+            subscriberUrl: "http://my-webhook.example.com",
+            videoCallUrl: "http://mock-zoomvideo.example.com",
           });
         },
         timeout
