@@ -200,6 +200,22 @@ export async function getEventType(
         },
       },
       hosts: {
+        where: {
+          user: {
+            teams: {
+              some: {
+                accepted: true,
+                team: {
+                  eventTypes: {
+                    some: {
+                      id: eventTypeId,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
         select: {
           isFixed: true,
           user: {
@@ -214,16 +230,6 @@ export async function getEventType(
         select: {
           credentials: { select: credentialForCalendarServiceSelect },
           ...availabilityUserSelect,
-        },
-      },
-      team: {
-        select: {
-          members: {
-            select: {
-              userId: true,
-              accepted: true,
-            },
-          },
         },
       },
     },
@@ -457,14 +463,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         });
 
   let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
-
-  if (eventType.schedulingType && eventType.team) {
-    //remove pending members  to avoid blocking availability for all
-    const teamMembers = eventType.team.members || [];
-    usersWithCredentials = usersWithCredentials.filter((user) =>
-      teamMembers.some((member) => member.userId === user.id && member.accepted === true)
-    );
-  }
 
   if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
     const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
