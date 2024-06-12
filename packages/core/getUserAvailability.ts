@@ -158,8 +158,8 @@ const _getCurrentSeats = async (
     where: {
       eventTypeId: id,
       startTime: {
-        gte: dateFrom.format(),
-        lte: dateTo.format(),
+        gte: dayjs(dateFrom).toDate(),
+        lte: dayjs(dateTo).toDate(),
       },
       status: BookingStatus.ACCEPTED,
     },
