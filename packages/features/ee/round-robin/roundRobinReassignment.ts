@@ -94,14 +94,17 @@ export const roundRobinReassignment = async ({
       }
     }
   })();
+
+  if (!previousRRHost) {
+    console.error(`Could not find RR host associated with booking ${bookingId}`);
+    throw new Error("Host not found");
+  }
+
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
   const availableEventTypeUsers = eventType.users.reduce((availableUsers, user) => {
-    if (
-      !booking?.attendees.some((attendee) => attendee.email === user.email) &&
-      user.email !== originalOrganizer.email
-    ) {
+    if (!attendeeEmailsSet.has(user.email) && user.email !== originalOrganizer.email) {
       availableUsers.push(user);
     }
     return availableUsers;
@@ -121,12 +124,10 @@ export const roundRobinReassignment = async ({
     availableUsers,
     eventTypeId: eventTypeId,
   });
-
   const hasOrganizerChanged = booking.userId === previousRRHost.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
-  const organizerT = await getTranslation((organizer?.locale || "en", "common"));
+  const organizerT = await getTranslation(organizer?.locale || "en", "common");
 
-  // See if user is the assigned user or an attendee
   if (hasOrganizerChanged) {
     booking = await prisma.booking.update({
       where: {
@@ -148,10 +149,10 @@ export const roundRobinReassignment = async ({
     );
     await prisma.attendee.update({
       where: {
-        id: previousRRHostAttendee.id,
+        id: previousRRHostAttendee!.id,
       },
       data: {
-        name: reassignedRRHost.name,
+        name: reassignedRRHost.name || "",
         email: reassignedRRHost.email,
         timeZone: reassignedRRHost.timeZone,
         locale: reassignedRRHost.locale,
@@ -159,18 +160,12 @@ export const roundRobinReassignment = async ({
     });
   }
 
-  const reassignedRRHostDestinationCalendar = await prisma.destinationCalendar.findFirst({
-    where: {
-      userId: reassignedRRHost.id,
-    },
-  });
-
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
   const teamMemberPromises = [];
   for (const teamMember of eventType.hosts) {
     const user = teamMember.user;
-    // Need to skip over the reassigned user and the lucky user
+    // Need to skip over the reassigned user and the organizer user
     if (user.email === previousRRHost.email || user.email === organizer.email) {
       continue;
     }
@@ -194,7 +189,7 @@ export const roundRobinReassignment = async ({
     teamMembers.push({
       id: reassignedRRHost.id,
       email: reassignedRRHost.email,
-      name: reassignedRRHost.name,
+      name: reassignedRRHost.name || "",
       timeZone: reassignedRRHost.timeZone,
       language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale ?? "en" },
     });
