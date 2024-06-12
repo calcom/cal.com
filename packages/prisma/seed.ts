@@ -1,6 +1,5 @@
 import type { Membership, Team, User } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import type { UserPermissionRole } from "@prisma/client";
 import { uuid } from "short-uuid";
 import type z from "zod";
 
@@ -8,9 +7,9 @@ import dailyMeta from "@calcom/app-store/dailyvideo/_metadata";
 import googleMeetMeta from "@calcom/app-store/googlevideo/_metadata";
 import zoomMeta from "@calcom/app-store/zoomvideo/_metadata";
 import dayjs from "@calcom/dayjs";
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
-import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "@calcom/lib/availability";
-import { BookingStatus, MembershipRole, SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, MembershipRole, RedirectType, SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import prisma from ".";
@@ -18,171 +17,6 @@ import mainAppStore from "./seed-app-store";
 import mainHugeEventTypesSeed from "./seed-huge-event-types";
 import { createUserAndEventType } from "./seed-utils";
 import type { teamMetadataSchema } from "./zod-utils";
-
-type PlatformUser = {
-  email: string;
-  password: string;
-  username: string;
-  name: string;
-  completedOnboarding?: boolean;
-  timeZone?: string;
-  role?: UserPermissionRole;
-  theme?: "dark" | "light";
-  avatarUrl?: string | null;
-};
-
-type AssociateUserAndOrgProps = {
-  teamId: number;
-  userId: number;
-  role: MembershipRole;
-  username: string;
-};
-
-const checkUnpublishedTeam = async (slug: string) => {
-  return await prisma.team.findFirst({
-    where: {
-      metadata: {
-        path: ["requestedSlug"],
-        equals: slug,
-      },
-    },
-  });
-};
-
-const setupPlatformUser = async (user: PlatformUser) => {
-  const { password: _password, ...restOfUser } = user;
-  const userData = {
-    ...restOfUser,
-    emailVerified: new Date(),
-    completedOnboarding: user.completedOnboarding ?? true,
-    locale: "en",
-    schedules:
-      user.completedOnboarding ?? true
-        ? {
-            create: {
-              name: "Working Hours",
-              availability: {
-                createMany: {
-                  data: getAvailabilityFromSchedule(DEFAULT_SCHEDULE),
-                },
-              },
-            },
-          }
-        : undefined,
-  };
-
-  const platformUser = await prisma.user.upsert({
-    where: { email_username: { email: user.email, username: user.username } },
-    update: userData,
-    create: userData,
-  });
-
-  await prisma.userPassword.upsert({
-    where: { userId: platformUser.id },
-    update: {
-      hash: await hashPassword(user.password),
-    },
-    create: {
-      hash: await hashPassword(user.password),
-      user: {
-        connect: {
-          id: platformUser.id,
-        },
-      },
-    },
-  });
-
-  return platformUser;
-};
-
-const createTeam = async (team: Prisma.TeamCreateInput) => {
-  try {
-    const requestedSlug = (team.metadata as z.infer<typeof teamMetadataSchema>)?.requestedSlug;
-    if (requestedSlug) {
-      const unpublishedTeam = await checkUnpublishedTeam(requestedSlug);
-      if (unpublishedTeam) {
-        throw Error("Unique constraint failed on the fields");
-      }
-    }
-    return await prisma.team.create({
-      data: {
-        ...team,
-      },
-    });
-  } catch (_err) {
-    if (_err instanceof Error && _err.message.indexOf("Unique constraint failed on the fields") !== -1) {
-      console.log(`Team '${team.name}' already exists, skipping.`);
-      return;
-    }
-    throw _err;
-  }
-};
-
-const associateUserAndOrg = async ({ teamId, userId, role, username }: AssociateUserAndOrgProps) => {
-  await prisma.membership.create({
-    data: {
-      teamId,
-      userId,
-      role: role as MembershipRole,
-      accepted: true,
-    },
-  });
-
-  const profile = await prisma.profile.create({
-    data: {
-      uid: uuid(),
-      username,
-      organizationId: teamId,
-      userId,
-    },
-  });
-
-  await prisma.user.update({
-    data: {
-      movedToProfileId: profile.id,
-    },
-    where: {
-      id: userId,
-    },
-  });
-};
-
-async function createPlatformAndSetupUser({
-  teamInput,
-  user,
-}: {
-  teamInput: Prisma.TeamCreateInput;
-  user: PlatformUser;
-}) {
-  const team = await createTeam(teamInput);
-
-  const platformUser = await setupPlatformUser(user);
-
-  console.log(
-    `👤 Upserted '${user.username}' with email "${user.email}" & password "${user.password}". Booking page 👉 ${process.env.NEXT_PUBLIC_WEBAPP_URL}/${user.username}`
-  );
-
-  const { role = MembershipRole.OWNER, username } = platformUser;
-
-  if (!!team) {
-    await associateUserAndOrg({
-      teamId: team.id,
-      userId: platformUser.id,
-      role: role as MembershipRole,
-      username: user.username,
-    });
-
-    await prisma.platformBilling.create({
-      data: {
-        id: team?.id,
-        plan: "STARTER",
-        customerId: "cus_123",
-        subscriptionId: "sub_123",
-      },
-    });
-    console.log(`\t👤 Added '${teamInput.name}' membership for '${username}' with role '${role}'`);
-  }
-}
 
 async function createTeamAndAddUsers(
   teamInput: Prisma.TeamCreateInput,
@@ -283,25 +117,45 @@ async function createOrganizationAndAddMembersAndTeams({
     };
   })[] = [];
 
-  // Create all users first
   try {
     for (const member of orgMembers) {
-      const orgMemberInDb = {
-        ...(await prisma.user.create({
-          data: {
-            ...member.memberData,
-            emailVerified: new Date(),
-            password: {
-              create: {
-                hash: await hashPassword(member.memberData.password.create?.hash || ""),
+      const newUser = await createUserAndEventType({
+        user: {
+          ...member.memberData,
+          password: member.memberData.password.create?.hash,
+        },
+        eventTypes: [
+          {
+            title: "30min",
+            slug: "30min",
+            length: 30,
+            _bookings: [
+              {
+                uid: uuid(),
+                title: "30min",
+                startTime: dayjs().add(1, "day").toDate(),
+                endTime: dayjs().add(1, "day").add(30, "minutes").toDate(),
               },
-            },
+            ],
           },
-        })),
+        ],
+      });
+
+      const orgMemberInDb = {
+        ...newUser,
         inTeams: member.inTeams,
         orgMembership: member.orgMembership,
         orgProfile: member.orgProfile,
       };
+
+      await prisma.tempOrgRedirect.create({
+        data: {
+          fromOrgId: 0,
+          type: RedirectType.User,
+          from: member.memberData.username,
+          toUrl: `${getOrgFullOrigin(orgData.slug)}/${member.orgProfile.username}`,
+        },
+      });
 
       orgMembersInDb.push(orgMemberInDb);
     }
@@ -312,6 +166,7 @@ async function createOrganizationAndAddMembersAndTeams({
         return;
       }
     }
+    console.error(e);
   }
 
   await Promise.all([
@@ -346,6 +201,11 @@ async function createOrganizationAndAddMembersAndTeams({
         create: orgMembersInDb.map((member) => ({
           uid: uuid(),
           username: member.orgProfile.username,
+          movedFromUser: {
+            connect: {
+              id: member.id,
+            },
+          },
           user: {
             connect: {
               id: member.id,
@@ -875,41 +735,6 @@ async function main() {
       password: "ADMINadmin2022!",
       username: "admin",
       name: "Admin Example",
-      role: "ADMIN",
-    },
-  });
-
-  await createPlatformAndSetupUser({
-    teamInput: {
-      name: "Platform Team",
-      slug: "platform-admin-team",
-      isPlatform: true,
-      eventTypes: {
-        createMany: {
-          data: [
-            {
-              title: "Collective Seeded Team Event",
-              slug: "collective-seeded-team-event",
-              length: 15,
-              schedulingType: "COLLECTIVE",
-            },
-            {
-              title: "Round Robin Seeded Team Event",
-              slug: "round-robin-seeded-team-event",
-              length: 15,
-              schedulingType: "ROUND_ROBIN",
-            },
-          ],
-        },
-      },
-      createdAt: new Date(),
-    },
-    user: {
-      email: "platform@example.com",
-      /** To comply with admin password requirements  */
-      password: "PLATFORMadmin2024!",
-      username: "platform",
-      name: "Platform Admin",
       role: "ADMIN",
     },
   });
