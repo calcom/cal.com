@@ -16,7 +16,7 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import type { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./getSchedule/expects";
@@ -1470,6 +1470,79 @@ describe("getSchedule", () => {
         ],
         { dateString: plus2DateString }
       );
+    });
+    test("include booked events before minimumBookingNotice with seatsMinimumBookingNotice", async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const bookingId = 1;
+      const bookingUid = "abc123";
+
+      const { dateString: todayDateString } = getDate();
+      const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
+
+      const bookingStartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
+      const bookingEndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-event",
+            length: 60,
+            minimumBookingNotice: 24 * 60,
+            seatsPerTimeSlot: 4,
+            seatsMinimumBookingNotice: 1 * 60,
+            seatsShowAttendees: true,
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: bookingId,
+            uid: bookingUid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: bookingStartTime,
+            endTime: bookingEndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      const bookingScenario = await createBookingScenario(scenarioData);
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${minus1DateString}T18:30:00.000Z`,
+          endTime: `${todayDateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: false,
+        },
+      });
+
+      expect(schedule).toHaveTimeSlots([`06:30:00.000Z`], {
+        dateString: todayDateString,
+      });
     });
   });
 });
