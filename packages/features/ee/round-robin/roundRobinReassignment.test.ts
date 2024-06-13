@@ -14,6 +14,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 
 import { describe, vi, expect } from "vitest";
 
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
@@ -186,7 +187,7 @@ describe("roundRobinReassignment test", () => {
 
     const fixedHost = users[0];
     const currentRRHost = users[1];
-    // const newHost = users[1];
+    const newHost = users[2];
     // Assume we are using the RR fairness algorithm. Add an extra booking for user[2] to ensure user[1] is the new host
     const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
 
@@ -265,5 +266,17 @@ describe("roundRobinReassignment test", () => {
       false,
       []
     );
+
+    // Ensure organizer stays the same
+    expectBookingToBeInDatabase({
+      uid: bookingToReassignUid,
+      userId: 1,
+    });
+
+    const attendees = await BookingRepository.getBookingAttendees(123);
+
+    expect(attendees.some((attendee) => attendee.email === currentRRHost.email)).toBe(false);
+
+    expect(attendees.some((attendee) => attendee.email === newHost.email)).toBe(true);
   });
 });
