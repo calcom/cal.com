@@ -1703,7 +1703,7 @@ async function handler(
     orgId,
   };
 
-  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUserId);
+  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {

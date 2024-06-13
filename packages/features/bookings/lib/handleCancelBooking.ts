@@ -329,7 +329,7 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, organizerUserId);
+  const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
 
   await sendCancelledReminders({
     workflows,
