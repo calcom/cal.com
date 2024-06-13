@@ -1,5 +1,4 @@
 export const BASE_URL = "http://localhost:5555";
-export const API_VERSION = "v2";
 export const V2_ENDPOINTS = {
   me: "me",
   availability: "schedules",
@@ -51,3 +50,11 @@ export const X_CAL_CLIENT_ID = "x-cal-client-id";
 
 // HTTP status codes
 export const HTTP_CODE_TOKEN_EXPIRED = 498;
+
+export const VERSION_2024_06_11 = "2024-06-11";
+export const VERSION_2024_05_21 = "2024-05-21";
+export const VERSION_2024_04_15 = "2024-04-15";
+export const API_VERSIONS = [VERSION_2024_06_11, VERSION_2024_04_15, VERSION_2024_05_21] as const;
+export type API_VERSIONS_ENUM = (typeof API_VERSIONS)[number];
+export type API_VERSIONS_TYPE = typeof API_VERSIONS;
+export const CAL_API_VERSION_HEADER = "cal-api-version";
