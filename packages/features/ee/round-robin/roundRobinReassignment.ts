@@ -1,10 +1,11 @@
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
+import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers, getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import { isPrismaObjectOrUndefined } from "@calcom/lib";
+import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -252,8 +253,11 @@ export const roundRobinReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
-    customInputs: isPrismaObjectOrUndefined(booking.customInputs),
-    userFieldsResponses: booking.responses,
+    customInputs: isPrismaObjOrUndefined(booking.customInputs),
+    ...getCalEventResponses({
+      bookingFields: eventType?.bookingFields ?? null,
+      booking,
+    }),
   };
 
   const credentials = await prisma.credential.findMany({
