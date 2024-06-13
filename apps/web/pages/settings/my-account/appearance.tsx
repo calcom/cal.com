@@ -1,7 +1,5 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { z } from "zod";
@@ -432,11 +430,7 @@ const AppearanceView = ({
 const AppearanceViewWrapper = () => {
   const { data: user, isPending } = trpc.viewer.me.useQuery();
   const { isPending: isTeamPlanStatusLoading, hasPaidPlan } = useHasPaidPlan();
-  const session = useSession();
-  const router = useRouter();
-  if (!!session.data?.user?.org?.id) {
-    router.replace("/settings/organizations/profile");
-  }
+
   const { t } = useLocale();
 
   if (isPending || isTeamPlanStatusLoading || !user)

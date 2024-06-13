@@ -43,6 +43,7 @@ const orgProfileFormSchema = z.object({
   name: z.string(),
   logoUrl: z.string().nullable(),
   banner: z.string().nullable(),
+  calVideoLogo: z.string().nullable(),
   bio: z.string(),
 });
 
@@ -52,6 +53,7 @@ type FormValues = {
   banner: string | null;
   bio: string;
   slug: string;
+  calVideoLogo: string | null;
 };
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -116,6 +118,7 @@ const OrgProfileView = () => {
     logoUrl: currentOrganisation?.logoUrl,
     banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
+    calVideoLogo: currentOrganisation?.calVideoLogo || "",
     slug:
       currentOrganisation?.slug ||
       ((currentOrganisation?.metadata as Prisma.JsonObject)?.requestedSlug as string) ||
@@ -170,7 +173,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
   const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
 
   const form = useForm({
     defaultValues,
@@ -188,6 +190,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
         banner: (res.data?.bannerUrl || "") as string,
+        calVideoLogo: (res.data?.calVideoLogo || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -212,6 +215,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           slug: values.slug,
           bio: values.bio,
           banner: values.banner,
+          calVideoLogo: values.calVideoLogo,
         };
 
         mutation.mutate(variables);
@@ -295,42 +299,42 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           />
         </div>
         <div className="mt-2 flex items-center">
-          <Avatar
-            alt="calVideoLogo"
-            imageSrc={currentOrg?.calVideoLogo}
-            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-            size="lg"
+          <Controller
+            control={form.control}
+            name="calVideoLogo"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveLogoButton = !!value;
+              return (
+                <>
+                  <Avatar
+                    alt="calVideoLogo"
+                    imageSrc={value}
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <ImageUploader
+                        target="avatar"
+                        id="cal-video-logo-upload"
+                        buttonMsg={t("upload_cal_video_logo")}
+                        handleAvatarChange={onChange}
+                        imageSrc={value || undefined}
+                        uploadInstruction={t("cal_video_logo_upload_instruction")}
+                        triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        testId="cal-video-logo"
+                      />
+                      {showRemoveLogoButton && (
+                        <Button color="secondary" onClick={() => onChange(null)}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
           />
-          <div className="ms-4">
-            <div className="flex gap-2">
-              <ImageUploader
-                target="avatar"
-                id="cal-video-logo-upload"
-                buttonMsg={currentOrg?.calVideoLogo ? t("update_cal_video_logo") : t("upload_cal_video_logo")}
-                handleAvatarChange={(newLogo) => {
-                  mutation.mutate({
-                    calVideoLogo: newLogo,
-                  });
-                }}
-                disabled={mutation.isPending}
-                imageSrc={currentOrg?.calVideoLogo ?? undefined}
-                uploadInstruction={t("cal_video_logo_upload_instruction")}
-                triggerButtonColor={currentOrg?.calVideoLogo ? "secondary" : "primary"}
-              />
-              {currentOrg?.calVideoLogo && (
-                <Button
-                  color="destructive"
-                  disabled={mutation.isPending}
-                  onClick={() => {
-                    mutation.mutate({
-                      calVideoLogo: null,
-                    });
-                  }}>
-                  {t("remove")}
-                </Button>
-              )}
-            </div>
-          </div>
         </div>
 
         <Controller
