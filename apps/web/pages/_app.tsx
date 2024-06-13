@@ -1,27 +1,22 @@
 import type { IncomingMessage } from "http";
 import type { NextApiRequest } from "next";
 import type { AppContextType } from "next/dist/shared/lib/utils";
-import { useRouter, usePathname } from "next/navigation";
-import React, { useEffect } from "react";
+import React from "react";
 
 import { trpc } from "@calcom/trpc/react";
 
 import type { AppProps } from "@lib/app-providers";
+import { useRedirectIfPlatformUser } from "@lib/useRedirectIfPlatformUser";
 
 import "../styles/globals.css";
 
 function MyApp(props: AppProps) {
-  const router = useRouter();
   const { Component, pageProps } = props;
-  const pathName = usePathname();
-
   const isPlatformUser = pageProps.isPlatformUser;
 
-  useEffect(() => {
-    if (isPlatformUser === true && pathName && !pathName.startsWith("/settings/platform")) {
-      return router.replace("/settings/platform");
-    }
-  }, [isPlatformUser, pathName, router]);
+  // custom hook to handle redirection for platform users
+  // this hook checks if the user is logged in and is a platform user, and redirects them accordingly
+  useRedirectIfPlatformUser(isPlatformUser);
 
   if (Component.PageWrapper !== undefined) return Component.PageWrapper(props);
   return <Component {...pageProps} />;
