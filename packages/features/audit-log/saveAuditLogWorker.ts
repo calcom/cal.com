@@ -19,7 +19,7 @@ import {
   saveEventTypeDeleteMany,
 } from "./util/auditLogSavers/saveEventType";
 
-let saveAuditLogWorker: (input: TAuditLogInput) => Promise<void> = async (input: TAuditLogInput) => {
+let saveAuditLogWorker: (input: TAuditLogInput) => Promise<void> = async (_input: TAuditLogInput) => {
   // Default implementation that does nothing
 };
 
@@ -38,7 +38,6 @@ if (isMainThread) {
   };
 } else {
   (async () => {
-    console.log(workerData);
     switch (workerData.triggeredEvent) {
       case EventTypeAuditLogOption.EventTypeCreate:
         await saveEventTypeCreate(workerData.actorUserId, workerData.createdEventType as EventType);
