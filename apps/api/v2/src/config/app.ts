@@ -15,6 +15,9 @@ const loadConfig = (): AppConfig => {
           ? `:${Number(getEnv("API_PORT", "5555"))}`
           : ""
       }/v2`,
+      keyPrefix: getEnv("API_KEY_PREFIX", "_cal"),
+      licenseKey: getEnv("CALCOM_LICENSE_KEY", ""),
+      licenceKeyUrl: getEnv("GET_LICENSE_KEY_URL", "https://console.cal.com/api/license"),
     },
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
@@ -31,6 +34,7 @@ const loadConfig = (): AppConfig => {
     app: {
       baseUrl: getEnv("WEB_APP_URL", "https://app.cal.com"),
     },
+    e2e: getEnv("IS_E2E", false),
   };
 };
 
