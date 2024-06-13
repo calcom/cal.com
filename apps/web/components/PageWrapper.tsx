@@ -1,8 +1,11 @@
+import { useSession } from "next-auth/react";
 import { DefaultSeo } from "next-seo";
 import { Inter } from "next/font/google";
 import localFont from "next/font/local";
 import Head from "next/head";
+import { useRouter, usePathname } from "next/navigation";
 import Script from "next/script";
+import { useEffect } from "react";
 
 import "@calcom/embed-core/src/embed-iframe";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -26,6 +29,23 @@ const calFont = localFont({
   display: "swap",
   weight: "600",
 });
+
+const Redirects = () => {
+  const session = useSession();
+  const router = useRouter();
+  const pathName = usePathname();
+  // is the connected user in a platform organization or not
+  const isPlatformUser = session?.data?.isPlatformUser ?? false;
+
+  useEffect(() => {
+    // is platform user trying to access a non-platform page, redirect to platform dashboard
+    if (isPlatformUser && pathName && !pathName.startsWith("/settings")) {
+      return router.replace("/settings/platform");
+    }
+  }, [isPlatformUser, pathName, router]);
+
+  return <></>;
+};
 
 function PageWrapper(props: AppProps) {
   const { Component, pageProps, err, router } = props;
@@ -56,6 +76,7 @@ function PageWrapper(props: AppProps) {
 
   return (
     <AppProviders {...providerProps}>
+      <Redirects />
       <Head>
         <meta
           name="viewport"
