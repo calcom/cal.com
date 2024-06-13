@@ -376,12 +376,19 @@ export async function deleteAllWorkflowReminders(
 ) {
   if (!remindersToDelete) return Promise.resolve();
 
-  await Promise.all(
+  const results = await Promise.allSettled(
     remindersToDelete.map((reminder) => {
       return reminderMethods[reminder.method](reminder.id, reminder.referenceId, prisma);
     })
-  ).catch((error) => {
-    log.error("An error occurred when deleting workflow reminders", error);
+  );
+
+  results.forEach((result, index) => {
+    if (result.status !== "fulfilled") {
+      log.error(
+        `An error occurred when deleting reminder ${remindersToDelete[index].id}, method: ${remindersToDelete[index].method}`,
+        result.reason
+      );
+    }
   });
 }
 
