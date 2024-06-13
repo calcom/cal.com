@@ -5,7 +5,6 @@ import {
   transformApiEventTypeLocations,
   transformApiEventTypeBookingFields,
 } from "@calcom/lib/event-types/transformers";
-import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type { EventTypeOutput } from "@calcom/platform-types";
 import {
@@ -41,9 +40,7 @@ export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
       username: users[0].username,
       name: users[0].name,
       weekStart: users[0].weekStart,
-      image: getUserAvatarUrl({
-        avatarUrl: users[0].avatarUrl,
-      }),
+      image: "",
       brandColor: users[0].brandColor,
       darkBrandColor: users[0].darkBrandColor,
       theme: null,
@@ -65,9 +62,7 @@ export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
         username: user.username || "",
         name: user.name,
         weekStart: user.weekStart,
-        image: getUserAvatarUrl({
-          avatarUrl: user.avatarUrl,
-        }),
+        image: "",
         brandColor: user.brandColor,
         darkBrandColor: user.darkBrandColor,
         theme: null,
