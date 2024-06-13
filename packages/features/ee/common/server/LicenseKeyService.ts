@@ -69,10 +69,8 @@ class LicenseKeyService {
 
   async incrementUsage(usageEvent?: UsageEvent) {
     try {
-      const incrementURL = new URL(`${this.baseUrl}/v1/license/usage/increment`);
-      incrementURL.searchParams.set("event", usageEvent ?? UsageEvent.BOOKING);
       const response = await this.fetch({
-        url: incrementURL.toString(),
+        url: `${this.baseUrl}/v1/license/usage/increment?event=${usageEvent ?? UsageEvent.BOOKING}`,
         options: {
           method: "POST",
           mode: "cors",

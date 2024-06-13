@@ -7,7 +7,6 @@ export function usageTrackingExtention() {
     query: {
       booking: {
         async create({ args, query }) {
-          console.log("bookingcreate - from usage tracking extention");
           try {
             const licenseKeyService = await LicenseKeyService.create();
             await licenseKeyService.incrementUsage();
@@ -19,7 +18,6 @@ export function usageTrackingExtention() {
       },
       user: {
         async create({ args, query }) {
-          console.log("user create - from usage tracking extention");
           try {
             const licenseKeyService = await LicenseKeyService.create();
             await licenseKeyService.incrementUsage(UsageEvent.USER);
