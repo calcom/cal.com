@@ -162,6 +162,7 @@ const nextConfig = {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
+    instrumentationHook: true,
   },
   i18n: {
     ...i18n,
@@ -590,14 +591,14 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-    // disable source map generation for the server code
-    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-  };
-
-  plugins.push(withSentryConfig);
+  plugins.push((nextConfig) =>
+    withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: true,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    })
+  );
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
