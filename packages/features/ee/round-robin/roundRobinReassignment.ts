@@ -276,9 +276,13 @@ export const roundRobinReassignment = async ({
   });
   const eventManager = new EventManager({ ...organizer, credentials: [...credentials] });
 
-  await eventManager.reschedule(evt, booking.uid, undefined, hasOrganizerChanged, [
-    previousHostDestinationCalendar,
-  ]);
+  await eventManager.reschedule(
+    evt,
+    booking.uid,
+    undefined,
+    hasOrganizerChanged,
+    previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
+  );
 
   // Send to new RR host
   await sendRoundRobinScheduledEmails(evt, [
