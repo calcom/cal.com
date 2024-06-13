@@ -289,6 +289,7 @@ export const roundRobinReassignment = async ({
     {
       ...reassignedRRHost,
       name: reassignedRRHost.name || "",
+      username: reassignedRRHost.username || "",
       timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
       language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
     },
@@ -298,6 +299,7 @@ export const roundRobinReassignment = async ({
     {
       ...previousRRHost,
       name: previousRRHost.name || "",
+      username: previousRRHost.username || "",
       timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
       language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
     },
