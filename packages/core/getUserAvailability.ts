@@ -154,12 +154,20 @@ const _getCurrentSeats = async (
     schedulingType === SchedulingType.ROUND_ROBIN ||
     schedulingType === SchedulingType.COLLECTIVE;
 
+  console.log("dateFrom.format()", dateFrom.format());
+  console.log("dateTo.format()", dateTo.format());
+
+  console.log("dateFrom.toISOString()", dateFrom.toISOString());
+  console.log("dateTo.toISOString()", dateTo.toISOString());
+
   const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId: id,
+      // FIXME: This filter previously used to be `startTime: { gte: dateFrom.format(), lte: dateTo.format() }`
+      // this didn't work, but toDate() (native JS Date) works. Need to find out the reason.
       startTime: {
-        gte: dayjs(dateFrom).toDate(),
-        lte: dayjs(dateTo).toDate(),
+        gte: dateFrom.toDate(),
+        lte: dateTo.toDate(),
       },
       status: BookingStatus.ACCEPTED,
     },
