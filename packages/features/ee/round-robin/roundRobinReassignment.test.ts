@@ -1,5 +1,4 @@
 import {
-  addUsers,
   getDate,
   createBookingScenario,
   getScenarioData,
@@ -62,8 +61,7 @@ describe("roundRobinReassignment test", () => {
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
-    const users = await addUsers(testUsers);
-
+    const users = testUsers;
     const originalHost = users[0];
     const newHost = users[1];
     // Assume we are using the RR fairness algorithm. Add an extra booking for user[2] to ensure user[1] is the new host
@@ -182,7 +180,7 @@ describe("roundRobinReassignment test", () => {
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
-    const users = await addUsers(testUsers);
+    const users = testUsers;
 
     const bookingToReassignUid = "booking-to-reassign";
 
@@ -191,7 +189,6 @@ describe("roundRobinReassignment test", () => {
     // const newHost = users[1];
     // Assume we are using the RR fairness algorithm. Add an extra booking for user[2] to ensure user[1] is the new host
     const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
-    const { dateString: dateStringMinusOne } = getDate({ dateIncrement: -1 });
 
     await createBookingScenario(
       getScenarioData({
