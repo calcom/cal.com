@@ -131,7 +131,7 @@ export default function WorkflowDetailsPage(props: Props) {
                   setValue={(s: Option[]) => {
                     form.setValue("activeOn", s);
                   }}
-                  countText={isOrg ? "nr_team" : "nr_event_type"}
+                  countText={isOrg ? "count_team" : "nr_event_type"}
                 />
               );
             }}

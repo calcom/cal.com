@@ -74,6 +74,7 @@ const removeMember = async ({
 
   if (isOrg) {
     log.debug("Removing a member from the organization");
+    const orgId = team.id;
 
     // Deleting membership from all child teams
     // Delete all sub-team memberships where this team is the organization
@@ -90,7 +91,7 @@ const removeMember = async ({
 
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: userToDeleteMembershipOf.id,
-      organizationId: team.id,
+      organizationId: orgId,
     });
 
     if (
@@ -113,7 +114,7 @@ const removeMember = async ({
       }),
       ProfileRepository.delete({
         userId: membership.userId,
-        organizationId: team.id,
+        organizationId: orgId,
       }),
     ]);
 
@@ -122,7 +123,7 @@ const removeMember = async ({
       where: {
         workflowStep: {
           workflow: {
-            teamId: team.id,
+            teamId: orgId,
           },
         },
         booking: {

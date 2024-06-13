@@ -693,7 +693,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows: Workfl
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
         installedAppsNumber={eventTypeApps?.items.length || 0}
-        enabledWorkflowsNumber={props.allActiveWorkflows.length || 0}
+        enabledWorkflowsNumber={props.allActiveWorkflows.length}
         eventType={eventType}
         activeWebhooksNumber={eventType.webhooks.filter((webhook) => webhook.active).length}
         team={team}

@@ -2212,19 +2212,17 @@ async function handler(
         let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
-        if (workflows) {
-          isHostConfirmationEmailsDisabled =
-            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-          isAttendeeConfirmationEmailDisabled =
-            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+        isHostConfirmationEmailsDisabled =
+          eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+        isAttendeeConfirmationEmailDisabled =
+          eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
-          if (isHostConfirmationEmailsDisabled) {
-            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-          }
+        if (isHostConfirmationEmailsDisabled) {
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+        }
 
-          if (isAttendeeConfirmationEmailDisabled) {
-            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-          }
+        if (isAttendeeConfirmationEmailDisabled) {
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
         }
 
         loggerWithEventDetails.debug(
