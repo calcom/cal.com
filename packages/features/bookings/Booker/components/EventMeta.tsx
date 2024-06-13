@@ -83,7 +83,9 @@ export const EventMeta = ({
     : "text-bookinghighlight";
 
   return (
-    <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-10`} data-testid="event-meta">
+    <div
+      className={`${classNames?.eventMetaContainer || ""} relative z-10 p-4 md:p-10`}
+      data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -144,7 +146,7 @@ export const EventMeta = ({
                 </EventMetaBlock>
               )} */}
               <EventDetails event={event} />
-              <EventMetaBlock
+              {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
                 contentClassName="relative max-w-[90%]"
                 icon="globe">
@@ -171,7 +173,7 @@ export const EventMeta = ({
                     />
                   </span>
                 )}
-              </EventMetaBlock>
+              </EventMetaBlock> */}
               {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
                 <EventMetaBlock icon="user" className={`${colorClass}`}>
                   <div className="text-bookinghighlight flex items-start text-sm">

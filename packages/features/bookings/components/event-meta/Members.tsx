@@ -92,7 +92,9 @@ export const EventMembers = ({ schedulingType, users, profile, entity }: EventMe
             })),
           ]}
         />
-        <p style={{ lineHeight: "1.2" }} className="text-subtle adjust-title mt-2 text-sm font-semibold">
+        <p
+          style={{ lineHeight: "32px", color: "#114559", fontSize: 22 }}
+          className="text-subtle adjust-title text-small mt-2 font-semibold">
           {showOnlyProfileName
             ? profile.name
             : shownUsers
