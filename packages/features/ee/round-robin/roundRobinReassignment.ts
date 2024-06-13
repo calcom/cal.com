@@ -22,6 +22,8 @@ const bookingSelect = {
   userId: true,
   customInputs: true,
   responses: true,
+  description: true,
+  location: true,
   destinationCalendar: true,
   user: {
     include: {
@@ -282,6 +284,7 @@ export const roundRobinReassignment = async ({
   await sendRoundRobinScheduledEmails(evt, [
     {
       ...reassignedRRHost,
+      name: reassignedRRHost.name || "",
       timeFormat: getTimeFormatStringFromUserTimeFormat(reassignedRRHost.timeFormat),
       language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
     },
@@ -290,6 +293,7 @@ export const roundRobinReassignment = async ({
   await sendRoundRobinCancelledEmails(evt, [
     {
       ...previousRRHost,
+      name: previousRRHost.name || "",
       timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
       language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
     },
