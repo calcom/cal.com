@@ -30,7 +30,7 @@ export type Person = {
   email: string;
   timeZone: string;
   language: { translate: TFunction; locale: string };
-  username?: string;
+  username?: string | null;
   id?: number;
   bookingId?: number | null;
   locale?: string | null;
