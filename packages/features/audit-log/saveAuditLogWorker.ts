@@ -1,3 +1,5 @@
+import { isMainThread, Worker, workerData } from "node:worker_threads";
+
 import type { EventType, Booking } from "@calcom/prisma/client";
 
 import type { BookingWithAttendees } from "./types/BookingAuditLogTypes";
@@ -17,44 +19,72 @@ import {
   saveEventTypeDeleteMany,
 } from "./util/auditLogSavers/saveEventType";
 
-async function saveAuditLogWorker(input: TAuditLogInput) {
-  switch (input.triggeredEvent) {
-    case EventTypeAuditLogOption.EventTypeCreate:
-      await saveEventTypeCreate(input.actorUserId, input.createdEventType as EventType);
-      break;
-    case EventTypeAuditLogOption.EventTypeUpdate:
-      await saveEventTypeUpdate(input.actorUserId, input.prevEventType, input.updatedEventType);
-      break;
-    case EventTypeAuditLogOption.EventTypeUpdateMany:
-      await saveEventTypeUpdateMany(input.actorUserId, input.prevEventTypes, input.updatedEventTypes);
-      break;
-    case EventTypeAuditLogOption.EventTypeDelete:
-      await saveEventTypeDelete(input.actorUserId, input.deletedEventType);
-      break;
-    case EventTypeAuditLogOption.EventTypeDeleteMany:
-      await saveEventTypeDeleteMany(input.actorUserId, input.deletedEventTypes);
-      break;
-    case BookingAuditLogOption.BookingCreate:
-      await saveBookingCreate(input.actorUserId, input.createdBooking as Booking);
-      break;
-    case BookingAuditLogOption.BookingUpdate:
-      await saveBookingUpdate(
-        input.actorUserId,
-        input.prevBookingWithAttendees as BookingWithAttendees,
-        input.updatedBookingWithAttendees as BookingWithAttendees
-      );
-      break;
-    case BookingAuditLogOption.BookingUpdateMany:
-      await saveBookingUpdateMany(
-        input.actorUserId,
-        input.prevBookingsWithAttendees as BookingWithAttendees[],
-        input.updatedBookingsWithAttendees as BookingWithAttendees[]
-      );
-      break;
-    default:
-      // console.warn(`Unhandled audit log event type: ${input.triggeredEvent}`);
-      break;
-  }
+let saveAuditLogWorker: (input: TAuditLogInput) => Promise<void> = async (input: TAuditLogInput) => {
+  // Default implementation that does nothing
+};
+
+if (isMainThread) {
+  saveAuditLogWorker = (input: TAuditLogInput) => {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(__filename, { workerData: input });
+      worker.on("message", resolve);
+      worker.on("error", reject);
+      worker.on("exit", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Worker stopped with exit code ${code}`));
+        }
+      });
+    });
+  };
+} else {
+  (async () => {
+    console.log(workerData);
+    switch (workerData.triggeredEvent) {
+      case EventTypeAuditLogOption.EventTypeCreate:
+        await saveEventTypeCreate(workerData.actorUserId, workerData.createdEventType as EventType);
+        break;
+      case EventTypeAuditLogOption.EventTypeUpdate:
+        await saveEventTypeUpdate(
+          workerData.actorUserId,
+          workerData.prevEventType,
+          workerData.updatedEventType
+        );
+        break;
+      case EventTypeAuditLogOption.EventTypeUpdateMany:
+        await saveEventTypeUpdateMany(
+          workerData.actorUserId,
+          workerData.prevEventTypes,
+          workerData.updatedEventTypes
+        );
+        break;
+      case EventTypeAuditLogOption.EventTypeDelete:
+        await saveEventTypeDelete(workerData.actorUserId, workerData.deletedEventType);
+        break;
+      case EventTypeAuditLogOption.EventTypeDeleteMany:
+        await saveEventTypeDeleteMany(workerData.actorUserId, workerData.deletedEventTypes);
+        break;
+      case BookingAuditLogOption.BookingCreate:
+        await saveBookingCreate(workerData.actorUserId, workerData.createdBooking as Booking);
+        break;
+      case BookingAuditLogOption.BookingUpdate:
+        await saveBookingUpdate(
+          workerData.actorUserId,
+          workerData.prevBookingWithAttendees as BookingWithAttendees,
+          workerData.updatedBookingWithAttendees as BookingWithAttendees
+        );
+        break;
+      case BookingAuditLogOption.BookingUpdateMany:
+        await saveBookingUpdateMany(
+          workerData.actorUserId,
+          workerData.prevBookingsWithAttendees as BookingWithAttendees[],
+          workerData.updatedBookingsWithAttendees as BookingWithAttendees[]
+        );
+        break;
+      default:
+        // console.warn(`Unhandled audit log event type: ${workerData.triggeredEvent}`);
+        break;
+    }
+  })();
 }
 
 export default saveAuditLogWorker;
