@@ -4,6 +4,7 @@ import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@c
 import { ensureAvailableUsers, getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { isPrismaObjectOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -11,6 +12,24 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+
+const bookingSelect = {
+  uid: true,
+  title: true,
+  startTime: true,
+  endTime: true,
+  userId: true,
+  customInputs: true,
+  responses: true,
+  destinationCalendar: true,
+  user: {
+    include: {
+      destinationCalendar: true,
+    },
+  },
+  attendees: true,
+  references: true,
+};
 
 export const roundRobinReassignment = async ({
   eventTypeId,
@@ -38,23 +57,7 @@ export const roundRobinReassignment = async ({
     where: {
       id: bookingId,
     },
-    select: {
-      uid: true,
-      title: true,
-      startTime: true,
-      endTime: true,
-      userId: true,
-      customInputs: true,
-      responses: true,
-      destinationCalendar: true,
-      user: {
-        include: {
-          destinationCalendar: true,
-        },
-      },
-      attendees: true,
-      references: true,
-    },
+    select: bookingSelect,
   });
 
   if (!booking) {
@@ -124,12 +127,7 @@ export const roundRobinReassignment = async ({
       data: {
         userId: reassignedRRHost.id,
       },
-      include: {
-        user: true,
-        attendees: true,
-        references: true,
-        destinationCalendar: true,
-      },
+      select: bookingSelect,
     });
   } else {
     const previousRRHostAttendee = booking.attendees.find(
@@ -192,7 +190,7 @@ export const roundRobinReassignment = async ({
     ) {
       continue;
     }
-    const tAttendee = getTranslation(attendee.locale ?? "en", "common");
+    const tAttendee = await getTranslation(attendee.locale ?? "en", "common");
 
     attendeePromises.push({
       email: attendee.email,
@@ -215,9 +213,11 @@ export const roundRobinReassignment = async ({
           userId: reassignedRRHost.id,
         },
       });
-      return [organizerDestinationCalendar];
+      if (organizerDestinationCalendar) {
+        return [organizerDestinationCalendar];
+      }
     } else {
-      return [booking.user?.destinationCalendar];
+      if (booking.user?.destinationCalendar) return [booking.user?.destinationCalendar];
     }
   })();
 
@@ -252,7 +252,7 @@ export const roundRobinReassignment = async ({
       name: eventType.team?.name || "",
       id: eventType.team?.id || 0,
     },
-    customInputs: booking.customInputs,
+    customInputs: isPrismaObjectOrUndefined(booking.customInputs),
     userFieldsResponses: booking.responses,
   };
 
