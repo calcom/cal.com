@@ -1,3 +1,4 @@
+import type { BookerProps } from "@calcom/features/bookings/Booker";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { defaultEvents } from "@calcom/lib/defaultEvents";
 import type { CommonField, OptionsField, SystemField } from "@calcom/lib/event-types/transformers";
@@ -15,44 +16,56 @@ import {
   eventTypeBookingFields,
 } from "@calcom/prisma/zod-utils";
 
-export function transformApiEventTypeForAtom(eventType: EventTypeOutput) {
+export function transformApiEventTypeForAtom(
+  eventType: Omit<EventTypeOutput, "ownerId">,
+  entity: BookerProps["entity"] | undefined
+) {
   const { lengthInMinutes, locations, bookingFields, users, ...rest } = eventType;
 
   const isDefault = isDefaultEvent(rest.title);
+  const user = users[0];
 
   const defaultEventBookerLayouts = {
     enabledLayouts: [...bookerLayoutOptions],
     defaultLayout: BookerLayouts.MONTH_VIEW,
   };
-  const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata || {});
+  const firstUsersMetadata = userMetadataSchema.parse(user.metadata || {});
   const bookerLayouts = bookerLayoutsSchema.parse(
     firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
   );
 
   return {
+    ...rest,
     length: lengthInMinutes,
     locations: transformApiEventTypeLocations(locations),
     bookingFields: getBookingFields(bookingFields),
-    ...rest,
     isDefault,
     isDynamic: false,
     profile: {
-      username: users[0].username,
-      name: users[0].name,
-      weekStart: users[0].weekStart,
+      username: user.username,
+      name: user.name,
+      weekStart: user.weekStart,
       image: "",
-      brandColor: users[0].brandColor,
-      darkBrandColor: users[0].darkBrandColor,
+      brandColor: user.brandColor,
+      darkBrandColor: user.darkBrandColor,
       theme: null,
       bookerLayouts,
     },
-    entity: {
-      fromRedirectOfNonOrgLink: true,
-      considerUnpublished: false,
-      orgSlug: null,
-      teamSlug: null,
-      name: undefined,
-    },
+    entity: entity
+      ? {
+          ...entity,
+          orgSlug: entity.orgSlug || null,
+          teamSlug: entity.teamSlug || null,
+          fromRedirectOfNonOrgLink: true,
+          name: entity.name || null,
+        }
+      : {
+          fromRedirectOfNonOrgLink: true,
+          considerUnpublished: false,
+          orgSlug: null,
+          teamSlug: null,
+          name: null,
+        },
     hosts: [],
     users: users.map((user) => ({
       ...user,

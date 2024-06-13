@@ -643,6 +643,33 @@
         ]
       }
     },
+    "/v2/users": {
+      "get": {
+        "operationId": "UsersController_getUsersByUsernames",
+        "parameters": [
+          {
+            "name": "usernames",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUsersOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v2/event-types": {
       "post": {
         "operationId": "EventTypesController_createEventType",
@@ -2288,6 +2315,73 @@
                 "$ref": "#/components/schemas/EventTypeOutput"
               }
             ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UserOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "avatarUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "metadata"
+        ]
+      },
+      "GetUsersOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserOutput"
+            }
           }
         },
         "required": [

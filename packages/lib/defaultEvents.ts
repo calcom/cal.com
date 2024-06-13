@@ -108,7 +108,7 @@ const commons = {
   secondaryEmail: null,
 };
 
-const dynamicEvent = {
+export const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Group Meeting",

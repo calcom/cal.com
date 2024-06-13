@@ -56,12 +56,20 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
         {!bookingTitle && eventTypeSlug && !rescheduleUid && (
           <Booker
             eventSlug={eventTypeSlug}
-            username={props.calUsername ?? ""}
+            username={[
+              "npwruvxgpl-clujvibu30001khltnifvcca8-example",
+              "pnlwmfyclu-clujvibu30001khltnifvcca8-example",
+            ]}
+            // username={props.calUsername ?? ""}
             onCreateBookingSuccess={(data) => {
               setBookingTitle(data.data.title ?? "");
               router.push(`/${data.data.uid}`);
             }}
             duration={eventTypeDuration}
+            entity={{
+              orgSlug: "ecorp-pizza",
+              considerUnpublished: false,
+            }}
             customClassNames={{
               bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
               datePickerCustomClassNames: {

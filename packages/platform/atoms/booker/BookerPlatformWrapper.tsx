@@ -104,6 +104,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
         setBookingData(null);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   setSelectedDuration(props.duration ?? null);
@@ -114,9 +115,15 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   }, [username]);
 
   const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug);
+
   const event = useMemo(() => {
-    return { isSuccess, isError, isPending, data: data ? transformApiEventTypeForAtom(data) : undefined };
-  }, [isSuccess, isError, isPending, data]);
+    return {
+      isSuccess,
+      isError,
+      isPending,
+      data: data ? transformApiEventTypeForAtom(data, props.entity) : undefined,
+    };
+  }, [isSuccess, isError, isPending, data, props.entity]);
 
   if (isDynamic && props.duration && event.data) {
     // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
@@ -317,7 +324,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
         onClickOverlayContinue={function (): void {
           throw new Error("Function not implemented.");
         }}
-        onOverlaySwitchStateChange={function (state: boolean): void {
+        onOverlaySwitchStateChange={function (): void {
           throw new Error("Function not implemented.");
         }}
         extraOptions={{}}

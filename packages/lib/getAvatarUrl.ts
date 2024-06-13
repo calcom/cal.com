@@ -8,6 +8,9 @@ import type { User } from "@calcom/prisma/client";
  * It ensures that the wrong avatar isn't fetched by ensuring that organizationId is always passed
  * It should always return a fully formed url
  */
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 export const getUserAvatarUrl = (user: Pick<User, "avatarUrl"> | undefined) => {
   if (user?.avatarUrl) {
     const isAbsoluteUrl = z.string().url().safeParse(user.avatarUrl).success;

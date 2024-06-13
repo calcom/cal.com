@@ -1,6 +1,5 @@
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { SlotsService } from "@/modules/slots/services/slots.service";
-import { Query, Body, Controller, Get, Delete, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Query, Body, Controller, Get, Delete, Post, Req, Res } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 

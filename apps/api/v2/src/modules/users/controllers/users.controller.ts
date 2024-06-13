@@ -1,7 +1,9 @@
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
 import { GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
 import { EventTypesService } from "@/ee/event-types/services/event-types.service";
-import { Controller, Get, Param } from "@nestjs/common";
+import { GetUsersOutput } from "@/modules/users/outputs/get-users.output";
+import { UsersService } from "@/modules/users/services/users.service";
+import { Controller, Get, Param, Query } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -11,7 +13,10 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: "2",
 })
 export class UsersController {
-  constructor(private readonly eventTypesService: EventTypesService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly eventTypesService: EventTypesService
+  ) {}
 
   @DocsTags("Event types")
   @Get("/:username/event-types")
@@ -35,6 +40,23 @@ export class UsersController {
     return {
       status: SUCCESS_STATUS,
       data: eventType,
+    };
+  }
+
+  @Get("/")
+  async getUsersByUsernames(@Query("usernames") usernames: string): Promise<GetUsersOutput> {
+    if (usernames) {
+      const users = await this.usersService.getByUsernames(usernames);
+
+      return {
+        status: SUCCESS_STATUS,
+        data: users,
+      };
+    }
+
+    return {
+      status: SUCCESS_STATUS,
+      data: [],
     };
   }
 }
