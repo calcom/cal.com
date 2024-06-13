@@ -57,7 +57,14 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     throw new Error("Booking not found");
   }
 
-  const eventType = await getEventTypesFromDB(booking.eventTypeId);
+  const eventTypeId = booking.eventTypeId;
+
+  if (!eventTypeId) {
+    console.error(`Booking ${bookingId} does not have an event type id`);
+    throw new Error("Event type not found");
+  }
+
+  const eventType = await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) {
     console.error(`Event type ${eventTypeId} not found`);
