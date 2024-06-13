@@ -39,3 +39,18 @@ export const ZGetTranscriptAccessLink = z.object({
 });
 
 export type TGetTranscriptAccessLink = z.infer<typeof ZGetTranscriptAccessLink>;
+
+export const ZGetDailyWebhooks = z.array(
+  z
+    .object({
+      uuid: z.string(),
+      url: z.string().url(),
+      hmac: z.string(),
+      eventTypes: z.array(z.string()),
+      state: z.string(),
+      failedCount: z.number(),
+    })
+    .passthrough()
+);
+
+export type TGetDailyWebhooks = z.infer<typeof ZGetDailyWebhooks>;

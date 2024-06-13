@@ -2,15 +2,10 @@ import { z } from "zod";
 
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
-import type {
-  GetRecordingsResponseSchema,
-  GetAccessLinkResponseSchema,
-  TGetDailyWebhooks,
-} from "@calcom/prisma/zod-utils";
+import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
 import {
   getRecordingsResponseSchema,
   getAccessLinkResponseSchema,
-  getDailyWebhooks,
   recordingItemSchema,
 } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -18,8 +13,13 @@ import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
-import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
-import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
+import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink, ZGetDailyWebhooks } from "../zod";
+import type {
+  TSubmitBatchProcessorJobRes,
+  TGetTranscriptAccessLink,
+  batchProcessorBody,
+  TGetDailyWebhooks,
+} from "../zod";
 import { getDailyAppKeys } from "./getDailyAppKeys";
 
 /** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
@@ -343,7 +343,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     },
     getWebhooks: async (): Promise<TGetDailyWebhooks> => {
       try {
-        const webhooks = await fetcher("/webhooks").then(getDailyWebhooks.parse);
+        const webhooks = await fetcher("/webhooks").then(ZGetDailyWebhooks.parse);
         return Promise.resolve(webhooks);
       } catch (err) {
         console.error("Error fetching daily webhooks", err);
