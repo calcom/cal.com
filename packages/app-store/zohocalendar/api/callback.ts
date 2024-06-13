@@ -18,14 +18,22 @@ import { appKeysSchema as zohoKeysSchema } from "../zod";
 
 const log = logger.getSubLogger({ prefix: [`[[zohocalendar/api/callback]`] });
 
-const OAUTH_BASE_URL = "https://accounts.zoho.com/oauth/v2";
+function getOAuthBaseUrl(domain: string): string {
+  return `https://accounts.zoho.${domain}/oauth/v2`;
+}
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
-  const { code } = req.query;
+  const { code, location } = req.query;
+
   const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
+    return;
+  }
+
+  if (location && typeof location !== "string") {
+    res.status(400).json({ message: "`location` must be a string" });
     return;
   }
 
@@ -43,17 +51,18 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     redirect_uri: `${WEBAPP_URL}/api/integrations/${config.slug}/callback`,
     code,
   };
+  const server_location = location === "us" ? "com" : location;
 
   const query = stringify(params);
 
-  const response = await fetch(`${OAUTH_BASE_URL}/token?${query}`, {
+  const response = await fetch(`${getOAuthBaseUrl(server_location || "com")}/token?${query}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json; charset=utf-8",
     },
   });
 
-  const responseBody = await response.json();
+  const responseBody = await JSON.parse(await response.text());
 
   if (!response.ok || responseBody.error) {
     log.error("get access_token failed", responseBody);
@@ -64,9 +73,14 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     access_token: responseBody.access_token,
     refresh_token: responseBody.refresh_token,
     expires_in: Math.round(+new Date() / 1000 + responseBody.expires_in),
+    server_location: server_location || "com",
   };
 
-  const calendarResponse = await fetch("https://calendar.zoho.com/api/v1/calendars", {
+  function getCalenderUri(domain: string): string {
+    return `https://calendar.zoho.${domain}/api/v1/calendars`;
+  }
+
+  const calendarResponse = await fetch(getCalenderUri(server_location || "com"), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${key.access_token}`,
