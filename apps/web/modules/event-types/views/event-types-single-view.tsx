@@ -852,8 +852,6 @@ const EventTypePageWrapper: React.FC<PageProps> & {
     userId: eventType.owner?.id,
   });
 
-  if (isPending) return null;
-
   const propsData = {
     ...(data as EventTypeSetupProps),
     allActiveWorkflows: workflows || [],
