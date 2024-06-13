@@ -124,7 +124,7 @@ describe("roundRobinReassignment test", () => {
           {
             id: 456,
             eventTypeId: 1,
-            userId: 3,
+            userId: users[2].id,
             uid: bookingToReassignUid,
             status: BookingStatus.ACCEPTED,
             startTime: `${dateStringMinusOne}T05:00:00.000Z`,
@@ -162,7 +162,7 @@ describe("roundRobinReassignment test", () => {
     // Use equal fairness rr algorithm
     expectBookingToBeInDatabase({
       uid: bookingToReassignUid,
-      userId: 3,
+      userId: newHost.id,
     });
 
     expectSuccessfulRoundRobinReschedulingEmails({
