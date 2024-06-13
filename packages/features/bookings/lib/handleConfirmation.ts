@@ -8,7 +8,6 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -22,7 +21,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
@@ -70,35 +69,7 @@ export async function handleConfirmation(args: {
 
   const eventType = booking.eventType;
 
-  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
-
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: eventType?.teamId ?? null },
-      parentId: eventType?.parentId ?? null,
-    },
-  });
-
-  const triggerForUser = !teamId || (teamId && eventType?.parentId);
-
-  const userId = triggerForUser ? booking.userId : null;
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
-  const isManagedEventType = !!eventType?.parentId;
-
-  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
-
-  const workflowsLockedForUser = isManagedEventType
-    ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
-    : false;
-
-  const workflows = await getAllWorkflows(
-    eventTypeWorkflows,
-    evt.organizer.id,
-    workflowsLockedForUser ? eventType?.parent?.teamId : teamId,
-    orgId
-  );
+  const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -301,6 +272,19 @@ export async function handleConfirmation(args: {
     // Silently fail
     console.error(error);
   }
+
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: booking.eventType?.teamId ?? null },
+      parentId: booking?.eventType?.parentId ?? null,
+    },
+  });
+
+  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+
+  const userId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   try {
     const subscribersBookingCreated = await getWebhooks({

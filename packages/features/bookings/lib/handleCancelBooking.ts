@@ -7,7 +7,7 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { workflowSelect, getAllWorkflows } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -25,8 +25,11 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
-import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import {
+  deleteAllWorkflowReminders,
+  getAllWorkflowsFromEventType,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -326,25 +329,7 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
-    bookingToDelete.eventType?.metadata || null
-  );
-
-  const eventTypeWorkflows =
-    bookingToDelete.eventType?.workflows.map((workflowRel) => workflowRel.workflow) ?? [];
-
-  const isManagedEventType = !!bookingToDelete.eventType?.parentId;
-
-  const workflowsLockedForUser = isManagedEventType
-    ? !bookingToDeleteEventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
-    : false;
-
-  const workflows = await getAllWorkflows(
-    eventTypeWorkflows,
-    organizerUserId,
-    workflowsLockedForUser ? bookingToDelete.eventType?.parent?.teamId : teamId,
-    orgId
-  );
+  const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, organizerUserId);
 
   await sendCancelledReminders({
     workflows,

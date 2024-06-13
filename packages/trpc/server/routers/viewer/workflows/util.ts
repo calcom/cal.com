@@ -1,6 +1,7 @@
 import type { Workflow } from "@prisma/client";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
+import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import {
   deleteScheduledEmailReminder,
   scheduleEmailReminder,
@@ -13,6 +14,7 @@ import {
   deleteScheduledWhatsappReminder,
   scheduleWhatsappReminder,
 } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
+import type { Workflow as WorkflowType } from "@calcom/ee/workflows/lib/types";
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
 import {
   getSmsReminderNumberField,
@@ -20,6 +22,8 @@ import {
 } from "@calcom/features/bookings/lib/getBookingFields";
 import { removeBookingField, upsertBookingField } from "@calcom/features/eventtypes/lib/bookingFieldsManager";
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
@@ -33,6 +37,7 @@ import {
   WorkflowMethods,
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -776,4 +781,49 @@ export function isStepEdited(oldStep: WorkflowStep, newStep: WorkflowStep) {
   }
 
   return false;
+}
+
+export async function getAllWorkflowsFromEventType(
+  eventType: {
+    workflows?: {
+      workflow: WorkflowType;
+    }[];
+    teamId?: number | null;
+    parentId?: number | null;
+    parent?: {
+      teamId: number | null;
+    } | null;
+    metadata?: Prisma.JsonValue;
+  } | null,
+  userId?: number | null
+) {
+  if (!eventType) return [];
+
+  const eventTypeWorkflows = eventType?.workflows?.map((workflowRel) => workflowRel.workflow) ?? [];
+
+  const teamId = await getTeamIdFromEventType({
+    eventType: {
+      team: { id: eventType?.teamId ?? null },
+      parentId: eventType?.parentId ?? null,
+    },
+  });
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
+  const isManagedEventType = !!eventType?.parentId;
+
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
+  const workflowsLockedForUser = isManagedEventType
+    ? !eventTypeMetadata?.managedEventConfig?.unlockedFields?.workflows
+    : false;
+
+  const allWorkflows = await getAllWorkflows(
+    eventTypeWorkflows,
+    userId,
+    workflowsLockedForUser ? eventType?.parent?.teamId : teamId,
+    orgId
+  );
+
+  return allWorkflows;
 }

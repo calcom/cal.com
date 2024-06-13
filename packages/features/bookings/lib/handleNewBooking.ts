@@ -46,7 +46,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import { getAllWorkflows, workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -93,7 +93,10 @@ import {
   customInputSchema,
   userMetadata as userMetadataSchema,
 } from "@calcom/prisma/zod-utils";
-import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
+import {
+  deleteAllWorkflowReminders,
+  getAllWorkflowsFromEventType,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -1700,18 +1703,7 @@ async function handler(
     orgId,
   };
 
-  const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
-
-  const workflowsLockedForUser = isManagedEventType
-    ? !eventType.metadata?.managedEventConfig?.unlockedFields?.workflows
-    : false;
-
-  const workflows = await getAllWorkflows(
-    eventTypeWorkflows,
-    organizerUserId,
-    workflowsLockedForUser ? eventType.parent?.teamId : teamId,
-    orgId
-  );
+  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUserId);
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
