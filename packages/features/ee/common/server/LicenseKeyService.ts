@@ -6,6 +6,11 @@ import { prisma } from "../../../../prisma";
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 import { generateNonce, createSignature } from "./private-api-utils";
 
+export enum UsageEvent {
+  BOOKING = "booking",
+  USER = "user",
+}
+
 class LicenseKeyService {
   private readonly baseUrl: string;
   private readonly licenseKey: string;
@@ -62,10 +67,12 @@ class LicenseKeyService {
     });
   }
 
-  async incrementUsage() {
+  async incrementUsage(usageEvent?: UsageEvent) {
     try {
+      const incrementURL = new URL(`${this.baseUrl}/v1/license/usage/increment`);
+      incrementURL.searchParams.set("event", usageEvent ?? UsageEvent.BOOKING);
       const response = await this.fetch({
-        url: `${this.baseUrl}/v1/license/usage/increment`,
+        url: incrementURL.toString(),
         options: {
           method: "POST",
           mode: "cors",
@@ -91,6 +98,7 @@ class LicenseKeyService {
         const response = await this.fetch({ url: url, options: { mode: "cors" } });
         const data = await response.json();
         cache.put(url, data.stauts, this.CACHING_TIME);
+        console.log("License check response:", data);
         return data.status;
       } catch (error) {
         return false;
