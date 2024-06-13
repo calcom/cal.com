@@ -22,7 +22,6 @@ type ReassignDialog = {
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   hosts?: Host[];
   assignedHosts: string[];
-  eventTypeId: number;
   teamId: number;
   bookingId: number;
 };
@@ -142,7 +141,7 @@ export const ReassignDialog = ({
             data-testid="rejection-confirm"
             onClick={() => {
               if (reassignTarget === "round-robin") {
-                roundRobinReassignMutation.mutate({ teamId, eventTypeId, bookingId });
+                roundRobinReassignMutation.mutate({ teamId, bookingId });
               } else {
                 // assign to selected host, backend work needed
               }
