@@ -343,8 +343,6 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenReassignDialog}
         bookingId={booking.id}
         teamId={booking.eventType?.team?.id || 0}
-        eventTypeId={booking.eventType.id}
-        hosts={booking.eventType?.hosts}
         assignedHosts={
           booking.user
             ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))

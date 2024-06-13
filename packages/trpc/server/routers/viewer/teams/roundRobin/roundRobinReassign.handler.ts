@@ -11,9 +11,9 @@ type RoundRobinReassignOptions = {
 };
 
 export const roundRobinReassignHandler = async ({ input }: RoundRobinReassignOptions) => {
-  const { eventTypeId, bookingId } = input;
+  const { bookingId } = input;
 
-  await roundRobinReassignment({ eventTypeId, bookingId });
+  await roundRobinReassignment({ bookingId });
 };
 
 export default roundRobinReassignHandler;

@@ -24,6 +24,7 @@ const bookingSelect = {
   responses: true,
   description: true,
   location: true,
+  eventTypeId: true,
   destinationCalendar: true,
   user: {
     include: {
@@ -34,18 +35,22 @@ const bookingSelect = {
   references: true,
 };
 
-export const roundRobinReassignment = async ({
-  eventTypeId,
-  bookingId,
-}: {
-  eventTypeId: number;
-  bookingId: number;
-}) => {
+export const roundRobinReassignment = async ({ bookingId }: { bookingId: number }) => {
   const roundRobinReassignLogger = logger.getSubLogger({
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
 
-  const eventType = await getEventTypesFromDB(eventTypeId);
+  if (!booking) {
+    console.error(`Booking ${bookingId} not found`);
+    throw new Error("Booking not found");
+  }
+
+  if (!booking?.user) {
+    console.error(`No user associated with booking ${bookingId}`);
+    throw new Error("Booking not found");
+  }
+
+  const eventType = await getEventTypesFromDB(booking.eventTypeId);
 
   if (!eventType) {
     console.error(`Event type ${eventTypeId} not found`);
@@ -62,16 +67,6 @@ export const roundRobinReassignment = async ({
     },
     select: bookingSelect,
   });
-
-  if (!booking) {
-    console.error(`Booking ${bookingId} not found`);
-    throw new Error("Booking not found");
-  }
-
-  if (!booking?.user) {
-    console.error(`No user associated with booking ${bookingId}`);
-    throw new Error("Booking not found");
-  }
 
   const originalOrganizer = booking.user;
 

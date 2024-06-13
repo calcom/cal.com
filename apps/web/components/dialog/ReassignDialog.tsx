@@ -75,9 +75,7 @@ const MemberReassignStep = ({
 export const ReassignDialog = ({
   isOpenDialog,
   setIsOpenDialog,
-  hosts,
   assignedHosts,
-  eventTypeId,
   teamId,
   bookingId,
 }: ReassignDialog) => {
@@ -127,7 +125,8 @@ export const ReassignDialog = ({
             <p>{t("override_team_member_to_assign")}</p>
           </RadioArea.Item> */}
         </RadioArea.Group>
-        {reassignTarget === "choose-member" ? (
+        {/* TODO */}
+        {/* {reassignTarget === "choose-member" ? (
           <MemberReassignStep
             setSelectedHost={setSelectedHost}
             selectedHost={selectedHost}
@@ -136,7 +135,7 @@ export const ReassignDialog = ({
           />
         ) : (
           <></>
-        )}
+        )} */}
         <DialogFooter>
           <DialogClose />
           <Button

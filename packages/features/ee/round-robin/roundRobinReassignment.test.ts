@@ -165,6 +165,4 @@ describe("roundRobinReassignment test", () => {
   });
 
   // TODO: add fixed hosts test
-  // TODO: ensure calendar event is updated
-  // TODO: ensure destination calendar changes
 });
