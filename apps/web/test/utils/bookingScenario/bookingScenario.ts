@@ -598,6 +598,13 @@ export async function addUsers(users: InputUser[]) {
         },
       };
     }
+    if (user.destinationCalendar) {
+      newUser.destinationCalendar = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        create: user.destinationCalendar,
+      };
+    }
     if (user.profiles) {
       newUser.profiles = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

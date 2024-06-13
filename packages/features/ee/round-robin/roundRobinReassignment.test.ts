@@ -20,6 +20,11 @@ import { test } from "@calcom/web/test/fixtures/fixtures";
 
 vi.mock("@calcom/core/EventManager");
 
+const testDestinationCalendar = {
+  integration: "test-calendar",
+  externalId: "test-calendar",
+};
+
 const testUsers = [
   {
     id: 1,
@@ -28,6 +33,7 @@ const testUsers = [
     username: "host-1",
     email: "host1@test.com",
     schedules: [TestData.schedules.IstWorkHours],
+    destinationCalendar: testDestinationCalendar,
   },
   {
     id: 2,
@@ -146,9 +152,13 @@ describe("roundRobinReassignment test", () => {
 
     expect(eventManagerSpy).toBeCalledTimes(1);
     // Triggers moving to new host within event manager
-    expect(eventManagerSpy).toHaveBeenCalledWith(expect.any(Object), bookingToReassignUid, undefined, true, [
-      null,
-    ]);
+    expect(eventManagerSpy).toHaveBeenCalledWith(
+      expect.any(Object),
+      bookingToReassignUid,
+      undefined,
+      true,
+      expect.arrayContaining([expect.objectContaining(testDestinationCalendar)])
+    );
 
     // Use equal fairness rr algorithm
     expectBookingToBeInDatabase({
@@ -172,17 +182,7 @@ describe("roundRobinReassignment test", () => {
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
 
-    const users = await addUsers([
-      ...testUsers,
-      // {
-      //   id: 4,
-      //   name: "user-4",
-      //   timeZone: "Asia/Kolkata",
-      //   username: "host-4",
-      //   email: "host4@test.com",
-      //   schedules: [TestData.schedules.IstWorkHours],
-      // },
-    ]);
+    const users = await addUsers(testUsers);
 
     const bookingToReassignUid = "booking-to-reassign";
 
@@ -197,7 +197,7 @@ describe("roundRobinReassignment test", () => {
       getScenarioData({
         workflows: [
           {
-            userId: originalHost.id,
+            userId: fixedHost.id,
             trigger: "NEW_EVENT",
             action: "EMAIL_HOST",
             template: "REMINDER",
@@ -218,7 +218,7 @@ describe("roundRobinReassignment test", () => {
             hosts: users.map((user) => {
               return {
                 userId: user.id,
-                isFixed: !!user.id === 1,
+                isFixed: !!(user.id === fixedHost.id),
               };
             }),
           },
@@ -227,7 +227,7 @@ describe("roundRobinReassignment test", () => {
           {
             id: 123,
             eventTypeId: 1,
-            userId: originalHost.id,
+            userId: fixedHost.id,
             uid: bookingToReassignUid,
             status: BookingStatus.ACCEPTED,
             startTime: `${dateStringPlusOne}T05:00:00.000Z`,
@@ -249,26 +249,8 @@ describe("roundRobinReassignment test", () => {
               }),
             ],
           },
-          // {
-          //   id: 456,
-          //   eventTypeId: 1,
-          //   userId: 3,
-          //   uid: bookingToReassignUid,
-          //   status: BookingStatus.ACCEPTED,
-          //   startTime: `${dateStringMinusOne}T05:00:00.000Z`,
-          //   endTime: `${dateStringMinusOne}T05:15:00.000Z`,
-          //   attendees: [
-          //     getMockBookingAttendee({
-          //       id: 2,
-          //       name: "attendee",
-          //       email: "attendee@test.com",
-          //       locale: "en",
-          //       timeZone: "Asia/Kolkata",
-          //     }),
-          //   ],
-          // },
         ],
-        organizer: originalHost,
+        organizer: fixedHost,
         usersApartFromOrganizer: users.slice(1),
       })
     );
@@ -276,5 +258,15 @@ describe("roundRobinReassignment test", () => {
     await roundRobinReassignment({
       bookingId: 123,
     });
+
+    expect(eventManagerSpy).toBeCalledTimes(1);
+    // Triggers moving to new host within event manager
+    expect(eventManagerSpy).toHaveBeenCalledWith(
+      expect.any(Object),
+      bookingToReassignUid,
+      undefined,
+      false,
+      []
+    );
   });
 });

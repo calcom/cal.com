@@ -227,11 +227,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   })();
 
   // If changed owner, also change destination calendar
-  const previousHostDestinationCalendar = await prisma.destinationCalendar.findFirst({
-    where: {
-      userId: originalOrganizer.id,
-    },
-  });
+  const previousHostDestinationCalendar = hasOrganizerChanged
+    ? await prisma.destinationCalendar.findFirst({
+        where: {
+          userId: originalOrganizer.id,
+        },
+      })
+    : null;
 
   const evt: CalendarEvent = {
     organizer: {
