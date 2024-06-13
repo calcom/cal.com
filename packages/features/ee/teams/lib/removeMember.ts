@@ -1,9 +1,10 @@
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
-import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 import { TRPCError } from "@trpc/server";
+
+import { deleteWorkfowRemindersOfRemovedMember } from "./deleteWorkflowRemindersOfRemovedMember";
 
 const log = logger.getSubLogger({ prefix: ["removeMember"] });
 
@@ -74,8 +75,6 @@ const removeMember = async ({
 
   if (isOrg) {
     log.debug("Removing a member from the organization");
-    const orgId = team.id;
-
     // Deleting membership from all child teams
     // Delete all sub-team memberships where this team is the organization
     await prisma.membership.deleteMany({
@@ -91,7 +90,7 @@ const removeMember = async ({
 
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: userToDeleteMembershipOf.id,
-      organizationId: orgId,
+      organizationId: team.id,
     });
 
     if (
@@ -114,32 +113,9 @@ const removeMember = async ({
       }),
       ProfileRepository.delete({
         userId: membership.userId,
-        organizationId: orgId,
+        organizationId: team.id,
       }),
     ]);
-
-    // delete all workflowReminders of the removed team member that come from org workflows
-    const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
-      where: {
-        workflowStep: {
-          workflow: {
-            teamId: orgId,
-          },
-        },
-        booking: {
-          eventType: {
-            userId: memberId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        method: true,
-      },
-    });
-
-    deleteAllWorkflowReminders(workflowRemindersToDelete);
   }
 
   // Deleted managed event types from this team from this member
@@ -147,69 +123,12 @@ const removeMember = async ({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
 
-  // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
-  if (team.parentId) {
-    const isUserMemberOfOtherTeams = !!foundUser.teams.filter(
-      (userTeam) => userTeam.team.id !== team.id && !!userTeam.team.parentId
-    ).length;
-
-    const removedWorkflows = await prisma.workflow.findMany({
-      where: {
-        OR: [
-          {
-            activeOnTeams: {
-              some: {
-                teamId: team.id,
-              },
-              //don't delete reminder, if user is still part of another team that is active on this workflow
-              none: {
-                team: {
-                  members: {
-                    some: {
-                      userId: memberId,
-                    },
-                  },
-                },
-              },
-            },
-            // if user is still a member of other teams in the org, we also need to make sure that the found workflow is not active on all teams
-            ...(isUserMemberOfOtherTeams && {
-              isActiveOnAll: false,
-            }),
-          },
-          {
-            // workflows of the org that are set active on all teams (and the user is not member of any other team)
-            teamId: team.parentId,
-            ...(!isUserMemberOfOtherTeams && {
-              isActiveOnAll: true,
-            }),
-          },
-        ],
-      },
-    });
-
-    const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
-      where: {
-        workflowStep: {
-          workflowId: {
-            in: removedWorkflows?.map((workflow) => workflow.id) ?? [],
-          },
-        },
-        booking: {
-          eventType: {
-            userId: memberId,
-          },
-        },
-      },
-      select: {
-        id: true,
-        referenceId: true,
-        method: true,
-      },
-    });
-
-    deleteAllWorkflowReminders(workflowRemindersToDelete);
-  }
+  await deleteWorkfowRemindersOfRemovedMember(
+    team,
+    memberId,
+    foundUser.teams.map((membership) => membership.team),
+    isOrg
+  );
 
   return { membership };
 };
