@@ -93,7 +93,7 @@ export const roundRobinReassignment = async ({
   // Filter out the current attendees of the booking from the event type
   const availableEventTypeUsers = eventType.hosts.reduce((availableUsers, host) => {
     if (!attendeeEmailsSet.has(host.user.email) && host.user.email !== originalOrganizer.email) {
-      availableUsers.push({ ...host.user });
+      availableUsers.push({ ...host.user, isFixed: host.isFixed });
     }
     return availableUsers;
   }, [] as IsFixedAwareUser[]);
