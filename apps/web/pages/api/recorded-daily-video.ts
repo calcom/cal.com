@@ -3,10 +3,14 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import {
+  getDownloadLinkOfCalVideoByRecordingId,
+  submitBatchProcessorTranscriptionJob,
+} from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -60,11 +64,16 @@ const triggerWebhook = async ({
   // Send Webhook call if hooked to BOOKING.RECORDING_READY
   const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
 
+  const organizerUserId = triggerForUser ? booking.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId: booking.teamId });
+
   const subscriberOptions = {
-    userId: triggerForUser ? booking.userId : null,
+    userId: organizerUserId,
     eventTypeId: booking.eventTypeId,
     triggerEvent: eventTrigger,
     teamId: booking.teamId,
+    orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
 
@@ -261,6 +270,13 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         teamId,
       },
     });
+
+    try {
+      // Submit Transcription Batch Processor Job
+      await submitBatchProcessorTranscriptionJob(recording_id);
+    } catch (err) {
+      log.error("Failed to  Submit Transcription Batch Processor Job:", safeStringify(err));
+    }
 
     // send emails to all attendees only when user has team plan
     await sendDailyVideoRecordingEmails(evt, downloadLink);
