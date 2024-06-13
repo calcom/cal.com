@@ -8,9 +8,12 @@
 }
 
 .title-class-font-size {
-  font-size: 20px !important;
+  font-size: 22px !important;
+  line-height: 32px !important;
   font-weight: 600 !important;
   color: #598392 !important;
+  margin-top: 2px !important;
+  margin-bottom: 0px !important;
 }
 
 .description-class-font-size {
@@ -34,12 +37,14 @@ p.text-subtle.mt-2.text-sm.font-semibold {
 }
 
 .custom-mobile-text {
-  font-size: 40px;
+  font-size: 22px !important;
   font-family:
     Syne Variablefont Wght,
     sans-serif;
   font-weight: bold;
-  color: #06c6a3;
+  color: #114559;
+  line-height: 32px !important;
+  margin-top: 26px;
 
   /* padding-top: 30px !important; */
 }
@@ -63,8 +68,10 @@ h1.text-text.text-xl.font-semibold.my-2 {
   --booker-meta-width: 650px;
 }
 
-.mt-auto.px-5.py-3 {
-  display: none !important;
+@media (pointer: fine), (pointer: none) {
+  .mt-auto.px-5.py-3 {
+    display: none !important;
+  }
 }
 
 .cal-embed {
@@ -87,7 +94,8 @@ ul.flex.items-center.border-muted {
 
 .relative.z-10.mb-8.break-words.max-w-full.max-h-\[180px\].scroll-bar.pr-4 {
   margin-left: 120px !important;
-  margin-top: 20px;
+  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 /* .space-y-4.font-medium.rtl\:-mr-2 {
@@ -118,13 +126,13 @@ span.min-w-32.current-timezone.before\:bg-subtle.-mt-\[2px\].flex.h-6.max-w-full
   color: #08c6a3;
 }
 
-.min-h-9.border-default.bg-default.relative.inline-flex.gap-0\.5.rounded-md.border.p-1.rtl\:flex-row-reverse {
+/* .min-h-9.border-default.bg-default.relative.inline-flex.gap-0\.5.rounded-md.border.p-1.rtl\:flex-row-reverse {
   display: none;
 }
 
 button.whitespace-nowrap.inline-flex.items-center.text-sm.font-medium.relative.rounded-md.transition.disabled\:cursor-not-allowed.text-emphasis.border.border-default.bg-default.hover\:bg-muted.hover\:border-emphasis.focus-visible\:bg-subtle.focus-visible\:outline-none.focus-visible\:ring-2.focus-visible\:ring-empthasis.disabled\:border-subtle.disabled\:bg-opacity-30.disabled\:text-muted.disabled\:hover\:bg-opacity-30.disabled\:hover\:text-muted.disabled\:hover\:border-subtle.disabled\:hover\:bg-default.h-9.px-4.py-2\.5.capitalize.ltr\:ml-2.rtl\:mr-2 {
   display: none;
-}
+} */
 
 span.bg-emphasis.item-center.relative.inline-flex.aspect-square.justify-center.rounded-full.align-top.overflow-hidden.border-subtle.w-6.h-6.min-w-6.min-h-6 {
   pointer-events: none;

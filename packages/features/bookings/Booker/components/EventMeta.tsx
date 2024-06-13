@@ -13,7 +13,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
-import { FromToTime } from "../utils/dates";
 import type { useEventReturnType } from "../utils/event";
 
 const WebTimezoneSelect = dynamic(
@@ -84,7 +83,9 @@ export const EventMeta = ({
     : "text-bookinghighlight";
 
   return (
-    <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-10`} data-testid="event-meta">
+    <div
+      className={`${classNames?.eventMetaContainer || ""} relative z-10 p-4 md:p-10`}
+      data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -118,7 +119,7 @@ export const EventMeta = ({
           )}
           <div className="">
             <div className=" space-y-4 font-medium md:ml-28 md:pl-2 ">
-              {rescheduleUid && bookingData && (
+              {/* {rescheduleUid && bookingData && (
                 <EventMetaBlock icon="calendar">
                   {t("former_time")}
                   <br />
@@ -132,8 +133,8 @@ export const EventMeta = ({
                     />
                   </span>
                 </EventMetaBlock>
-              )}
-              {selectedTimeslot && (
+              )} */}
+              {/* {selectedTimeslot && (
                 <EventMetaBlock icon="calendar">
                   <FromToTime
                     date={selectedTimeslot}
@@ -143,9 +144,9 @@ export const EventMeta = ({
                     language={i18n.language}
                   />
                 </EventMetaBlock>
-              )}
+              )} */}
               <EventDetails event={event} />
-              <EventMetaBlock
+              {/* <EventMetaBlock
                 className=".event-meta-block-fix cursor-pointer [&_.current-timezone:before]:focus-within:opacity-100 [&_.current-timezone:before]:hover:opacity-100"
                 contentClassName="relative max-w-[90%]"
                 icon="globe">
@@ -172,7 +173,7 @@ export const EventMeta = ({
                     />
                   </span>
                 )}
-              </EventMetaBlock>
+              </EventMetaBlock> */}
               {bookerState === "booking" && eventTotalSeats && bookingSeatAttendeesQty ? (
                 <EventMetaBlock icon="user" className={`${colorClass}`}>
                   <div className="text-bookinghighlight flex items-start text-sm">

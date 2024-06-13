@@ -414,16 +414,18 @@ const BookerComponent = ({
               )}
               ref={timeslotsRef}
               {...fadeInLeft}>
-              <AvailableTimeSlots
-                customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
-                extraDays={extraDays}
-                limitHeight={layout === BookerLayouts.MONTH_VIEW}
-                schedule={schedule?.data}
-                isLoading={schedule.isPending}
-                seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
-                showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
-                event={event}
-              />
+              <div id="timeslots-configuration">
+                <AvailableTimeSlots
+                  customClassNames={customClassNames?.availableTimeSlotsCustomClassNames}
+                  extraDays={extraDays}
+                  limitHeight={layout === BookerLayouts.MONTH_VIEW}
+                  schedule={schedule?.data}
+                  isLoading={schedule.isPending}
+                  seatsPerTimeSlot={event.data?.seatsPerTimeSlot}
+                  showAvailableSeatsCount={event.data?.seatsShowAvailabilityCount}
+                  event={event}
+                />
+              </div>
             </BookerSection>
           </AnimatePresence>
         </div>
