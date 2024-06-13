@@ -1153,13 +1153,6 @@ export function getScenarioData(
         ...user,
         organizationId: user.organizationId ?? null,
       };
-      if (user.destinationCalendar) {
-        newUser.destinationCalendar = {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          create: user.destinationCalendar,
-        };
-      }
       return newUser;
     }),
     apps: [...apps],
