@@ -40,6 +40,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     prefix: ["roundRobinReassign", `${bookingId}`],
   });
 
+  let booking = await prisma.booking.findUnique({
+    where: {
+      id: bookingId,
+    },
+    select: bookingSelect,
+  });
+
   if (!booking) {
     console.error(`Booking ${bookingId} not found`);
     throw new Error("Booking not found");
@@ -60,13 +67,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   eventType.users = eventType.hosts.map((host) => ({ ...host.user, isFixed: host.isFixed }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
-
-  let booking = await prisma.booking.findUnique({
-    where: {
-      id: bookingId,
-    },
-    select: bookingSelect,
-  });
 
   const originalOrganizer = booking.user;
 
