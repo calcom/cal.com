@@ -25,7 +25,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
   getAllWorkflowsFromEventType,
@@ -446,6 +446,10 @@ async function handler(req: CustomRequest) {
     bookingToDelete.eventType?.recurringEvent &&
     bookingToDelete.recurringEventId &&
     allRemainingBookings
+  );
+
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
   );
 
   const credentials = await getAllCredentials(bookingToDelete.user, {

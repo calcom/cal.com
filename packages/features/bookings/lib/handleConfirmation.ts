@@ -21,6 +21,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -68,7 +69,6 @@ export async function handleConfirmation(args: {
   const metadata: AdditionalInformation = {};
 
   const eventType = booking.eventType;
-
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -86,6 +86,8 @@ export async function handleConfirmation(args: {
       metadata.entryPoints = results[0].createdEvent?.entryPoints;
     }
     try {
+      const eventType = booking.eventType;
+      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
@@ -273,20 +275,20 @@ export async function handleConfirmation(args: {
     console.error(error);
   }
 
-  const teamId = await getTeamIdFromEventType({
-    eventType: {
-      team: { id: booking.eventType?.teamId ?? null },
-      parentId: booking?.eventType?.parentId ?? null,
-    },
-  });
-
-  const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
-
-  const userId = triggerForUser ? booking.userId : null;
-
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
-
   try {
+    const teamId = await getTeamIdFromEventType({
+      eventType: {
+        team: { id: eventType?.teamId ?? null },
+        parentId: eventType?.parentId ?? null,
+      },
+    });
+
+    const triggerForUser = !teamId || (teamId && eventType?.parentId);
+
+    const userId = triggerForUser ? booking.userId : null;
+
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+
     const subscribersBookingCreated = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
@@ -298,7 +300,7 @@ export async function handleConfirmation(args: {
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: booking.eventType?.teamId,
+      teamId: eventType?.teamId,
       orgId,
     });
     const subscribersMeetingEnded = await getWebhooks({
