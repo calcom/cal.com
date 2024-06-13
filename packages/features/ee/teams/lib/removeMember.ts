@@ -149,30 +149,42 @@ const removeMember = async ({
 
   // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
   if (team.parentId) {
-    const isUserActiveOnOtherTeam = !!foundUser.teams.filter(
+    const isUserMemberOfOtherTeams = !!foundUser.teams.filter(
       (userTeam) => userTeam.team.id !== team.id && !!userTeam.team.parentId
     ).length;
 
     const removedWorkflows = await prisma.workflow.findMany({
       where: {
-        activeOnTeams: {
-          some: {
-            teamId: team.id,
-          },
-          //don't delete reminder, if user is still part of another team that is active on this workflow
-          none: {
-            team: {
-              members: {
-                some: {
-                  userId: memberId,
+        OR: [
+          {
+            activeOnTeams: {
+              some: {
+                teamId: team.id,
+              },
+              //don't delete reminder, if user is still part of another team that is active on this workflow
+              none: {
+                team: {
+                  members: {
+                    some: {
+                      userId: memberId,
+                    },
+                  },
                 },
               },
             },
+            // if user is still a member of other teams in the org, we also need to make sure that the found workflow is not active on all teams
+            ...(isUserMemberOfOtherTeams && {
+              isActiveOnAll: false,
+            }),
           },
-        },
-        ...(isUserActiveOnOtherTeam && {
-          isActiveOnAll: false,
-        }),
+          {
+            // workflows of the org that are set active on all teams (and the user is not member of any other team)
+            teamId: team.parentId,
+            ...(!isUserMemberOfOtherTeams && {
+              isActiveOnAll: true,
+            }),
+          },
+        ],
       },
     });
 
