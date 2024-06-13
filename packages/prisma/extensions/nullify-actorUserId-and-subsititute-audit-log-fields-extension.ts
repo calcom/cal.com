@@ -38,7 +38,12 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
         async delete({ args, query }) {
           delete args.where?.actorUserId;
           const deletedEventType = (await query(args)) as EventType;
-          if (prisma.auditLog)
+
+          let auditLogRecordExists = false;
+          const auditLogRecord = await prisma.auditLog.findFirst();
+          if (auditLogRecord) auditLogRecordExists = true;
+
+          if (auditLogRecordExists)
             saveFieldSubstitutersWorker({
               triggeredEvent: FieldSubstituterOption.EventTypeDelete,
               deletedEventType,
@@ -49,7 +54,12 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
         async deleteMany({ args, query }) {
           delete args.where?.actorUserId;
           let returnDeletedEventTypes;
-          if (prisma.auditLog) {
+
+          let auditLogRecordExists = false;
+          const auditLogRecord = await prisma.auditLog.findFirst();
+          if (auditLogRecord) auditLogRecordExists = true;
+
+          if (auditLogRecordExists) {
             const deletedEventTypes = await prisma.eventType.findMany({ where: args.where });
             returnDeletedEventTypes = await query(args);
             saveFieldSubstitutersWorker({
@@ -63,7 +73,12 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
       user: {
         async update({ args, query }) {
           let returnUpdatedUser;
-          if (args.data.email && prisma.auditLog) {
+
+          let auditLogRecordExists = false;
+          const auditLogRecord = await prisma.auditLog.findFirst();
+          if (auditLogRecord) auditLogRecordExists = true;
+
+          if (args.data.email && auditLogRecordExists) {
             const prevUser = (await query(args)) as User;
             returnUpdatedUser = await query(args);
             const updatedUser = (await query(args)) as User;
@@ -77,7 +92,12 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
         },
         async delete({ args, query }) {
           const deletedUser = (await query(args)) as User;
-          if (prisma.auditLog)
+
+          let auditLogRecordExists = false;
+          const auditLogRecord = await prisma.auditLog.findFirst();
+          if (auditLogRecord) auditLogRecordExists = true;
+
+          if (auditLogRecordExists)
             saveFieldSubstitutersWorker({
               triggeredEvent: FieldSubstituterOption.UserDelete,
               deletedUser,

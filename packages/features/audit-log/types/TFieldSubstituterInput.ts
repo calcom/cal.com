@@ -5,6 +5,7 @@ import { EventTypeAuditLogOption } from "./EventTypeAuditLogTypes";
 export const FieldSubstituterOption = {
   EventTypeDelete: EventTypeAuditLogOption.EventTypeDelete,
   EventTypeDeleteMany: EventTypeAuditLogOption.EventTypeDeleteMany,
+  UserCreate: "UserCreate",
   UserUpdate: "UserUpdate",
   UserUpdateMany: "UserUpdateMany",
   UserDelete: "UserDelete",
@@ -21,6 +22,7 @@ type TFieldSubstituterInput =
       deletedEventType: EventType;
     }
   | { triggeredEvent: typeof EventTypeAuditLogOption.EventTypeDeleteMany; deletedEventTypes: EventType[] }
+  | { triggeredEvent: typeof FieldSubstituterOption.UserCreate; createdUser: User }
   | { triggeredEvent: typeof FieldSubstituterOption.UserUpdate; prevUser: User; updatedUser: User }
   | { triggeredEvent: typeof FieldSubstituterOption.UserDelete; deletedUser: User }
   | { triggeredEvent: typeof FieldSubstituterOption.UserDeleteMany; deletedUsers: User[] }

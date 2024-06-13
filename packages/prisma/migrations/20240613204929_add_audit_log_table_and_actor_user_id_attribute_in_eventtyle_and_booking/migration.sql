@@ -4,6 +4,12 @@ CREATE TYPE "CRUD" AS ENUM ('CREATE', 'READ', 'UPDATE', 'DELETE');
 -- CreateEnum
 CREATE TYPE "ActionType" AS ENUM ('EventTypeCreate', 'EventTypeUpdate', 'EventTypeDelete', 'BookingCreate', 'BookingUpdate', 'BookingDelete');
 
+-- AlterTable
+ALTER TABLE "Booking" ADD COLUMN     "actorUserId" INTEGER;
+
+-- AlterTable
+ALTER TABLE "EventType" ADD COLUMN     "actorUserId" INTEGER;
+
 -- CreateTable
 CREATE TABLE "AuditLog" (
     "id" SERIAL NOT NULL,
@@ -16,3 +22,14 @@ CREATE TABLE "AuditLog" (
 
     CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
 );
+
+-- Insert initial feature flags with their default values
+INSERT INTO
+  "Feature" (slug, enabled, description, "type")
+VALUES
+  (
+    'audit-log',
+    false,
+    'Enable audit log feature',
+    'EXPERIMENT'
+  ) ON CONFLICT (slug) DO NOTHING;

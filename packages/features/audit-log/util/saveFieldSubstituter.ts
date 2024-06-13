@@ -1,8 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma, EventType, User, Team } from "@calcom/prisma/client";
 
-import { FieldSubstituterOption } from "../types/TFieldSubstituterInput";
-
 export async function substituteEventTypeDelete(deletedEventType: EventType) {
   const toBeUpdatedAuditLogs = await prisma.auditLog.findMany({
     where: { target: { path: ["targetEvent"], equals: deletedEventType.id } },
@@ -44,6 +42,26 @@ export async function substituteEventTypeDeleteMany(deletedEventTypes: EventType
   });
 }
 
+export async function substituteUserCreate(createdUser: User) {
+  const toBeUpdatedAuditLogs = await prisma.auditLog.findMany({
+    where: { actorUser: { path: ["id"], equals: createdUser.id } },
+  });
+
+  toBeUpdatedAuditLogs.forEach(async (toBeUpdatedAuditLog) => {
+    const updatedActorUser = toBeUpdatedAuditLog.actorUser as Prisma.JsonObject;
+    if ("id" in updatedActorUser) {
+      updatedActorUser.id = createdUser.id;
+      delete updatedActorUser.email;
+      delete updatedActorUser.name;
+
+      await prisma.auditLog.update({
+        where: { id: toBeUpdatedAuditLog.id },
+        data: { actorUser: updatedActorUser },
+      });
+    }
+  });
+}
+
 export async function substituteUserUpdate(prevUser: User, updatedUser: User) {
   // This function is called when a user updates their email to update targetUserEmails in target Json
   const toBeUpdatedAuditLogs = await prisma.auditLog.findMany({
@@ -75,7 +93,6 @@ export async function substituteUserDelete(deletedUser: User) {
     if ("id" in updatedActorUser) {
       updatedActorUser.email = deletedUser.email;
       updatedActorUser.name = deletedUser.name;
-      updatedActorUser.status = FieldSubstituterOption.UserDelete;
 
       await prisma.auditLog.update({
         where: { id: toBeUpdatedAuditLog.id },
@@ -95,7 +112,7 @@ export async function substituteTeamDelete(deletedTeam: Team) {
     if ("id" in updatedTargetTeam) {
       updatedTargetTeam.name = deletedTeam.name;
       updatedTargetTeam.slug = deletedTeam.slug;
-      updatedTargetTeam.status = FieldSubstituterOption.TeamDelete;
+
       await prisma.auditLog.update({
         where: { id: toBeUpdatedAuditLog.id },
         data: { targetTeam: updatedTargetTeam },

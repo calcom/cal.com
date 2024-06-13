@@ -5,6 +5,7 @@ import type TFieldSubstituterInput from "./types/TFieldSubstituterInput";
 import {
   substituteEventTypeDelete,
   substituteEventTypeDeleteMany,
+  substituteUserCreate,
   substituteUserUpdate,
   substituteUserDelete,
   substituteTeamDelete,
@@ -37,6 +38,9 @@ if (isMainThread) {
         break;
       case FieldSubstituterOption.EventTypeDeleteMany:
         await substituteEventTypeDeleteMany(workerData.deletedEventTypes);
+        break;
+      case FieldSubstituterOption.UserCreate:
+        await substituteUserCreate(workerData.createdUser);
         break;
       case FieldSubstituterOption.UserUpdate:
         await substituteUserUpdate(workerData.prevUser, workerData.updatedUser);
