@@ -23,42 +23,39 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
-const meetingEndedSchema = z
+const commonSchema = z
   .object({
     version: z.string(),
     type: z.string(),
     id: z.string(),
-    payload: z
-      .object({
-        meeting_id: z.string(),
-        end_ts: z.number().optional(),
-        room: z.string(),
-        start_ts: z.number().optional(),
-      })
-      .passthrough(),
     event_ts: z.number().optional(),
   })
   .passthrough();
 
-const recordingReadySchema = z
-  .object({
-    version: z.string(),
-    type: z.string(),
-    id: z.string(),
-    payload: z.object({
-      recording_id: z.string(),
+const meetingEndedSchema = commonSchema.extend({
+  payload: z
+    .object({
+      meeting_id: z.string(),
       end_ts: z.number().optional(),
-      room_name: z.string(),
+      room: z.string(),
       start_ts: z.number().optional(),
-      status: z.string(),
+    })
+    .passthrough(),
+});
 
-      max_participants: z.number().optional(),
-      duration: z.number().optional(),
-      s3_key: z.string().optional(),
-    }),
-    event_ts: z.number().optional(),
-  })
-  .passthrough();
+const recordingReadySchema = commonSchema.extend({
+  payload: z.object({
+    recording_id: z.string(),
+    end_ts: z.number().optional(),
+    room_name: z.string(),
+    start_ts: z.number().optional(),
+    status: z.string(),
+
+    max_participants: z.number().optional(),
+    duration: z.number().optional(),
+    s3_key: z.string().optional(),
+  }),
+});
 
 const downloadLinkSchema = z.object({
   download_link: z.string(),
@@ -247,22 +244,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     })
   );
 
-  if (req.body.type === "recording.ready-to-download") {
-    const recordingReadyResponse = recordingReadySchema.safeParse(req.body);
-    if (!recordingReadyResponse.success) {
-      return res.status(400).send({
-        message: "Invalid Payload",
-      });
-    }
+  try {
+    if (req.body?.type === "recording.ready-to-download") {
+      const recordingReadyResponse = recordingReadySchema.safeParse(req.body);
 
-    const { room_name, recording_id, status } = recordingReadyResponse.data.payload;
+      if (!recordingReadyResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
 
-    if (status !== "finished") {
-      return res.status(400).send({
-        message: "Recording not finished",
-      });
-    }
-    try {
+      const { room_name, recording_id, status } = recordingReadyResponse.data.payload;
+
+      if (status !== "finished") {
+        return res.status(400).send({
+          message: "Recording not finished",
+        });
+      }
       const bookingReference = await getBookingReference(room_name);
 
       if (!bookingReference || !bookingReference.bookingId) {
@@ -320,20 +318,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       // send emails to all attendees only when user has team plan
       await sendDailyVideoRecordingEmails(evt, downloadLink);
       return res.status(200).json({ message: "Success" });
-    } catch (err) {
-      console.error("Error in /recorded-daily-video", err);
-      return res.status(500).json({ message: "something went wrong" });
-    }
-  } else if (req.body.type === "meeting.ended") {
-    const meetingEndedResponse = meetingEndedSchema.safeParse(req.body);
-    if (!meetingEndedResponse.success) {
-      return res.status(400).send({
-        message: "Invalid Payload",
-      });
-    }
-    const { room } = meetingEndedResponse.data.payload;
+    } else if (req.body.type === "meeting.ended") {
+      const meetingEndedResponse = meetingEndedSchema.safeParse(req.body);
+      if (!meetingEndedResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
+      const { room } = meetingEndedResponse.data.payload;
 
-    try {
       const bookingReference = await getBookingReference(room);
       if (!bookingReference || !bookingReference.bookingId) {
         return res.status(200).send({ message: "Booking reference not found" });
@@ -356,10 +349,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await sendDailyVideoTranscriptEmails(evt, transcripts);
 
       return res.status(200).json({ message: "Success" });
-    } catch (err) {
-      console.error("Error in /recorded-daily-video", err);
-      return res.status(500).json({ message: "something went wrong" });
     }
+  } catch (err) {
+    log.error("Error in /recorded-daily-video", err);
+    return res.status(500).json({ message: "something went wrong" });
   }
 }
 
