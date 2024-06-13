@@ -60,7 +60,9 @@ p.text-subtle.mt-2.text-sm.font-semibold {
     Syne Variablefont Wght,
     sans-serif;
   font-weight: bold;
-  color: #06c6a3;
+  color: #114559;
+  line-height: 32px !important;
+  margin-top: 26px;
 
   /* padding-top: 30px !important; */
 }
