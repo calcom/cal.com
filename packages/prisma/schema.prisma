@@ -711,7 +711,7 @@ enum AuditLogBookingTriggerEvents {
 
 enum AuditLogSystemTriggerEvents {
   SYSTEM_PING
-  SYSTEM_CREDENTIALS_UPDATED
+  SYSTEM_SETTINGS_UPDATED
   SYSTEM_EVENT_OFF
   SYSTEM_EVENT_ON
   SYSTEM_MISC
@@ -719,6 +719,14 @@ enum AuditLogSystemTriggerEvents {
 
 enum AuditLogAppTriggerEvents {
   APP_KEYS_UPDATED
+  APP_TOGGLE
+  APP_CREATED
+}
+
+enum AuditLogCredentialTriggerEvents {
+  CREDENTIAL_KEYS_UPDATED
+  CREDENTIAL_CREATED
+  CREDENTIAL_DELETED
 }
 
 enum AuditLogTriggerTargets {
@@ -733,6 +741,7 @@ enum AuditLogTriggerTargets {
   PASSWORD
   IMPERSONATION
   APPS
+  CREDENTIAL
   ROUTING_FORMS
   WORKFLOWS
   SETTINGS
