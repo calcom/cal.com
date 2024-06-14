@@ -3,6 +3,7 @@ import type { Prisma } from "@calcom/prisma/client";
 
 import { TRPCError } from "@trpc/server";
 
+import { piiFreeAppKeyTransformer } from "../../../../lib/tests";
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
 import { handleCustomValidations } from "./updateAppCredentials.validator";
@@ -47,7 +48,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
 
   return {
     result: !!updated,
-    oldCredential: credential,
-    updatedCredential: updated,
+    updatedCredential: piiFreeAppKeyTransformer.parse(updated),
+    oldCredential: piiFreeAppKeyTransformer.parse(credential),
   };
 };
