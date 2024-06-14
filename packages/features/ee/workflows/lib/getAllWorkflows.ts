@@ -34,6 +34,7 @@ export const getAllWorkflows = async (
   const allWorkflows = eventTypeWorkflows;
 
   if (orgId) {
+    let teamsOfUser = [];
     if (teamId) {
       const orgTeamWorkflowsRel = await prisma.workflowsOnTeams.findMany({
         where: {
@@ -70,16 +71,27 @@ export const getAllWorkflows = async (
 
       const orgUserWorkflows = orgUserWorkflowsRel.map((workflowRel) => workflowRel.workflow) ?? [];
       allWorkflows.push(...orgUserWorkflows);
-    }
 
-    const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
-      where: {
-        teamId: orgId,
-        isActiveOnAll: true,
-      },
-      select: workflowSelect,
-    });
-    allWorkflows.push(...activeOnAllOrgWorkflows);
+      teamsOfUser = await prisma.membership.findMany({
+        where: {
+          team: {
+            parentId: orgId,
+          },
+          userId,
+        },
+      });
+    }
+    // get workflows that are active on all teams (if it's a user event type the user needs to be part of at least one team)
+    if (teamId || teamsOfUser.length) {
+      const activeOnAllOrgWorkflows = await prisma.workflow.findMany({
+        where: {
+          teamId: orgId,
+          isActiveOnAll: true,
+        },
+        select: workflowSelect,
+      });
+      allWorkflows.push(...activeOnAllOrgWorkflows);
+    }
   }
 
   if (teamId) {
