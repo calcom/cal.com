@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook, BookingReference, Credential } from "@prisma/client";
+import type { Booking, EventType, Prisma, Webhook, BookingReference, Credential, App } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -146,6 +146,19 @@ export const buildCredential = (credential?: Partial<Credential>): Credential =>
     billingCycleStart: null,
     invalid: false,
     ...credential,
+  };
+};
+
+export const buildApp = (app?: Partial<App>): App => {
+  return {
+    slug: "calendar-test",
+    // The directory name for `/packages/app-store/[dirName]`
+    dirName: "calendar-test",
+    // One or multiple categories to which this app belongs
+    categories: ["calendar"],
+    keys: undefined,
+    enabled: false,
+    ...app,
   };
 };
 
