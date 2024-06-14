@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -58,10 +59,13 @@ export class InternalTeamBilling implements TeamBilling {
   }
   async downgrade() {
     try {
-      await prisma.team.update({
-        where: { id: this.team.id },
-        data: { metadata: { paymentId: null, subscriptionId: null, subscriptionItemId: null } },
+      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema.partial(), this.team.metadata);
+      const metadata = mergeMetadata({
+        paymentId: undefined,
+        subscriptionId: undefined,
+        subscriptionItemId: undefined,
       });
+      await prisma.team.update({ where: { id: this.team.id }, data: { metadata } });
       log.info(`Downgraded team ${this.team.id}`);
     } catch (error) {
       this.logErrorFromUnknown(error);
