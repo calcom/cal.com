@@ -16,7 +16,7 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
 }));
 
 let boxyHqAuditLogManager: AuditLogManager;
-describe("BoxyHQ Audit Log Manager", () => {
+describe("Generic Audit Log Manager", () => {
   beforeAll(() => {
     boxyHqAuditLogManager = new AuditLogManager(
       {

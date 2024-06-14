@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
+import type { Booking, EventType, Prisma, Webhook, BookingReference, Credential } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -140,12 +140,11 @@ export const buildCredential = (credential?: Partial<Credential>): Credential =>
     },
     userId: 1,
     teamId: null,
-    appId: "boxyhq-retraced",
+    appId: "test",
     subscriptionId: null,
     paymentStatus: null,
     billingCycleStart: null,
     invalid: false,
-    settings: {},
     ...credential,
   };
 };
