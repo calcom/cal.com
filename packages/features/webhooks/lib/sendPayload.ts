@@ -4,7 +4,6 @@ import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -66,8 +65,8 @@ function addUTCOffset(
   return data as WithUTCOffsetType<WebhookDataType>;
 }
 
-function getZapierPayloadNonBooking(data: Omit<WebhookDataType, "createdAt" | "triggerEvent">): string {
-  return JSON.stringify(data.metadata);
+function getZapierPayloadNonBooking(data: WebhookDataType["metadata"]): string {
+  return JSON.stringify(data?.metadata);
 }
 
 function getZapierPayload(
@@ -155,11 +154,7 @@ const sendPayload = async (
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier") {
-    if (triggerEvent === WebhookTriggerEvents.OOO_CREATED) {
-      body = getZapierPayloadNonBooking(data);
-    } else {
-      body = getZapierPayload({ ...data, createdAt });
-    }
+    body = getZapierPayload({ ...data, createdAt });
   } else if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {
@@ -171,6 +166,27 @@ const sendPayload = async (
   }
 
   return _sendPayload(secretKey, webhook, body, contentType);
+};
+
+export const sendPayloadNoBooking = async (
+  secretKey: string | null,
+  triggerEvent: string,
+  createdAt: string,
+  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
+  data: WebhookDataType["metadata"]
+) => {
+  const { appId } = webhook;
+  let body;
+  if (appId === "zapier") {
+    body = getZapierPayloadNonBooking(data);
+  } else {
+    body = JSON.stringify({
+      triggerEvent: triggerEvent,
+      createdAt: createdAt,
+      payload: data,
+    });
+  }
+  return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
 export const sendGenericWebhookPayload = async ({

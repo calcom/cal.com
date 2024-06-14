@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { sendPayloadNoBooking } from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -226,7 +226,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   const subscribers = await getWebhooks(subscriberOptions);
   await Promise.all(
     subscribers.map(async (subscriber) => {
-      sendPayload(
+      sendPayloadNoBooking(
         subscriber.secret,
         WebhookTriggerEvents.OOO_CREATED,
         dayjs().toISOString(),
