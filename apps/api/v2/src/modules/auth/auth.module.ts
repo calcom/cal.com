@@ -1,5 +1,5 @@
 import { ApiKeyModule } from "@/modules/api-key/api-key.module";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { ApiAuthStrategy } from "@/modules/auth/strategies/api-auth/api-auth.strategy";
 import { ApiKeyAuthStrategy } from "@/modules/auth/strategies/api-key-auth/api-key-auth.strategy";
@@ -27,10 +27,10 @@ import { PassportModule } from "@nestjs/passport";
     ApiKeyAuthStrategy,
     NextAuthGuard,
     NextAuthStrategy,
-    AccessTokenGuard,
+    ApiAuthGuard,
     ApiAuthStrategy,
     OAuthFlowService,
   ],
-  exports: [NextAuthGuard, AccessTokenGuard],
+  exports: [NextAuthGuard, ApiAuthGuard],
 })
 export class AuthModule {}
