@@ -2438,6 +2438,7 @@
   "ooo_slots_book_with": "Book {{displayName}}",
   "ooo_create_entry_modal": "Go Out of Office",
   "ooo_select_reason": "Select reason",
+  "ooo_created": "Out of Office Created",
   "create_an_out_of_office": "Go Out of Office",
   "submit_feedback": "Submit Feedback",
   "host_no_show": "Your host didn't show up",

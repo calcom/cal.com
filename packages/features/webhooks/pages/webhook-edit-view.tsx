@@ -68,6 +68,7 @@ function Component({ webhookId }: { webhookId: string }) {
       <WebhookForm
         noRoutingFormTriggers={false}
         webhook={webhook}
+        filterOOO={webhook.teamId ? true : false}
         onSubmit={(values: WebhookFormSubmitData) => {
           if (
             subscriberUrlReserved({

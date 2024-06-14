@@ -197,6 +197,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 noRoutingFormTriggers={true}
                 onSubmit={onCreateWebhook}
                 onCancel={() => setCreateModalOpen(false)}
+                filterOOO={true}
                 apps={installedApps?.items.map((app) => app.slug)}
               />
             </DialogContent>
@@ -208,6 +209,7 @@ export const EventWebhooksTab = ({ eventType }: Pick<EventTypeSetupProps, "event
                 noRoutingFormTriggers={true}
                 webhook={webhookToEdit}
                 apps={installedApps?.items.map((app) => app.slug)}
+                filterOOO={true}
                 onCancel={() => setEditModalOpen(false)}
                 onSubmit={(values: WebhookFormSubmitData) => {
                   if (

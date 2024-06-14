@@ -103,6 +103,7 @@ const NewWebhookView = () => {
         borderInShellHeader={true}
       />
       <WebhookForm
+        filterOOO={teamId ? true : false}
         noRoutingFormTriggers={false}
         onSubmit={onCreateWebhook}
         apps={installedApps?.items.map((app) => app.slug)}

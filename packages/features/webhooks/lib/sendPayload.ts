@@ -4,6 +4,7 @@ import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -29,6 +30,18 @@ export type WithUTCOffsetType<T> = T & {
   attendees?: (Person & UTCOffset)[];
 };
 
+export type OOOWebhookDataType = {
+  id: number;
+  start: Date;
+  end: Date;
+  notes: string | null;
+  reason: string | null;
+  toUser?: {
+    id: number;
+    name: string | null;
+    email: string;
+  };
+};
 export type WebhookDataType = CalendarEvent &
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
@@ -135,28 +148,38 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent"> | OOOWebhookDataType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
-
+  let body;
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
-  data.description = data.description || data.additionalNotes;
-  data = addUTCOffset(data);
+  if (triggerEvent !== WebhookTriggerEvents.OOO_CREATED) {
+    let wData = data as Omit<WebhookDataType, "createdAt" | "triggerEvent">;
 
-  let body;
+    wData.description = wData.description || wData.additionalNotes;
+    wData = addUTCOffset(wData);
 
-  /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier") {
-    body = getZapierPayload({ ...data, createdAt });
-  } else if (template) {
-    body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+    /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
+    if (appId === "zapier") {
+      body = getZapierPayload({ ...wData, createdAt });
+    } else if (template) {
+      body = applyTemplate(template, { ...wData, triggerEvent, createdAt }, contentType);
+    } else {
+      body = JSON.stringify({
+        triggerEvent: triggerEvent,
+        createdAt: createdAt,
+        payload: data,
+      });
+    }
   } else {
+    const wData = data as OOOWebhookDataType;
+
     body = JSON.stringify({
       triggerEvent: triggerEvent,
       createdAt: createdAt,
-      payload: data,
+      payload: wData,
     });
   }
 

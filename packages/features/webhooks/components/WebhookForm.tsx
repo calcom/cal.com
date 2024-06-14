@@ -42,6 +42,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
     { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
+    { value: WebhookTriggerEvents.OOO_CREATED, label: "ooo_created" },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
@@ -53,11 +54,15 @@ const WebhookForm = (props: {
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
   selectOnlyInstantMeetingOption?: boolean;
+  filterOOO?: boolean;
 }) => {
   const { apps = [], selectOnlyInstantMeetingOption = false } = props;
   const { t } = useLocale();
 
-  const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
+  let triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
+  if (props.filterOOO) {
+    triggerOptions = triggerOptions.filter((option) => option.value !== WebhookTriggerEvents.OOO_CREATED);
+  }
   if (apps) {
     for (const app of apps) {
       if (app === "routing-forms" && props.noRoutingFormTriggers) continue;

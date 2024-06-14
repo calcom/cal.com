@@ -2,8 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
-import { getTranslation } from "@calcom/lib/server";
-import prisma from "@calcom/prisma";
+import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
+import type { OOOWebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -166,7 +167,31 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
+    select: {
+      id: true,
+      start: true,
+      end: true,
+      notes: true,
+      toUserId: true,
+      reason: {
+        select: {
+          emoji: true,
+          reason: true,
+        },
+      },
+    },
   });
+
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+  const webhookData: OOOWebhookDataType = {
+    id: createdRedirect.id,
+    start: createdRedirect.start,
+    end: createdRedirect.end,
+    notes: createdRedirect.notes,
+    reason: createdRedirect.reason
+      ? `${createdRedirect.reason.emoji} ${t(createdRedirect.reason.reason)}`
+      : null,
+  };
 
   if (toUserId) {
     // await send email to notify user
@@ -175,13 +200,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
         id: toUserId,
       },
       select: {
+        id: true,
         email: true,
+        name: true,
       },
     });
-    const t = await getTranslation(ctx.user.locale ?? "en", "common");
     const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.start);
     const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.end);
-    if (userToNotify?.email) {
+    if (userToNotify) {
       await sendBookingRedirectNotification({
         language: t,
         fromEmail: ctx.user.email,
@@ -189,9 +215,23 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
         toName: ctx.user.username || "",
         dates: `${formattedStartDate} - ${formattedEndDate}`,
       });
+
+      webhookData.toUser = {
+        id: userToNotify.id,
+        email: userToNotify.email,
+        name: userToNotify.name,
+      };
     }
   }
 
+  await handleWebhookTrigger({
+    subscriberOptions: {
+      triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+      userId: ctx.user.id,
+    },
+    eventTrigger: WebhookTriggerEvents.OOO_CREATED,
+    webhookData,
+  });
   return {};
 };
 
