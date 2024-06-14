@@ -70,6 +70,7 @@ export class BookingUpdateAuditLogger {
   private readonly requiredEventTypeChanged = ["status", "location", "startTime", "endTime", "attendees"];
   actionType: typeof BookingAuditLogOption.BookingUpdate = BookingAuditLogOption.BookingUpdate;
   bookingAuditData: IBookingLog[] = [];
+  mustLog = false;
 
   constructor(
     private readonly actorUserId: number,
@@ -130,11 +131,12 @@ export class BookingUpdateAuditLogger {
       targetTeam: { id: targetTeamId },
     });
 
+    this.mustLog = changedAttributesList.length > 0;
     return bookingUpdateLog;
   }
 
   async log() {
-    if (this.bookingAuditData.length > 1)
+    if (this.mustLog && this.bookingAuditData.length > 0)
       await prisma.auditLog.createMany({
         data: this.bookingAuditData,
       });

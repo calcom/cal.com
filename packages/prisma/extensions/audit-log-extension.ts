@@ -1,7 +1,7 @@
 import { Prisma } from "@prisma/client";
 
-import saveAuditLogWorker from "@calcom/features/audit-log/saveAuditLogWorker";
-import saveFieldSubstitutersWorker from "@calcom/features/audit-log/saveFieldSubstitutersWorker";
+import saveAuditLog from "@calcom/features/audit-log/saveAuditLog";
+import saveFieldSubstituters from "@calcom/features/audit-log/saveFieldSubstituters";
 import type { BookingWithAttendees } from "@calcom/features/audit-log/types/BookingAuditLogTypes";
 import { BookingAuditLogOption } from "@calcom/features/audit-log/types/BookingAuditLogTypes";
 import { EventTypeAuditLogOption } from "@calcom/features/audit-log/types/EventTypeAuditLogTypes";
@@ -19,7 +19,7 @@ function auditLogExtension() {
             const prevUser = (await prisma.user.findUnique({ where: args.where })) as User;
             returnUpdatedUser = await query(args);
             const updatedUser = (await prisma.user.findUnique({ where: args.where })) as User;
-            saveFieldSubstitutersWorker({
+            saveFieldSubstituters({
               triggeredEvent: FieldSubstituterOption.UserUpdate,
               prevUser,
               updatedUser,
@@ -29,7 +29,7 @@ function auditLogExtension() {
         },
         async delete({ args, query }) {
           const deletedUser = (await query(args)) as User;
-          saveFieldSubstitutersWorker({
+          saveFieldSubstituters({
             triggeredEvent: FieldSubstituterOption.UserDelete,
             deletedUser,
           });
@@ -42,7 +42,7 @@ function auditLogExtension() {
           args.data.actorUserId = null;
           const createdEventType = (await query(args)) as EventType;
           if (typeof actorUserId === "number") {
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: EventTypeAuditLogOption.EventTypeCreate,
               actorUserId,
               createdEventType,
@@ -58,7 +58,7 @@ function auditLogExtension() {
             const prevEventType = (await prisma.eventType.findUnique({ where: args.where })) as EventType;
             returnUpdatedEventType = await query(args);
             const updatedEventType = (await prisma.eventType.findUnique({ where: args.where })) as EventType;
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: EventTypeAuditLogOption.EventTypeUpdate,
               actorUserId,
               prevEventType,
@@ -81,7 +81,7 @@ function auditLogExtension() {
               where: args.where,
               orderBy: { id: "asc" },
             })) as EventType[];
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: EventTypeAuditLogOption.EventTypeUpdateMany,
               actorUserId,
               prevEventTypes,
@@ -95,12 +95,12 @@ function auditLogExtension() {
           delete args.where?.actorUserId;
           const deletedEventType = (await query(args)) as EventType;
           if (typeof actorUserId === "number")
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: EventTypeAuditLogOption.EventTypeDelete,
               actorUserId,
               deletedEventType,
             });
-          saveFieldSubstitutersWorker({
+          saveFieldSubstituters({
             triggeredEvent: FieldSubstituterOption.EventTypeDelete,
             deletedEventType,
           });
@@ -117,13 +117,13 @@ function auditLogExtension() {
               orderBy: { id: "asc" },
             })) as EventType[];
             returnEventTypesResponse = await query(args);
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: EventTypeAuditLogOption.EventTypeDeleteMany,
               actorUserId,
               deletedEventTypes,
             });
           } else returnEventTypesResponse = await query(args);
-          saveFieldSubstitutersWorker({
+          saveFieldSubstituters({
             triggeredEvent: FieldSubstituterOption.EventTypeDeleteMany,
             deletedEventTypes: deletedEventTypes as EventType[],
           });
@@ -137,7 +137,7 @@ function auditLogExtension() {
           let createdBooking;
           if (typeof actorUserId === "number") {
             createdBooking = (await query(args)) as Booking;
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: BookingAuditLogOption.BookingCreate,
               actorUserId,
               createdBooking,
@@ -159,7 +159,7 @@ function auditLogExtension() {
               where: args.where,
               include: { attendees: true },
             })) as BookingWithAttendees;
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: BookingAuditLogOption.BookingUpdate,
               actorUserId,
               prevBookingWithAttendees,
@@ -184,7 +184,7 @@ function auditLogExtension() {
               orderBy: { id: "asc" },
               include: { attendees: true },
             })) as BookingWithAttendees[];
-            saveAuditLogWorker({
+            saveAuditLog({
               triggeredEvent: BookingAuditLogOption.BookingUpdateMany,
               actorUserId,
               prevBookingsWithAttendees,
@@ -197,7 +197,7 @@ function auditLogExtension() {
       team: {
         async delete({ args, query }) {
           const deletedTeam = (await query(args)) as Team;
-          saveFieldSubstitutersWorker({
+          saveFieldSubstituters({
             triggeredEvent: FieldSubstituterOption.TeamDelete,
             deletedTeam,
           });

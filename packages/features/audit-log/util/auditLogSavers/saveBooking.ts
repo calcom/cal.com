@@ -3,7 +3,7 @@ import {
   BookingUpdateAuditLogger,
 } from "@calcom/features/audit-log/bookingAuditLogger";
 import type { BookingWithAttendees } from "@calcom/features/audit-log/types/BookingAuditLogTypes";
-import { prisma } from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 
 export async function saveBookingCreate(actorUserId: number, createdBooking: Booking) {

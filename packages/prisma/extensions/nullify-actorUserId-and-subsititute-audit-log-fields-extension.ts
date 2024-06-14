@@ -1,7 +1,7 @@
 import type { User, EventType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import saveFieldSubstitutersWorker from "@calcom/features/audit-log/saveFieldSubstitutersWorker";
+import saveFieldSubstituters from "@calcom/features/audit-log/saveFieldSubstituters";
 import { FieldSubstituterOption } from "@calcom/features/audit-log/types/TFieldSubstituterInput";
 import { prisma } from "@calcom/prisma";
 
@@ -44,7 +44,7 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
           if (auditLogRecord) auditLogRecordExists = true;
 
           if (auditLogRecordExists)
-            saveFieldSubstitutersWorker({
+            saveFieldSubstituters({
               triggeredEvent: FieldSubstituterOption.EventTypeDelete,
               deletedEventType,
             });
@@ -62,7 +62,7 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
           if (auditLogRecordExists) {
             const deletedEventTypes = await prisma.eventType.findMany({ where: args.where });
             returnDeletedEventTypes = await query(args);
-            saveFieldSubstitutersWorker({
+            saveFieldSubstituters({
               triggeredEvent: FieldSubstituterOption.EventTypeDeleteMany,
               deletedEventTypes,
             });
@@ -82,7 +82,7 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
             const prevUser = (await query(args)) as User;
             returnUpdatedUser = await query(args);
             const updatedUser = (await query(args)) as User;
-            saveFieldSubstitutersWorker({
+            saveFieldSubstituters({
               triggeredEvent: FieldSubstituterOption.UserUpdate,
               prevUser,
               updatedUser,
@@ -98,7 +98,7 @@ function nullifyActorUserId_and_SubsitituteAuditLogFields() {
           if (auditLogRecord) auditLogRecordExists = true;
 
           if (auditLogRecordExists)
-            saveFieldSubstitutersWorker({
+            saveFieldSubstituters({
               triggeredEvent: FieldSubstituterOption.UserDelete,
               deletedUser,
             });

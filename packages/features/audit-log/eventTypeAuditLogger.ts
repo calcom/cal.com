@@ -1,4 +1,3 @@
-// eslint-disable-next-line no-restricted-imports
 import { prisma } from "@calcom/prisma";
 import type { EventType } from "@calcom/prisma/client";
 
@@ -102,7 +101,7 @@ export class EventTypeUpdateAuditLogger {
   }
 
   async log() {
-    if (this.eventTypeAuditData.crud)
+    if (this.eventTypeAuditData.target.changedAttributes.length > 0)
       await prisma.auditLog.create({
         data: this.eventTypeAuditData,
       });
