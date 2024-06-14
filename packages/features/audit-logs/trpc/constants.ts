@@ -6,7 +6,7 @@ import {
   AuditLogCredentialTriggerEvents,
 } from "@calcom/prisma/enums";
 
-export const pathToAuditLogEvent: Record<string, any> = {
+export const triggerToMetadata: Record<string, any> = {
   // updateAppCredentials: {
   //   action: AuditLogSystemTriggerEvents.SYSTEM_SETTINGS_UPDATED,
   //   description: "App keys have been updated",
