@@ -21,11 +21,7 @@ if (!!process.env.NEXT_PUBLIC_DEBUG) prismaOptions.log = ["query", "error", "war
 const prismaWithoutClientExtensions =
   globalForPrisma.prismaWithoutClientExtensions || new PrismaClientWithoutExtension(prismaOptions);
 
-let isAuditLogEnabled: boolean | undefined;
-(async () => {
-  const features = await prismaWithoutClientExtensions.feature.findUnique({ where: { slug: "audit-log" } });
-  isAuditLogEnabled = features?.enabled;
-})();
+const isAuditLogEnabled = !!process.env.AUDIT_LOG_ENABLED;
 
 export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
   isAuditLogEnabled

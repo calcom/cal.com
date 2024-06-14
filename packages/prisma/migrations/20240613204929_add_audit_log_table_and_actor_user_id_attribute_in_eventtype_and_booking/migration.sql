@@ -22,14 +22,3 @@ CREATE TABLE "AuditLog" (
 
     CONSTRAINT "AuditLog_pkey" PRIMARY KEY ("id")
 );
-
--- Insert initial feature flags with their default values
-INSERT INTO
-  "Feature" (slug, enabled, description, "type")
-VALUES
-  (
-    'audit-log',
-    false,
-    'Enable audit log feature',
-    'EXPERIMENT'
-  ) ON CONFLICT (slug) DO NOTHING;
