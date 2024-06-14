@@ -1,8 +1,8 @@
-import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/constants/constants";
-import { EventTypesRepository } from "@/ee/event-types/event-types.repository";
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
-import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
+import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/constants/constants";
+import { EventTypesRepository_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.repository";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/event-type.output";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -14,16 +14,19 @@ import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-librarie
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
-export class EventTypesService {
+export class EventTypesService_2024_04_15 {
   constructor(
-    private readonly eventTypesRepository: EventTypesRepository,
+    private readonly eventTypesRepository: EventTypesRepository_2024_04_15,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService
   ) {}
 
-  async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput): Promise<EventTypeOutput> {
+  async createUserEventType(
+    user: UserWithProfile,
+    body: CreateEventTypeInput_2024_04_15
+  ): Promise<EventTypeOutput> {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
     const { eventType } = await createEventType({
@@ -38,7 +41,7 @@ export class EventTypesService {
     return eventType as EventTypeOutput;
   }
 
-  async checkCanCreateEventType(userId: number, body: CreateEventTypeInput) {
+  async checkCanCreateEventType(userId: number, body: CreateEventTypeInput_2024_04_15) {
     const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
@@ -114,7 +117,7 @@ export class EventTypesService {
     return defaultEventTypes;
   }
 
-  async updateEventType(eventTypeId: number, body: UpdateEventTypeInput, user: UserWithProfile) {
+  async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_04_15, user: UserWithProfile) {
     this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
     await updateEventType({

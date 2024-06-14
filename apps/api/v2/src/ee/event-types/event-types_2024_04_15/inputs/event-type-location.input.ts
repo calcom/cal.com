@@ -4,7 +4,7 @@ import { IsString, IsNumber, IsBoolean, IsOptional, IsUrl } from "class-validato
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested.
 
-export class EventTypeLocation {
+export class EventTypeLocation_2024_04_15 {
   @IsString()
   @DocsProperty({ example: "link" })
   type!: string;

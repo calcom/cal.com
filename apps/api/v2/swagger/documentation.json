@@ -577,14 +577,14 @@
     },
     "/v2/event-types": {
       "post": {
-        "operationId": "EventTypesController_createEventType",
+        "operationId": "EventTypesController_2024_04_15_createEventType",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateEventTypeInput"
+                "$ref": "#/components/schemas/CreateEventTypeInput_2024_04_15"
               }
             }
           }
@@ -606,7 +606,7 @@
         ]
       },
       "get": {
-        "operationId": "EventTypesController_getEventTypes",
+        "operationId": "EventTypesController_2024_04_15_getEventTypes",
         "parameters": [],
         "responses": {
           "200": {
@@ -627,7 +627,7 @@
     },
     "/v2/event-types/{eventTypeId}": {
       "get": {
-        "operationId": "EventTypesController_getEventType",
+        "operationId": "EventTypesController_2024_04_15_getEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -655,7 +655,7 @@
         ]
       },
       "patch": {
-        "operationId": "EventTypesController_updateEventType",
+        "operationId": "EventTypesController_2024_04_15_updateEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -671,7 +671,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventTypeInput"
+                "$ref": "#/components/schemas/UpdateEventTypeInput_2024_04_15"
               }
             }
           }
@@ -693,7 +693,7 @@
         ]
       },
       "delete": {
-        "operationId": "EventTypesController_deleteEventType",
+        "operationId": "EventTypesController_2024_04_15_deleteEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -723,7 +723,7 @@
     },
     "/v2/event-types/{username}/{eventSlug}/public": {
       "get": {
-        "operationId": "EventTypesController_getPublicEventType",
+        "operationId": "EventTypesController_2024_04_15_getPublicEventType",
         "parameters": [
           {
             "name": "username",
@@ -778,7 +778,7 @@
     },
     "/v2/event-types/{username}/public": {
       "get": {
-        "operationId": "EventTypesController_getPublicEventTypes",
+        "operationId": "EventTypesController_2024_04_15_getPublicEventTypes",
         "parameters": [
           {
             "name": "username",
@@ -2169,7 +2169,7 @@
           "refreshToken"
         ]
       },
-      "EventTypeLocation": {
+      "EventTypeLocation_2024_04_15": {
         "type": "object",
         "properties": {
           "type": {
@@ -2185,7 +2185,7 @@
           "type"
         ]
       },
-      "CreateEventTypeInput": {
+      "CreateEventTypeInput_2024_04_15": {
         "type": "object",
         "properties": {
           "length": {
@@ -2208,7 +2208,7 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           },
           "disableGuests": {
@@ -2265,7 +2265,7 @@
             "nullable": true,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           }
         },
@@ -2887,7 +2887,143 @@
           "data"
         ]
       },
-      "UpdateEventTypeInput": {
+      "Option": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "VariantsConfig": {
+        "type": "object",
+        "properties": {
+          "variants": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "variants"
+        ]
+      },
+      "View": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "BookingField_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "number",
+              "boolean",
+              "address",
+              "name",
+              "text",
+              "textarea",
+              "email",
+              "phone",
+              "multiemail",
+              "select",
+              "multiselect",
+              "checkbox",
+              "radio",
+              "radioInput"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "labelAsSafeHtml": {
+            "type": "string"
+          },
+          "defaultLabel": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "getOptionsAt": {
+            "type": "string"
+          },
+          "optionsInputs": {
+            "type": "object"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "variantsConfig": {
+            "$ref": "#/components/schemas/VariantsConfig"
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "hideWhenJustOneOption": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "string",
+            "enum": [
+              "system",
+              "system-but-optional",
+              "system-but-hidden",
+              "user",
+              "user-readonly"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ]
+      },
+      "UpdateEventTypeInput_2024_04_15": {
         "type": "object",
         "properties": {
           "length": {
@@ -2909,13 +3045,13 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           },
           "bookingFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BookingField"
+              "$ref": "#/components/schemas/BookingField_2024_04_15"
             }
           },
           "disableGuests": {

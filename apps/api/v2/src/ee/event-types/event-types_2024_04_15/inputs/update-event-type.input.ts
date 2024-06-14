@@ -1,7 +1,7 @@
-import { Editable } from "@/ee/event-types/inputs/enums/editable";
-import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
-import { Frequency } from "@/ee/event-types/inputs/enums/frequency";
-import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
+import { Editable } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/editable";
+import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
+import { Frequency } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/frequency";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 import { Type } from "class-transformer";
 import {
   IsString,
@@ -105,7 +105,7 @@ class VariantsConfig {
   variants!: Record<string, Variant>;
 }
 
-export class BookingField {
+export class BookingField_2024_04_15 {
   @IsEnum(BaseField)
   type!: BaseField;
 
@@ -179,7 +179,7 @@ export class BookingField {
   sources?: Source[];
 }
 
-export class RecurringEvent {
+export class RecurringEvent_2024_04_15 {
   @IsDate()
   @IsOptional()
   dtstart?: Date;
@@ -202,7 +202,7 @@ export class RecurringEvent {
   tzid?: string;
 }
 
-export class IntervalLimits {
+export class IntervalLimits_2024_04_15 {
   @IsNumber()
   @IsOptional()
   PER_DAY?: number;
@@ -220,7 +220,7 @@ export class IntervalLimits {
   PER_YEAR?: number;
 }
 
-export class UpdateEventTypeInput {
+export class UpdateEventTypeInput_2024_04_15 {
   @IsInt()
   @Min(1)
   @IsOptional()
@@ -243,9 +243,9 @@ export class UpdateEventTypeInput {
   hidden?: boolean;
 
   @ValidateNested({ each: true })
-  @Type(() => EventTypeLocation)
+  @Type(() => EventTypeLocation_2024_04_15)
   @IsOptional()
-  locations?: EventTypeLocation[];
+  locations?: EventTypeLocation_2024_04_15[];
 
   // @IsInt()
   // @IsOptional()
@@ -278,8 +278,8 @@ export class UpdateEventTypeInput {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => BookingField)
-  bookingFields?: BookingField[];
+  @Type(() => BookingField_2024_04_15)
+  bookingFields?: BookingField_2024_04_15[];
 
   // @IsString()
   // @IsOptional()

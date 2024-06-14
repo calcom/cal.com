@@ -1,13 +1,13 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
+import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { Editable } from "@/ee/event-types/inputs/enums/editable";
 import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
-import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";

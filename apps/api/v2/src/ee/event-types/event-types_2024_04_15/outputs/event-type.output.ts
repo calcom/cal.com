@@ -3,15 +3,15 @@ import {
   CREATE_EVENT_LENGTH_EXAMPLE,
   CREATE_EVENT_SLUG_EXAMPLE,
   CREATE_EVENT_TITLE_EXAMPLE,
-} from "@/ee/event-types/inputs/create-event-type.input";
-import { PeriodType } from "@/ee/event-types/inputs/enums/period-type";
-import { SchedulingType } from "@/ee/event-types/inputs/enums/scheduling-type";
-import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
+} from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { PeriodType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/period-type";
+import { SchedulingType } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/scheduling-type";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 import {
-  BookingField,
-  IntervalLimits,
-  RecurringEvent,
-} from "@/ee/event-types/inputs/update-event-type.input";
+  BookingField_2024_04_15,
+  IntervalLimits_2024_04_15,
+  RecurringEvent_2024_04_15,
+} from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -53,9 +53,9 @@ export class EventTypeOutput {
   hidden!: boolean;
 
   @ValidateNested({ each: true })
-  @Type(() => EventTypeLocation)
+  @Type(() => EventTypeLocation_2024_04_15)
   @IsArray()
-  locations!: EventTypeLocation[] | null;
+  locations!: EventTypeLocation_2024_04_15[] | null;
 
   @IsInt()
   @ApiHideProperty()
@@ -91,9 +91,9 @@ export class EventTypeOutput {
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => BookingField)
+  @Type(() => BookingField_2024_04_15)
   @ApiHideProperty()
-  bookingFields!: BookingField[] | null;
+  bookingFields!: BookingField_2024_04_15[] | null;
 
   @IsString()
   @ApiHideProperty()
@@ -132,10 +132,10 @@ export class EventTypeOutput {
   requiresBookerEmailVerification!: boolean;
 
   @ValidateNested()
-  @Type(() => RecurringEvent)
+  @Type(() => RecurringEvent_2024_04_15)
   @IsOptional()
   @ApiHideProperty()
-  recurringEvent!: RecurringEvent | null;
+  recurringEvent!: RecurringEvent_2024_04_15 | null;
 
   @IsBoolean()
   @ApiHideProperty()
@@ -203,15 +203,15 @@ export class EventTypeOutput {
   successRedirectUrl!: string | null;
 
   @ValidateNested()
-  @Type(() => IntervalLimits)
+  @Type(() => IntervalLimits_2024_04_15)
   @IsOptional()
   @ApiHideProperty()
-  bookingLimits!: IntervalLimits;
+  bookingLimits!: IntervalLimits_2024_04_15;
 
   @ValidateNested()
-  @Type(() => IntervalLimits)
+  @Type(() => IntervalLimits_2024_04_15)
   @ApiHideProperty()
-  durationLimits!: IntervalLimits;
+  durationLimits!: IntervalLimits_2024_04_15;
 
   @IsBoolean()
   @ApiHideProperty()

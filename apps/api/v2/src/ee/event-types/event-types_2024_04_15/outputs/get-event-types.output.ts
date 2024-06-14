@@ -1,4 +1,4 @@
-import { EventTypeOutput } from "@/ee/event-types/outputs/event-type.output";
+import { EventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/event-type.output";
 import { ApiProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsArray, IsEnum, ValidateNested } from "class-validator";

@@ -1,4 +1,4 @@
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -8,12 +8,12 @@ import { getEventTypeById } from "@calcom/platform-libraries-0.0.2";
 import type { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
-export class EventTypesRepository {
+export class EventTypesRepository_2024_04_15 {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async createUserEventType(
     userId: number,
-    body: Pick<CreateEventTypeInput, "title" | "slug" | "length" | "hidden">
+    body: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">
   ) {
     return this.dbWrite.prisma.eventType.create({
       data: {

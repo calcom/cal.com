@@ -27,6 +27,7 @@
     "@calcom/platform-constants": "*",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4",
+    "@calcom/platform-libraries-0.0.5": "npm:@calcom/platform-libraries@0.0.5",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",

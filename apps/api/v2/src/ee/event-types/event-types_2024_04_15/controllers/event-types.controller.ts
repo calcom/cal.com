@@ -1,16 +1,19 @@
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { EventTypeIdParams } from "@/ee/event-types/inputs/event-type-id.input";
-import { GetPublicEventTypeQueryParams } from "@/ee/event-types/inputs/get-public-event-type-query-params.input";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
-import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
-import { DeleteEventTypeOutput } from "@/ee/event-types/outputs/delete-event-type.output";
-import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
-import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
-import { GetEventTypesPublicOutput } from "@/ee/event-types/outputs/get-event-types-public.output";
-import { GetEventTypesData, GetEventTypesOutput } from "@/ee/event-types/outputs/get-event-types.output";
-import { UpdateEventTypeOutput } from "@/ee/event-types/outputs/update-event-type.output";
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { EventTypeIdParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-id.input";
+import { GetPublicEventTypeQueryParams_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/get-public-event-type-query-params.input";
+import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
+import { CreateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/create-event-type.output";
+import { DeleteEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/delete-event-type.output";
+import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
+import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
+import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
+import {
+  GetEventTypesData,
+  GetEventTypesOutput,
+} from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
+import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -42,13 +45,13 @@ import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
-  version: API_VERSIONS_VALUES,
+  version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")
-export class EventTypesController {
+export class EventTypesController_2024_04_15 {
   constructor(
-    private readonly eventTypesService: EventTypesService,
+    private readonly eventTypesService: EventTypesService_2024_04_15,
     private readonly prismaReadService: PrismaReadService
   ) {}
 
@@ -56,7 +59,7 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(AccessTokenGuard)
   async createEventType(
-    @Body() body: CreateEventTypeInput,
+    @Body() body: CreateEventTypeInput_2024_04_15,
     @GetUser() user: UserWithProfile
   ): Promise<CreateEventTypeOutput> {
     const eventType = await this.eventTypesService.createUserEventType(user, body);
@@ -71,7 +74,7 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
   async getEventType(
-    @Param() params: EventTypeIdParams,
+    @Param() params: EventTypeIdParams_2024_04_15,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
 
     @GetUser() user: UserWithProfile
@@ -109,7 +112,7 @@ export class EventTypesController {
   async getPublicEventType(
     @Param("username") username: string,
     @Param("eventSlug") eventSlug: string,
-    @Query() queryParams: GetPublicEventTypeQueryParams
+    @Query() queryParams: GetPublicEventTypeQueryParams_2024_04_15
   ): Promise<GetEventTypePublicOutput> {
     try {
       const event = await getPublicEvent(
@@ -149,9 +152,9 @@ export class EventTypesController {
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
-    @Param() params: EventTypeIdParams,
+    @Param() params: EventTypeIdParams_2024_04_15,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-    @Body() body: UpdateEventTypeInput,
+    @Body() body: UpdateEventTypeInput_2024_04_15,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput> {
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
@@ -166,7 +169,7 @@ export class EventTypesController {
   @Permissions([EVENT_TYPE_WRITE])
   @UseGuards(AccessTokenGuard)
   async deleteEventType(
-    @Param() params: EventTypeIdParams,
+    @Param() params: EventTypeIdParams_2024_04_15,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser("id") userId: number
   ): Promise<DeleteEventTypeOutput> {

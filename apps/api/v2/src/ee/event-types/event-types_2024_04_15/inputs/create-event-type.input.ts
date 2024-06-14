@@ -1,4 +1,4 @@
-import { EventTypeLocation } from "@/ee/event-types/inputs/event-type-location.input";
+import { EventTypeLocation_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/event-type-location.input";
 import { ApiProperty as DocsProperty, ApiHideProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import {
@@ -20,7 +20,7 @@ export const CREATE_EVENT_DESCRIPTION_EXAMPLE =
 
 // note(Lauris): We will gradually expose more properties if any customer needs them.
 // Just uncomment any below when requested.
-export class CreateEventTypeInput {
+export class CreateEventTypeInput_2024_04_15 {
   @IsNumber()
   @Min(1)
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
@@ -46,9 +46,9 @@ export class CreateEventTypeInput {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => EventTypeLocation)
+  @Type(() => EventTypeLocation_2024_04_15)
   @IsArray()
-  locations?: EventTypeLocation[];
+  locations?: EventTypeLocation_2024_04_15[];
 
   @IsBoolean()
   @IsOptional()
