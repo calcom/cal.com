@@ -1,5 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { InputEventType, getOrganizer } from "./bookingScenario";
+
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
@@ -16,7 +18,6 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.
@@ -288,57 +289,91 @@ export function expectWebhookToHaveBeenCalledWith(
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
-  if (parsedBody.payload.metadata?.videoCallUrl) {
-    parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl
-      : parsedBody.payload.metadata.videoCallUrl;
-  }
+  if (parsedBody.payload) {
+    if (data.payload) {
+      if (!!data.payload.metadata) {
+        expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+      }
+      if (!!data.payload.responses)
+        expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
 
-  if (data.payload) {
-    if (data.payload.metadata !== undefined) {
-      expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+      if (!!data.payload.organizer)
+        expect(parsedBody.payload.organizer).toEqual(expect.objectContaining(data.payload.organizer));
+
+      const { responses: _1, metadata: _2, organizer: _3, ...remainingPayload } = data.payload;
+      expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
-    if (data.payload.responses !== undefined)
-      expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
-    expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
 
 export function expectWorkflowToBeTriggered({
   emails,
-  organizer,
-  destinationEmail,
+  emailsToReceive,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
-  destinationEmail?: string;
+  emailsToReceive: string[];
 }) {
   const subjectPattern = /^Reminder: /i;
-  expect(emails.get()).toEqual(
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
+}
+
+export function expectWorkflowToBeNotTriggered({
+  emails,
+  emailsToReceive,
+}: {
+  emails: Fixtures["emails"];
+  emailsToReceive: string[];
+}) {
+  const subjectPattern = /^Reminder: /i;
+
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
+}
+
+export function expectSMSWorkflowToBeTriggered({
+  sms,
+  toNumber,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+}) {
+  expect(sms.get()).toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: destinationEmail ?? organizer.email,
+        to: toNumber,
       }),
     ])
   );
 }
 
-export function expectWorkflowToBeNotTriggered({
-  emails,
-  organizer,
+export function expectSMSWorkflowToBeNotTriggered({
+  sms,
+  toNumber,
 }: {
-  emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
+  sms: Fixtures["sms"];
+  toNumber: string;
 }) {
-  const subjectPattern = /^Reminder: /i;
-
-  expect(emails.get()).not.toEqual(
+  expect(sms.get()).not.toEqual(
     expect.arrayContaining([
       expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: organizer.email,
+        to: toNumber,
       }),
     ])
   );
@@ -935,6 +970,41 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
           label: "location",
           value: { optionValue: "", value: location },
           isHidden: false,
+        },
+      },
+    },
+  });
+}
+
+export function expectBookingCancelledWebhookToHaveBeenFired({
+  booker,
+  location,
+  subscriberUrl,
+  payload,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  payload?: Record<string, unknown>;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_CANCELLED",
+    payload: {
+      ...payload,
+      metadata: null,
+      responses: {
+        name: {
+          label: "name",
+          value: booker.name,
+        },
+        email: {
+          label: "email",
+          value: booker.email,
+        },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
         },
       },
     },

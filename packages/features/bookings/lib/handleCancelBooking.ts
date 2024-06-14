@@ -12,23 +12,28 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import cancelAttendeeSeat from "./handleSeats/cancel/cancelAttendeeSeat";
+
+const log = logger.getSubLogger({ prefix: ["handleCancelBooking"] });
 
 async function getBookingToDelete(id: number | undefined, uid: string | undefined) {
   return await prisma.booking.findUnique({
@@ -77,8 +82,11 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               name: true,
+              parentId: true,
             },
           },
+          parentId: true,
+          userId: true,
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -90,6 +98,7 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
+          metadata: true,
           hosts: {
             select: {
               user: true,
@@ -104,7 +113,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
               },
             },
           },
-          parentId: true,
         },
       },
       uid: true,
@@ -113,7 +121,6 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
       destinationCalendar: true,
       smsReminderNumber: true,
       workflowReminders: true,
-      scheduledJobs: true,
       seatsReferences: true,
       responses: true,
       iCalUID: true,
@@ -177,12 +184,16 @@ async function handler(req: CustomRequest) {
     },
   });
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
+  const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToDelete.userId : null,
+    userId: organizerUserId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,
@@ -200,6 +211,8 @@ async function handler(req: CustomRequest) {
       id: bookingToDelete.userId,
     },
     select: {
+      id: true,
+      username: true,
       name: true,
       email: true,
       timeZone: true,
@@ -255,6 +268,8 @@ async function handler(req: CustomRequest) {
     startTime: bookingToDelete?.startTime ? dayjs(bookingToDelete.startTime).format() : "",
     endTime: bookingToDelete?.endTime ? dayjs(bookingToDelete.endTime).format() : "",
     organizer: {
+      id: organizer.id,
+      username: organizer.username || undefined,
       email: bookingToDelete?.userPrimaryEmail ?? organizer.email,
       name: organizer.name ?? "Nameless",
       timeZone: organizer.timeZone,
@@ -301,7 +316,10 @@ async function handler(req: CustomRequest) {
       status: "CANCELLED",
       smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
     }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+      logger.error(
+        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
+      );
     })
   );
   await Promise.all(promises);
@@ -320,9 +338,9 @@ async function handler(req: CustomRequest) {
   }
 
   let updatedBookings: {
+    id: number;
     uid: string;
     workflowReminders: WorkflowReminder[];
-    scheduledJobs: string[];
     references: {
       type: string;
       credentialId: number | null;
@@ -358,6 +376,7 @@ async function handler(req: CustomRequest) {
         },
       },
       select: {
+        id: true,
         startTime: true,
         endTime: true,
         references: {
@@ -370,7 +389,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings = updatedBookings.concat(allUpdatedBookings);
@@ -394,6 +412,7 @@ async function handler(req: CustomRequest) {
         iCalSequence: evt.iCalSequence || 100,
       },
       select: {
+        id: true,
         startTime: true,
         endTime: true,
         references: {
@@ -406,7 +425,6 @@ async function handler(req: CustomRequest) {
         },
         workflowReminders: true,
         uid: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);
@@ -425,7 +443,15 @@ async function handler(req: CustomRequest) {
     bookingToDelete.recurringEventId &&
     allRemainingBookings
   );
-  const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
+
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
+  );
+
+  const credentials = await getAllCredentials(bookingToDelete.user, {
+    ...bookingToDelete.eventType,
+    metadata: bookingToDeleteEventTypeMetadata,
+  });
 
   const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 
@@ -437,24 +463,27 @@ async function handler(req: CustomRequest) {
     },
   });
 
-  // delete scheduled jobs of cancelled bookings
-  // FIXME: async calls into ether
-  updatedBookings.forEach((booking) => {
-    cancelScheduledJobs(booking);
-  });
+  const webhookTriggerPromises = [];
+  const workflowReminderPromises = [];
 
-  //Workflows - cancel all reminders for cancelled bookings
-  // FIXME: async calls into ether
-  updatedBookings.forEach((booking) => {
-    booking.workflowReminders.forEach((reminder) => {
+  for (const booking of updatedBookings) {
+    // delete scheduled webhook triggers of cancelled bookings
+    webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
+
+    //Workflows - cancel all reminders for cancelled bookings
+    for (const reminder of booking.workflowReminders) {
       if (reminder.method === WorkflowMethods.EMAIL) {
-        deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
       } else if (reminder.method === WorkflowMethods.SMS) {
-        deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
       } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-        deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
+        workflowReminderPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
       }
-    });
+    }
+  }
+
+  await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {
+    log.error("An error occurred when deleting workflow reminders and webhook triggers", error);
   });
 
   const prismaPromises: Promise<unknown>[] = [bookingReferenceDeletes];

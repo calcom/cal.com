@@ -121,6 +121,10 @@ body  {
     https://docs.todesktop.com/
 */
 
+html.todesktop-platform-win32 .todesktop\:\!bg-transparent{
+  background: inherit !important;
+}
+
 /* disable user selection on buttons, links and images on desktop app */
 html.todesktop button,
 html.todesktop a,
@@ -148,6 +152,10 @@ html.todesktop header {
 html.todesktop header button,
 html.todesktop header a {
   -webkit-app-region: no-drag;
+}
+
+html.todesktop-platform-darwin body, html.todesktop-platform-darwin aside {
+  background: transparent !important;
 }
 
 html.todesktop-platform-darwin.dark main.bg-default {

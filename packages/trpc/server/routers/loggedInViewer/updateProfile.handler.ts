@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
-import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -12,6 +11,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -19,7 +19,6 @@ import slugify from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import { prisma } from "@calcom/prisma";
-import { IdentityProvider } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -37,32 +36,6 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
-export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
-  const objectKey = uuidv4();
-
-  await prisma.avatar.upsert({
-    where: {
-      teamId_userId_isBanner: {
-        teamId: 0,
-        userId,
-        isBanner: false,
-      },
-    },
-    create: {
-      userId: userId,
-      data,
-      objectKey,
-      isBanner: false,
-    },
-    update: {
-      data,
-      objectKey,
-    },
-  });
-
-  return `/api/avatar/${objectKey}.png`;
-};
-
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
@@ -73,9 +46,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
-
-  const unlinkConnectedAccount = input?.unlinkConnectedAccount || false;
-  delete input.unlinkConnectedAccount;
 
   const data: Prisma.UserUpdateInput = {
     ...rest,
@@ -178,22 +148,6 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
       log.warn("Profile Update - Email verification is disabled - Skipping");
       data.emailVerified = null;
     }
-  }
-
-  if (unlinkConnectedAccount) {
-    // Unlink the account
-    const CalComAdapter = (await import("@calcom/features/auth/lib/next-auth-custom-adapter")).default;
-    const calcomAdapter = CalComAdapter(prisma);
-    // If it fails to delete, don't stop because the users login data might not be present
-    try {
-      await calcomAdapter.unlinkAccount({
-        provider: user.identityProvider.toLocaleLowerCase(),
-        providerAccountId: user.identityProviderId || "",
-      });
-    } catch {}
-    // Only validate if we're changing email
-    data.identityProvider = IdentityProvider.CAL;
-    data.identityProviderId = null;
   }
 
   // if defined AND a base 64 string, upload and update the avatar URL

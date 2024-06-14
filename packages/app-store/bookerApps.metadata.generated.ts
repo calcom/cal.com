@@ -23,6 +23,7 @@ import mirotalk_config_json from "./mirotalk/config.json";
 import office365video_config_json from "./office365video/config.json";
 import ping_config_json from "./ping/config.json";
 import plausible_config_json from "./plausible/config.json";
+import posthog_config_json from "./posthog/config.json";
 import riverside_config_json from "./riverside/config.json";
 import roam_config_json from "./roam/config.json";
 import salesroom_config_json from "./salesroom/config.json";
@@ -34,6 +35,7 @@ import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
 import booking_pages_tag_config_json from "./templates/booking-pages-tag/config.json";
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
+import twipla_config_json from "./twipla/config.json";
 import umami_config_json from "./umami/config.json";
 import webex_config_json from "./webex/config.json";
 import whatsapp_config_json from "./whatsapp/config.json";
@@ -62,6 +64,7 @@ export const appStoreMetadata = {
   office365video: office365video_config_json,
   ping: ping_config_json,
   plausible: plausible_config_json,
+  posthog: posthog_config_json,
   riverside: riverside_config_json,
   roam: roam_config_json,
   salesroom: salesroom_config_json,
@@ -73,6 +76,7 @@ export const appStoreMetadata = {
   telegram: telegram_config_json,
   "booking-pages-tag": booking_pages_tag_config_json,
   "event-type-location-video-static": event_type_location_video_static_config_json,
+  twipla: twipla_config_json,
   umami: umami_config_json,
   webex: webex_config_json,
   whatsapp: whatsapp_config_json,

@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request } from "express";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
-import { TRPCError } from "@calcom/platform-libraries";
+import { TRPCError } from "@calcom/platform-libraries-0.0.2";
 import { Response } from "@calcom/platform-types";
 
 @Catch(TRPCError)
@@ -41,12 +41,15 @@ export class TRPCExceptionFilter implements ExceptionFilter {
         break;
     }
 
+    const requestId = request.headers["X-Request-Id"];
+
     this.logger.error(`TRPC Exception Filter: ${exception?.message}`, {
       exception,
       body: request.body,
       headers: request.headers,
       url: request.url,
       method: request.method,
+      requestId,
     });
 
     response.status(statusCode).json({
