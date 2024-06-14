@@ -15,5 +15,5 @@ export const auditLogMiddleware = experimental_trpcMiddleware<{
     data: result.data,
   });
 
-  return result;
+  return result.result;
 });
