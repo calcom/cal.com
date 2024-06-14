@@ -2,6 +2,9 @@ import { v4 as uuidv4 } from "uuid";
 
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
+import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
+import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -9,6 +12,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { TRPCError } from "@trpc/server";
 
 import type { TOutOfOfficeDelete, TOutOfOfficeInputSchema } from "./outOfOffice.schema";
+import { WebhookTriggerEvents } from ".prisma/client";
 
 type TBookingRedirect = {
   ctx: {
@@ -44,7 +48,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_must_be_in_the_future" });
   }
 
-  let toUserId;
+  let toUserId: number | null = null;
 
   if (input.toTeamUserId) {
     const user = await prisma.user.findUnique({
@@ -125,7 +129,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       toUserId: true,
     },
     where: {
-      userId: toUserId,
+      ...(toUserId && { toUserId: toUserId }),
       toUserId: ctx.user.id,
       // Check for time overlap or collision
       OR: [
@@ -167,7 +171,27 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       updatedAt: new Date(),
     },
   });
-
+  const toUser = toUserId
+    ? await prisma.user.findFirst({
+        where: {
+          id: toUserId,
+        },
+        select: {
+          name: true,
+          username: true,
+          timeZone: true,
+        },
+      })
+    : null;
+  const reason = await prisma.outOfOfficeReason.findFirst({
+    where: {
+      id: input.reasonId,
+    },
+    select: {
+      reason: true,
+      emoji: true,
+    },
+  });
   if (toUserId) {
     // await send email to notify user
     const userToNotify = await prisma.user.findFirst({
@@ -191,6 +215,59 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       });
     }
   }
+
+  // Send webhook to notify other services
+  const subscriberOptions: GetSubscriberOptions = {
+    userId: ctx.user.id,
+    orgId: ctx.user.organizationId,
+    triggerEvent: WebhookTriggerEvents.OOO_CREATED,
+  };
+
+  const subscribers = await getWebhooks(subscriberOptions);
+  await Promise.all(
+    subscribers.map(async (subscriber) => {
+      sendPayload(
+        subscriber.secret,
+        WebhookTriggerEvents.OOO_CREATED,
+        dayjs().toISOString(),
+        {
+          appId: subscriber.appId,
+          subscriberUrl: subscriber.subscriberUrl,
+          payloadTemplate: subscriber.payloadTemplate,
+        },
+        {
+          metadata: {
+            id: createdRedirect.id,
+            start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+            end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+            createdAt: createdRedirect.createdAt.toISOString(),
+            updatedAt: createdRedirect.updatedAt.toISOString(),
+            notes: createdRedirect.notes,
+            reason: {
+              emoji: reason?.emoji,
+              reason: reason?.reason,
+            },
+            reasonId: input.reasonId,
+            user: {
+              id: ctx.user.id,
+              name: ctx.user.name,
+              username: ctx.user.username,
+              timeZone: ctx.user.timeZone,
+            },
+            toUser: toUserId
+              ? {
+                  id: toUserId,
+                  name: toUser?.name,
+                  username: toUser?.username,
+                  timeZone: toUser?.timeZone,
+                }
+              : null,
+            uuid: createdRedirect.uuid,
+          },
+        }
+      );
+    })
+  );
 
   return {};
 };

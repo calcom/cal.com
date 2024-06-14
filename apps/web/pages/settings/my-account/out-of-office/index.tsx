@@ -367,7 +367,7 @@ const OutOfOfficePage = () => {
   const { t } = useLocale();
 
   const params = useSearchParams();
-  const openModalOnStart = !!params?.get("om");
+  const openModalOnStart = !!params?.get("open");
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);

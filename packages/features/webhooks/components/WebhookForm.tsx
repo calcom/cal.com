@@ -42,6 +42,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
     { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
+    { value: WebhookTriggerEvents.OOO_CREATED, label: "ooo_created" },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
@@ -92,7 +93,6 @@ const WebhookForm = (props: {
   const [newSecret, setNewSecret] = useState("");
   const [changeSecret, setChangeSecret] = useState<boolean>(false);
   const hasSecretKey = !!props?.webhook?.secret;
-  // const currentSecret = props?.webhook?.secret;
 
   useEffect(() => {
     if (changeSecret) {
@@ -282,7 +282,7 @@ const WebhookForm = (props: {
         <Button
           type="submit"
           disabled={!formMethods.formState.isDirty && !changeSecret}
-          loading={formMethods.formState.isSubmitting || formMethods.formState.isSubmitted}>
+          loading={formMethods.formState.isSubmitting}>
           {props?.webhook?.id ? t("save") : t("create_webhook")}
         </Button>
       </SectionBottomActions>

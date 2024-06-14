@@ -471,6 +471,7 @@
   "meeting_ended": "Meeting Ended",
   "form_submitted": "Form Submitted",
   "booking_paid": "Booking Paid",
+  "ooo_created": "Out of Office Created",
   "event_triggers": "Event Triggers",
   "subscriber_url": "Subscriber URL",
   "create_new_webhook": "Create a new webhook",

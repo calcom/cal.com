@@ -4,6 +4,7 @@ import { compile } from "handlebars";
 
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 type ContentType = "application/json" | "application/x-www-form-urlencoded";
@@ -29,9 +30,10 @@ export type WithUTCOffsetType<T> = T & {
   attendees?: (Person & UTCOffset)[];
 };
 
-export type WebhookDataType = CalendarEvent &
-  EventTypeInfo & {
-    metadata?: { [key: string]: string | number | boolean | null };
+export type WebhookDataType = Partial<CalendarEvent> &
+  Partial<EventTypeInfo> & {
+    // add object to metadata
+    metadata?: { [key: string]: string | number | boolean | null | Record<string, unknown> };
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;
@@ -64,10 +66,14 @@ function addUTCOffset(
   return data as WithUTCOffsetType<WebhookDataType>;
 }
 
+function getZapierPayloadNonBooking(data: Omit<WebhookDataType, "createdAt" | "triggerEvent">): string {
+  return JSON.stringify(data.metadata);
+}
+
 function getZapierPayload(
   data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
-  const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
+  const attendees = (data.attendees as (Person & UTCOffset)[])?.map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
@@ -149,7 +155,11 @@ const sendPayload = async (
 
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier") {
-    body = getZapierPayload({ ...data, createdAt });
+    if (triggerEvent === WebhookTriggerEvents.OOO_CREATED) {
+      body = getZapierPayloadNonBooking(data);
+    } else {
+      body = getZapierPayload({ ...data, createdAt });
+    }
   } else if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {

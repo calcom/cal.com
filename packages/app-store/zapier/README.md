@@ -58,7 +58,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
 
 ### Set ZAPIER_INVITE_LINK
 
-The invite link can be found under under Manage → Sharing.
+The invite link can be found under Manage → Sharing.
 
 ## Localhost
 
@@ -67,5 +67,5 @@ Localhost urls can not be used as the base URL for api endpoints
 Possible solution: using [https://ngrok.com/](https://ngrok.com/)
 
 1. Create Account
-2. [Download](https://ngrok.com/download) gnork and start a tunnel to your running localhost
+2. [Download](https://ngrok.com/download) ngrok and start a tunnel to your running localhost
    - Use forwarding url as your baseUrl for the URL endpoints

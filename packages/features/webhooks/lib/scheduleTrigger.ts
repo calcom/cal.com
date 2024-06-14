@@ -451,3 +451,89 @@ export async function updateTriggerForExistingBookings(
   );
   await Promise.all(promise);
 }
+
+export async function listOOOEntries(
+  appApiKey?: ApiKey,
+  account?: {
+    id: number;
+    name: string | null;
+    isTeam: boolean;
+  } | null
+) {
+  const userId = appApiKey ? appApiKey.userId : account && !account.isTeam ? account.id : null;
+  const teamId = appApiKey ? appApiKey.teamId : account && account.isTeam ? account.id : null;
+
+  try {
+    const where: Prisma.OutOfOfficeEntryWhereInput = {};
+    if (teamId) {
+      where.user = {
+        teams: {
+          some: {
+            id: teamId,
+          },
+        },
+      };
+    } else if (userId) {
+      where.userId = userId;
+    }
+
+    // early return
+    if (!where.userId && !where.user) {
+      return [];
+    }
+
+    const oooEntries = await prisma.outOfOfficeEntry.findMany({
+      where: {
+        ...where,
+        // only get entries that are active and have not ended
+        // if the end date is in the past, the entry is considered inactive
+        end: {
+          gte: new Date(),
+        },
+      },
+      orderBy: {
+        id: "desc",
+      },
+      select: {
+        id: true,
+        start: true,
+        end: true,
+        createdAt: true,
+        updatedAt: true,
+        notes: true,
+        reason: {
+          select: {
+            reason: true,
+            emoji: true,
+          },
+        },
+        reasonId: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        toUser: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+        uuid: true,
+      },
+    });
+
+    if (oooEntries.length === 0) {
+      return [];
+    }
+    return oooEntries;
+  } catch (err) {
+    log.error(
+      `Error retrieving list of ooo entries for user ${userId}. or teamId ${teamId}`,
+      safeStringify(err)
+    );
+  }
+}
