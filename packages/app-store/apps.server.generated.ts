@@ -77,6 +77,7 @@ export const apiHandlers = {
   "link-as-an-app": import("./templates/link-as-an-app/api"),
   twipla: import("./twipla/api"),
   typeform: import("./typeform/api"),
+  umami: import("./umami/api"),
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
   weather_in_your_calendar: import("./weather_in_your_calendar/api"),
