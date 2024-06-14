@@ -25,6 +25,7 @@ import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import type { Team } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -35,11 +36,12 @@ import { Form, Steps, showToast } from "@calcom/ui";
 import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
-import type { PersonalAccountProps, TeamsProp } from "@components/apps/installation/AccountsStepCard";
+import type { PersonalAccountProps } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
+import { TeamSelectStepCard } from "@components/apps/installation/TeamSelectStepCard";
 import type { TLocationOptions } from "@components/eventtype/Locations";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
@@ -61,6 +63,7 @@ const STEPS = [
   AppOnboardingSteps.ACCOUNTS_STEP,
   AppOnboardingSteps.EVENT_TYPES_STEP,
   AppOnboardingSteps.CONFIGURE_STEP,
+  AppOnboardingSteps.TEAM_SELECT_STEP,
 ] as const;
 
 type StepType = (typeof STEPS)[number];
@@ -74,10 +77,14 @@ type StepObj = Record<
   }
 >;
 
+export type TTeams = (Pick<Team, "id" | "name" | "logoUrl"> & {
+  alreadyInstalled: boolean;
+  selected: boolean;
+})[];
 type OnboardingPageProps = {
   appMetadata: AppMeta;
   step: StepType;
-  teams?: TeamsProp;
+  teams?: TTeams;
   personalAccount: PersonalAccountProps;
   eventTypes?: TEventType[];
   userName: string;
@@ -114,6 +121,11 @@ const OnboardingPage = ({
     [AppOnboardingSteps.ACCOUNTS_STEP]: {
       getTitle: () => `${t("select_account_header")}`,
       getDescription: (appName) => `${t("select_account_description", { appName })}`,
+      stepNumber: 1,
+    },
+    [AppOnboardingSteps.TEAM_SELECT_STEP]: {
+      getTitle: () => `${t("select_teams_header")}`,
+      getDescription: (appName) => `${t("select_teams_description", { appName })}`,
       stepNumber: 1,
     },
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
@@ -304,6 +316,14 @@ const OnboardingPage = ({
                   installableOnTeams={installableOnTeams}
                 />
               )}
+              {currentStep === AppOnboardingSteps.TEAM_SELECT_STEP && (
+                <TeamSelectStepCard
+                  teams={teams}
+                  onSelect={handleSelectAccount}
+                  loading={mutation.isPending}
+                  installableOnTeams={installableOnTeams}
+                />
+              )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
                 eventTypes &&
                 Boolean(eventTypes?.length) && (
@@ -394,6 +414,7 @@ const getUser = async (userId: number) => {
 
   const teams = user.teams.map(({ team }) => ({
     ...team,
+    selected: false,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
