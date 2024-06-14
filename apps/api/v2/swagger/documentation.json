@@ -575,6 +575,247 @@
         ]
       }
     },
+    "/users/{username}/event-types": {
+      "get": {
+        "operationId": "UsersController_getEventTypes",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventTypesOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
+    "/users/{username}/event-types/{eventSlug}": {
+      "get": {
+        "operationId": "UsersController_getEventType",
+        "parameters": [
+          {
+            "name": "username",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "eventSlug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
+    "/users": {
+      "get": {
+        "operationId": "UsersController_getUsersByUsernames",
+        "parameters": [
+          {
+            "name": "usernames",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetUsersOutput"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/event-types": {
+      "post": {
+        "operationId": "EventTypesController_2024_06_14_createEventType",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventTypeInput_2024_06_14"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypesController_2024_06_14_getEventTypes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventTypesOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
+    "/event-types/{eventTypeId}": {
+      "get": {
+        "operationId": "EventTypesController_2024_06_14_getEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      },
+      "patch": {
+        "operationId": "EventTypesController_2024_06_14_updateEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventTypeInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypesController_2024_06_14_deleteEventType",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteEventTypeOutput_2024_06_14"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Event types"
+        ]
+      }
+    },
     "/v2/event-types": {
       "post": {
         "operationId": "EventTypesController_2024_04_15_createEventType",
@@ -2167,6 +2408,510 @@
         },
         "required": [
           "refreshToken"
+        ]
+      },
+      "RecurringEvent_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "dtstart": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "interval": {
+            "type": "number"
+          },
+          "count": {
+            "type": "number"
+          },
+          "freq": {
+            "type": "number",
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          "until": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "tzid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "interval",
+          "count",
+          "freq"
+        ]
+      },
+      "User_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "avatarUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "metadata"
+        ]
+      },
+      "Schedule_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "timeZone"
+        ]
+      },
+      "EventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "ownerId": {
+            "type": "number"
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "bookingFields": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "slotInterval": {
+            "type": "number",
+            "nullable": true
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
+          },
+          "schedulingType": {
+            "type": "object",
+            "nullable": true
+          },
+          "recurringEvent": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/RecurringEvent_2024_06_14"
+              }
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "price": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          },
+          "lockTimeZoneToggleOnBookingPage": {
+            "type": "boolean"
+          },
+          "seatsPerTimeSlot": {
+            "type": "number",
+            "nullable": true
+          },
+          "forwardParamsSuccessRedirect": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "successRedirectUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "seatsShowAvailabilityCount": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isInstantEvent": {
+            "type": "boolean"
+          },
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/User_2024_06_14"
+            }
+          },
+          "schedule": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Schedule_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "ownerId",
+          "lengthInMinutes",
+          "title",
+          "slug",
+          "description",
+          "locations",
+          "bookingFields",
+          "disableGuests",
+          "schedulingType",
+          "recurringEvent",
+          "metadata",
+          "requiresConfirmation",
+          "price",
+          "currency",
+          "lockTimeZoneToggleOnBookingPage",
+          "seatsPerTimeSlot",
+          "forwardParamsSuccessRedirect",
+          "successRedirectUrl",
+          "seatsShowAvailabilityCount",
+          "isInstantEvent",
+          "users",
+          "schedule"
+        ]
+      },
+      "GetEventTypesOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UserOutput": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatarUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "weekStart": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "darkBrandColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "avatarUrl",
+          "weekStart",
+          "brandColor",
+          "darkBrandColor",
+          "metadata"
+        ]
+      },
+      "GetUsersOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserOutput"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "CreateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "description"
+        ]
+      },
+      "CreateEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateEventTypeInput": {
+        "type": "object",
+        "properties": {
+          "length": {
+            "type": "number",
+            "minimum": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "locations": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "disableGuests": {
+            "type": "boolean"
+          },
+          "minimumBookingNotice": {
+            "type": "number",
+            "minimum": 0
+          },
+          "beforeEventBuffer": {
+            "type": "number"
+          },
+          "afterEventBuffer": {
+            "type": "number"
+          },
+          "slotInterval": {
+            "type": "number"
+          }
+        }
+      },
+      "UpdateEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteData_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "length": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "length",
+          "title",
+          "slug"
+        ]
+      },
+      "DeleteEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeleteData_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "EventTypeLocation_2024_04_15": {

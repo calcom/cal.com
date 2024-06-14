@@ -1,6 +1,7 @@
 import { BookingsModule } from "@/ee/bookings/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
 import { GcalModule } from "@/ee/gcal/gcal.module";
 import { MeModule } from "@/ee/me/me.module";
 import { ProviderModule } from "@/ee/provider/provider.module";
@@ -18,6 +19,7 @@ import { Module } from "@nestjs/common";
     SchedulesModule_2024_06_11,
     MeModule,
     EventTypesModule_2024_04_15,
+    EventTypesModule_2024_06_14,
     CalendarsModule,
     BookingsModule,
     SlotsModule,
