@@ -75,6 +75,7 @@ export const apiHandlers = {
   "event-type-location-video-static": import("./templates/event-type-location-video-static/api"),
   "general-app-settings": import("./templates/general-app-settings/api"),
   "link-as-an-app": import("./templates/link-as-an-app/api"),
+  twipla: import("./twipla/api"),
   typeform: import("./typeform/api"),
   vimcal: import("./vimcal/api"),
   vital: import("./vital/api"),
