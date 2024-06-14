@@ -293,6 +293,22 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         )}
       />
       <Controller
+        name="autofillPrevResponse"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            data-testid="autofillPrevResponse"
+            title={t("autofill_prev_response")}
+            {...hideCalendarNotesLocked}
+            description={t("autofill_prev_response_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+          />
+        )}
+      />
+      <Controller
         name="successRedirectUrl"
         render={({ field: { value, onChange } }) => (
           <>

@@ -114,6 +114,7 @@ export const getEventTypeById = async ({
       assignAllTeamMembers: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
+      autofillPrevResponse: true,
       currency: true,
       bookingFields: true,
       useEventTypeDestinationCalendarEmail: true,

@@ -21,6 +21,7 @@ type UseInitialFormValuesProps = {
     guests: string[];
     name: string | null;
   };
+  prevResponse: Record<string, string> | null | undefined;
 };
 
 export function useInitialFormValues({
@@ -33,6 +34,7 @@ export function useInitialFormValues({
   hasSession,
   extraOptions,
   prefillFormParams,
+  prevResponse,
 }: UseInitialFormValuesProps) {
   const [initialValues, setDefaultValues] = useState<{
     responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
@@ -53,6 +55,7 @@ export function useInitialFormValues({
       const querySchema = getBookingResponsesPartialSchema({
         bookingFields: eventType.bookingFields,
         view: rescheduleUid ? "reschedule" : "booking",
+        prevResponse,
       });
 
       const parsedQuery = await querySchema.parseAsync({
@@ -136,11 +139,14 @@ export function useInitialFormValues({
     name,
     username,
     prefillFormParams,
+    prevResponse,
   ]);
 
   // When initialValues is available(after doing async schema parsing) or session is available(so that we can prefill logged-in user email and name), we need to reset the form with the initialValues
   // We also need the key to change if the bookingId changes, so that the form is reset and rerendered with the new initialValues
-  const key = `${Object.keys(initialValues).length}_${hasSession ? 1 : 0}_${initialValues?.bookingId ?? 0}`;
+  const key = `${prevResponse ? JSON.stringify(initialValues).length : Object.keys(initialValues).length}_${
+    hasSession ? 1 : 0
+  }_${initialValues?.bookingId ?? 0}_${prevResponse ? Object.keys(prevResponse).length : 0}`;
 
   return { initialValues, key };
 }

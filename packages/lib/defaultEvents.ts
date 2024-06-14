@@ -73,6 +73,7 @@ const commons = {
   timeZone: null,
   successRedirectUrl: "",
   forwardParamsSuccessRedirect: true,
+  autofillPrevResponse: false,
   teamId: null,
   scheduleId: null,
   availability: [],

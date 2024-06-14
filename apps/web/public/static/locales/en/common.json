@@ -833,6 +833,8 @@
   "add_input": "Add an Input",
   "disable_notes": "Hide notes in calendar",
   "disable_notes_description": "For privacy reasons, additional inputs and notes will be hidden in the calendar entry. They will still be sent to your email.",
+  "autofill_prev_response": "Autofill Previous Response",
+  "autofill_prev_response_description": "Autofill Invitee Name, Email, and Text Reminder Phone Number (when applicable) from prior bookings.",
   "requires_confirmation_description": "The booking needs to be manually confirmed before it is pushed to the integrations and a confirmation mail is sent.",
   "recurring_event": "Recurring Event",
   "recurring_event_description": "People can subscribe for recurring events",

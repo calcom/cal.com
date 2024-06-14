@@ -21,6 +21,7 @@ import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
+import { trpc } from "@calcom/trpc/react";
 
 type BookerWebWrapperAtomProps = BookerProps;
 
@@ -60,6 +61,14 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
   const { data: session } = useSession();
   const routerQuery = useRouterQuery();
   const hasSession = !!session;
+  const { data: prevResponse } = trpc.viewer.bookings.prevResponse.useQuery(
+    {
+      eventTypeId: event?.data?.id || 0,
+    },
+    {
+      enabled: hasSession && event?.data?.id !== undefined && event?.data?.autofillPrevResponse === true,
+    }
+  );
   const firstNameQueryParam = searchParams?.get("firstName");
   const lastNameQueryParam = searchParams?.get("lastName");
   const metadata = Object.keys(routerQuery)
@@ -88,6 +97,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    prevResponse: prevResponse?.responses as Record<string, string>,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({

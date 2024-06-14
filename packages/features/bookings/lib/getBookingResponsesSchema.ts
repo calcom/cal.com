@@ -8,17 +8,21 @@ import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-util
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
-type CommonParams = { bookingFields: BookingFields; view: View };
+type CommonParams = {
+  bookingFields: BookingFields;
+  view: View;
+  prevResponse?: Record<string, string> | null;
+};
 
 export const bookingResponse = dbReadResponseSchema;
 export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
-export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
+export const getBookingResponsesPartialSchema = ({ bookingFields, view, prevResponse }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
-  return preprocess({ schema, bookingFields, isPartialSchema: true, view });
+  return preprocess({ schema, bookingFields, isPartialSchema: true, view, prevResponse });
 };
 
 // Should be used when we know that not all fields responses are present
@@ -36,6 +40,7 @@ function preprocess<T extends z.ZodType>({
   bookingFields,
   isPartialSchema,
   view: currentView,
+  prevResponse,
 }: CommonParams & {
   schema: T;
   // It is useful when we want to prefill the responses with the partial values. Partial can be in 2 ways
@@ -46,11 +51,12 @@ function preprocess<T extends z.ZodType>({
   const preprocessed = z.preprocess(
     (responses) => {
       const parsedResponses = z.record(z.any()).nullable().parse(responses) || {};
+      const prevResponses = z.record(z.any()).nullish().parse(prevResponse) || {};
       const newResponses = {} as typeof parsedResponses;
       // if eventType has been deleted, we won't have bookingFields and thus we can't preprocess or validate them.
       if (!bookingFields) return parsedResponses;
       bookingFields.forEach((field) => {
-        const value = parsedResponses[field.name];
+        const value = prevResponses[field.name] || parsedResponses[field.name];
         if (value === undefined) {
           // If there is no response for the field, then we don't need to do any processing
           return;
