@@ -26,7 +26,7 @@ export class LinkLocation_2024_06_14 {
 }
 
 const integrations = ["cal-video"] as const;
-export type Integration = (typeof integrations)[number];
+export type Integration_2024_06_14 = (typeof integrations)[number];
 
 export class IntegrationLocation_2024_06_14 {
   @IsIn(locations)
@@ -34,7 +34,7 @@ export class IntegrationLocation_2024_06_14 {
 
   @IsIn(integrations)
   @DocsProperty({ example: integrations[0] })
-  integration!: Integration;
+  integration!: Integration_2024_06_14;
 }
 
 export class PhoneLocation_2024_06_14 {

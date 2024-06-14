@@ -78,3 +78,14 @@ export { getBookingInfo };
 export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
+
+export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+
+export {
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeLocations,
+  getResponseEventTypeLocations,
+  getResponseEventTypeBookingFields,
+  TransformedLocationsSchema,
+  BookingFieldsSchema,
+} from "@calcom/lib/event-types/transformers";
