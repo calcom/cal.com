@@ -36,7 +36,7 @@ describe("getAuditLogManager", () => {
     expect(auditLogManager).toBeInstanceOf(GenericAuditLogManager);
   });
 
-  test("Return ex[ected AuditLogManager", async () => {
+  test("Return expected AuditLogManager", async () => {
     fakeCredential.appId = "boxyhq-retraced";
     fakeCredential.key = {
       activeEnvironment: "test",
