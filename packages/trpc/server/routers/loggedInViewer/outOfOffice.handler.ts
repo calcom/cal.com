@@ -4,6 +4,8 @@ import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { OOOWebhookDataType } from "@calcom/features/webhooks/lib/sendPayload";
+import { getTranslation } from "@calcom/lib/server";
+import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
