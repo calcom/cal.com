@@ -1,5 +1,13 @@
 import { expect, test } from "vitest";
 
+test("Bulk invite should update subcription", async () => {
+  expect(true).toBe(false);
+});
+
+test("Bulk delete should update subcription", async () => {
+  expect(true).toBe(false);
+});
+
 test("TODO: Internal billing is called when team billing is enabled", async () => {
   expect(true).toBe(false);
 });

@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";

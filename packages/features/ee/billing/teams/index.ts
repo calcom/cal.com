@@ -33,7 +33,7 @@ export class TeamBilling {
   /** Fetch a single team with minimal data needed for billing */
   static async findBySubscriptionId(subscriptionId: string) {
     if (!IS_TEAM_BILLING_ENABLED) return stubTeam;
-    return prisma.team.findUniqueOrThrow({
+    return prisma.team.findFirstOrThrow({
       where: {
         metadata: {
           path: ["subscriptionId"],

@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
