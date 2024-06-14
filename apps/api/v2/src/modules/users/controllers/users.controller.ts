@@ -1,6 +1,7 @@
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
 import { GetEventTypesOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-types.output";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUsersOutput } from "@/modules/users/outputs/get-users.output";
 import { UsersService } from "@/modules/users/services/users.service";
 import { Controller, Get, Param, Query } from "@nestjs/common";
@@ -9,8 +10,8 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
-  path: "users",
-  version: "2",
+  path: "v2/users",
+  version: API_VERSIONS_VALUES,
 })
 export class UsersController {
   constructor(

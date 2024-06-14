@@ -5,7 +5,7 @@ import {
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
 } from "@calcom/platform-libraries-0.0.6";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
 export class InputEventTypesService_2024_06_14 {
@@ -30,6 +30,18 @@ export class InputEventTypesService_2024_06_14 {
       slug,
       locations: this.transformInputLocations(locations || defaultLocations),
       bookingFields: this.transformInputBookingFields(bookingFields),
+    };
+
+    return eventType;
+  }
+
+  transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14) {
+    const { locations, bookingFields, ...rest } = inputEventType;
+
+    const eventType = {
+      ...rest,
+      locations: locations ? this.transformInputLocations(locations) : undefined,
+      bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
     };
 
     return eventType;

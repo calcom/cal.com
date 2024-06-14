@@ -1,4 +1,3 @@
-import { UpdateEventTypeInput } from "@/ee/event-types/event-types_2024_06_14/inputs/update-event-type.input";
 import { CreateEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/create-event-type.output";
 import { DeleteEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/delete-event-type.output";
 import { GetEventTypeOutput_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/outputs/get-event-type.output";
@@ -27,10 +26,10 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Controller({
-  path: "event-types",
+  path: "/v2/event-types",
   version: VERSION_2024_06_14_VALUE,
 })
 @UseGuards(PermissionsGuard)
@@ -90,7 +89,7 @@ export class EventTypesController_2024_06_14 {
   @HttpCode(HttpStatus.OK)
   async updateEventType(
     @Param("eventTypeId") eventTypeId: number,
-    @Body() body: UpdateEventTypeInput,
+    @Body() body: UpdateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput_2024_06_14> {
     const eventType = await this.eventTypesService.updateEventType(eventTypeId, body, user);
@@ -114,7 +113,7 @@ export class EventTypesController_2024_06_14 {
       status: SUCCESS_STATUS,
       data: {
         id: eventType.id,
-        length: eventType.length,
+        lengthInMinutes: eventType.length,
         slug: eventType.slug,
         title: eventType.title,
       },

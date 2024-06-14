@@ -7,7 +7,7 @@ export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useConnectedCalendars } from "./hooks/useConnectedCalendars";
 export { useEventTypes } from "./hooks/event-types/useEventTypes";
 export { useEventType as useEvent } from "./hooks/event-types/useEventType";
-export { useEventTypeById } from "./hooks/event-types/behind-auth/useEventTypeById";
+export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";
 export { useCancelBooking } from "./hooks/useCancelBooking";
 export { useGetBooking } from "./hooks/useGetBooking";
 export { useGetBookings } from "./hooks/useGetBookings";

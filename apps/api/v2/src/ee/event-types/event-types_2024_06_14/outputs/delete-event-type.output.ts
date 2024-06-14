@@ -13,7 +13,7 @@ class DeleteData_2024_06_14 {
 
   @IsInt()
   @DocsProperty({ example: CREATE_EVENT_LENGTH_EXAMPLE })
-  length!: number;
+  lengthInMinutes!: number;
 
   @IsString()
   slug!: string;

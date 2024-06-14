@@ -1,6 +1,5 @@
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/constants/constants";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
-import { UpdateEventTypeInput } from "@/ee/event-types/event-types_2024_06_14/inputs/update-event-type.input";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -11,7 +10,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 
 import { createEventType, slugify, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
-import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -161,11 +160,12 @@ export class EventTypesService_2024_06_14 {
     return defaultEventTypes;
   }
 
-  async updateEventType(eventTypeId: number, body: UpdateEventTypeInput, user: UserWithProfile) {
+  async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
     this.checkCanUpdateEventType(user.id, eventTypeId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
+    const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
     await updateEventType({
-      input: { id: eventTypeId, ...body },
+      input: { id: eventTypeId, ...bodyTransformed },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment

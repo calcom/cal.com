@@ -575,7 +575,7 @@
         ]
       }
     },
-    "/users/{username}/event-types": {
+    "/v2/users/{username}/event-types": {
       "get": {
         "operationId": "UsersController_getEventTypes",
         "parameters": [
@@ -605,7 +605,7 @@
         ]
       }
     },
-    "/users/{username}/event-types/{eventSlug}": {
+    "/v2/users/{username}/event-types/{eventSlug}": {
       "get": {
         "operationId": "UsersController_getEventType",
         "parameters": [
@@ -643,7 +643,7 @@
         ]
       }
     },
-    "/users": {
+    "/v2/users": {
       "get": {
         "operationId": "UsersController_getUsersByUsernames",
         "parameters": [
@@ -668,152 +668,6 @@
             }
           }
         }
-      }
-    },
-    "/event-types": {
-      "post": {
-        "operationId": "EventTypesController_2024_06_14_createEventType",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateEventTypeInput_2024_06_14"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreateEventTypeOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
-      },
-      "get": {
-        "operationId": "EventTypesController_2024_06_14_getEventTypes",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetEventTypesOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
-      }
-    },
-    "/event-types/{eventTypeId}": {
-      "get": {
-        "operationId": "EventTypesController_2024_06_14_getEventType",
-        "parameters": [
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetEventTypeOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
-      },
-      "patch": {
-        "operationId": "EventTypesController_2024_06_14_updateEventType",
-        "parameters": [
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateEventTypeInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UpdateEventTypeOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
-      },
-      "delete": {
-        "operationId": "EventTypesController_2024_06_14_deleteEventType",
-        "parameters": [
-          {
-            "name": "eventTypeId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteEventTypeOutput_2024_06_14"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Event types"
-        ]
       }
     },
     "/v2/event-types": {
@@ -2805,48 +2659,9 @@
           "data"
         ]
       },
-      "UpdateEventTypeInput": {
+      "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
-        "properties": {
-          "length": {
-            "type": "number",
-            "minimum": 1
-          },
-          "slug": {
-            "type": "string"
-          },
-          "title": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "hidden": {
-            "type": "boolean"
-          },
-          "locations": {
-            "type": "array",
-            "items": {
-              "type": "object"
-            }
-          },
-          "disableGuests": {
-            "type": "boolean"
-          },
-          "minimumBookingNotice": {
-            "type": "number",
-            "minimum": 0
-          },
-          "beforeEventBuffer": {
-            "type": "number"
-          },
-          "afterEventBuffer": {
-            "type": "number"
-          },
-          "slotInterval": {
-            "type": "number"
-          }
-        }
+        "properties": {}
       },
       "UpdateEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -2875,7 +2690,7 @@
             "type": "number",
             "example": 1
           },
-          "length": {
+          "lengthInMinutes": {
             "type": "number",
             "example": 60
           },
@@ -2889,7 +2704,7 @@
         },
         "required": [
           "id",
-          "length",
+          "lengthInMinutes",
           "title",
           "slug"
         ]
