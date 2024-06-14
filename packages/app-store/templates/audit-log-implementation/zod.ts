@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  apiKey: z.string().min(1),
-  projectId: z.string().min(1),
-  endpoint: z.string().min(1),
-  disabledEvents: z.array(),
+  disabledEvents: z.array(z.string()),
+  projectId: z.string(),
+  endpoint: z.string(),
+  apiKey: z.string(),
 });
 
 export type AppKeys = z.infer<typeof appKeysSchema>;
