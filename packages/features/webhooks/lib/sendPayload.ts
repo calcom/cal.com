@@ -30,8 +30,8 @@ export type WithUTCOffsetType<T> = T & {
   attendees?: (Person & UTCOffset)[];
 };
 
-export type WebhookDataType = Partial<CalendarEvent> &
-  Partial<EventTypeInfo> & {
+export type WebhookDataType = CalendarEvent &
+  EventTypeInfo & {
     // add object to metadata
     metadata?: { [key: string]: string | number | boolean | null | Record<string, unknown> };
     bookingId?: number;
@@ -73,7 +73,7 @@ function getZapierPayloadNonBooking(data: Omit<WebhookDataType, "createdAt" | "t
 function getZapierPayload(
   data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
-  const attendees = (data.attendees as (Person & UTCOffset)[])?.map((attendee) => {
+  const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
       email: attendee.email,
