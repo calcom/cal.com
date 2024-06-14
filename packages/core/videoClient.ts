@@ -20,7 +20,7 @@ const log = logger.getSubLogger({ prefix: ["[lib] videoClient"] });
 const translator = short();
 
 // factory
-const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
+export const getVideoAdapters = async (withCredentials: CredentialPayload[]): Promise<VideoApiAdapter[]> => {
   const videoAdapters: VideoApiAdapter[] = [];
 
   for (const cred of withCredentials) {
@@ -384,30 +384,6 @@ const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: 
   return videoAdapter?.checkIfRoomNameMatchesInRecording?.(roomName, recordingId);
 };
 
-const getWebhooks = async () => {
-  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
-  try {
-    dailyAppKeys = await getDailyAppKeys();
-  } catch (e) {
-    console.error("Error: Cal video provider is not installed.");
-    return;
-  }
-  const [videoAdapter] = await getVideoAdapters([
-    {
-      id: 0,
-      appId: "daily-video",
-      type: "daily_video",
-      userId: null,
-      user: { email: "" },
-      teamId: null,
-      key: dailyAppKeys,
-      invalid: false,
-    },
-  ]);
-
-  return videoAdapter?.getWebhooks?.();
-};
-
 export {
   getBusyVideoTimes,
   createMeeting,
@@ -419,5 +395,4 @@ export {
   submitBatchProcessorTranscriptionJob,
   getTranscriptsAccessLinkFromRecordingId,
   checkIfRoomNameMatchesInRecording,
-  getWebhooks,
 };

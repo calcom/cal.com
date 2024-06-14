@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { getWebhooks } from "@calcom/core/videoClient";
+import type { TGetDailyWebhooks } from "@calcom/app-store/dailyvideo/zod";
+import { getDailyWebhooks } from "@calcom/core/getDailyWebhooks";
 import { sendSendgridMail } from "@calcom/features/ee/workflows/lib/reminders/providers/sendgridProvider";
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { defaultHandler } from "@calcom/lib/server";
@@ -12,9 +13,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
 
-  const webhooks = await getWebhooks();
+  const webhooks = await getDailyWebhooks();
 
-  const inactiveWebhooks = webhooks.filter((webhook) => webhook.state !== "ACTIVE");
+  const inactiveWebhooks = webhooks.filter(
+    (webhook: TGetDailyWebhooks[number]) => webhook.state !== "ACTIVE"
+  );
   if (inactiveWebhooks.length) {
     // Notify by sending email
     await sendSendgridMail(
