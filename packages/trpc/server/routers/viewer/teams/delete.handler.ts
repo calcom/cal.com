@@ -18,11 +18,7 @@ type DeleteOptions = {
 
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  const team = await prisma.team.findUniqueOrThrow({
-    where: { id: input.teamId },
-    select: { id: true, metadata: true, members: true, isOrganization: true },
-  });
-  const teamBilling = TeamBilling.create(team);
+  const teamBilling = TeamBilling.findAndCreate(input.teamId);
   await teamBilling.cancel();
   const deletedTeam = await prisma.$transaction(async (tx) => {
     // delete all memberships
