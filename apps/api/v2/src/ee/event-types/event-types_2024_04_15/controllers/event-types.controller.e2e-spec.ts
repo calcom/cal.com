@@ -1,13 +1,13 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { EventTypesModule } from "@/ee/event-types/event-types.module";
+import { Editable } from "@/ee/event-types/event-types_2024_04_15//inputs/enums/editable";
+import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
+import { BaseField } from "@/ee/event-types/event-types_2024_04_15/inputs/enums/field-type";
+import { UpdateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/update-event-type.input";
 import { GetEventTypePublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-type.output";
 import { GetEventTypesPublicOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types-public.output";
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
-import { Editable } from "@/ee/event-types/inputs/enums/editable";
-import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
-import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
@@ -40,7 +40,7 @@ describe("Event types Endpoints", () => {
     beforeAll(async () => {
       const moduleRef = await Test.createTestingModule({
         providers: [PrismaExceptionFilter, HttpExceptionFilter],
-        imports: [AppModule, UsersModule, EventTypesModule, TokensModule],
+        imports: [AppModule, UsersModule, EventTypesModule_2024_04_15, TokensModule],
       })
         .overrideGuard(PermissionsGuard)
         .useValue({
@@ -83,7 +83,7 @@ describe("Event types Endpoints", () => {
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
-          imports: [AppModule, UsersModule, EventTypesModule, TokensModule],
+          imports: [AppModule, UsersModule, EventTypesModule_2024_04_15, TokensModule],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -132,7 +132,7 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
-      const body: CreateEventTypeInput = {
+      const body: CreateEventTypeInput_2024_04_15 = {
         title: "Test Event Type",
         slug: "test-event-type",
         description: "A description of the test event type.",
@@ -173,7 +173,7 @@ describe("Event types Endpoints", () => {
     it("should update event type", async () => {
       const newTitle = "Updated title";
 
-      const body: UpdateEventTypeInput = {
+      const body: UpdateEventTypeInput_2024_04_15 = {
         title: newTitle,
         disableGuests: false,
         slotInterval: 30,
@@ -207,7 +207,7 @@ describe("Event types Endpoints", () => {
     it("should return 400 if param event type id is null", async () => {
       const locations = [{ type: "inPerson", address: "123 Main St" }];
 
-      const body: UpdateEventTypeInput = {
+      const body: UpdateEventTypeInput_2024_04_15 = {
         locations,
       };
 
@@ -217,7 +217,7 @@ describe("Event types Endpoints", () => {
     it("should update event type locations", async () => {
       const locations = [{ type: "inPerson", address: "123 Main St" }];
 
-      const body: UpdateEventTypeInput = {
+      const body: UpdateEventTypeInput_2024_04_15 = {
         locations,
       };
 
@@ -266,7 +266,7 @@ describe("Event types Endpoints", () => {
         },
       ];
 
-      const body: UpdateEventTypeInput = {
+      const body: UpdateEventTypeInput_2024_04_15 = {
         bookingFields,
       };
 
