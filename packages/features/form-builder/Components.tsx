@@ -23,7 +23,6 @@ import {
 } from "@calcom/ui";
 
 import { ComponentForField } from "./FormBuilderField";
-import { getAndUpdateNormalizedValues } from "./FormBuilderField";
 import { propsTypes } from "./propsTypes";
 import type { fieldSchema, FieldType, variantsConfigSchema } from "./schema";
 import { preprocessNameFieldDataWithVariant } from "./utils";
@@ -111,9 +110,8 @@ export const Components: Record<FieldType, Component> = {
   name: {
     propsType: propsTypes.name,
     // Keep special "name" type field and later build split(FirstName and LastName) variant of it.
-    factory: function NameInput(props) {
+    factory: (props) => {
       const { variant: variantName = "fullName" } = props;
-      const { t } = useLocale();
       const onChange = (name: string, value: string) => {
         let currentValue = props.value;
         if (typeof currentValue !== "object") {
@@ -141,13 +139,12 @@ export const Components: Record<FieldType, Component> = {
         }
         const variant = props.variants[variantName];
         const variantField = variant.fields[0];
-        const { placeholder, label } = getAndUpdateNormalizedValues(variantField, t);
         return (
           <InputField
             name="name"
             showAsteriskIndicator={true}
-            placeholder={placeholder}
-            label={label}
+            placeholder={variantField.placeholder}
+            label={variantField.label}
             containerClassName="w-full"
             readOnly={props.readOnly}
             value={value}
