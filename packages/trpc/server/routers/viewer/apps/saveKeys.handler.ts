@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { appKeysSchemas } from "@calcom/app-store/apps.keys-schemas.generated";
 import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
+import { prisma as importedPrisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
 
 // import prisma from "@calcom/prisma";
@@ -14,12 +15,12 @@ import type { TSaveKeysInputSchema } from "./saveKeys.schema";
 type SaveKeysOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-    prisma: PrismaClient;
+    prisma?: PrismaClient;
   };
   input: TSaveKeysInputSchema;
 };
 
-export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
+export const saveKeysHandler = async ({ ctx: { prisma = importedPrisma }, input }: SaveKeysOptions) => {
   const keysSchema = appKeysSchemas[input.dirName as keyof typeof appKeysSchemas];
   const keys = keysSchema.parse(input.keys);
 
@@ -30,7 +31,7 @@ export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
   if (!appMetadata?.dirName && appMetadata?.categories)
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "App metadata could not be found" });
 
-  await ctx.prisma.app.upsert({
+  const app = await prisma.app.upsert({
     where: {
       slug: input.slug,
     },
@@ -46,4 +47,9 @@ export const saveKeysHandler = async ({ ctx, input }: SaveKeysOptions) => {
       ...(input.fromEnabled && { enabled: true }),
     },
   });
+
+  return {
+    result: !!app,
+    data: { app },
+  };
 };
