@@ -1,10 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
-import {
-  purchaseTeamOrOrgSubscription,
-  updateQuantitySubscriptionFromStripe,
-} from "@calcom/features/ee/teams/lib/payments";
+import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
@@ -80,9 +77,8 @@ const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) =>
   const metadata = parseMetadataOrThrow(createdTeam.metadata);
 
   // We update the quantity of the parent ID (organization) subscription
-  if (IS_TEAM_BILLING_ENABLED) {
-    await updateQuantitySubscriptionFromStripe(createdTeam.parentId);
-  }
+  const teamBilling = await TeamBilling.findAndCreate(createdTeam.parentId);
+  await teamBilling.updateQuantity();
 
   if (!metadata?.requestedSlug) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
