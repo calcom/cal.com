@@ -3,20 +3,33 @@ import {
   AuditLogTriggerTargets,
   AuditLogSystemTriggerEvents,
   AuditLogAppTriggerEvents,
+  AuditLogCredentialTriggerEvents,
 } from "@calcom/prisma/enums";
 
 export const pathToAuditLogEvent: Record<string, any> = {
   // updateAppCredentials: {
-  //   action: AuditLogSystemTriggerEvents.SYSTEM_CREDENTIALS_UPDATED,
+  //   action: AuditLogSystemTriggerEvents.SYSTEM_SETTINGS_UPDATED,
   //   description: "App keys have been updated",
   //   crud: CRUD.UPDATE,
   //   target: AuditLogTriggerTargets.SYSTEM,
   // },
-  updateAppCredentials: {
-    action: AuditLogAppTriggerEvents.APP_KEYS_UPDATED,
-    description: "App keys have been updated",
+  toggleApp: {
+    action: AuditLogAppTriggerEvents.APP_TOGGLE,
+    description: "App has been enabled/disabled by admin.",
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.APPS,
+  },
+  saveKeys: {
+    action: AuditLogAppTriggerEvents.APP_KEYS_UPDATED,
+    description: "App keys have been updated by admin.",
+    crud: CRUD.UPDATE,
+    target: AuditLogTriggerTargets.APPS,
+  },
+  updateAppCredentials: {
+    action: AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED,
+    description: "App keys have been updated",
+    crud: CRUD.UPDATE,
+    target: AuditLogTriggerTargets.CREDENTIAL,
   },
   systemMisc: {
     action: AuditLogSystemTriggerEvents.SYSTEM_MISC,
