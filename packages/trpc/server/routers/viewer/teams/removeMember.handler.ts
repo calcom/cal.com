@@ -1,7 +1,6 @@
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import removeMember from "@calcom/features/ee/teams/lib/removeMember";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { isTeamAdmin, isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeamMembership } from "@calcom/lib/sync/SyncServiceManager";
@@ -81,12 +80,9 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
 
   // Sync Services
   memberships.flatMap((m) => closeComDeleteTeamMembership(m.membership.user));
-
-  if (IS_TEAM_BILLING_ENABLED) {
-    for (const teamId of teamIds) {
-      await updateQuantitySubscriptionFromStripe(teamId);
-    }
-  }
+  const teamsBilling = await TeamBilling.findAndCreateMany(teamIds);
+  const teamBillingPromises = teamsBilling.map((teamBilling) => teamBilling.updateQuantity());
+  await Promise.allSettled(teamBillingPromises);
 };
 
 export default removeMemberHandler;

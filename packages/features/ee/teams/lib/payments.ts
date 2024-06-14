@@ -191,18 +191,6 @@ export const getTeamWithPaymentMetadata = async (teamId: number) => {
   return { ...team, metadata };
 };
 
-export const cancelTeamSubscriptionFromStripe = async (teamId: number) => {
-  try {
-    const team = await getTeamWithPaymentMetadata(teamId);
-    const { subscriptionId } = team.metadata;
-    return await stripe.subscriptions.cancel(subscriptionId);
-  } catch (error) {
-    let message = "Unknown error on cancelTeamSubscriptionFromStripe";
-    if (error instanceof Error) message = error.message;
-    console.error(message);
-  }
-};
-
 export const updateQuantitySubscriptionFromStripe = async (teamId: number) => {
   try {
     const { url } = await checkIfTeamPaymentRequired({ teamId });

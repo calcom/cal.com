@@ -1,6 +1,5 @@
-import { updateQuantitySubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -18,18 +17,18 @@ import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
 import {
   checkPermissions,
-  getTeamOrThrow,
-  getUniqueUsernameOrEmailsOrThrow,
+  createMemberships,
+  createNewUsersConnectToOrgIfExists,
+  getExistingUsersToInvite,
   getOrgConnectionInfo,
   getOrgState,
-  sendSignupToOrganizationEmail,
-  getExistingUsersToInvite,
-  createNewUsersConnectToOrgIfExists,
-  createMemberships,
+  getTeamOrThrow,
+  getUniqueUsernameOrEmailsOrThrow,
   groupUsersByJoinability,
-  sendExistingUserTeamInviteEmails,
-  sendEmails,
   INVITE_STATUS,
+  sendEmails,
+  sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
@@ -166,13 +165,9 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     orgSlug,
   });
 
-  if (IS_TEAM_BILLING_ENABLED) {
-    if (team.parentId) {
-      await updateQuantitySubscriptionFromStripe(team.parentId);
-    } else {
-      await updateQuantitySubscriptionFromStripe(input.teamId);
-    }
-  }
+  const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+  await teamBilling.updateQuantity();
+
   return {
     ...input,
     numUsersInvited:

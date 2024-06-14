@@ -1,4 +1,10 @@
 export interface BillingService {
-  handleSubscriptionCreation(subscriptionId: string): Promise<void>;
+  checkoutSessionIsPaid(paymentId: string): Promise<boolean>;
   handleSubscriptionCancel(subscriptionId: string): Promise<void>;
+  handleSubscriptionCreation(subscriptionId: string): Promise<void>;
+  handleSubscriptionUpdate(args: {
+    subscriptionId: string;
+    subscriptionItemId: string;
+    membershipCount: number;
+  }): Promise<void>;
 }

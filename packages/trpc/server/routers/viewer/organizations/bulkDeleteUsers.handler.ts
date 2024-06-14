@@ -1,3 +1,4 @@
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { prisma } from "@calcom/prisma";
@@ -62,6 +63,10 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   // We do this in a transaction to make sure that all memberships are removed before we remove the organization relation from the user
   // We also do this to make sure that if one of the queries fail, the whole transaction fails
   await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
+
+  const teamBilling = await TeamBilling.findAndCreate(currentUser.organizationId);
+  console.log("teamBilling", teamBilling);
+  await teamBilling.updateQuantity();
 
   return {
     success: true,

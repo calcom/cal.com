@@ -1,19 +1,27 @@
+import { z } from "zod";
+
+import { TeamBilling } from "../../teams";
 import type { SWHMap } from "./__handler";
+
+const metadataSchema = z.object({
+  teamId: z.coerce.number(),
+});
 
 const handler = async (data: SWHMap["customer.subscription.deleted"]["data"]) => {
   const subscription = data.object;
   console.log("subscription", subscription);
-  const product = subscription.plan.product; // prod_QHXJrukWIu9X66
-  const price = subscription.plan.id; // price_1PQyFzH8UDiwIftkqcog1fM4
-  // await prisma.team.update({
-  //   where: {
-  //     metadata: {
-  //       path: ["subscriptionId"],
-  //       equals: subscription.id,
-  //     },
-  //   },
-  //   data: { pendingPayment: true },
-  // });
+  try {
+    const { teamId } = metadataSchema.parse(subscription.metadata);
+    const teamBilling = await TeamBilling.findAndCreate(teamId);
+    await teamBilling.downgrade();
+    return { success: true };
+  } catch (error) {
+    const team = await TeamBilling.findBySubscriptionId(subscription.id);
+    const teamBilling = TeamBilling.create(team);
+    await teamBilling.downgrade();
+    return { success: true };
+  }
+  return { success: false };
 };
 
 export default handler;

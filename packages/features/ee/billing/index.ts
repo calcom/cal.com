@@ -5,7 +5,7 @@ const globalForBilling = global as unknown as {
   billingService: BillingService;
 };
 
-export const billing = globalForBilling.billingService || new BillingFactory();
+const billing = globalForBilling.billingService || new BillingFactory();
 
 if (process.env.NODE_ENV !== "production") {
   globalForBilling.billingService = billing;
