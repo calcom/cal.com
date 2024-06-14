@@ -60,7 +60,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@sentry/nextjs": "^7.73.0",
+    "@sentry/nextjs": "^8.8.0",
     "@simplewebauthn/browser": "^10.0.0",
     "@simplewebauthn/server": "^10.0.0",
     "@stripe/react-stripe-js": "^1.10.0",
