@@ -1,6 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -133,6 +133,12 @@ const BookerComponent = ({
     onToggleCalendar,
   } = calendars;
 
+  const [isCalendarViewVisible, setIsCalendarViewVisible] = useState(true);
+  const datePickerMonthlyView = useRef<HTMLDivElement>(null);
+  const datePickerWeeklyView = useRef<HTMLDivElement>(null);
+  const [isScrollOnClickArrowEnabled, setEnabledScrollOnClickArrow] = useState(true);
+  const [intersectionObserver, setIntersectionObserver] = useState<IntersectionObserver | null>(null);
+
   const scrolledToTimeslotsOnce = useRef(false);
   const scrollToTimeSlots = () => {
     if (isMobile && !isEmbed && !scrolledToTimeslotsOnce.current) {
@@ -140,6 +146,57 @@ const BookerComponent = ({
       scrolledToTimeslotsOnce.current = true;
     }
   };
+
+  const createIntersectionObserver = () => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsCalendarViewVisible(entry.intersectionRatio > 0.98);
+      },
+      {
+        root: null,
+        rootMargin: "0px",
+        threshold: [1, 0.98],
+      }
+    );
+    setIntersectionObserver(observer);
+  };
+
+  const scrollToAndFromTimeSlots = () => {
+    if (isCalendarViewVisible) {
+      timeslotsRef.current?.scrollIntoView({ behavior: "smooth" });
+      return;
+    }
+    if (datePickerMonthlyView.current) {
+      datePickerMonthlyView.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (datePickerWeeklyView.current) {
+      datePickerWeeklyView.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const observeCalendar = () => {
+    if (!intersectionObserver) return;
+    if (datePickerWeeklyView.current) intersectionObserver.observe(datePickerWeeklyView.current);
+    if (datePickerMonthlyView.current) intersectionObserver.observe(datePickerMonthlyView.current);
+    return () => {
+      if (datePickerWeeklyView.current) {
+        intersectionObserver.unobserve(datePickerWeeklyView.current);
+      }
+      if (datePickerMonthlyView.current) {
+        intersectionObserver.unobserve(datePickerMonthlyView.current);
+      }
+    };
+  };
+
+  useEffect(() => {
+    return observeCalendar();
+  }, [datePickerWeeklyView.current, datePickerMonthlyView.current, bookerState]);
+
+  useEffect(() => {
+    if (timeslotsRef.current) {
+      // if visible timeslots count is less than 2 , scroll button can be hidden
+      setEnabledScrollOnClickArrow(timeslotsRef.current.clientHeight > 170);
+    }
+  }, [selectedDate, timeslotsRef.current]);
 
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
@@ -152,6 +209,11 @@ const BookerComponent = ({
   useEffect(() => {
     setSelectedTimeslot(slot || null);
   }, [slot, setSelectedTimeslot]);
+
+  useEffect(() => {
+    createIntersectionObserver();
+  }, []);
+
   const EventBooker = useMemo(() => {
     return bookerState === "booking" ? (
       <BookEventForm
@@ -348,10 +410,35 @@ const BookerComponent = ({
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3">
+                    <div ref={datePickerWeeklyView} className="mt-auto px-5 py-3">
                       <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
                     </div>
                   )}
+                {layout === "mobile" && isScrollOnClickArrowEnabled && (
+                  <div className="fixed bottom-0 right-0 p-4">
+                    <button
+                      onClick={scrollToAndFromTimeSlots}
+                      className="bg-brand-default text-brand flex h-10 w-10 items-center justify-center rounded-full">
+                      <svg
+                        className="h-6 w-6"
+                        style={{
+                          transition: "transform 0.3s ease-in-out",
+                          transform: isCalendarViewVisible ? "rotate(180deg)" : "rotate(0deg)",
+                        }}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M5 10l7-7m0 0l7 7m-7-7v18"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
               </BookerSection>
             </StickyOnDesktop>
 
@@ -371,19 +458,22 @@ const BookerComponent = ({
               {...fadeInLeft}
               initial="visible"
               className="md:border-subtle ml-[-1px] h-full flex-shrink px-5 py-3 md:border-l lg:w-[var(--booker-main-width)]">
-              <DatePicker
-                classNames={{
-                  datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
-                  datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
-                  datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
-                  datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
-                  datePickerDatesActive: customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
-                  datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
-                }}
-                event={event}
-                schedule={schedule}
-                scrollToTimeSlots={scrollToTimeSlots}
-              />
+              <div ref={datePickerMonthlyView}>
+                <DatePicker
+                  classNames={{
+                    datePickerContainer: customClassNames?.datePickerCustomClassNames?.datePickerContainer,
+                    datePickerTitle: customClassNames?.datePickerCustomClassNames?.datePickerTitle,
+                    datePickerDays: customClassNames?.datePickerCustomClassNames?.datePickerDays,
+                    datePickerDate: customClassNames?.datePickerCustomClassNames?.datePickerDate,
+                    datePickerDatesActive:
+                      customClassNames?.datePickerCustomClassNames?.datePickerDatesActive,
+                    datePickerToggle: customClassNames?.datePickerCustomClassNames?.datePickerToggle,
+                  }}
+                  event={event}
+                  schedule={schedule}
+                  scrollToTimeSlots={scrollToTimeSlots}
+                />
+              </div>
             </BookerSection>
 
             <BookerSection
