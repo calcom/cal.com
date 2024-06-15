@@ -1,11 +1,10 @@
-import { getRelevantCredentials } from "audit-logs/lib/handleAuditLogTrigger/getRelevantCredentials";
-
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
 import { createEvent } from "./createEvent";
+import { getRelevantCredentials } from "./getRelevantCredentials";
 import { reportEvent } from "./reportEvent";
 import { interceptSystemEvents } from "./systemEventsInterceptor";
 
@@ -41,8 +40,10 @@ export async function handleAuditLogTrigger({
         appKey.disabledEvents &&
         appKey.disabledEvents.includes(event.action) &&
         event.target.type !== AuditLogTriggerTargets.SYSTEM
-      )
+      ) {
+        log.silly("Event disabled for credential");
         continue;
+      }
 
       await reportEvent(credential, innerEvent);
     }

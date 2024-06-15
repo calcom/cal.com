@@ -9,6 +9,7 @@ import {
 import { log } from ".";
 
 export function interceptSystemEvents(innerEvent: any, credential: any) {
+  log.silly("System interceptor started.");
   if (
     (innerEvent.action === AuditLogAppTriggerEvents.APP_KEYS_UPDATED ||
       innerEvent.action === AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED) &&
@@ -34,6 +35,7 @@ export function interceptSystemEvents(innerEvent: any, credential: any) {
       }
     }
   }
+  log.silly("System interceptor complete.");
 
   return innerEvent;
 }
