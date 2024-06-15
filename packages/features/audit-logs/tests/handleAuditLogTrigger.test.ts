@@ -49,7 +49,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "updateAppCredentials",
+      trigger: "updateAppCredentials",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
@@ -79,7 +79,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "updateAppCredentials",
+      trigger: "updateAppCredentials",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
@@ -109,7 +109,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "updateAppCredentials",
+      trigger: "updateAppCredentials",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
@@ -164,7 +164,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "updateAppCredentials",
+      trigger: "updateAppCredentials",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
@@ -209,7 +209,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "toggleApp",
+      trigger: "toggleApp",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: result.data,
@@ -256,7 +256,7 @@ describe("handleAuditLogTrigger", () => {
     });
 
     await handleAuditLogTrigger({
-      action: "saveKeys",
+      trigger: "saveKeys",
       user: { id: 1, name: "Oliver Q." },
       source_ip: "127.0.0.0",
       data: result.data,

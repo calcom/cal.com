@@ -9,7 +9,7 @@ export const auditLogMiddleware = experimental_trpcMiddleware<{
   const result = await opts.next();
 
   await handleAuditLogTrigger({
-    path: opts.path,
+    trigger: opts.path,
     user: opts.ctx.user,
     sourceIp: opts.ctx.sourceIp,
     data: result.data,
