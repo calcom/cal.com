@@ -62,7 +62,7 @@ export class OAuthClientUsersService {
       await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id
     );
@@ -78,6 +78,7 @@ export class OAuthClientUsersService {
       user,
       tokens: {
         accessToken,
+        accessTokenExpiresAt,
         refreshToken,
       },
     };
