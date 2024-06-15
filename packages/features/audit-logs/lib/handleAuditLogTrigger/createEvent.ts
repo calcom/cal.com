@@ -28,10 +28,6 @@ export function createEvent(trigger: string, user: any, data: any, source_ip: st
       // if data.updatedAt == null then action: APPS.APP_CREATED
       dynamicSection = {
         ...triggerMeta,
-        actor: {
-          id: user.id.toString(),
-          name: user.name,
-        },
         target: {
           id: data.app.slug,
           name: data.app.slug,
@@ -42,10 +38,6 @@ export function createEvent(trigger: string, user: any, data: any, source_ip: st
     case AuditLogTriggerTargets.CREDENTIAL:
       dynamicSection = {
         ...triggerMeta,
-        actor: {
-          id: user.id.toString(),
-          name: user.name,
-        },
         target: {
           id: data.oldCredential.id,
           name: data.oldCredential.appId,
@@ -53,13 +45,19 @@ export function createEvent(trigger: string, user: any, data: any, source_ip: st
         },
       };
       break;
+    case AuditLogTriggerTargets.API_KEYS:
+      dynamicSection = {
+        ...triggerMeta,
+        target: {
+          id: data.apiKey.id,
+          name: data.apiKey.note,
+          type: AuditLogTriggerTargets.API_KEYS,
+        },
+      };
+      break;
     default:
       dynamicSection = {
         ...triggerMeta,
-        actor: {
-          id: user.id.toString(),
-          name: user.name,
-        },
         target: {
           id: data.id,
           name: data.appId,
@@ -70,6 +68,10 @@ export function createEvent(trigger: string, user: any, data: any, source_ip: st
   }
 
   return {
+    actor: {
+      id: user.id.toString(),
+      name: user.name,
+    },
     ...dynamicSection,
     is_anonymous: user.id === -1 ? true : false,
     is_failure: false,
