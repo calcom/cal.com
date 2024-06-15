@@ -150,12 +150,12 @@ const EmailEmbed = ({
   const [timezone] = useTimePreferences((state) => [state.timezone]);
 
   useInitializeBookerStore({
-    username,
+    username: !!eventType?.team?.id ? eventType?.team?.slug : username,
     eventSlug: eventType?.slug ?? "",
     eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
     org: orgSlug,
-    isTeamEvent,
+    isTeamEvent: !!eventType?.team?.id,
   });
 
   const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
