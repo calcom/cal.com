@@ -97,7 +97,7 @@ class CreateRetellLLMCommand implements Command<TCreateRetellLLMSchema> {
       }).then(ZCreateRetellLLMSchema.parse);
 
       const llmWebSocketUrlToBeUpdated = createdRetellLLM.llm_websocket_url;
-      await updateAgentWebsocketUrl(llmWebSocketUrlToBeUpdated);
+      await updateAgentWebsocketUrl(this.props.yourPhoneNumber, llmWebSocketUrlToBeUpdated);
 
       return createdRetellLLM;
     } catch (error) {
@@ -138,7 +138,7 @@ class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
       }).then(ZGetRetellLLMSchema.parse);
 
       const llmWebSocketUrlToBeUpdated = updatedRetellLLM.llm_websocket_url;
-      await updateAgentWebsocketUrl(llmWebSocketUrlToBeUpdated);
+      await updateAgentWebsocketUrl(this.props.yourPhoneNumber, llmWebSocketUrlToBeUpdated);
 
       return updatedRetellLLM;
     } catch (err) {
