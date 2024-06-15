@@ -1,0 +1,27 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dialpad",
+  "slug": "dialpad",
+  "type": "dialpad_conferencing",
+  "logo": "icon.svg",
+  "url": "https://example.com/link",
+  "variant": "conferencing",
+  "categories": [
+    "conferencing"
+  ],
+  "publisher": "Anik Dhabal Babu",
+  "email": "adhabal2002@gmail.com",
+  "appData": {
+    "location": {
+      "type": "integrations:{SLUG}_video",
+      "label": "{TITLE}",
+      "linkType": "static",
+      "organizerInputPlaceholder": "https://video.app/mylink",
+      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?video.app\\/[a-zA-Z0-9]*"
+    }
+  },
+  "description": "Free video meetings with\ra built-in Ai assistant",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static"
+}
