@@ -13,8 +13,8 @@ import { isAdminGuard } from "~/lib/utils/isAdmin";
 import { verifyApiKey } from "../../../lib/helpers/verifyApiKey";
 import { ScopeOfAdmin } from "../../../lib/utils/scopeOfAdmin";
 
-type CustomNextApiRequest = NextApiRequest & Request;
-type CustomNextApiResponse = NextApiResponse & Response;
+export type CustomNextApiRequest = NextApiRequest & Request;
+export type CustomNextApiResponse = NextApiResponse & Response;
 
 afterEach(() => {
   vi.resetAllMocks();
