@@ -1,8 +1,10 @@
 import type { NextMiddleware } from "next-api-middleware";
 
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
 import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
+import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
@@ -37,7 +39,20 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   // save the user id in the request for later use
   req.userId = apiKey.userId;
-  const { isAdmin, scope } = await isAdminGuard(req);
+  const { isAdmin, scope, user } = await isAdminGuard(req);
+
+  handleAuditLogTrigger({
+    trigger: "apiKeyUsed",
+    user: { id: user.id, name: user.name },
+    source_ip: getIP(req),
+    data: {
+      apiKey: {
+        id: apiKey.id,
+        note: apiKey.note,
+        apiEndpoint: { url: req.url.split("?")[0], method: req.method },
+      },
+    },
+  });
 
   req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
   req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
