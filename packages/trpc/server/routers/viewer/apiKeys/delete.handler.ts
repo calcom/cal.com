@@ -44,5 +44,8 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   return {
     id,
+    data: {
+      apiKey: apiKeyToDelete,
+    },
   };
 };

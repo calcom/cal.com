@@ -38,5 +38,10 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
     },
   });
 
-  return updatedApiKey;
+  return {
+    result: updatedApiKey,
+    data: {
+      apiKey: updatedApiKey,
+    },
+  };
 };
