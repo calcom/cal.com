@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import { RetellAIRepository } from "@calcom/features/ee/cal-ai-phone/retellAIRepository";
+import { RetellAIFacade } from "@calcom/features/ee/cal-ai-phone/retellAIFacade";
 import type { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -37,7 +37,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
 
   const generalPrompt = PROMPT_TEMPLATES[templateType].generalPrompt;
 
-  const retellAI = new RetellAIRepository({
+  const retellAI = new RetellAIFacade({
     templateType,
     yourPhoneNumber,
     loggedInUserTimeZone: ctx.user.timeZone,
@@ -79,7 +79,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
   });
 
   if (!aiPhoneCallConfig.llmId) {
-    const createdRetellLLM = await retellAI.createRetellLLMAndWebsocketUrl();
+    const createdRetellLLM = await retellAI.createRetellLLMAndUpdateWebsocketUrl();
 
     await ctx.prisma.aIPhoneCallConfiguration.update({
       where: {
@@ -93,7 +93,7 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId);
 
     if (retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage) {
-      const updatedRetellLLM = await retellAI.updatedRetellLLMAndWebsocketUrl(aiPhoneCallConfig.llmId);
+      const updatedRetellLLM = await retellAI.updatedRetellLLMAndUpdateWebsocketUrl(aiPhoneCallConfig.llmId);
       logger.debug("updated Retell LLM", updatedRetellLLM);
     }
   }
