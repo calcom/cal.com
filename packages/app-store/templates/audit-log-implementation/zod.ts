@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const appKeysSchema = z.object({
-  disabledEvents: z.array(z.string()),
+  disabledEvents: z.array(z.string().optional()),
   projectId: z.string(),
   endpoint: z.string(),
   apiKey: z.string(),
