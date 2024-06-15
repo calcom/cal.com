@@ -729,6 +729,15 @@ enum AuditLogCredentialTriggerEvents {
   CREDENTIAL_DELETED
 }
 
+enum AuditLogApiKeysTriggerEvents {
+  API_KEY_CREATED
+  API_KEY_UPDATED
+  API_KEY_DELETED
+  API_KEY_USED
+  API_KEY_LIST_ALL_KEYS
+  API_KEY_FIND_KEY
+}
+
 enum AuditLogTriggerTargets {
   BOOKING
   WEBHOOKS
