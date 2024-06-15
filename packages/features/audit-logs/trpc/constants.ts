@@ -4,6 +4,7 @@ import {
   AuditLogSystemTriggerEvents,
   AuditLogAppTriggerEvents,
   AuditLogCredentialTriggerEvents,
+  AuditLogApiKeysTriggerEvents,
 } from "@calcom/prisma/enums";
 
 export const triggerToMetadata: Record<string, any> = {
@@ -13,6 +14,30 @@ export const triggerToMetadata: Record<string, any> = {
   //   crud: CRUD.UPDATE,
   //   target: AuditLogTriggerTargets.SYSTEM,
   // },
+  apiKeyUsed: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_USED,
+    description: "An apiKey was used.",
+    crud: CRUD.READ,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
+  create: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_CREATED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
+  delete: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_DELETED,
+    description: "An apiKey was deleted.",
+    crud: CRUD.DELETE,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
+  edit: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_UPDATED,
+    description: "An apiKey was updated.",
+    crud: CRUD.UPDATE,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
   toggleApp: {
     action: AuditLogAppTriggerEvents.APP_TOGGLE,
     description: "App has been enabled/disabled by admin.",
