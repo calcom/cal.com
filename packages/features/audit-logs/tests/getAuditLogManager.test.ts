@@ -1,6 +1,5 @@
 import { test, describe, expect, beforeEach } from "vitest";
 
-import BoxyHQAuditLogManager from "@calcom/app-store/boxyhq-retraced/lib/AuditLogManager";
 import GenericAuditLogManager from "@calcom/app-store/templates/audit-log-implementation/lib/AuditLogManager";
 
 import { getAuditLogManager, auditLogImplementationsVault } from "../lib/getAuditLogManager";
@@ -39,18 +38,10 @@ describe("getAuditLogManager", () => {
   test("Return expected AuditLogManager", async () => {
     fakeCredential.appId = "boxyhq-retraced";
     fakeCredential.key = {
-      activeEnvironment: "test",
       endpoint: "localhost:3000",
       projectId: "dev",
+      apiKey: "dev",
       disabledEvents: [],
-      environments: {
-        test: {
-          id: "12354",
-          name: "Testing Environment",
-          token: "this is a token",
-        },
-      },
-      projectName: "Cal.com",
     };
 
     const auditLogManager = await getAuditLogManager({
@@ -58,7 +49,7 @@ describe("getAuditLogManager", () => {
       auditLogImplementations: auditLogImplementationsVault,
     });
 
-    expect(auditLogManager).toBeInstanceOf(BoxyHQAuditLogManager);
+    expect(auditLogManager).toBeInstanceOf(GenericAuditLogManager);
   });
 
   test("Return undefined when given a credential with incompatible type", async () => {
