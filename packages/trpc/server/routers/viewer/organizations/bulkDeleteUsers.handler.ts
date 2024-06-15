@@ -65,7 +65,6 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   await prisma.$transaction([removeProfiles, deleteMany, removeOrgrelation]);
 
   const teamBilling = await TeamBilling.findAndCreate(currentUser.organizationId);
-  console.log("teamBilling", teamBilling);
   await teamBilling.updateQuantity();
 
   return {
