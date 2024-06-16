@@ -10,6 +10,8 @@ import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders
 import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
 import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
@@ -303,20 +305,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     orgId,
   };
 
-  // await handleAuditLogTrigger({
-  //   event: {
-  //     action: AuditLogTriggerEvents.BOOKING_CANCELLED,
-  //     actor: {
-  //       id: ctx.user.id || "0",
-  //       name: ctx.user.name || "",
-  //     },
-  //     target: {
-  //       name: AuditLogTriggerTargets.BOOKING,
-  //     },
-  //   },
-  //   userId,
-  //   teamId,
-  // });
+  await handleAuditLogTrigger({
+    user: { id: ctx.user.id ?? -1, name: ctx.user.username },
+    data: {
+      ...evt,
+      smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+    },
+    trigger: AuditLogTriggerEvents.BOOKING_RESCHEDULED,
+    source_ip: sourceIp,
+  });
 
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>

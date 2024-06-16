@@ -28,8 +28,6 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
-  sendAttendeeRequestEmail,
-  sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmails,
@@ -72,6 +70,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getIP from "@calcom/lib/getIP";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -2286,8 +2285,8 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    // await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    // await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (booking.location?.startsWith("http")) {
@@ -2368,10 +2367,10 @@ async function handler(
     };
 
     await handleAuditLogTrigger({
-      req,
-      bookingData: webhookData,
-      action: AuditLogTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      crud: CRUD.CREATE,
+      user: { id: booking.userId ?? -1, name: "" },
+      data: webhookData,
+      trigger: AuditLogTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      source_ip: getIP(req),
     });
 
     await handleWebhookTrigger({
@@ -2454,13 +2453,14 @@ async function handler(
 
     // Send Webhook call if hooked to BOOKING_CREATED & BOOKING_RESCHEDULED
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
+
     await handleAuditLogTrigger({
-      req,
-      bookingData: webhookData,
-      action: rescheduleUid
+      user: { id: booking.userId ?? -1, name: "" },
+      data: webhookData,
+      trigger: rescheduleUid
         ? AuditLogTriggerEvents.BOOKING_RESCHEDULED
         : AuditLogTriggerEvents.BOOKING_CREATED,
-      crud: CRUD.CREATE,
+      source_ip: getIP(req),
     });
   } else {
     // if eventType requires confirmation we will trigger the BOOKING REQUESTED Webhook
@@ -2469,10 +2469,10 @@ async function handler(
     webhookData.status = "PENDING";
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
     await handleAuditLogTrigger({
-      req,
-      bookingData: webhookData,
-      action: AuditLogTriggerEvents.BOOKING_REQUESTED,
-      crud: CRUD.CREATE,
+      user: { id: req.userId ?? -1, name: "" },
+      data: webhookData,
+      trigger: AuditLogTriggerEvents.BOOKING_REQUESTED,
+      source_ip: getIP(req),
     });
   }
 

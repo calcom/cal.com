@@ -411,13 +411,10 @@ export const confirmHandler = async ({ ctx, input, sourceIp }: ConfirmOptions) =
     };
 
     await handleAuditLogTrigger({
-      req: {
-        source_ip: sourceIp,
-        userId: ctx.user.id,
-      },
-      bookingData: webhookData,
-      action: AuditLogBookingTriggerEvents.BOOKING_REJECTED,
-      crud: CRUD.UPDATE,
+      user: { id: ctx.user.id ?? -1, name: ctx.user.username ?? "" },
+      data: webhookData,
+      trigger: AuditLogBookingTriggerEvents.BOOKING_REJECTED,
+      source_ip: sourceIp,
     });
 
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });

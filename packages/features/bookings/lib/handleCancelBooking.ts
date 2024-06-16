@@ -7,7 +7,6 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
@@ -28,7 +27,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
+import { AuditLogBookingTriggerEvents, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
@@ -308,11 +307,11 @@ async function handler(req: CustomRequest) {
 
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
-  handleAuditLogTrigger({
-    action: AuditLogTriggerEvents.BOOKING_CANCELLED,
+  await handleAuditLogTrigger({
+    trigger: AuditLogBookingTriggerEvents.BOOKING_CANCELLED,
     user: {
       id: req.userId ?? -1,
-      name: "TODO UPDATE",
+      name: req.userId?.toString() ?? "User not logged in",
     },
     source_ip: getIP(req),
     data: {

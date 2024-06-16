@@ -12,6 +12,7 @@ import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import getIP from "@calcom/lib/getIP";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
@@ -387,21 +388,18 @@ export async function handleConfirmation(args: {
     );
 
     await handleAuditLogTrigger({
-      req: {
-        source_ip: "127.0.0.0",
-        userId: booking.userId,
-      },
-      bookingData: {
+      user: { id: booking.userId ?? -1, name: "" },
+      data: {
         ...evt,
         ...eventTypeInfo,
         bookingId,
         eventTypeId: booking.eventType?.id,
-        status: "ACCEPTED",
+        status: "CONFIRMED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
         metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       },
-      action: AuditLogBookingTriggerEvents.BOOKING_CONFIRMED,
-      crud: CRUD.CREATE,
+      trigger: AuditLogBookingTriggerEvents.BOOKING_CONFIRMED,
+      source_ip: "127.0.0.1",
     });
 
     await Promise.all(promises);
@@ -463,21 +461,18 @@ export async function handleConfirmation(args: {
       );
 
       await handleAuditLogTrigger({
-        req: {},
-        bookingData: {
+        user: { id: booking.userId ?? -1, name: "" },
+        data: {
           ...evt,
           ...eventTypeInfo,
           bookingId,
           eventTypeId: booking.eventType?.id,
-          status: "ACCEPTED",
+          status: "PAID",
           smsReminderNumber: booking.smsReminderNumber || undefined,
-          paymentId: bookingWithPayment?.payment?.[0].id,
-          metadata: {
-            ...(paid ? paymentMetadata : {}),
-          },
+          metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
         },
-        action: AuditLogBookingTriggerEvents.BOOKING_PAID,
-        crud: CRUD.UPDATE,
+        trigger: AuditLogBookingTriggerEvents.BOOKING_PAID,
+        source_ip: "127.0.0.1",
       });
 
       // I don't need to await for this
