@@ -4,7 +4,7 @@
   "slug": "dialpad",
   "type": "dialpad_conferencing",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://cal.com/apps/dialpad",
   "variant": "conferencing",
   "categories": [
     "conferencing"
@@ -15,12 +15,10 @@
     "location": {
       "type": "integrations:{SLUG}_video",
       "label": "{TITLE}",
-      "linkType": "static",
-      "organizerInputPlaceholder": "https://video.app/mylink",
-      "urlRegExp": "^http(s)?:\\/\\/(www\\.)?video.app\\/[a-zA-Z0-9]*"
+      "linkType": "dynamic"
     }
   },
-  "description": "Free video meetings with\ra built-in Ai assistant",
+  "description": "Free video meetings with a built-in Ai assistant",
   "isTemplate": false,
   "__createdUsingCli": true,
   "__template": "event-type-location-video-static"
