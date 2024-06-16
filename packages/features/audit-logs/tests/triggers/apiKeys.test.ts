@@ -1,4 +1,4 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../tests/libs/__mocks__/prisma";
 
 import { faker } from "@faker-js/faker";
 import { createMocks } from "node-mocks-http";
@@ -21,7 +21,7 @@ import { createHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/create
 import { deleteHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/delete.handler";
 import { editHandler } from "@calcom/trpc/server/routers/viewer/apiKeys/edit.handler";
 
-import { handleAuditLogTrigger } from "../lib/handleAuditLogTrigger";
+import { handleAuditLogTrigger } from "../../lib/handleAuditLogTrigger";
 
 vi.mock("@calcom/features/ee/common/server/checkLicense", () => {
   return {
