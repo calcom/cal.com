@@ -183,4 +183,22 @@ export class MembershipRepository {
       include: Prisma.validator<Prisma.MembershipInclude>()(include),
     });
   }
+
+  static async getUserIdByTeamRole({
+    role,
+    teamId,
+    select,
+  }: {
+    teamId: number;
+    role: MembershipRole;
+    select: Prisma.MembershipSelect;
+  }) {
+    return prisma.membership.findFirst({
+      where: {
+        teamId: teamId,
+        role,
+      },
+      select: Prisma.validator<Prisma.MembershipSelect>()(select),
+    });
+  }
 }
