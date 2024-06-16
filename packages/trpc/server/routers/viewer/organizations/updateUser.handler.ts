@@ -4,6 +4,7 @@ import { ensureOrganizationIsReviewed } from "@calcom/ee/organizations/lib/ensur
 import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkRegularUsername } from "@calcom/lib/server/checkRegularUsername";
 import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -59,35 +60,9 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   // Is requested user a member of the organization?
-  const requestedMember = await prisma.membership.findFirst({
-    where: {
-      userId: input.userId,
-      teamId: organizationId,
-      accepted: true,
-    },
-    include: {
-      team: {
-        include: {
-          children: {
-            where: {
-              members: {
-                some: {
-                  userId: input.userId,
-                },
-              },
-            },
-            include: {
-              members: true,
-            },
-          },
-        },
-      },
-      user: {
-        select: {
-          username: true,
-        },
-      },
-    },
+  const requestedMember = await MembershipRepository.getRequestedMember({
+    userId: input.userId,
+    orgId: organizationId,
   });
 
   if (!requestedMember)

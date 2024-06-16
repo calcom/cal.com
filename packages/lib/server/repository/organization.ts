@@ -14,6 +14,7 @@ const orgSelect = {
   slug: true,
   logoUrl: true,
 };
+
 export class OrganizationRepository {
   static async createWithExistingUserAsOwner({
     orgData,
