@@ -5,6 +5,7 @@ import {
   AuditLogAppTriggerEvents,
   AuditLogCredentialTriggerEvents,
   AuditLogApiKeysTriggerEvents,
+  AuditLogBookingTriggerEvents,
 } from "@calcom/prisma/enums";
 
 export const triggerToMetadata: Record<string, any> = {
@@ -14,11 +15,55 @@ export const triggerToMetadata: Record<string, any> = {
   //   crud: CRUD.UPDATE,
   //   target: AuditLogTriggerTargets.SYSTEM,
   // },
-  apiKeyUsed: {
-    action: AuditLogApiKeysTriggerEvents.API_KEY_USED,
-    description: "An apiKey was used.",
-    crud: CRUD.READ,
-    target: AuditLogTriggerTargets.API_KEYS,
+  [AuditLogBookingTriggerEvents.BOOKING_CREATED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_CREATED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+  [AuditLogBookingTriggerEvents.BOOKING_RESCHEDULED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_RESCHEDULED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+  [AuditLogBookingTriggerEvents.BOOKING_PAID]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_PAID,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+
+  [AuditLogBookingTriggerEvents.BOOKING_PAYMENT_INITIATED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_PAYMENT_INITIATED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+
+  [AuditLogBookingTriggerEvents.BOOKING_CONFIRMED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_CONFIRMED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+  [AuditLogBookingTriggerEvents.BOOKING_REJECTED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_REJECTED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+  [AuditLogBookingTriggerEvents.BOOKING_REQUESTED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_REQUESTED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
+  },
+  [AuditLogBookingTriggerEvents.BOOKING_CANCELLED]: {
+    action: AuditLogBookingTriggerEvents.BOOKING_CANCELLED,
+    description: "An apiKey was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.BOOKING,
   },
   create: {
     action: AuditLogApiKeysTriggerEvents.API_KEY_CREATED,
