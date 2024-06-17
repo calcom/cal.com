@@ -506,24 +506,6 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            {/* {!isPlatform ? (
-              <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && (
-                  <DateOverride
-                    workingHours={schedule.workingHours}
-                    userTimeFormat={timeFormat}
-                    travelSchedules={travelSchedules}
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                  />
-                )}
-              </div>
-            ) : (
-              <></>
-            )} */}
             <DateOverride
               workingHours={schedule.workingHours}
               userTimeFormat={timeFormat}
