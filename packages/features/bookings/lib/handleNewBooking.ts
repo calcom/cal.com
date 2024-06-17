@@ -1258,9 +1258,29 @@ async function handler(
   }
 
   let luckyUserResponse;
+  let isFirstSeat = true;
+
+  if (eventType.seatsPerTimeSlot) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: new Date(dayjs(reqBody.start).utc().format()),
+          },
+        ],
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+
+    if (booking) isFirstSeat = false;
+  }
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot) {
+  if (isFirstSeat) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
       users: IsFixedAwareUser[];
     } = {
