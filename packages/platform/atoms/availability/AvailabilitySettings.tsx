@@ -89,6 +89,7 @@ type AvailabilitySettingsProps = {
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
+  enableOverrides?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -234,6 +235,7 @@ export function AvailabilitySettings({
   isPlatform = false,
   customClassNames,
   disableEditableHeading = false,
+  enableOverrides = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -506,16 +508,18 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            <DateOverride
-              workingHours={schedule.workingHours}
-              userTimeFormat={timeFormat}
-              travelSchedules={travelSchedules}
-              weekStart={
-                ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                  weekStart
-                ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-              }
-            />
+            {enableOverrides && (
+              <DateOverride
+                workingHours={schedule.workingHours}
+                userTimeFormat={timeFormat}
+                travelSchedules={travelSchedules}
+                weekStart={
+                  ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                    weekStart
+                  ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                }
+              />
+            )}
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
