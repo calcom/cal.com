@@ -34,23 +34,21 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     const apiKeyHash = createHash("sha256").update(strippedApiKey).digest("hex");
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
-      throw new UnauthorizedException("Your apiKey is not valid");
+      throw new UnauthorizedException("Your api key is not valid");
     }
     const isKeyExpired =
       keyData.expiresAt && new Date().setHours(0, 0, 0, 0) > keyData.expiresAt.setHours(0, 0, 0, 0);
     if (isKeyExpired) {
-      throw new UnauthorizedException("Your apiKey is expired");
+      throw new UnauthorizedException("Your api key is expired");
     }
     const apiKeyOwnerId = keyData.userId;
     if (!apiKeyOwnerId) {
-      throw new UnauthorizedException("No user found for this apiKey");
+      throw new UnauthorizedException("No user tied to this apiKey");
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(apiKeyOwnerId);
 
-    if (!user) {
-      throw new UnauthorizedException("No user found for this apiKey");
-    }
+    return user;
   }
 
   async accessTokenStrategy(accessToken: string, origin?: string) {
@@ -78,10 +76,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
 
-    if (!user) {
-      throw new UnauthorizedException(INVALID_ACCESS_TOKEN);
-    }
-
     return user;
   }
 
@@ -94,10 +88,14 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
       throw new UnauthorizedException("No Authorization header provided");
     }
 
-    if (isApiKey) {
-      return this.apiKeyStrategy(authSring);
+    const user = isApiKey
+      ? await this.apiKeyStrategy(authSring)
+      : await this.accessTokenStrategy(authSring, requestOrigin);
+
+    if (!user) {
+      throw new UnauthorizedException("No user associated with the provided token");
     }
 
-    return this.accessTokenStrategy(authSring, requestOrigin);
+    return user;
   }
 }

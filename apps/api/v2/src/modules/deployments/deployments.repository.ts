@@ -7,7 +7,6 @@ export class DeploymentsRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   async getDeployment() {
-    const deployment = await this.dbRead.prisma.deployment.findFirst({ where: { id: 1 } });
-    return deployment;
+    return this.dbRead.prisma.deployment.findFirst({ where: { id: 1 } });
   }
 }
