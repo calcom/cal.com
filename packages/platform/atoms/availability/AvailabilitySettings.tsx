@@ -248,7 +248,6 @@ export function AvailabilitySettings({
   useEffect(() => {
     const subscription = form.watch(
       (value, { name }) => {
-        console.log(name);
         if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
           handleSubmit(value as AvailabilityFormValues);
       },
@@ -507,7 +506,7 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            {!isPlatform ? (
+            {/* {!isPlatform ? (
               <div className="border-subtle my-6 rounded-md border">
                 {schedule?.workingHours && (
                   <DateOverride
@@ -524,7 +523,17 @@ export function AvailabilitySettings({
               </div>
             ) : (
               <></>
-            )}
+            )} */}
+            <DateOverride
+              workingHours={schedule.workingHours}
+              userTimeFormat={timeFormat}
+              travelSchedules={travelSchedules}
+              weekStart={
+                ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                  weekStart
+                ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+              }
+            />
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">
             <div className="xl:max-w-80 w-full pr-4 sm:ml-0 sm:mr-36 sm:p-0">
