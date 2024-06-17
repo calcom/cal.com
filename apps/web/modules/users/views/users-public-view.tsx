@@ -14,7 +14,6 @@ import {
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
@@ -26,7 +25,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
-  const { t } = useLocale();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
