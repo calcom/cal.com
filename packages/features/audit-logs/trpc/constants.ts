@@ -40,7 +40,6 @@ export const triggerToMetadata: Record<string, any> = {
     crud: CRUD.CREATE,
     target: AuditLogTriggerTargets.BOOKING,
   },
-
   [AuditLogBookingTriggerEvents.BOOKING_CONFIRMED]: {
     action: AuditLogBookingTriggerEvents.BOOKING_CONFIRMED,
     description: "An apiKey was created.",
@@ -65,37 +64,37 @@ export const triggerToMetadata: Record<string, any> = {
     crud: CRUD.CREATE,
     target: AuditLogTriggerTargets.BOOKING,
   },
-  create: {
+  [AuditLogApiKeysTriggerEvents.API_KEY_CREATED]: {
     action: AuditLogApiKeysTriggerEvents.API_KEY_CREATED,
     description: "An apiKey was created.",
     crud: CRUD.CREATE,
     target: AuditLogTriggerTargets.API_KEYS,
   },
-  delete: {
+  [AuditLogApiKeysTriggerEvents.API_KEY_DELETED]: {
     action: AuditLogApiKeysTriggerEvents.API_KEY_DELETED,
     description: "An apiKey was deleted.",
     crud: CRUD.DELETE,
     target: AuditLogTriggerTargets.API_KEYS,
   },
-  edit: {
+  [AuditLogApiKeysTriggerEvents.API_KEY_UPDATED]: {
     action: AuditLogApiKeysTriggerEvents.API_KEY_UPDATED,
     description: "An apiKey was updated.",
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.API_KEYS,
   },
-  toggleApp: {
+  [AuditLogAppTriggerEvents.APP_TOGGLE]: {
     action: AuditLogAppTriggerEvents.APP_TOGGLE,
     description: "App has been enabled/disabled by admin.",
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.APPS,
   },
-  saveKeys: {
+  [AuditLogAppTriggerEvents.APP_KEYS_UPDATED]: {
     action: AuditLogAppTriggerEvents.APP_KEYS_UPDATED,
     description: "App keys have been updated by admin.",
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.APPS,
   },
-  updateAppCredentials: {
+  [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED]: {
     action: AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED,
     description: "App keys have been updated",
     crud: CRUD.UPDATE,
