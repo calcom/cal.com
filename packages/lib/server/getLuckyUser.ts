@@ -114,6 +114,17 @@ function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { pr
   );
 }
 
+function getUserbasedOnWeights<T extends Pick<User, "id" | "email">>({
+  availableUsers,
+  eventTypeId,
+}: {
+  availableUsers: T[];
+  eventTypeId: number;
+}) {
+  //count all bookings of all users
+  //get all OOO of the users and then check what the average bookings were and add that amount as fake bookings
+}
+
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export async function getLuckyUser<T extends Pick<User, "id" | "email"> & { priority?: number | null }>(

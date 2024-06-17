@@ -43,16 +43,30 @@ enum PeriodType {
 }
 
 model Host {
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
-  isFixed     Boolean   @default(false)
-  priority    Int?
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  eventType        EventType      @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId      Int
+  isFixed          Boolean        @default(false)
+  priority         Int?
+  weight           Int            @default(100)
+  weightAdjustment Int            @default(0)
+  oooEntryHosts    OOOEntryHost[]
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+}
+
+model OOOEntryHost {
+  id              Int              @id @default(autoincrement())
+  oooEntryId      Int
+  oooEntry        OutOfOfficeEntry @relation(fields: [oooEntryId], references: [id], onDelete: Cascade)
+  hostUserId      Int
+  hostEventTypeId Int
+  host            Host             @relation(fields: [hostUserId, hostEventTypeId], references: [userId, eventTypeId], onDelete: Cascade)
+
+  @@unique([oooEntryId, hostUserId, hostEventTypeId])
 }
 
 model EventType {
@@ -1220,17 +1234,18 @@ model Avatar {
 }
 
 model OutOfOfficeEntry {
-  id       Int                @id @default(autoincrement())
-  uuid     String             @unique
-  start    DateTime
-  end      DateTime
-  notes    String?
-  userId   Int
-  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  toUserId Int?
-  toUser   User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  reasonId Int?
-  reason   OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  id            Int                @id @default(autoincrement())
+  uuid          String             @unique
+  start         DateTime
+  end           DateTime
+  notes         String?
+  userId        Int
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  toUserId      Int?
+  toUser        User?              @relation(name: "toUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  reasonId      Int?
+  reason        OutOfOfficeReason? @relation(fields: [reasonId], references: [id], onDelete: SetNull)
+  oooEntryHosts OOOEntryHost[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
