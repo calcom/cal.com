@@ -17,7 +17,6 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { MembershipRole } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
@@ -86,13 +85,6 @@ function BookingListItem(booking: BookingItemProps) {
       utils.viewer.bookings.invalidate();
     },
   });
-
-  const { data: query } = trpc.viewer.teams.getMembershipbyUser.useQuery({
-    teamId: booking.eventType?.team?.id ?? -1,
-    memberId: userId ?? -1,
-  });
-
-  const isTeamOwnerOrAdmin = query?.role === MembershipRole.OWNER || query?.role === MembershipRole.ADMIN;
 
   const isUpcoming = new Date(booking.endTime) >= new Date();
   const isPast = new Date(booking.endTime) < new Date();
@@ -531,7 +523,7 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && (userId === booking.user?.id || isTeamOwnerOrAdmin) && (
+              {isPending && (userId === booking.user?.id || booking.user?.isTeamAdminOrOwner) && (
                 <TableActions actions={pendingActions} />
               )}
               {isConfirmed && <TableActions actions={bookedActions} />}
@@ -635,9 +627,9 @@ const RecurringBookingsTooltip = ({
 };
 
 interface UserProps {
-  id: number;
-  name: string | null;
-  email: string;
+  id?: number;
+  name?: string | null;
+  email?: string;
 }
 
 const FirstAttendee = ({
