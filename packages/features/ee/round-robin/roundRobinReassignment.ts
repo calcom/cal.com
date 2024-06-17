@@ -161,17 +161,15 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       continue;
     }
 
-    if (attendeeEmailsSet.has(user.email)) {
-      const tTeamMember = await getTranslation(user.locale ?? "en", "common");
-
-      teamMemberPromises.push({
+    teamMemberPromises.push(
+      getTranslation(user.locale ?? "en", "common").then((tTeamMember) => ({
         id: user.id,
         email: user.email,
         name: user.name || "",
         timeZone: user.timeZone,
         language: { translate: tTeamMember, locale: user.locale ?? "en" },
-      });
-    }
+      }))
+    );
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
@@ -195,17 +193,18 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     ) {
       continue;
     }
-    const tAttendee = await getTranslation(attendee.locale ?? "en", "common");
 
-    attendeePromises.push({
-      email: attendee.email,
-      name: attendee.name,
-      timeZone: attendee.timeZone,
-      language: { translate: tAttendee, locale: attendee.locale ?? "en" },
-    });
+    attendeePromises.push(
+      getTranslation(attendee.locale ?? "en", "common").then((tAttendee) => ({
+        email: attendee.email,
+        name: attendee.name,
+        timeZone: attendee.timeZone,
+        language: { translate: tAttendee, locale: attendee.locale ?? "en" },
+      }))
+    );
   }
 
-  const attendeeList = Promise.all(attendeePromises);
+  const attendeeList = await Promise.all(attendeePromises);
 
   const destinationCalendar = await (async () => {
     if (eventType?.destinationCalendar) {

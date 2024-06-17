@@ -496,7 +496,7 @@ export class UserRepository {
       members: {
         some: {
           userId,
-          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
         },
       },
     };
