@@ -835,7 +835,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       },
     });
 
-    await deleteWorkfowRemindersOfRemovedMember({ id: 1, parentId: org.id }, 101, false, prismock);
+    await deleteWorkfowRemindersOfRemovedMember({ id: 2, parentId: org.id }, 101, false, prismock);
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
