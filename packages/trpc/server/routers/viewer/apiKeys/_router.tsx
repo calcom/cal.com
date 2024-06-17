@@ -1,4 +1,5 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import { authedAdminProcedureWithAuditLogger } from "../../../procedures/authedProcedure";
+import { createCallerFactory } from "../../../trpc";
 import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
@@ -17,7 +18,7 @@ const UNSTABLE_HANDLER_CACHE: ApiKeysRouterHandlerCache = {};
 
 export const apiKeysRouter = router({
   // List keys
-  list: authedProcedure.query(async ({ ctx }) => {
+  list: authedAdminProcedureWithAuditLogger.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
       UNSTABLE_HANDLER_CACHE.list = await import("./list.handler").then((mod) => mod.listHandler);
     }
@@ -33,26 +34,28 @@ export const apiKeysRouter = router({
   }),
 
   // Find key of type
-  findKeyOfType: authedProcedure.input(ZFindKeyOfTypeInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
-      UNSTABLE_HANDLER_CACHE.findKeyOfType = await import("./findKeyOfType.handler").then(
-        (mod) => mod.findKeyOfTypeHandler
-      );
-    }
+  findKeyOfType: authedAdminProcedureWithAuditLogger
+    .input(ZFindKeyOfTypeInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
+        UNSTABLE_HANDLER_CACHE.findKeyOfType = await import("./findKeyOfType.handler").then(
+          (mod) => mod.findKeyOfTypeHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.findKeyOfType) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.findKeyOfType({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.findKeyOfType({
+        ctx,
+        input,
+      });
+    }),
 
   // Create a new key
-  create: authedProcedure.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
+  create: authedAdminProcedureWithAuditLogger.input(ZCreateInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.create) {
       UNSTABLE_HANDLER_CACHE.create = await import("./create.handler").then((mod) => mod.createHandler);
     }
@@ -68,7 +71,7 @@ export const apiKeysRouter = router({
     });
   }),
 
-  edit: authedProcedure.input(ZEditInputSchema).mutation(async ({ ctx, input }) => {
+  edit: authedAdminProcedureWithAuditLogger.input(ZEditInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.edit) {
       UNSTABLE_HANDLER_CACHE.edit = await import("./edit.handler").then((mod) => mod.editHandler);
     }
@@ -84,7 +87,7 @@ export const apiKeysRouter = router({
     });
   }),
 
-  delete: authedProcedure.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
+  delete: authedAdminProcedureWithAuditLogger.input(ZDeleteInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.delete) {
       UNSTABLE_HANDLER_CACHE.delete = await import("./delete.handler").then((mod) => mod.deleteHandler);
     }
@@ -100,3 +103,5 @@ export const apiKeysRouter = router({
     });
   }),
 });
+
+export const apiKeyRouterCreateCaller = createCallerFactory(apiKeysRouter);

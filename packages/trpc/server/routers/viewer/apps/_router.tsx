@@ -1,15 +1,12 @@
-import authedProcedure, {
-  authedAdminProcedure,
-  authedAdminProcedureWithAuditLogger,
-} from "../../../procedures/authedProcedure";
+import { authedAdminProcedureWithAuditLogger } from "../../../procedures/authedProcedure";
 import { router } from "../../../trpc";
+import { createCallerFactory } from "../../../trpc";
 import { checkGlobalKeysSchema } from "./checkGlobalKeys.schema";
 import { ZListLocalInputSchema } from "./listLocal.schema";
 import { ZQueryForDependenciesInputSchema } from "./queryForDependencies.schema";
 import { ZSaveKeysInputSchema } from "./saveKeys.schema";
 import { ZToggleInputSchema } from "./toggle.schema";
 import { ZUpdateAppCredentialsInputSchema } from "./updateAppCredentials.schema";
-import { ZUpdateCredentialSettingsInputSchema } from "./updateCredentialSettings.schema";
 
 type AppsRouterHandlerCache = {
   listLocal?: typeof import("./listLocal.handler").listLocalHandler;
@@ -25,25 +22,27 @@ type AppsRouterHandlerCache = {
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
 
 export const appsRouter = router({
-  listLocal: authedAdminProcedure.input(ZListLocalInputSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.listLocal) {
-      UNSTABLE_HANDLER_CACHE.listLocal = await import("./listLocal.handler").then(
-        (mod) => mod.listLocalHandler
-      );
-    }
+  listLocal: authedAdminProcedureWithAuditLogger
+    .input(ZListLocalInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.listLocal) {
+        UNSTABLE_HANDLER_CACHE.listLocal = await import("./listLocal.handler").then(
+          (mod) => mod.listLocalHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.listLocal) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.listLocal) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.listLocal({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.listLocal({
+        ctx,
+        input,
+      });
+    }),
 
-  toggle: authedAdminProcedure.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
+  toggle: authedAdminProcedureWithAuditLogger.input(ZToggleInputSchema).mutation(async ({ ctx, input }) => {
     if (!UNSTABLE_HANDLER_CACHE.toggle) {
       UNSTABLE_HANDLER_CACHE.toggle = await import("./toggle.handler").then((mod) => mod.toggleHandler);
     }
@@ -59,23 +58,27 @@ export const appsRouter = router({
     });
   }),
 
-  saveKeys: authedAdminProcedure.input(ZSaveKeysInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
-      UNSTABLE_HANDLER_CACHE.saveKeys = await import("./saveKeys.handler").then((mod) => mod.saveKeysHandler);
-    }
+  saveKeys: authedAdminProcedureWithAuditLogger
+    .input(ZSaveKeysInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
+        UNSTABLE_HANDLER_CACHE.saveKeys = await import("./saveKeys.handler").then(
+          (mod) => mod.saveKeysHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.saveKeys) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.saveKeys({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.saveKeys({
+        ctx,
+        input,
+      });
+    }),
 
-  checkForGCal: authedProcedure.query(async ({ ctx }) => {
+  checkForGCal: authedAdminProcedureWithAuditLogger.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.checkForGCal) {
       UNSTABLE_HANDLER_CACHE.checkForGCal = await import("./checkForGCal.handler").then(
         (mod) => mod.checkForGCalHandler
@@ -112,27 +115,7 @@ export const appsRouter = router({
       });
     }),
 
-  updateCredentialSettings: authedProcedure
-    .input(ZUpdateCredentialSettingsInputSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.updateCredentialSettings) {
-        UNSTABLE_HANDLER_CACHE.updateCredentialSettings = await import(
-          "./updateCredentialSettings.handler"
-        ).then((mod) => mod.updateCredentialSettingsHandler);
-      }
-
-      // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.updateCredentialSettings) {
-        throw new Error("Failed to load handler");
-      }
-
-      return UNSTABLE_HANDLER_CACHE.updateCredentialSettings({
-        ctx,
-        input,
-      });
-    }),
-
-  queryForDependencies: authedProcedure
+  queryForDependencies: authedAdminProcedureWithAuditLogger
     .input(ZQueryForDependenciesInputSchema)
     .query(async ({ ctx, input }) => {
       if (!UNSTABLE_HANDLER_CACHE.queryForDependencies) {
@@ -151,21 +134,25 @@ export const appsRouter = router({
         input,
       });
     }),
-  checkGlobalKeys: authedProcedure.input(checkGlobalKeysSchema).query(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
-      UNSTABLE_HANDLER_CACHE.checkGlobalKeys = await import("./checkGlobalKeys.handler").then(
-        (mod) => mod.checkForGlobalKeysHandler
-      );
-    }
+  checkGlobalKeys: authedAdminProcedureWithAuditLogger
+    .input(checkGlobalKeysSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
+        UNSTABLE_HANDLER_CACHE.checkGlobalKeys = await import("./checkGlobalKeys.handler").then(
+          (mod) => mod.checkForGlobalKeysHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.checkGlobalKeys) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.checkGlobalKeys({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.checkGlobalKeys({
+        ctx,
+        input,
+      });
+    }),
 });
+
+export const appsRouterCreateCaller = createCallerFactory(appsRouter);
