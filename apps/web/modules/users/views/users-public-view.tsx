@@ -79,7 +79,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
+            isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
