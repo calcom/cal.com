@@ -23,6 +23,8 @@ import {
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
+import { deleteWorkfowRemindersOfRemovedMember } from "../../../teams/lib/deleteWorkflowRemindersOfRemovedMember";
+
 const workflowSelect = {
   id: true,
   userId: true,
@@ -56,6 +58,7 @@ const mockEventTypes = [
     slotInterval: 30,
     length: 30,
     useEventTypeDestinationCalendarEmail: true,
+    owner: 101,
     users: [
       {
         id: 101,
@@ -67,6 +70,7 @@ const mockEventTypes = [
     slotInterval: 30,
     length: 30,
     useEventTypeDestinationCalendarEmail: true,
+    owner: 101,
     users: [
       {
         id: 101,
@@ -83,7 +87,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-05-22T04:00:00.000Z`,
     endTime: `2024-05-22T04:30:00.000Z`,
-    attendees: ["attendee@example.com"],
+    attendees: [{ email: "attendee@example.com" }],
   },
   {
     uid: "mL4Dx9jTkQbnWEu3pR7yNcF",
@@ -92,7 +96,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-05-23T04:00:00.000Z`,
     endTime: `2024-05-23T04:30:00.000Z`,
-    attendees: ["attendee@example.com"],
+    attendees: [{ email: "attendee@example.com" }],
   },
   {
     uid: "Fd9Rf8iYsOpmQUw9hB1vKd8",
@@ -101,7 +105,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-01T04:30:00.000Z`,
     endTime: `2024-06-01T05:00:00.000Z`,
-    attendees: ["attendee@example.com"],
+    attendees: [{ email: "attendee@example.com" }],
   },
   {
     uid: "Kd8Dx9jTkQbnWEu3pR7yKdl",
@@ -110,7 +114,7 @@ const mockBookings = [
     status: BookingStatus.ACCEPTED,
     startTime: `2024-06-02T04:30:00.000Z`,
     endTime: `2024-06-02T05:00:00.000Z`,
-    attendees: ["attendee@example.com"],
+    attendees: [{ email: "attendee@example.com" }],
   },
 ];
 
@@ -308,7 +312,7 @@ describe("deleteRemindersOfActiveOnIds", () => {
             trigger: "BEFORE_EVENT",
             action: "EMAIL_HOST",
             template: "REMINDER",
-            activeOn: [2, 3, 4],
+            activeOnTeams: [2, 3, 4],
           },
         ],
         eventTypes: mockEventTypes,
@@ -670,5 +674,204 @@ describe("scheduleBookingReminders", () => {
         expect(reminder.scheduled).toBe(false);
       }
     });
+  });
+});
+
+describe("deleteWorkfowRemindersOfRemovedMember", () => {
+  test("deletes all workflow reminders when member is removed from org", async ({}) => {
+    const org = await createOrganization({
+      name: "Test Org",
+      slug: "testorg",
+      withTeam: true,
+    });
+
+    // organizer is part of org and two teams
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      teams: [
+        {
+          membership: {
+            accepted: true,
+          },
+          team: {
+            id: 3,
+            name: "Team 1",
+            slug: "team-1",
+            parentId: org.id,
+          },
+        },
+        {
+          membership: {
+            accepted: true,
+          },
+          team: {
+            id: 4,
+            name: "Team 2",
+            slug: "team-2",
+            parentId: org.id,
+          },
+        },
+      ],
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Org Workflow",
+            teamId: 1,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOnTeams: [2, 3, 4],
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: mockBookings,
+        organizer,
+      })
+    );
+
+    await createWorkflowRemindersForWorkflow("Org Workflow");
+
+    await deleteWorkfowRemindersOfRemovedMember(org, 101, [], true, prismock);
+
+    const workflowReminders = await prismock.workflowReminder.findMany();
+    expect(workflowReminders.length).toBe(0);
+  });
+
+  test("deletes reminders if member is removed from an org team ", async ({}) => {
+    const org = await createOrganization({
+      name: "Test Org",
+      slug: "testorg",
+      withTeam: true,
+    });
+
+    // organizer is part of org and two teams
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      defaultScheduleId: null,
+      organizationId: org.id,
+      teams: [
+        {
+          membership: {
+            accepted: true,
+          },
+          team: {
+            id: 2,
+            name: "Team 1",
+            slug: "team-1",
+            parentId: org.id,
+          },
+        },
+        {
+          membership: {
+            accepted: true,
+          },
+          team: {
+            id: 3,
+            name: "Team 2",
+            slug: "team-2",
+            parentId: org.id,
+          },
+        },
+        {
+          membership: {
+            accepted: true,
+          },
+          team: {
+            id: 4,
+            name: "Team 3",
+            slug: "team-3",
+            parentId: org.id,
+          },
+        },
+      ],
+      schedules: [TestData.schedules.IstMorningShift],
+    });
+
+    await createBookingScenario(
+      getScenarioData({
+        workflows: [
+          {
+            name: "Org Workflow 1",
+            teamId: 1,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOnTeams: [2, 3, 4],
+          },
+          {
+            name: "Org Workflow 2",
+            teamId: 1,
+            trigger: "BEFORE_EVENT",
+            action: "EMAIL_HOST",
+            template: "REMINDER",
+            activeOnTeams: [2],
+          },
+        ],
+        eventTypes: mockEventTypes,
+        bookings: mockBookings,
+        organizer,
+      })
+    );
+
+    const subteams = [
+      { id: 1, parentId: org.id },
+      { id: 2, parentId: org.id },
+      { id: 3, parentId: org.id },
+      { id: 4, parentId: org.id },
+    ];
+
+    await createWorkflowRemindersForWorkflow("Org Workflow 1");
+    await createWorkflowRemindersForWorkflow("Org Workflow 2");
+
+    const tes = await prismock.membership.findMany();
+
+    await prismock.membership.delete({
+      where: {
+        userId: 101,
+        teamId: 2,
+      },
+    });
+
+    await deleteWorkfowRemindersOfRemovedMember(
+      subteams[1],
+      101,
+      subteams.filter((team) => team.id === 3 || team.id === 4),
+      false,
+      prismock
+    );
+
+    const workflowReminders = await prismock.workflowReminder.findMany({
+      select: {
+        workflowStep: {
+          select: {
+            workflow: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const workflow1Reminders = workflowReminders.filter(
+      (reminder) => reminder.workflowStep?.workflow.name === "Org Workflow 1"
+    );
+    const workflow2Reminders = workflowReminders.filter(
+      (reminder) => reminder.workflowStep?.workflow.name === "Org Workflow 2"
+    );
+
+    expect(workflow1Reminders.length).toBe(4);
+    expect(workflow2Reminders.length).toBe(0);
   });
 });

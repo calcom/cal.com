@@ -13,8 +13,6 @@ export async function deleteWorkfowRemindersOfRemovedMember(
   isOrg: boolean,
   prisma: PrismaClient = prismaDefault
 ) {
-  if (!team.parentId) return;
-
   if (isOrg) {
     // if member was removed from org, delete all workflowReminders of the removed team member that come from org workflows
     const workflowRemindersToDelete = await prisma.workflowReminder.findMany({
@@ -39,6 +37,8 @@ export async function deleteWorkfowRemindersOfRemovedMember(
 
     deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
   } else {
+    if (!team.parentId) return;
+
     // member was removed from an org team
     const isUserMemberOfOtherTeams = !otherTeams.filter((team) => team.id !== team.id && !!team.parentId)
       .length;
@@ -47,33 +47,40 @@ export async function deleteWorkfowRemindersOfRemovedMember(
       where: {
         OR: [
           {
-            activeOnTeams: {
-              some: {
-                teamId: team.id,
+            AND: [
+              {
+                activeOnTeams: {
+                  some: {
+                    teamId: team.id,
+                  },
+                },
               },
-              //don't delete reminder, if user is still part of another team that is active on this workflow
-              none: {
-                team: {
-                  members: {
-                    some: {
-                      userId: memberId,
+              {
+                activeOnTeams: {
+                  // Don't delete reminder if user is still part of another team that is active on this workflow
+                  none: {
+                    team: {
+                      members: {
+                        some: {
+                          userId: memberId,
+                        },
+                      },
                     },
                   },
                 },
               },
-            },
-            // if user is still a member of other teams in the org, we also need to make sure that the found workflow is not active on all teams
-            ...(isUserMemberOfOtherTeams && {
-              isActiveOnAll: false,
-            }),
+              ...(isUserMemberOfOtherTeams ? [{ isActiveOnAll: false }] : []),
+            ],
           },
-          {
-            // workflows of the org that are set active on all teams (and the user is not member of any other team)
-            teamId: team.parentId,
-            ...(!isUserMemberOfOtherTeams && {
-              isActiveOnAll: true,
-            }),
-          },
+          ...(!isUserMemberOfOtherTeams
+            ? [
+                {
+                  teamId: team.parentId,
+
+                  isActiveOnAll: true,
+                },
+              ]
+            : []),
         ],
       },
     });
