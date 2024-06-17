@@ -38,7 +38,9 @@ export async function getAuditLogManager({
     appImportFn = auditLogImplementations["genericImplementation"];
   }
 
+  log.silly("Importing app.");
   const auditLogsManager = await appImportFn();
+  log.silly("App successfully imported");
 
   if (!("zod" in auditLogsManager) || !("appKeysSchema" in auditLogsManager.zod)) {
     log.error(`Zod schemas not properly defined for ${credential.appId}`);
