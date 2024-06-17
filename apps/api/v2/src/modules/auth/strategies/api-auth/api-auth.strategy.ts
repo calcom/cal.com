@@ -36,18 +36,19 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     if (!keyData) {
       throw new UnauthorizedException("Your api key is not valid");
     }
+
     const isKeyExpired =
       keyData.expiresAt && new Date().setHours(0, 0, 0, 0) > keyData.expiresAt.setHours(0, 0, 0, 0);
     if (isKeyExpired) {
       throw new UnauthorizedException("Your api key is expired");
     }
+
     const apiKeyOwnerId = keyData.userId;
     if (!apiKeyOwnerId) {
       throw new UnauthorizedException("No user tied to this apiKey");
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(apiKeyOwnerId);
-
     return user;
   }
 
@@ -75,7 +76,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
-
     return user;
   }
 

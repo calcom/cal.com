@@ -3,7 +3,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { TestingModuleBuilder } from "@nestjs/testing";
 import { ApiAuthMockStrategy } from "test/mocks/api-auth-mock.strategy";
 
-export const withAccessTokenAuth = (email: string, module: TestingModuleBuilder) =>
+export const withApiAuth = (email: string, module: TestingModuleBuilder) =>
   module.overrideProvider(ApiAuthStrategy).useFactory({
     factory: (usersRepository: UsersRepository) => new ApiAuthMockStrategy(email, usersRepository),
     inject: [UsersRepository],

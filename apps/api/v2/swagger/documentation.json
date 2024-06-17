@@ -1872,7 +1872,6 @@
           },
           "weekStart": {
             "type": "string",
-            "example": "Monday",
             "enum": [
               "Monday",
               "Tuesday",
@@ -1881,7 +1880,8 @@
               "Friday",
               "Saturday",
               "Sunday"
-            ]
+            ],
+            "example": "Monday"
           },
           "email": {
             "type": "string"
@@ -1907,11 +1907,15 @@
           "refreshToken": {
             "type": "string",
             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "accessTokenExpiresAt": {
+            "type": "number"
           }
         },
         "required": [
           "accessToken",
-          "refreshToken"
+          "refreshToken",
+          "accessTokenExpiresAt"
         ]
       },
       "KeysResponseDto": {
