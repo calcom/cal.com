@@ -1,7 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { OrganizationIdGuard } from "@/modules/auth/guards/organization/organization-id.guard";
 import { ListUsersResponseDto } from "@/modules/organizations/controllers/outputs/listUsersResponse.dto";
 import { OrganizationUsersRepository } from "@/modules/organizations/repositories/organizationUsers.repository";
-import { Controller, Get, Param, Logger } from "@nestjs/common";
+import { Controller, Get, Param, Logger, UseGuards } from "@nestjs/common";
 import { ApiExcludeController } from "@nestjs/swagger";
 
 import { ApiResponse } from "@calcom/platform-types";
@@ -17,6 +18,7 @@ export class OrganizationsController {
   constructor(private readonly organizationUsersRepository: OrganizationUsersRepository) {}
 
   @Get("/:organizationId/users")
+  @UseGuards(OrganizationIdGuard)
   // @UseGuards(NextAuthGuard, OrganizationRolesGuard)
   // @Roles(["OWNER", "ADMIN"])
   async getOrganizationUsers(
