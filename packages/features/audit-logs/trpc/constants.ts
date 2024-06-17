@@ -6,6 +6,7 @@ import {
   AuditLogCredentialTriggerEvents,
   AuditLogApiKeysTriggerEvents,
   AuditLogBookingTriggerEvents,
+  AuditLogWebhookTriggerEvents,
 } from "@calcom/prisma/enums";
 
 export const triggerToMetadata: Record<string, any> = {
@@ -15,6 +16,30 @@ export const triggerToMetadata: Record<string, any> = {
   //   crud: CRUD.UPDATE,
   //   target: AuditLogTriggerTargets.SYSTEM,
   // },
+  [AuditLogWebhookTriggerEvents.WEBHOOK_TESTED]: {
+    action: AuditLogWebhookTriggerEvents.WEBHOOK_TESTED,
+    description: "Webhook was tested.",
+    crud: CRUD.READ,
+    target: AuditLogTriggerTargets.WEBHOOKS,
+  },
+  [AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED]: {
+    action: AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED,
+    description: "Webhook was updated.",
+    crud: CRUD.UPDATED,
+    target: AuditLogTriggerTargets.WEBHOOKS,
+  },
+  [AuditLogWebhookTriggerEvents.WEBHOOK_DELETED]: {
+    action: AuditLogWebhookTriggerEvents.WEBHOOK_DELETED,
+    description: "Webhook was deleted.",
+    crud: CRUD.DELETE,
+    target: AuditLogTriggerTargets.WEBHOOKS,
+  },
+  [AuditLogWebhookTriggerEvents.WEBHOOK_CREATED]: {
+    action: AuditLogWebhookTriggerEvents.WEBHOOK_CREATED,
+    description: "Webhook was created.",
+    crud: CRUD.CREATE,
+    target: AuditLogTriggerTargets.WEBHOOKS,
+  },
   [AuditLogBookingTriggerEvents.BOOKING_CREATED]: {
     action: AuditLogBookingTriggerEvents.BOOKING_CREATED,
     description: "An apiKey was created.",

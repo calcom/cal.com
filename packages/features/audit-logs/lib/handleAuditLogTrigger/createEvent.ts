@@ -55,6 +55,16 @@ export function createEvent(trigger: string, user: any, data: any, source_ip: st
         },
       };
       break;
+    case AuditLogTriggerTargets.WEBHOOKS:
+      dynamicSection = {
+        ...triggerMeta,
+        target: {
+          id: data.webhook.id,
+          name: data.webhook.id,
+          type: AuditLogTriggerTargets.WEBHOOKS,
+        },
+      };
+      break;
     default:
       dynamicSection = {
         ...triggerMeta,
