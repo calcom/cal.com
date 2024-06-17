@@ -4,16 +4,20 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import { experimental_trpcMiddleware } from "@trpc/server";
 
 export const auditLogMiddleware = experimental_trpcMiddleware<{
-  ctx: { user: NonNullable<TrpcSessionUser>; sourceIp: string | undefined; data: any }; // defaults to 'object' if not defined
+  ctx: { user: NonNullable<TrpcSessionUser>; sourceIp: string | undefined; data: any };
 }>().create(async (opts) => {
   const result = await opts.next();
 
   await handleAuditLogTrigger({
-    trigger: opts.path,
+    trigger: result.data.data.trigger,
     user: opts.ctx.user,
     sourceIp: opts.ctx.sourceIp,
-    data: result.data,
+    data: result.data.data,
   });
 
-  return result.result;
+  delete result.data.data;
+
+  return {
+    ...result,
+  };
 });
