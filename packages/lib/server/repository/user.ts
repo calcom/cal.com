@@ -8,6 +8,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
 import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
@@ -488,5 +489,31 @@ export class UserRepository {
           : undefined,
       },
     });
+  }
+
+  static async isAdminOfTeamAndParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          in: [MembershipRole.ADMIN, MembershipRole.OWNER],
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id,
+      },
+    });
+    return !!teams.length;
   }
 }

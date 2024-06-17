@@ -1,5 +1,7 @@
 import { prisma } from "@calcom/prisma";
 
+import { UserRepository } from "./user";
+
 export class BookingRepository {
   static async getBookingAttendees(bookingId: number) {
     return await prisma.attendee.findMany({
@@ -30,10 +32,14 @@ export class BookingRepository {
     if (userId === booking.userId) return true;
 
     // If the booking doesn't belong to the user and there's no team then return early
-    if (!booking.eventType.teamId) return false;
+    if (!booking.eventType || !booking.eventType.teamId) return false;
 
     // TODO add checks for team and org
+    const isAdminOrUser = await UserRepository.isAdminOfTeamAndParentOrg({
+      userId,
+      teamId: eventType.teamId,
+    });
 
-    return;
+    return isAdminOrUser;
   }
 }
