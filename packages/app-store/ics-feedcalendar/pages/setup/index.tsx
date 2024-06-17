@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, TextField } from "@calcom/ui";
+import { Alert, Button, Form, TextField, CheckboxField } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
 export default function ICSFeedSetup() {
@@ -17,6 +17,7 @@ export default function ICSFeedSetup() {
   const [urls, setUrls] = useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
+  const [skipWriting, setSkipWriting] = useState(false); // track if user opts out of writing to any calendar
 
   return (
     <div className="bg-emphasis flex h-screen">
@@ -40,7 +41,7 @@ export default function ICSFeedSetup() {
                   setErrorMessage("");
                   const res = await fetch("/api/integrations/ics-feedcalendar/add", {
                     method: "POST",
-                    body: JSON.stringify({ urls }),
+                    body: JSON.stringify({ urls, skipWriting }),
                     headers: {
                       "Content-Type": "application/json",
                     },
@@ -90,6 +91,17 @@ export default function ICSFeedSetup() {
                   }}>
                   {t("add")} <Icon name="plus" size={16} />
                 </button>
+
+                <div className="mt-3 flex items-center">
+                  <CheckboxField
+                    type="checkbox"
+                    id="skipWriting"
+                    checked={skipWriting}
+                    onChange={(e) => setSkipWriting(e.target.checked)}
+                    className="mr-2"
+                    description={t("skip_writing_to_calendar")}
+                  />
+                </div>
 
                 {errorMessage && (
                   <Alert
