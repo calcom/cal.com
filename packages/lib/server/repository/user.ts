@@ -502,7 +502,7 @@ export class UserRepository {
     };
     const teams = await prisma.team.findMany({
       where: {
-        teamId,
+        id: teamId,
         OR: [
           membershipQuery,
           {
@@ -511,7 +511,7 @@ export class UserRepository {
         ],
       },
       select: {
-        id,
+        id: true,
       },
     });
     return !!teams.length;

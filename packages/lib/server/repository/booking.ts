@@ -37,7 +37,7 @@ export class BookingRepository {
     // TODO add checks for team and org
     const isAdminOrUser = await UserRepository.isAdminOfTeamAndParentOrg({
       userId,
-      teamId: eventType.teamId,
+      teamId: booking.eventType.teamId,
     });
 
     return isAdminOrUser;

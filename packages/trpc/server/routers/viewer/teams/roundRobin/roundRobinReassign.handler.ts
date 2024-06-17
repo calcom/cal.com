@@ -13,8 +13,8 @@ type RoundRobinReassignOptions = {
   input: TRoundRobinReassignInputSchema;
 };
 
-export const roundRobinReassignHandler = async ({ input }: RoundRobinReassignOptions) => {
-  const { ctx, bookingId } = input;
+export const roundRobinReassignHandler = async ({ ctx, input }: RoundRobinReassignOptions) => {
+  const { bookingId } = input;
 
   // Check if user has access to change booking
   const isAllowed = await BookingRepository.doesUserIdHaveAccessToBooking({ userId: ctx.user.id, bookingId });
