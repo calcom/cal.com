@@ -229,6 +229,22 @@ export const buildCalendarEvent = (
   };
 };
 
+export const buildSession = (session: {
+  user?: UserPayload;
+  hasValidLicense?: boolean;
+  token?: { exp?: number; belongsToActiveTeam?: boolean; upId?: number; profileId?: number };
+}) => {
+  return {
+    user: session?.user ?? buildUser(),
+    hasValidLicense: session?.hasValidLicense ?? true,
+    expires: new Date(
+      typeof session?.token?.exp === "number" ? session?.token?.exp * 1000 : Date.now()
+    ).toISOString(),
+    profileId: session?.token?.profileId ?? 0,
+    upId: session?.token?.upId ?? "01",
+  };
+};
+
 type UserPayload = Prisma.UserGetPayload<{
   select: {
     locked: true;
