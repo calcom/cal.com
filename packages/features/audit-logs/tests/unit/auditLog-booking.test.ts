@@ -3,8 +3,7 @@ import prismock from "../../../../../tests/libs/__mocks__/prisma";
 import { vi, describe, test, expect } from "vitest";
 
 import { buildCredential } from "@calcom/lib/test/builder";
-import { IdentityProvider, AuditLogBookingTriggerEvents } from "@calcom/prisma/enums";
-import { buildMockData } from "@calcom/trpc/lib/tests";
+import { AuditLogBookingTriggerEvents } from "@calcom/prisma/enums";
 
 import { handleAuditLogTrigger } from "../../lib/handleAuditLogTrigger";
 import type { Credential } from ".prisma/client";
