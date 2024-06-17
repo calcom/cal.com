@@ -139,6 +139,7 @@ export const ReassignDialog = ({
           <DialogClose />
           <Button
             data-testid="rejection-confirm"
+            loading={roundRobinReassignMutation.isPending}
             onClick={() => {
               if (reassignTarget === "round-robin") {
                 roundRobinReassignMutation.mutate({ teamId, bookingId });

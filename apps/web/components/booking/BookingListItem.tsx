@@ -345,7 +345,9 @@ function BookingListItem(booking: BookingItemProps) {
         teamId={booking.eventType?.team?.id || 0}
         assignedHosts={
           booking.user
-            ? [booking.user.email || ""].concat(booking.attendees.map((attendee) => attendee.email))
+            ? [booking.user.userPrimaryEmail || ""].concat(
+                booking.attendees.map((attendee) => attendee.email)
+              )
             : []
         }
       />
