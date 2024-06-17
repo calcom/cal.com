@@ -21,7 +21,6 @@ type ReassignDialog = {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   hosts?: Host[];
-  assignedHosts: string[];
   teamId: number;
   bookingId: number;
 };
