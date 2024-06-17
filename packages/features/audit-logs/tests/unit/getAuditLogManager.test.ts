@@ -2,7 +2,7 @@ import { test, describe, expect, beforeEach } from "vitest";
 
 import GenericAuditLogManager from "@calcom/app-store/templates/audit-log-implementation/lib/AuditLogManager";
 
-import { getAuditLogManager, auditLogImplementationsVault } from "../lib/getAuditLogManager";
+import { getAuditLogManager, auditLogImplementationsVault } from "../../lib/getAuditLogManager";
 
 describe("getAuditLogManager", () => {
   let fakeCredential;
