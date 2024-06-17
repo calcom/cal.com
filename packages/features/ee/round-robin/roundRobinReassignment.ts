@@ -205,7 +205,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     });
   }
 
-  const attendeeList = await Promise.all(attendeePromises);
+  const attendeeList = Promise.all(attendeePromises);
 
   const destinationCalendar = await (async () => {
     if (eventType?.destinationCalendar) {
