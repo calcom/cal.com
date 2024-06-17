@@ -49,6 +49,7 @@ export async function buildMockData(
       username: "test",
       name: "Test User",
       email: "test@example.com",
+      role: "ADMIN",
       identityProvider,
       identityProviderId,
     },
