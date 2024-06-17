@@ -4,7 +4,7 @@ import { V2_ENDPOINTS, SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
-import http from "../../../lib/http";
+import http from "../../lib/http";
 
 export const QUERY_KEY = "use-event-by-id";
 export const useEventTypeById = (id: number | null) => {
