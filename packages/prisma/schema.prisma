@@ -738,6 +738,14 @@ enum AuditLogApiKeysTriggerEvents {
   API_KEY_FIND_KEY
 }
 
+enum AuditLogWebhookTriggerEvents {
+  WEBHOOK_CREATED
+  WEBHOOK_DELETED
+  WEBHOOK_UPDATED
+  WEBHOOK_TESTED
+  WEBHOOK_SCHEDULED
+}
+
 enum AuditLogTriggerTargets {
   BOOKING
   WEBHOOKS
