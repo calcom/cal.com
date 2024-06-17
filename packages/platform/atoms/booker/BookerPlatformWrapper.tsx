@@ -122,7 +122,6 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug);
 
-  console.log("asap data", data);
   const event = useMemo(() => {
     return {
       isSuccess,
