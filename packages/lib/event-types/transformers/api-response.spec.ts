@@ -1,8 +1,8 @@
 import type {
-  AddressLocation,
-  LinkLocation,
-  PhoneLocation,
-  IntegrationLocation,
+  AddressLocation_2024_06_14,
+  LinkLocation_2024_06_14,
+  PhoneLocation_2024_06_14,
+  IntegrationLocation_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { CommonField, OptionsField } from "./api-request";
@@ -14,13 +14,15 @@ describe("getResponseEventTypeLocations", () => {
       {
         type: "inPerson",
         address: "1234 Main St",
+        displayLocationPublicly: true,
       },
     ];
 
-    const expectedOutput: AddressLocation[] = [
+    const expectedOutput: AddressLocation_2024_06_14[] = [
       {
         type: "address",
         address: "1234 Main St",
+        public: true,
       },
     ];
 
@@ -34,13 +36,15 @@ describe("getResponseEventTypeLocations", () => {
       {
         type: "link",
         link: "https://example.com",
+        displayLocationPublicly: true,
       },
     ];
 
-    const expectedOutput: LinkLocation[] = [
+    const expectedOutput: LinkLocation_2024_06_14[] = [
       {
         type: "link",
         link: "https://example.com",
+        public: true,
       },
     ];
 
@@ -54,13 +58,15 @@ describe("getResponseEventTypeLocations", () => {
       {
         type: "userPhone",
         hostPhoneNumber: "123456789",
+        displayLocationPublicly: true,
       },
     ];
 
-    const expectedOutput: PhoneLocation[] = [
+    const expectedOutput: PhoneLocation_2024_06_14[] = [
       {
         type: "phone",
         phone: "123456789",
+        public: true,
       },
     ];
 
@@ -76,7 +82,7 @@ describe("getResponseEventTypeLocations", () => {
       },
     ];
 
-    const expectedOutput: IntegrationLocation[] = [
+    const expectedOutput: IntegrationLocation_2024_06_14[] = [
       {
         type: "integration",
         integration: "cal-video",

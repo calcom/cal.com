@@ -28,6 +28,7 @@ function getResponseEventTypeLocations(
         const addressLocation: AddressLocation_2024_06_14 = {
           type: "address",
           address: location.address,
+          public: location.displayLocationPublicly,
         };
         return addressLocation;
       }
@@ -38,6 +39,7 @@ function getResponseEventTypeLocations(
         const linkLocation: LinkLocation_2024_06_14 = {
           type: "link",
           link: location.link,
+          public: location.displayLocationPublicly,
         };
         return linkLocation;
       }
@@ -48,6 +50,7 @@ function getResponseEventTypeLocations(
         const phoneLocation: PhoneLocation_2024_06_14 = {
           type: "phone",
           phone: location.hostPhoneNumber,
+          public: location.displayLocationPublicly,
         };
         return phoneLocation;
       }

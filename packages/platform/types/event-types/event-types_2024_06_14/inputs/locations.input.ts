@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsUrl, IsIn, IsPhoneNumber } from "class-validator";
+import { IsString, IsUrl, IsIn, IsPhoneNumber, IsBoolean } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -14,6 +14,9 @@ export class AddressLocation_2024_06_14 {
   @IsString()
   @DocsProperty({ example: "123 Example St, City, Country" })
   address!: string;
+
+  @IsBoolean()
+  public!: boolean;
 }
 
 export class LinkLocation_2024_06_14 {
@@ -23,6 +26,9 @@ export class LinkLocation_2024_06_14 {
   @IsUrl()
   @DocsProperty({ example: "https://customvideo.com/join/123456" })
   link!: string;
+
+  @IsBoolean()
+  public!: boolean;
 }
 
 const integrations = ["cal-video"] as const;
@@ -44,6 +50,9 @@ export class PhoneLocation_2024_06_14 {
   @IsPhoneNumber()
   @DocsProperty({ example: "+37120993151" })
   phone!: string;
+
+  @IsBoolean()
+  public!: boolean;
 }
 
 export type Location_2024_06_14 =

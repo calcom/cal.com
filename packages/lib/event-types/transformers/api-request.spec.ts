@@ -14,10 +14,11 @@ describe("transformApiEventTypeLocations", () => {
       {
         type: "address",
         address: "London road 10-1",
+        public: true,
       },
     ];
 
-    const expectedOutput = [{ type: "inPerson", address: "London road 10-1" }];
+    const expectedOutput = [{ type: "inPerson", address: "London road 10-1", displayLocationPublicly: true }];
 
     const result = transformApiEventTypeLocations(input);
 
@@ -29,10 +30,13 @@ describe("transformApiEventTypeLocations", () => {
       {
         type: "link",
         link: "https://customvideo.com/join/123456",
+        public: true,
       },
     ];
 
-    const expectedOutput = input;
+    const expectedOutput = [
+      { type: "link", link: "https://customvideo.com/join/123456", displayLocationPublicly: true },
+    ];
 
     const result = transformApiEventTypeLocations(input);
 
@@ -59,10 +63,13 @@ describe("transformApiEventTypeLocations", () => {
       {
         type: "phone",
         phone: "+37120993151",
+        public: true,
       },
     ];
 
-    const expectedOutput = [{ type: "userPhone", hostPhoneNumber: "+37120993151" }];
+    const expectedOutput = [
+      { type: "userPhone", hostPhoneNumber: "+37120993151", displayLocationPublicly: true },
+    ];
 
     const result = transformApiEventTypeLocations(input);
 

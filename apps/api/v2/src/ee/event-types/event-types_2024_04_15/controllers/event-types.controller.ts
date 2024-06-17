@@ -74,9 +74,7 @@ export class EventTypesController_2024_04_15 {
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
   async getEventType(
-    @Param() params: EventTypeIdParams_2024_04_15,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
-
     @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput> {
     const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));

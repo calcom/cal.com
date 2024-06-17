@@ -1,7 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
@@ -24,7 +23,7 @@ import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { EventTypesByViewer, EventTypesPublic } from "@calcom/platform-libraries";
-import { ApiSuccessResponse } from "@calcom/platform-types";
+import { ApiSuccessResponse, CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -125,22 +124,14 @@ describe("Event types Endpoints", () => {
     });
 
     it("should create an event type", async () => {
-      const body: CreateEventTypeInput = {
+      const body: CreateEventTypeInput_2024_06_14 = {
         title: "Test Event Type",
-        slug: "test-event-type",
         description: "A description of the test event type.",
         lengthInMinutes: 60,
-        hidden: false,
-        disableGuests: true,
-        slotInterval: 15,
-        afterEventBuffer: 5,
-        beforeEventBuffer: 10,
-        minimumBookingNotice: 120,
         locations: [
           {
-            type: "Online",
-            link: "https://example.com/meet",
-            displayLocationPublicly: true,
+            type: "integration",
+            integration: "cal-video",
           },
         ],
       };

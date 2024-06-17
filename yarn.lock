@@ -4065,10 +4065,9 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-libraries-0.0.10": "npm:@calcom/platform-libraries@0.0.10"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4"
-    "@calcom/platform-libraries-0.0.6": "npm:@calcom/platform-libraries@0.0.6"
-    "@calcom/platform-libraries-0.0.7": "npm:@calcom/platform-libraries@0.0.7"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -5020,6 +5019,17 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/platform-libraries-0.0.10@npm:@calcom/platform-libraries@0.0.10":
+  version: 0.0.10
+  resolution: "@calcom/platform-libraries@npm:0.0.10"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: b5d760970bcdaf2c35451e7b667288747e75cab55e752a1555360169412d7864334ad415a49bf31f4be06e1f4c2bd95971d7d6bdc58e3518a29a587b2546940a
+  languageName: node
+  linkType: hard
+
 "@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
@@ -5039,28 +5049,6 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 3e8cba76f767398f9ffb95575913514925b7a51a15791741a521284eabdaba5d52f85fbcd9f032b3f2f3a6130520e67049cd8ba6f96ae4f87597de5019710c7f
-  languageName: node
-  linkType: hard
-
-"@calcom/platform-libraries-0.0.6@npm:@calcom/platform-libraries@0.0.6":
-  version: 0.0.6
-  resolution: "@calcom/platform-libraries@npm:0.0.6"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 5eac2c800fca8ea05a36703e1a19c97a942a30a9b03896a4539b7ce8049cbd6c8f21b8f3f1c5c406c2f61dc359a23c6bf0aa9f742a20c054edff2655ed5a76f3
-  languageName: node
-  linkType: hard
-
-"@calcom/platform-libraries-0.0.7@npm:@calcom/platform-libraries@0.0.7":
-  version: 0.0.7
-  resolution: "@calcom/platform-libraries@npm:0.0.7"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 12db6e4c6f6a38b9df67430a8ff05a80d408dcb7b59f18bdaf1d560698b563b73ef64471fc873fdc434ba1ffa08a23832fd039a6267faa1ae7848d994458a1d0
   languageName: node
   linkType: hard
 
@@ -5405,6 +5393,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/twipla@workspace:packages/app-store/twipla":
+  version: 0.0.0-use.local
+  resolution: "@calcom/twipla@workspace:packages/app-store/twipla"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/typeform@workspace:packages/app-store/typeform":
   version: 0.0.0-use.local
   resolution: "@calcom/typeform@workspace:packages/app-store/typeform"
@@ -5457,6 +5454,15 @@ __metadata:
     react-select: ^5.7.0
     react-virtual: ^2.10.4
     typescript: ^4.9.4
+  languageName: unknown
+  linkType: soft
+
+"@calcom/umami@workspace:packages/app-store/umami":
+  version: 0.0.0-use.local
+  resolution: "@calcom/umami@workspace:packages/app-store/umami"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
   languageName: unknown
   linkType: soft
 
