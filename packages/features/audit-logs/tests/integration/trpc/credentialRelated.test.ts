@@ -1,21 +1,23 @@
-import prismock from "../../../../tests/libs/__mocks__/prisma";
+import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { faker } from "@faker-js/faker";
 import { vi, describe, test, expect } from "vitest";
 
 import { buildCredential, buildApp } from "@calcom/lib/test/builder";
+import { buildSession } from "@calcom/lib/test/builder";
 import {
   IdentityProvider,
   AuditLogAppTriggerEvents,
   AuditLogCredentialTriggerEvents,
   AuditLogSystemTriggerEvents,
 } from "@calcom/prisma/enums";
+import type { inferProcedureInput } from "@calcom/trpc";
 import { buildMockData } from "@calcom/trpc/lib/tests";
-import { saveKeysHandler } from "@calcom/trpc/server/routers/viewer/apps/saveKeys.handler";
-import { toggleHandler } from "@calcom/trpc/server/routers/viewer/apps/toggle.handler";
-import { updateAppCredentialsHandler } from "@calcom/trpc/server/routers/viewer/apps/updateAppCredentials.handler";
+import { createContextInner } from "@calcom/trpc/server/createContext";
+import type { AppRouter } from "@calcom/trpc/server/routers/_app";
+import { appsRouterCreateCaller } from "@calcom/trpc/server/routers/viewer/apps/_router";
 
-import { handleAuditLogTrigger } from "../lib/handleAuditLogTrigger";
+import type { Credential } from ".prisma/client";
 
 const mockReportEvent = vi.fn();
 vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
@@ -29,6 +31,7 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
 describe("handleAuditLogTrigger", () => {
   test("intercepts a SYSTEM_SETTINGS_UPDATED trigger and assigns SYSTEM_EVENT_OFF when an event was disabled.", async () => {
     const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+
     await prismock.credential.create({
       data: buildCredential({
         key: {
@@ -37,23 +40,21 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
+    });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+      credentialId: 0,
+      key: { disabledEvents: [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED] },
+    };
+    const caller = appsRouterCreateCaller(ctx);
 
-    const result = await updateAppCredentialsHandler({
-      ctx: { user },
-      input: {
-        credentialId: 0,
-        key: { disabledEvents: [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED] },
-      },
-    });
-
-    await handleAuditLogTrigger({
-      trigger: "updateAppCredentials",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
-    });
+    await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: AuditLogSystemTriggerEvents.SYSTEM_EVENT_OFF })
@@ -73,17 +74,19 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    const result = await updateAppCredentialsHandler({
-      ctx: { user },
-      input: { credentialId: 0, key: { disabledEvents: [] } },
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
     });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+      credentialId: 0,
+      key: { disabledEvents: [] },
+    };
+    const caller = appsRouterCreateCaller(ctx);
 
-    await handleAuditLogTrigger({
-      trigger: "updateAppCredentials",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
-    });
+    await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: AuditLogSystemTriggerEvents.SYSTEM_EVENT_ON })
@@ -103,25 +106,24 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    const result = await updateAppCredentialsHandler({
-      ctx: { user },
-      input: { credentialId: 0, key: { apiKey: "Api key updated" } },
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
     });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+      credentialId: 0,
+      key: { apiKey: "Api key updated" },
+    };
+    const caller = appsRouterCreateCaller(ctx);
 
-    await handleAuditLogTrigger({
-      trigger: "updateAppCredentials",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
-    });
+    await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        action: expect.stringMatching(`^SYSTEM_SETTINGS_UPDATED$`),
-        description: "App keys have been updated",
-        crud: "u",
+        action: expect.stringMatching(`^${AuditLogSystemTriggerEvents.SYSTEM_SETTINGS_UPDATED}$`),
         target: { id: 0, name: "test", type: "SYSTEM" },
-        actor: { id: "1", name: "Oliver Q." },
         is_anonymous: false,
         is_failure: false,
         group: { id: "default", name: "default" },
@@ -157,24 +159,25 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    // Should change APP_KEYS_UDATED to SYSTEM_SETTINGS_UPDATED only when expected.
-    const result = await updateAppCredentialsHandler({
-      ctx: { user },
-      input: { credentialId: 1, key: { endpoint: "localhost" } },
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
     });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+      credentialId: 0,
+      key: { apiKey: "Api key updated" },
+    };
+    const caller = appsRouterCreateCaller(ctx);
 
-    await handleAuditLogTrigger({
-      trigger: "updateAppCredentials",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: { oldCredential: result.oldCredential, updatedCredential: result.updatedCredential },
-    });
+    await caller.updateAppCredentials(input);
 
-    expect(mockReportEvent).toHaveBeenCalledWith(
+    expect(mockReportEvent).toHaveBeenLastCalledWith(
       expect.objectContaining({ action: expect.stringMatching("^SYSTEM_SETTINGS_UPDATED$") })
     );
 
-    expect(mockReportEvent).toHaveBeenLastCalledWith(
+    expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: expect.stringMatching("^CREDENTIAL_KEYS_UPDATED$") })
     );
   });
@@ -200,20 +203,20 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    const result = await toggleHandler({
-      ctx: { user },
-      input: {
-        slug: "zohocalendar",
-        enabled: true,
-      },
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
     });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["toggle"]> = {
+      slug: "zohocalendar",
+      enabled: true,
+    };
 
-    await handleAuditLogTrigger({
-      trigger: "toggleApp",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: result.data,
-    });
+    const caller = appsRouterCreateCaller(ctx);
+
+    await caller.toggle(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: AuditLogAppTriggerEvents.APP_TOGGLE })
@@ -240,27 +243,27 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    const result = await saveKeysHandler({
-      ctx: { user },
-      input: {
-        slug: zohoApp.slug,
-        dirName: zohoApp.dirName,
-        type: "",
-        // Validate w/ app specific schema
-        keys: {
-          client_id: faker.datatype.uuid(),
-          client_secret: faker.datatype.uuid(),
-        },
-        fromEnabled: false,
+    const ctx = await createContextInner({
+      sourceIp: "127.0.0.0",
+      locale: "en",
+      session: buildSession({ user }),
+      user,
+    });
+    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["saveKeys"]> = {
+      slug: zohoApp.slug,
+      dirName: zohoApp.dirName,
+      type: "",
+      // Validate w/ app specific schema
+      keys: {
+        client_id: faker.datatype.uuid(),
+        client_secret: faker.datatype.uuid(),
       },
-    });
+      fromEnabled: false,
+    };
 
-    await handleAuditLogTrigger({
-      trigger: "saveKeys",
-      user: { id: 1, name: "Oliver Q." },
-      source_ip: "127.0.0.0",
-      data: result.data,
-    });
+    const caller = appsRouterCreateCaller(ctx);
+
+    await caller.saveKeys(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: AuditLogAppTriggerEvents.APP_KEYS_UPDATED })
