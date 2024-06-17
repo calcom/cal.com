@@ -830,7 +830,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
         id={eventType.id}
       />
-      ;
     </>
   );
 };
