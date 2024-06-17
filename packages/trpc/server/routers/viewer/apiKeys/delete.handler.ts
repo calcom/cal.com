@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TDeleteInputSchema } from "./delete.schema";
@@ -13,6 +14,7 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   const { id } = input;
 
+  console.log("HELLO");
   const apiKeyToDelete = await prisma.apiKey.findFirst({
     where: {
       id,
@@ -45,6 +47,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   return {
     id,
     data: {
+      trigger: AuditLogApiKeysTriggerEvents.API_KEY_DELETED,
       apiKey: apiKeyToDelete,
     },
   };

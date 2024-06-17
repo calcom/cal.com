@@ -2,7 +2,7 @@ import { v4 } from "uuid";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import prisma from "@calcom/prisma";
-import { MembershipRole } from "@calcom/prisma/enums";
+import { AuditLogApiKeysTriggerEvents, MembershipRole } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import { checkPermissions } from "./_auth-middleware";
@@ -44,6 +44,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
   return {
     result: prefixedApiKey,
     data: {
+      trigger: AuditLogApiKeysTriggerEvents.API_KEY_CREATED,
       apiKey: createdKey,
     },
   };
