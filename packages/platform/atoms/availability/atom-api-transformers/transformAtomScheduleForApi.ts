@@ -13,9 +13,9 @@ export function transformAtomScheduleForApi(body: AvailabilityFormValues): Updat
     dateOverrides.flatMap(
       (dateOverridesRanges) =>
         dateOverridesRanges?.ranges?.map((range) => ({
-          date: `${range.start.getUTCFullYear}-${range.start.getUTCMonth}-${range.start.getUTCDate}`,
-          startTime: `${range.start.getUTCHours}-${range.start.getUTCMinutes}`,
-          endTime: `${range.end.getUTCHours}-${range.end.getUTCMinutes}`,
+          date: `${range.start.getUTCFullYear()}-${range.start.getUTCMonth()}-${range.start.getUTCDate()}`,
+          startTime: `${range.start.getUTCHours()}:${range.start.getUTCMinutes()}`,
+          endTime: `${range.end.getUTCHours()}:${range.end.getUTCMinutes()}`,
         })) ?? []
     ) ?? [];
 
