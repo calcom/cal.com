@@ -28,7 +28,7 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    const isApiKey = authString?.startsWith(this.config.get("api.apiKeyPrefix") ?? "_cal");
+    const isApiKey = authString?.startsWith(this.config.get("api.apiKeyPrefix") ?? "cal_");
 
     // only check permissions for accessTokens attached to an oAuth Client
     if (isApiKey) {

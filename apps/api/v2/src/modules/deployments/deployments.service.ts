@@ -36,7 +36,7 @@ export class DeploymentsService {
     const licenseKeyUrl = this.configService.get("api.licenseKeyUrl");
     const cachedData = await this.redisService.redis.get(getLicenseCacheKey(licenseKey));
     if (cachedData) {
-      return (JSON.parse(cachedData) as LicenseCheckResponse).valid;
+      return (JSON.parse(cachedData) as LicenseCheckResponse)?.valid;
     }
     const response = await fetch(licenseKeyUrl, { mode: "cors" });
     const data = (await response.json()) as LicenseCheckResponse;

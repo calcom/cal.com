@@ -30,7 +30,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     if (!isLicenseValid && this.config.get("env") === "production") {
       throw new UnauthorizedException("Invalid or missing CALCOM_LICENSE_KEY environment variable");
     }
-    const strippedApiKey = apiKey.replace(this.config.get<string>("api.keyPrefix") ?? "_cal", "");
+    const strippedApiKey = apiKey.replace(this.config.get<string>("api.keyPrefix") ?? "cal_", "");
     const apiKeyHash = createHash("sha256").update(strippedApiKey).digest("hex");
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
@@ -80,17 +80,18 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   }
 
   async authenticate(request: Request) {
-    const authSring = request.get("Authorization")?.replace("Bearer ", "");
-    const isApiKey = authSring?.startsWith(this.config.get("api.apiKeyPrefix") ?? "_cal");
-    const requestOrigin = request.get("Origin");
+    const authString = request.get("Authorization")?.replace("Bearer ", "");
 
-    if (!authSring) {
+    if (!authString) {
       throw new UnauthorizedException("No Authorization header provided");
     }
 
+    const isApiKey = authString.startsWith(this.config.get("api.apiKeyPrefix") ?? "cal_");
+    const requestOrigin = request.get("Origin");
+
     const user = isApiKey
-      ? await this.apiKeyStrategy(authSring)
-      : await this.accessTokenStrategy(authSring, requestOrigin);
+      ? await this.apiKeyStrategy(authString)
+      : await this.accessTokenStrategy(authString, requestOrigin);
 
     if (!user) {
       throw new UnauthorizedException("No user associated with the provided token");

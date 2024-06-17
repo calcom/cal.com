@@ -1863,11 +1863,11 @@
         "properties": {
           "timeFormat": {
             "type": "number",
-            "example": 12,
             "enum": [
               12,
               24
             ],
+            "example": 12,
             "description": "Must be 12 or 24"
           },
           "weekStart": {
