@@ -1,3 +1,4 @@
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsController } from "@/modules/organizations/controllers/organizations.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationUsersRepository } from "@/modules/organizations/repositories/organizationUsers.repository";
@@ -8,7 +9,12 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, StripeModule],
-  providers: [OrganizationsRepository, OrganizationsService, OrganizationUsersRepository],
+  providers: [
+    OrganizationsRepository,
+    OrganizationsService,
+    OrganizationUsersRepository,
+    MembershipsRepository,
+  ],
   exports: [OrganizationsService, OrganizationsRepository],
   controllers: [OrganizationsController],
 })
