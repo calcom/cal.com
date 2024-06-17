@@ -4,6 +4,7 @@ import { getTranslation } from "@calcom/lib/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as importedPrisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
+import { AuditLogAppTriggerEvents } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -170,6 +171,7 @@ export const toggleHandler = async ({ input, ctx: { prisma = importedPrisma } }:
   return {
     result: app.enabled,
     data: {
+      trigger: AuditLogAppTriggerEvents.APP_TOGGLE,
       app,
     },
   };

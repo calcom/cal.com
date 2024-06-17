@@ -5,6 +5,7 @@ import { getLocalAppMetadata } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
 import { prisma as importedPrisma } from "@calcom/prisma";
 import type { AppCategories } from "@calcom/prisma/enums";
+import { AuditLogAppTriggerEvents } from "@calcom/prisma/enums";
 
 // import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
@@ -50,6 +51,6 @@ export const saveKeysHandler = async ({ ctx: { prisma = importedPrisma }, input 
 
   return {
     result: !!app,
-    data: { app },
+    data: { app, trigger: AuditLogAppTriggerEvents.APP_KEYS_UPDATED },
   };
 };

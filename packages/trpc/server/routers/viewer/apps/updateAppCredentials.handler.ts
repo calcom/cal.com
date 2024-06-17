@@ -1,5 +1,6 @@
 import { prisma } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
+import { AuditLogCredentialTriggerEvents } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -48,7 +49,11 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
 
   return {
     result: !!updated,
-    updatedCredential: piiFreeAppKeyTransformer.parse(updated),
-    oldCredential: piiFreeAppKeyTransformer.parse(credential),
+    // TODO: piiFreeAppKeyTransformer should be implementation specific
+    data: {
+      updatedCredential: piiFreeAppKeyTransformer.parse(updated),
+      oldCredential: piiFreeAppKeyTransformer.parse(credential),
+      trigger: AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED,
+    },
   };
 };
