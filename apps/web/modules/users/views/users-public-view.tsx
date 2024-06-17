@@ -52,7 +52,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   }, [telemetry, router.asPath]); */
   if (entity.considerUnpublished) {
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity {...entity} />
       </div>
     );
