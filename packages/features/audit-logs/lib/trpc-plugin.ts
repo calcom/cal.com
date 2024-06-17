@@ -8,14 +8,15 @@ export const auditLogMiddleware = experimental_trpcMiddleware<{
 }>().create(async (opts) => {
   const result = await opts.next();
 
-  await handleAuditLogTrigger({
-    trigger: result.data.data.trigger,
-    user: opts.ctx.user,
-    sourceIp: opts.ctx.sourceIp,
-    data: result.data.data,
-  });
-
-  delete result.data.data;
+  if (result.data.data) {
+    await handleAuditLogTrigger({
+      trigger: result.data.data.trigger,
+      user: opts.ctx.user,
+      sourceIp: opts.ctx.sourceIp,
+      data: result.data.data,
+    });
+    delete result.data.data;
+  }
 
   return {
     ...result,

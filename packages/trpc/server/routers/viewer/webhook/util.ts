@@ -5,10 +5,10 @@ import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
-import authedProcedure from "../../../procedures/authedProcedure";
+import { authedAdminProcedureWithAuditLogger } from "../../../procedures/authedProcedure";
 import { webhookIdAndEventTypeIdSchema } from "./types";
 
-export const webhookProcedure = authedProcedure
+export const webhookProcedure = authedAdminProcedureWithAuditLogger
   .input(webhookIdAndEventTypeIdSchema.optional())
   .use(async ({ ctx, input, next }) => {
     // Endpoints that just read the logged in user's data - like 'list' don't necessary have any input

@@ -2,6 +2,7 @@ import type { Prisma } from "@prisma/client";
 
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TDeleteInputSchema } from "./delete.schema";
@@ -45,6 +46,10 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   }
 
   return {
-    id,
+    result: id,
+    data: {
+      webhook: webhookToDelete,
+      trigger: AuditLogWebhookTriggerEvents.WEBHOOK_DELETED,
+    },
   };
 };

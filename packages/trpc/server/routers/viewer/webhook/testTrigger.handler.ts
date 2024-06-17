@@ -1,6 +1,7 @@
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import type { TTestTriggerInputSchema } from "./testTrigger.schema";
 
@@ -41,7 +42,14 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
 
   try {
     const webhook = { subscriberUrl: url, appId: null, payloadTemplate };
-    return await sendPayload(secret, type, new Date().toISOString(), webhook, data);
+    return {
+      result: await sendPayload(secret, type, new Date().toISOString(), webhook, data),
+      data: {
+        trigger: AuditLogWebhookTriggerEvents.WEBHOOK_TESTED,
+        webhook,
+        data,
+      },
+    };
   } catch (_err) {
     const error = getErrorFromUnknown(_err);
     return {

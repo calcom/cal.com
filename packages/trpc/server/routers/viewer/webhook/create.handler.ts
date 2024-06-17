@@ -1,8 +1,10 @@
 import type { Webhook } from "@prisma/client";
 import { v4 } from "uuid";
 
+import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
 import { updateTriggerForExistingBookings } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -48,5 +50,11 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
 
   await updateTriggerForExistingBookings(newWebhook, [], newWebhook.eventTriggers);
 
-  return newWebhook;
+  return {
+    result: newWebhook,
+    data: {
+      webhook: newWebhook,
+      trigger: AuditLogWebhookTriggerEvents.WEBHOOK_CREATED,
+    },
+  };
 };

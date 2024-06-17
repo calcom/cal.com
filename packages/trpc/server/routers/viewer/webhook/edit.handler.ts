@@ -3,6 +3,7 @@ import {
   deleteWebhookScheduledTriggers,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { prisma } from "@calcom/prisma";
+import { AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -50,5 +51,12 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
     await deleteWebhookScheduledTriggers({ webhookId: webhook.id });
   }
 
-  return updatedWebhook;
+  return {
+    result: updatedWebhook,
+    data: {
+      trigger: AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED,
+      webhook,
+      updatedWebhook,
+    },
+  };
 };

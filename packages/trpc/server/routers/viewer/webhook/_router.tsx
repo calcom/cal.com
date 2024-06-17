@@ -1,4 +1,4 @@
-import { router } from "../../../trpc";
+import { router, createCallerFactory } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZEditInputSchema } from "./edit.schema";
@@ -135,3 +135,5 @@ export const webhookRouter = router({
     });
   }),
 });
+
+export const webhookRouterCreateCaller = createCallerFactory(webhookRouter);
