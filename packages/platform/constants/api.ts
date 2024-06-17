@@ -4,7 +4,6 @@ export const V2_ENDPOINTS = {
   availability: "schedules",
   eventTypes: "event-types",
   bookings: "bookings",
-  users: "users",
 };
 
 export const SUCCESS_STATUS = "success";

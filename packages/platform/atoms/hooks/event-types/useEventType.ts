@@ -4,10 +4,8 @@ import { shallow } from "zustand/shallow";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
-import { dynamicEvent } from "@calcom/lib/defaultEvents";
-import { getResponseEventTypeLocations } from "@calcom/lib/event-types/transformers";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
-import type { EventTypeOutput_2024_06_14, UserOutput_2024_06_14 } from "@calcom/platform-types";
+import type { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
@@ -32,9 +30,9 @@ export const useEventType = (username: string, eventSlug: string) => {
     queryKey: [QUERY_KEY, stateUsername ?? username, stateEventSlug ?? eventSlug],
     queryFn: async () => {
       if (isDynamic) {
-        const users = await http
-          .get<ApiResponse<UserOutput_2024_06_14[]>>(
-            `/${V2_ENDPOINTS.users}?usernames=${encodeURIComponent(username)}`
+        return http
+          .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
+            `/${V2_ENDPOINTS.eventTypes}?usernames=${encodeURIComponent(getUsernameList(username).join(","))}`
           )
           .then((res) => {
             if (res.data.status === SUCCESS_STATUS) {
@@ -42,23 +40,11 @@ export const useEventType = (username: string, eventSlug: string) => {
             }
             throw new Error(res.data.error.message);
           });
-
-        const event = { ...dynamicEvent, locations: getResponseEventTypeLocations(dynamicEvent.locations) };
-        const { length, ...rest } = event;
-
-        return {
-          ...rest,
-          lengthInMinutes: length,
-          users,
-          isInstantEvent: false,
-          ownerId: null,
-          metadata: {},
-        };
       }
 
       return http
-        .get<ApiResponse<EventTypeOutput_2024_06_14>>(
-          `/${V2_ENDPOINTS.users}/${requestUsername}/event-types/${requestEventSlug}`
+        .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
+          `/${V2_ENDPOINTS.eventTypes}?username=${requestUsername}&eventSlug=${requestEventSlug}`
         )
         .then((res) => {
           if (res.data.status === SUCCESS_STATUS) {

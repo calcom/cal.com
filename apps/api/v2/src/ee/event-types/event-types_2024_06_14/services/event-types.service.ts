@@ -5,12 +5,19 @@ import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
 import { createEventType, slugify, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
-import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { dynamicEvent } from "@calcom/platform-libraries-0.0.7";
+import {
+  CreateEventTypeInput_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+  EventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -21,6 +28,7 @@ export class EventTypesService_2024_06_14 {
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
     private readonly membershipsRepository: MembershipsRepository,
     private readonly usersRepository: UsersRepository,
+    private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
     private readonly dbWrite: PrismaWriteService
   ) {}
@@ -145,6 +153,41 @@ export class EventTypesService_2024_06_14 {
     }
 
     return await getEventTypesPublic(user.id);
+  }
+
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
+    const { username, eventSlug, usernames } = queryParams;
+    let eventTypes: EventTypeOutput_2024_06_14[] = [];
+
+    if (username && eventSlug) {
+      const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug);
+      if (eventType) {
+        eventTypes.push(eventType);
+      }
+    } else if (username && !eventSlug) {
+      eventTypes = await this.getEventTypesByUsername(username);
+    } else if (usernames) {
+      const dynamicEventType = await this.getDynamicEventType(usernames);
+      eventTypes.push(dynamicEventType);
+    }
+
+    return eventTypes;
+  }
+
+  async getDynamicEventType(usernames: string[]) {
+    const users = await this.usersService.getByUsernames(usernames);
+    const usersFiltered: UserWithProfile[] = [];
+    for (const user of users) {
+      if (user) {
+        usersFiltered.push(user);
+      }
+    }
+
+    return this.outputEventTypesService.getResponseEventType(0, {
+      ...dynamicEvent,
+      users: usersFiltered,
+      isInstantEvent: false,
+    });
   }
 
   async createUserDefaultEventTypes(userId: number) {

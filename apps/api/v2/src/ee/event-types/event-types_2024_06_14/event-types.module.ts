@@ -7,6 +7,7 @@ import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsModule } from "@/modules/selected-calendars/selected-calendars.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Module } from "@nestjs/common";
 
@@ -18,6 +19,7 @@ import { Module } from "@nestjs/common";
     InputEventTypesService_2024_06_14,
     OutputEventTypesService_2024_06_14,
     UsersRepository,
+    UsersService,
   ],
   controllers: [EventTypesController_2024_06_14],
   exports: [EventTypesService_2024_06_14, EventTypesRepository_2024_06_14],

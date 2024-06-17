@@ -1,5 +1,5 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
-import { VERSION_2024_06_11_VALUE } from "@/lib/api-versions";
+import { VERSION_2024_06_14, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
@@ -34,7 +34,7 @@ import {
 
 @Controller({
   path: "/v2/schedules",
-  version: VERSION_2024_06_11_VALUE,
+  version: [VERSION_2024_06_14, VERSION_2024_06_11],
 })
 @UseGuards(AccessTokenGuard, PermissionsGuard)
 @DocsTags("Schedules")

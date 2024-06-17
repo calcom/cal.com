@@ -8,7 +8,7 @@ import http from "../../lib/http";
 
 export const QUERY_KEY = "use-event-types";
 export const useEventTypes = (username: string) => {
-  const pathname = `/${V2_ENDPOINTS.users}/${username}/event-types`;
+  const pathname = `/${V2_ENDPOINTS.eventTypes}?username=${username}`;
 
   return useQuery({
     queryKey: [QUERY_KEY, username],

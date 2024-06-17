@@ -22,11 +22,16 @@ import {
   HttpCode,
   HttpStatus,
   Delete,
+  Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import {
+  CreateEventTypeInput_2024_06_14,
+  UpdateEventTypeInput_2024_06_14,
+  GetEventTypesQuery_2024_06_14,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/event-types",
@@ -55,7 +60,7 @@ export class EventTypesController_2024_06_14 {
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
   @UseGuards(AccessTokenGuard)
-  async getEventType(
+  async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput_2024_06_14> {
@@ -73,9 +78,10 @@ export class EventTypesController_2024_06_14 {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
-  async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput_2024_06_14> {
-    const eventTypes = await this.eventTypesService.getUserEventTypes(user.id);
+  async getEventTypes(
+    @Query() queryParams: GetEventTypesQuery_2024_06_14
+  ): Promise<GetEventTypesOutput_2024_06_14> {
+    const eventTypes = await this.eventTypesService.getEventTypes(queryParams);
 
     return {
       status: SUCCESS_STATUS,

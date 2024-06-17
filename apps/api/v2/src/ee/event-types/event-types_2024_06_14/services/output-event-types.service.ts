@@ -14,9 +14,39 @@ import {
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
 
+type Input = Pick<
+  DatabaseEventType,
+  | "id"
+  | "length"
+  | "title"
+  | "description"
+  | "disableGuests"
+  | "slotInterval"
+  | "minimumBookingNotice"
+  | "beforeEventBuffer"
+  | "afterEventBuffer"
+  | "slug"
+  | "schedulingType"
+  | "requiresConfirmation"
+  | "price"
+  | "currency"
+  | "lockTimeZoneToggleOnBookingPage"
+  | "seatsPerTimeSlot"
+  | "forwardParamsSuccessRedirect"
+  | "successRedirectUrl"
+  | "seatsShowAvailabilityCount"
+  | "isInstantEvent"
+  | "locations"
+  | "bookingFields"
+  | "recurringEvent"
+  | "metadata"
+  | "users"
+  | "schedule"
+>;
+
 @Injectable()
 export class OutputEventTypesService_2024_06_14 {
-  async getResponseEventType(ownerId: number, databaseEventType: DatabaseEventType) {
+  async getResponseEventType(ownerId: number, databaseEventType: Input) {
     const {
       id,
       length,
@@ -98,7 +128,7 @@ export class OutputEventTypesService_2024_06_14 {
     return EventTypeMetaDataSchema.parse(metadata);
   }
 
-  async getSchedule(databaseEventType: DatabaseEventType) {
+  async getSchedule(databaseEventType: Input) {
     return databaseEventType.schedule || null;
   }
 
