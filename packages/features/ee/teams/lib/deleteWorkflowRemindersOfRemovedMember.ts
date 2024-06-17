@@ -9,7 +9,6 @@ export async function deleteWorkfowRemindersOfRemovedMember(
     parentId?: number | null;
   },
   memberId: number,
-  otherTeams: { id: number; parentId: number | null }[],
   isOrg: boolean,
   prisma: PrismaClient = prismaDefault
 ) {
@@ -39,10 +38,7 @@ export async function deleteWorkfowRemindersOfRemovedMember(
   } else {
     if (!team.parentId) return;
 
-    // member was removed from an org team
-    const isUserMemberOfOtherTeams = !otherTeams.filter((team) => team.id !== team.id && !!team.parentId)
-      .length;
-
+    // member was removed from an org subteam
     const removedWorkflows = await prisma.workflow.findMany({
       where: {
         OR: [
@@ -69,18 +65,10 @@ export async function deleteWorkfowRemindersOfRemovedMember(
                   },
                 },
               },
-              ...(isUserMemberOfOtherTeams ? [{ isActiveOnAll: false }] : []),
+              // only if workflow is not active on all team and user event types
+              { isActiveOnAll: false },
             ],
           },
-          ...(!isUserMemberOfOtherTeams
-            ? [
-                {
-                  teamId: team.parentId,
-
-                  isActiveOnAll: true,
-                },
-              ]
-            : []),
         ],
       },
     });

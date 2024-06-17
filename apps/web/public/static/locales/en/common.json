@@ -1347,7 +1347,7 @@
   "incorrect_2fa": "Incorrect two factor authentication code",
   "which_event_type_apply": "Which event type will this apply to?",
   "apply_to_all_event_types": "Apply to all, including future event types",
-  "apply_to_all_teams": "Apply to all, including future teams",
+  "apply_to_all_teams": "Apply to all team and user event types",
   "which_team_apply": "Which team will this apply to?",
   "no_workflows_description": "Workflows enable simple automation to send notifications & reminders enabling you to build processes around your events.",
   "timeformat_profile_hint": "This is an internal setting and will not affect how times are displayed on public booking pages for you or anyone booking you.",

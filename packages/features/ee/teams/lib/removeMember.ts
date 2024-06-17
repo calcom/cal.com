@@ -123,12 +123,7 @@ const removeMember = async ({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
 
-  await deleteWorkfowRemindersOfRemovedMember(
-    team,
-    memberId,
-    foundUser.teams.map((membership) => membership.team),
-    isOrg
-  );
+  await deleteWorkfowRemindersOfRemovedMember(team, memberId, isOrg);
 
   return { membership };
 };

@@ -739,7 +739,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     await createWorkflowRemindersForWorkflow("Org Workflow");
 
-    await deleteWorkfowRemindersOfRemovedMember(org, 101, [], true, prismock);
+    await deleteWorkfowRemindersOfRemovedMember(org, 101, true, prismock);
 
     const workflowReminders = await prismock.workflowReminder.findMany();
     expect(workflowReminders.length).toBe(0);
@@ -823,13 +823,6 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       })
     );
 
-    const subteams = [
-      { id: 1, parentId: org.id },
-      { id: 2, parentId: org.id },
-      { id: 3, parentId: org.id },
-      { id: 4, parentId: org.id },
-    ];
-
     await createWorkflowRemindersForWorkflow("Org Workflow 1");
     await createWorkflowRemindersForWorkflow("Org Workflow 2");
 
@@ -842,13 +835,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       },
     });
 
-    await deleteWorkfowRemindersOfRemovedMember(
-      subteams[1],
-      101,
-      subteams.filter((team) => team.id === 3 || team.id === 4),
-      false,
-      prismock
-    );
+    await deleteWorkfowRemindersOfRemovedMember({ id: 1, parentId: org.id }, 101, false, prismock);
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
