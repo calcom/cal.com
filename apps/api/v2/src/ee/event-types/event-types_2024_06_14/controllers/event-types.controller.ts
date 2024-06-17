@@ -25,7 +25,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
-import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Controller({
@@ -53,8 +53,6 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/:eventTypeId")
-  @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
   async getEventType(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
@@ -72,8 +70,6 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
-  @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
   async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput_2024_06_14> {
     const eventTypes = await this.eventTypesService.getUserEventTypes(user.id);
 
