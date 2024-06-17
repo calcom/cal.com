@@ -343,13 +343,6 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenReassignDialog}
         bookingId={booking.id}
         teamId={booking.eventType?.team?.id || 0}
-        assignedHosts={
-          booking.user
-            ? [booking.user.userPrimaryEmail || ""].concat(
-                booking.attendees.map((attendee) => attendee.email)
-              )
-            : []
-        }
       />
       <EditLocationDialog
         booking={booking}

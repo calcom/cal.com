@@ -71,16 +71,9 @@ const MemberReassignStep = ({
   );
 };
 
-export const ReassignDialog = ({
-  isOpenDialog,
-  setIsOpenDialog,
-  assignedHosts,
-  teamId,
-  bookingId,
-}: ReassignDialog) => {
+export const ReassignDialog = ({ isOpenDialog, setIsOpenDialog, teamId, bookingId }: ReassignDialog) => {
   const { t } = useLocale();
   const [reassignTarget, setReassignTarget] = useState<"round-robin" | "choose-member">("round-robin");
-  const [selectedHost, setSelectedHost] = useState(0);
   const utils = trpc.useUtils();
 
   const roundRobinReassignMutation = trpc.viewer.teams.roundRobinReassign.useMutation({
