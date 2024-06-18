@@ -36,9 +36,10 @@ enum SchedulingType {
 }
 
 enum PeriodType {
-  UNLIMITED @map("unlimited")
-  ROLLING   @map("rolling")
-  RANGE     @map("range")
+  UNLIMITED      @map("unlimited")
+  ROLLING        @map("rolling")
+  ROLLING_WINDOW @map("rolling_window")
+  RANGE          @map("range")
 }
 
 model Host {
@@ -236,7 +237,6 @@ model User {
   emailVerified       DateTime?
   password            UserPassword?
   bio                 String?
-  avatar              String?
   avatarUrl           String?
   timeZone            String               @default("Europe/London")
   travelSchedules     TravelSchedule[]
@@ -274,7 +274,6 @@ model User {
   darkBrandColor      String?
   // the location where the events will end up
   destinationCalendar DestinationCalendar?
-  away                Boolean              @default(false)
   // participate in dynamic group booking or not
   allowDynamicBooking Boolean?             @default(true)
 
@@ -299,6 +298,7 @@ model User {
   workflows            Workflow[]
   routingForms         App_RoutingForms_Form[] @relation("routing-form")
   verifiedNumbers      VerifiedNumber[]
+  verifiedEmails       VerifiedEmail[]
   hosts                Host[]
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
@@ -359,7 +359,6 @@ model Team {
   name                  String
   /// @zod.min(1)
   slug                  String?
-  logo                  String?
   logoUrl               String?
   calVideoLogo          String?
   appLogo               String?
@@ -378,6 +377,7 @@ model Team {
   brandColor            String?
   darkBrandColor        String?
   verifiedNumbers       VerifiedNumber[]
+  verifiedEmails        VerifiedEmail[]
   bannerUrl             String?
   parentId              Int?
   parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
@@ -509,6 +509,7 @@ model Attendee {
   booking     Booking?     @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   bookingId   Int?
   bookingSeat BookingSeat?
+  noShow      Boolean?     @default(false)
 
   @@index([email])
   @@index([bookingId])
@@ -1057,6 +1058,18 @@ model VerifiedNumber {
   teamId      Int?
   team        Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
   phoneNumber String
+
+  @@index([userId])
+  @@index([teamId])
+}
+
+model VerifiedEmail {
+  id     Int    @id @default(autoincrement())
+  userId Int?
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId Int?
+  team   Team?  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  email  String
 
   @@index([userId])
   @@index([teamId])

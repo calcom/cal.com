@@ -158,10 +158,12 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  output: "standalone",
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
     optimizePackageImports: ["@calcom/ui"],
+    instrumentationHook: true,
   },
   i18n: {
     ...i18n,
@@ -265,6 +267,29 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
+      {
         /**
          * Needed due to the introduction of dotted usernames
          * @see https://github.com/calcom/cal.com/pull/11706
@@ -326,29 +351,6 @@ const nextConfig = {
         {
           source: "/:user/avatar.png",
           destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/forms/:formQuery*",
-          destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/router",
-          destination: "/apps/routing-forms/router",
-        },
-        {
-          source: "/success/:path*",
-          has: [
-            {
-              type: "query",
-              key: "uid",
-              value: "(?<uid>.*)",
-            },
-          ],
-          destination: "/booking/:uid/:path*",
-        },
-        {
-          source: "/cancel/:path*",
-          destination: "/booking/:path*",
         },
       ],
 
@@ -590,14 +592,14 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-    // disable source map generation for the server code
-    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-  };
-
-  plugins.push(withSentryConfig);
+  plugins.push((nextConfig) =>
+    withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: true,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    })
+  );
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);
