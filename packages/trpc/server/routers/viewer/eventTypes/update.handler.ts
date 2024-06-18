@@ -250,6 +250,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
+          weight: host.weight ?? 100,
         };
       }),
     };

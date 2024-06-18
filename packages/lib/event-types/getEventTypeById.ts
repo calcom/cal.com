@@ -177,6 +177,7 @@ export const getEventTypeById = async ({
           isFixed: true,
           userId: true,
           priority: true,
+          weight: true,
         },
       },
       userId: true,
