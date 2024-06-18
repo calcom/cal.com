@@ -1,4 +1,4 @@
-import { IsSingleEmailOrEmailArray } from "@/modules/organizations/controllers/inputs/validator/isEmailStringOrArray";
+import { IsSingleEmailOrEmailArray } from "@/modules/organizations/controllers/inputs/validator/is-email-string-or-array";
 import { ApiProperty } from "@nestjs/swagger";
 import { IsOptional, IsString, Validate } from "class-validator";
 
