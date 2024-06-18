@@ -1,4 +1,5 @@
 import { CRUD } from "@calcom/features/audit-logs/types";
+import type { AuditLogTriggerEvents } from "@calcom/features/audit-logs/types";
 import {
   AuditLogTriggerTargets,
   AuditLogSystemTriggerEvents,
@@ -9,13 +10,14 @@ import {
   AuditLogWebhookTriggerEvents,
 } from "@calcom/prisma/enums";
 
-export const triggerToMetadata: Record<string, any> = {
-  // updateAppCredentials: {
-  //   action: AuditLogSystemTriggerEvents.SYSTEM_SETTINGS_UPDATED,
-  //   description: "App keys have been updated",
-  //   crud: CRUD.UPDATE,
-  //   target: AuditLogTriggerTargets.SYSTEM,
-  // },
+type AuditLogTriggerMetadata = {
+  action: AuditLogTriggerEvents;
+  description: string;
+  crud: CRUD;
+  target: AuditLogTriggerTargets;
+};
+
+export const triggerToMetadata: Partial<Record<AuditLogTriggerEvents, AuditLogTriggerMetadata>> = {
   [AuditLogWebhookTriggerEvents.WEBHOOK_TESTED]: {
     action: AuditLogWebhookTriggerEvents.WEBHOOK_TESTED,
     description: "Webhook was tested.",
@@ -25,13 +27,19 @@ export const triggerToMetadata: Record<string, any> = {
   [AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED]: {
     action: AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED,
     description: "Webhook was updated.",
-    crud: CRUD.UPDATED,
+    crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.WEBHOOKS,
   },
   [AuditLogWebhookTriggerEvents.WEBHOOK_DELETED]: {
     action: AuditLogWebhookTriggerEvents.WEBHOOK_DELETED,
     description: "Webhook was deleted.",
     crud: CRUD.DELETE,
+    target: AuditLogTriggerTargets.WEBHOOKS,
+  },
+  [AuditLogWebhookTriggerEvents.WEBHOOK_SCHEDULED]: {
+    action: AuditLogWebhookTriggerEvents.WEBHOOK_SCHEDULED,
+    description: "Webhook was scheduled.",
+    crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.WEBHOOKS,
   },
   [AuditLogWebhookTriggerEvents.WEBHOOK_CREATED]: {
@@ -58,7 +66,6 @@ export const triggerToMetadata: Record<string, any> = {
     crud: CRUD.CREATE,
     target: AuditLogTriggerTargets.BOOKING,
   },
-
   [AuditLogBookingTriggerEvents.BOOKING_PAYMENT_INITIATED]: {
     action: AuditLogBookingTriggerEvents.BOOKING_PAYMENT_INITIATED,
     description: "An apiKey was created.",
@@ -107,6 +114,24 @@ export const triggerToMetadata: Record<string, any> = {
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.API_KEYS,
   },
+  [AuditLogApiKeysTriggerEvents.API_KEY_USED]: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_USED,
+    description: "An apiKey was used.",
+    crud: CRUD.READ,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
+  [AuditLogApiKeysTriggerEvents.API_KEY_LIST_ALL_KEYS]: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_LIST_ALL_KEYS,
+    description: "Api keys have been listed.",
+    crud: CRUD.READ,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
+  [AuditLogApiKeysTriggerEvents.API_KEY_FIND_KEY]: {
+    action: AuditLogApiKeysTriggerEvents.API_KEY_FIND_KEY,
+    description: "Api key find key.",
+    crud: CRUD.READ,
+    target: AuditLogTriggerTargets.API_KEYS,
+  },
   [AuditLogAppTriggerEvents.APP_TOGGLE]: {
     action: AuditLogAppTriggerEvents.APP_TOGGLE,
     description: "App has been enabled/disabled by admin.",
@@ -119,13 +144,31 @@ export const triggerToMetadata: Record<string, any> = {
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.APPS,
   },
+  [AuditLogAppTriggerEvents.APP_CREATED]: {
+    action: AuditLogAppTriggerEvents.APP_CREATED,
+    description: "An app has been created.",
+    crud: CRUD.UPDATE,
+    target: AuditLogTriggerTargets.APPS,
+  },
   [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED]: {
     action: AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED,
     description: "App keys have been updated",
     crud: CRUD.UPDATE,
     target: AuditLogTriggerTargets.CREDENTIAL,
   },
-  systemMisc: {
+  [AuditLogCredentialTriggerEvents.CREDENTIAL_CREATED]: {
+    action: AuditLogCredentialTriggerEvents.CREDENTIAL_CREATED,
+    description: "A credential was created.",
+    crud: CRUD.UPDATE,
+    target: AuditLogTriggerTargets.CREDENTIAL,
+  },
+  [AuditLogCredentialTriggerEvents.CREDENTIAL_DELETED]: {
+    action: AuditLogCredentialTriggerEvents.CREDENTIAL_DELETED,
+    description: "A credential was deleted.",
+    crud: CRUD.DELETE,
+    target: AuditLogTriggerTargets.CREDENTIAL,
+  },
+  [AuditLogSystemTriggerEvents.SYSTEM_MISC]: {
     action: AuditLogSystemTriggerEvents.SYSTEM_MISC,
     description: "AuditLog implementation specific action was performed.",
     crud: CRUD.UPDATE,
