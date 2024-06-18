@@ -5,7 +5,6 @@ export interface User {
   name: string | null;
   email: string;
   timeZone: string;
-  role: string;
 }
 
 export class ListUsersResponseDto {

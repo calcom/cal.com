@@ -14,7 +14,6 @@ export class OrganizationUsersRepository {
         },
       },
       select: {
-        role: true,
         user: {
           select: {
             id: true,
@@ -29,7 +28,6 @@ export class OrganizationUsersRepository {
     // Flatten the query
     return usersQuery.map((member) => {
       return {
-        role: member.role,
         ...member.user,
       };
     });
