@@ -5,31 +5,25 @@ import { Injectable } from "@nestjs/common";
 export class OrganizationUsersRepository {
   constructor(private readonly dbRead: PrismaReadService) {}
 
-  async getOrganizationUsers(organizationId: number) {
-    const usersQuery = await this.dbRead.prisma.membership.findMany({
+  async getOrganizationUsers(organizationId: number, emailArray: string[]) {
+    const usersQuery = await this.dbRead.prisma.user.findMany({
       where: {
-        teamId: organizationId,
-        team: {
-          isOrganization: true,
-        },
-      },
-      select: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            timeZone: true,
+        teams: {
+          some: {
+            teamId: organizationId,
           },
         },
+        ...(emailArray && { email: { in: emailArray } }),
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        timeZone: true,
       },
     });
 
     // Flatten the query
-    return usersQuery.map((member) => {
-      return {
-        ...member.user,
-      };
-    });
+    return usersQuery;
   }
 }
