@@ -76,7 +76,7 @@ export const CheckedTeamSelect = ({
                     </Tooltip>
                     <Button
                       color="minimal"
-                      className="mr-6 h-2 p-0 text-sm hover:bg-transparent"
+                      className="mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent"
                       onClick={() => {
                         setWeightDialogOpen(true);
                         setCurrentOption(option);
@@ -91,7 +91,7 @@ export const CheckedTeamSelect = ({
                 <Icon
                   name="x"
                   onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                  className="my-auto h-4 w-4"
+                  className="my-auto ml-2 h-4 w-4"
                 />
               </div>
             </li>

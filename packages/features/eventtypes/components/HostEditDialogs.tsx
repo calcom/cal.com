@@ -100,7 +100,7 @@ export const WeightDialog = (props: IPriiorityDialog) => {
             isFixed: false,
           };
         })
-        .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);
+        .sort((a, b) => (b.weight ?? 100) - (a.weight ?? 100));
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);
