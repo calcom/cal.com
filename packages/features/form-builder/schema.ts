@@ -22,6 +22,7 @@ const fieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "boolean",
+  "url",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;

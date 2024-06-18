@@ -120,6 +120,7 @@ function preprocess<T extends z.ZodType>({
               return isValidPhoneNumber(val);
             });
         // Tag the message with the input name so that the message can be shown at appropriate place
+        const urlSchema = z.string().url();
         const m = (message: string) => `{${bookingField.name}}${message}`;
         const views = bookingField.views;
         const isFieldApplicableToCurrentView =
@@ -242,6 +243,17 @@ function preprocess<T extends z.ZodType>({
                 }
               }
             }
+          }
+          continue;
+        }
+
+        if (bookingField.type === "url") {
+          // URL schema to validate if the input is a valid URL
+          if (!urlSchema.safeParse(value).success) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: m("url_validation_error"),
+            });
           }
           continue;
         }
