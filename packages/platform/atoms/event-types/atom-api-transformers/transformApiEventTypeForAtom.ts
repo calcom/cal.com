@@ -167,53 +167,6 @@ function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFiel
   // These fields should be added after other user fields
   const systemAfterFields: SystemField[] = [
     {
-      defaultLabel: "what_is_this_meeting_about",
-      type: "text",
-      name: "title",
-      editable: "system-but-optional",
-      required: true,
-      hidden: false,
-      defaultPlaceholder: "",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "additional_notes",
-      type: "textarea",
-      name: "notes",
-      editable: "system-but-optional",
-      required: false,
-      defaultPlaceholder: "share_additional_notes",
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
-      defaultLabel: "additional_guests",
-      type: "multiemail",
-      editable: "system-but-optional",
-      name: "guests",
-      defaultPlaceholder: "email",
-      required: false,
-      hidden: true,
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
-    {
       defaultLabel: "reason_for_reschedule",
       type: "textarea",
       editable: "system-but-optional",
