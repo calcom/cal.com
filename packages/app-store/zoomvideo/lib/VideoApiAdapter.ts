@@ -1,5 +1,4 @@
 import { z } from "zod";
-
 import dayjs from "@calcom/dayjs";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -70,87 +69,6 @@ type ZoomRecurrence = {
 
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const tokenResponse = getTokenObjectFromCredential(credential);
-
-  const translateEvent = (event: CalendarEvent) => {
-    const getRecurrence = ({
-      recurringEvent,
-      startTime,
-      attendees,
-    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
-      if (!recurringEvent) {
-        return;
-      }
-
-      let recurrence: ZoomRecurrence;
-
-      switch (recurringEvent.freq) {
-        case Frequency.DAILY:
-          recurrence = {
-            type: 1,
-          };
-          break;
-        case Frequency.WEEKLY:
-          recurrence = {
-            type: 2,
-            weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
-          };
-          break;
-        case Frequency.MONTHLY:
-          recurrence = {
-            type: 3,
-            monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),
-          };
-          break;
-        default:
-          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies, don't do anything in those cases.
-          return;
-      }
-
-      recurrence.repeat_interval = recurringEvent.interval;
-
-      if (recurringEvent.until) {
-        recurrence.end_date_time = recurringEvent.until.toISOString();
-      } else {
-        recurrence.end_times = recurringEvent.count;
-      }
-
-      return {
-        recurrence: {
-          ...recurrence,
-        },
-        type: 8,
-      };
-    };
-
-    const recurrence = getRecurrence(event);
-    // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
-    return {
-      topic: event.title,
-      type: 2, // Means that this is a scheduled meeting
-      start_time: dayjs(event.startTime).utc().format(),
-      duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
-      //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-      timezone: event.organizer.timeZone,
-      //password: "string",       TODO: Should we use a password? Maybe generate a random one?
-      agenda: event.description,
-      settings: {
-        host_video: true,
-        participant_video: true,
-        cn_meeting: false, // TODO: true if host meeting in China
-        in_meeting: false, // TODO: true if host meeting in India
-        join_before_host: true,
-        mute_upon_entry: false,
-        watermark: false,
-        use_pmi: false,
-        approval_type: 2,
-        audio: "both",
-        auto_recording: "none",
-        enforce_login: false,
-        registrants_email_notification: true,
-      },
-      ...recurrence,
-    };
-  };
 
   const fetchZoomApi = async (endpoint: string, options?: RequestInit) => {
     const auth = new OAuthManager({
@@ -239,10 +157,96 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     return json;
   };
 
+  const getUserSettings = async () => {
+    const response = await fetchZoomApi("users/me/settings");
+    return response;
+  };
+
+  const translateEvent = async (event: CalendarEvent) => {
+    const getRecurrence = ({
+      recurringEvent,
+      startTime,
+      attendees,
+    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+      if (!recurringEvent) {
+        return;
+      }
+
+      let recurrence: ZoomRecurrence;
+
+      switch (recurringEvent.freq) {
+        case Frequency.DAILY:
+          recurrence = {
+            type: 1,
+          };
+          break;
+        case Frequency.WEEKLY:
+          recurrence = {
+            type: 2,
+            weekly_days: dayjs(startTime).tz(attendees[0].timeZone).day() + 1,
+          };
+          break;
+        case Frequency.MONTHLY:
+          recurrence = {
+            type: 3,
+            monthly_day: dayjs(startTime).tz(attendees[0].timeZone).date(),
+          };
+          break;
+        default:
+          // Zoom does not support YEARLY, HOURLY or MINUTELY frequencies, don't do anything in those cases.
+          return;
+      }
+
+      recurrence.repeat_interval = recurringEvent.interval;
+
+      if (recurringEvent.until) {
+        recurrence.end_date_time = recurringEvent.until.toISOString();
+      } else {
+        recurrence.end_times = recurringEvent.count;
+      }
+
+      return {
+        recurrence: {
+          ...recurrence,
+        },
+        type: 8,
+      };
+    };
+
+    const recurrence = getRecurrence(event);
+    const userSettings = await getUserSettings();
+
+    // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
+    return {
+      topic: event.title,
+      type: 2, // Means that this is a scheduled meeting
+      start_time: dayjs(event.startTime).utc().format(),
+      duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
+      timezone: event.organizer.timeZone,
+      agenda: event.description,
+      settings: {
+        host_video: true,
+        participant_video: true,
+        cn_meeting: false, // true if host meeting in China
+        in_meeting: false, // true if host meeting in India
+        join_before_host: true,
+        mute_upon_entry: false,
+        watermark: false,
+        use_pmi: false,
+        approval_type: 2,
+        audio: "both",
+        auto_recording: userSettings.recording.auto_recording, // Dynamically set based on user settings
+        enforce_login: false,
+        registrants_email_notification: true,
+      },
+      ...recurrence,
+    };
+  };
+
   return {
     getAvailability: async () => {
       try {
-        // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
+        // Implement pagination for cases when there are more than 300 meetings already scheduled.
         const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
 
         const data = zoomMeetingsSchema.parse(responseBody);
@@ -263,7 +267,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
         const result = zoomEventResultSchema.parse(response);
@@ -300,7 +304,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
         return Promise.resolve({
