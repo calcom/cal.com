@@ -1,5 +1,15 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook, BookingReference, Credential, App } from "@prisma/client";
+import type {
+  Booking,
+  EventType,
+  Prisma,
+  Webhook,
+  BookingReference,
+  Credential,
+  User,
+  App,
+} from "@prisma/client";
+import type { Session } from "next-auth";
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -156,8 +166,10 @@ export const buildApp = (app?: Partial<App>): App => {
     dirName: "calendar-test",
     // One or multiple categories to which this app belongs
     categories: ["calendar"],
-    keys: undefined,
+    keys: {},
     enabled: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
     ...app,
   };
 };
@@ -230,10 +242,10 @@ export const buildCalendarEvent = (
 };
 
 export const buildSession = (session: {
-  user?: UserPayload;
+  user?: User;
   hasValidLicense?: boolean;
   token?: { exp?: number; belongsToActiveTeam?: boolean; upId?: number; profileId?: number };
-}) => {
+}): Session => {
   return {
     user: session?.user ?? buildUser(),
     hasValidLicense: session?.hasValidLicense ?? true,
@@ -245,7 +257,7 @@ export const buildSession = (session: {
   };
 };
 
-type UserPayload = Prisma.UserGetPayload<{
+export type UserPayload = Prisma.UserGetPayload<{
   select: {
     locked: true;
     name: true;

@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker";
 import { vi, describe, test, expect } from "vitest";
 
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
+import type { UserPayload } from "@calcom/lib/test/builder";
 import { buildCredential, buildSession } from "@calcom/lib/test/builder";
 import { IdentityProvider, AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 import type { inferProcedureInput } from "@calcom/trpc";
@@ -55,9 +56,12 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = (await buildMockData(
+      IdentityProvider.GOOGLE,
+      "123456789012345678901"
+    )) as unknown as UserPayload;
     const ctx = await createContextInner({
       sourceIp: "127.0.0.0",
       locale: "en",

@@ -17,7 +17,7 @@ import { createContextInner } from "@calcom/trpc/server/createContext";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { appsRouterCreateCaller } from "@calcom/trpc/server/routers/viewer/apps/_router";
 
-import type { Credential } from ".prisma/client";
+import type { Credential, App } from ".prisma/client";
 
 const mockReportEvent = vi.fn();
 vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
@@ -48,7 +48,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: 0,
       key: { disabledEvents: [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED] },
     };
@@ -71,7 +71,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [AuditLogAppTriggerEvents.APP_KEYS_UPDATED],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     const ctx = await createContextInner({
@@ -80,7 +80,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: 0,
       key: { disabledEvents: [] },
     };
@@ -103,7 +103,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: Object.values(AuditLogSystemTriggerEvents),
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     const ctx = await createContextInner({
@@ -112,7 +112,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: 0,
       key: { apiKey: "Api key updated" },
     };
@@ -144,7 +144,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     await prismock.credential.create({
@@ -156,7 +156,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     const ctx = await createContextInner({
@@ -165,7 +165,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["updateAppCredentials"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: 0,
       key: { apiKey: "Api key updated" },
     };
@@ -188,8 +188,8 @@ describe("handleAuditLogTrigger", () => {
       data: buildApp({
         slug: "zohocalendar",
         dirName: "zohocalendar",
-        categories: ["zohocalendar"],
-      }),
+        categories: ["calendar"],
+      }) as Omit<App, "keys"> & { keys: any },
     });
 
     await prismock.credential.create({
@@ -200,7 +200,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     const ctx = await createContextInner({
@@ -209,7 +209,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["toggle"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["toggle"]> = {
       slug: "zohocalendar",
       enabled: true,
     };
@@ -230,7 +230,7 @@ describe("handleAuditLogTrigger", () => {
         slug: "zohocalendar",
         dirName: "zohocalendar",
         categories: ["calendar"],
-      }),
+      }) as Omit<App, "keys"> & { keys: any },
     });
     await prismock.credential.create({
       data: buildCredential({
@@ -240,7 +240,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: any },
     });
 
     const ctx = await createContextInner({
@@ -249,7 +249,7 @@ describe("handleAuditLogTrigger", () => {
       session: buildSession({ user }),
       user,
     });
-    const input: inferProcedureInput<AppRouter["viewer"]["apps"]["saveKeys"]> = {
+    const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["saveKeys"]> = {
       slug: zohoApp.slug,
       dirName: zohoApp.dirName,
       type: "",
