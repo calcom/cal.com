@@ -69,6 +69,7 @@ const CheckedHostField = ({
                   isFixed,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
+                  weight: option.weight ?? 100,
                 }))
               );
           }}
@@ -76,7 +77,9 @@ const CheckedHostField = ({
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .map((host) => {
               const option = options.find((member) => member.value === host.userId.toString());
-              return option ? { ...option, priority: host.priority ?? 2, isFixed } : options[0];
+              return option
+                ? { ...option, priority: host.priority ?? 2, isFixed, weight: host.weight ?? 100 }
+                : options[0];
             })
             .filter(Boolean)}
           controlShouldRenderValue={false}
