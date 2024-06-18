@@ -3,6 +3,7 @@ import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
+import type { AuditLogTriggerEvents } from "../../types";
 import { createEvent } from "./createEvent";
 import { getRelevantCredentials } from "./getRelevantCredentials";
 import { reportEvent } from "./reportEvent";
@@ -16,7 +17,7 @@ export async function handleAuditLogTrigger({
   source_ip,
   data,
 }: {
-  trigger: string;
+  trigger: AuditLogTriggerEvents;
   user: { name: string; id: number };
   source_ip?: string | undefined;
   data: any;

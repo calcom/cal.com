@@ -9,7 +9,7 @@ export function getHref(
   return baseUrlParsed.toString();
 }
 
-function getPropertyByPath(obj, path) {
+function getPropertyByPath(obj: Record<string, any>, path: string) {
   const parts = path.split(".");
   let current = obj;
   for (const part of parts) {
@@ -21,13 +21,13 @@ function getPropertyByPath(obj, path) {
   return current;
 }
 
-export function flattenObject(obj) {
-  const flattened = {};
+export function flattenObject(obj: Record<string, any>) {
+  const flattened: { [key: string]: any } = {};
 
   Object.keys(obj).forEach((key) => {
     let searchNext = [key];
     while (searchNext.length > 0) {
-      const discovered = [];
+      const discovered: string[] = [];
 
       searchNext.forEach((key) => {
         const value = getPropertyByPath(obj, key);

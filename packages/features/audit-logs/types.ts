@@ -82,13 +82,6 @@ export const ZAuditLogEventBase = z.object({
 
 export type AuditLogEvent = z.infer<typeof ZAuditLogEventBase>;
 
-function getRetracedStringParser(message: string) {
-  return z.coerce
-    .string()
-    .trim()
-    .transform((value) => (value.length <= 1 ? message : value));
-}
-
 export function getEventSchema(
   actorFieldsSchema: z.ZodObject<any>,
   targetFieldsSchema: z.ZodObject<any>,

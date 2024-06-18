@@ -4,12 +4,18 @@ import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
 import { log } from ".";
 import { triggerToMetadata } from "../../trpc/constants";
+import type { AuditLogTriggerEvents } from "../../types";
 
-export function createEvent(trigger: string, user: any, data: any, source_ip: string | undefined) {
+export function createEvent(
+  trigger: AuditLogTriggerEvents,
+  user: { name: string; id: number },
+  data: any,
+  source_ip: string | undefined
+) {
   const triggerMeta = triggerToMetadata[trigger];
   let dynamicSection: any;
   log.silly("Event trigger metadata is ", safeStringify({ trigger, triggerMeta, data }));
-  switch (triggerMeta.target) {
+  switch (triggerMeta?.target) {
     case AuditLogTriggerTargets.BOOKING:
       dynamicSection = {
         ...triggerMeta,
