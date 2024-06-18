@@ -9,7 +9,7 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, slugify, updateEventType } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
 import { dynamicEvent } from "@calcom/platform-libraries-0.0.10";
 import {
