@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect, useRef } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localStorage } from "@calcom/lib/webstorage";
@@ -119,29 +119,42 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-const shuffledTips = shuffle(tips);
-const reversedTips = shuffledTips.slice(0).reverse();
-
 function Tips() {
+  const shuffledTips = shuffle(tips);
+  const isFocused = useRef(false);
   const { t } = useLocale();
 
   const [list, setList] = useState<typeof tips>(() => {
     if (typeof window === "undefined") {
-      return reversedTips;
+      return shuffledTips;
     }
     try {
       const removedTipsString = localStorage.getItem("removedTipsIds");
       if (removedTipsString !== null) {
         const removedTipsIds = removedTipsString.split(",").map((id) => parseInt(id, 10));
-        const filteredTips = reversedTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
+        const filteredTips = shuffledTips.filter((tip) => removedTipsIds.indexOf(tip.id) === -1);
         return filteredTips;
       } else {
-        return reversedTips;
+        return shuffledTips;
       }
     } catch {
-      return reversedTips;
+      return shuffledTips;
     }
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setList((currentItems) => {
+        if (isFocused.current === false) {
+          return [...shuffle(currentItems)];
+        }
+        return currentItems;
+      });
+    }, 5000); // Reshuffle every 5 seconds if no focus
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRemoveItem = (id: number) => {
     setList((currentItems) => {
@@ -157,15 +170,24 @@ function Tips() {
     });
   };
 
-  const baseOriginalList = list.slice(0).reverse();
+  const onFocusHandler = () => {
+    isFocused.current = true;
+  };
+
+  const onBlurHandler = () => {
+    isFocused.current = false;
+  };
+
   return (
     <div
       className="hidden pb-4 pt-8 lg:grid"
       /* ref={animationRef} */
       style={{
         gridTemplateColumns: "1fr",
-      }}>
-      {list.map((tip) => {
+      }}
+      onMouseEnter={onFocusHandler}
+      onMouseLeave={onBlurHandler}>
+      {list.map((tip, idx, list) => {
         return (
           <div
             className="relative"
@@ -177,9 +199,9 @@ function Tips() {
             <div
               className="relative"
               style={{
-                transform: `scale(${1 - baseOriginalList.indexOf(tip) / 20})`,
-                top: -baseOriginalList.indexOf(tip) * 10,
-                opacity: `${1 - baseOriginalList.indexOf(tip) / 7}`,
+                transform: `scale(${1 - (list.length - 1 - idx) / 20})`,
+                top: -(list.length - 1 - idx) * 10,
+                opacity: `${1 - (list.length - 1 - idx) / 7}`,
               }}>
               <Card
                 variant="SidebarCard"
