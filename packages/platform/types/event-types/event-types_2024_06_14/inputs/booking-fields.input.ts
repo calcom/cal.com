@@ -289,7 +289,7 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
     boolean: BooleanField_2024_06_14,
   };
 
-  async validate(bookingFields: { type: string }[]) {
+  async validate(bookingFields: { type: string; label: string }[]) {
     if (!Array.isArray(bookingFields)) {
       throw new BadRequestException(`'bookingFields' must be an array.`);
     }
@@ -298,11 +298,23 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
       throw new BadRequestException(`'bookingFields' must contain at least 1 booking field.`);
     }
 
+    const labels: string[] = [];
     for (const field of bookingFields) {
-      const { type } = field;
+      const { type, label } = field;
       if (!type) {
         throw new BadRequestException(`Each booking field must have a 'type' property.`);
       }
+
+      if (!label) {
+        throw new BadRequestException(`Each booking field must have a 'label' property.`);
+      }
+
+      if (labels.includes(label)) {
+        throw new BadRequestException(
+          `Duplicate bookingFields label '${label}' found. All bookingFields labels must be unique.`
+        );
+      }
+      labels.push(label);
 
       const ClassType = this.classTypeMap[type];
       if (!ClassType) {
