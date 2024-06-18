@@ -154,12 +154,6 @@ const _getCurrentSeats = async (
     schedulingType === SchedulingType.ROUND_ROBIN ||
     schedulingType === SchedulingType.COLLECTIVE;
 
-  console.log("dateFrom.format()", dateFrom.format());
-  console.log("dateTo.format()", dateTo.format());
-
-  console.log("dateFrom.toISOString()", dateFrom.toISOString());
-  console.log("dateTo.toISOString()", dateTo.toISOString());
-
   const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId: id,
