@@ -23,7 +23,7 @@ import type {
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import { transformApiEventTypeForAtom } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
-import { useEventType } from "../hooks/event-types/useEventType";
+import { useEventType } from "../hooks/event-types/public/useEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";

@@ -8,7 +8,7 @@ import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import type { ApiResponse } from "@calcom/platform-types";
 
-import http from "../../lib/http";
+import http from "../../../lib/http";
 
 export const QUERY_KEY = "use-event-type";
 export type UsePublicEventReturnType = ReturnType<typeof useEventType>;
