@@ -529,7 +529,7 @@ export default function Signup({
               )}
             </div>
             {/* Already have an account & T&C */}
-            <div className="mt-10 flex h-full flex-col justify-end text-xs">
+            <div className="mt-10 flex h-full flex-col justify-end pb-6 text-xs">
               <div className="flex flex-col text-sm">
                 <div className="flex gap-1">
                   <p className="text-subtle">{t("already_have_account")}</p>
@@ -538,23 +538,25 @@ export default function Signup({
                   </Link>
                 </div>
                 <div className="text-subtle ">
-                  <Trans i18nKey="signing_up_terms">
-                    By proceeding, you agree to our{" "}
-                    <Link
-                      className="text-emphasis hover:underline"
-                      href={`${WEBSITE_URL}/terms`}
-                      target="_blank">
-                      Terms
-                    </Link>{" "}
-                    and{" "}
-                    <Link
-                      className="text-emphasis hover:underline"
-                      href={`${WEBSITE_URL}/privacy`}
-                      target="_blank">
-                      Privacy Policy
-                    </Link>
-                    .
-                  </Trans>
+                  <Trans
+                    i18nKey="signing_up_terms"
+                    components={[
+                      <Link
+                        className="text-emphasis hover:underline"
+                        key="terms"
+                        href={`${WEBSITE_URL}/terms`}
+                        target="_blank">
+                        Terms
+                      </Link>,
+                      <Link
+                        className="text-emphasis hover:underline"
+                        key="privacy"
+                        href={`${WEBSITE_URL}/privacy`}
+                        target="_blank">
+                        Privacy Policy.
+                      </Link>,
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -595,14 +597,9 @@ export default function Signup({
                   </div>
                   <div>
                     <img
-                      src="/product-cards/trustpilot.svg"
-                      className="block h-[54px] w-full dark:hidden"
-                      alt="Trustpilot Rating of 4.7 Stars"
-                    />
-                    <img
-                      src="/product-cards/trustpilot-dark.svg"
-                      className="hidden h-[54px] w-full dark:block"
-                      alt="Trustpilot Rating of 4.7 Stars"
+                      src="/product-cards/google-reviews.svg"
+                      className="h-[54px] w-full"
+                      alt="Google Reviews Rating of 4.7 Stars"
                     />
                   </div>
                   <div>

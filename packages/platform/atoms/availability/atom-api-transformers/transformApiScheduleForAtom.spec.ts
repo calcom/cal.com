@@ -1,4 +1,4 @@
-import type { ScheduleOutput } from "@calcom/platform-types";
+import type { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
 import type { User } from "@calcom/prisma/client";
 
 import { transformApiScheduleForAtom } from "./transformApiScheduleForAtom";
@@ -17,7 +17,7 @@ describe("transformScheduleForAtom", () => {
   });
 
   it("should return null if user is not provided", () => {
-    const schedule: ScheduleOutput | null = {
+    const schedule: ScheduleOutput_2024_06_11 | null = {
       id: 139,
       ownerId: SCHEDULE_OWNER_ID,
       name: "Default",
@@ -41,7 +41,7 @@ describe("transformScheduleForAtom", () => {
   });
 
   it("should transform schedule correctly", () => {
-    const schedule: ScheduleOutput = {
+    const schedule: ScheduleOutput_2024_06_11 = {
       id: 139,
       ownerId: SCHEDULE_OWNER_ID,
       name: "Default",
@@ -56,6 +56,11 @@ describe("transformScheduleForAtom", () => {
       isDefault: true,
       overrides: [],
     };
+
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
 
     const expectedResult = {
       id: 139,
@@ -83,32 +88,52 @@ describe("transformScheduleForAtom", () => {
         [],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [
           {
-            start: new Date("2024-05-14T09:00:00.000Z"),
-            end: new Date("2024-05-14T17:00:00.000Z"),
+            start: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T09:00:00.000Z`
+            ),
+            end: new Date(
+              `${year}-${month.toString().padStart(2, "0")}-${day.toString().padStart(2, "0")}T17:00:00.000Z`
+            ),
           },
         ],
         [],

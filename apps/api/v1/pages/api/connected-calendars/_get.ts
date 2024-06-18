@@ -97,9 +97,10 @@ import { schemaConnectedCalendarsReadPublic } from "~/lib/validations/connected-
  */
 
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
 
-  if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (!isSystemWideAdmin && req.query.userId)
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
 
   const userIds = req.query.userId ? extractUserIdsFromQuery(req) : [userId];
 

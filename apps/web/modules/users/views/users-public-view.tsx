@@ -11,6 +11,7 @@ import {
   useEmbedStyles,
   useIsEmbed,
 } from "@calcom/embed-core/embed-iframe";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -59,10 +60,10 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
-
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(entity.orgSlug ?? null)}
         title={profile.name}
         description={markdownStrippedBio}
         meeting={{
@@ -125,7 +126,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               <div
                 key={type.id}
                 style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0">
                 <Icon
                   name="arrow-right"
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"

@@ -54,6 +54,7 @@ export {
   transformApiScheduleAvailability,
   transformApiScheduleOverrides,
 } from "@calcom/lib/schedules/transformers";
+
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -75,3 +76,5 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+
+export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";

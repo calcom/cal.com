@@ -6,9 +6,9 @@ import prisma from "@calcom/prisma";
 import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransformParseInt";
 
 async function authMiddleware(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { id } = schemaQueryIdParseInt.parse(req.query);
-  if (isAdmin) return;
+  if (isSystemWideAdmin) return;
   const userEventTypes = await prisma.eventType.findMany({
     where: { userId },
     select: { id: true },

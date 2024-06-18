@@ -1,8 +1,12 @@
-import type { ScheduleAvailabilityInput, UpdateScheduleInput, WeekDay } from "@calcom/platform-types";
+import type {
+  ScheduleAvailabilityInput_2024_06_11,
+  UpdateScheduleInput_2024_06_11,
+  WeekDay,
+} from "@calcom/platform-types";
 
 import type { AvailabilityFormValues } from "../types";
 
-export function transformAtomScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput {
+export function transformAtomScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput_2024_06_11 {
   const { name, schedule, dateOverrides, timeZone, isDefault } = body;
 
   const overrides =
@@ -22,7 +26,7 @@ export function transformAtomScheduleForApi(body: AvailabilityFormValues): Updat
 
 function formatScheduleTime(
   weekSchedule: AvailabilityFormValues["schedule"]
-): UpdateScheduleInput["availability"] {
+): UpdateScheduleInput_2024_06_11["availability"] {
   const daysOfWeek: WeekDay[] = [
     "Sunday",
     "Monday",
@@ -41,7 +45,7 @@ function formatScheduleTime(
     }))
   );
 
-  const timeMap: { [key: string]: ScheduleAvailabilityInput } = {};
+  const timeMap: { [key: string]: ScheduleAvailabilityInput_2024_06_11 } = {};
 
   formattedSchedule.flat().forEach((event) => {
     const timeKey = `${event.startTime}-${event.endTime}`;
