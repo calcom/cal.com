@@ -16,13 +16,7 @@ export class AppleCalendarService implements CalendarApp {
     private readonly dbRead: PrismaReadService
   ) {}
 
-  async save(
-    userId: number,
-    username: string,
-    password: string,
-    origin: string,
-    redir?: string
-  ): Promise<{ url: string }> {
+  async save(origin: string, redir?: string): Promise<{ url: string }> {
     return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir);
   }
 
@@ -90,6 +84,22 @@ export class AppleCalendarService implements CalendarApp {
       appId: "apple-calendar",
       invalid: false,
     };
+
+    try {
+      const dav = new CalendarService({
+        id: 0,
+        ...data,
+        user: { email: user.email },
+      });
+      await dav?.listCalendars();
+      // await prisma.credential.create({
+      //   data,
+      // });
+      await this.credentialRepository.createAppCredential(data);
+    } catch (reason) {
+      this.logger.error("Could not add this apple calendar account", reason);
+      // return res.status(500).json({ message: "unable_to_add_apple_calendar" });
+    }
 
     return {
       url: redir || origin,
