@@ -78,3 +78,5 @@ export { getBookingInfo };
 export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
+export { symmetricEncrypt } from "@calcom/lib/crypto";
+export { CalendarService } from "@calcom/app-store/applecalendar/lib";
