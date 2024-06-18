@@ -103,7 +103,7 @@ export class OAuthFlowService {
     tokenId: string,
     clientId: string,
     clientSecret: string
-  ): Promise<{ accessToken: string; refreshToken: string }> {
+  ): Promise<{ accessToken: string; refreshToken: string; accessTokenExpiresAt: Date }> {
     const oauthClient = await this.oAuthClientRepository.getOAuthClientWithAuthTokens(
       tokenId,
       clientId,
@@ -120,7 +120,7 @@ export class OAuthFlowService {
       throw new BadRequestException("Invalid Authorization Token.");
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       clientId,
       authorizationToken.owner.id
     );
@@ -129,6 +129,7 @@ export class OAuthFlowService {
 
     return {
       accessToken,
+      accessTokenExpiresAt,
       refreshToken,
     };
   }
@@ -158,6 +159,7 @@ export class OAuthFlowService {
 
     return {
       accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
     };
   }
