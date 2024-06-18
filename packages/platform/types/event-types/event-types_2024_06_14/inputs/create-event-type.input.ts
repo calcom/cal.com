@@ -20,6 +20,9 @@ export class CreateEventTypeInput_2024_06_14 {
   @DocsProperty({ example: CREATE_EVENT_TITLE_EXAMPLE })
   title!: string;
 
+  @IsString()
+  slug!: string;
+
   @IsOptional()
   @IsString()
   @DocsProperty({ example: CREATE_EVENT_DESCRIPTION_EXAMPLE })

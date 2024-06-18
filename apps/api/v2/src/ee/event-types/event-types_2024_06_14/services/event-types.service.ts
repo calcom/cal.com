@@ -57,10 +57,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async checkCanCreateEventType(userId: number, body: CreateEventTypeInput_2024_06_14) {
-    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(
-      userId,
-      slugify(body.title)
-    );
+    const existsWithSlug = await this.eventTypesRepository.getUserEventTypeBySlug(userId, body.slug);
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
     }

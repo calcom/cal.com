@@ -126,6 +126,7 @@ describe("Event types Endpoints", () => {
     it("should create an event type", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
+        slug: "coding-class",
         description: "Let's learn how to code like a pro.",
         lengthInMinutes: 60,
         locations: [

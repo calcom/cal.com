@@ -1,7 +1,6 @@
 import { Injectable } from "@nestjs/common";
 
 import {
-  slugify,
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
 } from "@calcom/platform-libraries-0.0.10";
@@ -19,15 +18,9 @@ export class InputEventTypesService_2024_06_14 {
 
     const { lengthInMinutes, locations, bookingFields, ...rest } = inputEventType;
 
-    const random = Math.floor(100000 + Math.random() * 900000);
-    const timestamp = new Date().valueOf();
-
-    const slug = `${slugify(rest.title)}-${timestamp}${random}`;
-
     const eventType = {
       ...rest,
       length: lengthInMinutes,
-      slug,
       locations: this.transformInputLocations(locations || defaultLocations),
       bookingFields: this.transformInputBookingFields(bookingFields),
     };
