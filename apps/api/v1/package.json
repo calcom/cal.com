@@ -30,7 +30,7 @@
     "@calcom/lib": "*",
     "@calcom/prisma": "*",
     "@calcom/trpc": "*",
-    "@sentry/nextjs": "^7.73.0",
+    "@sentry/nextjs": "^8.8.0",
     "bcryptjs": "^2.4.3",
     "memory-cache": "^0.2.0",
     "next": "^13.5.4",

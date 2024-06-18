@@ -1260,9 +1260,29 @@ async function handler(
   }
 
   let luckyUserResponse;
+  let isFirstSeat = true;
+
+  if (eventType.seatsPerTimeSlot) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: new Date(dayjs(reqBody.start).utc().format()),
+          },
+        ],
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+
+    if (booking) isFirstSeat = false;
+  }
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot) {
+  if (isFirstSeat) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
       users: IsFixedAwareUser[];
     } = {
@@ -1455,26 +1475,15 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
-  // If location passed is empty , use default location of event
-  // If location of event is not set , use host default
-  if (locationBodyString.trim().length == 0) {
-    if (eventType.locations.length > 0) {
-      locationBodyString = eventType.locations[0].type;
-    } else {
-      locationBodyString = OrganizerDefaultConferencingAppType;
-    }
-  }
   // use host default
-  if (locationBodyString == OrganizerDefaultConferencingAppType) {
+  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      if (isManagedEventType || isTeamEventType) {
-        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-          organizerMetadata?.defaultConferencingApp?.appLink;
-      }
+      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+        organizerMetadata?.defaultConferencingApp?.appLink;
     } else {
       locationBodyString = "integrations:daily";
     }
@@ -1614,12 +1623,6 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
-  //udpate cal event responses with latest location value , later used by webhook
-  if (reqBody.calEventResponses)
-    reqBody.calEventResponses["location"].value = {
-      value: platformBookingLocation ?? bookingLocation,
-      optionValue: "",
-    };
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -1751,6 +1754,7 @@ async function handler(
       eventTrigger,
       responses,
     });
+
     if (newBooking) {
       req.statusCode = 201;
       const bookingResponse = {
@@ -1765,6 +1769,13 @@ async function handler(
         ...bookingResponse,
         ...luckyUserResponse,
       };
+    } else {
+      // Rescheduling logic for the original seated event was handled in handleSeats
+      // We want to use new booking logic for the new time slot
+      originalRescheduledBooking = null;
+      evt.iCalUID = getICalUID({
+        attendeeId: bookingSeat?.attendeeId,
+      });
     }
   }
   if (isTeamEventType) {
@@ -1774,7 +1785,6 @@ async function handler(
       id: eventType.team?.id ?? 0,
     };
   }
-
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
@@ -1896,7 +1906,7 @@ async function handler(
   let videoCallUrl;
 
   //this is the actual rescheduling logic
-  if (originalRescheduledBooking?.uid) {
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
       // cancel workflow reminders from previous rescheduled booking
