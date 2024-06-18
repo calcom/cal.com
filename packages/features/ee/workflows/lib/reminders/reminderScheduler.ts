@@ -18,6 +18,7 @@ import { deleteScheduledWhatsappReminder, scheduleWhatsappReminder } from "./wha
 type ExtendedCalendarEvent = CalendarEvent & {
   metadata?: { videoCallUrl: string | undefined };
   eventType: { slug?: string };
+  status?: string;  
 };
 
 type ProcessWorkflowStepParams = {
@@ -153,7 +154,9 @@ export const scheduleWorkflowReminders = async (args: ScheduleWorkflowRemindersA
     hideBranding,
     seatReferenceUid,
   } = args;
-  if (isNotConfirmed || !workflows.length) return;
+
+  
+  if (isNotConfirmed || !workflows.length || evt.status === "cancelled") return;
 
   for (const workflowReference of workflows) {
     if (workflowReference.workflow.steps.length === 0) continue;
@@ -225,7 +228,11 @@ export const sendCancelledReminders = async (args: SendCancelledRemindersArgs) =
     if (workflow.trigger !== WorkflowTriggerEvents.EVENT_CANCELLED) continue;
 
     for (const step of workflow.steps) {
-      processWorkflowStep(workflow, step, {
+      if (evt.status === "cancelled") {
+        continue; 
+      }
+
+      await processWorkflowStep(workflow, step, {
         smsReminderNumber,
         hideBranding,
         calendarEvent: evt,
