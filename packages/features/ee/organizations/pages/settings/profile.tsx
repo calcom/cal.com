@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -10,6 +11,7 @@ import { z } from "zod";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
+import { classNames } from "@calcom/lib";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
@@ -254,33 +256,50 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             name="banner"
             render={({ field: { value, onChange } }) => {
               const showRemoveBannerButton = !!value;
+              const hasChooseBanner = !!value;
 
               return (
                 <>
-                  <Avatar
-                    data-testid="profile-upload-banner"
-                    alt={`${defaultValues.name} Banner` || ""}
-                    imageSrc={value}
-                    size="lg"
-                  />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <BannerUploader
-                        height={500}
-                        width={1500}
-                        target="banner"
-                        uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
-                        id="banner-upload"
-                        buttonMsg={t("upload_banner")}
-                        handleAvatarChange={onChange}
-                        imageSrc={value || undefined}
-                        triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
-                      />
-                      {showRemoveBannerButton && (
-                        <Button color="destructive" onClick={() => onChange(null)}>
-                          {t("remove")}
-                        </Button>
-                      )}
+                  {!hasChooseBanner && (
+                    <Avatar
+                      data-testid="profile-upload-banner"
+                      alt={`${defaultValues.name} Banner` || ""}
+                      imageSrc={value}
+                      size="lg"
+                    />
+                  )}
+                  <div className="space-y-4">
+                    {hasChooseBanner && (
+                      <div className="">
+                        <Image
+                          className="h-auto w-full"
+                          src={value}
+                          width={100}
+                          height={100}
+                          alt={`${defaultValues.name} Banner`}
+                        />
+                      </div>
+                    )}
+
+                    <div className={classNames("ms-4", hasChooseBanner && "ms-0")}>
+                      <div className="flex gap-2">
+                        <BannerUploader
+                          height={500}
+                          width={1500}
+                          target="banner"
+                          uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
+                          id="banner-upload"
+                          buttonMsg={t("upload_banner")}
+                          handleAvatarChange={onChange}
+                          imageSrc={value || undefined}
+                          triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                        />
+                        {showRemoveBannerButton && (
+                          <Button color="destructive" onClick={() => onChange(null)}>
+                            {t("remove")}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </>
