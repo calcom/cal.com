@@ -132,8 +132,9 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
                 />
                 {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                <div className="block w-full p-5">
+                <div className="block w-full">
                   <Link
+                    className="p-5"
                     prefetch={false}
                     href={{
                       pathname: `/${user.profile.username}/${type.slug}`,
