@@ -7,6 +7,7 @@ import amie_config_json from "./amie/config.json";
 import { metadata as applecalendar__metadata_ts } from "./applecalendar/_metadata";
 import around_config_json from "./around/config.json";
 import autocheckin_config_json from "./autocheckin/config.json";
+import baa_for_hipaa_config_json from "./baa-for-hipaa/config.json";
 import basecamp3_config_json from "./basecamp3/config.json";
 import cal_ai_config_json from "./cal-ai/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
@@ -74,7 +75,9 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
+import twipla_config_json from "./twipla/config.json";
 import typeform_config_json from "./typeform/config.json";
+import umami_config_json from "./umami/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
 import weather_in_your_calendar_config_json from "./weather_in_your_calendar/config.json";
@@ -95,6 +98,7 @@ export const appStoreMetadata = {
   applecalendar: applecalendar__metadata_ts,
   around: around_config_json,
   autocheckin: autocheckin_config_json,
+  "baa-for-hipaa": baa_for_hipaa_config_json,
   basecamp3: basecamp3_config_json,
   "cal-ai": cal_ai_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
@@ -162,7 +166,9 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
+  twipla: twipla_config_json,
   typeform: typeform_config_json,
+  umami: umami_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
   weather_in_your_calendar: weather_in_your_calendar_config_json,

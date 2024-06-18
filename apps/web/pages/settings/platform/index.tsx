@@ -11,6 +11,7 @@ import {
 import { useDeleteOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import { HelpCards } from "@components/settings/platform/dashboard/HelpCards";
 import { ManagedUserList } from "@components/settings/platform/dashboard/managed-user-list";
 import { OAuthClientsList } from "@components/settings/platform/dashboard/oauth-clients-list";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
@@ -68,6 +69,7 @@ export default function Platform() {
             withoutMain={false}
             subtitle="Manage everything related to platform."
             isPlatformUser={true}>
+            <HelpCards />
             <OAuthClientsList oauthClients={data} isDeleting={isDeleting} handleDelete={handleDelete} />
             <ManagedUserList
               oauthClients={data}
