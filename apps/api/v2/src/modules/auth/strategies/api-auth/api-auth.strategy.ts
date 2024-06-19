@@ -5,7 +5,7 @@ import { DeploymentsService } from "@/modules/deployments/deployments.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
@@ -27,22 +27,30 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
   async authenticate(request: Request) {
     const authString = request.get("Authorization")?.replace("Bearer ", "");
-
     if (!authString) {
-      throw new UnauthorizedException("No Authorization header provided");
+      return this.error(new UnauthorizedException("No Authorization header provided"));
     }
 
     const requestOrigin = request.get("Origin");
 
-    const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
-      ? await this.apiKeyStrategy(authString)
-      : await this.accessTokenStrategy(authString, requestOrigin);
+    try {
+      const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+        ? await this.apiKeyStrategy(authString)
+        : await this.accessTokenStrategy(authString, requestOrigin);
 
-    if (!user) {
-      throw new UnauthorizedException("No user associated with the provided token");
+      if (!user) {
+        return this.error(new UnauthorizedException("No user associated with the provided token"));
+      }
+
+      return this.success(user);
+    } catch (err) {
+      if (err instanceof Error) {
+        return this.error(err);
+      }
+      return this.error(
+        new InternalServerErrorException("An error occurred while authenticating the request")
+      );
     }
-
-    return user;
   }
 
   async apiKeyStrategy(apiKey: string) {
