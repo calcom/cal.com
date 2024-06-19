@@ -45,6 +45,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -1319,18 +1320,32 @@ async function handler(
             .concat(copyEvent.organizer)
             .concat(copyEvent.attendees) || [];
 
+        const matchOriginalMemberWithNewMember: boolean = (originalMember: Person, newMember: Person) => {
+          if (!originalMember.email || originalMember.email === BOOKED_WITH_SMS_EMAIL) {
+            return originalMember.phoneNumber === newMember.phoneNumber;
+          } else if (!newMember.email || newMember.email === BOOKED_WITH_SMS_EMAIL) {
+            return newMember.phoneNumber === originalMember.phoneNumber;
+          }
+          return originalMember.email === newMember.email;
+        };
+
         // scheduled Emails
         const newBookedMembers = newBookingMemberEmails.filter(
           (member) =>
-            !originalBookingMemberEmails.find((originalMember) => originalMember.email === member.email)
+            !originalBookingMemberEmails.find((originalMember) =>
+              matchOriginalMemberWithNewMember(originalMember, member)
+            )
         );
         // cancelled Emails
         const cancelledMembers = originalBookingMemberEmails.filter(
-          (member) => !newBookingMemberEmails.find((newMember) => newMember.email === member.email)
+          (member) =>
+            !newBookingMemberEmails.find((newMember) => matchOriginalMemberWithNewMember(member, newMember))
         );
         // rescheduled Emails
         const rescheduledMembers = newBookingMemberEmails.filter((member) =>
-          originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
+          originalBookingMemberEmails.find((orignalMember) =>
+            matchOriginalMemberWithNewMember(orignalMember, member)
+          )
         );
 
         sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers);

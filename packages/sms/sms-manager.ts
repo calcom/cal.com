@@ -4,6 +4,7 @@ import * as twilio from "@calcom/features/ee/workflows/lib/reminders/providers/t
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import { SENDER_ID } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
+import prisma from "@calcom/prisma";
 import type { CalendarEvent, Attendee } from "@calcom/types/Calendar";
 
 const handleSendingSMS = ({
@@ -15,10 +16,25 @@ const handleSendingSMS = ({
   reminderPhone: string;
   smsMessage: string;
   senderID: string;
-  teamId?: number;
+  teamId: number;
 }) => {
   return new Promise(async (resolve, reject) => {
     try {
+      const team = await prisma.team.findUnique({
+        where: {
+          id: teamId,
+        },
+        include: {
+          parent: {
+            select: {
+              isOrganization: true,
+            },
+          },
+        },
+      });
+
+      if (!team?.parent?.isOrganization) return;
+
       await checkSMSRateLimit({ identifier: `handleSendingSMS:team:${teamId}`, rateLimitingType: "sms" });
       const sms = twilio.sendSMS(reminderPhone, smsMessage, senderID, teamId);
       resolve(sms);
@@ -34,7 +50,8 @@ export default abstract class SMSManager {
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;
-    this.isTeamEvent = !!calEvent?.team;
+    this.teamId = this.calEvent?.team?.id;
+    this.isTeamEvent = !!this.calEvent?.team?.id;
   }
 
   getFormattedTime(
@@ -57,15 +74,15 @@ export default abstract class SMSManager {
   abstract getMessage(attendee: Attendee): string;
 
   async sendSMSToAttendee(attendee: Attendee) {
-    if (!this.isTeamEvent || !this.calEvent?.team?.id) return;
+    const teamId = this.teamId;
+    if (!this.isTeamEvent || !teamId) return;
 
     const attendeePhoneNumber = attendee.phoneNumber;
-    if (attendeePhoneNumber) {
-      const smsMessage = this.getMessage(attendee);
-      const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
-      const teamId = this.calEvent.team.id;
-      return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
-    }
+    if (!attendeePhoneNumber) return;
+
+    const smsMessage = this.getMessage(attendee);
+    const senderID = getSenderId(attendeePhoneNumber, SENDER_ID);
+    return handleSendingSMS({ reminderPhone: attendeePhoneNumber, smsMessage, senderID, teamId });
   }
 
   async sendSMSToAttendees() {
