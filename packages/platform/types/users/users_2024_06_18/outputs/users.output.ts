@@ -1,6 +1,7 @@
-import { IsBoolean, IsDateString, IsInt, IsString } from "class-validator";
+import { Type } from "class-transformer";
+import { IsBoolean, IsDateString, IsInt, IsString, ValidateNested, IsArray } from "class-validator";
 
-export class GetUsersOutput_2024_06_18 {
+export class GetUserOutput_2024_06_18 {
   @IsInt()
   id!: number;
 
@@ -14,7 +15,7 @@ export class GetUsersOutput_2024_06_18 {
   email!: string;
 
   @IsDateString()
-  emailVerified!: string | null;
+  emailVerified!: Date | null;
 
   @IsString()
   bio!: string | null;
@@ -53,10 +54,10 @@ export class GetUsersOutput_2024_06_18 {
   darkBrandColor!: string | null;
 
   @IsBoolean()
-  allowDynamicBooking!: boolean;
+  allowDynamicBooking!: boolean | null;
 
   @IsDateString()
-  createdDate!: string;
+  createdDate!: Date;
 
   @IsBoolean()
   verified!: boolean | null;
@@ -66,4 +67,11 @@ export class GetUsersOutput_2024_06_18 {
 
   @IsString()
   role!: string;
+}
+
+export class GetUsersOutput_2024_06_18 {
+  @ValidateNested()
+  @Type(() => GetUserOutput_2024_06_18)
+  @IsArray()
+  users!: GetUserOutput_2024_06_18[];
 }
