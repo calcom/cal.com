@@ -2,9 +2,10 @@ import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -37,14 +38,14 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries-0.0.2";
 import {
   handleNewBooking,
   BookingResponse,
   HttpError,
   handleNewRecurringBooking,
   handleInstantMeeting,
-} from "@calcom/platform-libraries";
+} from "@calcom/platform-libraries-0.0.2";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -72,8 +73,8 @@ const DEFAULT_PLATFORM_PARAMS = {
 };
 
 @Controller({
-  path: "/bookings",
-  version: "2",
+  path: "/v2/bookings",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
@@ -88,7 +89,7 @@ export class BookingsController {
   ) {}
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })

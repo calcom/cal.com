@@ -86,7 +86,6 @@ const config: PlaywrightTestConfig = {
   fullyParallel: true,
   reporter: [
     [process.env.CI ? "github" : "list"],
-    ["@deploysentinel/playwright"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./test-results/reports/results.xml" }],
   ],
