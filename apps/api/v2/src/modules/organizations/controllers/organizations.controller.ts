@@ -11,7 +11,7 @@ import { ApiExcludeController } from "@nestjs/swagger";
 import { ApiResponse, GetOrganizationUsersInput_2024_06_18 } from "@calcom/platform-types";
 
 @Controller({
-  path: "/organizations",
+  path: "v2/organizations",
   version: API_VERSIONS_VALUES,
 })
 @ApiExcludeController(false)
