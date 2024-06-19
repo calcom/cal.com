@@ -86,6 +86,7 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         orgId,
         triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
       });
+      // @ts-expect-error payload is too booking specific, we need to refactor this
       await webhooks.sendPayload({ ...payload, bookingUid });
       return payload;
     }

@@ -36,7 +36,7 @@ export type BookingNoShowUpdatedPayload = {
 };
 
 export type WebhookDataType = CalendarEvent &
-  BookingNoShowUpdatedPayload &
+  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
