@@ -24,6 +24,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -204,30 +205,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   });
 
   const router = useRouter();
-
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      const paths = url.split("/");
-      if (
-        !!team &&
-        eventType.hosts.length === 0 &&
-        !leaveWithoutAssigningHosts.current &&
-        (url === "/event-types" || paths[1] !== "event-types")
-      ) {
-        setIsOpenAssignmentWarnDialog(true);
-        setPendingRoute(url);
-        router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
-      }
-    };
-    router.events.on("routeChangeStart", handleRouteChange);
-    return () => {
-      router.events.off("routeChangeStart", handleRouteChange);
-    };
-  }, [router]);
 
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
@@ -419,6 +396,44 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const paths = url.split("/");
+
+      // We don't need to show the modal if the user is assigning all team members as they are already assigned
+      if (formMethods.getValues("assignAllTeamMembers") === true) {
+        return;
+      }
+
+      // Check if event is managed event type - skip if there is assigned users
+      const assignedUsers = formMethods.getValues("children");
+      const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+      if (isManagedEventType && assignedUsers.length > 0) {
+        return;
+      }
+
+      const hosts = formMethods.getValues("hosts");
+      if (
+        !leaveWithoutAssigningHosts.current &&
+        !!team &&
+        hosts.length === 0 &&
+        (url === "/event-types" || paths[1] !== "event-types")
+      ) {
+        setIsOpenAssignmentWarnDialog(true);
+        setPendingRoute(url);
+        router.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
+        throw "Aborted";
+      }
+    };
+    router.events.on("routeChangeStart", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
