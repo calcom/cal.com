@@ -41,13 +41,6 @@ export class OrganizationsController {
     };
   }
 
-  @Post("/:organizationId/users")
-  @UseGuards(NextAuthGuard, OrganizationRolesGuard, OrganizationIdGuard)
-  @Roles(["OWNER", "ADMIN"])
-  async postOrganizationUsers(): Promise<string> {
-    return "Please use the organizations membership endpoint to add new users";
-  }
-
   //   @Patch("/:organizationId/users/:userId")
   //   @UseGuards(NextAuthGuard, OrganizationRolesGuard, OrganizationIdGuard)
   //   @Roles(["OWNER", "ADMIN"])
