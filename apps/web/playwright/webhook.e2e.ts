@@ -1,4 +1,3 @@
-import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { v4 as uuidv4 } from "uuid";
 
@@ -10,7 +9,6 @@ import { test } from "./lib/fixtures";
 import {
   bookOptinEvent,
   bookTimeSlot,
-  createHttpServer,
   createUserWithSeatedEventAndAttendees,
   gotoRoutingLink,
   selectFirstAvailableTimeSlotNextMonth,
@@ -24,54 +22,16 @@ test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 
-async function createWebhookReceiver(page: Page) {
-  const webhookReceiver = createHttpServer();
-
-  await page.goto(`/settings/developer/webhooks`);
-
-  // --- add webhook
-  await page.click('[data-testid="new_webhook"]');
-
-  await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-  await page.fill('[name="secret"]', "secret");
-
-  await Promise.all([
-    page.click("[type=submit]"),
-    page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-  ]);
-
-  // page contains the url
-  expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
-
-  return webhookReceiver;
-}
-
 test.describe("BOOKING_CREATED", async () => {
   test("add webhook & test that creating an event triggers a webhook call", async ({
     page,
     users,
+    webhooks,
   }, _testInfo) => {
-    const webhookReceiver = createHttpServer();
     const user = await users.create();
     const [eventType] = user.eventTypes;
     await user.apiLogin();
-    await page.goto(`/settings/developer/webhooks`);
-
-    // --- add webhook
-    await page.click('[data-testid="new_webhook"]');
-
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-    await page.fill('[name="secret"]', "secret");
-
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+    const webhookReceiver = await webhooks.createReceiver();
 
     // --- Book the first available day next month in the pro user's "30min"-event
     await page.goto(`/${user.username}/${eventType.slug}`);
@@ -169,8 +129,8 @@ test.describe("BOOKING_REJECTED", async () => {
   test("can book an event that requires confirmation and then that booking can be rejected by organizer", async ({
     page,
     users,
+    webhooks,
   }) => {
-    const webhookReceiver = createHttpServer();
     // --- create a user
     const user = await users.create();
 
@@ -182,24 +142,7 @@ test.describe("BOOKING_REJECTED", async () => {
 
     // --- login as that user
     await user.apiLogin();
-
-    await page.goto(`/settings/developer/webhooks`);
-
-    // --- add webhook
-    await page.click('[data-testid="new_webhook"]');
-
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-    await page.fill('[name="secret"]', "secret");
-
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
-
+    const webhookReceiver = await webhooks.createReceiver();
     await page.goto("/bookings/unconfirmed");
     await page.click('[data-testid="reject"]');
     await page.click('[data-testid="rejection-confirm"]');
@@ -293,30 +236,14 @@ test.describe("BOOKING_REQUESTED", async () => {
   test("can book an event that requires confirmation and get a booking requested event", async ({
     page,
     users,
+    webhooks,
   }) => {
-    const webhookReceiver = createHttpServer();
     // --- create a user
     const user = await users.create();
 
     // --- login as that user
     await user.apiLogin();
-
-    await page.goto(`/settings/developer/webhooks`);
-
-    // --- add webhook
-    await page.click('[data-testid="new_webhook"]');
-
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-    await page.fill('[name="secret"]', "secret");
-
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+    const webhookReceiver = await webhooks.createReceiver();
 
     // --- visit user page
     await page.goto(`/${user.username}`);
@@ -410,13 +337,18 @@ test.describe("BOOKING_REQUESTED", async () => {
 });
 
 test.describe("BOOKING_RESCHEDULED", async () => {
-  test("can reschedule a booking and get a booking rescheduled event", async ({ page, users, bookings }) => {
+  test("can reschedule a booking and get a booking rescheduled event", async ({
+    page,
+    users,
+    bookings,
+    webhooks,
+  }) => {
     const user = await users.create();
     const [eventType] = user.eventTypes;
 
     await user.apiLogin();
 
-    const webhookReceiver = await createWebhookReceiver(page);
+    const webhookReceiver = await webhooks.createReceiver();
 
     const booking = await bookings.create(user.id, user.username, eventType.id, {
       status: BookingStatus.ACCEPTED,
@@ -451,6 +383,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
     page,
     users,
     bookings,
+    webhooks,
   }) => {
     const { user, eventType, booking } = await createUserWithSeatedEventAndAttendees({ users, bookings }, [
       { name: "John First", email: "first+seats@cal.com", timeZone: "Europe/Berlin" },
@@ -464,7 +397,7 @@ test.describe("BOOKING_RESCHEDULED", async () => {
 
     await user.apiLogin();
 
-    const webhookReceiver = await createWebhookReceiver(page);
+    const webhookReceiver = await webhooks.createReceiver();
 
     const bookingAttendees = await prisma.attendee.findMany({
       where: { bookingId: booking.id },
@@ -670,24 +603,13 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
 });
 
 test.describe("FORM_SUBMITTED", async () => {
-  test("on submitting user form, triggers user webhook", async ({ page, users, routingForms }) => {
-    const webhookReceiver = createHttpServer();
+  test("on submitting user form, triggers user webhook", async ({ page, users, routingForms, webhooks }) => {
     const user = await users.create(null, {
       hasTeam: true,
     });
 
     await user.apiLogin();
-
-    await page.goto(`/settings/developer/webhooks/new`);
-
-    // Add webhook
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-    await page.fill('[name="secret"]', "secret");
-    await page.click("[type=submit]");
-
-    // Page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
-
+    const webhookReceiver = await webhooks.createReceiver();
     await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
@@ -736,21 +658,12 @@ test.describe("FORM_SUBMITTED", async () => {
     webhookReceiver.close();
   });
 
-  test("on submitting team form, triggers team webhook", async ({ page, users, routingForms }) => {
-    const webhookReceiver = createHttpServer();
+  test("on submitting team form, triggers team webhook", async ({ page, users, routingForms, webhooks }) => {
     const user = await users.create(null, {
       hasTeam: true,
     });
     await user.apiLogin();
-
-    await page.goto(`/settings/developer/webhooks`);
-    const teamId = await clickFirstTeamWebhookCta(page);
-
-    // Add webhook
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-    await page.fill('[name="secret"]', "secret");
-    await page.click("[type=submit]");
-
+    const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
     const form = await routingForms.create({
       name: "Test Form",
       userId: user.id,
@@ -798,40 +711,14 @@ test.describe("FORM_SUBMITTED", async () => {
   });
 });
 
-async function clickFirstTeamWebhookCta(page: Page) {
-  await page.click('[data-testid="new_webhook"]');
-  await page.click('[data-testid="option-team-1"]');
-  await page.waitForURL((u) => u.pathname === "/settings/developer/webhooks/new");
-  const url = page.url();
-  const teamId = Number(new URL(url).searchParams.get("teamId")) as number;
-  return teamId;
-}
-
 test.describe("BOOKING_NO_SHOW_UPDATED", async () => {
-  test("on marking an attendee as no-show, triggers webhook", async ({ page, users }) => {
-    const webhookReceiver = createHttpServer();
+  test("on marking an attendee as no-show, triggers webhook", async ({ page, users, webhooks }) => {
     // --- create a user
     const user = await users.create();
 
     // --- login as that user
     await user.apiLogin();
-
-    await page.goto(`/settings/developer/webhooks`);
-
-    // --- add webhook
-    await page.click('[data-testid="new_webhook"]');
-
-    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
-
-    await page.fill('[name="secret"]', "secret");
-
-    await Promise.all([
-      page.click("[type=submit]"),
-      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
-    ]);
-
-    // page contains the url
-    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+    const webhookReceiver = await webhooks.createReceiver();
 
     // --- visit user page
     await page.goto(`/${user.username}`);

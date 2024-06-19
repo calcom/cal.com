@@ -1,6 +1,7 @@
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { WebhookTriggerEvents } from "@calcom/prisma/client";
 
 import type { TNoShowInputSchema } from "./noShow.schema";
 
@@ -61,11 +62,30 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
         .map((x) => ({ email: x.email, noShow: x.noShow }));
       const payload = await getResultPayload(_attendees);
-      // sendPayload(payload);
-      const webhooks = await new WebhookService({
-        triggerEvent: "BOOKING_NO_SHOW_UPDATED",
+      const booking = await prisma.booking.findUnique({
+        where: { uid: bookingUid },
+        select: {
+          eventType: {
+            select: {
+              id: true,
+              teamId: true,
+              userId: true,
+            },
+          },
+        },
       });
-      await webhooks.sendPayload(payload);
+      const orgId = await getOrgIdFromMemberOrTeamId({
+        memberId: booking?.eventType?.userId,
+        teamId: booking?.eventType?.teamId,
+      });
+      const webhooks = await new WebhookService({
+        teamId: booking?.eventType?.teamId,
+        userId: booking?.eventType?.userId,
+        eventTypeId: booking?.eventType?.id,
+        orgId,
+        triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
+      });
+      await webhooks.sendPayload({ ...payload, bookingUid });
       return payload;
     }
     await prisma.booking.update({
