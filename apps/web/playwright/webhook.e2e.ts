@@ -806,3 +806,120 @@ async function clickFirstTeamWebhookCta(page: Page) {
   const teamId = Number(new URL(url).searchParams.get("teamId")) as number;
   return teamId;
 }
+
+test.describe("BOOKING_NO_SHOW_UPDATED", async () => {
+  test("on marking an attendee as no-show, triggers webhook", async ({ page, users }) => {
+    const webhookReceiver = createHttpServer();
+    // --- create a user
+    const user = await users.create();
+
+    // --- login as that user
+    await user.apiLogin();
+
+    await page.goto(`/settings/developer/webhooks`);
+
+    // --- add webhook
+    await page.click('[data-testid="new_webhook"]');
+
+    await page.fill('[name="subscriberUrl"]', webhookReceiver.url);
+
+    await page.fill('[name="secret"]', "secret");
+
+    await Promise.all([
+      page.click("[type=submit]"),
+      page.waitForURL((url) => url.pathname.endsWith("/settings/developer/webhooks")),
+    ]);
+
+    // page contains the url
+    expect(page.locator(`text='${webhookReceiver.url}'`)).toBeDefined();
+
+    // --- visit user page
+    await page.goto(`/${user.username}`);
+
+    // --- mark the user's attendee as no-show
+    // await bookOptinEvent(page);
+
+    // --- check that webhook was called
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = request.body as any;
+
+    body.createdAt = dynamic;
+    body.payload.startTime = dynamic;
+    body.payload.endTime = dynamic;
+    body.payload.location = dynamic;
+    for (const attendee of body.payload.attendees) {
+      attendee.timeZone = dynamic;
+      attendee.language = dynamic;
+    }
+    body.payload.organizer.id = dynamic;
+    body.payload.organizer.email = dynamic;
+    body.payload.organizer.timeZone = dynamic;
+    body.payload.organizer.language = dynamic;
+    body.payload.uid = dynamic;
+    body.payload.bookingId = dynamic;
+    body.payload.additionalInformation = dynamic;
+    body.payload.requiresConfirmation = dynamic;
+    body.payload.eventTypeId = dynamic;
+    body.payload.videoCallData = dynamic;
+    body.payload.appsStatus = dynamic;
+    body.payload.metadata.videoCallUrl = dynamic;
+
+    expect(body).toMatchObject({
+      triggerEvent: "BOOKING_REQUESTED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        type: "opt-in",
+        title: "Opt in between Nameless and Test Testson",
+        customInputs: {},
+        startTime: "[redacted/dynamic]",
+        endTime: "[redacted/dynamic]",
+        organizer: {
+          id: "[redacted/dynamic]",
+          name: "Nameless",
+          email: "[redacted/dynamic]",
+          timeZone: "[redacted/dynamic]",
+          language: "[redacted/dynamic]",
+        },
+        responses: {
+          email: {
+            value: "test@example.com",
+            label: "email_address",
+          },
+          name: {
+            value: "Test Testson",
+            label: "your_name",
+          },
+        },
+        userFieldsResponses: {},
+        attendees: [
+          {
+            email: "test@example.com",
+            name: "Test Testson",
+            timeZone: "[redacted/dynamic]",
+            language: "[redacted/dynamic]",
+          },
+        ],
+        location: "[redacted/dynamic]",
+        destinationCalendar: null,
+        requiresConfirmation: "[redacted/dynamic]",
+        eventTypeId: "[redacted/dynamic]",
+        uid: "[redacted/dynamic]",
+        eventTitle: "Opt in",
+        eventDescription: null,
+        price: 0,
+        currency: "usd",
+        length: 30,
+        bookingId: "[redacted/dynamic]",
+        status: "PENDING",
+        additionalInformation: "[redacted/dynamic]",
+        metadata: { videoCallUrl: "[redacted/dynamic]" },
+      },
+    });
+
+    webhookReceiver.close();
+  });
+});

@@ -84,6 +84,7 @@ test.describe("Bookings", () => {
 
       await firstUser.apiLogin();
       await page.goto(`/bookings/past`);
+      await page.pause();
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');

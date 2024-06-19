@@ -1,3 +1,4 @@
+import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
@@ -5,6 +6,17 @@ import type { TNoShowInputSchema } from "./noShow.schema";
 
 type NoShowOptions = {
   input: TNoShowInputSchema;
+};
+
+const getResultPayload = async (attendees: { email: string; noShow: boolean }[]) => {
+  if (attendees.length === 1) {
+    const [attendee] = attendees;
+    return {
+      message: attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show",
+      attendees: [attendee],
+    };
+  }
+  return { message: "no_show_updated", attendees: attendees };
 };
 
 export const noShowHandler = async ({ input }: NoShowOptions) => {
@@ -31,33 +43,47 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
           email: true,
         },
       });
-
+      const allAttendeesMap = allAttendees.reduce((acc, attendee) => {
+        acc[attendee.email] = attendee;
+        return acc;
+      }, {} as Record<string, { id: number; email: string }>);
       const updatePromises = attendees.map((attendee) => {
-        const attendeeToUpdate = allAttendees.find((a) => a.email === attendee.email);
-
-        if (attendeeToUpdate) {
-          return prisma.attendee.update({
-            where: { id: attendeeToUpdate.id },
-            data: { noShow: attendee.noShow },
-          });
-        }
+        const attendeeToUpdate = allAttendeesMap[attendee.email];
+        if (!attendeeToUpdate) return;
+        return prisma.attendee.update({
+          where: { id: attendeeToUpdate.id },
+          data: { noShow: attendee.noShow },
+        });
       });
-
-      await Promise.all(updatePromises);
-    } else {
-      await prisma.booking.update({
-        where: {
-          uid: bookingUid,
-        },
-        data: {
-          noShowHost: true,
-        },
+      const results = await Promise.allSettled(updatePromises);
+      const _attendees = results
+        .filter((x) => x.status === "fulfilled")
+        .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
+        .map((x) => ({ email: x.email, noShow: x.noShow }));
+      const payload = await getResultPayload(_attendees);
+      // sendPayload(payload);
+      const webhooks = await new WebhookService({
+        triggerEvent: "BOOKING_NO_SHOW_UPDATED",
       });
+      await webhooks.sendPayload(payload);
+      return payload;
     }
+    await prisma.booking.update({
+      where: {
+        uid: bookingUid,
+      },
+      data: {
+        noShowHost: true,
+      },
+    });
+    return { message: "No-show status updated", noShowHost: true };
   } catch (error) {
+    let message = "Failed to update no-show status";
     if (error instanceof Error) {
       logger.error(error.message);
+      message = error.message;
     }
+    return { message };
   }
 };
 
