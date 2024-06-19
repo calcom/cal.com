@@ -1,6 +1,6 @@
 import { NextAuthPassportStrategy } from "@/lib/passport/strategies/types";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
 import type { Request } from "express";
@@ -33,6 +33,9 @@ export class NextAuthStrategy extends PassportStrategy(NextAuthPassportStrategy,
       return this.success(user);
     } catch (error) {
       if (error instanceof Error) return this.error(error);
+      return this.error(
+        new InternalServerErrorException("An error occurred while authenticating the request")
+      );
     }
   }
 }
