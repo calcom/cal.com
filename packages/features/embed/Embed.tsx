@@ -723,7 +723,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       className="rounded-lg p-0.5 sm:max-w-[80rem]"
       type="creation">
       <div className="flex">
-        <div className="bg-muted flex h-[90vh] w-1/3 flex-col overflow-y-auto p-8">
+        <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -1020,40 +1020,54 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flex w-2/3 flex-col px-8 pt-8">
+        <div className="flow-y-scroll flex h-[95vh] w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs
             data-testid="embed-tabs"
-            tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
+            tabs={parsedTabs.filter((tab) => tab.name !== "Preview")}
             linkShallow
           />
           {tabs.map((tab) => {
+            const previewTab = tabs.find((tab) => tab.name === "Preview");
             if (embedType !== "email") {
               return (
                 <div
                   key={tab.href}
                   className={classNames(
                     searchParams?.get("embedTabName") === tab.href.split("=")[1]
-                      ? "flex flex-grow flex-col"
+                      ? "flex h-full flex-col"
                       : "hidden"
                   )}>
-                  <div className="flex h-[55vh] flex-grow flex-col">
-                    {tab.type === "code" ? (
-                      <tab.Component
-                        namespace={namespace}
-                        embedType={embedType}
-                        calLink={calLink}
-                        previewState={previewState}
-                        ref={refOfEmbedCodesRefs.current[tab.name]}
-                      />
-                    ) : (
-                      <tab.Component
-                        namespace={namespace}
-                        embedType={embedType}
-                        calLink={calLink}
-                        previewState={previewState}
-                        ref={iframeRef}
-                      />
-                    )}
+                  <div className="flex h-full flex-col">
+                    <div className="flex flex-1 flex-col">
+                      {tab.type === "code" ? (
+                        <tab.Component
+                          namespace={namespace}
+                          embedType={embedType}
+                          calLink={calLink}
+                          previewState={previewState}
+                          ref={refOfEmbedCodesRefs.current[tab.name]}
+                        />
+                      ) : (
+                        <tab.Component
+                          namespace={namespace}
+                          embedType={embedType}
+                          calLink={calLink}
+                          previewState={previewState}
+                          ref={iframeRef}
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      {previewTab && (
+                        <previewTab.Component
+                          namespace={namespace}
+                          embedType={embedType}
+                          calLink={calLink}
+                          previewState={previewState}
+                          ref={iframeRef}
+                        />
+                      )}
+                    </div>
                   </div>
                   <div
                     className={
