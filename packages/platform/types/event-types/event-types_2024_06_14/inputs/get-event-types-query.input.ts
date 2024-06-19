@@ -1,7 +1,8 @@
 import { Transform } from "class-transformer";
-import { IsOptional, IsString, IsArray, ArrayNotEmpty } from "class-validator";
+import { IsOptional, IsString } from "class-validator";
 
 export class GetEventTypesQuery_2024_06_14 {
+  @IsOptional()
   @IsString()
   username?: string;
 
@@ -9,9 +10,6 @@ export class GetEventTypesQuery_2024_06_14 {
   @IsOptional()
   eventSlug?: string;
 
-  @IsArray()
-  @ArrayNotEmpty()
-  @IsString({ each: true })
   @IsOptional()
   @TransformUsernames()
   usernames?: string[];
