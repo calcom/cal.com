@@ -9,7 +9,7 @@ import { OrganizationUsersRepository } from "@/modules/organizations/repositorie
 import { Controller, Get, Post, Patch, Param, Logger, UseGuards, Body } from "@nestjs/common";
 import { ApiExcludeController } from "@nestjs/swagger";
 
-import { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse, GetUsersInput_2024_06_18 } from "@calcom/platform-types";
 
 @Controller({
   path: "/organizations",
@@ -26,7 +26,7 @@ export class OrganizationsController {
   @Roles(["OWNER", "ADMIN"])
   async getOrganizationUsers(
     @Param("organizationId") organizationId: number,
-    @Body() input: GetUsersInput
+    @Body() input: GetUsersInput_2024_06_18
   ): Promise<ApiResponse<ListUsersResponseDto>> {
     const emailArray = Array.isArray(input.email) ? input.email : [input.email];
 
