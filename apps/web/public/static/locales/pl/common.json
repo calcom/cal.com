@@ -1421,6 +1421,8 @@
   "copy_link_to_form": "Skopiuj link do formularza",
   "theme": "Motyw",
   "theme_applies_note": "Dotyczy tylko publicznych stron rezerwacji",
+  "app_theme": "Motyw deski rozdzielczej",
+  "app_theme_applies_note": "Dotyczy to tylko Twojego zalogowanego pulpitu nawigacyjnego",
   "theme_system": "Ustawienia domyślne systemu",
   "add_a_team": "Dodaj zespół",
   "add_webhook_description": "Otrzymuj dane ze spotkań w czasie rzeczywistym, gdy coś dzieje się w {{appName}}.",
