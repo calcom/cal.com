@@ -34,11 +34,13 @@ async function getEventType(eventTypeId: EventType["id"]) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
 
-  const isOrgTeamEvent = !!rawEventType?.teamId && !!rawEventType?.profile?.organizationId;
+  const { profile, ...restEventType } = rawEventType;
+
+  const isOrgTeamEvent = !!rawEventType?.teamId && !!profile?.organizationId;
 
   const eventType = {
-    ...rawEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...rawEventType, isOrgTeamEvent }),
+    ...restEventType,
+    bookingFields: getBookingFieldsWithSystemFields({ ...restEventType, isOrgTeamEvent }),
   };
   return eventType;
 }

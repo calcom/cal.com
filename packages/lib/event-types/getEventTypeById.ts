@@ -129,11 +129,6 @@ export const getEventTypeById = async ({
           teamId: true,
         },
       },
-      profile: {
-        select: {
-          organizationId: true,
-        },
-      },
       teamId: true,
       team: {
         select: {
@@ -405,7 +400,7 @@ export const getEventTypeById = async ({
     });
   }
 
-  const isOrgTeamEvent = !!eventType?.teamId && !!eventType?.profile?.organizationId;
+  const isOrgTeamEvent = !!eventType?.teamId && !!eventType.team?.parentId;
   const eventTypeObject = Object.assign({}, eventType, {
     users: eventTypeUsers,
     periodStartDate: eventType.periodStartDate?.toString() ?? null,

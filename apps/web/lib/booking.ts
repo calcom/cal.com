@@ -86,11 +86,12 @@ export const getEventTypesFromDB = async (id: number) => {
   }
 
   const metadata = EventTypeMetaDataSchema.parse(eventType.metadata);
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.profile?.organizationId;
+  const { profile, ...restEventType } = eventType;
+  const isOrgTeamEvent = !!eventType?.team && !!profile?.organizationId;
 
   return {
     isDynamic: false,
-    ...eventType,
+    ...restEventType,
     bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
     metadata,
   };

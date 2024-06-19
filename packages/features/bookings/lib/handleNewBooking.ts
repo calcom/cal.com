@@ -217,7 +217,7 @@ async function handler(
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
 
-  const isOrgTeamEvent = !!eventType?.team && !!eventType?.profile?.organizationId;
+  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
 
   eventType = {
     ...eventType,
