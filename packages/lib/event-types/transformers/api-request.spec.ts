@@ -1,4 +1,3 @@
-import slugify from "@calcom/lib/slugify";
 import type { BookingField_2024_06_14, Location_2024_06_14 } from "@calcom/platform-types";
 
 import type { CommonField, OptionsField } from "./api-request";
@@ -81,6 +80,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform name field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "name",
+      slug: "name",
       label: "Your name",
       required: true,
       placeholder: "alice",
@@ -90,7 +90,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -115,6 +115,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform email field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "email",
+      slug: "email",
       label: "Your email",
       required: true,
       placeholder: "example@example.com",
@@ -124,7 +125,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -149,6 +150,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform phone field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "phone",
+      slug: "phone",
       label: "Your phone number",
       required: true,
       placeholder: "123456789",
@@ -158,7 +160,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -183,6 +185,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform address field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "address",
+      slug: "address",
       label: "Your address",
       required: true,
       placeholder: "1234 Main St",
@@ -192,7 +195,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -217,6 +220,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform text field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "text",
+      slug: "text",
       label: "Your text",
       required: true,
       placeholder: "Enter your text",
@@ -226,7 +230,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -251,6 +255,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform number field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "number",
+      slug: "number",
       label: "Your number",
       required: true,
       placeholder: "100",
@@ -260,7 +265,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -285,6 +290,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform textarea field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "textarea",
+      slug: "textarea",
       label: "Your detailed information",
       required: true,
       placeholder: "Detailed description here...",
@@ -294,7 +300,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -319,6 +325,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform select field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "select",
+      slug: "select",
       label: "Your selection",
       required: true,
       placeholder: "Select...",
@@ -329,7 +336,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: OptionsField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -355,6 +362,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform multiselect field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "multiselect",
+      slug: "multiselect",
       label: "Your multiple selections",
       required: true,
       options: ["Option 1", "Option 2"],
@@ -364,7 +372,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: OptionsField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -390,6 +398,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform multiemail field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "multiemail",
+      slug: "multiemail",
       label: "Your multiple emails",
       required: true,
       placeholder: "example@example.com",
@@ -399,7 +408,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -424,6 +433,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform checkbox field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "checkbox",
+      slug: "checkbox",
       label: "Your checkboxes",
       required: true,
       options: ["Checkbox 1", "Checkbox 2"],
@@ -433,7 +443,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: OptionsField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -459,6 +469,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform radio field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "radio",
+      slug: "radio",
       label: "Your radio buttons",
       required: true,
       options: ["Radio 1", "Radio 2"],
@@ -468,7 +479,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: OptionsField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [
@@ -494,6 +505,7 @@ describe("transformApiEventTypeBookingFields", () => {
   it("should transform boolean field", () => {
     const bookingField: BookingField_2024_06_14 = {
       type: "boolean",
+      slug: "boolean",
       label: "Agree to terms?",
       required: true,
     };
@@ -502,7 +514,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const expectedOutput: CommonField[] = [
       {
-        name: slugify(bookingField.label),
+        name: bookingField.slug,
         type: bookingField.type,
         label: bookingField.label,
         sources: [

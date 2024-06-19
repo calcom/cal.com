@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import slugify from "@calcom/lib/slugify";
 import type { CreateEventTypeInput_2024_06_14, Integration_2024_06_14 } from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
@@ -72,7 +71,7 @@ function transformApiEventTypeBookingFields(
 
   const customBookingFields = inputBookingFields.map((field) => {
     const commonFields: CommonField = {
-      name: slugify(field.label),
+      name: field.slug,
       type: field.type,
       label: field.label,
       sources: [

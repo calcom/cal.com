@@ -23,7 +23,12 @@ const bookingFields = [
 
 export class NameField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "name";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty()
@@ -40,7 +45,12 @@ export class NameField_2024_06_14 {
 }
 export class EmailField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "email";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty()
@@ -58,7 +68,12 @@ export class EmailField_2024_06_14 {
 
 export class PhoneField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "phone";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty()
@@ -76,7 +91,12 @@ export class PhoneField_2024_06_14 {
 
 export class AddressField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "address";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please enter your address" })
@@ -95,7 +115,12 @@ export class AddressField_2024_06_14 {
 
 export class TextField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "text";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please enter your text" })
@@ -114,7 +139,12 @@ export class TextField_2024_06_14 {
 
 export class NumberField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "number";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please enter a number" })
@@ -133,7 +163,12 @@ export class NumberField_2024_06_14 {
 
 export class TextAreaField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "textarea";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please enter detailed information" })
@@ -152,7 +187,12 @@ export class TextAreaField_2024_06_14 {
 
 export class SelectField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "select";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please select an option" })
@@ -175,7 +215,12 @@ export class SelectField_2024_06_14 {
 
 export class MultiSelectField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "multiselect";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please select multiple options" })
@@ -192,7 +237,12 @@ export class MultiSelectField_2024_06_14 {
 
 export class MultiEmailField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "multiemail";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Please enter multiple emails" })
@@ -211,7 +261,12 @@ export class MultiEmailField_2024_06_14 {
 
 export class CheckboxGroupField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "checkbox";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Select all that apply" })
@@ -228,7 +283,12 @@ export class CheckboxGroupField_2024_06_14 {
 
 export class RadioGroupField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "radio";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Select one option" })
@@ -245,7 +305,12 @@ export class RadioGroupField_2024_06_14 {
 
 export class BooleanField_2024_06_14 {
   @IsIn(bookingFields)
+  @DocsProperty()
   type!: "boolean";
+
+  @IsString()
+  @DocsProperty()
+  slug!: string;
 
   @IsString()
   @DocsProperty({ example: "Agree to terms?" })
@@ -289,7 +354,7 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
     boolean: BooleanField_2024_06_14,
   };
 
-  async validate(bookingFields: { type: string; label: string }[]) {
+  async validate(bookingFields: { type: string; slug: string }[]) {
     if (!Array.isArray(bookingFields)) {
       throw new BadRequestException(`'bookingFields' must be an array.`);
     }
@@ -298,23 +363,23 @@ class BookingFieldValidator_2024_06_14 implements ValidatorConstraintInterface {
       throw new BadRequestException(`'bookingFields' must contain at least 1 booking field.`);
     }
 
-    const labels: string[] = [];
+    const slugs: string[] = [];
     for (const field of bookingFields) {
-      const { type, label } = field;
+      const { type, slug } = field;
       if (!type) {
         throw new BadRequestException(`Each booking field must have a 'type' property.`);
       }
 
-      if (!label) {
-        throw new BadRequestException(`Each booking field must have a 'label' property.`);
+      if (!slug) {
+        throw new BadRequestException(`Each booking field must have a 'slug' property.`);
       }
 
-      if (labels.includes(label)) {
+      if (slugs.includes(slug)) {
         throw new BadRequestException(
-          `Duplicate bookingFields label '${label}' found. All bookingFields labels must be unique.`
+          `Duplicate bookingFields slug '${slug}' found. All bookingFields slugs must be unique.`
         );
       }
-      labels.push(label);
+      slugs.push(slug);
 
       const ClassType = this.classTypeMap[type];
       if (!ClassType) {

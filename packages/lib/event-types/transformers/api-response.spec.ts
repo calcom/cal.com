@@ -119,6 +119,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "name",
+        slug: "your-name",
         label: "Your name",
         required: true,
         placeholder: "alice",
@@ -153,6 +154,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "email",
+        slug: "your-email",
         label: "Your email",
         required: true,
         placeholder: "example@example.com",
@@ -187,6 +189,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "phone",
+        slug: "your-phone",
         label: "Your phone number",
         required: true,
         placeholder: "123456789",
@@ -221,6 +224,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "address",
+        slug: "your-address",
         label: "Your address",
         required: true,
         placeholder: "1234 Main St",
@@ -255,6 +259,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "text",
+        slug: "your-text",
         label: "Your text",
         required: true,
         placeholder: "Enter your text",
@@ -289,6 +294,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "number",
+        slug: "your-number",
         label: "Your number",
         required: true,
         placeholder: "100",
@@ -323,6 +329,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "textarea",
+        slug: "your-textarea",
         label: "Your detailed information",
         required: true,
         placeholder: "Detailed description here...",
@@ -361,6 +368,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "select",
+        slug: "your-select",
         label: "Your selection",
         required: true,
         placeholder: "Select...",
@@ -399,6 +407,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "multiselect",
+        slug: "your-multiselect",
         label: "Your multiple selections",
         required: true,
         options: ["Option 1", "Option 2"],
@@ -433,6 +442,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "multiemail",
+        slug: "your-multiemail",
         label: "Your multiple emails",
         required: true,
         placeholder: "example@example.com",
@@ -470,6 +480,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "checkbox",
+        slug: "your-checkbox",
         label: "Your checkboxes",
         required: true,
         options: ["Checkbox 1", "Checkbox 2"],
@@ -507,6 +518,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "radio",
+        slug: "your-radio",
         label: "Your radio buttons",
         required: true,
         options: ["Radio 1", "Radio 2"],
@@ -541,6 +553,7 @@ describe("getResponseEventTypeBookingFields", () => {
     const expectedOutput = [
       {
         type: "boolean",
+        slug: "agree-to-terms",
         label: "Agree to terms?",
         required: true,
       },

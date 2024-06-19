@@ -81,6 +81,7 @@ function getResponseEventTypeBookingFields(
       case "name":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -88,6 +89,7 @@ function getResponseEventTypeBookingFields(
       case "email":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -95,6 +97,7 @@ function getResponseEventTypeBookingFields(
       case "phone":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -102,6 +105,7 @@ function getResponseEventTypeBookingFields(
       case "address":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -109,6 +113,7 @@ function getResponseEventTypeBookingFields(
       case "text":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -116,6 +121,7 @@ function getResponseEventTypeBookingFields(
       case "number":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -123,6 +129,7 @@ function getResponseEventTypeBookingFields(
       case "textarea":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -130,6 +137,7 @@ function getResponseEventTypeBookingFields(
       case "multiemail":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -137,12 +145,14 @@ function getResponseEventTypeBookingFields(
       case "boolean":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
         };
       case "select":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
@@ -151,6 +161,7 @@ function getResponseEventTypeBookingFields(
       case "multiselect":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           options: "options" in field ? field.options?.map((option) => option.value) : [],
@@ -158,6 +169,7 @@ function getResponseEventTypeBookingFields(
       case "checkbox":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           options: "options" in field ? field.options?.map((option) => option.value) : [],
@@ -165,6 +177,7 @@ function getResponseEventTypeBookingFields(
       case "radio":
         return {
           type: field.type,
+          slug: field.name,
           label: field.label,
           required: field.required,
           options: "options" in field ? field.options?.map((option) => option.value) : [],
