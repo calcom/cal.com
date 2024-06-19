@@ -21,10 +21,12 @@ export type CheckedSelectOption = {
 export const CheckedTeamSelect = ({
   options = [],
   value = [],
+  isRRWeightsEnabled,
   ...props
 }: Omit<Props<CheckedSelectOption, true>, "value" | "onChange"> & {
   value?: readonly CheckedSelectOption[];
   onChange: (value: readonly CheckedSelectOption[]) => void;
+  isRRWeightsEnabled?: boolean;
 }) => {
   const [priorityDialogOpen, setPriorityDialogOpen] = useState(false);
   const [weightDialogOpen, setWeightDialogOpen] = useState(false);
@@ -74,15 +76,19 @@ export const CheckedTeamSelect = ({
                         {t(getPriorityTextAndColor(option.priority).text)}
                       </Button>
                     </Tooltip>
-                    <Button
-                      color="minimal"
-                      className="mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent"
-                      onClick={() => {
-                        setWeightDialogOpen(true);
-                        setCurrentOption(option);
-                      }}>
-                      {option.weight ?? 100}%
-                    </Button>
+                    {isRRWeightsEnabled ? (
+                      <Button
+                        color="minimal"
+                        className="mr-6 h-2 w-4 p-0 text-sm hover:bg-transparent"
+                        onClick={() => {
+                          setWeightDialogOpen(true);
+                          setCurrentOption(option);
+                        }}>
+                        {option.weight ?? 100}%
+                      </Button>
+                    ) : (
+                      <></>
+                    )}
                   </>
                 ) : (
                   <></>

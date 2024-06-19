@@ -112,6 +112,7 @@ export const getEventTypeById = async ({
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
       currency: true,

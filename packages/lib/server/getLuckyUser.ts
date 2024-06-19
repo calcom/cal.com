@@ -1,14 +1,22 @@
 import type { User } from "@prisma/client";
 
+import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
 import prisma from "@calcom/prisma";
+import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
+
+type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
+  attendees: { email: string | null }[];
+};
 
 async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   availableUsers,
   eventTypeId,
+  allBookings,
 }: {
   availableUsers: T[];
   eventTypeId: number;
+  allBookings: PartialBooking[];
 }) {
   // First we get all organizers (fixed host/single round robin user)
   const organizersWithLastCreated = await prisma.user.findMany({
@@ -42,36 +50,11 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
     {}
   );
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      AND: [
-        {
-          eventTypeId,
-        },
-        {
-          attendees: {
-            some: {
-              email: {
-                in: availableUsers.map((user) => user.email),
-              },
-            },
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      createdAt: true,
-      attendees: {
-        select: {
-          email: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const bookings = allBookings.filter((booking) =>
+    booking.attendees.some((attendee) =>
+      availableUsers.map((user) => user.email).includes(attendee.email ?? "")
+    )
+  );
 
   const attendeeUserIdAndAtCreatedPair = bookings.reduce((aggregate: { [userId: number]: Date }, booking) => {
     availableUsers.forEach((user) => {
@@ -103,11 +86,9 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   return leastRecentlyBookedUser;
 }
 
-function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { priority?: number | null }>({
-  availableUsers,
-}: {
-  availableUsers: T[];
-}) {
+function getUsersWithHighestPriority<
+  T extends Pick<User, "id" | "email"> & { priority?: number | null; weight?: number | null }
+>({ availableUsers }: { availableUsers: T[] }) {
   const highestPriority = Math.max(...availableUsers.map((user) => user.priority ?? 2));
 
   return availableUsers.filter(
@@ -115,45 +96,39 @@ function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { pr
   );
 }
 
-type UserType = Pick<User, "id" | "email"> & {
-  weight?: number | null;
-  bookingShortFalls?: number;
-};
-
 async function getUsersbasedOnWeights<
   T extends Pick<User, "id" | "email"> & {
     weight?: number | null;
+    priority?: number | null;
   }
->({ availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }) {
-  //count all bookings of all users
-  //get all OOO of the users and then check what the average bookings were and add that amount as fake bookings
+>({
+  availableUsers,
+  allBookings,
+  allRRHosts,
+}: {
+  availableUsers: T[];
+  eventTypeId: number;
+  allBookings: PartialBooking[];
+  allRRHosts: IsFixedAwareUser[];
+}) {
+  //handle adding a new host --> this is important
+  //handle OOO times --> this is not so important
 
-  // sum up all weights (ex. 350%)
-  // Determine Proportion of Tasks ((ex. 200%)): 100 * (200% / 350%) = 0,005714285714 = 57% of the bookings
-
-  const allBookings = await prisma.booking.findMany({
-    where: {
-      eventTypeId,
-      status: BookingStatus.ACCEPTED,
-    },
-    select: {
-      userId: true,
-      attendees: true,
-    },
-  });
-
-  const totalWeight = availableUsers.reduce((sum, user) => sum + (user.weight ?? 100), 0);
+  // also filter out no show bookings
+  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED);
+  // we need to have the weight of all users here not just the availabile users
+  const totalWeight = allRRHosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
 
   // I need the total amount of all bookings too
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     const targetPercentage = (user.weight ?? 100) / totalWeight;
 
-    const userBookings = allBookings.filter(
+    const userBookings = bookings.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
 
-    const targetNumberOfBookings = allBookings.length * targetPercentage;
+    const targetNumberOfBookings = bookings.length * targetPercentage;
 
     return {
       ...user,
@@ -161,16 +136,17 @@ async function getUsersbasedOnWeights<
     };
   });
 
-  // Find the user with the biggest booking shortfall
-  const userWithBiggestShortfall = usersWithBookingShortfalls.reduce((maxUser, currentUser) => {
-    return currentUser.bookingShortfall > (maxUser?.bookingShortfall ?? 0) ? currentUser : maxUser;
-  }, usersWithBookingShortfalls[0]);
+  // find the users with the highest booking shortfall
+  const maxShortfall = usersWithBookingShortfalls.reduce(
+    (max, user) => Math.max(max, user.bookingShortfall),
+    0
+  );
 
-  return userWithBiggestShortfall;
+  const usersWithMaxShortfall = usersWithBookingShortfalls.filter(
+    (user) => user.bookingShortfall === maxShortfall
+  );
 
-  // Determine Proportion of Bookings
-  // I need the number of all bookings that were already made with this event type
-  // availableUser should also already include all bookings that were already made or at elast the number of it
+  return usersWithMaxShortfall;
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -182,15 +158,49 @@ export async function getLuckyUser<
   }
 >(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
-  { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
+  {
+    availableUsers,
+    eventTypeId,
+    isRRWeightsEnabled,
+    allRRHosts,
+  }: { availableUsers: T[]; eventTypeId: number; isRRWeightsEnabled: boolean; allRRHosts: IsFixedAwareUser[] }
 ) {
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
+
+  const allBookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+      status: true,
+      userId: true,
+      attendees: {
+        select: {
+          email: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
-      const usersBasedOnWeights = getUsersbasedOnWeights({ availableUsers, eventTypeId });
-      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId });
+      let possibleLuckyUsers = availableUsers;
+      if (isRRWeightsEnabled) {
+        possibleLuckyUsers = await getUsersbasedOnWeights({
+          availableUsers,
+          eventTypeId,
+          allBookings,
+          allRRHosts,
+        });
+      }
+      const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
+      return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId, allBookings });
   }
 }

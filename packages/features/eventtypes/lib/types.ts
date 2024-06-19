@@ -116,4 +116,5 @@ export type FormValues = {
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
+  isRRWeightsEnabled: boolean;
 };

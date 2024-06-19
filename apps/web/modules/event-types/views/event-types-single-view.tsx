@@ -117,7 +117,7 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = { isFixed: boolean; userId: number; priority: number; weight: number };
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -326,6 +326,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
         numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
       },
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({

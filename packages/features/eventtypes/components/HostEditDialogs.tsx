@@ -80,6 +80,18 @@ export const PriorityDialog = (props: IPriiorityDialog) => {
   );
 };
 
+export const WeightDescription = () => (
+  <Trans i18nKey="weights_description">
+    Weights determine how meetings are distributed among hosts.
+    <Link
+      className="underline underline-offset-2"
+      target="_blank"
+      href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
+      Learn more
+    </Link>
+  </Trans>
+);
+
 export const WeightDialog = (props: IPriiorityDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
@@ -105,18 +117,6 @@ export const WeightDialog = (props: IPriiorityDialog) => {
     }
     setIsOpenDialog(false);
   };
-
-  const weightDescription = (
-    <Trans i18nKey="weights_description">
-      Weights determine how meetings are distributed among hosts.
-      <Link
-        className="underline underline-offset-2"
-        target="_blank"
-        href="https://cal.com/docs/enterprise-features/teams/round-robin-scheduling#weights">
-        Learn more
-      </Link>
-    </Trans>
-  );
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>

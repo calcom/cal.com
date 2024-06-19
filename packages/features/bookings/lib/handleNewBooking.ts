@@ -217,6 +217,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       bookingLimits: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       parentId: true,
       useEventTypeDestinationCalendarEmail: true,
       owner: {
@@ -246,6 +247,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           isFixed: true,
           priority: true,
+          weight: true,
           user: {
             select: {
               credentials: {
@@ -285,11 +287,12 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
   };
 };
 
-type IsFixedAwareUser = User & {
+export type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization: { slug: string };
   priority?: number;
+  weight?: number;
 };
 
 const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
@@ -311,10 +314,11 @@ const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string
       throw new Error("eventType.hosts is not properly defined.");
     }
 
-    const users = hosts.map(({ user, isFixed, priority }) => ({
+    const users = hosts.map(({ user, isFixed, priority, weight }) => ({
       ...user,
       isFixed,
       priority,
+      weight,
     }));
 
     return users.length ? users : eventType.users;
@@ -1384,6 +1388,8 @@ async function handler(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           ),
           eventTypeId: eventType.id,
+          isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+          allRRHosts: eventTypeWithUsers.users,
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop

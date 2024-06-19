@@ -2336,6 +2336,7 @@
   "send_booker_to": "Send Booker to",
   "set_priority": "Set Priority",
   "set_weight": "Set Weight",
+  "enable_weights": "Enable Weights",
   "priority_for_user": "Priority for {{userName}}",
   "weights_description": "Weights determine how meetings are distributed among hosts. <1>Learn more</1>",
   "weight_for_user": "Weight for {{userName}}",

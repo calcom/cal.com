@@ -11,6 +11,7 @@ import AddMembersWithSwitch, {
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { WeightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -176,6 +177,7 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
+                    weight: 100,
                   })),
                   { shouldDirty: true }
                 )
@@ -203,7 +205,11 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
+
+  const [isRRWeightsEnabled, setIsRRWeightsEnabled] = useState<boolean>(
+    getValues("isRRWeightsEnabled") ?? false
+  );
 
   return (
     <div className="rounded-lg ">
@@ -211,7 +217,21 @@ const RoundRobinHosts = ({
         <Label className="mb-1 text-sm font-semibold">{t("round_robin_hosts")}</Label>
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
-      <div className="border-subtle rounded-b-md border border-t-0">
+      <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
+        <Controller<FormValues>
+          name="isRRWeightsEnabled"
+          render={() => (
+            <SettingsToggle
+              title={t("enable_weights")}
+              description={WeightDescription}
+              checked={isRRWeightsEnabled}
+              onCheckedChange={(active) => {
+                setValue("isRRWeightsEnabled", active, { shouldDirty: true });
+                setIsRRWeightsEnabled(active);
+              }}
+            />
+          )}
+        />
         <AddMembersWithSwitch
           teamMembers={teamMembers}
           value={value}
@@ -219,6 +239,7 @@ const RoundRobinHosts = ({
           assignAllTeamMembers={assignAllTeamMembers}
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
+          isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
           onActive={() =>
             setValue(
