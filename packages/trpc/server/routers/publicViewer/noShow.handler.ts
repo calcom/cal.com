@@ -1,4 +1,5 @@
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";

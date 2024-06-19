@@ -63,7 +63,7 @@ test.describe("Bookings", () => {
     });
   });
   test.describe("Past bookings", () => {
-    test("Mark first guest as no-show", async ({ page, users, bookings }) => {
+    test("Mark first guest as no-show", async ({ page, users, bookings, webhooks }) => {
       const firstUser = await users.create();
       const secondUser = await users.create();
 
@@ -81,10 +81,9 @@ test.describe("Bookings", () => {
         ],
       });
       const bookingWhereFirstUserIsOrganizer = await bookingWhereFirstUserIsOrganizerFixture.self();
-
       await firstUser.apiLogin();
+      const webhookReceiver = await webhooks.createReceiver();
       await page.goto(`/bookings/past`);
-      await page.pause();
       const pastBookings = page.locator('[data-testid="past-bookings"]');
       const firstPastBooking = pastBookings.locator('[data-testid="booking-item"]').nth(0);
       const titleAndAttendees = firstPastBooking.locator('[data-testid="title-and-attendees"]');
@@ -96,6 +95,23 @@ test.describe("Bookings", () => {
       await firstGuest.click();
       await expect(titleAndAttendees.locator('[data-testid="unmark-no-show"]')).toBeVisible();
       await expect(titleAndAttendees.locator('[data-testid="mark-no-show"]')).toBeHidden();
+      await webhookReceiver.waitForRequestCount(1);
+      const [request] = webhookReceiver.requestList;
+      const body = request.body;
+      // remove dynamic properties that differs depending on where you run the tests
+      const dynamic = "[redacted/dynamic]";
+      // @ts-expect-error we are modifying the object
+      body.createdAt = dynamic;
+      expect(body).toMatchObject({
+        triggerEvent: "BOOKING_NO_SHOW_UPDATED",
+        createdAt: "[redacted/dynamic]",
+        payload: {
+          message: "x_marked_as_no_show",
+          attendees: [{ email: "first@cal.com", noShow: true, utcOffset: null }],
+          bookingUid: bookingWhereFirstUserIsOrganizer?.uid,
+        },
+      });
+      webhookReceiver.close();
     });
     test("Mark 3rd attendee as no-show", async ({ page, users, bookings }) => {
       const firstUser = await users.create();
