@@ -60,50 +60,37 @@ export type GenericAuditLogClient = {
   reportEvent: (event: AuditLogEvent) => void;
 };
 
+export const ZAuditLogEventActor = z.object({
+  id: z.string().or(z.number()),
+  name: z.string().optional(),
+  fields: z.object({}).passthrough().optional(),
+});
+
+export const ZAuditLogEventTarget = z.object({
+  id: z.string(),
+  name: z.string().optional(),
+  type: z.string().optional(),
+  fields: z.object({}).passthrough().optional(),
+});
+
+export const ZAuditLogEventGroup = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
 export const ZAuditLogEventBase = z.object({
   action: z.string(),
   crud: z.nativeEnum(CRUD),
-  actor: z.object({
-    id: z.string(),
-    name: z.string().optional(),
-    fields: z.object({}).passthrough().optional(),
-  }),
-  target: z.object({
-    id: z.string(),
-    name: z.string().optional(),
-    type: z.string().optional(),
-    fields: z.object({}).passthrough().optional(),
-  }),
+  actor: ZAuditLogEventActor,
+  target: ZAuditLogEventTarget,
+  group: ZAuditLogEventGroup,
   description: z.string().optional(),
   is_failure: z.boolean().optional(),
   is_anonymous: z.boolean().optional(),
   fields: z.object({}).passthrough().optional(),
+  source_ip: z.string(),
 });
 
 export type AuditLogEvent = z.infer<typeof ZAuditLogEventBase>;
-
-export function getEventSchema(
-  actorFieldsSchema: z.ZodObject<any>,
-  targetFieldsSchema: z.ZodObject<any>,
-  eventFieldsSchema: z.ZodObject<any>
-) {
-  return z.object({
-    action: z.string(),
-    crud: z.nativeEnum(CRUD),
-    actor: z.object({
-      id: z.string(),
-      name: z.string().optional(),
-      fields: actorFieldsSchema,
-    }),
-    target: z.object({
-      id: z.string(),
-      name: z.string().optional(),
-      type: z.string().optional(),
-      fields: targetFieldsSchema,
-    }),
-    description: z.string().optional(),
-    is_failure: z.boolean().optional(),
-    is_anonymous: z.boolean().optional(),
-    fields: eventFieldsSchema,
-  });
-}
+export type AuditLogActor = z.infer<typeof ZAuditLogEventActor>;
+export type AuditLogTarget = z.infer<typeof ZAuditLogEventTarget>;

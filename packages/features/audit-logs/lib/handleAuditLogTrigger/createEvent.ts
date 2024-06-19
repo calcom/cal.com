@@ -1,28 +1,26 @@
 import { flattenObject } from "@calcom/features/audit-logs/utils";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { AuditLogTriggerTargets } from "@calcom/prisma/enums";
+import { AuditLogSystemTriggerEvents, AuditLogTriggerTargets } from "@calcom/prisma/enums";
 
 import { log } from ".";
+import type { AuditLogTriggerMetadata } from "../../trpc/constants";
 import { triggerToMetadata } from "../../trpc/constants";
-import type { AuditLogTriggerEvents } from "../../types";
+import type { AuditLogTarget } from "../../types";
+import { CRUD, type AuditLogEvent, type AuditLogTriggerEvents } from "../../types";
 
 export function createEvent(
   trigger: AuditLogTriggerEvents,
   user: { name: string; id: number },
   data: any,
-  source_ip: string | undefined
-) {
+  source_ip: string
+): AuditLogEvent {
   const triggerMeta = triggerToMetadata[trigger];
-  let dynamicSection: any;
+  let dynamicSection: Omit<AuditLogTriggerMetadata, "target"> & { target: AuditLogTarget };
   log.silly("Event trigger metadata is ", safeStringify({ trigger, triggerMeta, data }));
   switch (triggerMeta?.target) {
     case AuditLogTriggerTargets.BOOKING:
       dynamicSection = {
         ...triggerMeta,
-        actor: {
-          id: user.id,
-          name: data.responses?.name.value,
-        },
         target: {
           id: data.organizer.id,
           name: data?.organizer?.username,
@@ -31,7 +29,6 @@ export function createEvent(
       };
       break;
     case AuditLogTriggerTargets.APPS:
-      // if data.updatedAt == null then action: APPS.APP_CREATED
       dynamicSection = {
         ...triggerMeta,
         target: {
@@ -73,14 +70,16 @@ export function createEvent(
       break;
     default:
       dynamicSection = {
-        ...triggerMeta,
+        action: AuditLogSystemTriggerEvents.SYSTEM_MISC,
+        description: "Unrecognized trigger.",
+        crud: CRUD.DELETE,
         target: {
           id: data.id,
           name: data.appId,
-          type: AuditLogTriggerTargets.APPS,
+          type: AuditLogTriggerTargets.SYSTEM,
         },
       };
-      return;
+      break;
   }
 
   return {
@@ -96,7 +95,6 @@ export function createEvent(
       name: "default",
     },
     fields: flattenObject(data),
-    created: new Date(),
     source_ip,
   };
 }

@@ -19,11 +19,11 @@ export async function handleAuditLogTrigger({
 }: {
   trigger: AuditLogTriggerEvents;
   user: { name: string; id: number };
-  source_ip?: string | undefined;
+  source_ip: string | undefined;
   data: any;
 }) {
   log.silly("Creating event.", safeStringify({ trigger, user, source_ip, data }));
-  const event = createEvent(trigger, user, data, source_ip);
+  const event = createEvent(trigger, user, data, source_ip ?? "0.0.0.0");
   log.silly("Event created", safeStringify(event));
 
   try {

@@ -10,7 +10,7 @@ import {
   AuditLogWebhookTriggerEvents,
 } from "@calcom/prisma/enums";
 
-type AuditLogTriggerMetadata = {
+export type AuditLogTriggerMetadata = {
   action: AuditLogTriggerEvents;
   description: string;
   crud: CRUD;
