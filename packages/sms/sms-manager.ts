@@ -47,6 +47,7 @@ const handleSendingSMS = ({
 export default abstract class SMSManager {
   calEvent: CalendarEvent;
   isTeamEvent = false;
+  teamId: number | undefined = undefined;
 
   constructor(calEvent: CalendarEvent) {
     this.calEvent = calEvent;

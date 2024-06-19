@@ -128,17 +128,19 @@ export const sendScheduledEmailsAndSMS = async (
 // for rescheduled round robin booking that assigned new members
 export const sendRoundRobinScheduledEmailsAndSMS = async (calEvent: CalendarEvent, members: Person[]) => {
   const formattedCalEvent = formatCalEvent(calEvent);
-  const emailsToSend: Promise<unknown>[] = [];
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
 
   for (const teamMember of members) {
-    emailsToSend.push(
+    emailsAndSMSToSend.push(
       sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent, teamMember }))
     );
+    if (teamMember.phoneNumber) {
+      emailsAndSMSToSend.push(eventScheduledSMS.sendSMSToAttendee(teamMember));
+    }
   }
 
-  await Promise.all(emailsToSend);
-  const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
-  await eventScheduledSMS.sendSMSToAttendees();
+  await Promise.all(emailsAndSMSToSend);
 };
 
 export const sendRoundRobinRescheduledEmailsAndSMS = async (
@@ -146,28 +148,36 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   teamMembersAndAttendees: Person[]
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
-  const emailsToSend: Promise<unknown>[] = [];
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
 
   for (const person of teamMembersAndAttendees) {
-    emailsToSend.push(
+    emailsAndSMSToSend.push(
       sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember: person }))
     );
+    if (person.phoneNumber) {
+      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(person));
+    }
   }
 
-  await Promise.all(emailsToSend);
-  const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
-  await successfullyReScheduledSMS.sendSMSToAttendees();
+  await Promise.all(emailsAndSMSToSend);
 };
 
 export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
   const calendarEvent = formatCalEvent(calEvent);
-  const emailsToSend: Promise<unknown>[] = [];
+  const emailsAndSMSToSend: Promise<unknown>[] = [];
+  const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
 
   for (const teamMember of members) {
-    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember })));
+    emailsAndSMSToSend.push(
+      sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+    );
+    if (teamMember.phoneNumber) {
+      emailsAndSMSToSend.push(successfullyReScheduledSMS.sendSMSToAttendee(teamMember));
+    }
   }
 
-  await Promise.all(emailsToSend);
+  await Promise.all(emailsAndSMSToSend);
 };
 
 export const sendRescheduledEmailsAndSMS = async (calEvent: CalendarEvent) => {

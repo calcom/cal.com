@@ -1320,7 +1320,7 @@ async function handler(
             .concat(copyEvent.organizer)
             .concat(copyEvent.attendees) || [];
 
-        const matchOriginalMemberWithNewMember: boolean = (originalMember: Person, newMember: Person) => {
+        const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) => {
           if (!originalMember.email || originalMember.email === BOOKED_WITH_SMS_EMAIL) {
             return originalMember.phoneNumber === newMember.phoneNumber;
           } else if (!newMember.email || newMember.email === BOOKED_WITH_SMS_EMAIL) {
