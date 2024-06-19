@@ -1,6 +1,6 @@
 import { AuthGuard } from "@nestjs/passport";
 
-export class AccessTokenGuard extends AuthGuard("access-token") {
+export class ApiAuthGuard extends AuthGuard("api-auth") {
   constructor() {
     super();
   }

@@ -6,6 +6,9 @@ export type AppConfig = {
     port: number;
     path: string;
     url: string;
+    keyPrefix: string;
+    licenseKey: string;
+    licenceKeyUrl: string;
   };
   db: {
     readUrl: string;
@@ -22,4 +25,5 @@ export type AppConfig = {
   app: {
     baseUrl: string;
   };
+  e2e: boolean;
 };

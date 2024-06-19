@@ -16,7 +16,7 @@ import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 import { handleNewBooking } from "@calcom/platform-libraries-0.0.2";
@@ -39,7 +39,7 @@ describe("Bookings Endpoints", () => {
     let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],

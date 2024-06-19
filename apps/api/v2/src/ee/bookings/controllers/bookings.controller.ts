@@ -5,7 +5,7 @@ import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -89,7 +89,7 @@ export class BookingsController {
   ) {}
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
