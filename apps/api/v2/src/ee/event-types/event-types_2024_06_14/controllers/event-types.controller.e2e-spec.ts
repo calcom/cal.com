@@ -139,6 +139,7 @@ describe("Event types Endpoints", () => {
           {
             type: "select",
             label: "select which language you want to learn",
+            slug: "select-language",
             required: true,
             placeholder: "select language",
             options: ["javascript", "python", "cobol"],
