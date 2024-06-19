@@ -11,7 +11,7 @@ import AddMembersWithSwitch, {
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { WeightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -223,7 +223,7 @@ const RoundRobinHosts = ({
           render={() => (
             <SettingsToggle
               title={t("enable_weights")}
-              description={WeightDescription}
+              description={weightDescription}
               checked={isRRWeightsEnabled}
               onCheckedChange={(active) => {
                 setValue("isRRWeightsEnabled", active, { shouldDirty: true });

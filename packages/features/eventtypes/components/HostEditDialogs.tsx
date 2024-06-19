@@ -80,7 +80,7 @@ export const PriorityDialog = (props: IPriiorityDialog) => {
   );
 };
 
-export const WeightDescription = () => (
+export const weightDescription = (
   <Trans i18nKey="weights_description">
     Weights determine how meetings are distributed among hosts.
     <Link
