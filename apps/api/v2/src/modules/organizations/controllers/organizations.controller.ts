@@ -14,7 +14,6 @@ import { ApiResponse, GetOrganizationUsersInput_2024_06_18 } from "@calcom/platf
   path: "v2/organizations",
   version: API_VERSIONS_VALUES,
 })
-@ApiExcludeController(false)
 export class OrganizationsController {
   private logger = new Logger("Organization Controller");
 
