@@ -15,24 +15,16 @@ function transformApiEventTypeLocations(inputLocations: CreateEventTypeInput_202
     const { type } = location;
     switch (type) {
       case "address":
-        return {
-          type: "inPerson",
-          address: location.public ? location.address : "",
-          displayLocationPublicly: location.public,
-        };
+        return { type: "inPerson", address: location.address, displayLocationPublicly: location.public };
       case "link":
-        return {
-          type: "link",
-          link: location.public ? location.link : "",
-          displayLocationPublicly: location.public,
-        };
+        return { type: "link", link: location.link, displayLocationPublicly: location.public };
       case "integration":
         const integrationLabel = integrationsMapping[location.integration];
         return { type: integrationLabel };
       case "phone":
         return {
           type: "userPhone",
-          hostPhoneNumber: location.public ? location.phone : "",
+          hostPhoneNumber: location.phone,
           displayLocationPublicly: location.public,
         };
       default:

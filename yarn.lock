@@ -4065,7 +4065,7 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
-    "@calcom/platform-libraries-0.0.12": "npm:@calcom/platform-libraries@0.0.12"
+    "@calcom/platform-libraries-0.0.13": "npm:@calcom/platform-libraries@0.0.13"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4"
     "@calcom/platform-types": "*"
@@ -5019,14 +5019,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.12@npm:@calcom/platform-libraries@0.0.12":
-  version: 0.0.12
-  resolution: "@calcom/platform-libraries@npm:0.0.12"
+"@calcom/platform-libraries-0.0.13@npm:@calcom/platform-libraries@0.0.13":
+  version: 0.0.13
+  resolution: "@calcom/platform-libraries@npm:0.0.13"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: fe6015019a6baebeb95c6c61713d1c38a1e334c8f5c143e206c26c55f4b841e646cf8cc63f7bee1285fa86caf47c947ba9001364a4d12b128b86a7d9eff2a661
+  checksum: 53b92db84c669c2ff179acc4056ebc3c7426779aa0b9b7578f1bdd1abab5426bb45b9cb0b4858f0f8c8760c352e0a6f96e2062428a9e9cf0c695601d0f210349
   languageName: node
   linkType: hard
 

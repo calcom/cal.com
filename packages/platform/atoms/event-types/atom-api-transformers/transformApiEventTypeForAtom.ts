@@ -37,7 +37,7 @@ export function transformApiEventTypeForAtom(
   return {
     ...rest,
     length: lengthInMinutes,
-    locations: transformApiEventTypeLocations(locations),
+    locations: getLocations(locations),
     bookingFields: getBookingFields(bookingFields),
     isDefault,
     isDynamic: false,
@@ -96,6 +96,32 @@ function isDefaultEvent(eventSlug: string) {
     return obj.slug === eventSlug;
   });
   return !!foundInDefaults;
+}
+
+function getLocations(locations: EventTypeOutput_2024_06_14["locations"]) {
+  const transformed = transformApiEventTypeLocations(locations);
+
+  const withPrivateHidden = transformed.map((location) => {
+    const { displayLocationPublicly, type } = location;
+
+    switch (type) {
+      case "address":
+        return displayLocationPublicly ? location : { ...location, address: "" };
+      case "link":
+        return displayLocationPublicly ? location : { ...location, link: "" };
+      case "phone":
+        return displayLocationPublicly
+          ? location
+          : {
+              ...location,
+              hostPhoneNumber: "",
+            };
+      default:
+        return location;
+    }
+  });
+
+  return withPrivateHidden;
 }
 
 function getBookingFields(bookingFields: EventTypeOutput_2024_06_14["bookingFields"]) {
