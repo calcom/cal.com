@@ -106,6 +106,7 @@ export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: D
                 dispatch({
                   type: "SET_CHANGE_MEMBER_ROLE_ID",
                   payload: {
+                    user,
                     showModal: true,
                   },
                 });
