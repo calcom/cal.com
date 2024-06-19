@@ -1,6 +1,7 @@
 import type { User } from "@prisma/client";
 
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
   availableUsers,
@@ -114,20 +115,72 @@ function getUsersWithHighestPriority<T extends Pick<User, "id" | "email"> & { pr
   );
 }
 
-function getUserbasedOnWeights<T extends Pick<User, "id" | "email">>({
-  availableUsers,
-  eventTypeId,
-}: {
-  availableUsers: T[];
-  eventTypeId: number;
-}) {
+type UserType = Pick<User, "id" | "email"> & {
+  weight?: number | null;
+  bookingShortFalls?: number;
+};
+
+async function getUsersbasedOnWeights<
+  T extends Pick<User, "id" | "email"> & {
+    weight?: number | null;
+  }
+>({ availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }) {
   //count all bookings of all users
   //get all OOO of the users and then check what the average bookings were and add that amount as fake bookings
+
+  // sum up all weights (ex. 350%)
+  // Determine Proportion of Tasks ((ex. 200%)): 100 * (200% / 350%) = 0,005714285714 = 57% of the bookings
+
+  const allBookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+    },
+    select: {
+      userId: true,
+      attendees: true,
+    },
+  });
+
+  const totalWeight = availableUsers.reduce((sum, user) => sum + (user.weight ?? 100), 0);
+
+  // I need the total amount of all bookings too
+  const usersWithBookingShortfalls = availableUsers.map((user) => {
+    const targetPercentage = (user.weight ?? 100) / totalWeight;
+
+    const userBookings = allBookings.filter(
+      (booking) =>
+        booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
+    );
+
+    const targetNumberOfBookings = allBookings.length * targetPercentage;
+
+    return {
+      ...user,
+      bookingShortfall: targetNumberOfBookings - userBookings.length,
+    };
+  });
+
+  // Find the user with the biggest booking shortfall
+  const userWithBiggestShortfall = usersWithBookingShortfalls.reduce((maxUser, currentUser) => {
+    return currentUser.bookingShortfall > (maxUser?.bookingShortfall ?? 0) ? currentUser : maxUser;
+  }, usersWithBookingShortfalls[0]);
+
+  return userWithBiggestShortfall;
+
+  // Determine Proportion of Bookings
+  // I need the number of all bookings that were already made with this event type
+  // availableUser should also already include all bookings that were already made or at elast the number of it
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
-export async function getLuckyUser<T extends Pick<User, "id" | "email"> & { priority?: number | null }>(
+export async function getLuckyUser<
+  T extends Pick<User, "id" | "email"> & {
+    priority?: number | null;
+    weight?: number | null;
+  }
+>(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   { availableUsers, eventTypeId }: { availableUsers: T[]; eventTypeId: number }
 ) {
@@ -136,6 +189,7 @@ export async function getLuckyUser<T extends Pick<User, "id" | "email"> & { prio
   }
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
+      const usersBasedOnWeights = getUsersbasedOnWeights({ availableUsers, eventTypeId });
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
       return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId });
   }
