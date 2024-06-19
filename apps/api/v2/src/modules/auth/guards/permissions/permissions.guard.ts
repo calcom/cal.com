@@ -1,3 +1,4 @@
+import { isApiKey } from "@/lib/api-key";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
@@ -28,10 +29,8 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    const isApiKey = authString?.startsWith(this.config.get("api.apiKeyPrefix") ?? "cal_");
-
     // only check permissions for accessTokens attached to an oAuth Client
-    if (isApiKey) {
+    if (isApiKey(authString, this.config.get("api.apiKeyPrefix") ?? "cal_")) {
       return true;
     }
 

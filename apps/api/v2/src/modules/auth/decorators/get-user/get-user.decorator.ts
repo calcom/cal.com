@@ -10,11 +10,12 @@ export const GetUser = createParamDecorator<
 >((data, ctx) => {
   const request = ctx.switchToHttp().getRequest();
   const user = request.user as GetUserReturnType;
-  user.isSystemAdmin = user.role === "ADMIN";
 
   if (!user) {
     throw new Error("GetUser decorator : User not found");
   }
+
+  user.isSystemAdmin = user.role === "ADMIN";
 
   if (Array.isArray(data)) {
     return data.reduce((prev, curr) => {

@@ -1,3 +1,4 @@
+import { hashAPIKey, isApiKey, stripApiKey } from "@/lib/api-key";
 import { BaseStrategy } from "@/lib/passport/strategies/types";
 import { ApiKeyRepository } from "@/modules/api-key/api-key-repository";
 import { DeploymentsService } from "@/modules/deployments/deployments.service";
@@ -7,7 +8,6 @@ import { UserWithProfile, UsersRepository } from "@/modules/users/users.reposito
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PassportStrategy } from "@nestjs/passport";
-import { createHash } from "crypto";
 import type { Request } from "express";
 
 import { INVALID_ACCESS_TOKEN } from "@calcom/platform-constants";
@@ -25,13 +25,33 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     super();
   }
 
+  async authenticate(request: Request) {
+    const authString = request.get("Authorization")?.replace("Bearer ", "");
+
+    if (!authString) {
+      throw new UnauthorizedException("No Authorization header provided");
+    }
+
+    const requestOrigin = request.get("Origin");
+
+    const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
+      ? await this.apiKeyStrategy(authString)
+      : await this.accessTokenStrategy(authString, requestOrigin);
+
+    if (!user) {
+      throw new UnauthorizedException("No user associated with the provided token");
+    }
+
+    return user;
+  }
+
   async apiKeyStrategy(apiKey: string) {
     const isLicenseValid = await this.deploymentsService.checkLicense();
-    if (!isLicenseValid && this.config.get("env") === "production") {
+    if (!isLicenseValid) {
       throw new UnauthorizedException("Invalid or missing CALCOM_LICENSE_KEY environment variable");
     }
-    const strippedApiKey = apiKey.replace(this.config.get<string>("api.keyPrefix") ?? "cal_", "");
-    const apiKeyHash = createHash("sha256").update(strippedApiKey).digest("hex");
+    const strippedApiKey = stripApiKey(apiKey, this.config.get<string>("api.keyPrefix"));
+    const apiKeyHash = hashAPIKey(strippedApiKey);
     const keyData = await this.apiKeyRepository.getApiKeyFromHash(apiKeyHash);
     if (!keyData) {
       throw new UnauthorizedException("Your api key is not valid");
@@ -76,27 +96,6 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     }
 
     const user: UserWithProfile | null = await this.userRepository.findByIdWithProfile(ownerId);
-    return user;
-  }
-
-  async authenticate(request: Request) {
-    const authString = request.get("Authorization")?.replace("Bearer ", "");
-
-    if (!authString) {
-      throw new UnauthorizedException("No Authorization header provided");
-    }
-
-    const isApiKey = authString.startsWith(this.config.get("api.apiKeyPrefix") ?? "cal_");
-    const requestOrigin = request.get("Origin");
-
-    const user = isApiKey
-      ? await this.apiKeyStrategy(authString)
-      : await this.accessTokenStrategy(authString, requestOrigin);
-
-    if (!user) {
-      throw new UnauthorizedException("No user associated with the provided token");
-    }
-
     return user;
   }
 }
