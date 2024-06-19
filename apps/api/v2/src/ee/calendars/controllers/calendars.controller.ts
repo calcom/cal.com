@@ -1,5 +1,6 @@
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
@@ -21,13 +22,20 @@ import {
   Headers,
   Redirect,
   BadRequestException,
+  Body,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
-import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  CALENDARS,
+  GOOGLE_CALENDAR,
+  OFFICE_365_CALENDAR,
+  APPLE_CALENDAR,
+} from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
@@ -39,7 +47,8 @@ export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
-    private readonly googleCalendarService: GoogleCalendarService
+    private readonly googleCalendarService: GoogleCalendarService,
+    private readonly appleCalendarService: AppleCalendarService
   ) {}
 
   @UseGuards(AccessTokenGuard)
@@ -109,8 +118,10 @@ export class CalendarsController {
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
-    @Param("calendar") calendar: string
-  ): Promise<{ url: string }> {
+    @Param("calendar") calendar: string,
+    @Body() body: { username?: string; password?: string }
+  ): Promise<{ url: string } | { status: string }> {
+    const { username, password } = body;
     // state params contains our user access token
     const stateParams = new URLSearchParams(state);
     const { accessToken, origin, redir } = z
@@ -125,6 +136,8 @@ export class CalendarsController {
         return await this.outlookService.save(code, accessToken, origin, redir ?? "");
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.save(accessToken, username, password);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
@@ -143,6 +156,8 @@ export class CalendarsController {
         return await this.outlookService.check(userId);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.check(userId);
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.check(userId);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
