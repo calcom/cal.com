@@ -254,7 +254,7 @@ export const sendScheduledSeatsEmailsAndSMS = async (
   await eventScheduledSMS.sendSMSToAttendee(invitee);
 };
 
-export const sendCancelledSeatEmails = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+export const sendCancelledSeatEmailsAndSMS = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const clonedCalEvent = cloneDeep(formattedCalEvent);
 

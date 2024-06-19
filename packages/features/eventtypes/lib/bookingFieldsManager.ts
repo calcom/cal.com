@@ -15,6 +15,11 @@ async function getEventType(eventTypeId: EventType["id"]) {
     },
     include: {
       customInputs: true,
+      profile: {
+        select: {
+          organizationId: true,
+        },
+      },
       workflows: {
         select: {
           workflow: {
@@ -29,11 +34,11 @@ async function getEventType(eventTypeId: EventType["id"]) {
     throw new Error(`EventType:${eventTypeId} not found`);
   }
 
-  const isTeamEvent = !!rawEventType?.teamId;
+  const isOrgTeamEvent = !!rawEventType?.teamId && !!rawEventType?.profile?.organizationId;
 
   const eventType = {
     ...rawEventType,
-    bookingFields: getBookingFieldsWithSystemFields({ ...rawEventType, isTeamEvent }),
+    bookingFields: getBookingFieldsWithSystemFields({ ...rawEventType, isOrgTeamEvent }),
   };
   return eventType;
 }

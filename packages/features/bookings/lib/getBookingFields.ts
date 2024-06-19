@@ -58,7 +58,7 @@ export const getSmsReminderNumberSource = ({
 export const getBookingFieldsWithSystemFields = ({
   bookingFields,
   disableGuests,
-  isTeamEvent = false,
+  isOrgTeamEvent = false,
   disableBookingTitle,
   customInputs,
   metadata,
@@ -66,7 +66,7 @@ export const getBookingFieldsWithSystemFields = ({
 }: {
   bookingFields: Fields | EventType["bookingFields"];
   disableGuests: boolean;
-  isTeamEvent?: boolean;
+  isOrgTeamEvent?: boolean;
   disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
@@ -81,7 +81,7 @@ export const getBookingFieldsWithSystemFields = ({
   return ensureBookingInputsHaveSystemFields({
     bookingFields: parsedBookingFields,
     disableGuests,
-    isTeamEvent,
+    isOrgTeamEvent,
     disableBookingTitle,
     additionalNotesRequired: parsedMetaData?.additionalNotesRequired || false,
     customInputs: parsedCustomInputs,
@@ -92,7 +92,7 @@ export const getBookingFieldsWithSystemFields = ({
 export const ensureBookingInputsHaveSystemFields = ({
   bookingFields,
   disableGuests,
-  isTeamEvent,
+  isOrgTeamEvent,
   disableBookingTitle,
   additionalNotesRequired,
   customInputs,
@@ -100,7 +100,7 @@ export const ensureBookingInputsHaveSystemFields = ({
 }: {
   bookingFields: Fields;
   disableGuests: boolean;
-  isTeamEvent: boolean;
+  isOrgTeamEvent: boolean;
   disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
@@ -160,7 +160,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       type: "email",
       name: "email",
       required: !isEmailFieldOptional,
-      editable: isTeamEvent ? "system-but-optional" : "system",
+      editable: isOrgTeamEvent ? "system-but-optional" : "system",
       sources: [
         {
           label: "Default",
@@ -199,7 +199,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       ],
     },
   ];
-  if (isTeamEvent) {
+  if (isOrgTeamEvent) {
     systemBeforeFields.splice(2, 0, {
       defaultLabel: "phone_number",
       type: "phone",
