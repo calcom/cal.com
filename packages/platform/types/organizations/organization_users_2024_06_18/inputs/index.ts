@@ -1,1 +1,1 @@
-export * from "./get_organization_users.input";
+export * from "./get-organization-users.input";

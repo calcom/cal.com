@@ -3,12 +3,15 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { OrganizationIdGuard } from "@/modules/auth/guards/organization/organization-id.guard";
-import { ListUsersResponseDto } from "@/modules/organizations/controllers/outputs/listUsersResponse.dto";
 import { OrganizationUsersRepository } from "@/modules/organizations/repositories/organization-users.repository";
 import { Controller, Get, Post, Patch, Param, Logger, UseGuards, Body } from "@nestjs/common";
 import { ApiExcludeController } from "@nestjs/swagger";
 
-import { ApiResponse, GetOrganizationUsersInput_2024_06_18 } from "@calcom/platform-types";
+import {
+  ApiResponse,
+  GetOrganizationUsersInput_2024_06_18,
+  GetOrganizationUsersOutput_2024_06_18,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "v2/organizations",
@@ -25,7 +28,7 @@ export class OrganizationsController {
   async getOrganizationUsers(
     @Param("organizationId") organizationId: number,
     @Body() input: GetOrganizationUsersInput_2024_06_18
-  ): Promise<ApiResponse<ListUsersResponseDto>> {
+  ): Promise<ApiResponse<GetOrganizationUsersOutput_2024_06_18>> {
     const emailArray = Array.isArray(input.email) ? input.email : [input.email];
 
     const users = await this.organizationUsersRepository.getOrganizationUsers(organizationId, emailArray);
