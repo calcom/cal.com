@@ -1,5 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
+import { useSearchParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef } from "react";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
@@ -92,6 +93,9 @@ const BookerComponent = ({
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots).filter(
     (slot) => dayjs(selectedDate).diff(slot, "day") <= 0
   );
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
 
   const totalWeekDays = 7;
   const addonDays =
@@ -140,7 +144,16 @@ const BookerComponent = ({
       scrolledToTimeslotsOnce.current = true;
     }
   };
-
+  useEffect(() => {
+    if (connectedCalendars.length > 0 && hasSession) {
+      const current = new URLSearchParams(Array.from(searchParams?.entries() ?? []));
+      current.set("overlayCalendar", "true");
+      localStorage.setItem("overlayCalendarSwitchDefault", "true");
+      const value = current.toString();
+      const query = value ? `?${value}` : "";
+      router.push(`${pathname}${query}`);
+    }
+  }, []);
   useEffect(() => {
     if (event.isPending) return setBookerState("loading");
     if (!selectedDate) return setBookerState("selecting_date");
