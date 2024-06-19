@@ -11,7 +11,6 @@ type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 // rateLimitApiKey.test.ts
 
-// Mock the checkRateLimitAndThrowError function
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
 }));
