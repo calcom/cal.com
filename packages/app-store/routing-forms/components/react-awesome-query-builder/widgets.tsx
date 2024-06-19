@@ -70,7 +70,7 @@ export type TextLikeComponentProps<TVal extends string | string[] | boolean = st
 export type TextLikeComponentPropsRAQB<TVal extends string | boolean = string> =
   TextLikeComponentProps<TVal> & {
     customProps?: object;
-    type?: "text" | "number" | "email" | "tel";
+    type?: "text" | "number" | "email" | "tel" | "url";
     maxLength?: number;
     noLabel?: boolean;
   };
