@@ -9,7 +9,6 @@ import { rateLimitApiKey } from "~/lib/helpers/rateLimitApiKey";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
-// rateLimitApiKey.test.ts
 
 vi.mock("@calcom/lib/checkRateLimitAndThrowError", () => ({
   checkRateLimitAndThrowError: vi.fn(),
