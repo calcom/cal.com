@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import type {
   AddressLocation_2024_06_14,
   LinkLocation_2024_06_14,

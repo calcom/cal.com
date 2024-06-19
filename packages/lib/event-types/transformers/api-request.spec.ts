@@ -1,3 +1,5 @@
+import { describe, expect, it } from "vitest";
+
 import type { BookingField_2024_06_14, Location_2024_06_14 } from "@calcom/platform-types";
 
 import type { CommonField, OptionsField } from "./api-request";
