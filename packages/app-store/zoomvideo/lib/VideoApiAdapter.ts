@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import dayjs from "@calcom/dayjs";
 import {
   APP_CREDENTIAL_SHARING_ENABLED,
@@ -58,6 +59,40 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
+export const zoomUserSettingsSchema = z.object({
+  recording: z.object({
+    auto_recording: z.string(),
+  }),
+  schedule_meeting: z.object({
+    audio_type: z.string(),
+    default_password_for_scheduled_meetings: z.string(),
+    embed_password_in_join_link: z.string(),
+    force_pmi_jbh_password: z.boolean(),
+    host_video: z.boolean(),
+    join_before_host: z.boolean(),
+    meeting_password_requirement: z.object({
+      consecutive_characters_length: z.number(),
+      have_letter: z.boolean(),
+      have_number: z.boolean(),
+      have_special_character: z.boolean(),
+      have_upper_and_lower_characters: z.boolean(),
+      length: z.number(),
+      only_allow_numeric: z.boolean(),
+      weak_enhance_detection: z.boolean(),
+    }),
+    participants_video: z.boolean(),
+    personal_meeting: z.boolean(),
+    pmi_password: z.string(),
+    pstn_password_protected: z.boolean(),
+    require_password_for_instant_meetings: z.boolean(),
+    require_password_for_pmi_meetings: z.string(),
+    require_password_for_scheduled_meetings: z.boolean(),
+    require_password_for_scheduling_new_meetings: z.boolean(),
+    use_pmi_for_instant_meetings: z.boolean(),
+    use_pmi_for_scheduled_meetings: z.boolean(),
+  }),
+});
+
 type ZoomRecurrence = {
   end_date_time?: string;
   type: 1 | 2 | 3;
@@ -72,7 +107,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
 
   const getUserSettings = async () => {
     const response = await fetchZoomApi("users/me/settings");
-    return response;
+    const data = zoomUserSettingsSchema.parse(response);
+    return data;
   };
 
   const translateEvent = async (event: CalendarEvent) => {
@@ -135,9 +171,9 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       type: 2, // Means that this is a scheduled meeting
       start_time: dayjs(event.startTime).utc().format(),
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
-     //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
-     timezone: event.organizer.timeZone,
-     //password: "string",       TODO: Should we use a password? Maybe generate a random one?
+      //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
+      timezone: event.organizer.timeZone,
+      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: event.description,
       settings: {
         host_video: true,
@@ -150,7 +186,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         use_pmi: false,
         approval_type: 2,
         audio: "both",
-        auto_recording: userSettings.recording.auto_recording, // Dynamically set based on user settings
+        auto_recording: userSettings?.recording?.auto_recording || "none", // Dynamically set based on user settings
         enforce_login: false,
         registrants_email_notification: true,
       },
@@ -248,7 +284,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
   return {
     getAvailability: async () => {
       try {
-        // Implement pagination for cases when there are more than 300 meetings already scheduled.
+        // TODO Possibly implement pagination for cases when there are more than 300 meetings already scheduled.
         const responseBody = await fetchZoomApi("users/me/meetings?type=scheduled&page_size=300");
 
         const data = zoomMeetingsSchema.parse(responseBody);
