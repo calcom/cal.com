@@ -59,6 +59,45 @@ export const zoomMeetingsSchema = z.object({
   ),
 });
 
+export type ZoomUserSettings = z.infer<typeof zoomUserSettingsSchema>;
+
+/** @link https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings */
+export const zoomUserSettingsSchema = z.object({
+  recording: z.object({
+    auto_recording: z.string(),
+  }),
+  schedule_meeting: z.object({
+    audio_type: z.string(),
+    default_password_for_scheduled_meetings: z.string(),
+    embed_password_in_join_link: z.string(),
+    force_pmi_jbh_password: z.boolean(),
+    host_video: z.boolean(),
+    join_before_host: z.boolean(),
+    meeting_password_requirement: z.object({
+      consecutive_characters_length: z.number(),
+      have_letter: z.boolean(), //The passcode must contain at least 1 letter (such as a,b,c...).
+      have_number: z.boolean(), //The passcode must contain at least 1 number (such as 1,2,3...).
+      have_special_character: z.boolean(), //The passcode must have at least one special character (!,@,#...).
+      have_upper_and_lower_characters: z.boolean(), //The passcode must include both uppercase and lowercase characters.
+      length: z.number(), //The minimum length that the meeting/webinar passcode must have.
+      only_allow_numeric: z.boolean(), //The passcode must only contain numbers and no other characters.
+      weak_enhance_detection: z.boolean(), //This setting informs users if the provided passcode is weak.
+    }),
+    participants_video: z.boolean(), //This setting starts meetings with participants video on.
+    personal_meeting: z.boolean(), //The personal meeting setting.
+    //true - Indicates that the Enable Personal Meeting ID (PMI) setting is turned on. Users can choose to use a PMI for their meetings.
+    //false - Indicates that the Enable Personal Meeting ID setting is turned off. If this setting is disabled, meetings that were scheduled with PMI will be invalid. Scheduled meetings will need to be manually updated. For Zoom Phone only:If a user has been assigned a desk phone, Elevate to Zoom Meeting on desk phone will be disabled.
+    pmi_password: z.string(), //The PMI passcode.
+    pstn_password_protected: z.boolean(), //This setting generates and requires a passcode for participants who join by phone.
+    require_password_for_instant_meetings: z.boolean(), //This setting requires a passcode for instant meetings. If you use PMI for your instant meetings, this option will be disabled. This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.
+    require_password_for_pmi_meetings: z.string(), //This setting requires a passcode for the Personal Meeting ID (PMI). This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.Allowed: jbh_only┃all┃none
+    require_password_for_scheduled_meetings: z.boolean(), //This setting requires a passcode for meetings which have already been scheduled.
+    require_password_for_scheduling_new_meetings: z.boolean(), //This setting requires a passcode when scheduling new meetings.This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.
+    use_pmi_for_instant_meetings: z.boolean(), //This setting uses a Personal Meeting ID (PMI) when starting an instant meeting.
+    use_pmi_for_scheduled_meetings: z.boolean(), //The usser can use a Personal Meeting ID (PMI) when scheduling a meeting.
+  }),
+});
+
 type ZoomRecurrence = {
   end_date_time?: string;
   type: 1 | 2 | 3;
@@ -71,7 +110,7 @@ type ZoomRecurrence = {
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const tokenResponse = getTokenObjectFromCredential(credential);
 
-  const translateEvent = (event: CalendarEvent) => {
+  const translateEvent = (event: CalendarEvent, userSettings?: ZoomUserSettings) => {
     const getRecurrence = ({
       recurringEvent,
       startTime,
@@ -131,7 +170,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       duration: (new Date(event.endTime).getTime() - new Date(event.startTime).getTime()) / 60000,
       //schedule_for: "string",   TODO: Used when scheduling the meeting for someone else (needed?)
       timezone: event.organizer.timeZone,
-      //password: "string",       TODO: Should we use a password? Maybe generate a random one?
+      password: userSettings?.schedule_meeting?.default_password_for_scheduled_meetings ?? undefined,
       agenda: event.description,
       settings: {
         host_video: true,
@@ -144,7 +183,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
         use_pmi: false,
         approval_type: 2,
         audio: "both",
-        auto_recording: "none",
+        auto_recording: userSettings?.recording?.auto_recording || "none",
         enforce_login: false,
         registrants_email_notification: true,
       },
@@ -257,13 +296,22 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
+      let userSettings: ZoomUserSettings | undefined;
+      try {
+        const responseBody = await fetchZoomApi("users/me/settings");
+        userSettings = zoomUserSettingsSchema.parse(responseBody);
+      } catch (err) {
+        console.error(err);
+        /* If user settings could not be retrieved due to error in like - api scope configurations,
+         just continue create meeting with default settings*/
+      }
       try {
         const response = await fetchZoomApi("users/me/meetings", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(translateEvent(event, userSettings)),
         });
 
         const result = zoomEventResultSchema.parse(response);
@@ -294,13 +342,22 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
+      let userSettings: ZoomUserSettings | undefined;
+      try {
+        const responseBody = await fetchZoomApi("users/me/settings");
+        userSettings = zoomUserSettingsSchema.parse(responseBody);
+      } catch (err) {
+        console.error(err);
+        /* If user settings could not be retrieved due to error in like - api scope configurations,
+         just continue update meeting with default settings*/
+      }
       try {
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event)),
+          body: JSON.stringify(translateEvent(event, userSettings)),
         });
 
         return Promise.resolve({
