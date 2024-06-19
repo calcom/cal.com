@@ -2,10 +2,12 @@ import { CalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
+import { BadRequestException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
-import { SUCCESS_STATUS, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries";
 
 @Injectable()
@@ -13,11 +15,13 @@ export class AppleCalendarService implements CalendarApp {
   constructor(
     private readonly calendarsService: CalendarsService,
     private readonly credentialRepository: CredentialsRepository,
-    private readonly dbRead: PrismaReadService
+    private readonly tokensRepository: TokensRepository,
+    private readonly dbRead: PrismaReadService,
+    private readonly dbWrite: PrismaWriteService
   ) {}
 
-  async save(origin: string, redir?: string): Promise<{ url: string }> {
-    return await this.saveCalendarCredentialsAndRedirect(code, accessToken, origin, redir);
+  async save(accessToken: string, username?: string, password?: string): Promise<{ status: string }> {
+    return await this.saveCalendarCredentialsAndRedirect(accessToken, username ?? "", password ?? "");
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
@@ -25,47 +29,20 @@ export class AppleCalendarService implements CalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
-    const office365CalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
-      "office365_calendar",
-      userId
-    );
-
-    if (!office365CalendarCredentials) {
-      throw new BadRequestException("Credentials for office_365_calendar not found.");
-    }
-
-    if (office365CalendarCredentials.invalid) {
-      throw new BadRequestException("Invalid office 365 calendar credentials.");
-    }
-
-    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
-    const office365Calendar = connectedCalendars.find(
-      (cal: { integration: { type: string } }) => cal.integration.type === OFFICE_365_CALENDAR_TYPE
-    );
-    if (!office365Calendar) {
-      throw new UnauthorizedException("Office 365 calendar not connected.");
-    }
-    if (office365Calendar.error?.message) {
-      throw new UnauthorizedException(office365Calendar.error?.message);
-    }
-
     return {
       status: SUCCESS_STATUS,
     };
   }
 
-  // params requiured by this function
-  // username, password, userId
-  async saveCalendarCredentialsAndRedirect(
-    userId: number,
-    username: string,
-    password: string,
-    origin: string,
-    redir?: string
-  ) {
+  async saveCalendarCredentialsAndRedirect(accessToken: string, username: string, password: string) {
+    if (username.length > 1 || password.length > 1)
+      throw new BadRequestException(`Username or password cannot be empty`);
+
+    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
+
     const user = await this.dbRead.prisma.user.findFirstOrThrow({
       where: {
-        id: userId,
+        id: ownerId,
       },
       select: {
         email: true,
@@ -74,14 +51,14 @@ export class AppleCalendarService implements CalendarApp {
     });
 
     const data = {
-      type: "apple_calendar",
+      type: APPLE_CALENDAR_TYPE,
       key: symmetricEncrypt(
         JSON.stringify({ username, password }),
         process.env.CALENDSO_ENCRYPTION_KEY || ""
       ),
       userId: user.id,
       teamId: null,
-      appId: "apple-calendar",
+      appId: APPLE_CALENDAR_ID,
       invalid: false,
     };
 
@@ -92,17 +69,15 @@ export class AppleCalendarService implements CalendarApp {
         user: { email: user.email },
       });
       await dav?.listCalendars();
-      // await prisma.credential.create({
-      //   data,
-      // });
-      await this.credentialRepository.createAppCredential(data);
+      await this.dbWrite.prisma.credential.create({
+        data,
+      });
     } catch (reason) {
-      this.logger.error("Could not add this apple calendar account", reason);
-      // return res.status(500).json({ message: "unable_to_add_apple_calendar" });
+      throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }
 
     return {
-      url: redir || origin,
+      status: SUCCESS_STATUS,
     };
   }
 }
