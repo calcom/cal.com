@@ -9,15 +9,19 @@ type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & 
   attendees: { email: string | null }[];
 };
 
-async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
-  availableUsers,
-  eventTypeId,
-  allBookings,
-}: {
+type PartialUser = Pick<User, "id" | "email">;
+
+interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
-  eventTypeId: number;
-  allBookings: PartialBooking[];
-}) {
+  eventType: { id: number; isRRWeightsEnabled: boolean };
+  allRRHosts: IsFixedAwareUser[];
+}
+
+async function leastRecentlyBookedUser<T extends PartialUser>({
+  availableUsers,
+  eventType,
+  allBookings,
+}: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
   // First we get all organizers (fixed host/single round robin user)
   const organizersWithLastCreated = await prisma.user.findMany({
     where: {
@@ -32,7 +36,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
           createdAt: true,
         },
         where: {
-          eventTypeId,
+          eventTypeId: eventType.id,
         },
         orderBy: {
           createdAt: "desc",
@@ -96,30 +100,16 @@ function getUsersWithHighestPriority<
   );
 }
 
-async function getUsersbasedOnWeights<
-  T extends Pick<User, "id" | "email"> & {
-    weight?: number | null;
-    priority?: number | null;
-  }
->({
-  availableUsers,
-  allBookings,
-  allRRHosts,
-}: {
-  availableUsers: T[];
-  eventTypeId: number;
-  allBookings: PartialBooking[];
-  allRRHosts: IsFixedAwareUser[];
-}) {
-  //handle adding a new host --> this is important
-  //handle OOO times --> this is not so important
-
-  // also filter out no show bookings
+async function getUsersBasedOnWeights<
+  T extends PartialUser & { weight?: number | null; priority?: number | null }
+>({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
+  // Filter accepted bookings
   const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED);
-  // we need to have the weight of all users here not just the availabile users
+
+  // Calculate the total weight of all round-robin hosts
   const totalWeight = allRRHosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
 
-  // I need the total amount of all bookings too
+  // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     const targetPercentage = (user.weight ?? 100) / totalWeight;
 
@@ -136,12 +126,8 @@ async function getUsersbasedOnWeights<
     };
   });
 
-  // find the users with the highest booking shortfall
-  const maxShortfall = usersWithBookingShortfalls.reduce(
-    (max, user) => Math.max(max, user.bookingShortfall),
-    0
-  );
-
+  // Find users with the highest booking shortfall
+  const maxShortfall = Math.max(...usersWithBookingShortfalls.map((user) => user.bookingShortfall));
   const usersWithMaxShortfall = usersWithBookingShortfalls.filter(
     (user) => user.bookingShortfall === maxShortfall
   );
@@ -152,26 +138,20 @@ async function getUsersbasedOnWeights<
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export async function getLuckyUser<
-  T extends Pick<User, "id" | "email"> & {
-    priority?: number | null;
-    weight?: number | null;
-  }
+  T extends PartialUser & { priority?: number | null; weight?: number | null }
 >(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
-  {
-    availableUsers,
-    eventTypeId,
-    isRRWeightsEnabled,
-    allRRHosts,
-  }: { availableUsers: T[]; eventTypeId: number; isRRWeightsEnabled: boolean; allRRHosts: IsFixedAwareUser[] }
+  getLuckyUserParams: GetLuckyUserParams<T>
 ) {
+  const { availableUsers, eventType } = getLuckyUserParams;
+
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
 
   const allBookings = await prisma.booking.findMany({
     where: {
-      eventTypeId,
+      eventTypeId: eventType.id,
     },
     select: {
       id: true,
@@ -192,15 +172,14 @@ export async function getLuckyUser<
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
       let possibleLuckyUsers = availableUsers;
-      if (isRRWeightsEnabled) {
-        possibleLuckyUsers = await getUsersbasedOnWeights({
-          availableUsers,
-          eventTypeId,
-          allBookings,
-          allRRHosts,
-        });
+      if (eventType.isRRWeightsEnabled) {
+        possibleLuckyUsers = await getUsersBasedOnWeights({ ...getLuckyUserParams, allBookings });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
-      return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId, allBookings });
+      return leastRecentlyBookedUser<T>({
+        ...getLuckyUserParams,
+        availableUsers: highestPriorityUsers,
+        allBookings,
+      });
   }
 }
