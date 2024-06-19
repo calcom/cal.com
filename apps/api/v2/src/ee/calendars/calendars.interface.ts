@@ -9,7 +9,7 @@ export interface CalendarApp {
     origin: string,
     username?: string,
     password?: string
-  ): Promise<{ url: string }> | Promise<{ status: string }>;
+  ): Promise<{ url: string } | { status: string }>;
   check(userId: number): Promise<ApiResponse>;
 }
 
