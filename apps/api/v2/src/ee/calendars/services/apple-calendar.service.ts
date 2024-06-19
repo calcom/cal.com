@@ -4,7 +4,7 @@ import { CredentialsRepository } from "@/modules/credentials/credentials.reposit
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
@@ -29,6 +29,30 @@ export class AppleCalendarService implements CalendarApp {
   }
 
   async checkIfCalendarConnected(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
+    const appleCalendarCredentials = await this.credentialRepository.getByTypeAndUserId(
+      APPLE_CALENDAR_TYPE,
+      userId
+    );
+
+    if (!appleCalendarCredentials) {
+      throw new BadRequestException("Credentials for apple calendar not found.");
+    }
+
+    if (appleCalendarCredentials.invalid) {
+      throw new BadRequestException("Invalid apple calendar credentials.");
+    }
+
+    const { connectedCalendars } = await this.calendarsService.getCalendars(userId);
+    const appleCalendar = connectedCalendars.find(
+      (cal: { integration: { type: string } }) => cal.integration.type === APPLE_CALENDAR_TYPE
+    );
+    if (!appleCalendar) {
+      throw new UnauthorizedException("Apple calendar not connected.");
+    }
+    if (appleCalendar.error?.message) {
+      throw new UnauthorizedException(appleCalendar.error?.message);
+    }
+
     return {
       status: SUCCESS_STATUS,
     };
