@@ -7,7 +7,7 @@ import {
   getEventTypeById,
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
-} from "@calcom/platform-libraries-0.0.11";
+} from "@calcom/platform-libraries-0.0.12";
 import { CreateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import type { PrismaClient } from "@calcom/prisma";
 

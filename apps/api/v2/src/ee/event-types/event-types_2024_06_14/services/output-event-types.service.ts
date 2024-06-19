@@ -9,7 +9,7 @@ import {
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
-} from "@calcom/platform-libraries-0.0.11";
+} from "@calcom/platform-libraries-0.0.12";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;

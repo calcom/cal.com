@@ -11,7 +11,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
-import { dynamicEvent } from "@calcom/platform-libraries-0.0.11";
+import { dynamicEvent } from "@calcom/platform-libraries-0.0.12";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
