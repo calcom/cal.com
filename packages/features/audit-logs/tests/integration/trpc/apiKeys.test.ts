@@ -1,15 +1,13 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { faker } from "@faker-js/faker";
-import type { Credential } from "@prisma/client";
+import type { Credential, Prisma } from "@prisma/client";
 import { vi, describe, test, expect } from "vitest";
 
-import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementation/zod";
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
 import { buildCredential, buildSession } from "@calcom/lib/test/builder";
-import { IdentityProvider, AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
+import { AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 import type { inferProcedureInput } from "@calcom/trpc";
-import { buildMockData } from "@calcom/trpc/lib/tests";
 import { createContextInner } from "@calcom/trpc/server/createContext";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { apiKeyRouterCreateCaller } from "@calcom/trpc/server/routers/viewer/apiKeys/_router";
@@ -48,8 +46,15 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
 
 describe("handleAuditLogTrigger", () => {
   test("API_KEY_CREATED is reported as expected.", async () => {
-    const input: inferProcedureInput<AppRouter["viewer"]["apiKeys"]["create"]> = {};
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
     await prismock.credential.create({
       data: buildCredential({
         userId: user.id,
@@ -60,17 +65,18 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: AppKeys },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     const ctx = await createContextInner({
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
 
     const caller = apiKeyRouterCreateCaller(ctx);
+
+    const input: inferProcedureInput<AppRouter["viewer"]["apiKeys"]["create"]> = {};
     await caller.create(input);
 
     expect(mockReportEventGeneric).toHaveBeenCalledWith(
@@ -81,7 +87,15 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("API_KEY_DELETED is reported as expected.", async () => {
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
     await prismock.credential.create({
       data: buildCredential({
         id: 0,
@@ -92,7 +106,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: AppKeys },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     const [hashedApiKey] = generateUniqueAPIKey();
@@ -114,7 +128,6 @@ describe("handleAuditLogTrigger", () => {
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
     const caller = apiKeyRouterCreateCaller(ctx);
     await caller.delete(input);
@@ -127,7 +140,15 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("API_KEY_UPDATED is reported as expected.", async () => {
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
     await prismock.credential.create({
       data: buildCredential({
         id: 0,
@@ -138,7 +159,7 @@ describe("handleAuditLogTrigger", () => {
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     const [hashedApiKey] = generateUniqueAPIKey();
@@ -148,9 +169,7 @@ describe("handleAuditLogTrigger", () => {
         userId: user.id,
         note: "API Key used by x.",
         expiresAt: null,
-        neverExpires: true,
         appId: null,
-        // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
         hashedKey: hashedApiKey,
       },
     });
@@ -159,14 +178,14 @@ describe("handleAuditLogTrigger", () => {
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
     const caller = apiKeyRouterCreateCaller(ctx);
+
     const input: inferProcedureInput<AppRouter["viewer"]["apiKeys"]["delete"]> = {
       id: createdKey.id,
-      note: "Note Updated",
     };
     await caller.edit(input);
+
     expect(mockReportEventGeneric).toHaveBeenCalledWith(
       expect.objectContaining({
         action: AuditLogApiKeysTriggerEvents.API_KEY_UPDATED,

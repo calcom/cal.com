@@ -84,7 +84,7 @@ export function createEvent(
 
   return {
     actor: {
-      id: user.id.toString(),
+      id: user.id,
       name: user.name,
     },
     ...dynamicSection,

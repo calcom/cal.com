@@ -14,6 +14,7 @@ import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { BookingStatus } from "@calcom/prisma/enums";
+import { buildProfileMockData } from "@calcom/trpc/lib/tests";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
@@ -176,17 +177,17 @@ export const buildApp = (app?: Partial<App>): App => {
 
 export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
   return {
+    userId: faker.datatype.number(),
     id: faker.datatype.uuid(),
+    appId: null,
+    teamId: null,
     eventTypeId: faker.datatype.number(),
     subscriberUrl: "http://mockedURL.com",
     payloadTemplate: null,
     createdAt: faker.datatype.datetime(),
-    appId: null,
-    userId: null,
     secret: faker.lorem.slug(),
     active: true,
     eventTriggers: [],
-    teamId: null,
     ...webhook,
     platform: false,
   };
@@ -247,13 +248,13 @@ export const buildSession = (session: {
   token?: { exp?: number; belongsToActiveTeam?: boolean; upId?: number; profileId?: number };
 }): Session => {
   return {
-    user: session?.user ?? buildUser(),
+    user: { ...(session?.user ?? buildUser()), profile: buildProfileMockData() },
     hasValidLicense: session?.hasValidLicense ?? true,
     expires: new Date(
       typeof session?.token?.exp === "number" ? session?.token?.exp * 1000 : Date.now()
     ).toISOString(),
     profileId: session?.token?.profileId ?? 0,
-    upId: session?.token?.upId ?? "01",
+    upId: session?.token?.upId?.toString() ?? "01",
   };
 };
 
@@ -307,6 +308,7 @@ export type UserPayload = Prisma.UserGetPayload<{
     smsLockState: true;
   };
 }>;
+
 export const buildUser = <T extends Partial<UserPayload>>(
   user?: T & { priority?: number }
 ): UserPayload & { priority: number | null } => {

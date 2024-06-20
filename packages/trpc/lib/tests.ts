@@ -1,10 +1,9 @@
 import prismock from "../../../tests/libs/__mocks__/prisma";
 
+import type { User } from "@prisma/client";
 import { z } from "zod";
 
 import { IdentityProvider } from "@calcom/prisma/enums";
-
-import type { CreateInnerContextOptions } from "../server/createContext";
 
 export const ZCredential = z.object({
   id: z.number(),
@@ -44,8 +43,8 @@ export const buildProfileMockData = () => ({
 export async function buildMockData(
   identityProvider: IdentityProvider = IdentityProvider.GOOGLE,
   identityProviderId: string | null = null
-): Pick<CreateInnerContextOptions, "user"> {
-  const promise = await prismock.user.create({
+) {
+  const promise: User = await prismock.user.create({
     data: {
       id: 1,
       username: "test",

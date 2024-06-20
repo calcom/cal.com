@@ -56,20 +56,20 @@ export type GenericAuditLogClient = {
 };
 
 export const ZAuditLogEventActor = z.object({
-  id: z.string().or(z.number()),
+  id: z.number(),
   name: z.string().optional(),
   fields: z.object({}).passthrough().optional(),
 });
 
 export const ZAuditLogEventTarget = z.object({
-  id: z.string(),
+  id: z.number(),
   name: z.string().optional(),
   type: z.string().optional(),
   fields: z.object({}).passthrough().optional(),
 });
 
 export const ZAuditLogEventGroup = z.object({
-  id: z.string(),
+  id: z.number(),
   name: z.string(),
 });
 

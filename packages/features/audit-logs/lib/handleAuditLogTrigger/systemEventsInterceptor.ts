@@ -14,7 +14,7 @@ export function interceptSystemEvents(innerEvent: AuditLogEvent, credential: Cre
   if (
     (innerEvent.action === AuditLogAppTriggerEvents.APP_KEYS_UPDATED ||
       innerEvent.action === AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED) &&
-    innerEvent.target.id === credential.id.toString()
+    innerEvent.target.id === credential.id
   ) {
     log.silly("Action intercepted by system interceptor. SYSTEM_SETTINGS_UPDATED");
     innerEvent.action = AuditLogSystemTriggerEvents.SYSTEM_SETTINGS_UPDATED;

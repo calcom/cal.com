@@ -9,10 +9,10 @@ export const ZCreateInputSchema = webhookIdAndEventTypeIdSchema.extend({
   eventTriggers: z.enum(WEBHOOK_TRIGGER_EVENTS).array(),
   active: z.boolean(),
   payloadTemplate: z.string().nullable(),
-  eventTypeId: z.number().optional(),
+  eventTypeId: z.number().optional().nullable(),
   appId: z.string().optional().nullable(),
   secret: z.string().optional().nullable(),
-  teamId: z.number().optional(),
+  teamId: z.number().optional().nullable(),
   platform: z.boolean().optional(),
 });
 

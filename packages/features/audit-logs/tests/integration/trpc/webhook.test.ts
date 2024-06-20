@@ -1,18 +1,17 @@
-import i18nMock from "../../../../../../tests/libs/__mocks__/libServerI18n";
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
+import { mockNoTranslations } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
+import type { Credential, Prisma } from "@prisma/client";
 import { vi, describe, test, expect } from "vitest";
 
-import { sendPayload } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { buildCredential, buildSession, buildWebhook } from "@calcom/lib/test/builder";
-import { IdentityProvider, AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
+import { AuditLogWebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { inferProcedureInput } from "@calcom/trpc";
-import { buildMockData } from "@calcom/trpc/lib/tests";
 import { createContextInner } from "@calcom/trpc/server/createContext";
 import type { AppRouter } from "@calcom/trpc/server/routers/_app";
 import { webhookRouterCreateCaller } from "@calcom/trpc/server/routers/viewer/webhook/_router";
-
-import { successResponse } from "../../../../../app-store/_utils/testUtils";
 
 vi.mock("@calcom/features/webhooks/lib/sendPayload", () => {
   return {
@@ -32,32 +31,37 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
 
 describe("handleAuditLogTrigger", () => {
   test("WEBHOOK_CREATED is reported as expected.", async () => {
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
+
     await prismock.credential.create({
       data: buildCredential({
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+
     const ctx = await createContextInner({
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
 
     const caller = webhookRouterCreateCaller(ctx);
 
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["create"]> = buildWebhook({
-      createdAt: undefined,
-      appId: undefined,
-      userId: undefined,
-      teamId: undefined,
-      eventTypeId: undefined,
       payloadTemplate: `{"triggerEvent":"MEETING_ENDED"}`,
     });
     await caller.create(input);
@@ -70,16 +74,26 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("WEBHOOK_DELETED is reported as expected.", async () => {
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
+
     await prismock.credential.create({
       data: buildCredential({
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     const webhook = await prismock.webhook.create({
@@ -97,7 +111,6 @@ describe("handleAuditLogTrigger", () => {
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
 
     const caller = webhookRouterCreateCaller(ctx);
@@ -105,6 +118,7 @@ describe("handleAuditLogTrigger", () => {
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["delete"]> = {
       id: webhook.id,
     };
+
     await caller.delete(input);
 
     expect(mockReportEventGeneric).toHaveBeenLastCalledWith(
@@ -115,17 +129,30 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("WEBHOOK_UPDATED is reported as expected.", async () => {
-    vi.mocked(sendPayload).mockImplementation(() => Promise.resolve(successResponse()));
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    vi.mocked(sendPayload).mockImplementation(() =>
+      Promise.resolve({ ok: true, status: 200, message: "success" })
+    );
+
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
+
     await prismock.credential.create({
       data: buildCredential({
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     const webhook = await prismock.webhook.create({
@@ -143,7 +170,6 @@ describe("handleAuditLogTrigger", () => {
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
 
     const caller = webhookRouterCreateCaller(ctx);
@@ -162,31 +188,33 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("WEBHOOK_TESTED is reported as expected.", async () => {
-    vi.mocked(sendPayload).mockImplementation(() => Promise.resolve(successResponse()));
-    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
+    const user = await prismock.user.create({
+      data: {
+        id: 1,
+        username: "test",
+        name: "Test User",
+        email: "test@example.com",
+        role: "ADMIN",
+      },
+    });
     await prismock.credential.create({
       data: buildCredential({
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
-    i18nMock.getTranslation.mockImplementation(() => {
-      return new Promise((resolve) => {
-        const identityFn = (key: string) => key;
-        resolve(identityFn);
-      });
-    });
+    mockNoTranslations();
 
     const ctx = await createContextInner({
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
-      user,
     });
 
     const caller = webhookRouterCreateCaller(ctx);
