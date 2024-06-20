@@ -223,7 +223,7 @@ export const EventTypeList = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const [parent] = useAutoAnimate<HTMLUListElement>();
+  const [parent, enableAnimations] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
@@ -276,7 +276,8 @@ export const EventTypeList = ({
     },
   });
 
-  async function moveEventType(index: number, increment: number) {
+  async function moveEventType(index: number, increment: number, enableAnimation: boolean) {
+    enableAnimations(enableAnimation);
     const newList = [...types.map(normalizeEventType)];
     const type = types[index];
 
@@ -395,7 +396,7 @@ export const EventTypeList = ({
         onDragEnd={(result) => {
           if (!result.destination) return;
           if (result.destination.index === result.source.index) return;
-          moveEventType(result.source.index, result.destination.index - result.source.index);
+          moveEventType(result.source.index, result.destination.index - result.source.index, false);
         }}>
         <Droppable droppableId="event-types">
           {(provided) => (
@@ -418,14 +419,20 @@ export const EventTypeList = ({
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           key={type.id}>
-                          <div className="hover:bg-muted flex w-full items-center justify-between transition">
+                          <div className="hover:bg-muted flex w-full items-center justify-between">
                             <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                               {!(firstItem && firstItem.id === type.id) && (
-                                <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
+                                <ArrowButton
+                                  onClick={() => moveEventType(index, -1, true)}
+                                  arrowDirection="up"
+                                />
                               )}
 
                               {!(lastItem && lastItem.id === type.id) && (
-                                <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
+                                <ArrowButton
+                                  onClick={() => moveEventType(index, 1, true)}
+                                  arrowDirection="down"
+                                />
                               )}
                               <MemoizedItem type={type} group={group} readOnly={readOnly} />
                               <div className="mt-4 hidden sm:mt-0 sm:flex">
