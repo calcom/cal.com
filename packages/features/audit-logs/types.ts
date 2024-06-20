@@ -69,7 +69,7 @@ export const ZAuditLogEventTarget = z.object({
 });
 
 export const ZAuditLogEventGroup = z.object({
-  id: z.number(),
+  id: z.string(),
   name: z.string(),
 });
 
