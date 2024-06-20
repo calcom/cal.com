@@ -44,3 +44,35 @@ export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string)
 
   return { connect };
 };
+
+export const useSaveCalendarCredentials = (
+  calendar: (typeof CALENDARS)[number],
+  username: string,
+  password: string
+) => {
+  const body = {
+    username,
+    password,
+  };
+
+  const status = useQuery({
+    queryKey: getQueryKey(calendar),
+    staleTime: Infinity,
+    enabled: false,
+    queryFn: () => {
+      return http
+        ?.post<ApiResponse<{ status: string }>>(`/calendars/${calendar}/save}`, {
+          body,
+        })
+        .then(({ data: responseBody }) => {
+          if (responseBody.status === SUCCESS_STATUS) {
+            return responseBody.data.status;
+          }
+          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
+          return "";
+        });
+    },
+  });
+
+  return status;
+};
