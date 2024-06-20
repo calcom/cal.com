@@ -9,6 +9,7 @@ export const workflowSelect = {
   timeUnit: true,
   userId: true,
   teamId: true,
+  name: true,
   steps: {
     select: {
       id: true,
