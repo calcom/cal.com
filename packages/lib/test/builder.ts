@@ -14,7 +14,6 @@ import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { buildProfileMockData } from "@calcom/trpc/lib/tests";
 import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
@@ -241,6 +240,21 @@ export const buildCalendarEvent = (
     ...event,
   };
 };
+
+export const buildOrgMockData = () => ({ id: null, isOrgAdmin: false, metadata: {}, requestedSlug: null });
+
+export const buildProfileMockData = () => ({
+  username: "test",
+  upId: "usr-xx",
+  id: null,
+  organizationId: null,
+  organization: null,
+  name: "Test User",
+  avatarUrl: null,
+  startTime: 0,
+  endTime: 1440,
+  bufferTime: 0,
+});
 
 export const buildSession = (session: {
   user?: User;

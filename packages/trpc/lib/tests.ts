@@ -3,6 +3,7 @@ import prismock from "../../../tests/libs/__mocks__/prisma";
 import type { User } from "@prisma/client";
 import { z } from "zod";
 
+import { buildOrgMockData, buildProfileMockData } from "@calcom/lib/test/builder";
 import { IdentityProvider } from "@calcom/prisma/enums";
 
 export const ZCredential = z.object({
@@ -23,21 +24,6 @@ export const piiFreeAppKeyTransformer = ZCredential.extend({
     endpoint: z.string().transform((value) => !value),
     apiKey: z.string().transform((value) => !value),
   }),
-});
-
-export const buildOrgMockData = () => ({ id: null, isOrgAdmin: false, metadata: {}, requestedSlug: null });
-
-export const buildProfileMockData = () => ({
-  username: "test",
-  upId: "usr-xx",
-  id: null,
-  organizationId: null,
-  organization: null,
-  name: "Test User",
-  avatarUrl: null,
-  startTime: 0,
-  endTime: 1440,
-  bufferTime: 0,
 });
 
 export async function buildMockData(
