@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementation/zod";
+import type { AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 import type {
-  AuditLogApiKeysTriggerEvents,
-  AuditLogAppTriggerEvents,
   AuditLogBookingTriggerEvents,
   AuditLogCredentialTriggerEvents,
   AuditLogWebhookTriggerEvents,
   AuditLogSystemTriggerEvents,
+  AuditLogAppTriggerEvents,
 } from "@calcom/prisma/enums";
 import type { IconName } from "@calcom/ui";
 
@@ -22,10 +22,6 @@ export enum CRUD {
   READ = "r",
 }
 
-export function getValues<T extends Record<string, any>>(obj: T) {
-  return Object.values(obj) as [(typeof obj)[keyof T]];
-}
-
 export type AuditLogTriggerEvents =
   | AuditLogApiKeysTriggerEvents
   | AuditLogAppTriggerEvents
@@ -33,7 +29,6 @@ export type AuditLogTriggerEvents =
   | AuditLogCredentialTriggerEvents
   | AuditLogWebhookTriggerEvents
   | AuditLogSystemTriggerEvents;
-
 export enum DefaultAppSettingsOptions {
   "CREDENTIALS" = "credentials",
   "TRIGGERS" = "triggers",
