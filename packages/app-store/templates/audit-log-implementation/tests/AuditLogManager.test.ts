@@ -4,6 +4,7 @@ import { vi, describe, test, expect, beforeAll } from "vitest";
 import { createEvent } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger/createEvent";
 import { flattenObject } from "@calcom/features/audit-logs/utils";
 
+import { AuditLogSystemTriggerEvents } from "../../../../prisma/enums";
 import AuditLogManager from "../lib/AuditLogManager";
 
 const mockReportEvent = vi.fn();
@@ -15,26 +16,15 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
   }),
 }));
 
-let boxyHqAuditLogManager: AuditLogManager;
+let genericAuditLogManager: AuditLogManager;
 describe("Generic Audit Log Manager", () => {
   beforeAll(() => {
-    boxyHqAuditLogManager = new AuditLogManager(
-      {
-        activeEnvironment: "test",
-        endpoint: "http://localhost:3000",
-        projectId: faker.datatype.uuid(),
-        disabledEvents: [],
-        environments: {
-          test: {
-            id: faker.datatype.uuid(),
-            name: "Testing Environment",
-            token: faker.datatype.uuid(),
-          },
-        },
-        projectName: "Cal.com",
-      },
-      1
-    );
+    genericAuditLogManager = new AuditLogManager({
+      endpoint: "http://localhost:3000",
+      projectId: faker.datatype.uuid(),
+      apiKey: "Cal.com",
+      disabledEvents: [],
+    });
   });
 
   test("intercepts a SYSTEM_MISC trigger and assigns it the proper implementation specific action.", async () => {
@@ -45,7 +35,12 @@ describe("Generic Audit Log Manager", () => {
 
     const data = { implementationAction: "IMPLEMENTATION_SPECIFIC_ACTION" };
     const event = {
-      ...createEvent("systemMisc", { id: "1", name: "Oliver Q." }, data),
+      ...createEvent(
+        AuditLogSystemTriggerEvents.SYSTEM_MISC,
+        { id: 1, name: "Oliver Q." },
+        data,
+        "127.0.0.0"
+      ),
       is_anonymous: false,
       is_failure: false,
       group: {
@@ -57,7 +52,7 @@ describe("Generic Audit Log Manager", () => {
       source_ip: faker.internet.ipv4(),
     };
 
-    await boxyHqAuditLogManager.reportEvent(event);
+    await genericAuditLogManager.reportEvent(event);
 
     expect(mockReportEvent).toHaveBeenCalledWith({ ...event, action: "IMPLEMENTATION_SPECIFIC_ACTION" });
   });

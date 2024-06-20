@@ -82,7 +82,7 @@ export const ZAuditLogEventBase = z.object({
   description: z.string().optional(),
   is_failure: z.boolean().optional(),
   is_anonymous: z.boolean().optional(),
-  fields: z.object({}).passthrough().optional(),
+  fields: z.object({}).passthrough(),
   source_ip: z.string(),
 });
 
