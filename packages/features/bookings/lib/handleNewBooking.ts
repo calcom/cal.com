@@ -36,7 +36,6 @@ import {
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { handleAuditLogTrigger } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
-import { AuditLogTriggerEvents, CRUD } from "@calcom/features/audit-logs/types";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
@@ -88,7 +87,12 @@ import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/Syn
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { userSelect } from "@calcom/prisma";
 import type { BookingReference } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
+import {
+  AuditLogBookingTriggerEvents,
+  BookingStatus,
+  SchedulingType,
+  WebhookTriggerEvents,
+} from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import {
   EventTypeMetaDataSchema,
@@ -2379,7 +2383,7 @@ async function handler(
     await handleAuditLogTrigger({
       user: { id: booking.userId ?? -1, name: "" },
       data: webhookData,
-      trigger: AuditLogTriggerEvents.BOOKING_PAYMENT_INITIATED,
+      trigger: AuditLogBookingTriggerEvents.BOOKING_PAYMENT_INITIATED,
       source_ip: getIP(req),
     });
 
@@ -2468,8 +2472,8 @@ async function handler(
       user: { id: booking.userId ?? -1, name: "" },
       data: webhookData,
       trigger: rescheduleUid
-        ? AuditLogTriggerEvents.BOOKING_RESCHEDULED
-        : AuditLogTriggerEvents.BOOKING_CREATED,
+        ? AuditLogBookingTriggerEvents.BOOKING_RESCHEDULED
+        : AuditLogBookingTriggerEvents.BOOKING_CREATED,
       source_ip: getIP(req),
     });
   } else {
@@ -2481,7 +2485,7 @@ async function handler(
     await handleAuditLogTrigger({
       user: { id: req.userId ?? -1, name: "" },
       data: webhookData,
-      trigger: AuditLogTriggerEvents.BOOKING_REQUESTED,
+      trigger: AuditLogBookingTriggerEvents.BOOKING_REQUESTED,
       source_ip: getIP(req),
     });
   }
