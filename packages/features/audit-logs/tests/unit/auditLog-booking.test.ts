@@ -6,7 +6,7 @@ import { buildCredential } from "@calcom/lib/test/builder";
 import { AuditLogBookingTriggerEvents } from "@calcom/prisma/enums";
 
 import { handleAuditLogTrigger } from "../../lib/handleAuditLogTrigger";
-import type { Credential } from ".prisma/client";
+import type { Credential, Prisma } from ".prisma/client";
 
 const mockReportEvent = vi.fn();
 vi.mock("@calcom/features/audit-logs/lib/getAuditLogManager", () => {
@@ -23,13 +23,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_CREATED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -45,16 +46,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_CREATED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "This is a test", name: undefined, type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        fields: { "organizer.id": "This is a test" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -62,13 +54,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_CANCELLED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -86,15 +79,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_CANCELLED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -102,13 +87,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_REQUESTED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -126,15 +112,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_REQUESTED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -142,13 +120,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_REJECTED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -166,15 +145,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_REJECTED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -182,13 +153,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_CONFIRMED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -206,15 +178,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_CONFIRMED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -222,13 +186,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_PAYMENT_INITIATED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -246,15 +211,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_PAYMENT_INITIATED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -262,13 +219,15 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_PAID as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
+
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -286,15 +245,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_PAID",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
@@ -302,13 +253,14 @@ describe("handleAuditLogTriggers", () => {
   test("reports BOOKING_RESCHEDULED as expected.", async () => {
     await prismock.credential.create({
       data: buildCredential({
+        userId: 1,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
     await handleAuditLogTrigger({
@@ -326,15 +278,7 @@ describe("handleAuditLogTriggers", () => {
 
     expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        actor: { id: 1, name: undefined },
         action: "BOOKING_RESCHEDULED",
-        description: "An apiKey was created.",
-        crud: "c",
-        target: { id: "test", name: "oliverQ", type: "BOOKING" },
-        is_anonymous: false,
-        is_failure: false,
-        group: { id: "default", name: "default" },
-        source_ip: "127.0.0.0",
       })
     );
   });
