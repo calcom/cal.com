@@ -1,4 +1,5 @@
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { EventTypeIdParams } from "@/ee/event-types/inputs/event-type-id.input";
 import { GetPublicEventTypeQueryParams } from "@/ee/event-types/inputs/get-public-event-type-query-params.input";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { CreateEventTypeOutput } from "@/ee/event-types/outputs/create-event-type.output";
@@ -12,7 +13,7 @@ import { EventTypesService } from "@/ee/event-types/services/event-types.service
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -30,6 +31,7 @@ import {
   Delete,
   Query,
   InternalServerErrorException,
+  ParseIntPipe,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -52,7 +54,7 @@ export class EventTypesController {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async createEventType(
     @Body() body: CreateEventTypeInput,
     @GetUser() user: UserWithProfile
@@ -67,9 +69,11 @@ export class EventTypesController {
 
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async getEventType(
-    @Param("eventTypeId") eventTypeId: string,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+
     @GetUser() user: UserWithProfile
   ): Promise<GetEventTypeOutput> {
     const eventType = await this.eventTypesService.getUserEventTypeForAtom(user, Number(eventTypeId));
@@ -86,7 +90,7 @@ export class EventTypesController {
 
   @Get("/")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async getEventTypes(@GetUser() user: UserWithProfile): Promise<GetEventTypesOutput> {
     const eventTypes = await getEventTypesByViewer({
       id: user.id,
@@ -142,10 +146,11 @@ export class EventTypesController {
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
-    @Param("eventTypeId") eventTypeId: number,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Body() body: UpdateEventTypeInput,
     @GetUser() user: UserWithProfile
   ): Promise<UpdateEventTypeOutput> {
@@ -159,9 +164,10 @@ export class EventTypesController {
 
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async deleteEventType(
-    @Param("eventTypeId") eventTypeId: number,
+    @Param() params: EventTypeIdParams,
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @GetUser("id") userId: number
   ): Promise<DeleteEventTypeOutput> {
     const eventType = await this.eventTypesService.deleteEventType(eventTypeId, userId);
