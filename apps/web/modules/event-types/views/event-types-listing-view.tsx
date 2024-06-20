@@ -513,19 +513,21 @@ export const EventTypeList = ({
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {!isManagedEventType && !isChildrenManagedEventType && (
-                                <>
-                                  <DropdownMenuItem className="outline-none">
-                                    <DropdownItem
-                                      type="button"
-                                      data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon="copy"
-                                      onClick={() => openDuplicateModal(type, group)}>
-                                      {t("duplicate")}
-                                    </DropdownItem>
-                                  </DropdownMenuItem>
-                                </>
-                              )}
+                              {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                                !isManagedEventType &&
+                                !isChildrenManagedEventType && (
+                                  <>
+                                    <DropdownMenuItem className="outline-none">
+                                      <DropdownItem
+                                        type="button"
+                                        data-testid={`event-type-duplicate-${type.id}`}
+                                        StartIcon="copy"
+                                        onClick={() => openDuplicateModal(type, group)}>
+                                        {t("duplicate")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
