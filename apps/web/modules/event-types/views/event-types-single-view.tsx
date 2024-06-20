@@ -831,7 +831,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows: Workfl
         leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
         id={eventType.id}
       />
-      ;
     </>
   );
 };
