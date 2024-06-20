@@ -85,12 +85,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
     });
 
   //check if event type is already active
-  const isActive = await prisma.workflowsOnEventTypes.findFirst({
-    where: {
-      workflowId,
-      eventTypeId,
-    },
-  });
+  const isActive =
+    !!(await prisma.workflowsOnEventTypes.findFirst({
+      where: {
+        workflowId,
+        eventTypeId,
+      },
+    })) || eventTypeWorkflow.isActiveOnAll;
 
   const isOrg = eventTypeWorkflow.team?.isOrganization ?? false;
 
@@ -126,6 +127,57 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
         eventTypeId: { in: [eventTypeId].concat(userEventType.children.map((ch) => ch.id)) },
       },
     });
+
+    if (eventTypeWorkflow.isActiveOnAll) {
+      await prisma.workflow.update({
+        where: {
+          id: workflowId,
+        },
+        data: {
+          isActiveOnAll: false,
+        },
+      });
+
+      let allEventTypes = [];
+
+      //get all event types of of team or user --> test with managed event types
+      if (eventTypeWorkflow.teamId) {
+        allEventTypes = await prisma.eventType.findMany({
+          where: {
+            id: {
+              not: eventTypeId,
+            },
+            teamId: eventTypeWorkflow.teamId,
+          },
+        });
+      } else {
+        allEventTypes = await prisma.eventType.findMany({
+          where: {
+            id: {
+              not: eventTypeId,
+            },
+            userId: eventTypeWorkflow.userId,
+          },
+        });
+      }
+
+      // activate all event types on the workflow
+      for (const eventType of allEventTypes) {
+        await prisma.workflowsOnEventTypes.upsert({
+          create: {
+            workflowId,
+            eventTypeId: eventType.id,
+          },
+          update: {},
+          where: {
+            workflowId_eventTypeId: {
+              eventTypeId: eventType.id,
+              workflowId,
+            },
+          },
+        });
+      }
+    }
     await removeSmsReminderFieldForEventTypes({ activeOnToRemove: activeOn, workflowId, isOrg });
   } else {
     // activate workflow and schedule reminders for existing bookings

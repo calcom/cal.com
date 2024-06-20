@@ -1,8 +1,7 @@
-import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
-import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
+import { getAllWorkflowsFromEventType } from "./util";
 
 type GetAllActiveWorkflowsOptions = {
   ctx: {
@@ -12,10 +11,9 @@ type GetAllActiveWorkflowsOptions = {
 };
 
 export const getAllActiveWorkflowsHandler = async ({ input }: GetAllActiveWorkflowsOptions) => {
-  const { eventTypeWorkflows, userId, teamId } = input;
-  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
+  const { eventType } = input;
 
-  const allActiveWorkflows = await getAllWorkflows(eventTypeWorkflows, userId, teamId, orgId);
+  const allActiveWorkflows = await getAllWorkflowsFromEventType(eventType, eventType.userId);
 
   return allActiveWorkflows;
 };

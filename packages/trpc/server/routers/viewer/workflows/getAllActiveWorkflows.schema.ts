@@ -6,6 +6,7 @@ import {
   WORKFLOW_TEMPLATES,
   WORKFLOW_TRIGGER_EVENTS,
 } from "@calcom/ee/workflows/lib/constants";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 const ZWorkflow = z.object({
   id: z.number(),
@@ -31,9 +32,24 @@ const ZWorkflow = z.object({
 });
 
 export const ZGetAllActiveWorkflowsInputSchema = z.object({
-  eventTypeWorkflows: z.array(ZWorkflow),
-  teamId: z.number().optional().nullable(),
-  userId: z.number().optional().nullable(),
+  eventType: z.object({
+    workflows: z
+      .object({
+        workflow: ZWorkflow,
+      })
+      .array()
+      .optional(),
+    teamId: z.number().optional().nullable(),
+    parentId: z.number().optional().nullable(),
+    parent: z
+      .object({
+        teamId: z.number().nullable(),
+      })
+      .optional()
+      .nullable(),
+    metadata: EventTypeMetaDataSchema,
+    userId: z.number().optional().nullable(),
+  }),
 });
 
 export type TGetAllActiveWorkflowsInputSchema = z.infer<typeof ZGetAllActiveWorkflowsInputSchema>;

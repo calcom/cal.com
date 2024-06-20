@@ -127,6 +127,7 @@ export const getEventTypeById = async ({
           teamId: true,
         },
       },
+      parentId: true,
       teamId: true,
       team: {
         select: {

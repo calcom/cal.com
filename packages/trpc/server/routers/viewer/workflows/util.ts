@@ -828,8 +828,9 @@ export async function getAllWorkflowsFromEventType(
   const allWorkflows = await getAllWorkflows(
     eventTypeWorkflows,
     userId,
-    workflowsLockedForUser ? eventType?.parent?.teamId : teamId,
-    orgId
+    teamId,
+    orgId,
+    workflowsLockedForUser
   );
 
   return allWorkflows;
