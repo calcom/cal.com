@@ -12,6 +12,8 @@ import {
   ApiResponse,
   GetOrganizationUsersInput_2024_06_18,
   GetOrganizationUsersOutput_2024_06_18,
+  GetOrganizationUserOutput_2024_06_18,
+  UpdateOrganizationUserInput_2024_06_18,
 } from "@calcom/platform-types";
 
 @Controller({
@@ -28,7 +30,7 @@ export class OrganizationsController {
 
   @Get("/:organizationId/users")
   // @UseGuards(NextAuthGuard, OrganizationRolesGuard, OrganizationIdGuard)
-  @Roles(["OWNER", "ADMIN"])
+  // @Roles(["OWNER", "ADMIN"])
   async getOrganizationUsers(
     @Param("organizationId") organizationId: number,
     @Body() input: GetOrganizationUsersInput_2024_06_18
@@ -41,10 +43,18 @@ export class OrganizationsController {
     };
   }
 
-  //   @Patch("/:organizationId/users/:userId")
-  //   @UseGuards(NextAuthGuard, OrganizationRolesGuard, OrganizationIdGuard)
-  //   @Roles(["OWNER", "ADMIN"])
-  //   async updateOrganizationUser(): Promise<ApiResponse<UpdateUserResponseDto>> {
-  // return;
-  //   }
+  @Patch("/:organizationId/users/:userId")
+  @UseGuards(NextAuthGuard, OrganizationRolesGuard, OrganizationIdGuard)
+  @Roles(["OWNER", "ADMIN"])
+  async updateOrganizationUser(
+    @Param("organizationId") organizationId: number,
+    @Param("userId") userId: number,
+    @Body() input: UpdateOrganizationUserInput_2024_06_18
+  ): Promise<ApiResponse<GetOrganizationUserOutput_2024_06_18>> {
+    const users = await this.organizationsService.getOrganizationUsers(organizationId);
+    return {
+      status: "success",
+      data: users[0],
+    };
+  }
 }
