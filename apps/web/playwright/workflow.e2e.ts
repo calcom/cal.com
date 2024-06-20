@@ -25,7 +25,7 @@ test.describe("Workflow Tab - Event Type", () => {
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
         await saveWorkflow();
-        await page.getByRole("button", { name: /Go Back/i }).click();
+        await page.getByTestId("go-back-button").click();
         await hasWorkflowInList("Edited Workflow");
       });
 
