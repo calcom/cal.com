@@ -5,6 +5,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 import { MembershipRole, WorkflowActions } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -140,7 +141,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
 
       let allEventTypes = [];
 
-      //get all event types of of team or user --> test with managed event types
+      //get all event types of of team or user
       if (eventTypeWorkflow.teamId) {
         allEventTypes = await prisma.eventType.findMany({
           where: {
@@ -151,7 +152,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
           },
         });
       } else {
-        allEventTypes = await prisma.eventType.findMany({
+        const allEventTypesWithLocked = await prisma.eventType.findMany({
           where: {
             id: {
               not: eventTypeId,
@@ -159,6 +160,13 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
             userId: eventTypeWorkflow.userId,
           },
         });
+
+        //if workflows are locked on managed event type then don't set user workflow active
+        allEventTypes = allEventTypesWithLocked.filter(
+          (eventType) =>
+            !eventType.parentId ||
+            EventTypeMetaDataSchema.parse(eventType.metadata)?.managedEventConfig?.unlockedFields?.workflows
+        );
       }
 
       // activate all event types on the workflow
