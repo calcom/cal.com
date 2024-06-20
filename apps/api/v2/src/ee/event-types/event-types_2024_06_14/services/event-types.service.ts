@@ -152,23 +152,24 @@ export class EventTypesService_2024_06_14 {
     return await getEventTypesPublic(user.id);
   }
 
-  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14) {
+  async getEventTypes(queryParams: GetEventTypesQuery_2024_06_14): Promise<EventTypeOutput_2024_06_14[]> {
     const { username, eventSlug, usernames } = queryParams;
-    let eventTypes: EventTypeOutput_2024_06_14[] = [];
 
     if (username && eventSlug) {
       const eventType = await this.getEventTypeByUsernameAndSlug(username, eventSlug);
-      if (eventType) {
-        eventTypes.push(eventType);
-      }
-    } else if (username && !eventSlug) {
-      eventTypes = await this.getEventTypesByUsername(username);
-    } else if (usernames) {
-      const dynamicEventType = await this.getDynamicEventType(usernames);
-      eventTypes.push(dynamicEventType);
+      return eventType ? [eventType] : [];
     }
 
-    return eventTypes;
+    if (username) {
+      return await this.getEventTypesByUsername(username);
+    }
+
+    if (usernames) {
+      const dynamicEventType = await this.getDynamicEventType(usernames);
+      return [dynamicEventType];
+    }
+
+    return [];
   }
 
   async getDynamicEventType(usernames: string[]) {
