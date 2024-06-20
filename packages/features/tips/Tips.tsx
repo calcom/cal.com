@@ -111,8 +111,8 @@ export const tips = [
   },
 ];
 
-function shuffle<T>(array: T[]): T[] {
-  return array
+function shuffle<T>(input: T[]): T[] {
+  return [...input]
     .map((value) => ({ value, sort: Math.random() }))
     .sort((a, b) => a.sort - b.sort)
     .map(({ value }) => value);
