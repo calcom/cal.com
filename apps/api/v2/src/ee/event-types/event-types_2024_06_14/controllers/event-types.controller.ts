@@ -7,7 +7,7 @@ import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_
 import { VERSION_2024_06_14_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -44,7 +44,7 @@ export class EventTypesController_2024_06_14 {
 
   @Post("/")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async createEventType(
     @Body() body: CreateEventTypeInput_2024_06_14,
     @GetUser() user: UserWithProfile
@@ -59,7 +59,7 @@ export class EventTypesController_2024_06_14 {
 
   @Get("/:eventTypeId")
   @Permissions([EVENT_TYPE_READ])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async getEventTypeById(
     @Param("eventTypeId") eventTypeId: string,
     @GetUser() user: UserWithProfile
@@ -91,7 +91,7 @@ export class EventTypesController_2024_06_14 {
 
   @Patch("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @HttpCode(HttpStatus.OK)
   async updateEventType(
     @Param("eventTypeId") eventTypeId: number,
@@ -108,7 +108,7 @@ export class EventTypesController_2024_06_14 {
 
   @Delete("/:eventTypeId")
   @Permissions([EVENT_TYPE_WRITE])
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async deleteEventType(
     @Param("eventTypeId") eventTypeId: number,
     @GetUser("id") userId: number

@@ -15,7 +15,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { CAL_API_VERSION_HEADER, SUCCESS_STATUS, VERSION_2024_06_14 } from "@calcom/platform-constants";
 import {
@@ -71,7 +71,7 @@ describe("Event types Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
