@@ -25,7 +25,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
+import { AuditLogBookingTriggerEvents, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -304,16 +304,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     orgId,
   };
 
-  await handleAuditLogTrigger({
-    user: { id: ctx.user.id ?? -1, name: ctx.user.username },
-    data: {
-      ...evt,
-      smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
-    },
-    trigger: AuditLogBookingTriggerEvents.BOOKING_RESCHEDULED,
-    source_ip: sourceIp,
-  });
-
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
@@ -326,5 +316,14 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       );
     })
   );
-  await Promise.all(promises);
+  return {
+    result: await Promise.all(promises),
+    auditLogData: {
+      trigger: AuditLogBookingTriggerEvents.BOOKING_RESCHEDULED,
+    },
+    data: {
+      ...evt,
+      smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+    },
+  };
 };

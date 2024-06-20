@@ -1,4 +1,4 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { authedAdminProcedureWithAuditLogger } from "../../../procedures/authedProcedure";
 import publicProcedure from "../../../procedures/publicProcedure";
 import { router } from "../../../trpc";
 import { ZConfirmInputSchema } from "./confirm.schema";
@@ -39,23 +39,25 @@ export const bookingsRouter = router({
     });
   }),
 
-  requestReschedule: authedProcedure.input(ZRequestRescheduleInputSchema).mutation(async ({ input, ctx }) => {
-    if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
-      UNSTABLE_HANDLER_CACHE.requestReschedule = await import("./requestReschedule.handler").then(
-        (mod) => mod.requestRescheduleHandler
-      );
-    }
+  requestReschedule: authedAdminProcedureWithAuditLogger
+    .input(ZRequestRescheduleInputSchema)
+    .mutation(async ({ input, ctx }) => {
+      if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
+        UNSTABLE_HANDLER_CACHE.requestReschedule = await import("./requestReschedule.handler").then(
+          (mod) => mod.requestRescheduleHandler
+        );
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.requestReschedule) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.requestReschedule({
-      ctx,
-      input,
-    });
-  }),
+      return UNSTABLE_HANDLER_CACHE.requestReschedule({
+        ctx,
+        input,
+      });
+    }),
 
   editLocation: bookingsProcedure.input(ZEditLocationInputSchema).mutation(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.editLocation) {
