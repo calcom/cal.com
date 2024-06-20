@@ -1,7 +1,7 @@
 import { faker } from "@faker-js/faker";
 import { vi, describe, test, expect, beforeAll } from "vitest";
 
-import { createEvent } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger";
+import { createEvent } from "@calcom/features/audit-logs/lib/handleAuditLogTrigger/createEvent";
 import { flattenObject } from "@calcom/features/audit-logs/utils";
 
 import AuditLogManager from "../lib/AuditLogManager";

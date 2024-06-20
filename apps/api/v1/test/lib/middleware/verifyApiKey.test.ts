@@ -98,7 +98,11 @@ describe("Verify API key", () => {
     };
 
     vi.mocked(checkLicense).mockResolvedValue(true);
-    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: true, scope: ScopeOfAdmin.SystemWide });
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.SystemWide,
+      user: { name: "System-wide admin", id: 1 },
+    });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
@@ -131,7 +135,11 @@ describe("Verify API key", () => {
     };
 
     vi.mocked(checkLicense).mockResolvedValue(true);
-    vi.mocked(isAdminGuard).mockResolvedValue({ isAdmin: true, scope: ScopeOfAdmin.OrgOwnerOrAdmin });
+    vi.mocked(isAdminGuard).mockResolvedValue({
+      isAdmin: true,
+      scope: ScopeOfAdmin.OrgOwnerOrAdmin,
+      user: { name: "Org-level Admin", id: 1 },
+    });
 
     const serverNext = vi.fn((next: void) => Promise.resolve(next));
 
