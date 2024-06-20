@@ -22,7 +22,7 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -79,7 +79,7 @@ describe("Event types Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
@@ -288,7 +288,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -305,7 +305,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -323,7 +323,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/:eventSlug/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/${eventType.slug}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -340,7 +340,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -359,7 +359,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/public/:username/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -375,7 +375,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id not existing`, async () => {
       await request(app.getHttpServer())
         .get(`/api/v2/event-types/1000`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(404);
     });
