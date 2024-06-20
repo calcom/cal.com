@@ -502,7 +502,23 @@ export class UserRepository {
         teams: {
           where: {
             accepted: true,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
           select: { teamId: true },
         },

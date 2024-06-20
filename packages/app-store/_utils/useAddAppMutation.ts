@@ -76,8 +76,8 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
             ),
         onErrorReturnTo,
         fromApp: true,
-        ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(defaultInstall && { defaultInstall }),
       };
 

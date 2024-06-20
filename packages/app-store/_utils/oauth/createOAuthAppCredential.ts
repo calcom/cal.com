@@ -29,20 +29,7 @@ const createOAuthAppCredential = async (
 
   if (state?.teamId) {
     // Check that the user belongs to the team
-    const team = await prisma.team.findFirst({
-      where: {
-        id: state.teamId,
-        members: {
-          some: {
-            userId: req.session?.user.id,
-            accepted: true,
-          },
-        },
-      },
-      select: { id: true, members: { select: { userId: true } } },
-    });
-
-    if (!team) throw new Error("User does not belong to the team");
+    await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
     return await prisma.credential.create({
       data: {
@@ -53,8 +40,6 @@ const createOAuthAppCredential = async (
       },
     });
   }
-
-  await throwIfNotHaveAdminAccessToTeam({ teamId: state?.teamId ?? null, userId });
 
   return await prisma.credential.create({
     data: {
