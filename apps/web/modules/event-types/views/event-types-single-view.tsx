@@ -401,23 +401,20 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
 
-      // We don't need to show the modal if the user is assigning all team members as they are already assigned
-      if (formMethods.getValues("assignAllTeamMembers") === true) {
-        return;
-      }
-
       // Check if event is managed event type - skip if there is assigned users
-      const assignedUsers = formMethods.getValues("children");
+      const assignedUsers = eventType.children;
       const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-      if (isManagedEventType && assignedUsers.length > 0) {
+      if (eventType.assignAllTeamMembers) {
+        return;
+      } else if (isManagedEventType && assignedUsers.length > 0) {
         return;
       }
 
-      const hosts = formMethods.getValues("hosts");
+      const hosts = eventType.hosts;
       if (
         !leaveWithoutAssigningHosts.current &&
         !!team &&
-        hosts.length === 0 &&
+        (hosts.length === 0 || assignedUsers.length === 0) &&
         (url === "/event-types" || paths[1] !== "event-types")
       ) {
         setIsOpenAssignmentWarnDialog(true);
