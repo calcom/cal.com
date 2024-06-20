@@ -44,7 +44,7 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
     const webhook = { subscriberUrl: url, appId: null, payloadTemplate };
     return {
       result: await sendPayload(secret, type, new Date().toISOString(), webhook, data),
-      data: {
+      auditLogData: {
         trigger: AuditLogWebhookTriggerEvents.WEBHOOK_TESTED,
         webhook,
         data,

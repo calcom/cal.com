@@ -47,7 +47,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
 
   return {
     result: id,
-    data: {
+    auditLogData: {
       webhook: webhookToDelete,
       trigger: AuditLogWebhookTriggerEvents.WEBHOOK_DELETED,
     },

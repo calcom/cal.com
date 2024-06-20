@@ -51,6 +51,6 @@ export const saveKeysHandler = async ({ ctx: { prisma = importedPrisma }, input 
 
   return {
     result: !!app,
-    data: { app, trigger: AuditLogAppTriggerEvents.APP_KEYS_UPDATED },
+    auditLogData: { app, trigger: AuditLogAppTriggerEvents.APP_KEYS_UPDATED },
   };
 };

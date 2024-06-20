@@ -170,7 +170,7 @@ export const toggleHandler = async ({ input, ctx: { prisma = importedPrisma } }:
 
   return {
     result: app.enabled,
-    data: {
+    auditLogData: {
       trigger: AuditLogAppTriggerEvents.APP_TOGGLE,
       app,
     },

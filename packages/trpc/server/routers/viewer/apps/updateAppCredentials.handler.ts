@@ -19,12 +19,14 @@ export type UpdateAppCredentialsOptions = {
 export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCredentialsOptions) => {
   const { user } = ctx;
 
+  console.log("HEEY");
   // Find user credential
   const credential = await prisma.credential.findFirst({
     where: {
       id: input.credentialId,
     },
   });
+
   // Check if credential exists
   if (!credential) {
     throw new TRPCError({
@@ -50,7 +52,7 @@ export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCrede
   return {
     result: !!updated,
     // TODO: piiFreeAppKeyTransformer should be implementation specific
-    data: {
+    auditLogData: {
       updatedCredential: piiFreeAppKeyTransformer.parse(updated),
       oldCredential: piiFreeAppKeyTransformer.parse(credential),
       trigger: AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED,

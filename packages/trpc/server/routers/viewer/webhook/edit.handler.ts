@@ -53,7 +53,7 @@ export const editHandler = async ({ input, ctx }: EditOptions) => {
 
   return {
     result: updatedWebhook,
-    data: {
+    auditLogData: {
       trigger: AuditLogWebhookTriggerEvents.WEBHOOK_UPDATED,
       webhook,
       updatedWebhook,
