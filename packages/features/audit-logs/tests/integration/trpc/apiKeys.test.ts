@@ -1,10 +1,11 @@
 import prismock from "../../../../../../tests/libs/__mocks__/prisma";
 
 import { faker } from "@faker-js/faker";
+import type { Credential } from "@prisma/client";
 import { vi, describe, test, expect } from "vitest";
 
+import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementation/zod";
 import { generateUniqueAPIKey } from "@calcom/ee/api-keys/lib/apiKeys";
-import type { UserPayload } from "@calcom/lib/test/builder";
 import { buildCredential, buildSession } from "@calcom/lib/test/builder";
 import { IdentityProvider, AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 import type { inferProcedureInput } from "@calcom/trpc";
@@ -48,26 +49,27 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
 describe("handleAuditLogTrigger", () => {
   test("API_KEY_CREATED is reported as expected.", async () => {
     const input: inferProcedureInput<AppRouter["viewer"]["apiKeys"]["create"]> = {};
+    const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
     await prismock.credential.create({
       data: buildCredential({
+        userId: user.id,
+        id: 0,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }) as Omit<Credential, "key"> & { key: any },
+      }) as Omit<Credential, "key"> & { key: AppKeys },
     });
-    const user = (await buildMockData(
-      IdentityProvider.GOOGLE,
-      "123456789012345678901"
-    )) as unknown as UserPayload;
+
     const ctx = await createContextInner({
       sourceIp: "127.0.0.0",
       locale: "en",
       session: buildSession({ user }),
       user,
     });
+
     const caller = apiKeyRouterCreateCaller(ctx);
     await caller.create(input);
 
@@ -82,13 +84,15 @@ describe("handleAuditLogTrigger", () => {
     const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
     await prismock.credential.create({
       data: buildCredential({
+        id: 0,
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",
           apiKey: "",
           disabledEvents: [],
         },
-      }),
+      }) as Omit<Credential, "key"> & { key: AppKeys },
     });
 
     const [hashedApiKey] = generateUniqueAPIKey();
@@ -98,7 +102,6 @@ describe("handleAuditLogTrigger", () => {
         userId: user.id,
         note: "API Key used by x.",
         expiresAt: null,
-        neverExpires: true,
         appId: null,
         // And here we pass a null to expiresAt if never expires is true. otherwise just pass expiresAt from input
         hashedKey: hashedApiKey,
@@ -127,6 +130,8 @@ describe("handleAuditLogTrigger", () => {
     const user = await buildMockData(IdentityProvider.GOOGLE, "123456789012345678901");
     await prismock.credential.create({
       data: buildCredential({
+        id: 0,
+        userId: user.id,
         key: {
           endpoint: "localhost:3000",
           projectId: "dev",

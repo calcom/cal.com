@@ -4,7 +4,7 @@ export function getGenericAuditLogClient(
   apiKey: string,
   projectId: string,
   endpoint: string,
-  disabledEvents: string[]
+  disabledEvents: (string | undefined)[]
 ): GenericAuditLogClient {
   return {
     credentials: {

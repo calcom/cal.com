@@ -140,7 +140,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
 
 export const buildCredential = (credential?: Partial<Credential>): Credential => {
   return {
-    id: 0,
+    id: faker.datatype.number(),
     type: "auditLogs",
     key: {
       apiKey: "test",
@@ -148,7 +148,7 @@ export const buildCredential = (credential?: Partial<Credential>): Credential =>
       endpoint: "localhost:3000",
       disabledEvents: [],
     },
-    userId: 1,
+    userId: faker.datatype.number(),
     teamId: null,
     appId: "test",
     subscriptionId: null,
