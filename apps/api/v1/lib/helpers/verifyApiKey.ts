@@ -6,6 +6,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import getIP from "@calcom/lib/getIP";
 import prisma from "@calcom/prisma";
+import { AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 
 import { isAdminGuard } from "../utils/isAdmin";
 import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
@@ -42,7 +43,7 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   const { isAdmin, scope, user } = await isAdminGuard(req);
 
   handleAuditLogTrigger({
-    trigger: "apiKeyUsed",
+    trigger: AuditLogApiKeysTriggerEvents.API_KEY_USED,
     user: { id: user.id, name: user.name },
     source_ip: getIP(req),
     data: {

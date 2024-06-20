@@ -7,12 +7,10 @@ import { ScopeOfAdmin } from "./scopeOfAdmin";
 
 export const isAdminGuard = async (req: NextApiRequest) => {
   const { userId } = req;
-  console.log({ userId });
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true, id: true, name: true },
   });
-  console.log({ user });
   if (!user) return { isAdmin: false, scope: null, user: null };
 
   const { role: userRole } = user;
