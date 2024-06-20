@@ -10,6 +10,7 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 const ZWorkflow = z.object({
   id: z.number(),
+  name: z.string(),
   trigger: z.enum(WORKFLOW_TRIGGER_EVENTS),
   time: z.number().nullable(),
   timeUnit: z.enum(TIME_UNIT).nullable(),

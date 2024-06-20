@@ -1,5 +1,5 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import type { Membership, Workflow, WorkflowStep } from "@prisma/client";
+import type { Membership, Workflow } from "@prisma/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -24,6 +24,7 @@ import {
 } from "@calcom/ui";
 
 import { getActionIcon } from "../lib/getActionIcon";
+import type { WorkflowStep } from "../lib/types";
 import { DeleteDialog } from "./DeleteDialog";
 
 export type WorkflowType = Workflow & {

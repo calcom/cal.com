@@ -7,7 +7,7 @@ import type {
 
 export type Workflow = {
   id: number;
-  name?: string;
+  name: string;
   trigger: WorkflowTriggerEvents;
   time: number | null;
   timeUnit: TimeUnit | null;
