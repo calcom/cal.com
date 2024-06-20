@@ -48,14 +48,13 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
-  transformWorkingHoursForClient,
-  transformAvailabilityForClient,
-  transformDateOverridesForClient,
-} from "@calcom/lib/schedules/client/transformers";
-export type {
-  ScheduleWithAvailabilities,
-  ScheduleWithAvailabilitiesForWeb,
-} from "@calcom/lib/schedules/client/transformers";
+  transformWorkingHoursForAtom,
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformApiScheduleAvailability,
+  transformApiScheduleOverrides,
+} from "@calcom/lib/schedules/transformers";
+
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -77,3 +76,5 @@ export { createNewUsersConnectToOrgIfExists };
 export { getAllUserBookings };
 export { getBookingInfo };
 export { handleCancelBooking };
+
+export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";

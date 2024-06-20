@@ -117,7 +117,7 @@ const MembersView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [teamError]
@@ -225,7 +225,7 @@ const MembersView = () => {
                       if (Array.isArray(data.usernameOrEmail)) {
                         showToast(
                           t("email_invite_team_bulk", {
-                            userCount: data.usernameOrEmail.length,
+                            userCount: data.numUsersInvited,
                           }),
                           "success"
                         );

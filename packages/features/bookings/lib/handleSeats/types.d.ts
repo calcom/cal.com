@@ -53,7 +53,6 @@ export type SeatedBooking = Prisma.BookingGetPayload<{
     status: true;
     smsReminderNumber: true;
     endTime: true;
-    scheduledJobs: true;
   };
 }>;
 
@@ -71,6 +70,9 @@ export type NewTimeSlotBooking = Prisma.BookingGetPayload<{
   select: {
     id: true;
     uid: true;
+    iCalUID: true;
+    userId: true;
+    references: true;
     attendees: {
       include: {
         bookingSeat: true;

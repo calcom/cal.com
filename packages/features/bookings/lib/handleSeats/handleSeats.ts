@@ -60,7 +60,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 
@@ -107,7 +106,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
       });
@@ -120,6 +118,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,
+      attendeeSeatId: resultBooking?.seatReferenceUid,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()

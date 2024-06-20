@@ -2,6 +2,8 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EventTypesModule } from "@/ee/event-types/event-types.module";
 import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { Editable } from "@/ee/event-types/inputs/enums/editable";
+import { BaseField } from "@/ee/event-types/inputs/enums/field-type";
 import { UpdateEventTypeInput } from "@/ee/event-types/inputs/update-event-type.input";
 import { GetEventTypePublicOutput } from "@/ee/event-types/outputs/get-event-type-public.output";
 import { GetEventTypeOutput } from "@/ee/event-types/outputs/get-event-type.output";
@@ -20,10 +22,15 @@ import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-type
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { EventTypesByViewer, EventTypesPublic } from "@calcom/platform-libraries";
+import {
+  EventTypesByViewer,
+  EventTypesPublic,
+  eventTypeBookingFields,
+  eventTypeLocations,
+} from "@calcom/platform-libraries-0.0.2";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {
@@ -72,7 +79,7 @@ describe("Event types Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           providers: [PrismaExceptionFilter, HttpExceptionFilter],
@@ -131,6 +138,11 @@ describe("Event types Endpoints", () => {
         description: "A description of the test event type.",
         length: 60,
         hidden: false,
+        disableGuests: true,
+        slotInterval: 15,
+        afterEventBuffer: 5,
+        beforeEventBuffer: 10,
+        minimumBookingNotice: 120,
         locations: [
           {
             type: "Online",
@@ -148,6 +160,12 @@ describe("Event types Endpoints", () => {
           const responseBody: ApiSuccessResponse<EventType> = response.body;
           expect(responseBody.data).toHaveProperty("id");
           expect(responseBody.data.title).toEqual(body.title);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
+          expect(responseBody.data.slotInterval).toEqual(body.slotInterval);
+          expect(responseBody.data.minimumBookingNotice).toEqual(body.minimumBookingNotice);
+          expect(responseBody.data.beforeEventBuffer).toEqual(body.beforeEventBuffer);
+          expect(responseBody.data.afterEventBuffer).toEqual(body.afterEventBuffer);
+
           eventType = responseBody.data;
         });
     });
@@ -157,21 +175,120 @@ describe("Event types Endpoints", () => {
 
       const body: UpdateEventTypeInput = {
         title: newTitle,
+        disableGuests: false,
+        slotInterval: 30,
+        afterEventBuffer: 10,
+        beforeEventBuffer: 15,
+        minimumBookingNotice: 240,
       };
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
         .send(body)
         .expect(200)
-        .then(async () => {
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          expect(responseBody.data.title).toEqual(newTitle);
+          expect(responseBody.data.disableGuests).toEqual(body.disableGuests);
+          expect(responseBody.data.slotInterval).toEqual(body.slotInterval);
+          expect(responseBody.data.minimumBookingNotice).toEqual(body.minimumBookingNotice);
+          expect(responseBody.data.beforeEventBuffer).toEqual(body.beforeEventBuffer);
+          expect(responseBody.data.afterEventBuffer).toEqual(body.afterEventBuffer);
+
           eventType.title = newTitle;
+          eventType.disableGuests = responseBody.data.disableGuests ?? false;
+          eventType.slotInterval = body.slotInterval ?? null;
+          eventType.minimumBookingNotice = body.minimumBookingNotice ?? 10;
+          eventType.beforeEventBuffer = body.beforeEventBuffer ?? 10;
+          eventType.afterEventBuffer = body.afterEventBuffer ?? 10;
+        });
+    });
+
+    it("should return 400 if param event type id is null", async () => {
+      const locations = [{ type: "inPerson", address: "123 Main St" }];
+
+      const body: UpdateEventTypeInput = {
+        locations,
+      };
+
+      return request(app.getHttpServer()).patch(`/api/v2/event-types/null`).send(body).expect(400);
+    });
+
+    it("should update event type locations", async () => {
+      const locations = [{ type: "inPerson", address: "123 Main St" }];
+
+      const body: UpdateEventTypeInput = {
+        locations,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          const responseLocations = eventTypeLocations.parse(responseBody.data.locations);
+          expect(responseLocations).toBeDefined();
+          expect(responseLocations.length).toEqual(locations.length);
+          expect(responseLocations).toEqual(locations);
+          eventType.locations = responseLocations;
+        });
+    });
+
+    it("should update event type bookingFields", async () => {
+      const bookingFieldName = "location-name";
+      const bookingFields = [
+        {
+          name: bookingFieldName,
+          type: BaseField.radio,
+          label: "Location",
+          options: [
+            {
+              label: "Via Bari 10, Roma, 90119, Italy",
+              value: "Via Bari 10, Roma, 90119, Italy",
+            },
+            {
+              label: "Via Reale 28, Roma, 9001, Italy",
+              value: "Via Reale 28, Roma, 9001, Italy",
+            },
+          ],
+          sources: [
+            {
+              id: "user",
+              type: "user",
+              label: "User",
+              fieldRequired: true,
+            },
+          ],
+          editable: Editable.user,
+          required: true,
+          placeholder: "",
+        },
+      ];
+
+      const body: UpdateEventTypeInput = {
+        bookingFields,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<EventType> = response.body;
+          const responseBookingFields = eventTypeBookingFields.parse(responseBody.data.bookingFields);
+          expect(responseBookingFields).toBeDefined();
+          // note(Lauris): response bookingFields are already existing default bookingFields + the new one
+          const responseBookingField = responseBookingFields.find((field) => field.name === bookingFieldName);
+          expect(responseBookingField).toEqual(bookingFields[0]);
+          eventType.bookingFields = responseBookingFields;
         });
     });
 
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -188,7 +305,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -206,7 +323,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/:eventSlug/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/${eventType.slug}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -223,7 +340,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -242,7 +359,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/public/:username/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
 
@@ -258,7 +375,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id not existing`, async () => {
       await request(app.getHttpServer())
         .get(`/api/v2/event-types/1000`)
-        // note: bearer token value mocked using "withAccessTokenAuth" for user which id is used when creating event type above
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(404);
     });
