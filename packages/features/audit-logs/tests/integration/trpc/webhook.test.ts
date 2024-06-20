@@ -29,38 +29,42 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
   }),
 }));
 
+async function setUp() {
+  const user = await prismock.user.create({
+    data: {
+      id: 1,
+      username: "test",
+      name: "Test User",
+      email: "test@example.com",
+      role: "ADMIN",
+    },
+  });
+
+  const credential = await prismock.credential.create({
+    data: buildCredential({
+      userId: user.id,
+      key: {
+        endpoint: "localhost:3000",
+        projectId: "dev",
+        apiKey: "",
+        disabledEvents: [],
+      },
+    }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
+  });
+
+  const ctx = await createContextInner({
+    sourceIp: "127.0.0.0",
+    locale: "en",
+    session: buildSession({ user }),
+  });
+
+  const caller = webhookRouterCreateCaller(ctx);
+  return { caller, user, credential };
+}
+
 describe("handleAuditLogTrigger", () => {
   test("WEBHOOK_CREATED is reported as expected.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-
-    await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
-
-    const caller = webhookRouterCreateCaller(ctx);
-
+    const { caller } = await setUp();
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["create"]> = buildWebhook({
       payloadTemplate: `{"triggerEvent":"MEETING_ENDED"}`,
     });
@@ -74,27 +78,7 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("WEBHOOK_DELETED is reported as expected.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-
-    await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
+    const { caller, user } = await setUp();
 
     const webhook = await prismock.webhook.create({
       data: buildWebhook({
@@ -107,18 +91,9 @@ describe("handleAuditLogTrigger", () => {
       }),
     });
 
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
-
-    const caller = webhookRouterCreateCaller(ctx);
-
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["delete"]> = {
       id: webhook.id,
     };
-
     await caller.delete(input);
 
     expect(mockReportEventGeneric).toHaveBeenLastCalledWith(
@@ -133,27 +108,7 @@ describe("handleAuditLogTrigger", () => {
       Promise.resolve({ ok: true, status: 200, message: "success" })
     );
 
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-
-    await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
+    const { caller, user } = await setUp();
 
     const webhook = await prismock.webhook.create({
       data: buildWebhook({
@@ -165,14 +120,6 @@ describe("handleAuditLogTrigger", () => {
         payloadTemplate: `{"triggerEvent":"MEETING_ENDED"}`,
       }),
     });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
-
-    const caller = webhookRouterCreateCaller(ctx);
 
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["edit"]> = {
       id: webhook.id,
@@ -188,37 +135,9 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("WEBHOOK_TESTED is reported as expected.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-    await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
+    const { caller } = await setUp();
 
     mockNoTranslations();
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
-
-    const caller = webhookRouterCreateCaller(ctx);
-
     const input: inferProcedureInput<AppRouter["viewer"]["webhook"]["testTrigger"]> = {
       url: "http://localhost:3000",
       secret: "test",

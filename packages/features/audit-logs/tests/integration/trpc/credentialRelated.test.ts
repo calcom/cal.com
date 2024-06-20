@@ -4,6 +4,7 @@ import { faker } from "@faker-js/faker";
 import type { Credential, App, Prisma, User } from "@prisma/client";
 import { vi, describe, test, expect } from "vitest";
 
+import type { AppKeys } from "@calcom/app-store/templates/audit-log-implementation/zod";
 import { buildCredential, buildApp } from "@calcom/lib/test/builder";
 import { buildSession } from "@calcom/lib/test/builder";
 import {
@@ -25,43 +26,49 @@ vi.mock("@calcom/features/audit-logs/lib/getGenericAuditLogClient", () => ({
   }),
 }));
 
+async function setUp(credentialKey?: Prisma.InputJsonObject) {
+  const user = await prismock.user.create({
+    data: {
+      id: 1,
+      username: "test",
+      name: "Test User",
+      email: "test@example.com",
+      role: "ADMIN",
+    },
+  });
+
+  const credential = await prismock.credential.create({
+    data: buildCredential({
+      userId: user.id,
+      id: 0,
+      key: {
+        endpoint: "localhost:3000",
+        projectId: "dev",
+        apiKey: "",
+        disabledEvents: [],
+        ...credentialKey,
+      },
+    }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
+  });
+
+  const ctx = await createContextInner({
+    sourceIp: "127.0.0.0",
+    locale: "en",
+    session: buildSession({ user }),
+  });
+
+  const caller = appsRouterCreateCaller(ctx);
+  return { caller, user, credential };
+}
+
 describe("handleAuditLogTrigger", () => {
   test("intercepts a SYSTEM_SETTINGS_UPDATED trigger and assigns SYSTEM_EVENT_OFF when an event was disabled.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-
-    const credential = await prismock.credential.create({
-      data: buildCredential({
-        id: 0,
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
+    const { caller, credential } = await setUp();
 
     const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: credential.id,
       key: { disabledEvents: [AuditLogCredentialTriggerEvents.CREDENTIAL_KEYS_UPDATED] },
     };
-    const caller = appsRouterCreateCaller(ctx);
-
     await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
@@ -70,39 +77,14 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("intercepts a SYSTEM_SETTINGS_UPDATED trigger and assigns SYSTEM_EVENT_ON when an event was enabled.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
+    const { credential, caller } = await setUp({
+      disabledEvents: [AuditLogAppTriggerEvents.APP_KEYS_UPDATED],
     });
 
-    const credential = await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [AuditLogAppTriggerEvents.APP_KEYS_UPDATED],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
     const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: credential.id,
       key: { disabledEvents: [] },
     };
-    const caller = appsRouterCreateCaller(ctx);
-
     await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
@@ -111,40 +93,14 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("reports all SYSTEM event triggers, regardless of disabledEvents.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
-
-    const credential = await prismock.credential.create({
-      data: buildCredential({
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: Object.values(AuditLogSystemTriggerEvents),
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
+    const { credential, caller } = await setUp({
+      disabledEvents: Object.values(AuditLogSystemTriggerEvents),
     });
 
     const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: credential.id,
       key: { apiKey: "Api key updated" },
     };
-    const caller = appsRouterCreateCaller(ctx);
-
     await caller.updateAppCredentials(input);
 
     expect(mockReportEvent).toHaveBeenCalledWith(
@@ -153,15 +109,7 @@ describe("handleAuditLogTrigger", () => {
   });
 
   test("when several auditLog systems are configured, an CREDENTIAL_KEYS_UPDATED trigger is intercepted only when credential updated is the one being reported to.", async () => {
-    const user = await prismock.user.create({
-      data: {
-        id: 1,
-        username: "test",
-        name: "Test User",
-        email: "test@example.com",
-        role: "ADMIN",
-      },
-    });
+    const { user, credential, caller } = await setUp();
 
     await prismock.credential.create({
       data: buildCredential({
@@ -176,37 +124,17 @@ describe("handleAuditLogTrigger", () => {
       }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
     });
 
-    const credential = await prismock.credential.create({
-      data: buildCredential({
-        id: 0,
-        userId: user.id,
-        key: {
-          endpoint: "localhost:3000",
-          projectId: "dev",
-          apiKey: "",
-          disabledEvents: [],
-        },
-      }) as Omit<Credential, "key"> & { key: Prisma.InputJsonObject },
-    });
-
-    const ctx = await createContextInner({
-      sourceIp: "127.0.0.0",
-      locale: "en",
-      session: buildSession({ user }),
-    });
     const input: inferProcedureInput<AppRouter["viewer"]["appsRouter"]["updateAppCredentials"]> = {
       credentialId: credential.id,
       key: { apiKey: "Api key updated" },
     };
-    const caller = appsRouterCreateCaller(ctx);
-
     await caller.updateAppCredentials(input);
 
-    expect(mockReportEvent).toHaveBeenLastCalledWith(
+    expect(mockReportEvent).toHaveBeenCalledWith(
       expect.objectContaining({ action: expect.stringMatching("^SYSTEM_SETTINGS_UPDATED$") })
     );
 
-    expect(mockReportEvent).toHaveBeenCalledWith(
+    expect(mockReportEvent).toHaveBeenLastCalledWith(
       expect.objectContaining({ action: expect.stringMatching("^CREDENTIAL_KEYS_UPDATED$") })
     );
   });
