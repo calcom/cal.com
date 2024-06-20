@@ -845,7 +845,7 @@ const EventTypePageWrapper: React.FC<PageProps> & {
   const eventType = data.eventType;
   const eventTypeWorkflows = eventType.workflows.map((workflowRel) => workflowRel.workflow);
 
-  const { data: workflows, isPending } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+  const { data: workflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventTypeWorkflows: eventTypeWorkflows,
     teamId: eventType.team?.id,
     userId: eventType.owner?.id,
