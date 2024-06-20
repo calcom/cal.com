@@ -408,7 +408,6 @@ const TimeRangeField = ({
         isDisabled={disabled}
         value={value.start}
         menuPlacement="bottom"
-        max={value.end}
         onChange={(option) => {
           onChange({ ...value, start: new Date(option?.value as number) });
           handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
@@ -457,6 +456,7 @@ const LazySelect = ({
       onMenuOpen={() => {
         if (min) filter({ offset: min });
         if (max) filter({ limit: max });
+        if (!min && !max) filter({ offset: 0, limit: 0 });
       }}
       menuPlacement={menuPlacement}
       value={options.find((option) => option.value === dayjs(value).toDate().valueOf())}
