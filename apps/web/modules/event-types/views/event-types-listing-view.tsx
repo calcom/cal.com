@@ -513,19 +513,22 @@ export const EventTypeList = ({
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {!isManagedEventType && !isChildrenManagedEventType && (
-                                <>
-                                  <DropdownMenuItem className="outline-none">
-                                    <DropdownItem
-                                      type="button"
-                                      data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon="copy"
-                                      onClick={() => openDuplicateModal(type, group)}>
-                                      {t("duplicate")}
-                                    </DropdownItem>
-                                  </DropdownMenuItem>
-                                </>
-                              )}
+                              {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                              {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                                !isManagedEventType &&
+                                !isChildrenManagedEventType && (
+                                  <>
+                                    <DropdownMenuItem className="outline-none">
+                                      <DropdownItem
+                                        type="button"
+                                        data-testid={`event-type-duplicate-${type.id}`}
+                                        StartIcon="copy"
+                                        onClick={() => openDuplicateModal(type, group)}>
+                                        {t("duplicate")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
