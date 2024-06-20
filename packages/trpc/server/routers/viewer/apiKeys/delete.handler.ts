@@ -45,8 +45,8 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   }
 
   return {
-    id,
-    data: {
+    result: id,
+    auditLogData: {
       trigger: AuditLogApiKeysTriggerEvents.API_KEY_DELETED,
       apiKey: apiKeyToDelete,
     },

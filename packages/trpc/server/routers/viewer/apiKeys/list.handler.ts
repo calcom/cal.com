@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { AuditLogApiKeysTriggerEvents } from "@calcom/prisma/enums";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -9,7 +10,7 @@ type ListOptions = {
 };
 
 export const listHandler = async ({ ctx }: ListOptions) => {
-  return await prisma.apiKey.findMany({
+  const apiKeys = await prisma.apiKey.findMany({
     where: {
       userId: ctx.user.id,
       OR: [
@@ -25,4 +26,12 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     },
     orderBy: { createdAt: "desc" },
   });
+
+  return {
+    result: apiKeys,
+    auditLogData: {
+      trigger: AuditLogApiKeysTriggerEvents.API_KEY_LIST_ALL_KEYS,
+      apiKeys,
+    },
+  };
 };

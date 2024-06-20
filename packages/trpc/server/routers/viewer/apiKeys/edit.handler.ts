@@ -41,7 +41,7 @@ export const editHandler = async ({ ctx, input }: EditOptions) => {
 
   return {
     result: updatedApiKey,
-    data: {
+    auditLogData: {
       trigger: AuditLogApiKeysTriggerEvents.API_KEY_UPDATED,
       apiKey: updatedApiKey,
     },

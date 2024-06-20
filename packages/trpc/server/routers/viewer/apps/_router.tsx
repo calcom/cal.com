@@ -16,7 +16,6 @@ type AppsRouterHandlerCache = {
   updateAppCredentials?: typeof import("./updateAppCredentials.handler").updateAppCredentialsHandler;
   queryForDependencies?: typeof import("./queryForDependencies.handler").queryForDependenciesHandler;
   checkGlobalKeys?: typeof import("./checkGlobalKeys.handler").checkForGlobalKeysHandler;
-  updateCredentialSettings?: typeof import("./updateCredentialSettings.handler").updateCredentialSettingsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};

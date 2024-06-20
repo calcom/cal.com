@@ -43,7 +43,7 @@ export const createHandler = async ({ ctx, input }: CreateHandlerOptions) => {
 
   return {
     result: prefixedApiKey,
-    data: {
+    auditLogData: {
       trigger: AuditLogApiKeysTriggerEvents.API_KEY_CREATED,
       apiKey: createdKey,
     },
