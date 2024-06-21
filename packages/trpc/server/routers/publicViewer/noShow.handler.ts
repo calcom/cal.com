@@ -101,7 +101,7 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
         // @ts-expect-error payload is too booking specific, we need to refactor this
-        message: t(payload.message),
+        message: t(payload.message, { x: payload.attendees[0]?.email || "User" }),
         bookingUid,
       });
       return payload;

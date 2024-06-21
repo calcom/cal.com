@@ -106,7 +106,7 @@ test.describe("Bookings", () => {
         triggerEvent: "BOOKING_NO_SHOW_UPDATED",
         createdAt: "[redacted/dynamic]",
         payload: {
-          message: "x_marked_as_no_show",
+          message: "first@cal.com marked as no-show",
           attendees: [{ email: "first@cal.com", noShow: true, utcOffset: null }],
           bookingUid: bookingWhereFirstUserIsOrganizer?.uid,
         },
