@@ -113,16 +113,19 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | null;
 
   if (pricePerSeat) {
+    if (typeof fixedPrice === "string") {
+      throw new Error("Something went wrong. Stripe product is not found and stripe object does not exists");
+    }
     priceId = await createPrice({
       isOrg: !!isOrg,
       teamId,
       pricePerSeat,
       billingPeriod,
-      product: fixedPrice.product,
+      product: fixedPrice.product as string, // We don't expand the object from stripe so just use the product as ID
       currency: fixedPrice.currency,
     });
   } else {
-    priceId = fixedPrice.id;
+    priceId = fixedPrice;
   }
 
   const session = await stripe.checkout.sessions.create({
