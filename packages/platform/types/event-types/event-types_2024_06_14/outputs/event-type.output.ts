@@ -7,13 +7,13 @@ import { RecurringEvent_2024_06_14 } from "../inputs";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
 
-export const SchedulingTypeEnum = {
-  ROUND_ROBIN: "ROUND_ROBIN",
-  COLLECTIVE: "COLLECTIVE",
-  MANAGED: "MANAGED",
-} as const;
+enum SchedulingTypeEnum {
+  ROUND_ROBIN = "ROUND_ROBIN",
+  COLLECTIVE = "COLLECTIVE",
+  MANAGED = "MANAGED",
+}
 
-export type SchedulingType = (typeof SchedulingTypeEnum)[keyof typeof SchedulingTypeEnum];
+export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
 class Schedule_2024_06_14 {
   @IsInt()
