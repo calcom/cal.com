@@ -101,7 +101,6 @@ type OnboardingPageProps = {
   showEventTypesStep: boolean;
   isConferencing: boolean;
   installableOnTeams: boolean;
-  parsedTeamIds?: number[];
   isOrg: boolean;
 };
 
@@ -117,14 +116,12 @@ const OnboardingPage = ({
   teams,
   personalAccount,
   appMetadata,
-  isOrg,
   eventTypeGroups,
   userName,
   credentialId,
   showEventTypesStep,
   isConferencing,
   installableOnTeams,
-  parsedTeamIds,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -368,6 +365,7 @@ const ERROR_MESSAGES = {
   userNotFound: "User from session not found",
   appNotExtendsEventType: "App does not extend EventTypes",
   userNotInTeam: "User is not in provided team",
+  appCredsNotFound: "App Credentials not found",
 } as const;
 
 const getUser = async (userId: number) => {
@@ -593,7 +591,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const stepsEnum = z.enum(STEPS);
     const parsedAppSlug = z.coerce.string().parse(query?.slug);
     const parsedStepParam = z.coerce.string().parse(params?.step);
-    // const parsedTeamIdParam = queryNumberArray.optional().parse(query?.teamIds);
     const parsedTeamIdParam = z.coerce.number().optional().parse(query?.teamId);
     const _ = stepsEnum.parse(parsedStepParam);
     const session = await getServerSession({ req, res });
@@ -618,7 +615,8 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         throw new Error(ERROR_MESSAGES.userNotInTeam);
       }
       if (currentTeam.isOrganization) {
-        userTeams = await getOrgSubTeams(parsedTeamIdParam);
+        const subTeams = await getOrgSubTeams(parsedTeamIdParam);
+        userTeams = [...userTeams, ...subTeams];
         isOrg = true;
       }
     }
@@ -679,15 +677,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             eventTypeGroups[groupIndex].eventTypes[eventIndex] = eventType;
           }
         }
-
-        // if (eventTypes.length === 0) {
-        //   return {
-        //     redirect: {
-        //       permanent: false,
-        //       destination: `/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`,
-        //     },
-        //   };
-        // }
       }
     }
 
@@ -718,6 +707,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         appInstalls.find((item) => !!item.teamId && item.teamId == parsedTeamIdParam)?.id ?? null;
     } else {
       credentialId = appInstalls.find((item) => !!item.userId && item.userId == user.id)?.id ?? null;
+    }
+    // dont allow app installation without cretendialId
+    if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP && !credentialId) {
+      throw new Error(ERROR_MESSAGES.appCredsNotFound);
     }
 
     return {

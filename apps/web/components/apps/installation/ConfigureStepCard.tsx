@@ -232,12 +232,12 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
         {fields.map((group, groupIndex) => (
           <div key={group.fieldId}>
             {eventTypeGroups[groupIndex].eventTypes.some((eventType) => eventType.selected === true) && (
-              <div className="mb-2 flex items-center">
+              <div className="mb-2 mt-4 flex items-center">
                 <Avatar
                   alt=""
                   imageSrc={group.image} // if no image, use default avatar
                   size="md"
-                  className="mt-1 inline-flex justify-center"
+                  className="inline-flex justify-center"
                 />
                 <p className="text-subtle block">{group.slug}</p>
               </div>
@@ -258,9 +258,7 @@ export const ConfigureStepCard: FC<ConfigureStepCardProps> = (props) => {
           type="button"
           data-testid="configure-step-save"
           onClick={() => {
-            // submitRefs.current[0][0].current?.click();
             submitRefs.current.map((group) => group?.map((ref) => ref.current?.click()));
-            console.log("submitRefs.current: ", submitRefs.current);
             setSubmit(true);
           }}
           loading={loading}>
