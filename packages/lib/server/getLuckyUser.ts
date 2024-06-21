@@ -1,6 +1,5 @@
 import type { User } from "@prisma/client";
 
-import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -14,7 +13,7 @@ type PartialUser = Pick<User, "id" | "email">;
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
   eventType: { id: number; isRRWeightsEnabled: boolean };
-  allRRHosts: IsFixedAwareUser[];
+  allRRHosts: { user: { id: number; email: string }; weight: number; weightAdjustment: number }[];
 }
 
 async function leastRecentlyBookedUser<T extends PartialUser>({
@@ -104,7 +103,9 @@ async function getUsersBasedOnWeights<
   T extends PartialUser & { weight?: number | null; priority?: number | null }
 >({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
   // Filter accepted bookings
-  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED);
+  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED); //probably should also add the adjusted weights
+
+  const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + host.weightAdjustment, 0);
 
   // Calculate the total weight of all round-robin hosts
   const totalWeight = allRRHosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
@@ -118,7 +119,7 @@ async function getUsersBasedOnWeights<
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
 
-    const targetNumberOfBookings = bookings.length * targetPercentage;
+    const targetNumberOfBookings = (bookings.length + allWeightAdjustments) * targetPercentage;
 
     return {
       ...user,
@@ -143,15 +144,32 @@ export async function getLuckyUser<
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   getLuckyUserParams: GetLuckyUserParams<T>
 ) {
-  const { availableUsers, eventType } = getLuckyUserParams;
+  const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
 
   if (availableUsers.length === 1) {
     return availableUsers[0];
   }
 
+  // all bookings of event type of rr hosts
   const allBookings = await prisma.booking.findMany({
     where: {
       eventTypeId: eventType.id,
+      OR: [
+        {
+          userId: {
+            in: allRRHosts.map((host) => host.user.id),
+          },
+        },
+        {
+          attendees: {
+            some: {
+              email: {
+                in: allRRHosts.map((host) => host.user.email),
+              },
+            },
+          },
+        },
+      ],
     },
     select: {
       id: true,

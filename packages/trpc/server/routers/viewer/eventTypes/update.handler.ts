@@ -9,7 +9,7 @@ import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -62,6 +62,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     offsetStart,
     secondaryEmailId,
     aiPhoneCallConfig,
+    isRRWeightsEnabled,
     ...rest
   } = input;
 
@@ -242,9 +243,131 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         code: "FORBIDDEN",
       });
     }
+
+    let hostWithWeightAdjustment: {
+      userId: number;
+      profileId?: number | null | undefined;
+      isFixed?: boolean | undefined;
+      priority?: number | null | undefined;
+      weight?: number | null | undefined;
+      weightAdjustment?: number;
+    }[] = hosts;
+
+    // add weightAdjustment for all new rr hosts
+    if (isRRWeightsEnabled) {
+      const previousRRHosts = await ctx.prisma.host.findMany({
+        where: {
+          eventTypeId: id,
+          isFixed: false,
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+          userId: true,
+          weightAdjustment: true,
+        },
+      });
+
+      // find all new rr hosts to set rrWeightAdjustment
+      const newRRHosts = hosts
+        .filter(
+          (host) => !host.isFixed && !previousRRHosts.find((prevHost) => prevHost.userId === host.userId)
+        )
+        .map((host) => ({
+          weight: host.weight,
+          email: previousRRHosts.find((prevHost) => prevHost.userId === host.userId)?.user?.email,
+        }));
+
+      if (newRRHosts.length) {
+        const hostsWithUserData = await ctx.prisma.host.findMany({
+          where: {
+            userId: {
+              in: hosts.map((host) => host.userId),
+            },
+            eventTypeId: id,
+          },
+          select: {
+            user: {
+              select: {
+                email: true,
+                id: true,
+              },
+            },
+            weightAdjustment: true,
+          },
+        });
+
+        const continuingHosts = hostsWithUserData.filter(
+          (host) => !newRRHosts.find((newHost) => newHost.email === host.user.email)
+        );
+
+        // all accepted bookings of event type assigned host that were already hosts before
+        const allBookings = await ctx.prisma.booking.findMany({
+          where: {
+            eventTypeId: id,
+            status: BookingStatus.ACCEPTED,
+            OR: [
+              {
+                user: {
+                  id: {
+                    in: continuingHosts.map((host) => host.user.id),
+                  },
+                },
+              },
+              {
+                attendees: {
+                  some: {
+                    email: {
+                      in: continuingHosts.map((host) => host.user.email),
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        const totalWeight = hosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
+
+        const allWeightAdjustments = hostsWithUserData.reduce((sum, host) => sum + host.weightAdjustment, 0);
+
+        const updatedRRHosts = newRRHosts.map((host) => {
+          const targetPercentage = (host.weight ?? 100) / totalWeight;
+          const adjustedWeight = (allBookings.length + allWeightAdjustments) * targetPercentage;
+
+          return {
+            ...host,
+            adjustedWeight,
+          };
+        });
+
+        hostWithWeightAdjustment = hosts.map((host) => {
+          const hostWithUserData = hostsWithUserData.find(
+            (hostWithUserData) => hostWithUserData.user.id === host.userId
+          );
+          const email = hostWithUserData?.user.email;
+          const previousAdjustedWeight = continuingHosts.find(
+            (prevHost) => prevHost.user.id === host.userId
+          )?.weightAdjustment;
+          const weightAdjustment =
+            updatedRRHosts.find((updatedHost) => updatedHost.email === email)?.adjustedWeight ??
+            previousAdjustedWeight ??
+            0;
+
+          return {
+            ...host,
+            weightAdjustment,
+          };
+        });
+      }
+    }
+
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => {
+      create: hostWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
         return {
           ...rest,

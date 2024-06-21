@@ -56,6 +56,7 @@ export const EventTypeUpdateInput = _EventTypeModel
     schedule: z.number().nullable().optional(),
     hashedLink: z.string(),
     assignAllTeamMembers: z.boolean().optional(),
+    isRRWeightsEnabled: z.boolean().optional(),
   })
   .partial()
   .extend({

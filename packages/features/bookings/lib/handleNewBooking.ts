@@ -248,6 +248,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           isFixed: true,
           priority: true,
           weight: true,
+          weightAdjustment: true,
           user: {
             select: {
               credentials: {
@@ -1361,7 +1362,6 @@ async function handler(
       });
 
       const notAvailableLuckyUsers: typeof users = [];
-
       loggerWithEventDetails.debug(
         "Computed available users",
         safeStringify({
@@ -1387,7 +1387,7 @@ async function handler(
           availableUsers: luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           ),
-          allRRHosts: eventTypeWithUsers.users,
+          allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
           eventType,
         });
         if (!newLuckyUser) {
