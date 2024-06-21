@@ -28,6 +28,8 @@ import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
+  sendAttendeeRequestEmail,
+  sendOrganizerRequestEmail,
   sendRescheduledEmails,
   sendRoundRobinCancelledEmails,
   sendRoundRobinRescheduledEmails,
@@ -1726,7 +1728,6 @@ async function handler(
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
-    console.log("IM HEREEEEAFDFWDASDFASDFWQERWERQWERWQE");
     const newBooking = await handleSeats({
       rescheduleUid,
       reqBookingUid: reqBody.bookingUid,
@@ -2299,8 +2300,8 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    // await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    // await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (booking.location?.startsWith("http")) {
