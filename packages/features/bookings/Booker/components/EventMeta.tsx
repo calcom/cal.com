@@ -9,12 +9,12 @@ import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calc
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import type { useEventReturnType } from "../utils/event";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -29,8 +29,27 @@ export const EventMeta = ({
   isPlatform = true,
   classNames,
 }: {
-  event: useEventReturnType["data"];
-  isPending: useEventReturnType["isPending"];
+  event?: Pick<
+    BookerEvent,
+    | "lockTimeZoneToggleOnBookingPage"
+    | "schedule"
+    | "seatsPerTimeSlot"
+    | "users"
+    | "length"
+    | "schedulingType"
+    | "profile"
+    | "entity"
+    | "description"
+    | "title"
+    | "metadata"
+    | "locations"
+    | "currency"
+    | "requiresConfirmation"
+    | "recurringEvent"
+    | "price"
+    | "isDynamic"
+  > | null;
+  isPending: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;

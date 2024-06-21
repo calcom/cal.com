@@ -70,6 +70,9 @@ export type NewTimeSlotBooking = Prisma.BookingGetPayload<{
   select: {
     id: true;
     uid: true;
+    iCalUID: true;
+    userId: true;
+    references: true;
     attendees: {
       include: {
         bookingSeat: true;
