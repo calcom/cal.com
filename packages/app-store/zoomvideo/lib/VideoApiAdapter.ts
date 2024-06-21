@@ -298,7 +298,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
       let userSettings: ZoomUserSettings | undefined;
       try {
-        const responseBody = await fetchZoomApi("users/me/settings");
+        const filterResp = "default_password_for_scheduled_meetings,auto_recording";
+        const responseBody = await fetchZoomApi(`users/me/settings?custom_query_fields=${filterResp}`);
         userSettings = zoomUserSettingsSchema.parse(responseBody);
       } catch (err) {
         console.error(err);
@@ -344,7 +345,8 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
       let userSettings: ZoomUserSettings | undefined;
       try {
-        const responseBody = await fetchZoomApi("users/me/settings");
+        const filterResp = "default_password_for_scheduled_meetings,auto_recording";
+        const responseBody = await fetchZoomApi(`users/me/settings?custom_query_fields=${filterResp}`);
         userSettings = zoomUserSettingsSchema.parse(responseBody);
       } catch (err) {
         console.error(err);
