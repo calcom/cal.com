@@ -1,9 +1,9 @@
+import type Stripe from "stripe";
 import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { IS_PRODUCTION } from "@calcom/lib/constants";
-import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_PRODUCTION, MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -110,14 +110,20 @@ export const purchaseTeamOrOrgSubscription = async (input: {
 
   const fixedPrice = await getFixedPrice();
 
-  const customPrice = await createPrice({
-    isOrg,
-    teamId,
-    pricePerSeat,
-    billingPeriod,
-    product: fixedPrice.product,
-    currency: fixedPrice.currency,
-  });
+  let priceId: string | null;
+
+  if (pricePerSeat) {
+    priceId = await createPrice({
+      isOrg: !!isOrg,
+      teamId,
+      pricePerSeat,
+      billingPeriod,
+      product: fixedPrice.product,
+      currency: fixedPrice.currency,
+    });
+  } else {
+    priceId = fixedPrice.id;
+  }
 
   const session = await stripe.checkout.sessions.create({
     customer,
@@ -127,7 +133,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     cancel_url: `${WEBAPP_URL}/settings/my-account/profile`,
     line_items: [
       {
-        price: customPrice,
+        price: priceId,
         quantity: quantity,
       },
     ],
