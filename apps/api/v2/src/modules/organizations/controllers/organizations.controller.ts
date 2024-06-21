@@ -51,10 +51,10 @@ export class OrganizationsController {
     @Param("userId") userId: number,
     @Body() input: UpdateOrganizationUserInput_2024_06_18
   ): Promise<ApiResponse<GetOrganizationUserOutput_2024_06_18>> {
-    const users = await this.organizationsService.getOrganizationUsers(organizationId);
+    const user = await this.organizationsService.updateOrganizationUser(organizationId, userId, input);
     return {
       status: "success",
-      data: users[0],
+      data: user,
     };
   }
 }

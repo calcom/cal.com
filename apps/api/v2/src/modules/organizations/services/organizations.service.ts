@@ -2,6 +2,8 @@ import { OrganizationsRepository } from "@/modules/organizations/organizations.r
 import { OrganizationUsersRepository } from "@/modules/organizations/repositories/organization-users.repository";
 import { Injectable } from "@nestjs/common";
 
+import { UpdateOrganizationUserInput_2024_06_18 } from "@calcom/platform-types";
+
 @Injectable()
 export class OrganizationsService {
   constructor(
@@ -20,5 +22,19 @@ export class OrganizationsService {
     const users = await this.organizationUsersRepository.getOrganizationUsers(organizationId, emailArray);
 
     return users;
+  }
+
+  async updateOrganizationUser(
+    organizationId: number,
+    userId: number,
+    updateData: UpdateOrganizationUserInput_2024_06_18
+  ) {
+    const updateUser = await this.organizationUsersRepository.updateOrganizationUser(
+      organizationId,
+      userId,
+      updateData
+    );
+
+    return updateUser;
   }
 }

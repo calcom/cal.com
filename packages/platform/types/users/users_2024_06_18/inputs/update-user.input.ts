@@ -62,7 +62,7 @@ export class UpdateUserInput_2024_06_18 {
 
   @IsOptional()
   // Add validation
-  timeFormat?: boolean;
+  timeFormat?: number;
 
   @IsOptional()
   @IsString()
@@ -72,9 +72,9 @@ export class UpdateUserInput_2024_06_18 {
   @IsString()
   darkBrandColor?: string;
 
-  @IsOptional()
-  // Add validation
-  role?: string;
+  // @IsOptional()
+  // // Add validation
+  // role?: string;
 }
 
 @ValidatorConstraint({ async: true })
