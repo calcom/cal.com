@@ -8,7 +8,7 @@ export type AppConfig = {
     url: string;
     keyPrefix: string;
     licenseKey: string;
-    licenceKeyUrl: string;
+    licenseKeyUrl: string;
   };
   db: {
     readUrl: string;
