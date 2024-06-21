@@ -409,7 +409,14 @@ const TimeRangeField = ({
         value={value.start}
         menuPlacement="bottom"
         onChange={(option) => {
-          onChange({ ...value, start: new Date(option?.value as number) });
+          const newStart = new Date(option?.value as number);
+          if (newStart >= new Date(value.end)) {
+            const newEnd = new Date(option?.value as number);
+            newEnd.setMinutes(newEnd.getMinutes() + INCREMENT);
+            onChange({ ...value, start: newStart, end: newEnd });
+          } else {
+            onChange({ ...value, start: newStart });
+          }
           handleSubmit && handleSubmit(getValues() as AvailabilityFormValues);
         }}
       />
