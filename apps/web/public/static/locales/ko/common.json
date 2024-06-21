@@ -1424,6 +1424,8 @@
   "app_theme": "대시보드 테마",
   "app_theme_applies_note": "이는 로그인한 대시보드에만 적용됩니다.",
   "theme_system": "시스템 기본값",
+  "app_theme": "대시보드 테마",
+  "app_theme_applies_note": "이것은 로그인한 대시보드에만 적용됩니다",
   "add_a_team": "팀 추가",
   "add_webhook_description": "{{appName}}에서 문제 발생 시 실시간으로 회의 데이터 수신",
   "triggers_when": "트리거 시기",

@@ -1425,6 +1425,8 @@
   "app_theme": "Dashboard Theme",
   "app_theme_applies_note": "Ovo se odnosi samo na vašu prijavljenu kontrolnu tablu",
   "add_a_team": "Dodaj tim",
+  "app_theme": "Тема контролне табле",
+  "app_theme_applies_note": "TОво се примењује само на вашу пријављену контролну таблу",
   "add_webhook_description": "Primajte podatke o sastanku u realnom vremenu kada se nešto dogodi na {{appName}}",
   "triggers_when": "Okidači kada",
   "test_webhook": "Izvršite testiranje ping-a pre kreiranja.",

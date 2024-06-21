@@ -1424,6 +1424,8 @@
   "app_theme": "Dashboard-thema",
   "app_theme_applies_note": "Dit geldt alleen voor uw ingelogde dashboard",
   "theme_system": "Systeemstandaard",
+  "app_theme": "Dashboard-thema",
+  "app_theme_applies_note": "Dit is alleen van toepassing op uw aangemelde dashboard",
   "add_a_team": "Voeg een team toe",
   "add_webhook_description": "Ontvang in realtime vergadergegevens wanneer er iets gebeurt in {{appName}}",
   "triggers_when": "Wordt geactiveerd wanneer",

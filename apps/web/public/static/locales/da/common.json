@@ -1234,6 +1234,8 @@
   "app_theme": "Dashboard tema",
   "app_theme_applies_note": "Dette gælder kun for dit dashboard, der er logget ind",
   "theme_system": "System standard",
+  "app_theme": "Dashboard-tema",
+  "app_theme_applies_note": "Dette gælder kun for din loggede dashboard",
   "add_a_team": "Tilføj et team",
   "add_webhook_description": "Modtag mødedata i realtid, når der sker noget i {{appName}}",
   "triggers_when": "Trigger når",
