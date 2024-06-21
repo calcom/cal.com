@@ -210,6 +210,8 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
     const { scale_plan: scalePlan } = await getDailyAppKeys();
 
+    const isScalePlanTrue = scalePlan === "true";
+
     const body = {
       privacy: "public",
       properties: {
@@ -218,9 +220,14 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        enable_recording: scalePlan === "true" ? "cloud" : undefined,
+        enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,
-        enable_transcription_storage: true,
+        enable_transcription_storage: isScalePlanTrue,
+        ...(!!isScalePlanTrue && {
+          permissions: {
+            canAdmin: ["transcription"],
+          },
+        }),
       },
     };
 
