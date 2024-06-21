@@ -1,9 +1,18 @@
 import prismaMock from "../../../../tests/libs/__mocks__/prismaMock";
 
-import { expect, it } from "vitest";
+import {
+  createBookingScenario,
+  getScenarioData,
+  getOrganizer,
+  TestData,
+  Timezones,
+} from "@calcom/web/test/utils/bookingScenario/bookingScenario";
+
+import { expect, it, describe } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser } from "@calcom/lib/test/builder";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
@@ -39,7 +48,11 @@ it("can find lucky user with maximize availability", async () => {
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: users,
-      eventTypeId: 1,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+      },
+      allRRHosts: [],
     })
   ).resolves.toStrictEqual(users[1]);
 });
@@ -76,16 +89,16 @@ it("can find lucky user with maximize availability and priority ranking", async 
   // TODO: we may be able to use native prisma generics somehow?
   prismaMock.user.findMany.mockResolvedValue(users);
   prismaMock.booking.findMany.mockResolvedValue([]);
-  const test = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-    availableUsers: users,
-    eventTypeId: 1,
-  });
 
   // both users have medium priority (one user has no priority set, default to medium) so pick least recently booked
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: users,
-      eventTypeId: 1,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+      },
+      allRRHosts: [],
     })
   ).resolves.toStrictEqual(users[1]);
 
@@ -136,7 +149,11 @@ it("can find lucky user with maximize availability and priority ranking", async 
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: usersWithPriorities,
-      eventTypeId: 1,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+      },
+      allRRHosts: [],
     })
   ).resolves.toStrictEqual(usersWithPriorities[2]);
 
@@ -187,7 +204,236 @@ it("can find lucky user with maximize availability and priority ranking", async 
   await expect(
     getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: usersWithSamePriorities,
-      eventTypeId: 1,
+      eventType: {
+        id: 1,
+        isRRWeightsEnabled: false,
+      },
+      allRRHosts: [],
     })
   ).resolves.toStrictEqual(usersWithSamePriorities[1]);
+});
+
+describe("maximize availability and weights", () => {
+  it("can find lucky user if hosts have same weights", async () => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const otherTeamMembers = [
+      {
+        name: "Other Team Member 1",
+        username: "other-team-member-1",
+        email: "other-team-member-1@example.com",
+        id: 102,
+        timeZone: Timezones["+5:30"],
+      },
+    ];
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            users: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+            schedulingType: SchedulingType.ROUND_ROBIN,
+          },
+        ],
+        bookings: [
+          {
+            uid: "uid1",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T05:30:00.000Z",
+            endTime: "2022-01-26T06:30:00.000Z",
+            createdAt: "2022-01-25T05:30:00.000Z",
+          },
+          {
+            uid: "uid1",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T03:30:00.000Z",
+            endTime: "2022-01-26T03:30:00.000Z",
+            createdAt: "2022-01-25T03:30:00.000Z",
+          },
+          {
+            uid: "uid1",
+            eventTypeId: 1,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T06:30:00.000Z",
+            endTime: "2022-01-26T07:30:00.000Z",
+            createdAt: "2022-01-25T06:30:00.000Z",
+          },
+        ],
+        organizer: organizer,
+        usersApartFromOrganizer: otherTeamMembers,
+      })
+    );
+
+    const builtOrganizer = buildUser({
+      id: 101,
+      name: "Organizer",
+      email: "organizer@example.com",
+      priority: 3,
+      weight: 100,
+    });
+
+    const builtMember = buildUser({
+      id: 102,
+      name: otherTeamMembers[0].name,
+      email: otherTeamMembers[0].email,
+      priority: 3,
+      weight: 100,
+    });
+
+    const allRRHosts = [
+      {
+        user: { id: builtOrganizer.id, email: builtOrganizer.email },
+        weight: builtOrganizer.weight,
+        weightAdjustment: builtOrganizer.weightAdjustment,
+      },
+      {
+        user: { id: builtMember.id, email: builtMember.email },
+        weight: builtMember.weight,
+        weightAdjustment: builtMember.weightAdjustment,
+      },
+    ];
+
+    await expect(
+      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        availableUsers: [builtOrganizer, builtMember],
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+        },
+        allRRHosts,
+      })
+    ).resolves.toStrictEqual(builtMember);
+  });
+
+  it("can find lucky user if hosts have different weights", async () => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const otherTeamMembers = [
+      {
+        name: "Other Team Member 1",
+        username: "other-team-member-1",
+        email: "other-team-member-1@example.com",
+        id: 102,
+        timeZone: Timezones["+5:30"],
+      },
+    ];
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            users: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+            schedulingType: SchedulingType.ROUND_ROBIN,
+          },
+        ],
+        bookings: [
+          {
+            uid: "uid1",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T05:30:00.000Z",
+            endTime: "2022-01-26T06:30:00.000Z",
+            createdAt: "2022-01-25T05:30:00.000Z",
+          },
+          {
+            uid: "uid2",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T03:30:00.000Z",
+            endTime: "2022-01-26T03:30:00.000Z",
+            createdAt: "2022-01-25T03:30:00.000Z",
+          },
+          {
+            uid: "uid3",
+            eventTypeId: 1,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T02:30:00.000Z",
+            endTime: "2022-01-26T02:30:00.000Z",
+            createdAt: "2022-01-25T06:30:00.000Z",
+          },
+        ],
+        organizer: organizer,
+        usersApartFromOrganizer: otherTeamMembers,
+      })
+    );
+
+    const builtOrganizer = buildUser({
+      id: 101,
+      name: "Organizer",
+      email: "organizer@example.com",
+      priority: 3,
+      weight: 200,
+    });
+
+    const builtMember = buildUser({
+      id: 102,
+      name: otherTeamMembers[0].name,
+      email: otherTeamMembers[0].email,
+      priority: 3,
+      weight: 100,
+    });
+
+    const allRRHosts = [
+      {
+        user: { id: builtOrganizer.id, email: builtOrganizer.email },
+        weight: builtOrganizer.weight,
+        weightAdjustment: builtOrganizer.weightAdjustment,
+      },
+      {
+        user: { id: builtMember.id, email: builtMember.email },
+        weight: builtMember.weight,
+        weightAdjustment: builtMember.weightAdjustment,
+      },
+    ];
+
+    await expect(
+      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        availableUsers: [builtOrganizer, builtMember],
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+        },
+        allRRHosts,
+      })
+    ).resolves.toStrictEqual(builtOrganizer);
+  });
+  //todo: test adjusted weights
 });
