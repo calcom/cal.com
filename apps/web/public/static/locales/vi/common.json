@@ -1425,6 +1425,8 @@
   "theme": "Chủ đề",
   "theme_applies_note": "Cái này chỉ áp dụng cho trang lịch hẹn công khai của bạn",
   "theme_system": "Mặc định của hệ thống",
+  "app_theme": "Chủ đề Bảng điều khiển",
+  "app_theme_applies_note": "Điều này chỉ áp dụng cho bảng điều khiển đã đăng nhập của bạn",
   "add_a_team": "Thêm một nhóm",
   "add_webhook_description": "Nhận dữ liệu cuộc họp theo thời gian thực khi có hoạt động diễn ra ở {{appName}}",
   "triggers_when": "Kích hoạt khi",

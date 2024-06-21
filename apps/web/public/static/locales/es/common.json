@@ -1421,6 +1421,8 @@
   "theme": "Tema",
   "theme_applies_note": "Esto sólo se aplica a tus páginas públicas de reservas",
   "theme_system": "Predeterminado del sistema",
+  "app_theme": "Tema del tablero",
+  "app_theme_applies_note": "Esto solo se aplica a su tabla de control conectada",
   "add_a_team": "Añadir un equipo",
   "add_webhook_description": "Recibe los datos de la reunión en tiempo real cuando ocurra algo en {{appName}}",
   "triggers_when": "Se activa cuando",

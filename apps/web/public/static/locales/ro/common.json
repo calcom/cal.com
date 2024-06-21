@@ -1422,6 +1422,8 @@
   "theme": "Temă",
   "theme_applies_note": "Acest aspect se aplică numai paginilor dvs. de rezervare publice",
   "theme_system": "Setări implicite sistem",
+  "app_theme": "Tema tabloului de bord",
+  "app_theme_applies_note": "Acesta se aplică numai pentru tabloul de bord conectat",
   "add_a_team": "Adăugați o echipă",
   "add_webhook_description": "Primiți datele ședințelor în timp real atunci când se întâmplă ceva pe {{appName}}",
   "triggers_when": "Se declanșează atunci când",

@@ -1422,6 +1422,8 @@
   "theme": "Tema",
   "theme_applies_note": "Detta gäller endast för dina offentliga bokningssidor",
   "theme_system": "Systemstandard",
+  "app_theme": "Dashboardtema",
+  "app_theme_applies_note": "Detta gäller endast för din inloggade dashboard",
   "add_a_team": "Lägg till ett team",
   "add_webhook_description": "Få mötesdata i realtid när något händer i {{appName}}",
   "triggers_when": "Aktiveras när",
