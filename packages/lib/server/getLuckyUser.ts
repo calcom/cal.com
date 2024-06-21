@@ -134,7 +134,6 @@ export async function getLuckyUser<T extends Pick<User, "id" | "email"> & { prio
   switch (distributionAlgorithm) {
     case "MAXIMIZE_AVAILABILITY":
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers });
-      console.log("highestPriorityUsers: ", highestPriorityUsers);
       return leastRecentlyBookedUser<T>({ availableUsers: highestPriorityUsers, eventTypeId });
   }
 }
