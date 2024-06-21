@@ -1,6 +1,7 @@
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 
@@ -86,8 +87,15 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         orgId,
         triggerEvent: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED,
       });
-      // @ts-expect-error payload is too booking specific, we need to refactor this
-      await webhooks.sendPayload({ ...payload, bookingUid });
+
+      const t = await getTranslation("en", "common");
+      await webhooks.sendPayload({
+        ...payload,
+        /** We send webhook message pre-translated, on client we already handle this */
+        // @ts-expect-error payload is too booking specific, we need to refactor this
+        message: t(payload.message),
+        bookingUid,
+      });
       return payload;
     }
     await prisma.booking.update({
