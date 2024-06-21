@@ -60,6 +60,7 @@ export type TEventTypeGroup = {
   slug?: string | null;
   name?: string | null;
   image: string;
+  isOrganisation?: boolean;
   eventTypes: TEventType[];
 };
 
@@ -86,7 +87,6 @@ type StepObj = Record<
 
 export type TTeams = (Pick<Team, "id" | "name" | "logoUrl" | "isOrganization"> & {
   alreadyInstalled: boolean;
-  selected?: boolean;
 })[];
 
 type OnboardingPageProps = {
@@ -453,7 +453,6 @@ const getOrgSubTeams = async (parentId: number) => {
   });
   return teams.map((team) => ({
     ...team,
-    selected: false,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
@@ -499,12 +498,14 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
         id: {
           in: teamIds,
         },
+        isOrganization: false,
       },
       select: {
         id: true,
         name: true,
         logoUrl: true,
         slug: true,
+        isOrganization: true,
         eventTypes: {
           select: eventTypeSelect,
         },
@@ -514,6 +515,7 @@ const getEventTypes = async (userId: number, teamIds?: number[]) => {
       teamId: team.id,
       slug: team.slug,
       name: team.name,
+      isOrganisation: team.isOrganization,
       image: getPlaceholderAvatar(team.logoUrl, team.name),
       eventTypes: team.eventTypes
         .map((item) => ({

@@ -124,7 +124,7 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
   handleSetUpLater,
 }) => {
   const { t } = useLocale();
-  const { control, watch, getValues } = useFormContext<TEventTypesForm>();
+  const { control, watch } = useFormContext<TEventTypesForm>();
   const { fields } = useFieldArray({
     control,
     name: "eventTypeGroups",
@@ -135,9 +135,12 @@ export const EventTypesStepCard: FC<EventTypesCardProps> = ({
 
   return (
     <div>
-      {fields.map((field, index) => (
-        <EventTypeGroup key={field.fieldId} groupIndex={index} userName={userName} {...field} />
-      ))}
+      {fields.map(
+        (field, index) =>
+          !field.isOrganisation && (
+            <EventTypeGroup key={field.fieldId} groupIndex={index} userName={userName} {...field} />
+          )
+      )}
 
       <Button
         className="text-md mt-6 w-full justify-center"
