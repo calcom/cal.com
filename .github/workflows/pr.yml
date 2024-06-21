@@ -42,7 +42,7 @@ jobs:
         with:
           script: |
             let pr;
-            if (github.event.pull_request) {
+            if (github.event && github.event.pull_request) {
               const response = await github.rest.pulls.get({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
