@@ -110,7 +110,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
 
   const fixedPrice = await getFixedPrice();
 
-  let priceId: string | null;
+  let priceId: string | undefined;
 
   if (pricePerSeat) {
     if (typeof fixedPrice === "string") {
@@ -125,7 +125,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
       currency: fixedPrice.currency,
     });
   } else {
-    priceId = fixedPrice;
+    priceId = fixedPrice as string;
   }
 
   const session = await stripe.checkout.sessions.create({
@@ -168,7 +168,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }: {
     isOrg: boolean;
     teamId: number;
-    pricePerSeat: number | null;
+    pricePerSeat: number;
     billingPeriod?: BillingPeriod;
     product: Stripe.Product | string;
     currency: string;
