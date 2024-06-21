@@ -2480,7 +2480,5 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "User is a pending member of the organization",
   "USER_ALREADY_INVITED_OR_MEMBER": "User is already invited or a member",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
-  "select_teams_header": "Select Teams",
-  "select_teams_description": "On which teams do you want to install {{appName}}?",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
