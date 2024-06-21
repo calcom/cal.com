@@ -308,7 +308,6 @@ if (isSAMLLoginEnabled) {
         code: {},
       },
       async authorize(credentials) {
-        console.log("AUTHORIZED", credentials);
         if (!credentials) {
           return null;
         }
@@ -318,8 +317,6 @@ if (isSAMLLoginEnabled) {
         if (!code) {
           return null;
         }
-
-        console.log({ code });
 
         const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
 
