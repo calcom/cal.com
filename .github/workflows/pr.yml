@@ -2,7 +2,7 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - main
   workflow_dispatch:
@@ -33,7 +33,8 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e && (github.event_name != 'labeled' || (github.event_name == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
+      run-jobs: ${{ github.event_name != 'labeled' }}
     steps:
       - name: Get PR from branch name
         id: check-if-pr-has-label
@@ -69,29 +70,29 @@ jobs:
 
   type-check:
     name: Type check
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label]
+    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label]
+    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label]
+    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   integration-test:
     name: Tests
-    needs: [changes]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    needs: [changes, check-label]
+    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
@@ -152,9 +153,9 @@ jobs:
 
   required:
     needs: [lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
+    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.check-label.outputs.run-e2e == 'true' }}
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
