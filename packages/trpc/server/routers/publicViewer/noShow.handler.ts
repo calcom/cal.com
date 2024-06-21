@@ -22,6 +22,13 @@ const getResultPayload = async (attendees: { email: string; noShow: boolean }[])
   return { message: "no_show_updated", attendees: attendees };
 };
 
+const logFailedResults = (results: PromiseSettledResult<any>[]) => {
+  const failed = results.filter((x) => x.status === "rejected") as PromiseRejectedResult[];
+  if (failed.length < 1) return;
+  const failedMessage = failed.map((r) => r.reason);
+  console.error("Failed to update no-show status", failedMessage.join(","));
+};
+
 export const noShowHandler = async ({ input }: NoShowOptions) => {
   const { bookingUid, attendees } = input;
 
@@ -59,6 +66,7 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         });
       });
       const results = await Promise.allSettled(updatePromises);
+      logFailedResults(results);
       const _attendees = results
         .filter((x) => x.status === "fulfilled")
         .map((x) => (x as PromiseFulfilledResult<{ noShow: boolean; email: string }>).value)
