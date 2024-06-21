@@ -70,6 +70,11 @@ jobs:
               }
             }
 
+            if (!pr) {
+              console.log('No PR found');
+              return;
+            }
+
             const labels = pr.labels.map(label => label.name);
             console.log('PR #', pr.number);
             if (labels.includes('ready-for-e2e')) {
