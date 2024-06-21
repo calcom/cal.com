@@ -153,9 +153,9 @@ jobs:
 
   required:
     needs: [lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.check-label.outputs.run-e2e == 'true' }}
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
-        if: needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
+        if: needs.changes.outputs.has-files-requiring-all-checks == 'true' && (contains(needs.*.result, 'failure') || contains(needs.*.result, 'skipped') || contains(needs.*.result, 'cancelled'))
         run: exit 1
