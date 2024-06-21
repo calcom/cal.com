@@ -91,7 +91,7 @@ const EventTypeGroup: FC<EventTypeGroupProps> = ({ groupIndex, userName, ...prop
           size="md"
           className="mt-1 inline-flex justify-center"
         />
-        <p className="text-subtle block">{props.slug}</p>
+        <p className="block pl-2 text-sm">{props.slug}</p>
       </div>
 
       <div className="sm:border-subtle bg-default  border dark:bg-black sm:rounded-md">
