@@ -281,9 +281,6 @@ if (isSAMLLoginEnabled) {
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) throw new Error(ErrorCode.UserNotFound);
-
-      const [userProfile] = user.allProfiles;
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -292,7 +289,7 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: userProfile,
+        ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
     options: {
@@ -311,6 +308,7 @@ if (isSAMLLoginEnabled) {
         code: {},
       },
       async authorize(credentials) {
+        console.log("AUTHORIZED", credentials);
         if (!credentials) {
           return null;
         }
@@ -320,6 +318,8 @@ if (isSAMLLoginEnabled) {
         if (!code) {
           return null;
         }
+
+        console.log({ code });
 
         const { oauthController } = await (await import("@calcom/features/ee/sso/lib/jackson")).default();
 
