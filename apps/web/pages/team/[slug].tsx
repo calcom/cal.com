@@ -65,7 +65,7 @@ function TeamPage({
     // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
     const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity
           {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
           logoUrl={team.parent?.logoUrl || team.logoUrl}
