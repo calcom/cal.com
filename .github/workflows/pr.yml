@@ -33,7 +33,7 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e && (github.event_name != 'labeled' || (github.event_name == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event_name != 'labeled' || (github.event_name == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
       run-jobs: ${{ github.event_name != 'labeled' }}
     steps:
       - name: Get PR from branch name
