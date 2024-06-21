@@ -5,8 +5,10 @@ import { TimezoneModule } from "@/modules/timezones/timezones.module";
 import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
+import { UsersModule } from "./users/users.module";
+
 @Module({
-  imports: [OAuthClientModule, BillingModule, PlatformEndpointsModule, TimezoneModule],
+  imports: [OAuthClientModule, BillingModule, PlatformEndpointsModule, TimezoneModule, UsersModule],
 })
 export class EndpointsModule implements NestModule {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
