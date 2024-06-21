@@ -41,9 +41,9 @@ export const ZGetAllActiveWorkflowsInputSchema = z.object({
       .array()
       .optional(),
     teamId: z.number().optional().nullable(),
-    parentId: z.number().optional().nullable(),
     parent: z
       .object({
+        id: z.number().nullable(),
         teamId: z.number().nullable(),
       })
       .optional()

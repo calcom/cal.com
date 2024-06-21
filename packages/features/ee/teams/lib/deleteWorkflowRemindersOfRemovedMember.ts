@@ -1,5 +1,4 @@
-import type { PrismaClient } from "@calcom/prisma";
-import prismaDefault from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 
 // cancel/delete all workflowReminders of the removed member that come from that team (org teams only)
@@ -9,8 +8,7 @@ export async function deleteWorkfowRemindersOfRemovedMember(
     parentId?: number | null;
   },
   memberId: number,
-  isOrg: boolean,
-  prisma: PrismaClient = prismaDefault
+  isOrg: boolean
 ) {
   if (isOrg) {
     // if member was removed from org, delete all workflowReminders of the removed team member that come from org workflows
@@ -34,7 +32,7 @@ export async function deleteWorkfowRemindersOfRemovedMember(
       },
     });
 
-    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
+    deleteAllWorkflowReminders(workflowRemindersToDelete);
   } else {
     if (!team.parentId) return;
 
@@ -92,6 +90,6 @@ export async function deleteWorkfowRemindersOfRemovedMember(
         method: true,
       },
     });
-    deleteAllWorkflowReminders(workflowRemindersToDelete, prisma);
+    deleteAllWorkflowReminders(workflowRemindersToDelete);
   }
 }

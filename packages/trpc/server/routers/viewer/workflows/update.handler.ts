@@ -85,7 +85,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   let newActiveOn: number[] = [];
 
-  let removedActiveOn: number[] = [];
+  let removedActiveOnIds: number[] = [];
 
   let activeOnWithChildren: number[] = activeOn;
 
@@ -172,9 +172,9 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
 
     //remove all scheduled Email and SMS reminders for eventTypes that are not active any more
-    removedActiveOn = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
+    removedActiveOnIds = oldActiveOnIds.filter((eventTypeId) => !activeOnWithChildren.includes(eventTypeId));
 
-    await deleteRemindersOfActiveOnIds(removedActiveOn, userWorkflow.steps, isOrg);
+    await deleteRemindersOfActiveOnIds({ removedActiveOnIds, workflowSteps: userWorkflow.steps, isOrg });
 
     //update active on
     await ctx.prisma.workflowsOnEventTypes.deleteMany({
@@ -231,14 +231,14 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    removedActiveOn = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
+    removedActiveOnIds = oldActiveOnIds.filter((teamId) => !activeOn.includes(teamId));
 
-    await deleteRemindersOfActiveOnIds(
-      removedActiveOn,
-      userWorkflow.steps,
+    await deleteRemindersOfActiveOnIds({
+      removedActiveOnIds,
+      workflowSteps: userWorkflow.steps,
       isOrg,
-      activeOn.filter((activeOn) => !newActiveOn.includes(activeOn))
-    );
+      activeOnIds: activeOn.filter((activeOn) => !newActiveOn.includes(activeOn)),
+    });
 
     //update active on
     await ctx.prisma.workflowsOnTeams.deleteMany({
@@ -257,7 +257,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   if (userWorkflow.trigger !== trigger || userWorkflow.time !== time || userWorkflow.timeUnit !== timeUnit) {
     //if trigger changed, delete all reminders from steps before change
-    await deleteRemindersOfActiveOnIds(oldActiveOnIds, userWorkflow.steps, isOrg);
+    await deleteRemindersOfActiveOnIds({
+      removedActiveOnIds: oldActiveOnIds,
+      workflowSteps: userWorkflow.steps,
+      isOrg,
+    });
 
     await scheduleWorkflowNotifications(
       activeOn, // schedule for activeOn that stayed the same + new active on (old reminders were deleted)
@@ -486,7 +490,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         step.action === WorkflowActions.SMS_ATTENDEE || step.action === WorkflowActions.WHATSAPP_ATTENDEE
     );
   await removeSmsReminderFieldForEventTypes({
-    activeOnToRemove: removedActiveOn,
+    activeOnToRemove: removedActiveOnIds,
     workflowId: id,
     isOrg,
     activeOn,

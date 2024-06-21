@@ -9,8 +9,7 @@ import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
-import type { PrismaClient } from "@calcom/prisma";
-import prismaDefault from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
   WorkflowActions,
@@ -102,7 +101,6 @@ interface scheduleEmailReminderArgs extends ScheduleReminderArgs {
   hideBranding?: boolean;
   includeCalendarEvent?: boolean;
   isMandatoryReminder?: boolean;
-  prisma?: PrismaClient;
 }
 
 export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => {
@@ -121,7 +119,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     includeCalendarEvent,
     isMandatoryReminder,
     action,
-    prisma = prismaDefault,
   } = args;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
@@ -383,11 +380,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   }
 };
 
-export const deleteScheduledEmailReminder = async (
-  reminderId: number,
-  referenceId: string | null,
-  prisma: PrismaClient
-) => {
+export const deleteScheduledEmailReminder = async (reminderId: number, referenceId: string | null) => {
   try {
     if (!referenceId) {
       await prisma.workflowReminder.delete({

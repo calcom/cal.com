@@ -241,13 +241,12 @@ describe("deleteRemindersOfActiveOnIds", () => {
     const removedActiveOnIds = [1];
     const activeOnIds = [2];
 
-    await deleteRemindersOfActiveOnIds(
+    await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
-      workflow?.steps || [],
-      false,
+      workflowSteps: workflow?.steps || [],
+      isOrg: false,
       activeOnIds,
-      prismock
-    );
+    });
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {
@@ -327,13 +326,12 @@ describe("deleteRemindersOfActiveOnIds", () => {
     const activeOnIds = [2];
 
     //workflow removed from team 2, but still acitve on team 3 --> so reminder should not be removed
-    await deleteRemindersOfActiveOnIds(
+    await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
-      workflow?.steps || [],
-      true,
+      workflowSteps: workflow?.steps || [],
+      isOrg: true,
       activeOnIds,
-      prismock
-    );
+    });
 
     // get all reminders from organizer's bookings
     const workflowRemindersWithOneTeamActive = await prismock.workflowReminder.findMany({
@@ -348,13 +346,12 @@ describe("deleteRemindersOfActiveOnIds", () => {
 
     // should still be active on all 4 bookings
     expect(workflowRemindersWithOneTeamActive.length).toBe(4);
-    await deleteRemindersOfActiveOnIds(
+    await deleteRemindersOfActiveOnIds({
       removedActiveOnIds,
-      workflow?.steps || [],
-      true,
+      workflowSteps: workflow?.steps || [],
+      isOrg: true,
       activeOnIds,
-      prismock
-    );
+    });
 
     const workflowRemindersWithNoTeamActive = await prismock.workflowReminder.findMany({
       where: {
@@ -421,8 +418,7 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null, //teamId
-      prismock
+      null //teamId
     );
 
     const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
@@ -506,8 +502,7 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null, //teamId
-      prismock
+      null //teamId
     );
 
     const scheduledWorkflowReminders = await prismock.workflowReminder.findMany({
@@ -592,8 +587,7 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null, //teamId
-      prismock
+      null //teamId
     );
 
     // number is not verified, so sms should not send
@@ -617,8 +611,7 @@ describe("scheduleBookingReminders", () => {
       workflow.timeUnit,
       workflow.trigger,
       organizer.id,
-      null, //teamId
-      prismock
+      null //teamId
     );
 
     // two sms schould be scheduled
@@ -739,7 +732,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
 
     await createWorkflowRemindersForWorkflow("Org Workflow");
 
-    await deleteWorkfowRemindersOfRemovedMember(org, 101, true, prismock);
+    await deleteWorkfowRemindersOfRemovedMember(org, 101, true);
 
     const workflowReminders = await prismock.workflowReminder.findMany();
     expect(workflowReminders.length).toBe(0);
@@ -835,7 +828,7 @@ describe("deleteWorkfowRemindersOfRemovedMember", () => {
       },
     });
 
-    await deleteWorkfowRemindersOfRemovedMember({ id: 2, parentId: org.id }, 101, false, prismock);
+    await deleteWorkfowRemindersOfRemovedMember({ id: 2, parentId: org.id }, 101, false);
 
     const workflowReminders = await prismock.workflowReminder.findMany({
       select: {

@@ -848,7 +848,6 @@ const EventTypePageWrapper: React.FC<PageProps> & {
       workflows: eventType.workflows,
       teamId: eventType.teamId,
       userId: eventType.userId,
-      parentId: eventType.parentId,
       parent: eventType.parent,
       metadata: eventType.metadata,
     },

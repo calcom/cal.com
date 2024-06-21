@@ -26,8 +26,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import type { PrismaClient } from "@calcom/prisma";
-import prismaDefault from "@calcom/prisma";
+import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
 import type { TimeUnit } from "@calcom/prisma/enums";
 import {
@@ -74,12 +73,7 @@ export const bookingSelect = {
   },
 };
 
-export const verifyEmailSender = async (
-  email: string,
-  userId: number,
-  teamId: number | null,
-  prisma: PrismaClient = prismaDefault
-) => {
+export const verifyEmailSender = async (email: string, userId: number, teamId: number | null) => {
   const verifiedEmail = await prisma.verifiedEmail.findFirst({
     where: {
       email,
@@ -122,8 +116,7 @@ export function getSender(
 export async function isAuthorized(
   workflow: Pick<Workflow, "id" | "teamId" | "userId"> | null,
   currentUserId: number,
-  isWriteOperation?: boolean,
-  prisma: PrismaClient = prismaDefault
+  isWriteOperation?: boolean
 ) {
   if (!workflow) {
     return false;
@@ -251,11 +244,7 @@ export async function removeSmsReminderFieldForEventType({
   );
 }
 
-async function getAllUserAndTeamEventTypes(
-  teamIds: number[],
-  notMemberOfTeamId: number[] = [],
-  prisma: PrismaClient = prismaDefault
-) {
+async function getAllUserAndTeamEventTypes(teamIds: number[], notMemberOfTeamId: number[] = []) {
   const teamMembersWithEventTypes = await prisma.membership.findMany({
     where: {
       teamId: {
@@ -304,8 +293,7 @@ export async function isAuthorizedToAddActiveOnIds(
   newActiveIds: number[],
   isOrg: boolean,
   teamId?: number | null,
-  userId?: number | null,
-  prisma: PrismaClient = prismaDefault
+  userId?: number | null
 ) {
   for (const id of newActiveIds) {
     if (isOrg) {
@@ -354,14 +342,11 @@ export async function isAuthorizedToAddActiveOnIds(
 }
 
 const reminderMethods: {
-  [x: string]: (id: number, referenceId: string | null, prisma?: PrismaClient) => void;
+  [x: string]: (id: number, referenceId: string | null) => void;
 } = {
-  [WorkflowMethods.EMAIL]: (id, referenceId, prisma = prismaDefault) =>
-    deleteScheduledEmailReminder(id, referenceId, prisma),
-  [WorkflowMethods.SMS]: (id, referenceId, prisma = prismaDefault) =>
-    deleteScheduledSMSReminder(id, referenceId, prisma),
-  [WorkflowMethods.WHATSAPP]: (id, referenceId, prisma = prismaDefault) =>
-    deleteScheduledWhatsappReminder(id, referenceId, prisma),
+  [WorkflowMethods.EMAIL]: (id, referenceId) => deleteScheduledEmailReminder(id, referenceId),
+  [WorkflowMethods.SMS]: (id, referenceId) => deleteScheduledSMSReminder(id, referenceId),
+  [WorkflowMethods.WHATSAPP]: (id, referenceId) => deleteScheduledWhatsappReminder(id, referenceId),
 };
 
 export async function deleteAllWorkflowReminders(
@@ -371,14 +356,13 @@ export async function deleteAllWorkflowReminders(
         referenceId: string | null;
         method: string;
       }[]
-    | null,
-  prisma: PrismaClient = prismaDefault
+    | null
 ) {
   if (!remindersToDelete) return Promise.resolve();
 
   const results = await Promise.allSettled(
     remindersToDelete.map((reminder) => {
-      return reminderMethods[reminder.method](reminder.id, reminder.referenceId, prisma);
+      return reminderMethods[reminder.method](reminder.id, reminder.referenceId);
     })
   );
 
@@ -392,24 +376,27 @@ export async function deleteAllWorkflowReminders(
   });
 }
 
-export async function deleteRemindersOfActiveOnIds(
-  removedActiveOnIds: number[],
-  workflowSteps: WorkflowStep[],
-  isOrg: boolean,
-  activeOnIds?: number[],
-  prisma: PrismaClient = prismaDefault
-) {
+export async function deleteRemindersOfActiveOnIds({
+  removedActiveOnIds,
+  workflowSteps,
+  isOrg,
+  activeOnIds,
+}: {
+  removedActiveOnIds: number[];
+  workflowSteps: WorkflowStep[];
+  isOrg: boolean;
+  activeOnIds?: number[];
+}) {
   const remindersToDelete = !isOrg
-    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps, prisma)
-    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds, prisma);
-  await deleteAllWorkflowReminders(remindersToDelete, prisma);
+    ? await getRemindersFromRemovedEventTypes(removedActiveOnIds, workflowSteps)
+    : await getRemindersFromRemovedTeams(removedActiveOnIds, workflowSteps, activeOnIds);
+  await deleteAllWorkflowReminders(remindersToDelete);
 }
 
 async function getRemindersFromRemovedTeams(
   removedTeams: number[],
   workflowSteps: WorkflowStep[],
-  activeOn?: number[],
-  prisma: PrismaClient = prismaDefault
+  activeOn?: number[]
 ) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
@@ -482,11 +469,7 @@ async function getRemindersFromRemovedTeams(
   return remindersToDelete;
 }
 
-async function getRemindersFromRemovedEventTypes(
-  removedEventTypes: number[],
-  workflowSteps: WorkflowStep[],
-  prisma: PrismaClient = prismaDefault
-) {
+async function getRemindersFromRemovedEventTypes(removedEventTypes: number[], workflowSteps: WorkflowStep[]) {
   const remindersToDeletePromise: Prisma.PrismaPromise<
     {
       id: number;
@@ -529,15 +512,9 @@ export async function scheduleWorkflowNotifications(
   trigger: WorkflowTriggerEvents,
   userId: number,
   teamId: number | null,
-  alreadyScheduledActiveOnIds?: number[],
-  prisma: PrismaClient = prismaDefault
+  alreadyScheduledActiveOnIds?: number[]
 ) {
-  const bookingsToScheduleNotifications = await getBookings(
-    activeOn,
-    isOrg,
-    alreadyScheduledActiveOnIds,
-    prisma
-  );
+  const bookingsToScheduleNotifications = await getBookings(activeOn, isOrg, alreadyScheduledActiveOnIds);
 
   await scheduleBookingReminders(
     bookingsToScheduleNotifications,
@@ -546,17 +523,11 @@ export async function scheduleWorkflowNotifications(
     timeUnit,
     trigger,
     userId,
-    teamId,
-    prisma
+    teamId
   );
 }
 
-async function getBookings(
-  activeOn: number[],
-  isOrg: boolean,
-  alreadyScheduledActiveOnIds: number[] = [],
-  prisma: PrismaClient = prismaDefault
-) {
+async function getBookings(activeOn: number[], isOrg: boolean, alreadyScheduledActiveOnIds: number[] = []) {
   if (activeOn.length === 0) return [];
 
   if (isOrg) {
@@ -658,8 +629,7 @@ export async function scheduleBookingReminders(
   timeUnit: TimeUnit | null,
   trigger: WorkflowTriggerEvents,
   userId: number,
-  teamId: number | null,
-  prisma: PrismaClient = prismaDefault
+  teamId: number | null
 ) {
   if (!bookings.length) return;
   if (trigger !== WorkflowTriggerEvents.BEFORE_EVENT && trigger !== WorkflowTriggerEvents.AFTER_EVENT) return;
@@ -713,7 +683,7 @@ export async function scheduleBookingReminders(
             sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
             break;
           case WorkflowActions.EMAIL_ADDRESS:
-            await verifyEmailSender(step.sendTo || "", userId, teamId, prisma);
+            await verifyEmailSender(step.sendTo || "", userId, teamId);
             sendTo = [step.sendTo || ""];
         }
         await scheduleEmailReminder({
@@ -730,7 +700,6 @@ export async function scheduleBookingReminders(
           template: step.template,
           sender: step.sender,
           workflowStepId: step.id,
-          prisma,
         });
       } else if (step.action === WorkflowActions.SMS_NUMBER && step.sendTo) {
         await scheduleSMSReminder({
@@ -748,7 +717,6 @@ export async function scheduleBookingReminders(
           sender: step.sender,
           userId: userId,
           teamId: teamId,
-          prisma: prisma,
         });
       } else if (step.action === WorkflowActions.WHATSAPP_NUMBER && step.sendTo) {
         await scheduleWhatsappReminder({
@@ -798,6 +766,7 @@ export async function getAllWorkflowsFromEventType(
     teamId?: number | null;
     parentId?: number | null;
     parent?: {
+      id?: number | null;
       teamId: number | null;
     } | null;
     metadata?: Prisma.JsonValue;
@@ -811,13 +780,13 @@ export async function getAllWorkflowsFromEventType(
   const teamId = await getTeamIdFromEventType({
     eventType: {
       team: { id: eventType?.teamId ?? null },
-      parentId: eventType?.parentId ?? null,
+      parentId: eventType?.parentId || eventType?.parent?.id || null,
     },
   });
 
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
-  const isManagedEventType = !!eventType?.parentId;
+  const isManagedEventType = !!eventType?.parent;
 
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
 

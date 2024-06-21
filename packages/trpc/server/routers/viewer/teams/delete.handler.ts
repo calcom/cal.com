@@ -102,7 +102,12 @@ async function deleteWorkflowRemindersOfRemovedTeam(teamId: number) {
           .filter((activeOn) => activeOn.teamId !== team.id)
           .map((activeOn) => activeOn.teamId);
       }
-      deleteRemindersOfActiveOnIds([team.id], workflowSteps, true, remainingActiveOnIds);
+      deleteRemindersOfActiveOnIds({
+        removedActiveOnIds: [team.id],
+        workflowSteps,
+        isOrg: true,
+        activeOnIds: remainingActiveOnIds,
+      });
     }
   }
 }
