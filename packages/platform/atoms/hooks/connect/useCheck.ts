@@ -8,7 +8,6 @@ import http from "../../lib/http";
 import { useAtomsContext } from "../useAtomsContext";
 
 export interface UseCheckProps {
-  isAuth: boolean;
   onCheckError?: OnCheckErrorType;
   calendar: (typeof CALENDARS)[number];
 }
@@ -20,6 +19,7 @@ export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
 
   const { data: check } = useQuery({
     queryKey: getQueryKey(calendar),
+    staleTime: 6000,
     enabled: isInit,
     queryFn: () => {
       return http
