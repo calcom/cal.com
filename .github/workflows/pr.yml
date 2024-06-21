@@ -41,31 +41,43 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const ref = '${{ github.ref }}';
-            const branch = ref.replace('refs/heads/', '');
-            console.log(ref);
-            console.log(branch);
-            const response = await github.rest.pulls.list({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              head: `${context.repo.owner}:${branch}`
-            });
+            let pr;
+            if (github.event.pull_request) {
+              const response = await github.rest.pulls.get({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                pull_number: github.event.pull_request.number
+              });
 
-            if (response.data.length > 0) {
-              const pr = response.data[0];
-              const labels = pr.labels.map(label => label.name);
-              console.log('PR #', pr.number);
-              if (labels.includes('ready-for-e2e')) {
-                core.setOutput('run-e2e', true);
-                console.log('Found the label');
+              pr = response.data;
+            } else {
+              const ref = '${{ github.ref }}';
+              const branch = ref.replace('refs/heads/', '');
+              console.log(ref);
+              console.log(branch);
+              const response = await github.rest.pulls.list({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                state: 'open',
+                head: `${context.repo.owner}:${branch}`
+              });
+
+              if (response.data.length > 0) {
+                pr = response.data[0];
               } else {
                 core.setOutput('run-e2e', false);
-                console.log('Did not find the label');
+                console.log('No PR found matching the branch');
               }
+            }
+
+            const labels = pr.labels.map(label => label.name);
+            console.log('PR #', pr.number);
+            if (labels.includes('ready-for-e2e')) {
+              core.setOutput('run-e2e', true);
+              console.log('Found the label');
             } else {
               core.setOutput('run-e2e', false);
-              console.log('No PR found matching the branch');
+              console.log('Did not find the label');
             }
 
   type-check:
