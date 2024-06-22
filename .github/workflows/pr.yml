@@ -42,8 +42,8 @@ jobs:
         with:
           script: |
             let pr;
-            console.log('github.event_name', github.event_name);
-            console.log('github.event', github.event);
+            console.log('github.event_name', ${{ github.event_name }});
+            console.log('github.event', ${{ github.event }});
             if (github.event && github.event.pull_request) {
               const response = await github.rest.pulls.get({
                 owner: github.context.repo.owner,
