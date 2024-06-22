@@ -41,39 +41,25 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            let pr;
-            console.log('github.event_name', '${{ github.event_name }}');
-            const parsedEvent = ${{ github.event }};
-            if (parsedEvent && parsedEvent.pull_request) {
-              const response = await github.rest.pulls.get({
-                owner: github.context.repo.owner,
-                repo: github.context.repo.repo,
-                pull_number: parsedEvent.pull_request.number
-              });
+            const sha = '${{ github.event.pull_request.head.sha }}';
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner,
+              repo,
+              commit_sha: sha
+            });
 
-              pr = response.data;
-            } else {
-              const ref = '${{ github.ref }}';
-              const branch = ref.replace('refs/heads/', '');
-              console.log('ref', ref);
-              console.log('branch', branch);
-              const response = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                state: 'open',
-                head: `${context.repo.owner}:${branch}`
-              });
-
-              if (response.data.length > 0) {
-                pr = response.data[0];
-              }
-            }
-
-            if (!pr) {
+            if (prs.length === 0) {
               core.setOutput('run-e2e', false);
-              console.log('No PR found');
+              core.setFailed(`No pull requests found for commit SHA ${sha}`);
               return;
             }
+
+            const pr = prs[0];
+            console.log(`PR number: ${pr.number}`);
+            console.log(`PR title: ${pr.title}`);
+            console.log(`PR state: ${pr.state}`);
+            console.log(`PR URL: ${pr.html_url}`);
+            console.log('github.event_name', '${{ github.event_name }}');
 
             const labels = pr.labels.map(label => label.name);
             const labelFound = labels.includes('ready-for-e2e');
