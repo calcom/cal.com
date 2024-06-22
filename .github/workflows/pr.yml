@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, labeled]
     branches:
       - main
-      - chore/gh-actions-test-branch
+      - gh-actions-test-branch
   workflow_dispatch:
 
 concurrency:
