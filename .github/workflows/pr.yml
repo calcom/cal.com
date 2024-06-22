@@ -86,7 +86,6 @@ jobs:
             }
 
             const labelFound = labels.includes('ready-for-e2e');
-            console.log('PR #', pr.number);
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
