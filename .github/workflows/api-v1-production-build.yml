@@ -65,7 +65,7 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/cache-db
       - name: Cache API v1 production build
-        uses: buildjet/cache@v3
+        uses: buildjet/cache@v4
         id: cache-api-v1-build
         env:
           cache-name: api-v1-build
