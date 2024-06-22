@@ -299,7 +299,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} isDisabled />
+            <TimezoneSelect id="timezone" value={timezone} />
           </CollapsibleContent>
         </Collapsible>
       </div>
