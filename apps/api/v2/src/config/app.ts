@@ -17,7 +17,7 @@ const loadConfig = (): AppConfig => {
       }/v2`,
       keyPrefix: getEnv("API_KEY_PREFIX", "cal_"),
       licenseKey: getEnv("CALCOM_LICENSE_KEY", ""),
-      licenceKeyUrl: getEnv("GET_LICENSE_KEY_URL", "https://console.cal.com/api/license"),
+      licenseKeyUrl: getEnv("GET_LICENSE_KEY_URL", "https://console.cal.com/api/license"),
     },
     db: {
       readUrl: getEnv("DATABASE_READ_URL"),
