@@ -43,8 +43,8 @@ jobs:
           script: |
             const sha = '${{ github.event.pull_request.head.sha }}';
             const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner,
-              repo,
+              owner: github.context.repo.owner,
+              repo: github.context.repo.repo,
               commit_sha: sha
             });
 
