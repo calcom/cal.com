@@ -32,18 +32,15 @@ jobs:
       - name: Get Latest Commit SHA
         id: get_sha
         run: |
-          commit_sha=$(git rev-parse HEAD)
-          echo "Commit SHA: $commit_sha"
-          echo "::set-output name=commit-sha::$commit_sha"
-
+          echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
 
   check-label:
     needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     outputs:
-      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event_name != 'labeled' || (github.event_name == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
-      run-jobs: ${{ github.event_name != 'labeled' }}
+      run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
+      run-jobs: ${{ github.event.action != 'labeled' }}
     steps:
       - name: Get PR from branch name
         id: check-if-pr-has-label
@@ -54,7 +51,7 @@ jobs:
             let pr;
             try {
               sha = '${{ needs.changes.outputs.commit-sha }}';
-              console.log(sha);
+              console.log('sha', sha);
               const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -74,27 +71,6 @@ jobs:
             }
 
             if (!pr) {
-              try {
-                const ref = '${{ github.ref }}';
-                const branch = ref.replace('refs/heads/', '');
-                console.log('ref', ref);
-                console.log('branch', branch);
-                const response = await github.rest.pulls.list({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  state: 'open',
-                  head: `${context.repo.owner}:${branch}`
-                });
-                if (response.data.length > 0) {
-                  pr = response.data[0];
-                }
-              }
-              catch (e) {
-                console.log(e);
-              }
-            }
-
-            if (!pr) {
               core.setOutput('run-e2e', false);
               console.log('Could not find the PR for this commit');
               return;
@@ -104,7 +80,7 @@ jobs:
             console.log(`PR title: ${pr.title}`);
             console.log(`PR state: ${pr.state}`);
             console.log(`PR URL: ${pr.html_url}`);
-            console.log('github.event_name', '${{ github.event_name }}');
+            console.log('github.event.action', '${{ github.event.action }}');
 
             const labels = pr.labels.map(label => label.name);
             const labelFound = labels.includes('ready-for-e2e');
