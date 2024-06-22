@@ -92,6 +92,9 @@ jobs:
                   pr = response.data[0];
                 }
               }
+              catch (e) {
+                console.log(e);
+              }
             }
 
             if (!pr) {
