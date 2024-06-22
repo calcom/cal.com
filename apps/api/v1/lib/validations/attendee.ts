@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { _AttendeeModel as Attendee } from "@calcom/prisma/zod";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 
 import { timeZone } from "~/lib/validations/shared/timeZone";
 
@@ -14,7 +15,7 @@ export const schemaAttendeeBaseBodyParams = Attendee.pick({
 const schemaAttendeeCreateParams = z
   .object({
     bookingId: z.number().int(),
-    email: z.string().email(),
+    email: z.string().regex(emailRegex),
     name: z.string(),
     timeZone: timeZone,
   })
@@ -23,7 +24,7 @@ const schemaAttendeeCreateParams = z
 const schemaAttendeeEditParams = z
   .object({
     name: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.string().regex(emailRegex).optional(),
     timeZone: timeZone.optional(),
   })
   .strict();

@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { MAX_NB_INVITES } from "@calcom/lib/constants";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 
 export const ZInviteMemberInputSchema = z.object({
   teamId: z.number(),
@@ -27,7 +28,7 @@ export const ZInviteMemberInputSchema = z.object({
     .refine(
       (value) => {
         if (Array.isArray(value)) {
-          return !value.some((email) => !z.string().email().safeParse(email).success);
+          return !value.some((email) => !z.string().regex(emailRegex).safeParse(email).success);
         }
         return true;
       },

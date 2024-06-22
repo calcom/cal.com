@@ -8,6 +8,7 @@ import { z } from "zod";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 import { EmailField, EmptyScreen, Label, PasswordField, TextField } from "@calcom/ui";
 
 export const AdminUserContainer = (props: React.ComponentProps<typeof AdminUser> & { userCount: number }) => {
@@ -39,7 +40,7 @@ export const AdminUser = (props: { onSubmit: () => void; onError: () => void; on
     username: z
       .string()
       .refine((val) => val.trim().length >= 1, { message: t("at_least_characters", { count: 1 }) }),
-    email_address: z.string().email({ message: t("enter_valid_email") }),
+    email_address: z.string().regex(emailRegex, { message: t("enter_valid_email") }),
     full_name: z.string().min(3, t("at_least_characters", { count: 3 })),
     password: z.string().superRefine((data, ctx) => {
       const isStrict = true;

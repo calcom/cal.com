@@ -16,6 +16,7 @@ import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Alert, Button, EmailField, PasswordField } from "@calcom/ui";
 
@@ -58,7 +59,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
       email: z
         .string()
         .min(1, `${t("error_required_field")}`)
-        .email(`${t("enter_valid_email")}`),
+        .regex(emailRegex, `${t("enter_valid_email")}`),
       ...(!!totpEmail ? {} : { password: z.string().min(1, `${t("error_required_field")}`) }),
     })
     // Passthrough other fields like totpCode

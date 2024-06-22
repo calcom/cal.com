@@ -5,6 +5,7 @@ import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
 
@@ -15,7 +16,7 @@ interface Props {
 }
 
 const schema = z.object({
-  email: z.string().email({ message: "Please enter a valid email" }),
+  email: z.string().regex(emailRegex, { message: "Please enter a valid email" }),
 });
 
 export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {

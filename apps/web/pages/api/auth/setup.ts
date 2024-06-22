@@ -8,13 +8,14 @@ import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   username: z
     .string()
     .refine((val) => val.trim().length >= 1, { message: "Please enter at least one character" }),
   full_name: z.string().min(3, "Please enter at least 3 characters"),
-  email_address: z.string().email({ message: "Please enter a valid email" }),
+  email_address: z.string().regex(emailRegex, { message: "Please enter a valid email" }),
   password: z.string().refine((val) => isPasswordValid(val.trim(), false, true), {
     message:
       "The password must be a minimum of 15 characters long containing at least one number and have a mixture of uppercase and lowercase letters",

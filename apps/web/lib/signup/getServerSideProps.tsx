@@ -7,19 +7,20 @@ import { isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 import slugify from "@calcom/lib/slugify";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { IS_GOOGLE_LOGIN_ENABLED } from "@server/lib/constants";
 import { ssrInit } from "@server/lib/ssr";
 
-const checkValidEmail = (email: string) => z.string().email().safeParse(email).success;
+const checkValidEmail = (email: string) => z.string().regex(emailRegex).safeParse(email).success;
 
 const querySchema = z.object({
   username: z
     .string()
     .optional()
     .transform((val) => val || ""),
-  email: z.string().email().optional(),
+  email: z.string().regex(emailRegex).optional(),
 });
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {

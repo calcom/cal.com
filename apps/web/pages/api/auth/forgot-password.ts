@@ -5,11 +5,12 @@ import { passwordResetRequest } from "@calcom/features/auth/lib/passwordResetReq
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { defaultHandler } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
+import { emailRegex } from "@calcom/prisma/zod-utils";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const email = z
     .string()
-    .email()
+    .regex(emailRegex)
     .transform((val) => val.toLowerCase())
     .safeParse(req.body?.email);
 
