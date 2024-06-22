@@ -1,12 +1,11 @@
-import type { Prisma } from "@prisma/client";
-
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TAppCredentialByIdInputSchema } from "./appCredentialById.schema";
+import { handleCredentialParsing } from "./appCredentialById.validator";
 
-type AppCredentialsByIdOptions = {
+export type AppCredentialsByIdOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
@@ -22,7 +21,7 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
     return teamIds;
   }, [] as number[]);
 
-  const data = await prisma.credential.findUnique({
+  const appCredential = await prisma.credential.findUnique({
     where: {
       OR: [
         { userId: user.id },
@@ -36,13 +35,7 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
     },
   });
 
-  if (data && data?.key) {
-    return {
-      apiKey: (data.key as Prisma.JsonObject).apiKey as string | undefined,
-      endpoint: (data.key as Prisma.JsonObject).endpoint as string | undefined,
-      projectId: (data.key as Prisma.JsonObject).projectId as string | undefined,
-      settings: data.settings,
-      isInvalid: data.invalid,
-    };
+  if (appCredential) {
+    return await handleCredentialParsing(appCredential);
   } else return {};
 };

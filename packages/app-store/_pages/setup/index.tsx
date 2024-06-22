@@ -16,6 +16,8 @@ export const AppSetupMap = {
   sendgrid: dynamic(() => import("../../sendgrid/pages/setup")),
   stripe: dynamic(() => import("../../stripepayment/pages/setup")),
   paypal: dynamic(() => import("../../paypal/pages/setup")),
+  // Audit log implementations should import their setup page like below.
+  // "audit-log-implementation": dynamic(() => import("../../templates/audit-log-implementation/pages/setup")),
 };
 
 export const AppSetupPage = (props: { slug: string }) => {
