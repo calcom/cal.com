@@ -6,11 +6,6 @@ on:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'The branch to check'
-        required: true
-        default: 'main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -43,6 +38,7 @@ jobs:
 
 
   check-label:
+    needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
     outputs:
@@ -57,7 +53,7 @@ jobs:
             let sha = '';
             let pr;
             try {
-              sha = '${{ github.event.pull_request.head.sha }}';
+              sha = '${{ needs.changes.outputs.commit-sha }}';
               const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
