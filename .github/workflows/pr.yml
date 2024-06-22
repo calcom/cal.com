@@ -51,7 +51,7 @@ jobs:
             let pr;
             console.log('github.event.action', '${{ github.event.action }}');
             try {
-              sha = '${{ needs.changes.outputs.commit-sha }}';
+              sha = '${{ github.event.pull_request.head.sha }}';
               console.log('sha', sha);
               const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
