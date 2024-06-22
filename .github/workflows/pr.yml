@@ -42,19 +42,21 @@ jobs:
         with:
           script: |
             let pr;
-            if (github.event && github.event.pull_request) {
+            console.log('github.event_name', '${{ github.event_name }}');
+            const parsedEvent = ${{ github.event }};
+            if (parsedEvent && parsedEvent.pull_request) {
               const response = await github.rest.pulls.get({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
-                pull_number: github.event.pull_request.number
+                pull_number: parsedEvent.pull_request.number
               });
 
               pr = response.data;
             } else {
               const ref = '${{ github.ref }}';
               const branch = ref.replace('refs/heads/', '');
-              console.log(ref);
-              console.log(branch);
+              console.log('ref', ref);
+              console.log('branch', branch);
               const response = await github.rest.pulls.list({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
@@ -64,26 +66,20 @@ jobs:
 
               if (response.data.length > 0) {
                 pr = response.data[0];
-              } else {
-                core.setOutput('run-e2e', false);
-                console.log('No PR found matching the branch');
               }
             }
 
             if (!pr) {
+              core.setOutput('run-e2e', false);
               console.log('No PR found');
               return;
             }
 
             const labels = pr.labels.map(label => label.name);
+            const labelFound = labels.includes('ready-for-e2e');
             console.log('PR #', pr.number);
-            if (labels.includes('ready-for-e2e')) {
-              core.setOutput('run-e2e', true);
-              console.log('Found the label');
-            } else {
-              core.setOutput('run-e2e', false);
-              console.log('Did not find the label');
-            }
+            console.log('Found the label?', labelFound);
+            core.setOutput('run-e2e', labelFound);
 
   type-check:
     name: Type check
