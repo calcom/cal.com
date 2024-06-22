@@ -43,7 +43,7 @@ jobs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
       run-jobs: ${{ github.event.action != 'labeled' }}
     steps:
-      - name: Check if PR exists with ready-for-e2e label for this SHA (KICK OFF A BUILD)
+      - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
         with:
@@ -137,28 +137,28 @@ jobs:
 
   e2e:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, lint, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, lint, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, lint, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, lint, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -171,7 +171,7 @@ jobs:
 
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
