@@ -43,7 +43,7 @@ jobs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
       run-jobs: ${{ github.event.action != 'labeled' }}
     steps:
-      - name: Check if PR exists with ready-for-e2e label for this SHA
+      - name: Check if PR exists with ready-for-e2e label for this SHA (KICK OFF A BUILD)
         id: check-if-pr-has-label
         uses: actions/github-script@v7
         with:
