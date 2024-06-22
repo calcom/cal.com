@@ -6,6 +6,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'The branch to check'
+        required: true
+        default: 'main'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -19,6 +24,7 @@ jobs:
       pull-requests: read
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
+      commit-sha: ${{ steps.filter.outputs.commit-sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
@@ -28,6 +34,13 @@ jobs:
           filters: |
             has-files-requiring-all-checks:
               - "!(**.md|.github/CODEOWNERS)"
+      - name: Get Latest Commit SHA
+        id: get_sha
+        run: |
+          commit_sha=$(git rev-parse HEAD)
+          echo "Commit SHA: $commit_sha"
+          echo "::set-output name=commit_sha::$commit-sha"
+
 
   check-label:
     runs-on: buildjet-2vcpu-ubuntu-2204
@@ -41,20 +54,51 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const sha = '${{ github.event.pull_request.head.sha }}';
-            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              commit_sha: sha
-            });
+            let sha = '';
+            let pr;
+            try {
+              sha = '${{ github.event.pull_request.head.sha }}';
+              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: sha
+              });
 
-            if (prs.length === 0) {
-              core.setOutput('run-e2e', false);
-              core.setFailed(`No pull requests found for commit SHA ${sha}`);
-              return;
+              if (prs.length === 0) {
+                core.setOutput('run-e2e', false);
+                core.setFailed(`No pull requests found for commit SHA ${sha}`);
+                return;
+              }
+
+              pr = prs[0];
+            }
+            catch (e) {
+              console.log(e);
             }
 
-            const pr = prs[0];
+            if (!pr) {
+              try {
+                const ref = '${{ github.ref }}';
+                const branch = ref.replace('refs/heads/', '');
+                console.log('ref', ref);
+                console.log('branch', branch);
+                const response = await github.rest.pulls.list({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  state: 'open',
+                  head: `${context.repo.owner}:${branch}`
+                });
+                if (response.data.length > 0) {
+                  pr = response.data[0];
+                }
+              }
+            }
+
+            if (!pr) {
+              core.setOutput('run-e2e', false);
+              console.log('Could not find the PR for this commit');
+            }
+
             console.log(`PR number: ${pr.number}`);
             console.log(`PR title: ${pr.title}`);
             console.log(`PR state: ${pr.state}`);
