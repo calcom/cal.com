@@ -5,6 +5,7 @@ on:
     types: [opened, synchronize, reopened, labeled]
     branches:
       - main
+      - gh-actions-test-branch
   workflow_dispatch:
 
 concurrency:
