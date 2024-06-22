@@ -244,7 +244,7 @@ export function DialogClose(
         data-testid={props["data-testid"] || "dialog-rejection"}
         color={props.color || "minimal"}
         {...props}>
-        {props.children ? props.children : t("Close")}
+        {props.children ? props.children : t("close")}
       </Button>
     </Close>
   );
