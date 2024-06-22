@@ -74,7 +74,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
 
   // We only allow creating an annual billing period if you are a system admin
-  const billingPeriod = IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY;
+  const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
 
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
@@ -153,7 +153,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     seats: seats ?? null,
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
-    billingPeriod: billingPeriod ? billingPeriod : BillingPeriod.MONTHLY,
+    billingPeriod,
   };
 
   // Create a new user and invite them as the owner of the organization
