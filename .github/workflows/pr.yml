@@ -49,6 +49,7 @@ jobs:
         with:
           script: |
             console.log('github.event.action', '${{ github.event.action }}');
+            console.log('github.event.pull_request', ${{ github.event.pull_request }});
             try {
               const sha = '${{ needs.changes.outputs.commit-sha }}';
               console.log('sha', sha);
