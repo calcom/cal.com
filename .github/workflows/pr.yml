@@ -48,7 +48,7 @@ jobs:
         with:
           script: |
             console.log('github.event.action', '${{ github.event.action }}');
-            console.log('github.event.pull_request.labels', ${{ github.event.pull_request.labels }});
+            console.log('github.event.pull_request.labels - start new build', ${{ github.event.pull_request.labels }});
             try {
               const sha = '${{ needs.changes.outputs.commit-sha }}';
               console.log('sha', sha);
