@@ -49,6 +49,7 @@ jobs:
           script: |
             let sha = '';
             let pr;
+            console.log('github.event.action', '${{ github.event.action }}');
             try {
               sha = '${{ needs.changes.outputs.commit-sha }}';
               console.log('sha', sha);
@@ -60,33 +61,26 @@ jobs:
 
               if (prs.length === 0) {
                 core.setOutput('run-e2e', false);
-                core.setFailed(`No pull requests found for commit SHA ${sha}`);
+                console.log(`No pull requests found for commit SHA ${sha}`);
                 return;
               }
 
               pr = prs[0];
+              console.log(`PR number: ${pr.number}`);
+              console.log(`PR title: ${pr.title}`);
+              console.log(`PR state: ${pr.state}`);
+              console.log(`PR URL: ${pr.html_url}`);
+
+              const labels = pr.labels.map(label => label.name);
+              const labelFound = labels.includes('ready-for-e2e');
+              console.log('PR #', pr.number);
+              console.log('Found the label?', labelFound);
+              core.setOutput('run-e2e', labelFound);
             }
             catch (e) {
+              core.setOutput('run-e2e', false);
               console.log(e);
             }
-
-            if (!pr) {
-              core.setOutput('run-e2e', false);
-              console.log('Could not find the PR for this commit');
-              return;
-            }
-
-            console.log(`PR number: ${pr.number}`);
-            console.log(`PR title: ${pr.title}`);
-            console.log(`PR state: ${pr.state}`);
-            console.log(`PR URL: ${pr.html_url}`);
-            console.log('github.event.action', '${{ github.event.action }}');
-
-            const labels = pr.labels.map(label => label.name);
-            const labelFound = labels.includes('ready-for-e2e');
-            console.log('PR #', pr.number);
-            console.log('Found the label?', labelFound);
-            core.setOutput('run-e2e', labelFound);
 
   type-check:
     name: Type check
