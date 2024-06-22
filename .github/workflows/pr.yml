@@ -49,12 +49,12 @@ jobs:
         with:
           script: |
             console.log('github.event.action', '${{ github.event.action }}');
-            console.log('github.event.pull_request.labels', ${{ toJson(github.event.pull_request.labels) }});
+            console.log('github.event.pull_request.labels', context.payload.pull_request.labels);
 
             let labels = [];
 
-            if (${{ toJson(github.event) }} && ${{ toJson(github.event.pull_request) }}) {
-              labels = ${{ toJson(github.event.pull_request.labels) }};
+            if (context.payload.pull_request) {
+              labels = context.payload.pull_request.labels;
             } else {
               try {
                 const sha = '${{ needs.changes.outputs.commit-sha }}';
