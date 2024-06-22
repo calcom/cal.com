@@ -50,37 +50,43 @@ jobs:
           script: |
             console.log('github.event.action', '${{ github.event.action }}');
             console.log('github.event.pull_request.labels', ${{ github.event.pull_request.labels }});
-            try {
-              const sha = '${{ needs.changes.outputs.commit-sha }}';
-              console.log('sha', sha);
-              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                commit_sha: sha
-              });
 
-              if (prs.length === 0) {
-                core.setOutput('run-e2e', false);
-                console.log(`No pull requests found for commit SHA ${sha}`);
-                return;
+            if (${{ github.event }} && ${{ github.event.pull_request }}) {
+              labels = ${{ github.event.pull_request.labels }};
+            } else {
+              try {
+                const sha = '${{ needs.changes.outputs.commit-sha }}';
+                console.log('sha', sha);
+                const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: sha
+                });
+
+                if (prs.length === 0) {
+                  core.setOutput('run-e2e', false);
+                  console.log(`No pull requests found for commit SHA ${sha}`);
+                  return;
+                }
+
+                const pr = prs[0];
+                console.log(`PR number: ${pr.number}`);
+                console.log(`PR title: ${pr.title}`);
+                console.log(`PR state: ${pr.state}`);
+                console.log(`PR URL: ${pr.html_url}`);
+
+                labels = pr.labels.map(label => label.name);
               }
-
-              const pr = prs[0];
-              console.log(`PR number: ${pr.number}`);
-              console.log(`PR title: ${pr.title}`);
-              console.log(`PR state: ${pr.state}`);
-              console.log(`PR URL: ${pr.html_url}`);
-
-              const labels = pr.labels.map(label => label.name);
-              const labelFound = labels.includes('ready-for-e2e');
-              console.log('PR #', pr.number);
-              console.log('Found the label?', labelFound);
-              core.setOutput('run-e2e', labelFound);
+              catch (e) {
+                core.setOutput('run-e2e', false);
+                console.log(e);
+              }
             }
-            catch (e) {
-              core.setOutput('run-e2e', false);
-              console.log(e);
-            }
+
+            const labelFound = labels.includes('ready-for-e2e');
+            console.log('PR #', pr.number);
+            console.log('Found the label?', labelFound);
+            core.setOutput('run-e2e', labelFound);
 
   type-check:
     name: Type check
