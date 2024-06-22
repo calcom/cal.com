@@ -42,16 +42,14 @@ jobs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
       run-jobs: ${{ github.event.action != 'labeled' }}
     steps:
-      - name: Get PR from branch name
+      - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
         with:
           script: |
-            let sha = '';
-            let pr;
             console.log('github.event.action', '${{ github.event.action }}');
             try {
-              sha = '${{ needs.changes.outputs.commit-sha }}';
+              const sha = '${{ needs.changes.outputs.commit-sha }}';
               console.log('sha', sha);
               const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
@@ -65,7 +63,7 @@ jobs:
                 return;
               }
 
-              pr = prs[0];
+              const pr = prs[0];
               console.log(`PR number: ${pr.number}`);
               console.log(`PR title: ${pr.title}`);
               console.log(`PR state: ${pr.state}`);
