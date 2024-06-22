@@ -1,41 +1,24 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { showToast } from "@calcom/ui";
 
-import { CredentialsForm, FormAction } from "../../components/CredentialsForm";
+import { AppKeyForm } from "../../components/forms/AppKeyForm";
 import config from "../../config.json";
-import type { AppKeys } from "../../zod";
-import { appKeysSchema } from "../../zod";
+import type { AppKeysForm } from "../../zod";
 
-const formSchema = appKeysSchema;
-
-export default function BoxyHQSetup() {
+export default function AuditLogImplementationExampleSetup() {
   const { t } = useLocale();
   const router = useRouter();
-  const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const form = useForm<AppKeys>({
-    resolver: zodResolver(formSchema),
-  });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (testPassed === false) {
-        setTestPassed(undefined);
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [testPassed]);
-
-  async function onCreate(values: AppKeys) {
+  async function onCreate(values: AppKeysForm) {
+    setIsLoading(true);
     const res = await fetch(`/api/integrations/${config.slug}/add`, {
       method: "POST",
-      body: JSON.stringify(values),
+      body: JSON.stringify({ ...values, disabledEvents: [] }),
       headers: {
         "Content-Type": "application/json",
       },
@@ -44,6 +27,7 @@ export default function BoxyHQSetup() {
 
     if (res.ok) {
       router.push(json.url);
+      showToast(t("keys_have_been_saved"), "success");
     } else {
       showToast(json.message, "error");
     }
@@ -76,7 +60,7 @@ export default function BoxyHQSetup() {
               . {t("it_stored_encrypted")}
             </div>
             <div className="my-2 mt-3">
-              <CredentialsForm form={form} action={FormAction.CREATE} onCreate={onCreate} />
+              <AppKeyForm onCreate={onCreate} isLoading={isLoading} />
             </div>
           </div>
         </div>

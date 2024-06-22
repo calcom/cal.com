@@ -25,6 +25,7 @@ export async function getHandler(req: NextApiRequest, res: NextApiResponse) {
         apiKey,
         projectId,
         endpoint,
+        disabledEvents: [],
       },
     });
   } catch (reason) {

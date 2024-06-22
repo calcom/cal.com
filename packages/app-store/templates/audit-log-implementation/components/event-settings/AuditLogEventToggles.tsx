@@ -7,13 +7,26 @@ import { trpc } from "@calcom/trpc";
 import { Badge, Switch, Select } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
-import { useAppCredential } from "../context/CredentialContext";
+import { useAppCredential } from "../../context/CredentialContext";
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
 export const AuditLogEventToggles = () => {
   const { t } = useLocale();
   const { t: tAuditLogs } = useLocale("audit-logs");
-  const { value, onChange, data, credentialId } = useAppCredential();
+  const { data, credentialId } = useAppCredential();
+
+  const [value, setValue] = useState<{ label: string; value: AuditLogTriggerTargets; key: string }>(
+    availableTriggerTargets.booking
+  );
+
+  function onChange(key: string | undefined) {
+    if (key) {
+      const index = Object.keys(availableTriggerTargets).indexOf(key);
+      setValue(Object.values(availableTriggerTargets)[index]);
+    } else {
+      setValue(Object.values(availableTriggerTargets)[0]);
+    }
+  }
 
   // Select related
   const [actionKey, setActionKey] = useState({ checked: true, action: "" });
@@ -23,8 +36,8 @@ export const AuditLogEventToggles = () => {
   }
 
   // Toggle related
-  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.settings.disabledEvents));
-  const updateCredentialSettingsMutation = trpc.viewer.appsRouter.updateCredentialSettings.useMutation({
+  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.key.disabledEvents));
+  const updateCredentialSettingsMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
     },
@@ -34,11 +47,6 @@ export const AuditLogEventToggles = () => {
   });
 
   async function handleOnConfirm() {
-    updateCredentialSettingsMutation.mutate({
-      credentialId: credentialId.toString(),
-      settings: { toBeDisabled: !actionKey.checked, event: actionKey.action },
-    });
-
     const newDisabledEvents = disabledEvents;
     if (!actionKey.checked) {
       newDisabledEvents.add(actionKey.action);
@@ -47,6 +55,13 @@ export const AuditLogEventToggles = () => {
       newDisabledEvents.delete(actionKey.action);
       setDisabledEvents(newDisabledEvents);
     }
+
+    updateCredentialSettingsMutation.mutate({
+      credentialId: credentialId,
+      key: {
+        disabledEvents: Array.from(newDisabledEvents),
+      },
+    });
   }
 
   // ManagedAuditLogEventDialog Related

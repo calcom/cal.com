@@ -4,7 +4,7 @@ import React from "react";
 import type { GeneralSettingsOption } from "@calcom/features/audit-logs/types";
 import { Button } from "@calcom/ui";
 
-import { getGeneralSettingsOptions } from "../lib/utils";
+import { getGeneralSettingsOptions } from "../../lib/utils";
 
 export const GeneralSettings = () => {
   const generalSettingsOptions = getGeneralSettingsOptions();

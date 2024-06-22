@@ -1,9 +1,43 @@
-import { Label } from "@calcom/ui";
+import { useQuery } from "@tanstack/react-query";
 
+import { Label } from "@calcom/ui";
+import { showToast } from "@calcom/ui";
+
+import appConfig from "../config.json";
 import { useAppCredential } from "../context/CredentialContext";
 
 export const AuditSystemStatus = () => {
-  const { status, statusLoading: isLoading } = useAppCredential();
+  const { credentialId } = useAppCredential();
+  const {
+    data: status,
+    isLoading: isLoading,
+    refetch: refetchStatus,
+  } = useQuery({
+    queryKey: ["ping", credentialId.toString()],
+    queryFn: async () => {
+      const response = await fetch(`/api/integrations/${appConfig.slug}/ping`, {
+        method: "post",
+        headers: { "Content-type": "application/json" },
+        body: JSON.stringify({
+          credentialId,
+        }),
+      });
+
+      if (response.status === 200) {
+        showToast("Ping successful. Audit Logging integration is healthy.", "success");
+      } else {
+        showToast("Ping failed. Please ensure your credentials are valid.", "error");
+      }
+
+      return {
+        status: response.status,
+        message: response.statusText,
+        lastCheck: new Date().toLocaleString(),
+      };
+    },
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 
   if (isLoading || !status || typeof status === "undefined") {
     return (
@@ -21,7 +55,9 @@ export const AuditSystemStatus = () => {
   const credentialIsValid = status?.status === 200;
 
   return (
-    <div className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border">
+    <div
+      className="mb-1 grid h-[60px] grid-cols-3 overflow-hidden rounded-md border hover:cursor-pointer"
+      onClick={() => refetchStatus()}>
       <div className="flex flex-row items-center justify-center border-r-[1px]">
         <span className="relative flex h-5 w-5">
           <span

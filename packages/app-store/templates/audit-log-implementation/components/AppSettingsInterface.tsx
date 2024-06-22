@@ -1,11 +1,13 @@
+import { useSearchParams } from "next/navigation";
+
 import { DefaultAppSettingsOptions } from "@calcom/features/audit-logs/types";
 
 import { useAppCredential, AuditLogCredentialProvider } from "../context/CredentialContext";
-import { AuditLogEventToggles } from "./AuditLogEventToggles";
 import { AuditSystemStatus } from "./AuditSystemStatus";
-import { CredentialsFormWrapper } from "./CredentialsFormWrapper";
-import { GeneralSettings } from "./GeneralSettings";
 import { NavigationPanel } from "./NavigationPanel";
+import { AuditLogEventToggles } from "./event-settings/AuditLogEventToggles";
+import { AppKeyForm } from "./forms/AppKeyForm";
+import { GeneralSettings } from "./general-settings/GeneralSettings";
 
 export default function AppSettings(props: { credentialId: number }) {
   return (
@@ -16,7 +18,9 @@ export default function AppSettings(props: { credentialId: number }) {
 }
 
 function Interface() {
-  const { isLoading, activePanel } = useAppCredential();
+  const { isLoading, credentialId } = useAppCredential();
+  const searchParams = useSearchParams();
+  const activePanel = searchParams.get(credentialId.toString());
 
   if (isLoading) return null;
 
@@ -45,6 +49,6 @@ function renderPanel(activePanel: string | null) {
 
     // DefaultAppSettingsOptions.CREDENTIALS
     default:
-      return <CredentialsFormWrapper />;
+      return <AppKeyForm />;
   }
 }
