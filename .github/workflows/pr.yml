@@ -54,6 +54,7 @@ jobs:
             let pr;
             try {
               sha = '${{ needs.changes.outputs.commit-sha }}';
+              console.log(sha);
               const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
