@@ -34,7 +34,7 @@ jobs:
         run: |
           commit_sha=$(git rev-parse HEAD)
           echo "Commit SHA: $commit_sha"
-          echo "::set-output name=commit_sha::$commit-sha"
+          echo "::set-output name=commit-sha::$commit_sha"
 
 
   check-label:
@@ -96,6 +96,7 @@ jobs:
             if (!pr) {
               core.setOutput('run-e2e', false);
               console.log('Could not find the PR for this commit');
+              return;
             }
 
             console.log(`PR number: ${pr.number}`);
