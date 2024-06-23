@@ -503,13 +503,17 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
         schedulingType: SchedulingType.ROUND_ROBIN,
         teamEventLength: 120,
         teammates: teamMatesObj,
+        seatsPerTimeSlot: 5,
       }
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
-  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+  test("Does not book seated round robin host outside availability with date override", async ({
+    page,
+    users,
+  }) => {
     const [testUser] = users.get();
     await testUser.apiLogin();
 

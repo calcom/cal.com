@@ -70,6 +70,7 @@ import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { extractBaseEmail } from "@calcom/lib/extract-base-email";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
@@ -1279,9 +1280,29 @@ async function handler(
   }
 
   let luckyUserResponse;
+  let isFirstSeat = true;
+
+  if (eventType.seatsPerTimeSlot) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: new Date(dayjs(reqBody.start).utc().format()),
+          },
+        ],
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+
+    if (booking) isFirstSeat = false;
+  }
 
   //checks what users are available
-  if (!eventType.seatsPerTimeSlot) {
+  if (isFirstSeat) {
     const eventTypeWithUsers: Awaited<ReturnType<typeof getEventTypesFromDB>> & {
       users: IsFixedAwareUser[];
     } = {
@@ -1685,11 +1706,16 @@ async function handler(
 
   const triggerForUser = !teamId || (teamId && eventType.parentId);
 
+  const organizerUserId = triggerForUser ? organizerUser.id : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
+
   const subscriberOptions: GetSubscriberOptions = {
-    userId: triggerForUser ? organizerUser.id : null,
+    userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
+    orgId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1703,6 +1729,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
     teamId,
+    orgId,
   };
 
   const subscriberOptionsMeetingStarted = {
@@ -1710,6 +1737,7 @@ async function handler(
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
     teamId,
+    orgId,
   };
 
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
@@ -1745,6 +1773,7 @@ async function handler(
       eventTrigger,
       responses,
     });
+
     if (newBooking) {
       req.statusCode = 201;
       const bookingResponse = {
@@ -1759,6 +1788,13 @@ async function handler(
         ...bookingResponse,
         ...luckyUserResponse,
       };
+    } else {
+      // Rescheduling logic for the original seated event was handled in handleSeats
+      // We want to use new booking logic for the new time slot
+      originalRescheduledBooking = null;
+      evt.iCalUID = getICalUID({
+        attendeeId: bookingSeat?.attendeeId,
+      });
     }
   }
   if (isTeamEventType) {
@@ -1768,7 +1804,6 @@ async function handler(
       id: eventType.team?.id ?? 0,
     };
   }
-
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
@@ -1890,7 +1925,7 @@ async function handler(
   let videoCallUrl;
 
   //this is the actual rescheduling logic
-  if (originalRescheduledBooking?.uid) {
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
     try {
       // cancel workflow reminders from previous rescheduled booking
@@ -2357,6 +2392,7 @@ async function handler(
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
+      orgId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -2503,7 +2539,7 @@ async function handler(
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
       isRescheduleEvent: !!rescheduleUid,
-      isFirstRecurringEvent: true,
+      isFirstRecurringEvent: req.body.allRecurringDates ? req.body.isFirstRecurringSlot : undefined,
       hideBranding: !!eventType.owner?.hideBranding,
       seatReferenceUid: evt.attendeeSeatId,
     });

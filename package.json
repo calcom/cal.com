@@ -82,7 +82,6 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
-    "@deploysentinel/playwright": "^0.3.3",
     "@playwright/test": "^1.31.2",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",

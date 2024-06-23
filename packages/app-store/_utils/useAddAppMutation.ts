@@ -88,7 +88,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         ...(defaultInstall && { defaultInstall }),
       };
 
-      const stateStr = encodeURIComponent(JSON.stringify(state));
+      const stateStr = JSON.stringify(state);
       const searchParams = generateSearchParamString({ stateStr, teamId, returnTo });
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
