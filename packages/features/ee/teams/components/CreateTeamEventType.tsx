@@ -1,3 +1,4 @@
+import type { EventType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
