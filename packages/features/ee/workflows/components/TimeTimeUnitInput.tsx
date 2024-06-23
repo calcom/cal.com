@@ -26,6 +26,7 @@ export const TimeTimeUnitInput = (props: Props) => {
   const timeUnitOptions = getWorkflowTimeUnitOptions(t);
 
   const [timeUnit, setTimeUnit] = useState(form.getValues("timeUnit"));
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   return (
     <div className="flex">
@@ -39,14 +40,14 @@ export const TimeTimeUnitInput = (props: Props) => {
           className="-mt-2 rounded-r-none text-sm focus:ring-0"
           {...form.register("time", { valueAsNumber: true })}
           addOnSuffix={
-            <Dropdown>
+            <Dropdown onOpenChange={setIsDropdownOpen}>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center">
-                  <div className="mr-1 w-3/4">
+                  <div className="mr-1 w-3/5">
                     {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
                   </div>
-                  <div className="w-1/4 pt-1">
-                    <Icon name="chevron-down" />
+                  <div className="w-2/5 pt-1">
+                    {isDropdownOpen ? <Icon name="chevron-up" /> : <Icon name="chevron-down" />}
                   </div>
                 </button>
               </DropdownMenuTrigger>
