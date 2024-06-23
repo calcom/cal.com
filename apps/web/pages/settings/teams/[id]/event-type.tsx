@@ -2,7 +2,7 @@
 
 import Head from "next/head";
 
-import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { CreateTeamEventType } from "@calcom/features/ee/teams/components/CreateTeamEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
 
@@ -16,7 +16,7 @@ const TeamEventTypePage = () => {
         <title>{t("add_new_team_event_type")}</title>
         <meta name="description" content={t("new_event_type_to_book_description")} />
       </Head>
-      <TeamEventTypeForm />
+      <CreateTeamEventType />
     </>
   );
 };

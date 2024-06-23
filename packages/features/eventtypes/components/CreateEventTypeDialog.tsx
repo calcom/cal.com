@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import type { EventType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -6,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { TeamEventAssignmentSection } from "@calcom/features/ee/teams/components/TeamEventAssignmentSection";
+import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
@@ -144,6 +145,28 @@ export default function CreateEventTypeDialog({
     },
   });
 
+  const submitButton = (isPending: boolean) => {
+    return (
+      <DialogFooter showDivider>
+        <DialogClose />
+        <Button type="submit" loading={isPending}>
+          {t("continue")}
+        </Button>
+      </DialogFooter>
+    );
+  };
+
+  const handleSuccessMutation = (eventType: EventType) => {
+    utils.viewer.eventTypes.getByViewer.invalidate();
+    router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
+    showToast(
+      t("event_type_created_successfully", {
+        eventTypeTitle: eventType.title,
+      }),
+      "success"
+    );
+  };
+
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
@@ -164,76 +187,70 @@ export default function CreateEventTypeDialog({
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
-        <Form
-          form={form}
-          handleSubmit={(values) => {
-            createMutation.mutate(values);
-          }}>
-          <div className="mt-3 space-y-6 pb-11">
-            {teamId && (
+        {!teamId ? (
+          <Form
+            form={form}
+            handleSubmit={(values) => {
+              createMutation.mutate(values);
+            }}>
+            <div className="mt-3 space-y-6 pb-11">
               <TextField
-                type="hidden"
-                labelProps={{ style: { display: "none" } }}
-                {...register("teamId", { valueAsNumber: true })}
-                value={teamId}
+                label={t("title")}
+                placeholder={t("quick_chat")}
+                data-testid="event-type-quick-chat"
+                {...register("title")}
+                onChange={(e) => {
+                  form.setValue("title", e?.target.value);
+                  if (form.formState.touchedFields["slug"] === undefined) {
+                    form.setValue("slug", slugify(e?.target.value));
+                  }
+                }}
               />
-            )}
-            <TextField
-              label={t("title")}
-              placeholder={t("quick_chat")}
-              data-testid="event-type-quick-chat"
-              {...register("title")}
-              onChange={(e) => {
-                form.setValue("title", e?.target.value);
-                if (form.formState.touchedFields["slug"] === undefined) {
-                  form.setValue("slug", slugify(e?.target.value));
-                }
-              }}
-            />
 
-            {urlPrefix && urlPrefix.length >= 21 ? (
-              <div>
-                <TextField
-                  label={`${t("url")}: ${urlPrefix}`}
-                  required
-                  addOnLeading={
-                    <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
-                      <span className="max-w-24 md:max-w-56">
-                        /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                      </span>
-                    </Tooltip>
-                  }
-                  {...register("slug")}
-                  onChange={(e) => {
-                    form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
-                  }}
-                />
+              {urlPrefix && urlPrefix.length >= 21 ? (
+                <div>
+                  <TextField
+                    label={`${t("url")}: ${urlPrefix}`}
+                    required
+                    addOnLeading={
+                      <Tooltip content={!isManagedEventType ? pageSlug : t("username_placeholder")}>
+                        <span className="max-w-24 md:max-w-56">
+                          /{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                        </span>
+                      </Tooltip>
+                    }
+                    {...register("slug")}
+                    onChange={(e) => {
+                      form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                    }}
+                  />
 
-                {isManagedEventType && (
-                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-                )}
-              </div>
-            ) : (
-              <div>
-                <TextField
-                  label={t("url")}
-                  required
-                  addOnLeading={
-                    <Tooltip
-                      content={`${urlPrefix}/${!isManagedEventType ? pageSlug : t("username_placeholder")}/`}>
-                      <span className="max-w-24 md:max-w-56">
-                        {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
-                      </span>
-                    </Tooltip>
-                  }
-                  {...register("slug")}
-                />
-                {isManagedEventType && (
-                  <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
-                )}
-              </div>
-            )}
-            {!teamId ? (
+                  {isManagedEventType && (
+                    <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <TextField
+                    label={t("url")}
+                    required
+                    addOnLeading={
+                      <Tooltip
+                        content={`${urlPrefix}/${
+                          !isManagedEventType ? pageSlug : t("username_placeholder")
+                        }/`}>
+                        <span className="max-w-24 md:max-w-56">
+                          {urlPrefix}/{!isManagedEventType ? pageSlug : t("username_placeholder")}/
+                        </span>
+                      </Tooltip>
+                    }
+                    {...register("slug")}
+                  />
+                  {isManagedEventType && (
+                    <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
+                  )}
+                </div>
+              )}
               <>
                 <Editor
                   getText={() => md.render(form.getValues("description") || "")}
@@ -257,17 +274,17 @@ export default function CreateEventTypeDialog({
                   />
                 </div>
               </>
-            ) : (
-              <TeamEventAssignmentSection isAdmin={isAdmin} form={form} />
-            )}
-          </div>
-          <DialogFooter showDivider>
-            <DialogClose />
-            <Button type="submit" loading={createMutation.isPending}>
-              {t("continue")}
-            </Button>
-          </DialogFooter>
-        </Form>
+            </div>
+            {submitButton(createMutation.isPending)}
+          </Form>
+        ) : (
+          <TeamEventTypeForm
+            isAdmin={isAdmin}
+            teamId={teamId}
+            submitButton={submitButton}
+            handleSuccessMutation={handleSuccessMutation}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
