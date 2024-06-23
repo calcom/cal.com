@@ -125,7 +125,7 @@ function DeleteDialog({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
-      router.push("/event-types");
+      router.push("/event-types?");
       onOpenChange?.(false);
     },
     onError: (err) => {

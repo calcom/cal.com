@@ -415,7 +415,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         !leaveWithoutAssigningHosts.current &&
         !!team &&
         (hosts.length === 0 || assignedUsers.length === 0) &&
-        (url === "/event-types" || paths[1] !== "event-types")
+        (url === "/event-types" || (url !== "/event-types?" && paths[1] !== "event-types"))
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
