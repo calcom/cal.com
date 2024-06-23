@@ -1,5 +1,5 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -14,8 +14,8 @@ export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService,
-    private readonly schedulesService: SchedulesService
+    private readonly eventTypesService: EventTypesService_2024_04_15,
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
   async createOauthClientUser(
@@ -62,7 +62,7 @@ export class OAuthClientUsersService {
       await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id
     );
@@ -78,6 +78,7 @@ export class OAuthClientUsersService {
       user,
       tokens: {
         accessToken,
+        accessTokenExpiresAt,
         refreshToken,
       },
     };
