@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { AppKeys } from "templates/audit-log-implementation/zod";
 
 import { availableTriggerEvents, availableTriggerTargets } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -36,7 +37,7 @@ export const AuditLogEventToggles = () => {
   }
 
   // Toggle related
-  const [disabledEvents, setDisabledEvents] = useState<Set<string>>(new Set(data?.key.disabledEvents));
+  const [disabledEvents, setDisabledEvents] = useState(new Set((data?.key as AppKeys).disabledEvents));
   const updateCredentialSettingsMutation = trpc.viewer.appsRouter.updateAppCredentials.useMutation({
     onSuccess: () => {
       showToast(t("keys_have_been_saved"), "success");
