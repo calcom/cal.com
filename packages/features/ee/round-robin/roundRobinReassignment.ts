@@ -14,7 +14,7 @@ import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents, WorkflowMethods } from "@calcom/prisma/enums";
+import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const bookingSelect = {
@@ -319,24 +319,23 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       where: {
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
+        workflowStep: {
+          action: WorkflowActions.EMAIL_HOST,
+          workflow: {
+            trigger: {
+              in: [
+                WorkflowTriggerEvents.BEFORE_EVENT,
+                WorkflowTriggerEvents.NEW_EVENT,
+                WorkflowTriggerEvents.AFTER_EVENT,
+              ],
+            },
+          },
+        },
       },
       include: {
         workflowStep: {
-          where: {
-            action: WorkflowActions.EMAIL_HOST,
-          },
           include: {
-            workflow: {
-              where: {
-                trigger: {
-                  in: [
-                    WorkflowTriggerEvents.NEW_EVENT,
-                    WorkflowTriggerEvents.BEFORE_EVENT,
-                    WorkflowTriggerEvents.AFTER_EVENT,
-                  ],
-                },
-              },
-            },
+            workflow: true,
           },
         },
       },
