@@ -19,7 +19,6 @@ export type UpdateAppCredentialsOptions = {
 export const updateAppCredentialsHandler = async ({ ctx, input }: UpdateAppCredentialsOptions) => {
   const { user } = ctx;
 
-  console.log("HEEY");
   // Find user credential
   const credential = await prisma.credential.findFirst({
     where: {
