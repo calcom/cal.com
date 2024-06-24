@@ -1429,6 +1429,8 @@
   "theme": "主題",
   "theme_applies_note": "這只適用於您的公開預約頁面",
   "theme_system": "系統預設",
+  "app_theme": "儀表板主題",
+  "app_theme_applies_note": "這僅適用於您登入的儀表板",
   "add_a_team": "新增團隊",
   "add_webhook_description": "當 {{appName}} 上有活動進行時，即時收到會議資料",
   "triggers_when": "觸發時機",

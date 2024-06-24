@@ -1421,6 +1421,8 @@
   "copy_link_to_form": "Kopírovat odkaz na formulář",
   "theme": "Motiv",
   "theme_applies_note": "Toto se týká pouze vašich veřejných stránek s rezervacemi",
+  "app_theme": "Motiv palubní desky",
+  "app_theme_applies_note": "To platí pouze pro váš přihlášený řídicí panel",
   "theme_system": "Výchozí nastavení systému",
   "app_theme": "Téma dashboardu",
   "app_theme_applies_note": "Tento se týká pouze vaše přihlášené dashboardu",
