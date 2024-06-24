@@ -46,6 +46,7 @@ export const publishHandler = async ({ ctx }: PublishOptions) => {
       userId: ctx.user.id,
       isOrg: true,
       pricePerSeat: metadata.data?.orgPricePerSeat ?? null,
+      billingPeriod: metadata.data?.billingPeriod ?? undefined,
     });
 
     if (!checkoutSession.url)
