@@ -44,6 +44,7 @@ jobs:
                     repo,
                     job_id: check.id,
                   });
+                  console.log(`Triggering job #${check.id}`);
                 }
               }
 

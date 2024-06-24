@@ -135,28 +135,28 @@ jobs:
     secrets: inherit
 
   e2e:
-    name: Tests
+    name: e2e
     needs: [changes, check-label, build]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
-    name: Tests
+    name: e2e-app-store
     needs: [changes, check-label, build]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
-    name: Tests
+    name: e2e-embed
     needs: [changes, check-label, build]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
-    name: Tests
+    name: e2e-embed-react
     needs: [changes, check-label, build]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
