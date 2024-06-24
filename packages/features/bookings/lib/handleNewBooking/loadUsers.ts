@@ -11,17 +11,16 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import type { NewBookingEventType } from "../handleNewBooking";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
-type Hosts = NewBookingEventType["hosts"];
 
-export const loadUsers = async (
-  eventType: NewBookingEventType,
-  dynamicUserList: string[],
-  req: IncomingMessage
-) => {
+type EventType = Pick<NewBookingEventType, "hosts" | "users" | "id">;
+
+export const loadUsers = async (eventType: EventType, dynamicUserList: string[], req: IncomingMessage) => {
   try {
+    const { currentOrgDomain } = orgDomainConfig(req);
+
     return eventType.id
       ? await loadUsersByEventType(eventType)
-      : await loadDynamicUsers(dynamicUserList, req);
+      : await loadDynamicUsers(dynamicUserList, currentOrgDomain);
   } catch (error) {
     if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
       throw new HttpError({ statusCode: 400, message: error.message });
@@ -30,11 +29,8 @@ export const loadUsers = async (
   }
 };
 
-const loadUsersByEventType = async (
-  eventType: NewBookingEventType
-): Promise<NewBookingEventType["users"]> => {
+const loadUsersByEventType = async (eventType: EventType): Promise<NewBookingEventType["users"]> => {
   const hosts = eventType.hosts || [];
-  validateHosts(hosts);
   const users = hosts.map(({ user, isFixed, priority }) => ({
     ...user,
     isFixed,
@@ -43,25 +39,14 @@ const loadUsersByEventType = async (
   return users.length ? users : eventType.users;
 };
 
-const validateHosts = (hosts: Hosts): void => {
-  if (!Array.isArray(hosts)) {
-    throw new Error("eventType.hosts is not properly defined.");
-  }
-};
-
-const loadDynamicUsers = async (dynamicUserList: string[], req: IncomingMessage) => {
-  validateDynamicUserList(dynamicUserList);
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
-  return findUsersByUsername({
-    usernameList: dynamicUserList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
-};
-
-const validateDynamicUserList = (dynamicUserList: string[]): void => {
+const loadDynamicUsers = async (dynamicUserList: string[], currentOrgDomain: string | null) => {
   if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
     throw new Error("dynamicUserList is not properly defined or empty.");
   }
+  return findUsersByUsername({
+    usernameList: dynamicUserList,
+    orgSlug: !!currentOrgDomain ? currentOrgDomain : null,
+  });
 };
 
 /**
