@@ -126,7 +126,7 @@ const CreateANewOrganizationFormChild = ({
                       isFullWidth
                       id="billingPeriod"
                       value={value}
-                      onValueChange={(e) => {
+                      onValueChange={(e: BillingPeriod) => {
                         if ([BillingPeriod.ANNUALLY, BillingPeriod.MONTHLY].includes(e)) {
                           onChange(e);
                         }
