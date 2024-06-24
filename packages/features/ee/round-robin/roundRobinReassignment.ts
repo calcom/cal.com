@@ -311,7 +311,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   ]);
 
   // Handle changing workflows with organizer
-  if (changedOrganizer) {
+  if (hasOrganizerChanged) {
     const workflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,
@@ -328,65 +328,39 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
               trigger: WorkflowTriggerEvents.AFTER_EVENT,
             },
           ],
-        },
-        action: WorkflowActions.EMAIL_HOST,
-      },
-    });
-
-    // Handle only email host workflows
-    const workflows = await prisma.workflow.findMany({
-      where: {
-        OR: [
-          {
-            trigger: WorkflowTriggerEvents.NEW_EVENT,
-          },
-          {
-            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-          },
-          {
-            trigger: WorkflowTriggerEvents.AFTER_EVENT,
-          },
-        ],
-        activeOn: {
-          some: {
-            eventTypeId: eventType.id,
-          },
-        },
-        steps: {
-          some: {
-            action: WorkflowActions.EMAIL_HOST,
-          },
+          action: WorkflowActions.EMAIL_HOST,
         },
       },
       include: {
-        steps: true,
+        workflowStep: {
+          include: {
+            workflow: true,
+          },
+        },
       },
     });
 
-    for (const workflow of workflows) {
-      // Only trigger new host step
-      workflow.steps = workflow.steps.filter((step) => step.action === WorkflowActions.EMAIL_HOST);
+    for (const workflowReminder of workflowReminders) {
+      const workflowStep = workflowReminder.workflowStep;
+      const workflow = workflowStep.workflow;
 
-      for (const step of workflow.steps) {
-        await scheduleEmailReminder({
-          evt: {
-            ...evt,
-            eventType,
-          },
-          action: WorkflowActions.EMAIL_HOST,
-          triggerEvent: workflow.trigger,
-          timeSpan: {
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-          },
-          sendTo: reassignedRRHost.email,
-          template: step.template,
-        });
-      }
+      await scheduleEmailReminder({
+        evt: {
+          ...evt,
+          eventType,
+        },
+        action: WorkflowActions.EMAIL_HOST,
+        triggerEvent: workflow.trigger,
+        timeSpan: {
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+        },
+        sendTo: reassignedRRHost.email,
+        template: workflowStep.template,
+      });
+
+      await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
     }
-
-    // TODO create relationship between reminder and userId in order to determine which one to delete
-    // deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
   }
 };
 
