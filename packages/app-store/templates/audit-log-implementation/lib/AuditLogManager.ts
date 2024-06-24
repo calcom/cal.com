@@ -29,7 +29,7 @@ export default class GenericAuditLogManager implements AuditLogsManager {
   public async reportEvent(event: AuditLogEvent) {
     log.silly("Reporting event.");
     if (event.action === AuditLogSystemTriggerEvents.SYSTEM_MISC) {
-      event.action = event.fields.implementationAction as string;
+      event.action = event.fields?.implementationAction as string;
     }
     // Here you can intercept the event before its sent by your client.
     this.client?.reportEvent(event);

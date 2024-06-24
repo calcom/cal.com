@@ -60,5 +60,5 @@ export async function getAuditLogManager({
 
   const auditLogManager = auditLogsManager.lib.AuditLogManager;
   log.silly("getAuditLogManager complete.");
-  return new auditLogManager(appKeys.data, credential.id);
+  return new auditLogManager(appKeys.data);
 }
