@@ -319,21 +319,24 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       where: {
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
-        workflowStep: {
-          trigger: {
-            in: [
-              WorkflowTriggerEvents.NEW_EVENT,
-              WorkflowTriggerEvents.BEFORE_EVENT,
-              WorkflowTriggerEvents.AFTER_EVENT,
-            ],
-          },
-          action: WorkflowActions.EMAIL_HOST,
-        },
       },
       include: {
         workflowStep: {
+          where: {
+            action: WorkflowActions.EMAIL_HOST,
+          },
           include: {
-            workflow: true,
+            workflow: {
+              where: {
+                trigger: {
+                  in: [
+                    WorkflowTriggerEvents.NEW_EVENT,
+                    WorkflowTriggerEvents.BEFORE_EVENT,
+                    WorkflowTriggerEvents.AFTER_EVENT,
+                  ],
+                },
+              },
+            },
           },
         },
       },
@@ -343,20 +346,22 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       const workflowStep = workflowReminder?.workflowStep;
       const workflow = workflowStep?.workflow;
 
-      await scheduleEmailReminder({
-        evt: {
-          ...evt,
-          eventType,
-        },
-        action: WorkflowActions.EMAIL_HOST,
-        triggerEvent: workflow.trigger,
-        timeSpan: {
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-        },
-        sendTo: reassignedRRHost.email,
-        template: workflowStep.template,
-      });
+      if (workflowStep && workflow) {
+        await scheduleEmailReminder({
+          evt: {
+            ...evt,
+            eventType,
+          },
+          action: WorkflowActions.EMAIL_HOST,
+          triggerEvent: workflow.trigger,
+          timeSpan: {
+            time: workflow.time,
+            timeUnit: workflow.timeUnit,
+          },
+          sendTo: reassignedRRHost.email,
+          template: workflowStep.template,
+        });
+      }
 
       await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
     }
