@@ -311,7 +311,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   ]);
 
   // Handle changing workflows with organizer
-  if (changedOrganizer) {
+  if (hasOrganizerChanged) {
     const workflowReminders = await prisma.workflowReminder.findMany({
       where: {
         bookingUid: booking.uid,
