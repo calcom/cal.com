@@ -175,7 +175,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     isOrg: boolean;
     teamId: number;
     pricePerSeat: number;
-    billingPeriod?: BillingPeriod;
+    billingPeriod: BillingPeriod;
     product: Stripe.Product | string;
     currency: string;
   }) {
