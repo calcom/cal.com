@@ -289,7 +289,7 @@ export type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
   organization?: { slug: string };
-  priority?: number;
+  priority?: number | null;
 };
 
 const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
