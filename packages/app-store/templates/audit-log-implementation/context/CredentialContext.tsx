@@ -1,3 +1,4 @@
+import type { Credential } from "@prisma/client";
 import { createContext, useContext, useState, useEffect } from "react";
 
 import { trpc } from "@calcom/trpc";
@@ -7,7 +8,7 @@ import { appKeysFormSchema } from "../zod";
 
 const AuditLogCredentialContext = createContext<{
   appKey: AppKeysForm;
-  data: any;
+  data: Credential | undefined;
   isLoading: boolean;
   credentialId: number;
 }>({
