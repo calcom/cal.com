@@ -12,7 +12,7 @@ type User = {
   metadata: SessionUser["metadata"];
 };
 
-export async function getDefaultLocations(user: User, teamId?: number): Promise<EventTypeLocation[]> {
+export async function getDefaultLocations(user: User, teamId?: number | null): Promise<EventTypeLocation[]> {
   const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
   if (!teamId && defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
