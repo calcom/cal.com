@@ -40,6 +40,11 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const mutation = useAddAppMutation(null);
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
+  /**
+   * @todo Refactor to eliminate the isLoading state by using mutation.isPending directly.
+   * Currently, the isLoading state is used to manage the loading indicator due to the delay in loading the next page,
+   * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
+   */
   const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
 
   useEffect(() => {
