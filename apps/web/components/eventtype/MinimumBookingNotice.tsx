@@ -18,8 +18,8 @@ type MinimumBookingNoticeInputProps<T extends MinimumBookingFields> = {
 
 export const MinimumBookingNoticeInput = React.forwardRef<
   HTMLInputElement,
-  MinimumBookingNoticeInputProps<MinimumBookingFields>
->(function MinimumBookingNoticeInput({ name, ...passThroughProps }, ref) {
+  MinimumBookingNoticeInputProps<MinimumBookingFields> & { hint?: React.ReactNode; placeholder?: string }
+>(function MinimumBookingNoticeInput({ name, hint, placeholder, ...passThroughProps }, ref) {
   const { t } = useLocale();
   const { setValue, getValues } = useFormContext<FormValues>();
   const durationTypeOptions: {
@@ -61,14 +61,13 @@ export const MinimumBookingNoticeInput = React.forwardRef<
   }, [minimumBookingNoticeDisplayValues, setValue, name]);
 
   return (
-    <div className="flex items-end justify-end">
+    <div className="flex items-start justify-end">
       <div className="w-1/2 md:w-full">
         <InputField
           required={passThroughProps.required}
           disabled={passThroughProps.disabled}
           defaultValue={minimumBookingNoticeDisplayValues.value ?? ""}
           onChange={(e) => {
-            console.log("e.target.value minimumbookingnotice", e.target.value, typeof e.target.value);
             const value = e.target.value === "" ? null : parseInt(e.target.value ?? "0", 10);
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
@@ -77,9 +76,10 @@ export const MinimumBookingNoticeInput = React.forwardRef<
           }}
           label={t("minimum_booking_notice")}
           type="number"
-          placeholder="0"
           min={0}
           className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
+          placeholder={placeholder}
+          hint={hint}
         />
         <input type="hidden" ref={ref} {...passThroughProps} />
       </div>

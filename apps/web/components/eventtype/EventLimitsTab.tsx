@@ -302,6 +302,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <MinimumBookingNoticeInput
               disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
               {...formMethods.register("minimumBookingNotice")}
+              required
             />
           </div>
           <div className="w-full">

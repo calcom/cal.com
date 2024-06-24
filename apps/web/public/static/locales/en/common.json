@@ -1043,6 +1043,8 @@
   "seats_nearly_full": "Seats almost full",
   "seats_half_full": "Seats filling fast",
   "seats_minimum_booking_notice": "Minimum notice for joining an existing booking",
+  "seats_minimum_booking_notice_hint_default_used": "Default notice is {{ value }} {{ type }}, set a lower seat notice to override",
+  "seats_minimum_booking_notice_hint_seats_used":  "Takes precedence over default of {{value}} {{type}}",
   "number_of_seats": "Number of seats per booking",
   "enter_number_of_seats": "Enter number of seats",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",

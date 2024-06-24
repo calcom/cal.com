@@ -1,7 +1,7 @@
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import React, { useEffect, useState } from "react";
-import { Controller, useFormContext } from "react-hook-form";
+import { Controller, useFormContext, useWatch } from "react-hook-form";
 import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
@@ -20,6 +20,8 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
+import convertToNewDurationType from "@calcom/lib/convertToNewDurationType";
+import findDurationType from "@calcom/lib/findDurationType";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
@@ -144,6 +146,31 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
+
+  const minimumBookingNotice = useWatch({ name: "minimumBookingNotice" });
+  const seatsMinimumBookingNotice = useWatch({ name: "seatsMinimumBookingNotice" });
+
+  const getSeatsMinimumBookingNoticeHint = () => {
+    const { type, value } = {
+      type: findDurationType(minimumBookingNotice),
+      value: convertToNewDurationType(
+        "minutes",
+        findDurationType(minimumBookingNotice),
+        minimumBookingNotice
+      ),
+    };
+
+    if (typeof seatsMinimumBookingNotice === "number" && seatsMinimumBookingNotice < minimumBookingNotice) {
+      return t("seats_minimum_booking_notice_hint_seats_used", {
+        value,
+        type,
+      });
+    }
+    return t("seats_minimum_booking_notice_hint_default_used", {
+      value,
+      type,
+    });
+  };
 
   return (
     <div className="flex flex-col space-y-4">
@@ -516,7 +543,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         <MinimumBookingNoticeInput
                           disabled={seatsLocked.disabled}
                           {...formMethods.register("seatsMinimumBookingNotice")}
+                          placeholder=""
                         />
+                        <div className="text-default mt-2 flex items-center text-sm">
+                          {
+                            // we do not use TextField.hint because we want the hint to span over both inputs
+                            // also no need to move it to MinimumBookingNoticeInput because only used once
+                            getSeatsMinimumBookingNoticeHint()
+                          }
+                        </div>
                       </div>
                     </div>
                   )}

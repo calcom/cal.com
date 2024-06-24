@@ -1471,7 +1471,9 @@ describe("getSchedule", () => {
         { dateString: plus2DateString }
       );
     });
-    test("include booked events before minimumBookingNotice with seatsMinimumBookingNotice", async () => {
+  });
+  describe("Seat Event with seatsMinimumBookingNotice", () => {
+    test("should include booked events within seatsMinimumBookingNotice for a single day", async () => {
       const organizer = getOrganizer({
         name: "Organizer",
         email: "organizer@example.com",
@@ -1483,7 +1485,6 @@ describe("getSchedule", () => {
       const bookingUid = "abc123";
 
       const { dateString: todayDateString } = getDate();
-      // const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
 
       const bookingStartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
       const bookingEndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
@@ -1542,6 +1543,117 @@ describe("getSchedule", () => {
       expect(schedule).toHaveTimeSlots([`06:30:00.000Z`], {
         dateString: todayDateString,
       });
+    });
+    test("should include booked events within seatsMinimumBookingNotice for multiple days", async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const booking1Id = 1;
+      const booking1Uid = "abc123";
+      const booking2Id = 2;
+      const booking2Uid = "def123";
+
+      const { dateString: todayDateString } = getDate();
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+      const { dateString: plus7DateString } = getDate({ dateIncrement: 7 });
+
+      const booking1StartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
+      const booking1EndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
+
+      const booking2StartTime = `${plus3DateString}T06:30:00.000Z`; // 12:00 IST
+      const booking2EndTime = `${plus3DateString}T07:30:00.000Z`; // 13:00 IST
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-event",
+            length: 60,
+            minimumBookingNotice: 60 * 24 * 7, // 7 days
+            seatsPerTimeSlot: 4,
+            seatsMinimumBookingNotice: 1 * 24 * 60, // 1 day
+            seatsShowAttendees: true,
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: booking1Id,
+            uid: booking1Uid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: booking1StartTime,
+            endTime: booking1EndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+          {
+            id: booking2Id,
+            uid: booking2Uid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: booking2StartTime,
+            endTime: booking2EndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 0 });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T00:00:00.000Z`,
+          endTime: `${plus7DateString}T23:59:59.999Z`,
+          isTeamEvent: false,
+        },
+      });
+
+      // should not have any slots for today
+      expect(schedule.slots).not.haveOwnProperty(todayDateString);
+
+      // should have slot for plus3DateString
+      expect(schedule).toHaveTimeSlots([`06:30:00.000Z`], {
+        dateString: plus3DateString,
+      });
+
+      expect(schedule).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus7DateString,
+        }
+      );
     });
   });
 });
