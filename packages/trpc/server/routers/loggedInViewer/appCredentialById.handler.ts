@@ -1,6 +1,10 @@
+import type { Credential } from "@prisma/client";
+
 import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+
+import { TRPCError } from "@trpc/server";
 
 import type { TAppCredentialByIdInputSchema } from "./appCredentialById.schema";
 import { handleCredentialParsing } from "./appCredentialById.validator";
@@ -36,6 +40,8 @@ export const appCredentialByIdHandler = async ({ ctx, input }: AppCredentialsByI
   });
 
   if (appCredential) {
-    return await handleCredentialParsing(appCredential);
-  } else return {};
+    return (await handleCredentialParsing(appCredential)) as Credential;
+  } else {
+    throw new TRPCError({ code: "BAD_REQUEST", message: `Could not find credential ${input.id}` });
+  }
 };
