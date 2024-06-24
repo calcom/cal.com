@@ -43,6 +43,7 @@ module.exports = {
       },
     ],
     "prefer-template": "error",
+    "react/no-unescaped-entities": ["off"],
   },
   overrides: [
     {
