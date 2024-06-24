@@ -67,34 +67,7 @@ export const zoomUserSettingsSchema = z.object({
     auto_recording: z.string(),
   }),
   schedule_meeting: z.object({
-    audio_type: z.string(),
     default_password_for_scheduled_meetings: z.string(),
-    embed_password_in_join_link: z.string(),
-    force_pmi_jbh_password: z.boolean(),
-    host_video: z.boolean(),
-    join_before_host: z.boolean(),
-    meeting_password_requirement: z.object({
-      consecutive_characters_length: z.number(),
-      have_letter: z.boolean(), //The passcode must contain at least 1 letter (such as a,b,c...).
-      have_number: z.boolean(), //The passcode must contain at least 1 number (such as 1,2,3...).
-      have_special_character: z.boolean(), //The passcode must have at least one special character (!,@,#...).
-      have_upper_and_lower_characters: z.boolean(), //The passcode must include both uppercase and lowercase characters.
-      length: z.number(), //The minimum length that the meeting/webinar passcode must have.
-      only_allow_numeric: z.boolean(), //The passcode must only contain numbers and no other characters.
-      weak_enhance_detection: z.boolean(), //This setting informs users if the provided passcode is weak.
-    }),
-    participants_video: z.boolean(), //This setting starts meetings with participants video on.
-    personal_meeting: z.boolean(), //The personal meeting setting.
-    //true - Indicates that the Enable Personal Meeting ID (PMI) setting is turned on. Users can choose to use a PMI for their meetings.
-    //false - Indicates that the Enable Personal Meeting ID setting is turned off. If this setting is disabled, meetings that were scheduled with PMI will be invalid. Scheduled meetings will need to be manually updated. For Zoom Phone only:If a user has been assigned a desk phone, Elevate to Zoom Meeting on desk phone will be disabled.
-    pmi_password: z.string(), //The PMI passcode.
-    pstn_password_protected: z.boolean(), //This setting generates and requires a passcode for participants who join by phone.
-    require_password_for_instant_meetings: z.boolean(), //This setting requires a passcode for instant meetings. If you use PMI for your instant meetings, this option will be disabled. This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.
-    require_password_for_pmi_meetings: z.string(), //This setting requires a passcode for the Personal Meeting ID (PMI). This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.Allowed: jbh_only┃all┃none
-    require_password_for_scheduled_meetings: z.boolean(), //This setting requires a passcode for meetings which have already been scheduled.
-    require_password_for_scheduling_new_meetings: z.boolean(), //This setting requires a passcode when scheduling new meetings.This setting is always enabled for free accounts and Pro accounts with a single host and cannot be modified for these accounts.
-    use_pmi_for_instant_meetings: z.boolean(), //This setting uses a Personal Meeting ID (PMI) when starting an instant meeting.
-    use_pmi_for_scheduled_meetings: z.boolean(), //The usser can use a Personal Meeting ID (PMI) when scheduling a meeting.
   }),
 });
 
