@@ -121,9 +121,10 @@ async function getUsersBasedOnWeights<
 
     const targetNumberOfBookings = (bookings.length + allWeightAdjustments) * targetPercentage;
 
+    const bookingShortfall = targetNumberOfBookings - (userBookings.length + user.weightAdjustment);
     return {
       ...user,
-      bookingShortfall: targetNumberOfBookings - userBookings.length,
+      bookingShortfall,
     };
   });
 
@@ -143,7 +144,11 @@ async function getUsersBasedOnWeights<
 // TODO: Configure distributionAlgorithm from the event type configuration
 // TODO: Add 'MAXIMIZE_FAIRNESS' algorithm.
 export async function getLuckyUser<
-  T extends PartialUser & { priority?: number | null; weight?: number | null }
+  T extends PartialUser & {
+    priority?: number | null;
+    weight?: number | null;
+    weightAdjustment?: number | null;
+  }
 >(
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   getLuckyUserParams: GetLuckyUserParams<T>

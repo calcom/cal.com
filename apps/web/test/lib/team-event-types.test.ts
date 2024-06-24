@@ -229,6 +229,7 @@ describe("maximize availability and weights", () => {
         email: "other-team-member-1@example.com",
         id: 102,
         timeZone: Timezones["+5:30"],
+        schedules: [TestData.schedules.IstWorkHours],
       },
     ];
 
@@ -340,6 +341,7 @@ describe("maximize availability and weights", () => {
         email: "other-team-member-1@example.com",
         id: 102,
         timeZone: Timezones["+5:30"],
+        schedules: [TestData.schedules.IstWorkHours],
       },
     ];
 
@@ -383,11 +385,29 @@ describe("maximize availability and weights", () => {
           {
             uid: "uid3",
             eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T03:30:00.000Z",
+            endTime: "2022-01-26T03:30:00.000Z",
+            createdAt: "2022-01-25T07:30:00.000Z",
+          },
+          {
+            uid: "uid4",
+            eventTypeId: 1,
             userId: 102,
             status: BookingStatus.ACCEPTED,
-            startTime: "2022-01-26T02:30:00.000Z",
+            startTime: "2022-01-26T01:30:00.000Z",
             endTime: "2022-01-26T02:30:00.000Z",
             createdAt: "2022-01-25T06:30:00.000Z",
+          },
+          {
+            uid: "uid5",
+            eventTypeId: 1,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T01:30:00.000Z",
+            endTime: "2022-01-26T02:30:00.000Z",
+            createdAt: "2022-01-25T03:30:00.000Z",
           },
         ],
         organizer: organizer,
@@ -435,5 +455,135 @@ describe("maximize availability and weights", () => {
       })
     ).resolves.toStrictEqual(builtOrganizer);
   });
-  //todo: test adjusted weights
+  it("can find lucky user with weights and adjusted Weights", async () => {
+    const organizer = getOrganizer({
+      name: "Organizer",
+      email: "organizer@example.com",
+      id: 101,
+      schedules: [TestData.schedules.IstWorkHours],
+    });
+
+    const otherTeamMembers = [
+      {
+        name: "Other Team Member 1",
+        username: "other-team-member-1",
+        email: "other-team-member-1@example.com",
+        id: 102,
+        timeZone: Timezones["+5:30"],
+        schedules: [TestData.schedules.IstWorkHours],
+      },
+    ];
+
+    await createBookingScenario(
+      getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 15,
+            length: 15,
+            users: [
+              {
+                id: 101,
+              },
+              {
+                id: 102,
+              },
+            ],
+            schedulingType: SchedulingType.ROUND_ROBIN,
+          },
+        ],
+        bookings: [
+          {
+            uid: "uid1",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T05:30:00.000Z",
+            endTime: "2022-01-26T06:30:00.000Z",
+            createdAt: "2022-01-25T05:30:00.000Z",
+          },
+          {
+            uid: "uid2",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T03:30:00.000Z",
+            endTime: "2022-01-26T03:30:00.000Z",
+            createdAt: "2022-01-25T03:30:00.000Z",
+          },
+          {
+            uid: "uid3",
+            eventTypeId: 1,
+            userId: 101,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T03:30:00.000Z",
+            endTime: "2022-01-26T03:30:00.000Z",
+            createdAt: "2022-01-25T07:30:00.000Z",
+          },
+          {
+            uid: "uid4",
+            eventTypeId: 1,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T01:30:00.000Z",
+            endTime: "2022-01-26T02:30:00.000Z",
+            createdAt: "2022-01-25T06:30:00.000Z",
+          },
+          {
+            uid: "uid5",
+            eventTypeId: 1,
+            userId: 102,
+            status: BookingStatus.ACCEPTED,
+            startTime: "2022-01-26T01:30:00.000Z",
+            endTime: "2022-01-26T02:30:00.000Z",
+            createdAt: "2022-01-25T03:30:00.000Z",
+          },
+        ],
+        organizer: organizer,
+        usersApartFromOrganizer: otherTeamMembers,
+      })
+    );
+
+    const builtOrganizer = buildUser({
+      id: 101,
+      name: "Organizer",
+      email: "organizer@example.com",
+      priority: 3,
+      weight: 150,
+      weightAdjustment: 4, // + 3 = 7 bookings
+    });
+
+    const builtMember = buildUser({
+      id: 102,
+      name: otherTeamMembers[0].name,
+      email: otherTeamMembers[0].email,
+      priority: 3,
+      weight: 100,
+      weightAdjustment: 3, // + 2 = 5 bookings
+    });
+
+    const allRRHosts = [
+      {
+        user: { id: builtOrganizer.id, email: builtOrganizer.email },
+        weight: builtOrganizer.weight,
+        weightAdjustment: builtOrganizer.weightAdjustment,
+      },
+      {
+        user: { id: builtMember.id, email: builtMember.email },
+        weight: builtMember.weight,
+        weightAdjustment: builtMember.weightAdjustment,
+      },
+    ];
+
+    await expect(
+      getLuckyUser("MAXIMIZE_AVAILABILITY", {
+        availableUsers: [builtOrganizer, builtMember],
+        eventType: {
+          id: 1,
+          isRRWeightsEnabled: true,
+        },
+        allRRHosts,
+      })
+    ).resolves.toStrictEqual(builtOrganizer);
+  });
 });
