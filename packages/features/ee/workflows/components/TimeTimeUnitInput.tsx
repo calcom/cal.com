@@ -20,6 +20,27 @@ type Props = {
   disabled: boolean;
 };
 
+const TimeUnitAddonSuffix = ({ DropdownItems }: { DropdownItems: JSX.Element }) => {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  return (
+    <Dropdown onOpenChange={setIsDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center">
+          <div className="mr-1 w-3/5">
+            {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
+          </div>
+          <div className="w-1/4 pt-1">
+            {isDropdownOpen ? <Icon name="chevron-up" /> : <Icon name="chevron-down" />}
+          </div>
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownItems />
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
+
 export const TimeTimeUnitInput = (props: Props) => {
   const { form } = props;
   const { t } = useLocale();
@@ -40,33 +61,21 @@ export const TimeTimeUnitInput = (props: Props) => {
           className="-mt-2 rounded-r-none text-sm focus:ring-0"
           {...form.register("time", { valueAsNumber: true })}
           addOnSuffix={
-            <Dropdown onOpenChange={setIsDropdownOpen}>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center">
-                  <div className="mr-1 w-3/5">
-                    {timeUnit ? t(`${timeUnit.toLowerCase()}_timeUnit`) : "undefined"}{" "}
-                  </div>
-                  <div className="w-2/5 pt-1">
-                    {isDropdownOpen ? <Icon name="chevron-up" /> : <Icon name="chevron-down" />}
-                  </div>
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                {timeUnitOptions.map((option, index) => (
-                  <DropdownMenuItem key={index} className="outline-none">
-                    <DropdownItem
-                      key={index}
-                      type="button"
-                      onClick={() => {
-                        setTimeUnit(option.value);
-                        form.setValue("timeUnit", option.value);
-                      }}>
-                      {option.label}
-                    </DropdownItem>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </Dropdown>
+            <TimeUnitAddonSuffix
+              DropdownItems={timeUnitOptions.map((option, index) => (
+                <DropdownMenuItem key={index} className="outline-none">
+                  <DropdownItem
+                    key={index}
+                    type="button"
+                    onClick={() => {
+                      setTimeUnit(option.value);
+                      form.setValue("timeUnit", option.value);
+                    }}>
+                    {option.label}
+                  </DropdownItem>
+                </DropdownMenuItem>
+              ))}
+            />
           }
         />
       </div>
