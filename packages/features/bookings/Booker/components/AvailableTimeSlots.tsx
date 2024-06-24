@@ -2,7 +2,7 @@ import { useRef } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { AvailableTimes, AvailableTimesSkeleton } from "@calcom/features/bookings";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForAvailableDates } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
 import { classNames } from "@calcom/lib";
@@ -19,7 +19,9 @@ type AvailableTimeSlotsProps = {
   isLoading: boolean;
   seatsPerTimeSlot?: number | null;
   showAvailableSeatsCount?: boolean | null;
-  event: useEventReturnType;
+  event: {
+    data?: Pick<BookerEvent, "length"> | null;
+  };
   customClassNames?: {
     availableTimeSlotsContainer?: string;
     availableTimeSlotsTitle?: string;
