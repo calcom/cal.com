@@ -4,7 +4,10 @@ import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@c
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers, getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import type { IsFixedAwareUser } from "@calcom/features/bookings/lib/handleNewBooking";
-import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import {
+  scheduleEmailReminder,
+  deleteScheduledEmailReminder,
+} from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -317,17 +320,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         bookingUid: booking.uid,
         method: WorkflowMethods.EMAIL,
         workflowStep: {
-          OR: [
-            {
-              trigger: WorkflowTriggerEvents.NEW_EVENT,
-            },
-            {
-              trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-            },
-            {
-              trigger: WorkflowTriggerEvents.AFTER_EVENT,
-            },
-          ],
+          trigger: {
+            in: [
+              WorkflowTriggerEvents.NEW_EVENT,
+              WorkflowTriggerEvents.BEFORE_EVENT,
+              WorkflowTriggerEvents.AFTER_EVENT,
+            ],
+          },
           action: WorkflowActions.EMAIL_HOST,
         },
       },
@@ -341,8 +340,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     });
 
     for (const workflowReminder of workflowReminders) {
-      const workflowStep = workflowReminder.workflowStep;
-      const workflow = workflowStep.workflow;
+      const workflowStep = workflowReminder?.workflowStep;
+      const workflow = workflowStep?.workflow;
 
       await scheduleEmailReminder({
         evt: {
