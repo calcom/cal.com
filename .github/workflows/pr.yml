@@ -88,28 +88,28 @@ jobs:
   type-check:
     name: Type check
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
   integration-test:
     name: Tests
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
