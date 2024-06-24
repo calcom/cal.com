@@ -22,10 +22,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const labelName = github.context.payload.label.name;
-            const prNumber = github.context.payload.pull_request.number;
-            const owner = github.context.repo.owner;
-            const repo = github.context.repo.repo;
+            const labelName = context.payload.label.name;
+            const prNumber = context.payload.pull_request.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
 
             if (labelName === 'ready-for-e2e') {
               console.log(`Running E2E jobs for PR #${prNumber}...`);
@@ -33,7 +33,7 @@ jobs:
               const checkRuns = await github.rest.checks.listForRef({
                 owner,
                 repo,
-                ref: github.context.payload.pull_request.head.sha,
+                ref: context.payload.pull_request.head.sha,
               });
 
               for (const check of checkRuns.data.check_runs) {
