@@ -37,7 +37,7 @@ jobs:
               });
 
               for (const check of checkRuns.data.check_runs) {
-                if (check.name.includes('e2e') {
+                if (check.name.includes('e2e')) {
                   await github.rest.actions.reRunJob({
                     owner,
                     repo,
