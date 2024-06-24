@@ -71,11 +71,11 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     throw new Error("Event type not found");
   }
 
-  eventType.users = eventType.hosts.length
-    ? eventType.hosts.map((host) => ({ ...host.user, isFixed: host.isFixed, priority: host.priority }))
-    : eventType.users;
+  eventType.hosts = eventType.hosts.length
+    ? eventType.hosts
+    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2 }));
 
-  const roundRobinHosts = eventType.users.filter((host) => !host.isFixed);
+  const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
   const originalOrganizer = booking.user;
 
@@ -156,7 +156,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
   const teamMemberPromises = [];
-  for (const teamMember of eventType.users) {
+  for (const teamMember of eventType.hosts) {
     const user = teamMember.user;
     // Need to skip over the reassigned user and the organizer user
     if (user.email === previousRRHost.email || user.email === organizer.email) {
