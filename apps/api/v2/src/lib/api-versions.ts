@@ -14,3 +14,4 @@ export const VERSION_2024_04_15_VALUE: VersionValue = VERSION_2024_04_15 as unkn
 
 export { VERSION_2024_06_11 };
 export { VERSION_2024_06_14 };
+export { VERSION_2024_04_15 };
