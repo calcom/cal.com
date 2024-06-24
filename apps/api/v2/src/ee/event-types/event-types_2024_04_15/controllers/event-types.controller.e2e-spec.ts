@@ -24,7 +24,12 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS, VERSION_2024_06_11, CAL_API_VERSION_HEADER } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  VERSION_2024_06_11,
+  VERSION_2024_04_15,
+  CAL_API_VERSION_HEADER,
+} from "@calcom/platform-constants";
 import {
   EventTypesByViewer,
   EventTypesPublic,
@@ -154,6 +159,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         .send(body)
         .expect(201)
         .then(async (response) => {
@@ -184,6 +190,7 @@ describe("Event types Endpoints", () => {
 
       return request(app.getHttpServer())
         .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         .send(body)
         .expect(200)
         .then(async (response) => {
@@ -288,6 +295,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -323,6 +331,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -341,6 +350,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/:username/:eventSlug/public`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/${eventType.slug}/public`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -358,6 +368,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -377,6 +388,7 @@ describe("Event types Endpoints", () => {
     it(`/GET/public/:username/`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${username}/public`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
@@ -393,13 +405,17 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id not existing`, async () => {
       await request(app.getHttpServer())
         .get(`/api/v2/event-types/1000`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(404);
     });
 
     it("should delete schedule", async () => {
-      return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
+      return request(app.getHttpServer())
+        .delete(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_04_15)
+        .expect(200);
     });
 
     afterAll(async () => {
