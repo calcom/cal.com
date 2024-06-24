@@ -1211,6 +1211,8 @@
   "theme": "Tema",
   "theme_applies_note": "Dette gjelder kun for dine offentlige bookingsider",
   "theme_system": "System standard",
+  "app_theme": "Dashboard-tema",
+  "app_theme_applies_note": "Dette gjelder kun ditt påloggede dashbord",
   "add_a_team": "Legg til et team",
   "add_webhook_description": "Motta møtedata i sanntid når noe skjer i {{appName}}",
   "triggers_when": "Utløses når",

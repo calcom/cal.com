@@ -3,8 +3,6 @@ import { useEffect } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
-import PageWrapper from "@components/PageWrapper";
-
 // To handle the IdP initiated login flow callback
 export default function Page() {
   const searchParams = useCompatSearchParams();
@@ -21,4 +19,3 @@ export default function Page() {
 
   return null;
 }
-Page.PageWrapper = PageWrapper;
