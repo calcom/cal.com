@@ -1,5 +1,4 @@
 import { useState } from "react";
-import type { AppKeys } from "templates/audit-log-implementation/zod";
 
 import { availableTriggerEvents, availableTriggerTargets } from "@calcom/features/audit-logs/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,6 +8,7 @@ import { Badge, Switch, Select } from "@calcom/ui";
 import { showToast } from "@calcom/ui";
 
 import { useAppCredential } from "../../context/CredentialContext";
+import type { AppKeys } from "../../zod";
 import ManagedAuditLogEventDialog from "./ManagedAuditLogEventDialog";
 
 export const AuditLogEventToggles = () => {
