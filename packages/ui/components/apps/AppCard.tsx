@@ -65,13 +65,6 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
         {
           onSuccess: (data) => {
             if (data?.setupPending) return;
-            // for non-oAuth apps
-            router.push(
-              getAppOnboardingUrl({
-                slug: app.slug,
-                step: AppOnboardingSteps.EVENT_TYPES_STEP,
-              })
-            );
             showToast(t("app_successfully_installed"), "success");
           },
           onError: (error) => {
