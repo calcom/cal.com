@@ -162,6 +162,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
+  const isEventTypeDeleted = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -415,7 +416,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         !leaveWithoutAssigningHosts.current &&
         !!team &&
         (hosts.length === 0 || assignedUsers.length === 0) &&
-        (url === "/event-types" || (url !== "/event-types?" && paths[1] !== "event-types"))
+        (url === "/event-types" || paths[1] !== "event-types") &&
+        !isEventTypeDeleted.current
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
@@ -715,7 +717,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
-        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}
+        isEventTypeDeleted={isEventTypeDeleted}>
         <Form
           form={formMethods}
           id="event-type-form"
