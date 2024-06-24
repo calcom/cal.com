@@ -9,6 +9,7 @@ import { showToast } from "@calcom/ui";
 import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
@@ -82,7 +83,7 @@ export default function CreateOAuthClient() {
   return (
     <div>
       <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
-        You are not subscribed to a Platform plan.
+        <NoPlatformPlan />
       </Shell>
     </div>
   );
