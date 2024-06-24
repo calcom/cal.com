@@ -31,17 +31,24 @@ export const MinimumBookingNoticeInput = React.forwardRef<
     { label: t("days"), value: "days" },
   ];
 
-  const initialValue = getValues(name) ?? 0;
+  const initialValue = getValues(name);
 
   const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
     type: DurationType;
-    value: number;
+    value: number | null;
   }>({
-    type: findDurationType(initialValue),
-    value: convertToNewDurationType("minutes", findDurationType(initialValue), initialValue),
+    type: initialValue === null ? "minutes" : findDurationType(initialValue),
+    value:
+      initialValue === null
+        ? null
+        : convertToNewDurationType("minutes", findDurationType(initialValue), initialValue),
   });
 
   useEffect(() => {
+    if (minimumBookingNoticeDisplayValues.value === null) {
+      setValue(name, null, { shouldDirty: true });
+      return;
+    }
     setValue(
       name,
       convertToNewDurationType(
@@ -57,15 +64,17 @@ export const MinimumBookingNoticeInput = React.forwardRef<
     <div className="flex items-end justify-end">
       <div className="w-1/2 md:w-full">
         <InputField
-          required
+          required={passThroughProps.required}
           disabled={passThroughProps.disabled}
-          defaultValue={minimumBookingNoticeDisplayValues.value}
-          onChange={(e) =>
+          defaultValue={minimumBookingNoticeDisplayValues.value ?? ""}
+          onChange={(e) => {
+            console.log("e.target.value minimumbookingnotice", e.target.value, typeof e.target.value);
+            const value = e.target.value === "" ? null : parseInt(e.target.value ?? "0", 10);
             setMinimumBookingNoticeDisplayValues({
               ...minimumBookingNoticeDisplayValues,
-              value: parseInt(e.target.value || "0", 10),
-            })
-          }
+              value,
+            });
+          }}
           label={t("minimum_booking_notice")}
           type="number"
           placeholder="0"
