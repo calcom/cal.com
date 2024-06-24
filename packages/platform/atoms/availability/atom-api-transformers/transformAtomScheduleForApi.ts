@@ -12,16 +12,38 @@ export function transformAtomScheduleForApi(body: AvailabilityFormValues): Updat
   const overrides =
     dateOverrides.flatMap(
       (dateOverridesRanges) =>
-        dateOverridesRanges?.ranges?.map((range) => ({
-          date: `${range.start.getUTCFullYear}-${range.start.getUTCMonth}-${range.start.getUTCDate}`,
-          startTime: `${range.start.getUTCHours}-${range.start.getUTCMinutes}`,
-          endTime: `${range.end.getUTCHours}-${range.end.getUTCMinutes}`,
-        })) ?? []
+        dateOverridesRanges?.ranges?.map((range) => transfromAtomOverrideForApi(range)) ?? []
     ) ?? [];
 
   const availability = formatScheduleTime(schedule);
 
   return { name, timeZone, isDefault, availability, overrides };
+}
+
+type AtomDateOverride = {
+  start: Date;
+  end: Date;
+};
+
+function transfromAtomOverrideForApi(override: AtomDateOverride) {
+  const date = `${override.start.getUTCFullYear()}-${(override.start.getUTCMonth() + 1)
+    .toString()
+    .padStart(2, "0")}-${override.start.getUTCDate().toString().padStart(2, "0")}`;
+
+  return {
+    date,
+    startTime: padHoursMinutesWithZeros(`${override.start.getUTCHours()}:${override.start.getUTCMinutes()}`),
+    endTime: padHoursMinutesWithZeros(`${override.end.getUTCHours()}:${override.end.getUTCMinutes()}`),
+  };
+}
+
+function padHoursMinutesWithZeros(hhMM: string) {
+  const [hours, minutes] = hhMM.split(":");
+
+  const formattedHours = hours.padStart(2, "0");
+  const formattedMinutes = minutes.padStart(2, "0");
+
+  return `${formattedHours}:${formattedMinutes}`;
 }
 
 function formatScheduleTime(

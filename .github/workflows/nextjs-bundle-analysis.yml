@@ -45,13 +45,7 @@ env:
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
 
 jobs:
-  build:
-    name: Production builds
-    if: ${{ github.event_name == 'push' }}
-    uses: ./.github/workflows/production-build-without-database.yml
-    secrets: inherit
   analyze:
-    needs: build
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
