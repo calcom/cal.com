@@ -724,7 +724,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as OnboardingPageProps,
     };
   } catch (err) {
-    console.log("eerrerrerrerrerrerrerrerrrr: ", err);
     if (err instanceof z.ZodError) {
       return { redirect: { permanent: false, destination: "/apps" } };
     }

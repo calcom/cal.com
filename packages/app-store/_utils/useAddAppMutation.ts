@@ -116,7 +116,6 @@ function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutatio
         return { setupPending: externalUrl };
       }
 
-      console.log("rreturnToreturnToeturnTo: ", returnTo);
       if (returnTo) {
         gotoUrl(returnTo, false);
         return { setupPending: json.url.endsWith("/setup") };
