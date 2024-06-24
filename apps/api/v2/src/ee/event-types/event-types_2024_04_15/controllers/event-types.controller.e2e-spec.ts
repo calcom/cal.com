@@ -24,7 +24,7 @@ import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, VERSION_2024_06_11, CAL_API_VERSION_HEADER } from "@calcom/platform-constants";
 import {
   EventTypesByViewer,
   EventTypesPublic,
@@ -288,6 +288,24 @@ describe("Event types Endpoints", () => {
     it(`/GET/:id`, async () => {
       const response = await request(app.getHttpServer())
         .get(`/api/v2/event-types/${eventType.id}`)
+        // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
+        .set("Authorization", `Bearer whatever`)
+        .expect(200);
+
+      const responseBody: GetEventTypeOutput = response.body;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+      expect(responseBody.data.eventType.id).toEqual(eventType.id);
+      expect(responseBody.data.eventType.title).toEqual(eventType.title);
+      expect(responseBody.data.eventType.slug).toEqual(eventType.slug);
+      expect(responseBody.data.eventType.userId).toEqual(user.id);
+    });
+
+    it(`/GET/:id with version VERSION_2024_06_11`, async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_11)
         // note: bearer token value mocked using "withApiAuth" for user which id is used when creating event type above
         .set("Authorization", `Bearer whatever`)
         .expect(200);
