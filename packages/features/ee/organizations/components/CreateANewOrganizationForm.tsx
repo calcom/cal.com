@@ -125,8 +125,12 @@ const CreateANewOrganizationFormChild = ({
                     <ToggleGroup
                       isFullWidth
                       id="billingPeriod"
-                      defaultValue={value}
-                      onValueChange={(e) => onChange(e)}
+                      value={value}
+                      onValueChange={(e) => {
+                        if ([BillingPeriod.ANNUALLY, BillingPeriod.MONTHLY].includes(e)) {
+                          onChange(e);
+                        }
+                      }}
                       options={[
                         {
                           value: "MONTHLY",
