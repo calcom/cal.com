@@ -113,16 +113,14 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (typeof fixedPrice === "string") {
-      throw new Error("Something went wrong. Stripe product is not found and stripe object does not exists");
-    }
+    const customPriceObj = await getCustomPrice(fixedPrice);
     priceId = await createPrice({
       isOrg: !!isOrg,
       teamId,
       pricePerSeat,
       billingPeriod,
-      product: fixedPrice.product as string, // We don't expand the object from stripe so just use the product as ID
-      currency: fixedPrice.currency,
+      product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
+      currency: customPriceObj.currency,
     });
   } else {
     priceId = fixedPrice as string;
@@ -211,16 +209,16 @@ export const purchaseTeamOrOrgSubscription = async (input: {
 
     log.debug("Getting price ID", safeStringify({ fixedPriceId, isOrg, teamId, pricePerSeat }));
 
-    if (!pricePerSeat) {
-      return fixedPriceId;
-    }
-
-    const priceObj = await stripe.prices.retrieve(fixedPriceId);
-    if (!priceObj) throw new Error(`No price found for ID ${fixedPriceId}`);
-
-    return priceObj;
+    return fixedPriceId;
   }
 };
+
+async function getCustomPrice(fixedPriceId: string) {
+  const priceObj = await stripe.prices.retrieve(fixedPriceId);
+  if (!priceObj) throw new Error(`No price found for ID ${fixedPriceId}`);
+
+  return priceObj;
+}
 
 export const getTeamWithPaymentMetadata = async (teamId: number) => {
   const team = await prisma.team.findUniqueOrThrow({
