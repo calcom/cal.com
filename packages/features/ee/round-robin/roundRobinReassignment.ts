@@ -48,26 +48,26 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
 
   if (!booking) {
-    console.error(`Booking ${bookingId} not found`);
+    roundRobinReassignLogger.error(`Booking ${bookingId} not found`);
     throw new Error("Booking not found");
   }
 
   if (!booking?.user) {
-    console.error(`No user associated with booking ${bookingId}`);
+    roundRobinReassignLogger.error(`No user associated with booking ${bookingId}`);
     throw new Error("Booking not found");
   }
 
   const eventTypeId = booking.eventTypeId;
 
   if (!eventTypeId) {
-    console.error(`Booking ${bookingId} does not have an event type id`);
+    roundRobinReassignLogger.error(`Booking ${bookingId} does not have an event type id`);
     throw new Error("Event type not found");
   }
 
   const eventType = await getEventTypesFromDB(eventTypeId);
 
   if (!eventType) {
-    console.error(`Event type ${eventTypeId} not found`);
+    roundRobinReassignLogger.error(`Event type ${eventTypeId} not found`);
     throw new Error("Event type not found");
   }
 
@@ -92,7 +92,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   })();
 
   if (!previousRRHost) {
-    console.error(`Could not find RR host associated with booking ${bookingId}`);
+    roundRobinReassignLogger.error(`Could not find RR host associated with booking ${bookingId}`);
     throw new Error("Host not found");
   }
 
