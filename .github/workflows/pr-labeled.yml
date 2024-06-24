@@ -37,7 +37,7 @@ jobs:
               });
 
               for (const check of checkRuns.data.check_runs) {
-                console.log('check', check);
+                console.log('check.name', check.name);
                 if (check.name.includes('e2e')) {
                   await github.rest.actions.reRunJob({
                     owner,
