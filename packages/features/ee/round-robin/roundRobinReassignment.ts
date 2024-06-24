@@ -71,9 +71,11 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     throw new Error("Event type not found");
   }
 
-  eventType.users = eventType.hosts.map((host) => ({ ...host.user, isFixed: host.isFixed }));
+  eventType.users = eventType.hosts.length
+    ? eventType.hosts.map((host) => ({ ...host.user, isFixed: host.isFixed, priority: host.priority }))
+    : eventType.users;
 
-  const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
+  const roundRobinHosts = eventType.users.filter((host) => !host.isFixed);
 
   const originalOrganizer = booking.user;
 
@@ -154,7 +156,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
   const teamMemberPromises = [];
-  for (const teamMember of eventType.hosts) {
+  for (const teamMember of eventType.users) {
     const user = teamMember.user;
     // Need to skip over the reassigned user and the organizer user
     if (user.email === previousRRHost.email || user.email === organizer.email) {
@@ -308,57 +310,69 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     },
   ]);
 
-  // Handle only email host workflows
-  const workflows = await prisma.workflow.findMany({
-    where: {
-      OR: [
-        {
-          trigger: WorkflowTriggerEvents.NEW_EVENT,
+  // Handle changing workflows with organizer
+  if (changedOrganizer) {
+    const workflowReminders = await prisma.workflowReminder.findMany({
+      where: {
+        bookingUid: booking.uid,
+      },
+    });
+
+    // Handle only email host workflows
+    const workflows = await prisma.workflow.findMany({
+      where: {
+        OR: [
+          {
+            trigger: WorkflowTriggerEvents.NEW_EVENT,
+          },
+          {
+            trigger: WorkflowTriggerEvents.BEFORE_EVENT,
+          },
+          {
+            trigger: WorkflowTriggerEvents.AFTER_EVENT,
+          },
+        ],
+        activeOn: {
+          some: {
+            eventTypeId: eventType.id,
+          },
         },
-        {
-          trigger: WorkflowTriggerEvents.BEFORE_EVENT,
-        },
-      ],
-      activeOn: {
-        some: {
-          eventTypeId: eventType.id,
+        steps: {
+          some: {
+            action: WorkflowActions.EMAIL_HOST,
+          },
         },
       },
-      steps: {
-        some: {
+      include: {
+        steps: true,
+      },
+    });
+
+    for (const workflow of workflows) {
+      // Only trigger new host step
+      workflow.steps = workflow.steps.filter((step) => step.action === WorkflowActions.EMAIL_HOST);
+
+      for (const step of workflow.steps) {
+        await scheduleEmailReminder({
+          evt: {
+            ...evt,
+            eventType,
+          },
           action: WorkflowActions.EMAIL_HOST,
-        },
-      },
-    },
-    include: {
-      steps: true,
-    },
-  });
-
-  for (const workflow of workflows) {
-    // Only trigger new host step
-    workflow.steps = workflow.steps.filter((step) => step.action === WorkflowActions.EMAIL_HOST);
-
-    for (const step of workflow.steps) {
-      await scheduleEmailReminder({
-        evt: {
-          ...evt,
-          eventType,
-        },
-        action: WorkflowActions.EMAIL_HOST,
-        triggerEvent: workflow.trigger,
-        timeSpan: {
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-        },
-        sendTo: reassignedRRHost.email,
-        template: step.template,
-      });
+          triggerEvent: workflow.trigger,
+          timeSpan: {
+            time: workflow.time,
+            timeUnit: workflow.timeUnit,
+          },
+          sendTo: reassignedRRHost.email,
+          template: step.template,
+        });
+      }
     }
-  }
 
-  // TODO create relationship between reminder and userId in order to determine which one to delete
-  // deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+    // TODO create relationship between reminder and userId in order to determine which one to delete
+    // deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
+  }
 };
 
 export default roundRobinReassignment;
