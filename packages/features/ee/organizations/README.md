@@ -11,8 +11,8 @@ From the [Original RFC](https://github.com/calcom/cal.com/issues/7142):
 2.  Set the following environment variables as described:
 
     1. **`CALCOM_LICENSE_KEY`**: Since Organizations is an EE feature, a license key should be present, either as this environment variable or visiting as an Admin `/auth/setup`. To get a license key you should visit Cal Console ([prod](https://console.cal.com) or [dev](https://console.cal.dev))
-    2. **`NEXT_PUBLIC_WEBAPP_URL`**: In case of local development, this variable should be set to `https://app.cal.local:3000` to be able to handle subdomains correctly in terms of authentication and cookies
-    3. **`NEXTAUTH_URL`**: Should be equal to `NEXT_PUBLIC_WEBAPP_URL` which is `https://app.cal.local:3000`
+    2. **`NEXT_PUBLIC_WEBAPP_URL`**: In case of local development, this variable should be set to `http://app.cal.local:3000` to be able to handle subdomains correctly in terms of authentication and cookies
+    3. **`NEXTAUTH_URL`**: Should be equal to `NEXT_PUBLIC_WEBAPP_URL` which is `http://app.cal.local:3000`
     4. **`NEXTAUTH_COOKIE_DOMAIN`**: In case of local development, this variable should be set to `.cal.local` to be able to accept session cookies in subdomains as well otherwise it should be set to the corresponding environment such as `.cal.dev`, `.cal.qa` or `.cal.com`. If you choose another subdomain, the value for this should match the apex domain of `NEXT_PUBLIC_WEBAPP_URL` with a leading dot (`.`)
     5. **`ORGANIZATIONS_ENABLED`**: Should be set to `1` or `true`
     6. **`STRIPE_ORG_MONTHLY_PRICE_ID`**: For dev and all testing should be set to your own testing key. Or ask for the shared key if you're a core member.
@@ -20,7 +20,7 @@ From the [Original RFC](https://github.com/calcom/cal.com/issues/7142):
 
 3.  Add `app.cal.local` to your host file, either:
 
-    1. `sudo npx hostile app.cal.local`
+    1. `sudo npx hostile set localhost app.cal.local`
     2. Add it yourself
 
 6.  Add `acme.cal.local` to host file given that the org create for it will be `acme`, otherwise do this for whatever slug will be assigned to the org. This is needed to test org-related public URLs, such as sub-teams, members and event-types.
