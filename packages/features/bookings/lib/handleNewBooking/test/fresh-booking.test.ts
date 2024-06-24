@@ -1100,7 +1100,7 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        `Booking should still be created if booking with Zoom errors`,
+        `Booking should still be created using calvideo, if error occurs with zoom`,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const subscriberUrl = "http://my-webhook.example.com";
@@ -1132,7 +1132,7 @@ describe("handleNewBooking", () => {
                   ],
                 },
               ],
-              apps: [TestData.apps["zoomvideo"]],
+              apps: [TestData.apps["zoomvideo"], TestData.apps["daily-video"]],
               webhooks: [
                 {
                   userId: organizer.id,
@@ -1150,6 +1150,15 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
 
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
           const { req } = createMockNextJsRequest({
             method: "POST",
             body: getMockRequestDataForBooking({
@@ -1163,16 +1172,18 @@ describe("handleNewBooking", () => {
               },
             }),
           });
-          await handleNewBooking(req);
+          const createdBooking = await handleNewBooking(req);
 
+          expect(createdBooking).toContain({
+            location: BookingLocations.CalVideo,
+          });
           expectBrokenIntegrationEmails({ organizer, emails });
-
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: BookingLocations.ZoomVideo,
+            location: BookingLocations.CalVideo,
             subscriberUrl,
-            videoCallUrl: null,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
