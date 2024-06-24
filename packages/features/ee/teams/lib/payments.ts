@@ -7,7 +7,7 @@ import { IS_PRODUCTION, MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
-import type { BillingPeriod } from "@calcom/prisma/zod-utils";
+import { BillingPeriod } from "@calcom/prisma/zod-utils";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 const log = logger.getSubLogger({ prefix: ["teams/lib/payments"] });
@@ -98,7 +98,15 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   pricePerSeat: number | null;
   billingPeriod?: BillingPeriod;
 }) => {
-  const { teamId, seatsToChargeFor, seatsUsed, userId, isOrg, pricePerSeat, billingPeriod } = input;
+  const {
+    teamId,
+    seatsToChargeFor,
+    seatsUsed,
+    userId,
+    isOrg,
+    pricePerSeat,
+    billingPeriod = BillingPeriod.MONTHLY,
+  } = input;
   const { url } = await checkIfTeamPaymentRequired({ teamId });
   if (url) return { url };
 
@@ -182,7 +190,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
         unit_amount: yearlyPrice, // Stripe expects the amount in cents
         // Use the same currency as in the fixed price to avoid hardcoding it.
         currency: currency,
-        recurring: { interval: billingPeriod === "ANNUALLY" ? "year" : "month" }, // Define your subscription interval
+        recurring: { interval: billingPeriod === "MONTHLY" ? "month" : "year" }, // Define your subscription interval
         product: typeof product === "string" ? product : product.id,
         tax_behavior: "exclusive",
       });
