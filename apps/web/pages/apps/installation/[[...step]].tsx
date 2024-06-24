@@ -207,18 +207,6 @@ const OnboardingPage = ({
       {
         onSuccess: (data) => {
           if (data?.setupPending) return;
-          if (showEventTypesStep) {
-            // for non-oAuth apps
-            router.push(
-              getAppOnboardingUrl({
-                slug: appMetadata.slug,
-                step: AppOnboardingSteps.EVENT_TYPES_STEP,
-                teamId,
-              })
-            );
-          } else {
-            router.push(`/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`);
-          }
           showToast(t("app_successfully_installed"), "success");
         },
         onError: (error) => {
@@ -492,6 +480,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     const isConferencing = isConferencingApp(appMetadata.categories);
     const showEventTypesStep = extendsEventType || isConferencing;
+    console.log("sshowEventTypesStephowEventTypesStep: ", showEventTypesStep);
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
 
@@ -590,6 +579,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as OnboardingPageProps,
     };
   } catch (err) {
+    console.log("eerrerrerrerrerrerrerrerrrr: ", err);
     if (err instanceof z.ZodError) {
       return { redirect: { permanent: false, destination: "/apps" } };
     }

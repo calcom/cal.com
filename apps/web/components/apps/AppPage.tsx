@@ -108,13 +108,6 @@ export const AppPage = ({
         {
           onSuccess: (data) => {
             if (data?.setupPending) return;
-            // for non-oAuth apps
-            router.push(
-              getAppOnboardingUrl({
-                slug,
-                step: AppOnboardingSteps.EVENT_TYPES_STEP,
-              })
-            );
             showToast(t("app_successfully_installed"), "success");
           },
           onError: (error) => {

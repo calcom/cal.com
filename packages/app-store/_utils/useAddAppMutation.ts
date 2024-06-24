@@ -27,8 +27,7 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   returnTo?: string;
 };
 
-function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
-  const { returnTo, ...options } = allOptions || {};
+function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
   const pathname = usePathname();
   const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
 
@@ -52,6 +51,11 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
       const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
+      const returnTo = options?.returnTo
+        ? options.returnTo
+        : variables && variables.returnTo
+        ? variables.returnTo
+        : undefined;
       if (variables === "") {
         type = _type;
       } else {
@@ -67,8 +71,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
       const state: IntegrationOAuthCallbackState = {
         returnTo:
-          returnTo ||
-          (variables && variables.returnTo ? variables.returnTo : undefined) ||
+          returnTo ??
           WEBAPP_URL +
             getInstalledAppPath(
               { variant: variables && variables.variant, slug: variables && variables.slug },
@@ -82,7 +85,11 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       };
 
       const stateStr = JSON.stringify(state);
-      const searchParams = generateSearchParamString({ stateStr, teamId, returnTo });
+      const searchParams = generateSearchParamString({
+        stateStr,
+        teamId,
+        returnTo,
+      });
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
@@ -93,6 +100,7 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
 
       const json = await res.json();
       const externalUrl = /https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin);
+
       if (!isOmniInstall) {
         gotoUrl(json.url, json.newTab);
         return { setupPending: externalUrl || json.url.endsWith("/setup") };
@@ -108,7 +116,13 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         return { setupPending: externalUrl };
       }
 
-      return { setupPending: externalUrl || json.url.endsWith("/setup") };
+      console.log("rreturnToreturnToeturnTo: ", returnTo);
+      if (returnTo) {
+        gotoUrl(returnTo, false);
+        return { setupPending: json.url.endsWith("/setup") };
+      }
+
+      return { setupPending: json.url.endsWith("/setup") };
     },
   });
 
