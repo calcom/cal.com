@@ -113,7 +113,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    const customPriceObj = await getCustomPrice(fixedPrice);
+    const customPriceObj = await getPriceObject(fixedPrice);
     priceId = await createPrice({
       isOrg: !!isOrg,
       teamId,
@@ -213,9 +213,9 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }
 };
 
-async function getCustomPrice(fixedPriceId: string) {
-  const priceObj = await stripe.prices.retrieve(fixedPriceId);
-  if (!priceObj) throw new Error(`No price found for ID ${fixedPriceId}`);
+async function getPriceObject(priceId: string) {
+  const priceObj = await stripe.prices.retrieve(priceId);
+  if (!priceObj) throw new Error(`No price found for ID ${priceId}`);
 
   return priceObj;
 }
