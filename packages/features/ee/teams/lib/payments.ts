@@ -113,7 +113,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    const customPriceObj = await getCustomPrice(fixedPrice);
+    const customPriceObj = await getPriceObject(fixedPrice);
     priceId = await createPrice({
       isOrg: !!isOrg,
       teamId,
@@ -172,9 +172,14 @@ export const purchaseTeamOrOrgSubscription = async (input: {
     currency: string;
   }) {
     try {
+      const pricePerSeatInCents = pricePerSeat * 100;
+      // Price comes in monthly so we need to convert it to a monthly/yearly price
+      const occurrence = billingPeriod === "MONTHLY" ? 1 : 12;
+      const yearlyPrice = pricePerSeatInCents * occurrence;
+
       const customPriceObj = await stripe.prices.create({
         nickname: `Custom price for ${isOrg ? "Organization" : "Team"} ID: ${teamId}`,
-        unit_amount: pricePerSeat * 100, // Stripe expects the amount in cents
+        unit_amount: yearlyPrice, // Stripe expects the amount in cents
         // Use the same currency as in the fixed price to avoid hardcoding it.
         currency: currency,
         recurring: { interval: billingPeriod === "MONTHLY" ? "month" : "year" }, // Define your subscription interval
@@ -213,9 +218,9 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   }
 };
 
-async function getCustomPrice(fixedPriceId: string) {
-  const priceObj = await stripe.prices.retrieve(fixedPriceId);
-  if (!priceObj) throw new Error(`No price found for ID ${fixedPriceId}`);
+async function getPriceObject(priceId: string) {
+  const priceObj = await stripe.prices.retrieve(priceId);
+  if (!priceObj) throw new Error(`No price found for ID ${priceId}`);
 
   return priceObj;
 }
