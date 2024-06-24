@@ -1421,6 +1421,8 @@
   "copy_link_to_form": "양식에 링크 복사",
   "theme": "테마",
   "theme_applies_note": "공개 예약 페이지에만 적용됩니다",
+  "app_theme": "대시보드 테마",
+  "app_theme_applies_note": "이는 로그인한 대시보드에만 적용됩니다.",
   "theme_system": "시스템 기본값",
   "app_theme": "대시보드 테마",
   "app_theme_applies_note": "이것은 로그인한 대시보드에만 적용됩니다",
