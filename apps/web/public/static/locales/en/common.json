@@ -1043,6 +1043,7 @@
   "seats_nearly_full": "Seats almost full",
   "seats_half_full": "Seats filling fast",
   "number_of_seats": "Number of seats per booking",
+  "set_expiry_time_offset": "Set instant meeting expiry time offset",
   "enter_number_of_seats": "Enter number of seats",
   "you_can_manage_your_schedules": "You can manage your schedules on the Availability page.",
   "booking_full": "No more seats available",

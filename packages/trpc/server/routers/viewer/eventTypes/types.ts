@@ -8,6 +8,7 @@ export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
     isInstantEvent: z.boolean().optional(),
+    instantMeetingExpiryTimeOffset: z.number().optional(),
     aiPhoneCallConfig: z
       .object({
         generalPrompt: z.string(),

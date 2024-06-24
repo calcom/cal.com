@@ -57,6 +57,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   eventName: true,
   slug: true,
   isInstantEvent: true,
+  instantMeetingExpiryTimeOffset: true,
   aiPhoneCallConfig: true,
   schedulingType: true,
   length: true,
@@ -349,6 +350,7 @@ export const getPublicEvent = async (
 
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
+    instantMeetingExpiryTimeOffset: eventWithUserProfiles.eventWithUserProfiles,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };

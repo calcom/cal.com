@@ -82,6 +82,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    instantMeetingExpiryTimeOffset: 90,
     locations: null,
     length: 15,
     offsetStart: 0,

@@ -133,6 +133,7 @@ model EventType {
   /// @zod.custom(imports.intervalLimitsType)
   durationLimits                       Json?
   isInstantEvent                       Boolean                   @default(false)
+  instantMeetingExpiryTimeOffset       Int                       @default(90)
   assignAllTeamMembers                 Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail Boolean                   @default(false)
   aiPhoneCallConfig                    AIPhoneCallConfiguration?

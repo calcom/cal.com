@@ -189,6 +189,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
           parentId: true,
         },
       },
+      instantMeetingExpiryTimeOffset: true,
       bookingFields: true,
       title: true,
       length: true,

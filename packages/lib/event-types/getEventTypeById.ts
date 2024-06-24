@@ -84,6 +84,7 @@ export const getEventTypeById = async ({
       description: true,
       length: true,
       isInstantEvent: true,
+      instantMeetingExpiryTimeOffset: true,
       aiPhoneCallConfig: true,
       offsetStart: true,
       hidden: true,

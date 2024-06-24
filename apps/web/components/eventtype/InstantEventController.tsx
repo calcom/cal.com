@@ -2,7 +2,7 @@ import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -15,7 +15,16 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  SettingsToggle,
+  Dialog,
+  DialogContent,
+  showToast,
+  TextField,
+} from "@calcom/ui";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -85,7 +94,30 @@ export default function InstantEventController({
                     }
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    {instantEventState && <InstantMeetingWebhooks eventType={eventType} />}
+                    {instantEventState && (
+                      <div className="flex flex-col gap-2">
+                        <Controller
+                          name="instantMeetingExpiryTimeOffset"
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              required
+                              name="instantMeetingExpiryTimeOffset"
+                              label={t("set_expiry_time_offset")}
+                              type="number"
+                              defaultValue={value}
+                              min={10}
+                              containerClassName="max-w-80"
+                              addOnSuffix={<>{t("seconds")}</>}
+                              onChange={(e) => {
+                                onChange(Math.abs(Number(e.target.value)));
+                              }}
+                              data-testid="instant-meeting-expiry-time-offset"
+                            />
+                          )}
+                        />
+                        <InstantMeetingWebhooks eventType={eventType} />
+                      </div>
+                    )}
                   </div>
                 </SettingsToggle>
               </>
@@ -213,9 +245,6 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
               </>
             ) : (
               <>
-                <p className="text-default mb-4 text-sm font-normal">
-                  {t("warning_payment_instant_meeting_event")}
-                </p>
                 <EmptyScreen
                   Icon="webhook"
                   headline={t("create_your_first_webhook")}
