@@ -2,11 +2,13 @@ import Image from "next/image";
 
 import classNames from "@calcom/lib/classNames";
 
+type Maybe<T> = T | null | undefined;
+
 export type OrgBannerProps = {
   alt: string;
   width?: number;
   height?: number;
-  imageSrc?: string;
+  imageSrc?: Maybe<string>;
   fallback?: React.ReactNode;
   className?: string;
   "data-testid"?: string;
