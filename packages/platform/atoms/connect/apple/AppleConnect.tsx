@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
 import { SUCCESS_STATUS } from "../../../constants/api";
+import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
 import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
@@ -22,35 +23,51 @@ import type { OAuthConnectProps } from "../OAuthConnect";
 
 export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   label = "Connect Apple Calendar",
+  alreadyConnectedLabel = "Connected Apple Calendar",
+  loadingLabel = "Checking Apple Calendar",
   className,
 }) => {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const displayedLabel = label;
-  const isDisabled = false;
-
   const form = useForm({
     defaultValues: {
       username: "",
       password: "",
     },
   });
-
   const { toast } = useToast();
   const { data: user } = useMe();
+  const { allowConnect, checked, refetch } = useCheck({
+    calendar: "apple",
+  });
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  let displayedLabel = label;
+
   const { mutate: saveCredentials, isPending: isSaving } = useSaveCalendarCredentials({
     onSuccess: (res) => {
       if (res.status === SUCCESS_STATUS) {
         form.reset();
         setIsDialogOpen(false);
+        refetch();
         toast({
           description: "Calendar credentials added successfully",
         });
       }
     },
     onError: (err) => {
-      console.log("Error:", err);
+      toast({
+        description: `Error: ${err}`,
+      });
     },
   });
+
+  const isChecking = !checked;
+  const isDisabled = isChecking || !allowConnect;
+
+  if (isChecking) {
+    displayedLabel = loadingLabel;
+  } else if (!allowConnect) {
+    displayedLabel = alreadyConnectedLabel;
+  }
 
   return (
     <AtomsWrapper>
@@ -78,7 +95,10 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             form={form}
             handleSubmit={async (values) => {
               const { username, password } = values;
-              await saveCredentials({ calendar: "apple", username, password, userId: user?.data.id ?? 90 });
+
+              if (user?.data.id) {
+                await saveCredentials({ calendar: "apple", username, password, userId: user?.data.id });
+              }
             }}>
             <fieldset
               className="space-y-4"
