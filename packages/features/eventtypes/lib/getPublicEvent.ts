@@ -216,6 +216,7 @@ export const getPublicEvent = async (
         logoUrl: null,
       },
       isInstantEvent: false,
+      instantMeetingExpiryTimeOffset: 90,
     };
   }
 
@@ -350,7 +351,7 @@ export const getPublicEvent = async (
 
     isDynamic: false,
     isInstantEvent: eventWithUserProfiles.isInstantEvent,
-    instantMeetingExpiryTimeOffset: eventWithUserProfiles.eventWithUserProfiles,
+    instantMeetingExpiryTimeOffset: eventWithUserProfiles.instantMeetingExpiryTimeOffset,
     aiPhoneCallConfig: eventWithUserProfiles.aiPhoneCallConfig,
     assignAllTeamMembers: event.assignAllTeamMembers,
   };
