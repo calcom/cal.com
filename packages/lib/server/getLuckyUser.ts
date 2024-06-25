@@ -138,11 +138,7 @@ async function getUsersBasedOnWeights<
     (user) => user.bookingShortfall === maxShortfall
   );
 
-  const luckyUsers = usersWithMaxShortfall.map((user) => {
-    const { bookingShortfall, ...rest } = user;
-    return rest;
-  });
-  return luckyUsers;
+  return availableUsers.filter((user) => usersWithMaxShortfall.find((luckUser) => luckUser.id === user.id));
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
