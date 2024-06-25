@@ -1,4 +1,5 @@
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsController } from "@/modules/organizations/controllers/organizations.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationUsersRepository } from "@/modules/organizations/repositories/organization-users.repository";
@@ -16,6 +17,6 @@ import { Module } from "@nestjs/common";
     MembershipsRepository,
   ],
   exports: [OrganizationsService, OrganizationsRepository],
-  controllers: [OrganizationsController],
+  controllers: [OrganizationsController, OrganizationsTeamsController],
 })
 export class OrganizationsModule {}
