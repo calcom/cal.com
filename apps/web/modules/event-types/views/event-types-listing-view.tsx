@@ -514,7 +514,7 @@ export const EventTypeList = ({
                                 </DropdownMenuItem>
                               )}
                               {(group.metadata?.readOnly === false || group.metadata.readOnly === null) && 
-                                !isChildrenManagedEventType &&(
+                                 !isChildrenManagedEventType &&(
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
