@@ -4,7 +4,6 @@ import type { WorkflowActions } from "@calcom/prisma/enums";
 
 import { isSMSOrWhatsappAction, isWhatsappAction, isEmailToAttendeeAction } from "./actionHelperFunctions";
 import {
-  TIME_UNIT,
   WHATSAPP_WORKFLOW_TEMPLATES,
   WORKFLOW_ACTIONS,
   BASIC_WORKFLOW_TEMPLATES,
@@ -29,12 +28,6 @@ export function getWorkflowTriggerOptions(t: TFunction) {
     const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
 
     return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };
-  });
-}
-
-export function getWorkflowTimeUnitOptions(t: TFunction) {
-  return TIME_UNIT.map((timeUnit) => {
-    return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
   });
 }
 
