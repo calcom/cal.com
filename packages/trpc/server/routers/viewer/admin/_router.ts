@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
+import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
 import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
@@ -62,4 +63,13 @@ export const adminRouter = router({
     );
     return handler(opts);
   }),
+  createSelfHostedLicense: authedAdminProcedure
+    .input(ZCreateSelfHostedLicenseSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("createSelfHostedLicense"),
+        () => import("./createSelfHostedLicenseKey.handler")
+      );
+      return handler(opts);
+    }),
 });

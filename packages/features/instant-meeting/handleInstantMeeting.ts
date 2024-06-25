@@ -17,6 +17,7 @@ import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -25,18 +26,32 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
+  teamId: number;
 }) => {
+  const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: args.teamId })) ?? 0;
+
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
 
     const subscribers = await prisma.webhook.findMany({
       where: {
+        OR: [
+          {
+            teamId: {
+              in: [orgId, args.teamId],
+            },
+          },
+          {
+            eventTypeId: args.eventTypeId,
+          },
+        ],
         AND: {
-          eventTypeId: args.eventTypeId,
           eventTriggers: {
             has: eventTrigger,
           },
-          active: true,
+          active: {
+            equals: true,
+          },
         },
       },
       select: {
@@ -213,6 +228,7 @@ async function handler(req: NextApiRequest) {
   await handleInstantMeetingWebhookTrigger({
     eventTypeId: eventType.id,
     webhookData,
+    teamId: eventType.team?.id,
   });
 
   return {

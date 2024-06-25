@@ -153,6 +153,13 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
   });
 
+  test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
+    const [pro] = users.get();
+    const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
+    const response = await page.goto(unexistingPageUrl.href);
+    expect(response?.status()).toBe(404);
+  });
+
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
     page,
     users,
@@ -477,13 +484,17 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
         schedulingType: SchedulingType.ROUND_ROBIN,
         teamEventLength: 120,
         teammates: teamMatesObj,
+        seatsPerTimeSlot: 5,
       }
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
-  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+  test("Does not book seated round robin host outside availability with date override", async ({
+    page,
+    users,
+  }) => {
     const [testUser] = users.get();
     await testUser.apiLogin();
 
