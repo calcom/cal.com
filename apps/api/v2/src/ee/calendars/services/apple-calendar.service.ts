@@ -1,9 +1,6 @@
-import { CalendarApp } from "@/ee/calendars/calendars.interface";
+import { CredentialSyncCalendarApp } from "@/ee/calendars/calendars.interface";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { CredentialsRepository } from "@/modules/credentials/credentials.repository";
-import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
-import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
@@ -11,17 +8,19 @@ import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/
 import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries-0.0.14";
 
 @Injectable()
-export class AppleCalendarService implements CalendarApp {
+export class AppleCalendarService implements CredentialSyncCalendarApp {
   constructor(
     private readonly calendarsService: CalendarsService,
-    private readonly credentialRepository: CredentialsRepository,
-    private readonly tokensRepository: TokensRepository,
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
+    private readonly credentialRepository: CredentialsRepository
   ) {}
 
-  async save(accessToken: string, username?: string, password?: string): Promise<{ status: string }> {
-    return await this.saveCalendarCredentialsAndRedirect(accessToken, username ?? "", password ?? "");
+  async save(
+    userId: number,
+    userEmail: string,
+    username: string,
+    password: string
+  ): Promise<{ status: string }> {
+    return await this.saveCalendarCredentials(userId, userEmail, username, password);
   }
 
   async check(userId: number): Promise<{ status: typeof SUCCESS_STATUS }> {
@@ -58,21 +57,9 @@ export class AppleCalendarService implements CalendarApp {
     };
   }
 
-  async saveCalendarCredentialsAndRedirect(accessToken: string, username: string, password: string) {
-    if (username.length > 1 || password.length > 1)
+  async saveCalendarCredentials(userId: number, userEmail: string, username: string, password: string) {
+    if (username.length <= 1 || password.length <= 1)
       throw new BadRequestException(`Username or password cannot be empty`);
-
-    const ownerId = await this.tokensRepository.getAccessTokenOwnerId(accessToken);
-
-    const user = await this.dbRead.prisma.user.findFirstOrThrow({
-      where: {
-        id: ownerId,
-      },
-      select: {
-        email: true,
-        id: true,
-      },
-    });
 
     const data = {
       type: APPLE_CALENDAR_TYPE,
@@ -80,7 +67,7 @@ export class AppleCalendarService implements CalendarApp {
         JSON.stringify({ username, password }),
         process.env.CALENDSO_ENCRYPTION_KEY || ""
       ),
-      userId: user.id,
+      userId: userId,
       teamId: null,
       appId: APPLE_CALENDAR_ID,
       invalid: false,
@@ -90,12 +77,10 @@ export class AppleCalendarService implements CalendarApp {
       const dav = new CalendarService({
         id: 0,
         ...data,
-        user: { email: user.email },
+        user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.dbWrite.prisma.credential.create({
-        data,
-      });
+      await this.credentialRepository.createAppCredential(APPLE_CALENDAR_TYPE, data, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }
