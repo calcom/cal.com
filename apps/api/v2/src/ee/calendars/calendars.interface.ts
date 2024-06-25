@@ -3,13 +3,12 @@ import { Request } from "express";
 import { ApiResponse } from "@calcom/platform-types";
 
 export interface CalendarApp {
-  save(
-    state: string,
-    code: string,
-    origin: string,
-    username?: string,
-    password?: string
-  ): Promise<{ url: string } | { status: string }>;
+  save(state: string, code: string, origin: string): Promise<{ url: string }>;
+  check(userId: number): Promise<ApiResponse>;
+}
+
+export interface CredentialSyncCalendarApp {
+  save(userId: number, userEmail: string, username: string, password: string): Promise<{ status: string }>;
   check(userId: number): Promise<ApiResponse>;
 }
 
