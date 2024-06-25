@@ -72,6 +72,7 @@ const CheckedHostField = ({
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
                   weight: option.weight ?? 100,
+                  weightAdjustment: option.weightAdjustment ?? 0,
                 }))
               );
           }}

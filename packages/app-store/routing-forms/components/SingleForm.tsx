@@ -370,6 +370,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             userId: userId,
                             priority: 2,
                             weight: 100,
+                            weightAdjustment: 0,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
