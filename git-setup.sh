@@ -21,18 +21,11 @@ for module in "$@"; do
     git config -f .gitmodules --unset-all "submodule.apps/$module.branch"
     # Add the submodule
     git submodule add --force $project "apps/$module"
+    # Set the default branch to main
+    git config -f .gitmodules --add "submodule.apps/$module.branch" main
     
-    # Determine the branch based on module
-    branch="main"
-    if [ "$module" = "website" ]; then
-      branch="production"
-    fi
-
-    # Set the default branch
-    git config -f .gitmodules --add "submodule.apps/$module.branch" ${branch}
-    
-    # Update to the latest of branch in that submodule
-    cd apps/$module && git pull origin ${branch} && cd ../..
+    # Update to the latest from main in that submodule
+    cd apps/$module && git pull origin main && cd ../..
 
     # We forcefully added the subdmoule which was in .gitignore, so unstage it.
     git restore --staged apps/$module
