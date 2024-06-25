@@ -130,7 +130,7 @@ const SlotItem = ({
           data-time={slot.time}
           onClick={onButtonClick}
           className={classNames(
-            `min-h-9 hover:border-brand-default mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
+            `hover:border-brand-default min-h-9 mb-2 flex h-auto w-full flex-grow flex-col justify-center py-2`,
             selectedSlots?.includes(slot.time) && "border-brand-default",
             `${customClassNames}`
           )}
