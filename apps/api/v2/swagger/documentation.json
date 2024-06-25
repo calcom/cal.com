@@ -577,14 +577,14 @@
     },
     "/v2/event-types": {
       "post": {
-        "operationId": "EventTypesController_createEventType",
+        "operationId": "EventTypesController_2024_04_15_createEventType",
         "parameters": [],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateEventTypeInput"
+                "$ref": "#/components/schemas/CreateEventTypeInput_2024_04_15"
               }
             }
           }
@@ -606,7 +606,7 @@
         ]
       },
       "get": {
-        "operationId": "EventTypesController_getEventTypes",
+        "operationId": "EventTypesController_2024_04_15_getEventTypes",
         "parameters": [],
         "responses": {
           "200": {
@@ -627,7 +627,7 @@
     },
     "/v2/event-types/{eventTypeId}": {
       "get": {
-        "operationId": "EventTypesController_getEventType",
+        "operationId": "EventTypesController_2024_04_15_getEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -655,7 +655,7 @@
         ]
       },
       "patch": {
-        "operationId": "EventTypesController_updateEventType",
+        "operationId": "EventTypesController_2024_04_15_updateEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -671,7 +671,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateEventTypeInput"
+                "$ref": "#/components/schemas/UpdateEventTypeInput_2024_04_15"
               }
             }
           }
@@ -693,7 +693,7 @@
         ]
       },
       "delete": {
-        "operationId": "EventTypesController_deleteEventType",
+        "operationId": "EventTypesController_2024_04_15_deleteEventType",
         "parameters": [
           {
             "name": "eventTypeId",
@@ -723,7 +723,7 @@
     },
     "/v2/event-types/{username}/{eventSlug}/public": {
       "get": {
-        "operationId": "EventTypesController_getPublicEventType",
+        "operationId": "EventTypesController_2024_04_15_getPublicEventType",
         "parameters": [
           {
             "name": "username",
@@ -778,7 +778,7 @@
     },
     "/v2/event-types/{username}/public": {
       "get": {
-        "operationId": "EventTypesController_getPublicEventTypes",
+        "operationId": "EventTypesController_2024_04_15_getPublicEventTypes",
         "parameters": [
           {
             "name": "username",
@@ -810,16 +810,6 @@
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
         "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
         "responses": {
           "201": {
             "description": "",
@@ -862,14 +852,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Returns the default schedule",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GetDefaultScheduleOutput_2024_06_11"
-                }
-              }
-            }
+            "description": "Returns the default schedule"
           }
         },
         "tags": [
@@ -918,16 +901,6 @@
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
             "description": "",
@@ -1890,16 +1863,15 @@
         "properties": {
           "timeFormat": {
             "type": "number",
-            "example": 12,
             "enum": [
               12,
               24
             ],
+            "example": 12,
             "description": "Must be 12 or 24"
           },
           "weekStart": {
             "type": "string",
-            "example": "Monday",
             "enum": [
               "Monday",
               "Tuesday",
@@ -1908,7 +1880,8 @@
               "Friday",
               "Saturday",
               "Sunday"
-            ]
+            ],
+            "example": "Monday"
           },
           "email": {
             "type": "string"
@@ -1934,11 +1907,15 @@
           "refreshToken": {
             "type": "string",
             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+          },
+          "accessTokenExpiresAt": {
+            "type": "number"
           }
         },
         "required": [
           "accessToken",
-          "refreshToken"
+          "refreshToken",
+          "accessTokenExpiresAt"
         ]
       },
       "KeysResponseDto": {
@@ -2169,7 +2146,179 @@
           "refreshToken"
         ]
       },
-      "EventTypeLocation": {
+      "CreateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "description": {
+            "type": "string",
+            "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
+          }
+        },
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "description"
+        ]
+      },
+      "EventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CreateEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "GetEventTypesOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateEventTypeInput_2024_06_14": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteData_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "example": 1
+          },
+          "lengthInMinutes": {
+            "type": "number",
+            "example": 60
+          },
+          "title": {
+            "type": "string",
+            "example": "Learn the secrets of masterchief!"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug"
+        ]
+      },
+      "DeleteEventTypeOutput_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeleteData_2024_06_14"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeLocation_2024_04_15": {
         "type": "object",
         "properties": {
           "type": {
@@ -2185,7 +2334,7 @@
           "type"
         ]
       },
-      "CreateEventTypeInput": {
+      "CreateEventTypeInput_2024_04_15": {
         "type": "object",
         "properties": {
           "length": {
@@ -2208,7 +2357,7 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           },
           "disableGuests": {
@@ -2265,7 +2414,7 @@
             "nullable": true,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           }
         },
@@ -2887,7 +3036,143 @@
           "data"
         ]
       },
-      "UpdateEventTypeInput": {
+      "Option": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "label"
+        ]
+      },
+      "VariantsConfig": {
+        "type": "object",
+        "properties": {
+          "variants": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "variants"
+        ]
+      },
+      "View": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label"
+        ]
+      },
+      "BookingField_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "number",
+              "boolean",
+              "address",
+              "name",
+              "text",
+              "textarea",
+              "email",
+              "phone",
+              "multiemail",
+              "select",
+              "multiselect",
+              "checkbox",
+              "radio",
+              "radioInput"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Option"
+            }
+          },
+          "label": {
+            "type": "string"
+          },
+          "labelAsSafeHtml": {
+            "type": "string"
+          },
+          "defaultLabel": {
+            "type": "string"
+          },
+          "placeholder": {
+            "type": "string"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "getOptionsAt": {
+            "type": "string"
+          },
+          "optionsInputs": {
+            "type": "object"
+          },
+          "variant": {
+            "type": "string"
+          },
+          "variantsConfig": {
+            "$ref": "#/components/schemas/VariantsConfig"
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
+          },
+          "hideWhenJustOneOption": {
+            "type": "boolean"
+          },
+          "hidden": {
+            "type": "boolean"
+          },
+          "editable": {
+            "type": "string",
+            "enum": [
+              "system",
+              "system-but-optional",
+              "system-but-hidden",
+              "user",
+              "user-readonly"
+            ]
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ]
+      },
+      "UpdateEventTypeInput_2024_04_15": {
         "type": "object",
         "properties": {
           "length": {
@@ -2909,13 +3194,13 @@
           "locations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EventTypeLocation"
+              "$ref": "#/components/schemas/EventTypeLocation_2024_04_15"
             }
           },
           "bookingFields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/BookingField"
+              "$ref": "#/components/schemas/BookingField_2024_04_15"
             }
           },
           "disableGuests": {
@@ -3303,66 +3588,6 @@
           "data"
         ]
       },
-      "UpdateScheduleInput_2024_04_15": {
-        "type": "object",
-        "properties": {
-          "timeZone": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "isDefault": {
-            "type": "boolean"
-          },
-          "schedule": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          },
-          "dateOverrides": {
-            "example": [
-              [],
-              [
-                {
-                  "start": "2022-01-01T00:00:00.000Z",
-                  "end": "2022-01-02T00:00:00.000Z"
-                }
-              ],
-              [],
-              [],
-              [],
-              [],
-              []
-            ],
-            "items": {
-              "type": "array"
-            },
-            "type": "array"
-          }
-        },
-        "required": [
-          "timeZone",
-          "name",
-          "isDefault",
-          "schedule"
-        ]
-      },
       "EventTypeModel_2024_04_15": {
         "type": "object",
         "properties": {
@@ -3618,15 +3843,17 @@
             ],
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "object"
             }
           },
           "startTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "09:00"
           },
           "endTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "10:00"
           }
         },
@@ -3645,10 +3872,12 @@
           },
           "startTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "12:00"
           },
           "endTime": {
             "type": "string",
+            "pattern": "TIME_FORMAT_HH_MM",
             "example": "13:00"
           }
         },
@@ -3656,57 +3885,6 @@
           "date",
           "startTime",
           "endTime"
-        ]
-      },
-      "CreateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
         ]
       },
       "ScheduleOutput_2024_06_11": {
@@ -3792,26 +3970,6 @@
           "data"
         ]
       },
-      "GetDefaultScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
       "GetScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -3865,52 +4023,6 @@
           "status",
           "data"
         ]
-      },
-      "UpdateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        }
       },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",

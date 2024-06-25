@@ -48,6 +48,8 @@
   "ics_event_title": "{{eventType}} με {{name}}",
   "join_by_entrypoint": "Συμμετάσχετε από {{entryPoint}}",
   "notes": "Σημειώσεις",
+  "app_theme":"Θέμα του πίνακα ελέγχου",
+  "app_theme_applies_note":"Αυτό ισχύει μόνο για το πίνακα ελέγχου σας που έχεις συνδεθεί",
   "manage_my_bookings": "Διαχείριση κρατήσεων",
   "event_type": "Τύπος Συμβάντος",
   "meeting_password": "Συνθηματικό Συνάντησης",
