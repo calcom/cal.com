@@ -70,6 +70,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      isRRWeightsEnabled: true,
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
@@ -271,7 +272,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     // add weightAdjustment for all new rr hosts
-    if (isRRWeightsEnabled) {
+    if (isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled)) {
       // find all new rr hosts to set rrWeightAdjustment
       const newRRHosts = hosts
         .filter(
@@ -280,6 +281,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         .map((host) => ({
           weight: host.weight,
           email: previousRRHosts.find((prevHost) => prevHost.userId === host.userId)?.user?.email,
+          userId: host.userId,
         }));
 
       if (newRRHosts.length) {
@@ -333,7 +335,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const totalWeight = hosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
 
-        const allWeightAdjustments = hostsWithUserData.reduce((sum, host) => sum + host.weightAdjustment, 0);
+        const allWeightAdjustments = continuingHosts.reduce((sum, host) => sum + host.weightAdjustment, 0);
 
         const updatedRRHosts = newRRHosts.map((host) => {
           const targetPercentage = (host.weight ?? 100) / totalWeight;
@@ -349,9 +351,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           const hostWithUserData = hostsWithUserData.find(
             (hostWithUserData) => hostWithUserData.user.id === host.userId
           );
-          const email = hostWithUserData?.user.email;
           const weightAdjustment =
-            updatedRRHosts.find((updatedHost) => updatedHost.email === email)?.adjustedWeight ?? 0;
+            updatedRRHosts.find((updatedHost) => updatedHost.userId === host.userId)?.adjustedWeight ?? 0;
 
           return {
             ...host,
