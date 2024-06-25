@@ -1,6 +1,5 @@
 import type { App, DestinationCalendar, EventTypeCustomInput } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import type { IncomingMessage } from "http";
 import { isValidPhoneNumber } from "libphonenumber-js";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
@@ -41,7 +40,6 @@ import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
@@ -79,7 +77,6 @@ import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@c
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
@@ -112,6 +109,7 @@ import { checkForConflicts } from "./conflictChecker/checkForConflicts";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { loadUsers } from "./handleNewBooking/loadUsers";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
 
@@ -295,40 +293,6 @@ type IsFixedAwareUser = User & {
   credentials: CredentialPayload[];
   organization: { slug: string };
   priority?: number;
-};
-
-const loadUsers = async (eventType: NewBookingEventType, dynamicUserList: string[], req: IncomingMessage) => {
-  try {
-    if (!eventType.id) {
-      if (!Array.isArray(dynamicUserList) || dynamicUserList.length === 0) {
-        throw new Error("dynamicUserList is not properly defined or empty.");
-      }
-      const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(req);
-      const users = await findUsersByUsername({
-        usernameList: dynamicUserList,
-        orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-      });
-      return users;
-    }
-    const hosts = eventType.hosts || [];
-
-    if (!Array.isArray(hosts)) {
-      throw new Error("eventType.hosts is not properly defined.");
-    }
-
-    const users = hosts.map(({ user, isFixed, priority }) => ({
-      ...user,
-      isFixed,
-      priority,
-    }));
-
-    return users.length ? users : eventType.users;
-  } catch (error) {
-    if (error instanceof HttpError || error instanceof Prisma.PrismaClientKnownRequestError) {
-      throw new HttpError({ statusCode: 400, message: error.message });
-    }
-    throw new HttpError({ statusCode: 500, message: "Unable to load users" });
-  }
 };
 
 export async function ensureAvailableUsers(
@@ -2647,40 +2611,3 @@ function handleCustomInputs(
     }
   });
 }
-
-/**
- * This method is mostly same as the one in UserRepository but it includes a lot more relations which are specific requirement here
- * TODO: Figure out how to keep it in UserRepository and use it here
- */
-export const findUsersByUsername = async ({
-  usernameList,
-  orgSlug,
-}: {
-  orgSlug: string | null;
-  usernameList: string[];
-}) => {
-  log.debug("findUsersByUsername", { usernameList, orgSlug });
-  const { where, profiles } = await UserRepository._getWhereClauseForFindingUsersByUsername({
-    orgSlug,
-    usernameList,
-  });
-  return (
-    await prisma.user.findMany({
-      where,
-      select: {
-        ...userSelect.select,
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        },
-        metadata: true,
-      },
-    })
-  ).map((user) => {
-    const profile = profiles?.find((profile) => profile.user.id === user.id) ?? null;
-    return {
-      ...user,
-      organizationId: profile?.organizationId ?? null,
-      profile,
-    };
-  });
-};
