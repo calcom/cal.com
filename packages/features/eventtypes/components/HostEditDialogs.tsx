@@ -97,8 +97,8 @@ export const WeightDialog = (props: IDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
   const { getValues } = useFormContext<FormValues>();
+  const [newWeight, setNewWeight] = useState<number>(100);
 
-  const [newWeight, setNewWeight] = useState<number>();
   const setWeight = () => {
     if (!!newWeight) {
       const hosts: Host[] = getValues("hosts");
@@ -129,7 +129,6 @@ export const WeightDialog = (props: IDialog) => {
             <TextField
               required
               label={t("Weight")}
-              defaultValue={100}
               value={newWeight}
               type="number"
               onChange={(e) => setNewWeight(parseInt(e.target.value))}

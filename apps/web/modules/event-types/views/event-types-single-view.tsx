@@ -118,7 +118,13 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
-export type Host = { isFixed: boolean; userId: number; priority: number; weight: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  weight: number;
+  weightAdjustment: number;
+};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
