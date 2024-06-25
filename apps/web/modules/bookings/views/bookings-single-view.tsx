@@ -340,6 +340,7 @@ export default function Success(props: PageProps) {
 
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+  const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
 
   const bookingCancelledEventProps = {
     booking: bookingInfo,
@@ -651,6 +652,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       !isCancelled &&
+                      !isBookingInPast &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />

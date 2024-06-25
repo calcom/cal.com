@@ -338,7 +338,6 @@ export async function updateNewTeamMemberEventTypes(userId: number, teamId: numb
               metadata: (managedEventTypeValues.metadata as Prisma.InputJsonValue) ?? undefined,
               bookingFields: (managedEventTypeValues.bookingFields as Prisma.InputJsonValue) ?? undefined,
               durationLimits: (managedEventTypeValues.durationLimits as Prisma.InputJsonValue) ?? undefined,
-              rescheduleOption: (managedEventTypeValues.rescheduleOption as Prisma.InputJsonValue) ?? null,
               onlyShowFirstAvailableSlot: managedEventTypeValues.onlyShowFirstAvailableSlot ?? false,
               userId,
               users: {

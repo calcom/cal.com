@@ -179,7 +179,6 @@ export async function getBookings({
         metadata: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
-        rescheduleOption: true,
         team: {
           select: {
             id: true,

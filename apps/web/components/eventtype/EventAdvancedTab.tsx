@@ -40,7 +40,6 @@ import {
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
-import RescheduleOptionController from "./RescheduleOptionController";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -580,7 +579,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           event={eventNameObject}
         />
       )}
-      <RescheduleOptionController eventType={eventType} />
     </div>
   );
 };

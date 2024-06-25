@@ -136,8 +136,6 @@ model EventType {
   assignAllTeamMembers                 Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail Boolean                   @default(false)
   aiPhoneCallConfig                    AIPhoneCallConfiguration?
-  /// @zod.custom(imports.rescheduleOptionType)
-  rescheduleOption                     Json?
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)

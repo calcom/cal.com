@@ -293,7 +293,6 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       periodCountCalendarDays: eventType.periodCountCalendarDays ? true : false,
       schedulingType: eventType.schedulingType,
       requiresConfirmation: eventType.requiresConfirmation,
-      rescheduleOption: eventType.rescheduleOption || null,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
