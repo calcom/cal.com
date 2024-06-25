@@ -24,6 +24,7 @@ import {
   DialogContent,
   showToast,
   TextField,
+  Label,
 } from "@calcom/ui";
 
 type InstantEventControllerProps = {
@@ -99,20 +100,23 @@ export default function InstantEventController({
                         <Controller
                           name="instantMeetingExpiryTimeOffset"
                           render={({ field: { value, onChange } }) => (
-                            <TextField
-                              required
-                              name="instantMeetingExpiryTimeOffset"
-                              label={t("set_expiry_time_offset")}
-                              type="number"
-                              defaultValue={value}
-                              min={10}
-                              containerClassName="max-w-80"
-                              addOnSuffix={<>{t("seconds")}</>}
-                              onChange={(e) => {
-                                onChange(Math.abs(Number(e.target.value)));
-                              }}
-                              data-testid="instant-meeting-expiry-time-offset"
-                            />
+                            <>
+                              <Label>{t("set_instant_meeting_expiry_time_offset_description")}</Label>
+                              <TextField
+                                required
+                                name="instantMeetingExpiryTimeOffset"
+                                labelSrOnly
+                                type="number"
+                                defaultValue={value}
+                                min={10}
+                                containerClassName="max-w-80"
+                                addOnSuffix={<>{t("seconds")}</>}
+                                onChange={(e) => {
+                                  onChange(Math.abs(Number(e.target.value)));
+                                }}
+                                data-testid="instant-meeting-expiry-time-offset"
+                              />
+                            </>
                           )}
                         />
                         <InstantMeetingWebhooks eventType={eventType} />
