@@ -12,7 +12,11 @@ import { useForm } from "react-hook-form";
 
 import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 
+import { SUCCESS_STATUS } from "../../../constants/api";
+import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
+import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
+import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
 import type { OAuthConnectProps } from "../OAuthConnect";
 
@@ -28,6 +32,23 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     defaultValues: {
       username: "",
       password: "",
+    },
+  });
+
+  const { toast } = useToast();
+  const { data: user } = useMe();
+  const { mutate: saveCredentials, isPending: isSaving } = useSaveCalendarCredentials({
+    onSuccess: (res) => {
+      if (res.status === SUCCESS_STATUS) {
+        form.reset();
+        setIsDialogOpen(false);
+        toast({
+          description: "Calendar credentials added successfully",
+        });
+      }
+    },
+    onError: (err) => {
+      console.log("Error:", err);
     },
   });
 
@@ -55,10 +76,9 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
           </DialogHeader>
           <Form
             form={form}
-            handleSubmit={(values) => {
-              console.log(values);
-              setIsDialogOpen(false);
-              form.reset();
+            handleSubmit={async (values) => {
+              const { username, password } = values;
+              await saveCredentials({ calendar: "apple", username, password, userId: user?.data.id ?? 90 });
             }}>
             <fieldset
               className="space-y-4"
@@ -82,10 +102,15 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
               />
             </fieldset>
             <div className="mt-5 justify-end space-x-2 rtl:space-x-reverse sm:mt-4 sm:flex">
-              <Button type="button" color="secondary" onClick={() => setIsDialogOpen(false)}>
+              <Button
+                disabled={isSaving}
+                type="button"
+                color="secondary"
+                onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>
               <Button
+                disabled={isSaving}
                 type="submit"
                 loading={form.formState.isSubmitting}
                 data-testid="apple-calendar-login-button">
