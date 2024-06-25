@@ -16,6 +16,7 @@ export class OrganizationsRepository {
     return this.dbRead.prisma.team.findUnique({
       where: {
         id: organizationId,
+        isOrganization: true,
       },
     });
   }
