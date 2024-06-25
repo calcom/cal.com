@@ -254,24 +254,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       weightAdjustment?: number;
     }[] = hosts;
 
+    const previousRRHosts = await ctx.prisma.host.findMany({
+      where: {
+        eventTypeId: id,
+        isFixed: false,
+      },
+      select: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+        userId: true,
+        weightAdjustment: true,
+      },
+    });
+
     // add weightAdjustment for all new rr hosts
     if (isRRWeightsEnabled) {
-      const previousRRHosts = await ctx.prisma.host.findMany({
-        where: {
-          eventTypeId: id,
-          isFixed: false,
-        },
-        select: {
-          user: {
-            select: {
-              email: true,
-            },
-          },
-          userId: true,
-          weightAdjustment: true,
-        },
-      });
-
       // find all new rr hosts to set rrWeightAdjustment
       const newRRHosts = hosts
         .filter(
@@ -350,13 +350,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             (hostWithUserData) => hostWithUserData.user.id === host.userId
           );
           const email = hostWithUserData?.user.email;
-          const previousAdjustedWeight = continuingHosts.find(
-            (prevHost) => prevHost.user.id === host.userId
-          )?.weightAdjustment;
           const weightAdjustment =
-            updatedRRHosts.find((updatedHost) => updatedHost.email === email)?.adjustedWeight ??
-            previousAdjustedWeight ??
-            0;
+            updatedRRHosts.find((updatedHost) => updatedHost.email === email)?.adjustedWeight ?? 0;
 
           return {
             ...host,
@@ -370,11 +365,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       deleteMany: {},
       create: hostWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
+
+        const previousAdjustedWeight = previousRRHosts.find(
+          (prevHost) => prevHost.userId === host.userId
+        )?.weightAdjustment;
+
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
           weight: host.weight ?? 100,
+          weightAdjustment: previousAdjustedWeight ?? host.weightAdjustment,
         };
       }),
     };

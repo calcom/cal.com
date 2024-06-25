@@ -111,6 +111,7 @@ export const WeightDialog = (props: IDialog) => {
             priority: host.priority,
             weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
             isFixed: false,
+            weightAdjustment: host.weightAdjustment,
           };
         })
         .sort((a, b) => (b.weight ?? 100) - (a.weight ?? 100));
