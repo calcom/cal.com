@@ -545,7 +545,6 @@
   "default_duration": "Standard varighet",
   "default_duration_no_options": "Vennligst velg tilgjengelige varigheter først",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutter",
   "round_robin": "Round Robin",
   "round_robin_description": "Varier møter mellom flere teammedlemmer.",
@@ -1210,9 +1209,9 @@
   "copy_link_to_form": "Kopier lenken til skjemaet",
   "theme": "Tema",
   "theme_applies_note": "Dette gjelder kun for dine offentlige bookingsider",
-  "theme_system": "System standard",
   "app_theme": "Dashboard-tema",
   "app_theme_applies_note": "Dette gjelder kun ditt påloggede dashbord",
+  "theme_system": "System standard",
   "add_a_team": "Legg til et team",
   "add_webhook_description": "Motta møtedata i sanntid når noe skjer i {{appName}}",
   "triggers_when": "Utløses når",
@@ -1392,5 +1391,6 @@
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
   "timezone_variable": "Tidssone",
   "need_help": "Trenger du hjelp?",
+  "send_email": "Send e-post",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}"
 }

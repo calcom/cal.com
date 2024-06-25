@@ -1,0 +1,18 @@
+{
+  "trial_days_left": "Sinulla on $t(day, {\"count\": {{days}} }) jäljellä PRO-kokeiluversiossa",
+  "day_one": "{{count}} päivä",
+  "day_other": "{{count}} päivää",
+  "second_one": "{{count}} sekunti",
+  "second_other": "{{count}} sekuntia",
+  "upgrade_now": "Päivitä nyt",
+  "accept_invitation": "Hyväksy Kutsu",
+  "calcom_explained": "{{appName}} tarjoaa aikataulutusinfrastruktuurin aivan kaikille.",
+  "email_verification_code": "Syötä vahvistuskoodi",
+  "email_verification_code_placeholder": "Syötä sähköpostiisi lähetetty vahvistuskoodi",
+  "email_sent": "Sähköpostin lähetys onnistui",
+  "email_not_sent": "Sähköpostin lähettämisessä tapahtui virhe",
+  "rejection_confirmation": "Hylkää varaus",
+  "manage_this_event": "Hallinnoi tätä tapahtumaa",
+  "invite_team_member": "Kutsu tiimin jäsen",
+  "invite_team_individual_segment": "Kutsu henkilö"
+}
