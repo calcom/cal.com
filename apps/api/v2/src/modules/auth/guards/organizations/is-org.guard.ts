@@ -10,7 +10,7 @@ export class isOrgGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request & { organization: Team }>();
-    const organizationId: string = request.params.orgId || request.params.organizationId;
+    const organizationId: string = request.params.orgId;
 
     if (!organizationId) {
       throw new ForbiddenException("No organization id found in request params.");
