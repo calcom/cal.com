@@ -10,7 +10,6 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
@@ -23,9 +22,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -40,7 +37,6 @@ import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
-import type { TLocationOptions } from "@components/eventtype/Locations";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
@@ -48,7 +44,6 @@ export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
     "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
   > & {
     selected: boolean;
-    locationOptions?: TLocationOptions;
     locations: LocationFormValues["locations"];
     bookingFields?: LocationFormValues["bookingFields"];
   };
@@ -529,40 +524,16 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       }
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
       if (isConferencing) {
-        const t = await getTranslation(locale ?? "en", "common");
-        const locationOptions = await getLocationGroupedOptions({ userId: user.id }, t);
+        const destinationCalendar = await prisma.destinationCalendar.findFirst({
+          where: {
+            userId: user.id,
+            eventTypeId: null,
+          },
+        });
         for (let index = 0; index < eventTypes.length; index++) {
           let eventType = eventTypes[index];
-          let destinationCalendar = eventType.destinationCalendar;
-          if (!destinationCalendar) {
-            destinationCalendar = await prisma.destinationCalendar.findFirst({
-              where: {
-                userId: user.id,
-                eventTypeId: null,
-              },
-            });
-
+          if (!eventType.destinationCalendar) {
             eventType = { ...eventType, destinationCalendar };
-          }
-          if (eventType.schedulingType === SchedulingType.MANAGED) {
-            eventType = {
-              ...eventType,
-              locationOptions: [
-                {
-                  label: t("default"),
-                  options: [
-                    {
-                      label: t("members_default_location"),
-                      value: "",
-                      icon: "/user-check.svg",
-                    },
-                  ],
-                },
-                ...locationOptions,
-              ],
-            };
-          } else {
-            eventType = { ...eventType, locationOptions };
           }
           eventTypes[index] = eventType;
         }
