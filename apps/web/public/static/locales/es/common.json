@@ -1420,6 +1420,8 @@
   "copy_link_to_form": "Copiar enlace al formulario",
   "theme": "Tema",
   "theme_applies_note": "Esto sólo se aplica a tus páginas públicas de reservas",
+  "app_theme": "Tema del panel",
+  "app_theme_applies_note": "Esto solo se aplica a su panel de control al iniciar sesión.",
   "theme_system": "Predeterminado del sistema",
   "app_theme": "Tema del tablero",
   "app_theme_applies_note": "Esto solo se aplica a su tabla de control conectada",
