@@ -13,7 +13,7 @@ export class isOrgGuard implements CanActivate {
     const organizationId: string = request.params.orgId || request.params.organizationId;
 
     if (!organizationId) {
-      throw new ForbiddenException("No organization id in query params");
+      throw new ForbiddenException("No organization id found in request params.");
     }
 
     const org = await this.organizationsRepository.findById(Number(organizationId));
