@@ -620,7 +620,9 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     allUsersAvailability.length > 1;
 
   const seatsMinimumBookingNoticeActive = !!(
-    eventType.seatsPerTimeSlot && eventType.seatsMinimumBookingNotice
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsMinimumBookingNotice &&
+    eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice
   );
   const timeSlots = getSlots({
     inviteeDate: startTime,
@@ -797,13 +799,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
           foundAFutureLimitViolation = true;
         }
 
-        // Before enabling minimum booking notice for seats, the following outOfBounds check was redundant.
-        // Now its needed, because when seats have a minimum booking notice (seatsMinimumBookingNotice),
-        // minimumBookingNotice is not applied in getSlots, so we need to filter out the slots that
-        // are out of bounds here.
-
         let isOutOfBounds = false;
-        if (eventType.seatsPerTimeSlot && slot.attendees && slot.attendees > 0) {
+        if (seatsMinimumBookingNoticeActive && slot.attendees && slot.attendees > 0) {
           // logic for handling eventType.seatsMinimumBookingNotice if the eventType has seats
           isOutOfBounds = isTimeOutOfBounds({
             time: slot.time,
