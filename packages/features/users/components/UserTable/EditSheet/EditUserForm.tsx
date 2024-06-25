@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
@@ -32,7 +33,7 @@ type MembershipOption = {
 const editSchema = z.object({
   name: z.string(),
   username: z.string(),
-  email: z.string().email(),
+  email: emailSchema,
   avatar: z.string(),
   bio: z.string(),
   role: z.enum([MembershipRole.MEMBER, MembershipRole.ADMIN, MembershipRole.OWNER]),

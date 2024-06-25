@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { emailRegex } from "@calcom/prisma/zod-utils";
+import { emailSchema } from "@calcom/lib/emailSchema";
 
 export const ZResendVerifyEmailSchema = z
   .object({
-    email: z.string().regex(emailRegex),
+    email: emailSchema,
   })
   .optional();
 

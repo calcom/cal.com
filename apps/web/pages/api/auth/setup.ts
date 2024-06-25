@@ -3,12 +3,12 @@ import z from "zod";
 
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { emailRegex } from "@calcom/prisma/zod-utils";
 
 const querySchema = z.object({
   username: z

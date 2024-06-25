@@ -13,12 +13,12 @@ import { ErrorCode } from "@calcom/features/auth/lib/ErrorCode";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { APP_NAME, FULL_NAME_LENGTH_MAX_LIMIT } from "@calcom/lib/constants";
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { IdentityProvider } from "@calcom/prisma/enums";
-import { emailRegex } from "@calcom/prisma/zod-utils";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -535,12 +535,12 @@ const ProfileForm = ({
       .max(FULL_NAME_LENGTH_MAX_LIMIT, {
         message: t("max_limit_allowed_hint", { limit: FULL_NAME_LENGTH_MAX_LIMIT }),
       }),
-    email: z.string().regex(emailRegex),
+    email: emailSchema,
     bio: z.string(),
     secondaryEmails: z.array(
       z.object({
         id: z.number(),
-        email: z.string().regex(emailRegex),
+        email: emailSchema,
         emailVerified: z.union([z.string(), z.null()]).optional(),
         emailPrimary: z.boolean().optional(),
       })

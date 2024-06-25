@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { emailRegex } from "@calcom/prisma/zod-utils";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +38,7 @@ const SecondaryEmailModal = ({
   const formMethods = useForm<FormValues>({
     resolver: zodResolver(
       z.object({
-        email: z.string().regex(emailRegex),
+        email: emailSchema,
       })
     ),
   });

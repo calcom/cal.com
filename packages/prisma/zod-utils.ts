@@ -19,6 +19,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
+import { emailSchema, emailRegex } from "@calcom/lib/emailSchema";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -477,8 +478,6 @@ export const DeploymentTheme = z
   })
   .optional();
 
-export const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-
 export type ZodDenullish<T extends ZodTypeAny> = T extends ZodNullable<infer U> | ZodOptional<infer U>
   ? ZodDenullish<U>
   : T;
@@ -662,7 +661,6 @@ export const unlockedManagedEventTypeProps = {
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod
 // version that will include updates in the above PR.
 export const emailSchemaRefinement = (value: string) => {
-  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/i;
   return emailRegex.test(value);
 };
 
@@ -689,7 +687,7 @@ export const signupSchema = z.object({
 });
 
 export const ZVerifyCodeInputSchema = z.object({
-  email: z.string().regex(emailRegex),
+  email: emailSchema,
   code: z.string(),
 });
 
@@ -710,7 +708,7 @@ export const AIPhoneSettingSchema = z.object({
   guestName: z.string().trim().min(1, {
     message: "Please enter Guest Name",
   }),
-  guestEmail: z.string().regex(emailRegex).nullable().optional(),
+  guestEmail: emailSchema.nullable().optional(),
   guestCompany: z.string().nullable().optional(),
   generalPrompt: z.string().trim().min(1, {
     message: "Please enter prompt",
