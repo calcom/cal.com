@@ -1231,6 +1231,8 @@
   "copy_link_to_form": "Kopiér link til formular",
   "theme": "Tema",
   "theme_applies_note": "Dette gælder kun for dine offentlige bookingsider",
+  "app_theme": "Dashboard tema",
+  "app_theme_applies_note": "Dette gælder kun for dit dashboard, der er logget ind",
   "theme_system": "System standard",
   "app_theme": "Dashboard-tema",
   "app_theme_applies_note": "Dette gælder kun for din loggede dashboard",
