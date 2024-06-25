@@ -48,8 +48,6 @@
   "ics_event_title": "{{eventType}} με {{name}}",
   "join_by_entrypoint": "Συμμετάσχετε από {{entryPoint}}",
   "notes": "Σημειώσεις",
-  "app_theme":"Θέμα του πίνακα ελέγχου",
-  "app_theme_applies_note":"Αυτό ισχύει μόνο για το πίνακα ελέγχου σας που έχεις συνδεθεί",
   "manage_my_bookings": "Διαχείριση κρατήσεων",
   "event_type": "Τύπος Συμβάντος",
   "meeting_password": "Συνθηματικό Συνάντησης",
@@ -280,6 +278,8 @@
   "disable_guests": "Απενεργοποίηση επισκεπτών",
   "location_variable": "Τοποθεσία",
   "additional_notes_variable": "Πρόσθετες σημειώσεις",
+  "app_theme": "Θέμα του πίνακα ελέγχου",
+  "app_theme_applies_note": "Αυτό ισχύει μόνο για το πίνακα ελέγχου σας που έχεις συνδεθεί",
   "already_have_account": "Έχετε ήδη λογαριασμό;",
   "email_team_invite|subject|invited_to_regular_team": "Ο χρήστης {{user}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{team}} στο {{appName}}"
 }
