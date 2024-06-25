@@ -19,14 +19,14 @@ import {
 
 import type { CheckedSelectOption } from "./CheckedTeamSelect";
 
-interface IPriiorityDialog {
+interface IDialog {
   isOpenDialog: boolean;
   setIsOpenDialog: Dispatch<SetStateAction<boolean>>;
   option: CheckedSelectOption;
   onChange: (value: readonly CheckedSelectOption[]) => void;
 }
 
-export const PriorityDialog = (props: IPriiorityDialog) => {
+export const PriorityDialog = (props: IDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
   const { getValues } = useFormContext<FormValues>();
@@ -51,9 +51,10 @@ export const PriorityDialog = (props: IPriiorityDialog) => {
             value: host.userId.toString(),
             priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
             isFixed: false,
+            weight: host.weight,
+            weightAdjustment: host.weightAdjustment,
           };
-        })
-        .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);
+        });
       onChange(updatedHosts);
     }
     setIsOpenDialog(false);
@@ -92,7 +93,7 @@ export const weightDescription = (
   </Trans>
 );
 
-export const WeightDialog = (props: IPriiorityDialog) => {
+export const WeightDialog = (props: IDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
   const { getValues } = useFormContext<FormValues>();

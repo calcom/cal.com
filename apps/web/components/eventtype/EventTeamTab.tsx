@@ -136,6 +136,7 @@ const FixedHosts = ({
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
                     weight: 100,
+                    weightAdjustment: 0,
                   })),
                   { shouldDirty: true }
                 )
@@ -178,6 +179,7 @@ const FixedHosts = ({
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
                     weight: 100,
+                    weightAdjustment: 0,
                   })),
                   { shouldDirty: true }
                 )
@@ -228,6 +230,15 @@ const RoundRobinHosts = ({
               onCheckedChange={(active) => {
                 setValue("isRRWeightsEnabled", active, { shouldDirty: true });
                 setIsRRWeightsEnabled(active);
+                const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+
+                if (active) {
+                  rrHosts.sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
+                } else {
+                  rrHosts.sort((a, b) => (b.weight ?? 2) - (a.weight ?? 2));
+                }
+
+                setValue("hosts", rrHosts);
               }}
             />
           )}
@@ -244,14 +255,13 @@ const RoundRobinHosts = ({
           onActive={() =>
             setValue(
               "hosts",
-              teamMembers
-                .map((teamMember) => ({
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: 2,
-                  weight: 100,
-                }))
-                .sort((a, b) => b.priority - a.priority),
+              teamMembers.map((teamMember) => ({
+                isFixed: false,
+                userId: parseInt(teamMember.value, 10),
+                priority: 2,
+                weight: 100,
+                weightAdjustment: 0, //this should not be overwritten
+              })),
               { shouldDirty: true }
             )
           }
@@ -363,11 +373,12 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange(
-                    [...value.filter((host: Host) => host.isFixed), ...changeValue].sort(
-                      (a, b) => b.priority - a.priority
-                    )
-                  );
+                  const sortedValue = getValues("isRRWeightsEnabled")
+                    ? [...value.filter((host: Host) => host.isFixed), ...changeValue]
+                    : [...value.filter((host: Host) => host.isFixed), ...changeValue].sort(
+                        (a, b) => b.priority - a.priority
+                      );
+                  onChange(sortedValue);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
