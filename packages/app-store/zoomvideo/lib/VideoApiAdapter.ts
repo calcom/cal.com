@@ -71,6 +71,10 @@ export const zoomUserSettingsSchema = z.object({
   }),
 });
 
+// https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userSettings
+// append comma seperated settings here, to retrieve only these specific settings
+const settingsApiFilterResp = "default_password_for_scheduled_meetings,auto_recording";
+
 type ZoomRecurrence = {
   end_date_time?: string;
   type: 1 | 2 | 3;
@@ -83,7 +87,20 @@ type ZoomRecurrence = {
 const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => {
   const tokenResponse = getTokenObjectFromCredential(credential);
 
-  const translateEvent = (event: CalendarEvent, userSettings?: ZoomUserSettings) => {
+  const getUserSettings = async () => {
+    let userSettings: ZoomUserSettings | undefined;
+    try {
+      const responseBody = await fetchZoomApi(
+        `users/me/settings?custom_query_fields=${settingsApiFilterResp}`
+      );
+      userSettings = zoomUserSettingsSchema.parse(responseBody);
+    } catch (err) {
+      log.error("Failed to retrieve zoom user settings", safeStringify(err));
+    }
+    return userSettings;
+  };
+
+  const translateEvent = async (event: CalendarEvent) => {
     const getRecurrence = ({
       recurringEvent,
       startTime,
@@ -134,6 +151,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       };
     };
 
+    const userSettings = await getUserSettings();
     const recurrence = getRecurrence(event);
     // Documentation at: https://marketplace.zoom.us/docs/api-reference/zoom-api/meetings/meetingcreate
     return {
@@ -269,23 +287,13 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
     createMeeting: async (event: CalendarEvent): Promise<VideoCallData> => {
-      let userSettings: ZoomUserSettings | undefined;
-      try {
-        const filterResp = "default_password_for_scheduled_meetings,auto_recording";
-        const responseBody = await fetchZoomApi(`users/me/settings?custom_query_fields=${filterResp}`);
-        userSettings = zoomUserSettingsSchema.parse(responseBody);
-      } catch (err) {
-        console.error(err);
-        /* If user settings could not be retrieved due to error in like - api scope configurations,
-         just continue create meeting with default settings*/
-      }
       try {
         const response = await fetchZoomApi("users/me/meetings", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event, userSettings)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
         const result = zoomEventResultSchema.parse(response);
@@ -316,23 +324,13 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       }
     },
     updateMeeting: async (bookingRef: PartialReference, event: CalendarEvent): Promise<VideoCallData> => {
-      let userSettings: ZoomUserSettings | undefined;
-      try {
-        const filterResp = "default_password_for_scheduled_meetings,auto_recording";
-        const responseBody = await fetchZoomApi(`users/me/settings?custom_query_fields=${filterResp}`);
-        userSettings = zoomUserSettingsSchema.parse(responseBody);
-      } catch (err) {
-        console.error(err);
-        /* If user settings could not be retrieved due to error in like - api scope configurations,
-         just continue update meeting with default settings*/
-      }
       try {
         await fetchZoomApi(`meetings/${bookingRef.uid}`, {
           method: "PATCH",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(translateEvent(event, userSettings)),
+          body: JSON.stringify(await translateEvent(event)),
         });
 
         return Promise.resolve({
