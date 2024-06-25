@@ -80,7 +80,7 @@ export class AppleCalendarService implements CredentialSyncCalendarApp {
         user: { email: userEmail },
       });
       await dav?.listCalendars();
-      await this.credentialRepository.createAppCredential(APPLE_CALENDAR_TYPE, data, userId);
+      await this.credentialRepository.createAppCredential(APPLE_CALENDAR_TYPE, data.key, userId);
     } catch (reason) {
       throw new BadRequestException(`Could not add this apple calendar account: ${reason}`);
     }
