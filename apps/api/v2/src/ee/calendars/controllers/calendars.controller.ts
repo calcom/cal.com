@@ -9,6 +9,7 @@ import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
+import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -22,6 +23,7 @@ import {
   Headers,
   Redirect,
   BadRequestException,
+  Post,
   Body,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -48,7 +50,8 @@ export class CalendarsController {
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly appleCalendarService: AppleCalendarService
+    private readonly appleCalendarService: AppleCalendarService,
+    private readonly tokensRepository: TokensRepository
   ) {}
 
   @UseGuards(AccessTokenGuard)
@@ -118,10 +121,8 @@ export class CalendarsController {
   async save(
     @Query("state") state: string,
     @Query("code") code: string,
-    @Param("calendar") calendar: string,
-    @Body() body: { username?: string; password?: string }
-  ): Promise<{ url: string } | { status: string }> {
-    const { username, password } = body;
+    @Param("calendar") calendar: string
+  ): Promise<{ url: string }> {
     // state params contains our user access token
     const stateParams = new URLSearchParams(state);
     const { accessToken, origin, redir } = z
@@ -136,8 +137,6 @@ export class CalendarsController {
         return await this.outlookService.save(code, accessToken, origin, redir ?? "");
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
-      case APPLE_CALENDAR:
-        return await this.appleCalendarService.save(accessToken, username, password);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
