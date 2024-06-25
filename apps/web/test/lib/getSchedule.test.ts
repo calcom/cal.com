@@ -1484,7 +1484,8 @@ describe("getSchedule", () => {
       const bookingId = 1;
       const bookingUid = "abc123";
 
-      const { dateString: todayDateString } = getDate();
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
 
       const bookingStartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
       const bookingEndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
@@ -1557,9 +1558,10 @@ describe("getSchedule", () => {
       const booking2Id = 2;
       const booking2Uid = "def123";
 
-      const { dateString: todayDateString } = getDate();
-      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
-      const { dateString: plus7DateString } = getDate({ dateIncrement: 7 });
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
+      const plus3DateString = "2024-06-28";
+      const plus7DateString = "2024-07-02";
 
       const booking1StartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
       const booking1EndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
@@ -1666,10 +1668,11 @@ describe("getSchedule", () => {
       const bookingId = 1;
       const bookingUid = "abc123";
 
-      const { dateString: todayDateString } = getDate();
-      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
-      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
+      const plus1DateString = "2024-06-26";
+      const plus2DateString = "2024-06-27";
+      const plus3DateString = "2024-06-28";
 
       const bookingStartTime = `${plus1DateString}T06:30:00.000Z`; // 12:00 IST
       const bookingEndTime = `${plus1DateString}T07:30:00.000Z`; // 13:00 IST
