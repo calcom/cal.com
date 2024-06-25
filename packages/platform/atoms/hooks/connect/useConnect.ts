@@ -1,12 +1,17 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse } from "@calcom/platform-types";
+import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-redirect-uri`];
+
+interface IPUpdateOAuthCredentials {
+  onSuccess?: (res: ApiResponse) => void;
+  onError?: (err: ApiErrorResponse) => void;
+}
 
 export const useGetRedirectUrl = (calendar: (typeof CALENDARS)[number], redir?: string) => {
   const authUrl = useQuery({
@@ -46,33 +51,42 @@ export const useConnect = (calendar: (typeof CALENDARS)[number], redir?: string)
 };
 
 export const useSaveCalendarCredentials = (
-  calendar: (typeof CALENDARS)[number],
-  username: string,
-  password: string
+  { onSuccess, onError }: IPUpdateOAuthCredentials = {
+    onSuccess: () => {
+      return;
+    },
+    onError: () => {
+      return;
+    },
+  }
 ) => {
-  const body = {
-    username,
-    password,
-  };
+  const mutation = useMutation<
+    ApiResponse<{ status: string }>,
+    unknown,
+    { username: string; password: string; calendar: (typeof CALENDARS)[number]; userId: number }
+  >({
+    mutationFn: (data) => {
+      const { calendar, username, password, userId } = data;
+      const body = {
+        username,
+        password,
+      };
 
-  const status = useQuery({
-    queryKey: getQueryKey(calendar),
-    staleTime: Infinity,
-    enabled: false,
-    queryFn: () => {
-      return http
-        ?.post<ApiResponse<{ status: string }>>(`/calendars/${calendar}/save}`, {
-          body,
-        })
-        .then(({ data: responseBody }) => {
-          if (responseBody.status === SUCCESS_STATUS) {
-            return responseBody.data.status;
-          }
-          if (responseBody.status === ERROR_STATUS) throw new Error(responseBody.error.message);
-          return "";
-        });
+      return http.post(`/calendars/${calendar}/sync?userId=${userId}`, body).then((res) => {
+        return res.data;
+      });
+    },
+    onSuccess: (data) => {
+      if (data.status === SUCCESS_STATUS) {
+        onSuccess?.(data);
+      } else {
+        onError?.(data);
+      }
+    },
+    onError: (err) => {
+      onError?.(err as ApiErrorResponse);
     },
   });
 
-  return status;
+  return mutation;
 };
