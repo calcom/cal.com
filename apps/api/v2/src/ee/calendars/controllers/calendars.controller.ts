@@ -27,6 +27,7 @@ import {
   Body,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { User } from "@prisma/client";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -137,6 +138,26 @@ export class CalendarsController {
         return await this.outlookService.save(code, accessToken, origin, redir ?? "");
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.save(code, accessToken, origin, redir ?? "");
+      default:
+        throw new BadRequestException(
+          "Invalid calendar type, available calendars are: ",
+          CALENDARS.join(", ")
+        );
+    }
+  }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/sync")
+  async syncCredentials(
+    @GetUser() user: User,
+    @Param("calendar") calendar: string,
+    @Body() body: { username: string; password: string }
+  ): Promise<{ status: string }> {
+    const { username, password } = body;
+
+    switch (calendar) {
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.save(user.id, user.email, username, password);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
