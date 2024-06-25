@@ -1,7 +1,7 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { isOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -13,7 +13,7 @@ import { Team } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/teams",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, isOrgGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard)
 @DocsTags("Organizations Teams")
 export class OrganizationsTeamsController {
   @Get()
