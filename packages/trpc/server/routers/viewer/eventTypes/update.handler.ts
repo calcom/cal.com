@@ -133,6 +133,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
+    isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
