@@ -1,0 +1,7 @@
+[submodule "apps/console"]
+	path = apps/console
+	url = git@github.com:calcom/console.git
+	branch = main
+[submodule "apps/website"]
+	path = apps/website
+	url = git@github.com:calcom/website.git

@@ -5544,6 +5544,7 @@ __metadata:
     react-live-chat-loader: ^2.8.1
     react-markdown: ^9.0.1
     react-merge-refs: 1.1.0
+    react-parallax-tilt: ^1.7.226
     react-resize-detector: ^9.1.0
     react-twemoji: ^0.3.0
     react-twitter-embed: ^4.0.4
@@ -39832,6 +39833,16 @@ __metadata:
     react: ^16.3.2
     react-dom: ^16.3.2
   checksum: d115e76c0ee3b26792a82cd9c4b5b3c6f90f15b1e5ca6f617e7985d324bb5e6b61c09588d9b2156701555c3917cf262523ce1607c2ea26fd95ed15a8d52b5ec7
+  languageName: node
+  linkType: hard
+
+"react-parallax-tilt@npm:^1.7.226":
+  version: 1.7.229
+  resolution: "react-parallax-tilt@npm:1.7.229"
+  peerDependencies:
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: f0a034aaa02b2c025cae8e91f3f02650ea7bd279bd51439c41203cabfe59e1a1cf976497d0860f8fe52bde23b79a38a3818e4516b332b1e5e19a9a93029caef5
   languageName: node
   linkType: hard
 
