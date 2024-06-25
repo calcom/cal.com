@@ -53,6 +53,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
       "Origin",
     ],
     maxAge: 86_400,
+    credentials: true,
   });
 
   app.useGlobalPipes(
