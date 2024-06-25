@@ -247,7 +247,7 @@ type UserPayload = Prisma.UserGetPayload<{
   };
 }>;
 export const buildUser = <T extends Partial<UserPayload>>(
-  user?: T & { priority?: number; weight?: number; weightAdjustment?: number | null }
+  user?: T & { priority?: number; weight?: number; weightAdjustment?: number }
 ): UserPayload & { priority: number; weight: number; weightAdjustment: number } => {
   return {
     locked: false,
@@ -297,7 +297,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     movedToProfileId: null,
     priority: user?.priority ?? 2,
     weight: user?.weight ?? 100,
-    weightAdjustment: user?.weightAdjustment ?? 0,
+    weightAdjustment: user?.weightAdjustment ?? 2,
     isPlatformManaged: false,
     ...user,
   };
