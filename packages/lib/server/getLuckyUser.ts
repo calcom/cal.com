@@ -100,7 +100,11 @@ function getUsersWithHighestPriority<
 }
 
 async function getUsersBasedOnWeights<
-  T extends PartialUser & { weight?: number | null; priority?: number | null }
+  T extends PartialUser & {
+    weight?: number | null;
+    priority?: number | null;
+    weightAdjustment?: number | null;
+  }
 >({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
   // Filter accepted bookings
   const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED); //probably should also add the adjusted weights
@@ -120,8 +124,8 @@ async function getUsersBasedOnWeights<
     );
 
     const targetNumberOfBookings = (bookings.length + allWeightAdjustments) * targetPercentage;
+    const bookingShortfall = targetNumberOfBookings - (userBookings.length + (user.weightAdjustment ?? 0));
 
-    const bookingShortfall = targetNumberOfBookings - (userBookings.length + user.weightAdjustment);
     return {
       ...user,
       bookingShortfall,
