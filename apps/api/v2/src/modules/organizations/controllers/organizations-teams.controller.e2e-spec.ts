@@ -26,6 +26,7 @@ describe("Organizations Team Endpoints", () => {
 
     let org: Team;
     let team: Team;
+    let team2: Team;
 
     const userEmail = "org-teams-controller-e2e@api.com";
     let user: User;
@@ -58,6 +59,12 @@ describe("Organizations Team Endpoints", () => {
         parent: { connect: { id: org.id } },
       });
 
+      team2 = await teamsRepositoryFixture.create({
+        name: "Test org team 2",
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -78,7 +85,19 @@ describe("Organizations Team Endpoints", () => {
         .then((response) => {
           const responseBody: ApiSuccessResponse<Team[]> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data).toEqual([]);
+          expect(responseBody.data[0].id).toEqual(team.id);
+          expect(responseBody.data[1].id).toEqual(team2.id);
+        });
+    });
+
+    it("should get all the teams of the org paginated", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams?skip=1&take=1`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<Team[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          expect(responseBody.data[0].id).toEqual(team2.id);
         });
     });
 
@@ -104,6 +123,8 @@ describe("Organizations Team Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await teamsRepositoryFixture.delete(team.id);
+      await teamsRepositoryFixture.delete(team2.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });

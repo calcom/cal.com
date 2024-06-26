@@ -806,6 +806,177 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getAllTeams",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsTeamsController_createTeam",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getTeam",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsTeamsController_deleteTeam",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationsTeamsController_updateTeam",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgTeamDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -2185,11 +2356,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
@@ -2205,11 +2376,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "nullable": true,
@@ -2230,11 +2401,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "type": "array",
@@ -2257,11 +2428,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
@@ -2303,11 +2474,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/DeleteData_2024_06_14"
@@ -3289,6 +3460,75 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CreateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minimum": 1
+          },
+          "slug": {
+            "type": "string",
+            "minimum": 1
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": [
+          "name"
         ]
       },
       "CreateAvailabilityInput_2024_04_15": {

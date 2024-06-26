@@ -1,14 +1,26 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
-import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
+import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Param,
+  ParseIntPipe,
+  Query,
+  Delete,
+  Patch,
+  Post,
+  Body,
+} from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
+import { ApiResponse, SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
 @Controller({
@@ -18,29 +30,63 @@ import { Team } from "@calcom/prisma/client";
 @UseGuards(ApiAuthGuard, IsOrgGuard)
 @DocsTags("Organizations Teams")
 export class OrganizationsTeamsController {
+  constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
+
   @Get()
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @GetOrg() organization: Team,
-    @GetOrg("name") orgName: string
+    @Query() queryParams: SkipTakePagination
   ): Promise<ApiResponse<Team[]>> {
-    console.log(orgId, organization, orgName);
+    const { skip, take } = queryParams;
+    const teams = await this.organizationsTeamsService.getPaginatedOrgTeams(orgId, skip ?? 0, take ?? 250);
     return {
       status: SUCCESS_STATUS,
-      data: [],
+      data: teams,
     };
   }
 
   @UseGuards(IsTeamInOrg)
   @Get("/:teamId")
-  async getTeam(
+  async getTeam(@GetTeam() team: Team): Promise<ApiResponse<Team>> {
+    return {
+      status: SUCCESS_STATUS,
+      data: team,
+    };
+  }
+
+  @UseGuards(IsTeamInOrg)
+  @Delete("/:teamId")
+  async deleteTeam(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number
+  ): Promise<ApiResponse<Team>> {
+    const team = await this.organizationsTeamsService.deleteOrgTeam(orgId, teamId);
+    return {
+      status: SUCCESS_STATUS,
+      data: team,
+    };
+  }
+
+  @UseGuards(IsTeamInOrg)
+  @Patch("/:teamId")
+  async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @GetOrg() organization: Team,
-    @GetTeam() team: Team,
-    @GetOrg("name") orgName: string
+    @Body() body: CreateOrgTeamDto
   ): Promise<ApiResponse<Team>> {
-    console.log(teamId, orgId, organization, team, orgName);
+    const team = await this.organizationsTeamsService.updateOrgTeam(orgId, teamId, body);
+    return {
+      status: SUCCESS_STATUS,
+      data: team,
+    };
+  }
+
+  @Post()
+  async createTeam(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Body() body: CreateOrgTeamDto
+  ): Promise<ApiResponse<Team>> {
+    const team = await this.organizationsTeamsService.createOrgTeam(orgId, body);
     return {
       status: SUCCESS_STATUS,
       data: team,
