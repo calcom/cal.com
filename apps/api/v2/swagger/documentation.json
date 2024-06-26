@@ -893,7 +893,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/GetSchedulesOutput_2024_06_11"
                 }
               }
             }
@@ -3691,6 +3691,32 @@
           "overrides"
         ]
       },
+      "GetSchedulesOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+            }
+          },
+          "error": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -3729,32 +3755,6 @@
                 "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
               }
             ]
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetSchedulesOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-            }
           },
           "error": {
             "type": "object"

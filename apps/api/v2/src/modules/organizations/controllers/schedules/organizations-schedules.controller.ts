@@ -21,13 +21,11 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
-  ApiResponse,
   CreateScheduleInput_2024_06_11,
   CreateScheduleOutput_2024_06_11,
   DeleteScheduleOutput_2024_06_11,
   GetScheduleOutput_2024_06_11,
   GetSchedulesOutput_2024_06_11,
-  ScheduleOutput_2024_06_11,
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
@@ -47,7 +45,7 @@ export class OrganizationsSchedulesController {
   @Get("/schedules")
   async getOrganizationSchedules(
     @Param("orgId", ParseIntPipe) orgId: number
-  ): Promise<ApiResponse<ScheduleOutput_2024_06_11[]>> {
+  ): Promise<GetSchedulesOutput_2024_06_11> {
     const schedules = await this.organizationScheduleService.getOrganizationSchedules(orgId);
 
     return {
