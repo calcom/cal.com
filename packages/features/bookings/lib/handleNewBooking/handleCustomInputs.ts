@@ -13,14 +13,10 @@ export function handleCustomInputs(
 ) {
   eventTypeCustomInputs.forEach((etcInput) => {
     if (etcInput.required) {
-      const input = findInputByLabel(reqCustomInputs, etcInput.label);
+      const input = reqCustomInputs.find((input) => input.label === etcInput.label);
       validateInput(etcInput, input?.value);
     }
   });
-}
-
-function findInputByLabel(reqCustomInputs: CustomInput[], label: string): CustomInput | undefined {
-  return reqCustomInputs.find((input) => input.label === label);
 }
 
 function validateInput(etcInput: EventTypeCustomInput, value: string | boolean | undefined) {
