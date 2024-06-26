@@ -157,7 +157,6 @@ export async function getLuckyUser<
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   getLuckyUserParams: GetLuckyUserParams<T>
 ) {
-  console.log(`all rr hosts ${JSON.stringify(getLuckyUserParams.allRRHosts)}`);
   const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
 
   if (availableUsers.length === 1) {
