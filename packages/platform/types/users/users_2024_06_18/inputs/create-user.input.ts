@@ -79,7 +79,7 @@ export class CreateUserInput_2024_06_18 extends GetUsersInput_2024_06_18 {
   @IsOptional()
   @IsString()
   @Validate(LocaleValidator)
-  locale?: string | null;
+  locale?: string | null = "en";
 
   @IsOptional()
   @IsString()

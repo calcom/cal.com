@@ -1,4 +1,5 @@
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
+import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
 // import { UpdateOrganizationUserInput_2024_06_18 } from "@calcom/platform-types";
@@ -30,14 +31,14 @@ const userSelect = {
 
 @Injectable()
 export class OrganizationsUsersRepository {
-  constructor(private readonly dbRead: PrismaReadService) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async getOrganizationUsers(organizationId: number, emailArray?: string[]) {
+  async getOrganizationUsers(orgId: number, emailArray?: string[]) {
     const usersQuery = await this.dbRead.prisma.user.findMany({
       where: {
         teams: {
           some: {
-            teamId: organizationId,
+            teamId: orgId,
           },
         },
         ...(emailArray && emailArray.length && { email: { in: emailArray } }),
@@ -51,8 +52,50 @@ export class OrganizationsUsersRepository {
     });
   }
 
+  async getOrganizationUserByUsername(orgId: number, username: string) {
+    const userQuery = await this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+        orgId,
+      },
+    });
+
+    return userQuery;
+  }
+
+  async createOrganizationUser(orgId, createUserBody) {
+    if (createUserBody.avatar) {
+      createUserBody.avatarUrl = createUserBody.avatar;
+      delete createUserBody.avatar;
+    }
+
+    const createdUser = await this.dbWrite.prisma.user.create({
+      data: createUserBody,
+      select: userSelect,
+    });
+
+    return { ...createdUser, avatar: createdUser.avatarUrl };
+  }
+
+  async updateUser(orgId, userId, updateUserBody) {
+    if (createUserBody.avatar) {
+      createUserBody.avatarUrl = createUserBody.avatar;
+      delete createUserBody.avatar;
+    }
+
+    const updatedUser = await this.dbWrite.prisma.user.update({
+      where: {
+        id: userId,
+        organizationId: orgId,
+      },
+      data: updateUserBody,
+    });
+
+    return { ...updatedUser, avatar: updatedUser.avatarUrl };
+  }
+
   //   async updateOrganizationUser(
-  //     organizationId: number,
+  //     orgId: number,
   //     userId: number,
   //     updateData: UpdateOrganizationUserInput_2024_06_18
   //   ) {
@@ -61,7 +104,7 @@ export class OrganizationsUsersRepository {
   //         id: userId,
   //         teams: {
   //           some: {
-  //             teamId: organizationId,
+  //             teamId: orgId,
   //           },
   //         },
   //       },

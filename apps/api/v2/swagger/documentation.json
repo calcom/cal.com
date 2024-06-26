@@ -874,6 +874,44 @@
         "tags": [
           "Organizations Users"
         ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationUser_2024_06_18"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
       }
     },
     "/v2/schedules": {
@@ -3389,6 +3427,18 @@
         ]
       },
       "GetOrganizationsUsersInput_2024_06_18": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "object",
+            "description": "The email address or an array of email addresses to filter by"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CreateOrganizationUser_2024_06_18": {
         "type": "object",
         "properties": {
           "email": {
