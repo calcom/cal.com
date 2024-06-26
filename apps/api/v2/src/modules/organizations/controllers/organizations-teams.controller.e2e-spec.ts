@@ -8,6 +8,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -23,6 +24,7 @@ describe("Organizations Team Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: TeamRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
+    let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let org: Team;
     let team: Team;
@@ -42,6 +44,7 @@ describe("Organizations Team Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -51,6 +54,12 @@ describe("Organizations Team Endpoints", () => {
       org = await organizationsRepositoryFixture.create({
         name: "Test Organization",
         isOrganization: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "ADMIN",
+        user: { connect: { id: user.id } },
+        team: { connect: { id: org.id } },
       });
 
       team = await teamsRepositoryFixture.create({

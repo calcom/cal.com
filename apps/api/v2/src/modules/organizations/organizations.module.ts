@@ -1,3 +1,4 @@
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
