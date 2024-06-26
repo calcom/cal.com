@@ -1,7 +1,7 @@
 import { describe, it, vi, expect } from "vitest";
 
 import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -10,7 +10,7 @@ import type { TeamWithParent } from "./types";
 import type { UserWithMembership } from "./utils";
 import { INVITE_STATUS } from "./utils";
 import {
-  checkPermissions,
+  ensureAtleastAdminPermissions,
   getUniqueInvitationsOrThrowIfEmpty,
   getOrgState,
   getOrgConnectionInfo,
@@ -124,40 +124,29 @@ const userInTeamNotAccepted: UserWithMembership = {
 };
 
 describe("Invite Member Utils", () => {
-  describe("checkPermissions", () => {
+  describe("ensureAtleastAdminPermissions", () => {
     it("It should throw an error if the user is not an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(false);
-      await expect(
-        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: false })
-      ).rejects.toThrow("UNAUTHORIZED");
+      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })).rejects.toThrow(
+        "UNAUTHORIZED"
+      );
     });
 
     it("It should NOT throw an error if the user is an admin of the ORG", async () => {
       vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
       await expect(
-        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: false })
+        ensureAtleastAdminPermissions({ userId: 1, teamId: 1, isOrg: true })
       ).resolves.not.toThrow();
     });
 
     it("It should throw an error if the user is not an admin of the team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(false);
-      await expect(checkPermissions({ userId: 1, teamId: 1, isNewRoleOwner: false })).rejects.toThrow(
-        "UNAUTHORIZED"
-      );
+      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).rejects.toThrow("UNAUTHORIZED");
     });
 
     it("It should NOT throw an error if the user is an admin of a team", async () => {
       vi.mocked(isTeamAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      await expect(checkPermissions({ userId: 1, teamId: 1, isNewRoleOwner: false })).resolves.not.toThrow();
-    });
-
-    it("should throw error if isNewRoleOwner is true but user is not owner", async () => {
-      vi.mocked(isOrganisationAdmin).mockResolvedValue(mockedReturnSuccessCheckPerms);
-      vi.mocked(isOrganisationOwner).mockResolvedValue(false);
-
-      await expect(
-        checkPermissions({ userId: 1, teamId: 1, isOrg: true, isNewRoleOwner: true })
-      ).rejects.toThrow("UNAUTHORIZED");
+      await expect(ensureAtleastAdminPermissions({ userId: 1, teamId: 1 })).resolves.not.toThrow();
     });
   });
 

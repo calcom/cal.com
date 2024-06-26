@@ -10,7 +10,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { isTeamAdmin } from "@calcom/lib/server/queries";
-import { isOrganisationAdmin, isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
+import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { getParsedTeam } from "@calcom/lib/server/repository/teamUtils";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -51,13 +51,11 @@ type ExistingUserWithInviteStatusAndProfile = ExistingUserWithInviteStatus & {
   } | null;
 };
 
-export async function checkPermissions({
+export async function ensureAtleastAdminPermissions({
   userId,
   teamId,
   isOrg,
-  isNewRoleOwner,
 }: {
-  isNewRoleOwner: boolean;
   userId: number;
   teamId: number;
   isOrg?: boolean;
@@ -65,8 +63,6 @@ export async function checkPermissions({
   // Checks if the team they are inviting to IS the org. Not a child team
   if (isOrg) {
     if (!(await isOrganisationAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-    if (isNewRoleOwner && !(await isOrganisationOwner(userId, teamId)))
-      throw new TRPCError({ code: "UNAUTHORIZED" });
   } else {
     // TODO: do some logic here to check if the user is inviting a NEW user to a team that ISNT in the same org
     if (!(await isTeamAdmin(userId, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });

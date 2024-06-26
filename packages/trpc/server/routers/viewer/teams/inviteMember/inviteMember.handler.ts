@@ -6,6 +6,7 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { isOrganisationOwner } from "@calcom/lib/server/queries/organisations";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -15,7 +16,7 @@ import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
 import type { Invitation } from "./utils";
 import {
-  checkPermissions,
+  ensureAtleastAdminPermissions,
   getTeamOrThrow,
   getUniqueInvitationsOrThrowIfEmpty,
   getOrgConnectionInfo,
@@ -132,14 +133,20 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   });
 
   const team = await getTeamOrThrow(input.teamId);
-  const isOrg = team.isOrganization;
+  const isInvitationToAnOrg = team.isOrganization;
 
-  await checkPermissions({
-    isNewRoleOwner: !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER),
+  const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
+  const inviter = ctx.user;
+  const inviterOrg = inviter.organization;
+
+  // Only owners can award owner role in an organization.
+  if (isInvitationToAnOrg && isAddingNewOwner && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+
+  await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
-    teamId:
-      ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
-    isOrg,
+    teamId: inviterOrg.id && inviterOrg.isOrgAdmin ? inviterOrg.id : input.teamId,
+    isOrg: isInvitationToAnOrg,
   });
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
@@ -154,7 +161,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     throwIfInvalidInvitationStatus({ firstExistingUser: existingUsersToBeInvited[0], translation });
   }
 
-  const orgState = getOrgState(isOrg, team);
+  const orgState = getOrgState(isInvitationToAnOrg, team);
 
   const orgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
     uniqueInvitations,
@@ -163,7 +170,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       parentId: team.parentId,
       id: team.id,
     },
-    isOrg,
+    isOrg: isInvitationToAnOrg,
   });
 
   const invitationsForNewUsers = getInvitationsForNewUsers({
