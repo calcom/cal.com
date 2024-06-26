@@ -909,5 +909,5 @@ export async function handleNewUsersInvites({
       isOrg: input.isOrg,
     });
   });
-  sendEmails(sendVerifyEmailsPromises);
+  await sendEmails(sendVerifyEmailsPromises);
 }

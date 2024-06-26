@@ -234,4 +234,9 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
   }
 };
 
+async function handleSubscriptionUpdates(teamId: number) {
+  if (!IS_TEAM_BILLING_ENABLED) return;
+  await updateQuantitySubscriptionFromStripe(teamId);
+}
+
 export default inviteMemberHandler;
