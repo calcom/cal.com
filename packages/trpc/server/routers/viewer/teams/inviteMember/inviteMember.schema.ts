@@ -8,13 +8,15 @@ export const ZInviteMemberInputSchema = z.object({
   usernameOrEmail: z
     .union([
       z.string(),
-      z.array(z.string()),
-      z.array(
-        z.object({
-          email: z.string().email(),
-          role: z.nativeEnum(MembershipRole),
-        })
-      ),
+      z
+        .union([
+          z.string(),
+          z.object({
+            email: z.string().email(),
+            role: z.nativeEnum(MembershipRole),
+          }),
+        ])
+        .array(),
     ])
     .transform((usernameOrEmail) => {
       if (typeof usernameOrEmail === "string") {

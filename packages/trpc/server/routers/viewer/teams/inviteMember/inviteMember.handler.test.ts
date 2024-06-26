@@ -236,7 +236,7 @@ describe("inviteMemberHandler", () => {
           },
         ];
 
-        const retValueOffindUsersWithInviteStatus =
+        const retValueOfFindUsersWithInviteStatus =
           inviteMemberUtilsScenarios.findUsersWithInviteStatus.useAdvancedMock(
             [
               {
@@ -279,7 +279,7 @@ describe("inviteMemberHandler", () => {
         expect(paymentsMock.updateQuantitySubscriptionFromStripe).toHaveBeenCalledWith(input.teamId);
 
         expect(inviteMemberUtilsMock.handleExistingUsersInvites).toHaveBeenCalledWith({
-          invitableExistingUsers: retValueOffindUsersWithInviteStatus,
+          invitableExistingUsers: retValueOfFindUsersWithInviteStatus,
           input: input,
           inviter: loggedInUser,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,

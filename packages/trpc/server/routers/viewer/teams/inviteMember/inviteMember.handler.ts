@@ -104,18 +104,19 @@ function shouldBeSilentAboutErrors(invitations: Invitation[]) {
 
 function buildInvitationsFromInput({
   usernameOrEmail,
-  role,
+  roleForAllInvitees,
 }: {
   usernameOrEmail: TInviteMemberInputSchema["usernameOrEmail"];
-  role: MembershipRole | undefined;
+  roleForAllInvitees: MembershipRole | undefined;
 }) {
   const usernameOrEmailList = typeof usernameOrEmail === "string" ? [usernameOrEmail] : usernameOrEmail;
 
-  return usernameOrEmailList.map((item) => {
-    if (typeof item === "string") return { usernameOrEmail: item, role: role ?? MembershipRole.MEMBER };
+  return usernameOrEmailList.map((usernameOrEmail) => {
+    if (typeof usernameOrEmail === "string")
+      return { usernameOrEmail: usernameOrEmail, role: roleForAllInvitees ?? MembershipRole.MEMBER };
     return {
-      usernameOrEmail: item.email,
-      role: item.role,
+      usernameOrEmail: usernameOrEmail.email,
+      role: usernameOrEmail.role,
     };
   });
 }
@@ -129,24 +130,24 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
 
   const invitations = buildInvitationsFromInput({
     usernameOrEmail: input.usernameOrEmail,
-    role: input.role,
+    roleForAllInvitees: input.role,
   });
 
   const team = await getTeamOrThrow(input.teamId);
-  const isInvitationToAnOrg = team.isOrganization;
 
+  const isTeamAnOrg = team.isOrganization;
   const isAddingNewOwner = !!invitations.find((invitation) => invitation.role === MembershipRole.OWNER);
   const inviter = ctx.user;
   const inviterOrg = inviter.organization;
 
-  // Only owners can award owner role in an organization.
-  if (isInvitationToAnOrg && isAddingNewOwner && !(await isOrganisationOwner(ctx.user.id, input.teamId)))
-    throw new TRPCError({ code: "UNAUTHORIZED" });
+  if (isTeamAnOrg) {
+    await throwIfInviterCantAddOwnerToOrg();
+  }
 
   await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
     teamId: inviterOrg.id && inviterOrg.isOrgAdmin ? inviterOrg.id : input.teamId,
-    isOrg: isInvitationToAnOrg,
+    isOrg: isTeamAnOrg,
   });
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
@@ -161,7 +162,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     throwIfInvalidInvitationStatus({ firstExistingUser: existingUsersToBeInvited[0], translation });
   }
 
-  const orgState = getOrgState(isInvitationToAnOrg, team);
+  const orgState = getOrgState(isTeamAnOrg, team);
 
   const orgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
     uniqueInvitations,
@@ -170,7 +171,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       parentId: team.parentId,
       id: team.id,
     },
-    isOrg: isInvitationToAnOrg,
+    isOrg: isTeamAnOrg,
   });
 
   const invitationsForNewUsers = getInvitationsForNewUsers({
@@ -201,7 +202,6 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
       orgConnectInfoByUsernameOrEmail,
       invitableExistingUsers,
       existingUsersToBeInvited,
-      // existingUsersEmailsAndUsernames,
       invitationsForNewUsers,
     })
   );
@@ -227,6 +227,11 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     ...input,
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
   };
+
+  async function throwIfInviterCantAddOwnerToOrg() {
+    const isInviterOrgOwner = await isOrganisationOwner(ctx.user.id, input.teamId);
+    if (isAddingNewOwner && !isInviterOrgOwner) throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
 };
 
 export default inviteMemberHandler;
