@@ -1,6 +1,6 @@
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
-import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/organizations-schedules.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
+import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationsSchedulesService } from "@/modules/organizations/services/organizations-schedules.service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
