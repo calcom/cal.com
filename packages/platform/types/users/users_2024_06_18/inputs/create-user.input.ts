@@ -19,7 +19,6 @@ import { WeekdayValidator } from "../validators/weekdayValidator";
 import { GetUsersInput_2024_06_18 } from "./get-users.input";
 
 export class CreateUserInput_2024_06_18 extends GetUsersInput_2024_06_18 {
-  @IsOptional()
   @IsEmail()
   @Transform(({ value }) => {
     return value && value.toLowerCase();
