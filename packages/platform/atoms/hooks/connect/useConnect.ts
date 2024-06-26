@@ -63,16 +63,16 @@ export const useSaveCalendarCredentials = (
   const mutation = useMutation<
     ApiResponse<{ status: string }>,
     unknown,
-    { username: string; password: string; calendar: (typeof CALENDARS)[number]; userId: number }
+    { username: string; password: string; calendar: (typeof CALENDARS)[number] }
   >({
     mutationFn: (data) => {
-      const { calendar, username, password, userId } = data;
+      const { calendar, username, password } = data;
       const body = {
         username,
         password,
       };
 
-      return http.post(`/calendars/${calendar}/sync?userId=${userId}`, body).then((res) => {
+      return http.post(`/calendars/${calendar}/credentials`, body).then((res) => {
         return res.data;
       });
     },

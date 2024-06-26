@@ -15,7 +15,6 @@ import { Button, Form, PasswordField, TextField } from "@calcom/ui";
 import { SUCCESS_STATUS } from "../../../constants/api";
 import { useCheck } from "../../hooks/connect/useCheck";
 import { useSaveCalendarCredentials } from "../../hooks/connect/useConnect";
-import { useMe } from "../../hooks/useMe";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { useToast } from "../../src/components/ui/use-toast";
 import { cn } from "../../src/lib/utils";
@@ -34,7 +33,6 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
     },
   });
   const { toast } = useToast();
-  const { data: user } = useMe();
   const { allowConnect, checked, refetch } = useCheck({
     calendar: "apple",
   });
@@ -96,9 +94,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
             handleSubmit={async (values) => {
               const { username, password } = values;
 
-              if (user?.data.id) {
-                await saveCredentials({ calendar: "apple", username, password, userId: user?.data.id });
-              }
+              await saveCredentials({ calendar: "apple", username, password });
             }}>
             <fieldset
               className="space-y-4"
