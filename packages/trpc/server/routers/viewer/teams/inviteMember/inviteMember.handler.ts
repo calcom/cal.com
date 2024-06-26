@@ -18,18 +18,18 @@ import type { TInviteMemberInputSchema } from "./inviteMember.schema";
 import type { TeamWithParent } from "./types";
 import {
   checkPermissions,
-  getTeamOrThrow,
-  getUniqueUsernameOrEmailsOrThrow,
+  createMemberships,
+  createNewUsersConnectToOrgIfExists,
+  getExistingUsersToInvite,
   getOrgConnectionInfo,
   getOrgState,
-  sendSignupToOrganizationEmail,
-  getExistingUsersToInvite,
-  createNewUsersConnectToOrgIfExists,
-  createMemberships,
+  getTeamOrThrow,
+  getUniqueUsernameOrEmailsOrThrow,
   groupUsersByJoinability,
-  sendExistingUserTeamInviteEmails,
-  sendEmails,
   INVITE_STATUS,
+  sendEmails,
+  sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
 } from "./utils";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.handler"] });
@@ -151,7 +151,7 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
         isOrg: input.isOrg,
       });
     });
-    sendEmails(sendVerifEmailsPromises);
+    await sendEmails(sendVerifEmailsPromises);
   }
 
   const organization = ctx.user.profile.organization;
@@ -166,19 +166,19 @@ export const inviteMemberHandler = async ({ ctx, input }: InviteMemberOptions) =
     orgSlug,
   });
 
-  if (IS_TEAM_BILLING_ENABLED) {
-    if (team.parentId) {
-      await updateQuantitySubscriptionFromStripe(team.parentId);
-    } else {
-      await updateQuantitySubscriptionFromStripe(input.teamId);
-    }
-  }
+  await handleSubscriptionUpdates(team.parentId || input.teamId);
+
   return {
     ...input,
     numUsersInvited:
       existingUsersWithMembershipsThatNeedToBeInvited.length + newUsersEmailsOrUsernames.length,
   };
 };
+
+async function handleSubscriptionUpdates(teamId: number) {
+  if (!IS_TEAM_BILLING_ENABLED) return;
+  await updateQuantitySubscriptionFromStripe(teamId);
+}
 
 export default inviteMemberHandler;
 
