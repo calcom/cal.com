@@ -299,7 +299,7 @@ export const buildUser = <T extends Partial<UserPayload>>(
     movedToProfileId: null,
     priority: user?.priority ?? 2,
     weight: user?.weight ?? 100,
-    weightAdjustment: user?.weightAdjustment ?? 2,
+    weightAdjustment: user?.weightAdjustment ?? 0,
     isPlatformManaged: false,
     ...user,
   };

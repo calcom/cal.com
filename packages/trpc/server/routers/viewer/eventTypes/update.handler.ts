@@ -280,11 +280,11 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         )
         .map((host) => ({
           weight: host.weight,
-          email: previousRRHosts.find((prevHost) => prevHost.userId === host.userId)?.user?.email,
           userId: host.userId,
         }));
 
       if (newRRHosts.length) {
+        // to also have the user email to check for attendees
         const hostsWithUserData = await ctx.prisma.host.findMany({
           where: {
             userId: {
@@ -304,7 +304,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         });
 
         const continuingHosts = hostsWithUserData.filter(
-          (host) => !newRRHosts.find((newHost) => newHost.email === host.user.email)
+          (host) => !newRRHosts.find((newHost) => newHost.userId === host.user.id)
         );
 
         // all accepted bookings of event type assigned host that were already hosts before
@@ -340,22 +340,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           0
         );
 
-        const updatedRRHosts = newRRHosts.map((host) => {
-          const targetPercentage = (host.weight ?? 100) / totalWeight;
-          const adjustedWeight = (allBookings.length + allWeightAdjustments) * targetPercentage;
-
-          return {
-            ...host,
-            adjustedWeight,
-          };
-        });
-
         hostWithWeightAdjustment = hosts.map((host) => {
-          const hostWithUserData = hostsWithUserData.find(
-            (hostWithUserData) => hostWithUserData.user.id === host.userId
-          );
-          const weightAdjustment =
-            updatedRRHosts.find((updatedHost) => updatedHost.userId === host.userId)?.adjustedWeight ?? 0;
+          const newRRHost = newRRHosts.find((newHost) => host.userId === host.userId);
+
+          const weightAdjustment = newRRHost.adjustedWeight ?? 0;
 
           return {
             ...host,
