@@ -19,8 +19,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user as GetUserReturnType;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
 
-    console.log("HELLO", allowedRole, user.role);
-
+    // System admin can access everything
     if (user.isSystemAdmin) {
       return true;
     }
@@ -63,7 +62,6 @@ export class RolesGuard implements CanActivate {
 
     // Checking the role for team and org, org is above team in term of permissions
     if (Boolean(teamId) && Boolean(orgId)) {
-      console.log("HELLO teamid orgid");
       const teamMembership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       const orgMembership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
 
@@ -85,7 +83,7 @@ export class RolesGuard implements CanActivate {
           );
         }
 
-        // if user is not admin nor an owner of org, then check team membership role
+        // if user is not admin nor an owner of org, and is part of the team, then check user team membership role
         return hasMinimumRole({
           checkRole: `TEAM_${teamMembership.role}`,
           minimumRole: allowedRole,
