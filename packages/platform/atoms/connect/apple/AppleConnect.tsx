@@ -115,7 +115,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
               <PasswordField
                 required
                 {...form.register("password")}
-                label="password"
+                label="Password"
                 placeholder="•••••••••••••"
                 autoComplete="password"
                 data-testid="apple-calendar-password"
