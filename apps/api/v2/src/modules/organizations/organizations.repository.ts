@@ -70,4 +70,14 @@ export class OrganizationsRepository {
       },
     });
   }
+
+  async findOrgTeam(organizationId: number, teamId: number) {
+    return this.dbRead.prisma.team.findUnique({
+      where: {
+        id: teamId,
+        isOrganization: false,
+        parentId: organizationId,
+      },
+    });
+  }
 }

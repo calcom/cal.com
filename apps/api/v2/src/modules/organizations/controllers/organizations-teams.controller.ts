@@ -1,7 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
+import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
@@ -26,6 +28,22 @@ export class OrganizationsTeamsController {
     return {
       status: SUCCESS_STATUS,
       data: [],
+    };
+  }
+
+  @UseGuards(IsTeamInOrg)
+  @Get("/:teamId")
+  async getTeam(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @GetOrg() organization: Team,
+    @GetTeam() team: Team,
+    @GetOrg("name") orgName: string
+  ): Promise<ApiResponse<Team>> {
+    console.log(teamId, orgId, organization, team, orgName);
+    return {
+      status: SUCCESS_STATUS,
+      data: team,
     };
   }
 }
