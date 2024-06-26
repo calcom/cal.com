@@ -57,11 +57,30 @@ const recordingReadySchema = commonSchema.extend({
   }),
 });
 
+const batchProcessorJobFinishedSchema = commonSchema.extend({
+  payload: z
+    .object({
+      id: z.string(),
+      status: z.string(),
+      input: z.object({
+        sourceType: z.string(),
+        transcriptUri: z.string(),
+        recordingId: z.string(),
+      }),
+      output: z
+        .object({
+          transcription: z.array(z.object({ format: z.string(), link: z.string() }).passthrough()),
+        })
+        .passthrough(),
+    })
+    .passthrough(),
+});
+
 const downloadLinkSchema = z.object({
   download_link: z.string(),
 });
 
-const triggerWebhook = async ({
+const triggerRecordingReadyWebhook = async ({
   evt,
   downloadLink,
   booking,
@@ -297,7 +316,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         },
       });
 
-      await triggerWebhook({
+      await triggerRecordingReadyWebhook({
         evt,
         downloadLink,
         booking: {
@@ -348,6 +367,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const evt = await getCalendarEvent(booking);
       await sendDailyVideoTranscriptEmails(evt, transcripts);
 
+      return res.status(200).json({ message: "Success" });
+    } else if (req.body?.type === "batch-processor.job-finished") {
+      console.log("Batch Processor Job Finished");
+      const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(req.body);
+
+      if (!batchProcessorJobFinishedResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
+
+      const { id, status, input, output } = batchProcessorJobFinishedResponse.data.payload;
+      // TODO: get booking from roomName/recordingId and then trigger webhook
       return res.status(200).json({ message: "Success" });
     }
   } catch (err) {
