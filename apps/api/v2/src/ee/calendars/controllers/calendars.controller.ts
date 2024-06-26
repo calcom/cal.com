@@ -145,7 +145,7 @@ export class CalendarsController {
   }
 
   @UseGuards(ApiAuthGuard)
-  @Post("/:calendar/sync")
+  @Post("/:calendar/credentials")
   async syncCredentials(
     @GetUser() user: User,
     @Param("calendar") calendar: string,
