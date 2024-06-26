@@ -6,7 +6,7 @@ import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -42,7 +42,7 @@ export class CalendarsController {
     private readonly googleCalendarService: GoogleCalendarService
   ) {}
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Get("/busy-times")
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
@@ -71,7 +71,7 @@ export class CalendarsController {
   }
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
@@ -81,7 +81,7 @@ export class CalendarsController {
     };
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
   async redirect(
@@ -135,7 +135,7 @@ export class CalendarsController {
 
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
     switch (calendar) {
