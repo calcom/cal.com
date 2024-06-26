@@ -80,7 +80,7 @@ export const CalAiTranscribe = () => {
       } else {
         await daily?.startRecording({
           // 480p
-          videoBitRate: 2000,
+          videoBitrate: 2000,
         });
       }
     } else if (ev?.button_id === "transcription") {
