@@ -40,7 +40,7 @@ export class OrganizationsUsersRepository {
             teamId: organizationId,
           },
         },
-        ...(emailArray && { email: { in: emailArray } }),
+        ...(emailArray && emailArray.length && { email: { in: emailArray } }),
       },
       select: userSelect,
     });

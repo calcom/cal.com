@@ -1,5 +1,4 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
@@ -13,7 +12,6 @@ import {
   GetOrganizationUsersOutput_2024_06_18,
   GetOrganizationsUsersInput_2024_06_18,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",
@@ -35,7 +33,7 @@ export class OrganizationsUsersController {
     const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
 
     return {
-      status: "success",
+      status: SUCCESS_STATUS,
       data: { users },
     };
   }
