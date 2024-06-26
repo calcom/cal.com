@@ -72,10 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // In some cases, graphUser.mail is null. Then graphUser.userPrincipalName most likely contains the email address.
   responseBody.email = graphUser.mail ?? graphUser.userPrincipalName;
-  responseBody.expiry_date = Math.round(
-    +new Date() / 1000 + responseBody.expires_in ?? responseBody.ext_expires_in
-  ); // set expiry date in seconds
-  delete responseBody.ext_expires_in;
+  responseBody.expiry_date = Math.round(+new Date() / 1000 + responseBody.expires_in); // set expiry date in seconds
   delete responseBody.expires_in;
 
   const userId = req.session?.user.id;
