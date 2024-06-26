@@ -335,7 +335,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
         const totalWeight = hosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
 
-        const allWeightAdjustments = continuingHosts.reduce((sum, host) => sum + host.weightAdjustment, 0);
+        const allWeightAdjustments = continuingHosts.reduce(
+          (sum, host) => sum + (host.weightAdjustment ?? 0),
+          0
+        );
 
         const updatedRRHosts = newRRHosts.map((host) => {
           const targetPercentage = (host.weight ?? 100) / totalWeight;

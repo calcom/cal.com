@@ -13,7 +13,11 @@ type PartialUser = Pick<User, "id" | "email">;
 interface GetLuckyUserParams<T extends PartialUser> {
   availableUsers: T[];
   eventType: { id: number; isRRWeightsEnabled: boolean };
-  allRRHosts: { user: { id: number; email: string }; weight: number; weightAdjustment: number }[];
+  allRRHosts: {
+    user: { id: number; email: string };
+    weight?: number | null;
+    weightAdjustment?: number | null;
+  }[];
 }
 
 async function leastRecentlyBookedUser<T extends PartialUser>({
