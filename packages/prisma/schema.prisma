@@ -49,9 +49,9 @@ model Host {
   eventTypeId      Int
   isFixed          Boolean   @default(false)
   priority         Int?
-  weight           Int       @default(100)
+  weight           Int?
   // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
-  weightAdjustment Int       @default(0)
+  weightAdjustment Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
