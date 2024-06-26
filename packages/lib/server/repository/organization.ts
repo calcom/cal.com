@@ -29,6 +29,7 @@ export class OrganizationRepository {
       seats: number | null;
       pricePerSeat: number | null;
       isPlatform: boolean;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
     };
     owner: {
       id: number;
@@ -69,6 +70,7 @@ export class OrganizationRepository {
       isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat: number | null;
       isPlatform: boolean;
     };
@@ -110,6 +112,7 @@ export class OrganizationRepository {
     isOrganizationAdminReviewed: boolean;
     autoAcceptEmail: string;
     seats: number | null;
+    billingPeriod?: "MONTHLY" | "ANNUALLY";
     pricePerSeat: number | null;
     isPlatform: boolean;
   }) {
@@ -131,6 +134,7 @@ export class OrganizationRepository {
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
+          billingPeriod: orgData.billingPeriod,
         },
         isPlatform: orgData.isPlatform,
       },
