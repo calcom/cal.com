@@ -113,7 +113,7 @@ async function getUsersBasedOnWeights<
   // Filter accepted bookings
   const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED); //probably should also add the adjusted weights
 
-  const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + host.weightAdjustment, 0);
+  const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
 
   // Calculate the total weight of all round-robin hosts
   const totalWeight = allRRHosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
