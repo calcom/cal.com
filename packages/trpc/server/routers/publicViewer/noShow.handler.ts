@@ -116,12 +116,10 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
     });
     return { message: "No-show status updated", noShowHost: true };
   } catch (error) {
-    let message = "Failed to update no-show status";
     if (error instanceof Error) {
       logger.error(error.message);
-      message = error.message;
     }
-    return { message };
+    return { message: "Failed to update no-show status" };
   }
 };
 
