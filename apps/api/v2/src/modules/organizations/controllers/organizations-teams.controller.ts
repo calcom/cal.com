@@ -35,6 +35,8 @@ export class OrganizationsTeamsController {
   constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
 
   @Get()
+  @UseGuards(RolesGuard)
+  @Roles("ORG_ADMIN")
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -48,7 +50,7 @@ export class OrganizationsTeamsController {
   }
 
   @UseGuards(IsTeamInOrg, RolesGuard)
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @Get("/:teamId")
   async getTeam(@GetTeam() team: Team): Promise<ApiResponse<Team>> {
     return {
@@ -57,7 +59,8 @@ export class OrganizationsTeamsController {
     };
   }
 
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(IsTeamInOrg, RolesGuard)
+  @Roles("ORG_ADMIN")
   @Delete("/:teamId")
   async deleteTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -70,7 +73,8 @@ export class OrganizationsTeamsController {
     };
   }
 
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(IsTeamInOrg, RolesGuard)
+  @Roles("ORG_ADMIN")
   @Patch("/:teamId")
   async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -85,6 +89,8 @@ export class OrganizationsTeamsController {
   }
 
   @Post()
+  @UseGuards(RolesGuard)
+  @Roles("ORG_ADMIN")
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgTeamDto
