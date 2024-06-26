@@ -1,8 +1,10 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { Controller, UseGuards, Get, Param, ParseIntPipe } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -31,7 +33,8 @@ export class OrganizationsTeamsController {
     };
   }
 
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(IsTeamInOrg, RolesGuard)
+  @Roles("ORG_ADMIN")
   @Get("/:teamId")
   async getTeam(
     @Param("orgId", ParseIntPipe) orgId: number,

@@ -18,6 +18,23 @@ export class MembershipsRepository {
     return membership;
   }
 
+  async findMembershipByTeamId(teamId: number, userId: number) {
+    const membership = await this.dbRead.prisma.membership.findUnique({
+      where: {
+        userId_teamId: {
+          userId: userId,
+          teamId: teamId,
+        },
+      },
+    });
+
+    return membership;
+  }
+
+  async findMembershipByOrgId(orgId: number, userId: number) {
+    return this.findMembershipByTeamId(orgId, userId);
+  }
+
   async isUserOrganizationAdmin(userId: number, organizationId: number) {
     const adminMembership = await this.dbRead.prisma.membership.findFirst({
       where: {

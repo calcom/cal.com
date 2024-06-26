@@ -806,6 +806,74 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/teams": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getAllTeams",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/{teamId}": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getTeam",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_06_11_createSchedule",
@@ -2185,11 +2253,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
@@ -2205,11 +2273,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "nullable": true,
@@ -2230,11 +2298,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "type": "array",
@@ -2257,11 +2325,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
@@ -2303,11 +2371,11 @@
         "properties": {
           "status": {
             "type": "string",
-            "example": "success",
             "enum": [
               "success",
               "error"
-            ]
+            ],
+            "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/DeleteData_2024_06_14"
