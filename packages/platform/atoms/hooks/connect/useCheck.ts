@@ -15,13 +15,13 @@ export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
 export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
-  const { isInit } = useAtomsContext();
+  const { isInit, accessToken } = useAtomsContext();
   const queryClient = useQueryClient();
 
   const { data: check, refetch } = useQuery({
     queryKey: getQueryKey(calendar),
     staleTime: 6000,
-    enabled: isInit,
+    enabled: isInit && !!accessToken,
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/calendars/${calendar}/check`)
