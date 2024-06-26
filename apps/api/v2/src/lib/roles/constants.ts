@@ -1,4 +1,4 @@
-import { MembershipRole, UserPermissionRole } from "@prisma/client";
+import { MembershipRole } from "@prisma/client";
 
 export const SYSTEM_ADMIN_ROLE = "SYSADMIN";
 export const ORG_ROLES = [
@@ -11,4 +11,3 @@ export const TEAM_ROLES = [
   `TEAM_${MembershipRole.ADMIN}`,
   `TEAM_${MembershipRole.MEMBER}`,
 ] as const;
-export const USER_ROLES = [`USER_${UserPermissionRole.ADMIN}`, `USER_${UserPermissionRole.USER}`] as const;

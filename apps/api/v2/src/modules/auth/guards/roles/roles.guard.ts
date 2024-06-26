@@ -1,4 +1,4 @@
-import { ORG_ROLES, TEAM_ROLES, USER_ROLES } from "@/lib/roles/constants";
+import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants";
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
@@ -24,9 +24,9 @@ export class RolesGuard implements CanActivate {
       return true;
     }
 
-    // Checking the role of the user
-    if (USER_ROLES.includes(allowedRole as unknown as (typeof USER_ROLES)[number])) {
-      return hasMinimumRole({ checkRole: `USER_${user.role}`, minimumRole: allowedRole, roles: USER_ROLES });
+    // if the required role is SYSTEM_ADMIN_ROLE but user is not system admin, return false
+    if (allowedRole === SYSTEM_ADMIN_ROLE && !user.isSystemAdmin) {
+      return false;
     }
 
     // Checking the role of the user within the organization
@@ -105,13 +105,7 @@ export class RolesGuard implements CanActivate {
   }
 }
 
-type Roles = (typeof USER_ROLES)[number] | (typeof ORG_ROLES)[number] | (typeof TEAM_ROLES)[number];
-
-type HasMinimumUserRoleProp = {
-  checkRole: (typeof USER_ROLES)[number];
-  minimumRole: string;
-  roles: typeof USER_ROLES;
-};
+type Roles = (typeof ORG_ROLES)[number] | (typeof TEAM_ROLES)[number];
 
 type HasMinimumTeamRoleProp = {
   checkRole: (typeof TEAM_ROLES)[number];
@@ -125,7 +119,7 @@ type HasMinimumOrgRoleProp = {
   roles: typeof ORG_ROLES;
 };
 
-type HasMinimumRoleProp = HasMinimumTeamRoleProp | HasMinimumOrgRoleProp | HasMinimumUserRoleProp;
+type HasMinimumRoleProp = HasMinimumTeamRoleProp | HasMinimumOrgRoleProp;
 
 export function hasMinimumRole(props: HasMinimumRoleProp): boolean {
   const checkedRoleIndex = props.roles.indexOf(props.checkRole as never);
