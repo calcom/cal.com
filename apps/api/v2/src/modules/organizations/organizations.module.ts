@@ -15,6 +15,7 @@ import { Module } from "@nestjs/common";
     OrganizationsTeamsRepository,
     OrganizationsService,
     OrganizationsTeamsService,
+    MembershipsRepository,
   ],
   exports: [OrganizationsService, OrganizationsRepository, OrganizationsTeamsRepository],
   controllers: [OrganizationsTeamsController],
