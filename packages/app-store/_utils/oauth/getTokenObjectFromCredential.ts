@@ -8,7 +8,7 @@ export function getTokenObjectFromCredential(credential: CredentialPayload) {
   const parsedTokenResponse = OAuth2TokenResponseInDbSchema.safeParse(credential.key);
 
   if (!parsedTokenResponse.success) {
-    logger.debug(
+    logger.error(
       "GoogleCalendarService-getTokenObjectFromCredential",
       safeStringify(parsedTokenResponse.error.issues)
     );
