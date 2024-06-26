@@ -2,7 +2,7 @@ import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants"
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Request } from "express";
 
@@ -10,6 +10,7 @@ import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
+  private readonly logger = new Logger("RolesGuard Logger");
   constructor(private reflector: Reflector, private membershipRepository: MembershipsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -19,13 +20,21 @@ export class RolesGuard implements CanActivate {
     const user = request.user as GetUserReturnType;
     const allowedRole = this.reflector.get(Roles, context.getHandler());
 
+    // User is not authenticated
+    if (!user) {
+      this.logger.log("User is not authenticated, denying access.");
+      return false;
+    }
+
     // System admin can access everything
     if (user.isSystemAdmin) {
+      this.logger.log(`User (${user.id}) is system admin, allowing access.`);
       return true;
     }
 
     // if the required role is SYSTEM_ADMIN_ROLE but user is not system admin, return false
     if (allowedRole === SYSTEM_ADMIN_ROLE && !user.isSystemAdmin) {
+      this.logger.log(`User (${user.id}) is not system admin, denying access.`);
       return false;
     }
 
@@ -33,7 +42,8 @@ export class RolesGuard implements CanActivate {
     if (Boolean(orgId) && !Boolean(teamId)) {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
-        throw new ForbiddenException("User is not a member of the organization.");
+        this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
+        throw new ForbiddenException(`User (${user.id}) is not a member of the organization.`);
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
@@ -49,7 +59,8 @@ export class RolesGuard implements CanActivate {
     if (Boolean(teamId) && !Boolean(orgId)) {
       const membership = await this.membershipRepository.findMembershipByTeamId(Number(teamId), user.id);
       if (!membership) {
-        throw new ForbiddenException("User is not a member of the team.");
+        this.logger.log(`User (${user.id}) is not a member of the team (${teamId}), denying access.`);
+        throw new ForbiddenException(`User is not a member of the team.`);
       }
       if (TEAM_ROLES.includes(allowedRole as unknown as (typeof TEAM_ROLES)[number])) {
         return hasMinimumRole({
@@ -66,18 +77,21 @@ export class RolesGuard implements CanActivate {
       const orgMembership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
 
       if (!orgMembership) {
-        throw new ForbiddenException("User is not part of the organization.");
+        this.logger.log(`User (${user.id}) is not part of the organization (${orgId}), denying access.`);
+        throw new ForbiddenException(`User is not part of the organization.`);
       }
 
       // if the role checked is a TEAM role
       if (TEAM_ROLES.includes(allowedRole as unknown as (typeof TEAM_ROLES)[number])) {
-        console.log("ORGMEM", orgMembership.role);
         // if the user is admin or owner of org, allow request because org > team
         if (`ORG_${orgMembership.role}` === "ORG_ADMIN" || `ORG_${orgMembership.role}` === "ORG_OWNER") {
           return true;
         }
 
         if (!teamMembership) {
+          this.logger.log(
+            `User (${user.id}) is not part of the team (${teamId}) and/or, is not an admin nor an owner of the organization (${orgId}).`
+          );
           throw new ForbiddenException(
             "User is not part of the team and/or, is not an admin nor an owner of the organization."
           );
