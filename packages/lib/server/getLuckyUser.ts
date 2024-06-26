@@ -110,9 +110,9 @@ async function getUsersBasedOnWeights<
     weightAdjustment?: number | null;
   }
 >({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
-  // Filter accepted bookings
-  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED); //probably should also add the adjusted weights
+  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED);
 
+  // Calculate the total weightAdjustments of all round-robin hosts
   const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
 
   // Calculate the total weight of all round-robin hosts
@@ -157,6 +157,7 @@ export async function getLuckyUser<
   distributionAlgorithm: "MAXIMIZE_AVAILABILITY" = "MAXIMIZE_AVAILABILITY",
   getLuckyUserParams: GetLuckyUserParams<T>
 ) {
+  console.log(`all rr hosts ${JSON.stringify(getLuckyUserParams.allRRHosts)}`);
   const { availableUsers, eventType, allRRHosts } = getLuckyUserParams;
 
   if (availableUsers.length === 1) {
