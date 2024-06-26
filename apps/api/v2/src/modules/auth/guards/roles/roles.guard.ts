@@ -43,7 +43,7 @@ export class RolesGuard implements CanActivate {
       const membership = await this.membershipRepository.findMembershipByOrgId(Number(orgId), user.id);
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
-        throw new ForbiddenException(`User (${user.id}) is not a member of the organization.`);
+        throw new ForbiddenException(`User is not a member of the organization.`);
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
