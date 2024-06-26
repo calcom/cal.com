@@ -194,7 +194,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!hasTeamPlan,
         ...(!!hasTeamPlan && {
           permissions: {
@@ -220,7 +219,6 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,
         enable_transcription_storage: isScalePlanTrue,
         ...(!!isScalePlanTrue && {

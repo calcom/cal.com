@@ -1,8 +1,12 @@
-import { useTranscription } from "@daily-co/daily-react";
+import { useTranscription, useRecording } from "@daily-co/daily-react";
 import { useDaily, useDailyEvent } from "@daily-co/daily-react";
 import React, { Fragment, useCallback, useRef, useState, useLayoutEffect, useEffect } from "react";
 
-import { TRANSCRIPTION_STARTED_ICON, TRANSCRIPTION_STOPPED_ICON } from "@calcom/lib/constants";
+import {
+  TRANSCRIPTION_STARTED_ICON,
+  RECORDING_IN_PROGRESS_ICON,
+  TRANSCRIPTION_STOPPED_ICON,
+} from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 export const CalAiTranscribe = () => {
@@ -15,6 +19,7 @@ export const CalAiTranscribe = () => {
   const transcriptRef = useRef<HTMLDivElement | null>(null);
 
   const transcription = useTranscription();
+  const recording = useRecording();
 
   useDailyEvent(
     "app-message",
@@ -35,6 +40,17 @@ export const CalAiTranscribe = () => {
     });
   });
 
+  useDailyEvent("recording-started", (ev) => {
+    daily?.updateCustomTrayButtons({
+      recording: {
+        label: "Stop",
+        tooltip: "Stop recording",
+        iconPath: RECORDING_IN_PROGRESS_ICON,
+        iconPathDarkMode: RECORDING_IN_PROGRESS_ICON,
+      },
+    });
+  });
+
   useDailyEvent("transcription-stopped", (ev) => {
     daily?.updateCustomTrayButtons({
       transcription: {
@@ -46,15 +62,33 @@ export const CalAiTranscribe = () => {
     });
   });
 
-  useDailyEvent("custom-button-click", (ev) => {
-    if (ev?.button_id !== "transcription") {
-      return;
-    }
+  useDailyEvent("recording-stopped", (ev) => {
+    daily?.updateCustomTrayButtons({
+      recording: {
+        label: "Stop",
+        tooltip: "Stop recording",
+        iconPath: RECORDING_IN_PROGRESS_ICON,
+        iconPathDarkMode: RECORDING_IN_PROGRESS_ICON,
+      },
+    });
+  });
 
-    if (transcription?.isTranscribing) {
-      daily?.stopTranscription();
-    } else {
-      daily?.startTranscription();
+  useDailyEvent("custom-button-click", async (ev) => {
+    if (ev?.button_id === "recording") {
+      if (recording?.isRecording) {
+        await daily?.stopRecording();
+      } else {
+        await daily?.startRecording({
+          // 480p
+          videoBitRate: 2000,
+        });
+      }
+    } else if (ev?.button_id === "transcription") {
+      if (transcription?.isTranscribing) {
+        daily?.stopTranscription();
+      } else {
+        daily?.startTranscription();
+      }
     }
   });
 
