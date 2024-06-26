@@ -307,9 +307,6 @@ describe("maximize availability and weights", () => {
         {
           createdAt: new Date("2022-01-25T05:30:00.000Z"),
         },
-        {
-          createdAt: new Date("2022-01-25T03:30:00.000Z"),
-        },
       ],
     });
     const user2 = buildUser({
@@ -394,9 +391,6 @@ describe("maximize availability and weights", () => {
       weight: 150,
       weightAdjustment: 4, // + 3 = 7 bookings
       bookings: [
-        {
-          createdAt: new Date("2022-01-25T08:30:00.000Z"),
-        },
         {
           createdAt: new Date("2022-01-25T07:30:00.000Z"),
         },

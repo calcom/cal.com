@@ -373,11 +373,10 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
+                  const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
                   const sortedValue = getValues("isRRWeightsEnabled")
-                    ? [...value.filter((host: Host) => host.isFixed), ...changeValue]
-                    : [...value.filter((host: Host) => host.isFixed), ...changeValue].sort(
-                        (a, b) => b.priority - a.priority
-                      );
+                    ? hosts
+                    : hosts.sort((a, b) => b.priority - a.priority);
                   onChange(sortedValue);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
