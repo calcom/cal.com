@@ -1,2 +1,2 @@
 -- AlterTable
-ALTER TABLE "EventType" ADD COLUMN     "instantMeetingExpiryTimeOffset" INTEGER NOT NULL DEFAULT 90;
+ALTER TABLE "EventType" ADD COLUMN     "instantMeetingExpiryTimeOffsetInSeconds" INTEGER NOT NULL DEFAULT 90;

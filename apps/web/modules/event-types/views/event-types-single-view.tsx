@@ -251,7 +251,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
-      instantMeetingExpiryTimeOffset: eventType.instantMeetingExpiryTimeOffset,
+      instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,

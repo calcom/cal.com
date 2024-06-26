@@ -98,13 +98,13 @@ export default function InstantEventController({
                     {instantEventState && (
                       <div className="flex flex-col gap-2">
                         <Controller
-                          name="instantMeetingExpiryTimeOffset"
+                          name="instantMeetingExpiryTimeOffsetInSeconds"
                           render={({ field: { value, onChange } }) => (
                             <>
                               <Label>{t("set_instant_meeting_expiry_time_offset_description")}</Label>
                               <TextField
                                 required
-                                name="instantMeetingExpiryTimeOffset"
+                                name="instantMeetingExpiryTimeOffsetInSeconds"
                                 labelSrOnly
                                 type="number"
                                 defaultValue={value}
