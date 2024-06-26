@@ -126,6 +126,21 @@ export const FormBuilder = function FormBuilder({
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
               field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
             }
+            try {
+              const maxLength = field["max-length"];
+              const minLength = field["min-length"];
+              if (field && (maxLength || minLength)) {
+                field.rules = field.rules || {};
+                if (minLength) {
+                  field.rules.minLength = parseInt(minLength);
+                }
+                if (maxLength) {
+                  field.rules.maxLength = parseInt(maxLength);
+                }
+              }
+            } catch (err) {
+              //do nothing
+            }
 
             const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
             if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
@@ -500,6 +515,30 @@ function FieldEditDialog({
                         label={t("placeholder")}
                         placeholder={t(fieldForm.getValues("defaultPlaceholder") || "")}
                       />
+                    ) : null}
+                    {fieldType?.isTextType && fieldType.value === "textarea" ? (
+                      <div className="flex justify-between">
+                        <div className="mr-2 w-full">
+                          <InputField
+                            {...fieldForm.register("min-length")}
+                            containerClassName="mt-6 w-full"
+                            label={t("Min.characters")}
+                            type="number"
+                            min={1}
+                            max={2000}
+                          />
+                        </div>
+                        <div className="ml-2 w-full">
+                          <InputField
+                            {...fieldForm.register("max-length")}
+                            containerClassName="mt-6 w-full"
+                            label={t("Max.characters")}
+                            type="number"
+                            min={1}
+                            max={2000}
+                          />
+                        </div>
+                      </div>
                     ) : null}
                     {fieldType?.needsOptions && !fieldForm.getValues("getOptionsAt") ? (
                       <Controller
