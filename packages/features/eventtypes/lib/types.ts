@@ -34,6 +34,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
   description: string;
