@@ -2,7 +2,7 @@ import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
-import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
+import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { OrganizationsSchedulesService } from "@/modules/organizations/services/organizations-schedules.service";
 import {
   Controller,
@@ -56,7 +56,7 @@ export class OrganizationsSchedulesController {
     };
   }
 
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
   async createUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
@@ -70,6 +70,7 @@ export class OrganizationsSchedulesController {
     };
   }
 
+  @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
   async getUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
@@ -83,6 +84,7 @@ export class OrganizationsSchedulesController {
     };
   }
 
+  @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
   async getUserSchedules(
     @Param("userId", ParseIntPipe) userId: number
@@ -95,6 +97,7 @@ export class OrganizationsSchedulesController {
     };
   }
 
+  @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
   async updateUserSchedule(
     @Param("userId", ParseIntPipe) userId: number,
@@ -109,6 +112,7 @@ export class OrganizationsSchedulesController {
     };
   }
 
+  @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)
   async deleteUserSchedule(
