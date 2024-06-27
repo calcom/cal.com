@@ -1,4 +1,4 @@
-import { CreateEventTypeInput } from "@/ee/event-types/inputs/create-event-type.input";
+import { CreateEventTypeInput_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/inputs/create-event-type.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
@@ -21,7 +21,10 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async create(data: Pick<CreateEventTypeInput, "title" | "slug" | "length" | "hidden">, userId: number) {
+  async create(
+    data: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">,
+    userId: number
+  ) {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
