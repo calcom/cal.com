@@ -2,6 +2,8 @@ import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11
 import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
+import { ScheduleOutput_2024_06_11 } from "@calcom/platform-types";
+
 @Injectable()
 export class OrganizationsSchedulesService {
   constructor(
@@ -13,12 +15,13 @@ export class OrganizationsSchedulesService {
     const users = await this.usersRepository.getOrganizationUsers(organizationId);
     const usersIds = users.map((user) => user.id);
 
-    const schedules = await Promise.all(
-      usersIds.map((userId) => {
-        return this.schedulesService.getUserSchedules(userId);
-      })
-    );
+    const organizationSchedules: ScheduleOutput_2024_06_11[] = [];
 
-    return schedules.flat();
+    for (const userId of usersIds) {
+      const userSchedules = await this.schedulesService.getUserSchedules(userId);
+      organizationSchedules.push(...userSchedules);
+    }
+
+    return organizationSchedules;
   }
 }
