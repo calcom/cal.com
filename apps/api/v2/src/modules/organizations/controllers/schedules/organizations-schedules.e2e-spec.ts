@@ -8,6 +8,7 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -23,7 +24,7 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-import { User, Team, Membership } from "@calcom/prisma/client";
+import { User, Team, Membership, Profile } from "@calcom/prisma/client";
 
 describe("Organizations Schedules Endpoints", () => {
   describe("User lacks required role", () => {
@@ -111,10 +112,13 @@ describe("Organizations Schedules Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: TeamRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     const userEmail = "mr-robot@schedules-api.com";
+    const username = "mr-robot";
     let user: User;
     let org: Team;
+    let profile: Profile;
     let membership: Membership;
 
     let createdSchedule: ScheduleOutput_2024_06_11;
@@ -144,6 +148,7 @@ describe("Organizations Schedules Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
         name: "Ecorp",
@@ -154,6 +159,21 @@ describe("Organizations Schedules Endpoints", () => {
         email: userEmail,
         username: userEmail,
         organization: { connect: { id: org.id } },
+      });
+
+      profile = await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: username,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
       });
 
       membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
@@ -308,6 +328,7 @@ describe("Organizations Schedules Endpoints", () => {
     });
 
     afterAll(async () => {
+      await profileRepositoryFixture.delete(profile.id);
       await membershipFixtures.delete(membership.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await organizationsRepositoryFixture.delete(org.id);
