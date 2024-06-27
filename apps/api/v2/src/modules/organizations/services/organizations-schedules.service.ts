@@ -13,7 +13,7 @@ export class OrganizationsSchedulesService {
     private readonly usersRepository: UsersRepository
   ) {}
 
-  async getOrganizationSchedules(organizationId: number, skip?: number, take?: number) {
+  async getOrganizationSchedules(organizationId: number, skip = 0, take = 250) {
     const users = await this.usersRepository.getOrganizationUsers(organizationId);
     const usersIds = users.map((user) => user.id);
 
