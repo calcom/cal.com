@@ -865,12 +865,12 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
 
-  if (!rawData || status === "pending") {
-    return <SkeletonLoader />;
-  }
-
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
+  }
+
+  if (!rawData || status === "pending") {
+    return <SkeletonLoader />;
   }
 
   const isFilteredByOnlyOneItem =
