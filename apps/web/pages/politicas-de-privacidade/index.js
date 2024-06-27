@@ -21,7 +21,10 @@ function Policy() {
               </a>
               ). Esta política está em conformidade com a Lei Federal nº 12.965, de 23 de abril de 2014 (Marco
               Civil da Internet) e a Lei Federal nº 13.709, de 14 de agosto de 2018 (Lei de Proteção de Dados
-              Pessoais).
+              Pessoais). Todos os dados mencionados nesta política são tratados com base em boas práticas de
+              gestão de tecnologias da informação que envolvem todo tipo de operação de acesso, processamento,
+              armazenamento e compartilhamento de dados, tendo todos os seus sistemas sendo gerenciados por
+              profssionais competentes e certificados para atuação em suas respectivas funções.
             </div>
             <h4 className="style-8">2. COLETA E USO DE DADOS</h4>
             <div className="style-9">
@@ -197,40 +200,39 @@ function Policy() {
               <br className="style-107" />
               <br className="style-108" />
               <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você
-              conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo pode
-              acessar, usar, armazenar e/ou compartilhar dados de usuários do Google, incluindo dados obtidos
-              pelos seguintes escopos da API do Google Calendar, para melhorar a sua experiência de usuário e
-              fornecer nossos serviços de acordo com as seguintes práticas:
+              conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo poderá
+              acessar dados da sua conta Google Calendar exclusivamente com o objetivo de melhorar a sua
+              experiência de usuário e fornecer nossos serviços, da seguinte forma:
               <ul>
                 <li>
-                  Acessar e usar: Podemos acessar e usar dados de eventos do Google Calendar para autenticação
-                  do usuário, sincronização de agendas e fornecimento de lembretes e notificações relacionados
-                  aos serviços de saúde.
+                  Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para
+                  disponibilizar sua agenda como profisisonal de saúde para nossos pacientes para que os
+                  mesmos possam fazer solicitações de agendamentos na sua agenda através da nossa aplicação.
+                  Ao nos fornecer este acesso você estará nos dando acesso à dados da sua conta Google
+                  Calendar que serão obtidos pelos seguintes escopos da API do Google Calendar:
                   <ul>
                     <li>
-                      <strong>Eventos do Calendário:</strong> Permite visualizar e editar eventos em todos os
-                      seus calendários, utilizado para agregar e gerenciar consultas de saúde e outros
-                      compromissos.
+                      <strong>Eventos do Calendário (somente leitura):</strong> Permitirá visualizar eventos
+                      em todos os seus calendários. Esta permissão será utilizada pela nossa aplicação para
+                      detectar dias e horários em que você tem eventos agendados e portanto, com base nisso,
+                      inferir sua disponibilidade, que por sua vez será usada para criar uma agenda de
+                      horários efetivamente disponíveis para solicitações agendamento, evitando solicitações
+                      que resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
                     </li>
                     <li>
-                      <strong>Eventos do Calendário (somente leitura):</strong> Permite visualizar eventos em
-                      todos os seus calendários, utilizado para fornecer uma visão consolidada de todos os
-                      seus compromissos e disponibilidade de horários.
+                      <strong>Eventos do Calendário (leitura e escrita):</strong> Permitirá visualizar e
+                      editar eventos em todos os seus calendários. Esta permissão será utilizada para criar
+                      eventos em seu calendário a partir de solicitações de agendamento.
                     </li>
                   </ul>
                 </li>
                 <li>
-                  Armazenar: Dados de eventos do Google Calendar podem ser armazenados em nossos servidores de
-                  forma segura, seguindo as melhores práticas de segurança da informação, para permitir
-                  funcionalidades contínuas de nosso aplicativo, como sincronização contínua de eventos e
-                  lembretes.
+                  Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados em
+                  nossos servidores e não serão lidos por humanos.
                 </li>
                 <li>
-                  Compartilhamento: Dados de eventos do Google Calendar podem ser compartilhados com a equipe
-                  de suporte da Yinflow, outros profissionais de saúde e/ou pacientes, conforme necessário,
-                  para gerenciar e confirmar compromissos agendados através do nosso aplicativo. Qualquer
-                  compartilhamento de dados será feito em conformidade com a legislação aplicável e com
-                  medidas adequadas de proteção de dados.
+                  Compartilhamento: Dados de eventos obtidos pela API do Google Calendar não serão
+                  compartilhados.
                 </li>
               </ul>
             </div>
