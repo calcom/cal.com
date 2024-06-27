@@ -7,7 +7,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.2";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.15";
 
 @Injectable()
 export class OAuthClientUsersService {
@@ -36,10 +36,12 @@ export class OAuthClientUsersService {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          invitations: [{
-            usernameOrEmail: email,
-            role: "MEMBER"
-          }],
+          invitations: [
+            {
+              usernameOrEmail: email,
+              role: "MEMBER",
+            },
+          ],
           teamId: organizationId,
           isOrg: true,
           parentId: null,
