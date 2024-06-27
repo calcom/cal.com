@@ -191,12 +191,26 @@ async function handler(req: NextApiRequest) {
   const newBooking = await prisma.booking.create(createBookingObj);
 
   // Create Instant Meeting Token
+
   const token = randomBytes(32).toString("hex");
+
+  const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
+    where: {
+      id: req.body.eventTypeId,
+    },
+    select: {
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+    },
+  });
+
+  const instantMeetingExpiryTimeOffsetInSeconds =
+    eventTypeWithExpiryTimeOffset?.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {
       token,
-      // 90 Seconds
-      expires: new Date(new Date().getTime() + 1000 * 90),
+      // current time + offset Seconds
+      expires: new Date(new Date().getTime() + 1000 * instantMeetingExpiryTimeOffsetInSeconds),
       team: {
         connect: {
           id: eventType.team.id,
