@@ -193,6 +193,47 @@ function Policy() {
               se torna, em acordo com a legislação, um controlador de dados que processará seus dados pessoais
               para seus próprios fins.
             </div>
+            <div className="style-105">
+              <br className="style-107" />
+              <br className="style-108" />
+              <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você
+              conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo pode
+              acessar, usar, armazenar e/ou compartilhar dados de usuários do Google, incluindo dados obtidos
+              pelos seguintes escopos da API do Google Calendar, para melhorar a sua experiência de usuário e
+              fornecer nossos serviços de acordo com as seguintes práticas:
+              <ul>
+                <li>
+                  Acessar e usar: Podemos acessar e usar dados de eventos do Google Calendar para autenticação
+                  do usuário, sincronização de agendas e fornecimento de lembretes e notificações relacionados
+                  aos serviços de saúde.
+                  <ul>
+                    <li>
+                      <strong>Eventos do Calendário:</strong> Permite visualizar e editar eventos em todos os
+                      seus calendários, utilizado para agregar e gerenciar consultas de saúde e outros
+                      compromissos.
+                    </li>
+                    <li>
+                      <strong>Eventos do Calendário (somente leitura):</strong> Permite visualizar eventos em
+                      todos os seus calendários, utilizado para fornecer uma visão consolidada de todos os
+                      seus compromissos e disponibilidade de horários.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Armazenar: Dados de eventos do Google Calendar podem ser armazenados em nossos servidores de
+                  forma segura, seguindo as melhores práticas de segurança da informação, para permitir
+                  funcionalidades contínuas de nosso aplicativo, como sincronização contínua de eventos e
+                  lembretes.
+                </li>
+                <li>
+                  Compartilhamento: Dados de eventos do Google Calendar podem ser compartilhados com a equipe
+                  de suporte da Yinflow, outros profissionais de saúde e/ou pacientes, conforme necessário,
+                  para gerenciar e confirmar compromissos agendados através do nosso aplicativo. Qualquer
+                  compartilhamento de dados será feito em conformidade com a legislação aplicável e com
+                  medidas adequadas de proteção de dados.
+                </li>
+              </ul>
+            </div>
             <h4 className="style-110">3. Compartilhamento de Dados</h4>
             <div className="style-111">
               <strong className="style-112">3.1.</strong> Podemos divulgar seus dados pessoais para outras
