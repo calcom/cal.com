@@ -24,10 +24,11 @@ type CreateTeamsOptions = {
 };
 
 export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => {
-  // Get User From context
-  const user = ctx.user;
+  // Whether self-serve or not, createTeams endpoint is accessed by Org Owner only.
+  // Even when instance admin creates an org, then by the time he reaches team creation steps, he has impersonated the org owner.
+  const organizationOwner = ctx.user;
 
-  if (!user) {
+  if (!organizationOwner) {
     throw new NoUserError();
   }
 
@@ -36,14 +37,14 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
   // Remove empty team names that could be there due to the default empty team name
   const teamNames = input.teamNames.filter((name) => name.trim().length > 0);
 
-  if (orgId !== user.organizationId) {
+  if (orgId !== organizationOwner.organizationId) {
     throw new NotAuthorizedError();
   }
 
   // Validate user membership role
   const userMembershipRole = await prisma.membership.findFirst({
     where: {
-      userId: user.id,
+      userId: organizationOwner.id,
       teamId: orgId,
       role: {
         in: ["OWNER", "ADMIN"],
@@ -99,7 +100,10 @@ export const createTeamsHandler = async ({ ctx, input }: CreateTeamsOptions) => 
         await moveTeam({
           teamId,
           newSlug,
-          org: organization,
+          org: {
+            ...organization,
+            ownerId: organizationOwner.id,
+          },
           ctx,
         });
       })
@@ -174,6 +178,7 @@ async function moveTeam({
   org: {
     id: number;
     slug: string | null;
+    ownerId: number;
     metadata: Prisma.JsonValue;
   };
   ctx: CreateTeamsOptions["ctx"];
@@ -219,25 +224,35 @@ async function moveTeam({
     },
   });
 
-  // Invite team members to the new org. They are already members of the team.
-  await inviteMemberHandler({
-    ctx,
-    input: {
-      teamId: org.id,
-      language: "en",
-      usernameOrEmail: team.members.map((m) => ({
-        email: m.user.email,
-        role: m.role,
-      })),
-      isOrg: true,
-    },
-  });
+  // Owner is already a member of the team. Inviting an existing member can throw error
+  const invitableMembers = team.members.filter(isMembershipNotWithOwner).map((membership) => ({
+    email: membership.user.email,
+    role: membership.role,
+  }));
+
+  if (invitableMembers.length) {
+    // Invite team members to the new org. They are already members of the team.
+    await inviteMemberHandler({
+      ctx,
+      input: {
+        teamId: org.id,
+        language: "en",
+        usernameOrEmail: invitableMembers,
+        isOrg: true,
+      },
+    });
+  }
 
   await addTeamRedirect({
     oldTeamSlug: team.slug,
     teamSlug: newSlug,
     orgSlug: org.slug || (orgMetadata?.requestedSlug ?? null),
   });
+
+  function isMembershipNotWithOwner(membership: { userId: number }) {
+    // Org owner is already a member of the team
+    return membership.userId !== org.ownerId;
+  }
 }
 
 async function addTeamRedirect({
