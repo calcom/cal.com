@@ -1,5 +1,6 @@
 import { parseRecurringEvent } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -183,6 +184,7 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
+            parentId: true,
           },
         },
       },
@@ -202,6 +204,11 @@ export async function getBookings({
         id: true,
         name: true,
         email: true,
+        movedToProfile: {
+          select: {
+            organizationId: true,
+          },
+        },
       },
     },
     rescheduled: true,
@@ -380,7 +387,7 @@ export async function getBookings({
 
   // Now enrich bookings with relation data. We could have queried the relation data along with the bookings, but that would cause unnecessary queries to the database.
   // Because Prisma is also going to query the select relation data sequentially, we are fine querying it separately here as it would be just 1 query instead of 4
-  const bookings = (
+  const bookingsPromise = (
     await prisma.booking.findMany({
       where: {
         id: {
@@ -391,11 +398,14 @@ export async function getBookings({
       // We need to get the sorted bookings here as well because plainBookings array is not correctly sorted
       orderBy,
     })
-  ).map((booking) => {
+  ).map(async (booking) => {
     // If seats are enabled and the event is not set to show attendees, filter out attendees that are not the current user
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
     }
+    const bookerBaseUrl = booking.eventType?.team?.parentId
+      ? await getBookerBaseUrl(booking.eventType?.team?.parentId)
+      : await getBookerBaseUrl(booking.user?.movedToProfile?.organizationId ?? null);
     return {
       ...booking,
       eventType: {
@@ -405,9 +415,11 @@ export async function getBookings({
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
       },
+      bookerBaseUrl,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
     };
   });
+  const bookings = await Promise.all(bookingsPromise);
   return { bookings, recurringInfo };
 }

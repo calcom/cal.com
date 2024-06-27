@@ -13,7 +13,6 @@ import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
@@ -188,7 +187,7 @@ function BookingListItem(booking: BookingItemProps) {
           id: "reschedule",
           icon: "clock" as const,
           label: t("reschedule_booking"),
-          href: `${WEBAPP_URL}/reschedule/${booking.uid}${
+          href: `${booking.bookerBaseUrl}/reschedule/${booking.uid}${
             booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
           }`,
         },

@@ -64,7 +64,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
-      user: true,
+      user: {
+        include: {
+          movedToProfile: {
+            select: {
+              username: true,
+            },
+          },
+        },
+      },
       status: true,
     },
   });
@@ -130,7 +138,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? `team/${eventType.team.slug}`
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick" /* This shouldn't happen */
+      : booking.user?.movedToProfile?.username || booking.user?.username || "rick" /* This shouldn't happen */
   }/${eventType?.slug}`;
   const destinationUrl = new URLSearchParams();
 
