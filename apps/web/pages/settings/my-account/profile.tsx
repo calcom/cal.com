@@ -643,6 +643,7 @@ const ProfileForm = ({
                       {showRemoveAvatarButton && (
                         <Button
                           color="secondary"
+                          className="hover:bg-red-600"
                           onClick={() => {
                             onChange(null);
                           }}>

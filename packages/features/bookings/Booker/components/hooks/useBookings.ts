@@ -204,11 +204,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
     onError: (err, _, ctx) => {
-      // TODO:
-      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
-      // if (vercelId) {
-      //   setResponseVercelIdHeader(vercelId);
-      // }
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
