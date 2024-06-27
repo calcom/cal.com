@@ -1,4 +1,5 @@
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -11,7 +12,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule, StripeModule, SchedulesModule_2024_06_11, UsersModule],
-  providers: [OrganizationsRepository, OrganizationsService, OrganizationsSchedulesService],
+  providers: [OrganizationsRepository, OrganizationsService, MembershipsRepository, OrganizationsSchedulesService],
   exports: [OrganizationsService, OrganizationsRepository],
   controllers: [OrganizationsTeamsController, OrganizationsSchedulesController],
 })
