@@ -16,6 +16,7 @@ export class OrganizationsRepository {
     return this.dbRead.prisma.team.findUnique({
       where: {
         id: organizationId,
+        isOrganization: true,
       },
     });
   }
@@ -66,6 +67,14 @@ export class OrganizationsRepository {
       },
       select: {
         id: true,
+      },
+    });
+  }
+  async findOrgUser(organizationId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        organizationId,
       },
     });
   }
