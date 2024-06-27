@@ -342,7 +342,6 @@ export const fieldTypesSchemaMap: Partial<
     },
     superRefine: ({ field, response, ctx, m }) => {
       const value = response ?? "";
-      console.log({ response });
       const hasExceededMaxLength = value.length > (field.maxLength ?? HARD_LIMIT_MAX_LENGTH);
       const hasNotReachedMinLength = value.length < (field.minLength ?? 0);
       if (hasExceededMaxLength) {

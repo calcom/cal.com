@@ -521,7 +521,7 @@ function FieldEditDialog({
                           })}
                           defaultValue={0}
                           containerClassName="mt-6"
-                          label={t("Min. Characters")}
+                          label={t("min_characters")}
                           type="number"
                           onChange={(e) => {
                             fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
@@ -537,7 +537,7 @@ function FieldEditDialog({
                           })}
                           defaultValue={HARD_LIMIT_MAX_LENGTH}
                           containerClassName="mt-6"
-                          label={t("Max. Characters")}
+                          label={t("max_characters")}
                           type="number"
                           onChange={(e) => {
                             fieldForm.setValue(
