@@ -59,7 +59,7 @@ export const FormBuilderField = ({
   function handleErrorMessage(message: string | undefined) {
     if (field.type === "textarea" && message) {
       return (
-        t(message, { maxLength: field["max-length"] || "", minLength: field["max-length"] || "" }) ||
+        t(message, { maxLength: field["max-length"] || "", minLength: field["min-length"] || "" }) ||
         t(message || "invalid_input")
       );
     }
