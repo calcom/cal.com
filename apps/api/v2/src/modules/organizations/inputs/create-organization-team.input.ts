@@ -31,7 +31,7 @@ export class CreateOrgTeamDto {
 
   @IsOptional()
   @IsBoolean()
-  readonly hideBranding?: boolean;
+  readonly hideBranding?: boolean = false;
 
   @IsOptional()
   @IsBoolean()
