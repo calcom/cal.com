@@ -17,7 +17,7 @@ export const getServerSideProps = async ({ req, res }: GetServerSidePropsContext
   // Check if logged in user has an organization assigned
   const session = await getServerSession({ req, res });
 
-  if (!session?.user.profile.organizationId) {
+  if (!session?.user.profile?.organizationId) {
     return {
       notFound: true,
     };
