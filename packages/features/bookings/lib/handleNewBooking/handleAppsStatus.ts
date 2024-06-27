@@ -39,7 +39,7 @@ function updateBookingWithStatus(
 }
 
 function calculateAggregatedAppsStatus(
-  reqAppsStatus: ReqAppsStatus,
+  reqAppsStatus: NonNullable<ReqAppsStatus>,
   resultStatus: AppsStatus[]
 ): AppsStatus[] {
   // From down here we can assume reqAppsStatus is not undefined anymore
