@@ -18,8 +18,11 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Transform } from "class-transformer";
+import { IsNumber, Min, Max, IsOptional } from "class-validator";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -31,6 +34,21 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
+
+class SkipTakePagination {
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(1)
+  @Max(250)
+  @IsOptional()
+  take?: number;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  skip?: number;
+}
 
 @Controller({
   path: "/v2/organizations/:orgId",
@@ -47,9 +65,12 @@ export class OrganizationsSchedulesController {
   @Roles("ORG_ADMIN")
   @Get("/schedules")
   async getOrganizationSchedules(
-    @Param("orgId", ParseIntPipe) orgId: number
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Query() queryParams: SkipTakePagination
   ): Promise<GetSchedulesOutput_2024_06_11> {
-    const schedules = await this.organizationScheduleService.getOrganizationSchedules(orgId);
+    const { skip, take } = queryParams;
+
+    const schedules = await this.organizationScheduleService.getOrganizationSchedules(orgId, skip, take);
 
     return {
       status: SUCCESS_STATUS,
