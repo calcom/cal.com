@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
 import {
@@ -31,20 +31,20 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Icon,
   MeetingTimeInTimezones,
   showToast,
   TableActions,
   TextAreaField,
   Tooltip,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
 } from "@calcom/ui";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -691,13 +691,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
-    onSuccess: async () => {
-      showToast(
-        t(noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
-          x: name || email,
-        }),
-        "success"
-      );
+    onSuccess: async (data) => {
+      showToast(t(data.message, { x: name || email }), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -804,8 +799,8 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   });
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
-    onSuccess: async () => {
-      showToast(t("no_show_updated"), "success");
+    onSuccess: async (data) => {
+      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
