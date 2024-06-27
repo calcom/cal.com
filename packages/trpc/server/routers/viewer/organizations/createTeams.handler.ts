@@ -248,7 +248,7 @@ async function moveTeam({
   }
 }
 
-function tryToCancelSubscription(subscriptionId: string) {
+async function tryToCancelSubscription(subscriptionId: string) {
   try {
     log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
     return stripe.subscriptions.cancel(subscriptionId);
