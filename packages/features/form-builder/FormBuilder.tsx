@@ -4,6 +4,7 @@ import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { HARD_LIMIT_MAX_LENGTH } from "@calcom/features/bookings/lib/constants";
 import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -283,14 +284,6 @@ export const FormBuilder = function FormBuilder({
           }
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
-            if ("minLength" in data || "maxLength" in data) {
-              if (Number.isNaN(data.minLength)) {
-                data.minLength = undefined;
-              }
-              if (Number.isNaN(data.maxLength)) {
-                data.maxLength = undefined;
-              }
-            }
             const isNewField = !fieldDialog.data;
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
@@ -526,18 +519,35 @@ function FieldEditDialog({
                           {...fieldForm.register("minLength", {
                             valueAsNumber: true,
                           })}
+                          defaultValue={0}
                           containerClassName="mt-6"
                           label={t("Min. Characters")}
                           type="number"
+                          onChange={(e) => {
+                            fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
+                            fieldForm.trigger("maxLength");
+                          }}
+                          min={0}
+                          max={fieldForm.getValues("maxLength") || HARD_LIMIT_MAX_LENGTH}
                         />
                         {/* Max characters */}
                         <InputField
                           {...fieldForm.register("maxLength", {
                             valueAsNumber: true,
                           })}
+                          defaultValue={HARD_LIMIT_MAX_LENGTH}
                           containerClassName="mt-6"
                           label={t("Max. Characters")}
                           type="number"
+                          onChange={(e) => {
+                            fieldForm.setValue(
+                              "maxLength",
+                              parseInt(e.target.value ?? HARD_LIMIT_MAX_LENGTH)
+                            );
+                            fieldForm.trigger("maxLength");
+                          }}
+                          min={fieldForm.getValues("minLength") || 0}
+                          max={HARD_LIMIT_MAX_LENGTH}
                         />
                       </div>
                     ) : null}
