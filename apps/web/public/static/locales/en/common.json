@@ -1119,7 +1119,7 @@
   "update_location": "Update Location",
   "location_updated": "Location updated",
   "email_validation_error": "That doesn't look like an email address",
-  "url_validation_error": "That doesn't look like an URL",
+  "url_validation_error": "That doesn't look like a URL",
   "place_where_cal_widget_appear": "Place this code in your HTML where you want your {{appName}} widget to appear.",
   "create_update_react_component": "Create or update an existing React component as shown below.",
   "copy_code": "Copy Code",
