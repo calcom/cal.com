@@ -41,17 +41,18 @@ export const batchProcessorJobFinishedSchema = commonSchema.extend({
       status: z.string(),
       input: z.object({
         sourceType: z.string(),
-        transcriptUri: z.string(),
         recordingId: z.string(),
       }),
       output: z
         .object({
-          transcription: z.array(z.object({ format: z.string(), link: z.string() }).passthrough()),
+          transcription: z.array(z.object({ format: z.string() }).passthrough()),
         })
         .passthrough(),
     })
     .passthrough(),
 });
+
+export const TBatchProcessorJobFinished = z.infer<typeof batchProcessorJobFinishedSchema>;
 
 export const downloadLinkSchema = z.object({
   download_link: z.string(),

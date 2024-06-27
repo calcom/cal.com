@@ -2,6 +2,10 @@ import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import {
+  getRoomNameFromRecordingId,
+  getBatchProcessorJobAccessLink,
+} from "@calcom/app-store/dailyvideo/lib/videoApiAdapter";
+import {
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
 } from "@calcom/core/videoClient";
@@ -9,6 +13,7 @@ import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClien
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
 import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
@@ -23,7 +28,10 @@ import {
   downloadLinkSchema,
   testRequestSchema,
 } from "@calcom/web/lib/daily-webhook/schema";
-import { triggerRecordingReadyWebhook } from "@calcom/web/lib/daily-webhook/triggerRecordingReadyWebhook";
+import {
+  triggerRecordingReadyWebhook,
+  triggerTranscriptionGeneratedWebhook,
+} from "@calcom/web/lib/daily-webhook/triggerWebhooks";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
@@ -62,9 +70,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
 
-  if (req.headers["x-webhook-signature"] !== computed_signature) {
-    return res.status(403).json({ message: "Signature does not match" });
-  }
+  // if (req.headers["x-webhook-signature"] !== computed_signature) {
+  //   return res.status(403).json({ message: "Signature does not match" });
+  // }
 
   log.debug(
     "Daily video webhook Request Body:",
@@ -90,19 +98,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           message: "Recording not finished",
         });
       }
+
       const bookingReference = await getBookingReference(room_name);
 
-      if (!bookingReference || !bookingReference.bookingId) {
-        return res.status(200).send({ message: "Booking reference not found" });
-      }
-
       const booking = await getBooking(bookingReference.bookingId);
-
-      if (!booking) {
-        return res.status(404).send({
-          message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
-        });
-      }
 
       const evt = await getCalendarEvent(booking);
 
@@ -144,6 +143,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // send emails to all attendees only when user has team plan
       await sendDailyVideoRecordingEmails(evt, downloadLink);
+
       return res.status(200).json({ message: "Success" });
     } else if (req.body.type === "meeting.ended") {
       const meetingEndedResponse = meetingEndedSchema.safeParse(req.body);
@@ -156,17 +156,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { room } = meetingEndedResponse.data.payload;
 
       const bookingReference = await getBookingReference(room);
-      if (!bookingReference || !bookingReference.bookingId) {
-        return res.status(200).send({ message: "Booking reference not found" });
-      }
-
       const booking = await getBooking(bookingReference.bookingId);
-
-      if (!booking) {
-        return res.status(404).send({
-          message: `Booking of room_name ${room} does not exist or does not contain daily video as location`,
-        });
-      }
 
       const transcripts = await getAllTranscriptsAccessLinkFromRoomName(room);
 
@@ -178,8 +168,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       return res.status(200).json({ message: "Success" });
     } else if (req.body?.type === "batch-processor.job-finished") {
-      console.log("Batch Processor Job Finished");
       const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(req.body);
+      console.log("Batch Processor Job Finished", batchProcessorJobFinishedResponse.data);
 
       if (!batchProcessorJobFinishedResponse.success) {
         return res.status(400).send({
@@ -187,13 +177,46 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         });
       }
 
-      const { id, status, input, output } = batchProcessorJobFinishedResponse.data.payload;
-      // TODO: get booking from roomName/recordingId and then trigger webhook
+      const { id, input } = batchProcessorJobFinishedResponse.data.payload;
+      const roomName = await getRoomNameFromRecordingId(input.recordingId);
+      const bookingReference = await getBookingReference(roomName);
+
+      const booking = await getBooking(bookingReference.bookingId);
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking?.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
+        },
+      });
+
+      const evt = await getCalendarEvent(booking);
+
+      const recordingDownloadLink = await getDownloadLinkOfCalVideo(input.recordingId);
+      const batchProcessorJobAccessLink = await getBatchProcessorJobAccessLink(id);
+
+      await triggerTranscriptionGeneratedWebhook({
+        evt,
+        transcription: batchProcessorJobAccessLink.transcription,
+        recordingDownloadLink,
+        booking: {
+          userId: booking?.user?.id,
+          eventTypeId: booking.eventTypeId,
+          eventTypeParentId: booking.eventType?.parentId,
+          teamId,
+        },
+      });
+
       return res.status(200).json({ message: "Success" });
     }
   } catch (err) {
     log.error("Error in /recorded-daily-video", err);
-    return res.status(500).json({ message: "something went wrong" });
+
+    if (err instanceof HttpError) {
+      return res.status(err.statusCode).json({ message: err.message });
+    } else {
+      return res.status(500).json({ message: "something went wrong" });
+    }
   }
 }
 

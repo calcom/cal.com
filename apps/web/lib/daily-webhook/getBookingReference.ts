@@ -1,3 +1,4 @@
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -18,6 +19,8 @@ export const getBookingReference = async (roomName: string) => {
         roomName,
       })
     );
+
+    throw new HttpError({ message: "Booking reference not found", statusCode: 200 });
   }
 
   return bookingReference;
