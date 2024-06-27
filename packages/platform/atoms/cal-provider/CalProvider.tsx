@@ -46,6 +46,12 @@ export function CalProvider({
     http.setVersionHeader(version);
   }, [version]);
 
+  useEffect(() => {
+    if (accessToken) {
+      queryClient.resetQueries();
+    }
+  }, [accessToken]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BaseCalProvider
