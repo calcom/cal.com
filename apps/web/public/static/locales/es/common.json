@@ -865,7 +865,7 @@
   "payments": "Pagos",
   "not_installed": "No instalado",
   "error_password_mismatch": "Las contraseñas no coinciden.",
-  "error_required_field": "Este campo es requerido.",  
+  "error_required_field": "Este campo es requerido.",
   "status": "Estado",
   "team_view_user_availability": "Ver disponibilidad de usuario",
   "team_view_user_availability_disabled": "El usuario necesita aceptar la invitación para ver su disponibilidad",

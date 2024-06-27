@@ -262,13 +262,19 @@ function preprocess<T extends z.ZodType>({
           }
           const result = schema.safeParse(value);
           if (!result.success) {
-            console.log("result?.error", result?.error?.errors);
-            result?.error?.errors?.forEach((error) => {
+            if (bookingField.type === "textarea") {
+              result?.error?.errors?.forEach((error) => {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: error.message,
+                });
+              });
+            } else {
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
-                message: error.message,
+                message: m("Invalid string"),
               });
-            });
+            }
           }
           continue;
         }

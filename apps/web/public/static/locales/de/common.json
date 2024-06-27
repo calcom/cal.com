@@ -922,7 +922,7 @@
   "payments": "Zahlungen",
   "not_installed": "Nicht installiert",
   "error_password_mismatch": "Passwörter stimmen nicht überein.",
-  "error_required_field": "Dieses Feld ist erforderlich.",  
+  "error_required_field": "Dieses Feld ist erforderlich.",
   "status": "Status",
   "team_view_user_availability": "Verfügbarkeit des Benutzers anzeigen",
   "team_view_user_availability_disabled": "Der Benutzer muss die Einladung annehmen, um freie Termine zu sehen",

@@ -290,7 +290,7 @@ export const FormBuilder = function FormBuilder({
 
             if (data.type === "textarea" && data["min-length"] && data["max-length"]) {
               if (Number(data["min-length"]) > Number(data["max-length"])) {
-                showToast("Min length should not be greater than max length", "error");
+                showToast(t("error_min_should_be_less_than_max"), "error");
                 return;
               }
             }
