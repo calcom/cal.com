@@ -166,3 +166,11 @@ export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
 export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
   : `https://app.cal.com/sparkles.svg`;
+
+export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/start-recording.svg`
+  : `https://app.cal.com/start-recording.svg`;
+
+export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/stop-recording.svg`
+  : `https://app.cal.com/stop-recording.svg`;
