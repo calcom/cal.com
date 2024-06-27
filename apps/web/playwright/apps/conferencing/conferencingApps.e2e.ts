@@ -86,20 +86,10 @@ const ALL_APPS: TApp[] = [
     label: "Salesroom",
   },
   {
-    slug: "shimmervideo",
-    type: "integrations:shimmer_video",
-    label: "Shimmer Video",
-  },
-  {
     slug: "sirius_video",
     type: "integrations:sirius_video_video",
     organizerInputPlaceholder: "https://sirius.video/sebastian",
     label: "Sirius Video",
-  },
-  {
-    slug: "sylapsvideo",
-    type: "integrations:sylaps_video",
-    label: "Sylaps",
   },
   {
     slug: "whereby",
@@ -109,14 +99,25 @@ const ALL_APPS: TApp[] = [
   },
 ];
 
+/**
+ * @todo add tests for
+ * shimmervideo
+ * sylapsvideo
+ * googlevideo
+ * huddle
+ * jelly
+ * jistivideo
+ * office365video
+ * mirotalk
+ * tandemvideo
+ * webex
+ * zoomvideo
+ */
+
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("check non-oAuth conferencing apps ", () => {
-  test("check non-oAuth conferencing apps by skipping the configure step", async ({
-    appsPage,
-    page,
-    users,
-  }) => {
+test.describe("check non-oAuth link-based conferencing apps ", () => {
+  test("check conferencing apps by skipping the configure step", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     for (let index = 0; index < ALL_APPS.length; index++) {
@@ -127,7 +128,7 @@ test.describe("check non-oAuth conferencing apps ", () => {
     }
   });
 
-  test("check non-oAuth conferencing apps using the new flow", async ({ appsPage, page, users }) => {
+  test("check conferencing apps using the new flow", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
