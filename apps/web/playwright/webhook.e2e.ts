@@ -609,7 +609,7 @@ test.describe("FORM_SUBMITTED", async () => {
     });
 
     await user.apiLogin();
-    const webhookReceiver = await webhooks.createTeamReceiver();
+    const { webhookReceiver } = await webhooks.createTeamReceiver();
     await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
