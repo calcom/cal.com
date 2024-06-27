@@ -1,12 +1,13 @@
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -21,13 +22,22 @@ import {
   Headers,
   Redirect,
   BadRequestException,
+  Post,
+  Body,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { User } from "@prisma/client";
 import { Request } from "express";
 import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
-import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  CALENDARS,
+  GOOGLE_CALENDAR,
+  OFFICE_365_CALENDAR,
+  APPLE_CALENDAR,
+} from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
@@ -39,10 +49,11 @@ export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
-    private readonly googleCalendarService: GoogleCalendarService
+    private readonly googleCalendarService: GoogleCalendarService,
+    private readonly appleCalendarService: AppleCalendarService
   ) {}
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Get("/busy-times")
   async getBusyTimes(
     @Query() queryParams: CalendarBusyTimesInput,
@@ -71,7 +82,7 @@ export class CalendarsController {
   }
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   async getCalendars(@GetUser("id") userId: number): Promise<ConnectedCalendarsOutput> {
     const calendars = await this.calendarsService.getCalendars(userId);
 
@@ -81,7 +92,7 @@ export class CalendarsController {
     };
   }
 
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Get("/:calendar/connect")
   @HttpCode(HttpStatus.OK)
   async redirect(
@@ -133,9 +144,29 @@ export class CalendarsController {
     }
   }
 
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/credentials")
+  async syncCredentials(
+    @GetUser() user: User,
+    @Param("calendar") calendar: string,
+    @Body() body: { username: string; password: string }
+  ): Promise<{ status: string }> {
+    const { username, password } = body;
+
+    switch (calendar) {
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.save(user.id, user.email, username, password);
+      default:
+        throw new BadRequestException(
+          "Invalid calendar type, available calendars are: ",
+          CALENDARS.join(", ")
+        );
+    }
+  }
+
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(AccessTokenGuard, PermissionsGuard)
+  @UseGuards(ApiAuthGuard, PermissionsGuard)
   @Permissions([APPS_READ])
   async check(@GetUser("id") userId: number, @Param("calendar") calendar: string): Promise<ApiResponse> {
     switch (calendar) {
@@ -143,6 +174,8 @@ export class CalendarsController {
         return await this.outlookService.check(userId);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.check(userId);
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.check(userId);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
