@@ -242,15 +242,31 @@ async function moveTeam({
   });
 
   // Cancel existing stripe subscriptions once the team is migrated
-  const parsedMetadata = teamMetadataSchema.safeParse(team.metadata);
+  const subscriptionId = getSubscriptionId(team.metadata);
+  if (subscriptionId) {
+    await tryToCancelSubscription(subscriptionId);
+  }
+}
+
+function tryToCancelSubscription(subscriptionId: string) {
+  try {
+    log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
+    return stripe.subscriptions.cancel(subscriptionId);
+  } catch (error) {
+    log.error("Error while cancelling stripe subscription", error);
+  }
+}
+
+function getSubscriptionId(metadata: Prisma.JsonValue) {
+  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
   if (parsedMetadata.success) {
     const subscriptionId = parsedMetadata.data?.subscriptionId;
-    if (subscriptionId) {
-      log.debug("Canceling stripe subscription", safeStringify({ team, subscriptionId }));
-      await stripe.subscriptions.cancel(subscriptionId);
-    } else {
-      log.warn("No subscriptionId found in team metadata", safeStringify({ team, parsedMetadata }));
+    if (!subscriptionId) {
+      log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
     }
+    return subscriptionId;
+  } else {
+    log.warn(`There has been an error`, parsedMetadata.error);
   }
 }
 
