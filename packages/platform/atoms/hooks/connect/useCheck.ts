@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
@@ -15,11 +15,13 @@ export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
 export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
-  const { isInit } = useAtomsContext();
-  const { data: check } = useQuery({
+  const { isInit, accessToken } = useAtomsContext();
+  const queryClient = useQueryClient();
+
+  const { data: check, refetch } = useQuery({
     queryKey: getQueryKey(calendar),
     staleTime: 6000,
-    enabled: isInit,
+    enabled: isInit && !!accessToken,
     queryFn: () => {
       return http
         ?.get<ApiResponse<{ checked: boolean; allowConnect: boolean }>>(`/calendars/${calendar}/check`)
@@ -36,5 +38,15 @@ export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
         });
     },
   });
-  return { allowConnect: check?.data?.allowConnect ?? false, checked: check?.data?.checked ?? false };
+  return {
+    allowConnect: check?.data?.allowConnect ?? false,
+    checked: check?.data?.checked ?? false,
+    refetch: () => {
+      queryClient.setQueryData(getQueryKey(calendar), {
+        status: SUCCESS_STATUS,
+        data: { allowConnect: false, checked: false },
+      });
+      refetch();
+    },
+  };
 };
