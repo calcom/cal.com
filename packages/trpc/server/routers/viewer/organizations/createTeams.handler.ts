@@ -219,22 +219,19 @@ async function moveTeam({
     },
   });
 
-  await Promise.all(
-    // TODO: Support different role for different members in usernameOrEmail list and then remove this map
-    team.members.map(async (membership) => {
-      // Invite team members to the new org. They are already members of the team.
-      await inviteMemberHandler({
-        ctx,
-        input: {
-          teamId: org.id,
-          language: "en",
-          role: membership.role,
-          usernameOrEmail: membership.user.email,
-          isOrg: true,
-        },
-      });
-    })
-  );
+  // Invite team members to the new org. They are already members of the team.
+  await inviteMemberHandler({
+    ctx,
+    input: {
+      teamId: org.id,
+      language: "en",
+      usernameOrEmail: team.members.map((m) => ({
+        email: m.user.email,
+        role: m.role,
+      })),
+      isOrg: true,
+    },
+  });
 
   await addTeamRedirect({
     oldTeamSlug: team.slug,
