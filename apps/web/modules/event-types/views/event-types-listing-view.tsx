@@ -520,7 +520,8 @@ export const EventTypeList = ({
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
                                       StartIcon="copy"
-                                      onClick={() => openDuplicateModal(type, group)}>
+                                      onClick={() => openDuplicateModal(type, group)}
+                                      disabled={readOnly}>
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
