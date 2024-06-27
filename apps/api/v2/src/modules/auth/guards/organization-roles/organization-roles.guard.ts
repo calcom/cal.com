@@ -1,4 +1,4 @@
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -27,7 +27,7 @@ export class OrganizationRolesGuard implements CanActivate {
     await this.isPlatform(organizationId);
 
     const membership = await this.membershipRepository.findOrgUserMembership(organizationId, user.id);
-    const allowedRoles = this.reflector.get(Roles, context.getHandler());
+    const allowedRoles = this.reflector.get(MembershipRoles, context.getHandler());
 
     this.isMembershipAccepted(membership.accepted);
     this.isRoleAllowed(membership.role, allowedRoles);
