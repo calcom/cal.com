@@ -5,7 +5,7 @@ const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Check analytics Apps ", () => {
+test.describe("Check analytics Apps", () => {
   test("Check analytics Apps by skipping the configure step", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();

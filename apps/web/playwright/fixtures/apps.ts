@@ -43,6 +43,7 @@ export function createAppsFixture(page: Page) {
         }
       }
       await page.click(`[data-testid="configure-step-save"]`);
+      await page.waitForURL("/event-types");
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
