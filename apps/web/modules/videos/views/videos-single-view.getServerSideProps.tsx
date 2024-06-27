@@ -1,6 +1,7 @@
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 
+import { generateGuestMeetingTokenFromOwnerMeetingToken } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -103,12 +104,18 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const session = await getServerSession({ req });
 
-  // set meetingPassword to null for guests
+  // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
+    const videoReference = getCalVideoReference(bookingObj.references);
+    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
+      videoReference.meetingPassword
+    );
+
     bookingObj.references.forEach((bookRef) => {
-      bookRef.meetingPassword = null;
+      bookRef.meetingPassword = guestMeetingPassword;
     });
   }
+
   const videoReference = getCalVideoReference(bookingObj.references);
 
   return {
