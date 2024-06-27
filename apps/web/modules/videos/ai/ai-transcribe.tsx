@@ -6,8 +6,36 @@ import {
   TRANSCRIPTION_STARTED_ICON,
   RECORDING_IN_PROGRESS_ICON,
   TRANSCRIPTION_STOPPED_ICON,
+  RECORDING_DEFAULT_ICON,
 } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+
+const BUTTONS = {
+  STOP_TRANSCRIPTION: {
+    label: "Stop",
+    tooltip: "Stop transcription",
+    iconPath: TRANSCRIPTION_STARTED_ICON,
+    iconPathDarkMode: TRANSCRIPTION_STARTED_ICON,
+  },
+  START_TRANSCRIPTION: {
+    label: "Cal.ai",
+    tooltip: "Transcription powered by AI",
+    iconPath: TRANSCRIPTION_STOPPED_ICON,
+    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+  },
+  START_RECORDING: {
+    label: "Record",
+    tooltip: "Start recording",
+    iconPath: RECORDING_DEFAULT_ICON,
+    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+  },
+  STOP_RECORDING: {
+    label: "Stop",
+    tooltip: "Stop recording",
+    iconPath: RECORDING_IN_PROGRESS_ICON,
+    iconPathDarkMode: RECORDING_IN_PROGRESS_ICON,
+  },
+};
 
 export const CalAiTranscribe = () => {
   const daily = useDaily();
@@ -31,64 +59,56 @@ export const CalAiTranscribe = () => {
 
   useDailyEvent("transcription-started", (ev) => {
     daily?.updateCustomTrayButtons({
-      transcription: {
-        label: "Stop",
-        tooltip: "Stop transcription",
-        iconPath: TRANSCRIPTION_STARTED_ICON,
-        iconPathDarkMode: TRANSCRIPTION_STARTED_ICON,
-      },
+      recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+      transcription: BUTTONS.STOP_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("recording-started", (ev) => {
     daily?.updateCustomTrayButtons({
-      recording: {
-        label: "Stop",
-        tooltip: "Stop recording",
-        iconPath: RECORDING_IN_PROGRESS_ICON,
-        iconPathDarkMode: RECORDING_IN_PROGRESS_ICON,
-      },
+      recording: BUTTONS.STOP_RECORDING,
+      transcription: transcription?.isTranscribing ? BUTTONS.STOP_TRANSCRIPTION : BUTTONS.START_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("transcription-stopped", (ev) => {
     daily?.updateCustomTrayButtons({
-      transcription: {
-        label: "Cal.ai",
-        tooltip: "Transcription powered by AI",
-        iconPath: TRANSCRIPTION_STOPPED_ICON,
-        iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
-      },
+      recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+      transcription: BUTTONS.START_TRANSCRIPTION,
     });
   });
 
   useDailyEvent("recording-stopped", (ev) => {
     daily?.updateCustomTrayButtons({
-      recording: {
-        label: "Stop",
-        tooltip: "Stop recording",
-        iconPath: RECORDING_IN_PROGRESS_ICON,
-        iconPathDarkMode: RECORDING_IN_PROGRESS_ICON,
-      },
+      recording: BUTTONS.START_RECORDING,
+      transcription: transcription?.isTranscribing ? BUTTONS.STOP_TRANSCRIPTION : BUTTONS.START_TRANSCRIPTION,
     });
   });
 
+  const toggleRecording = async () => {
+    if (recording?.isRecording) {
+      await daily?.stopRecording();
+    } else {
+      await daily?.startRecording({
+        // 480p
+        videoBitrate: 2000,
+      });
+    }
+  };
+
+  const toggleTranscription = async () => {
+    if (transcription?.isTranscribing) {
+      daily?.stopTranscription();
+    } else {
+      daily?.startTranscription();
+    }
+  };
+
   useDailyEvent("custom-button-click", async (ev) => {
     if (ev?.button_id === "recording") {
-      if (recording?.isRecording) {
-        await daily?.stopRecording();
-      } else {
-        await daily?.startRecording({
-          // 480p
-          videoBitrate: 2000,
-        });
-      }
+      toggleRecording();
     } else if (ev?.button_id === "transcription") {
-      if (transcription?.isTranscribing) {
-        daily?.stopTranscription();
-      } else {
-        daily?.startTranscription();
-      }
+      toggleTranscription();
     }
   });
 
