@@ -1,4 +1,4 @@
-import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Min } from "class-validator";
+import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
 export class CreateOrgTeamDto {
   @IsOptional()
@@ -6,12 +6,11 @@ export class CreateOrgTeamDto {
   readonly id?: number;
 
   @IsString()
-  @Min(1)
+  @Length(1)
   readonly name!: string;
 
   @IsOptional()
   @IsString()
-  @Min(1)
   readonly slug?: string;
 
   @IsOptional()

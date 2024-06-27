@@ -1,5 +1,11 @@
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
 import { Request } from "express";
 
 import { Team } from "@calcom/prisma/client";
@@ -26,6 +32,10 @@ export class IsTeamInOrg implements CanActivate {
     if (team && !team.isOrganization && team.parentId === Number(orgId)) {
       request.team = team;
       return true;
+    }
+
+    if (!team) {
+      throw new NotFoundException(`Team (${teamId}) not found.`);
     }
 
     return false;
