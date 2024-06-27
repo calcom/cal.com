@@ -1,10 +1,10 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { z } from "zod";
 
-import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 
@@ -68,7 +68,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         id: true,
       },
     });
-
     if (existingUser) {
       return res.status(401).json({ message: USER_ALREADY_EXISTING_MESSAGE });
     }
@@ -103,8 +102,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
 
-    const stripeCustomerId = await getStripeCustomerIdFromUserId(user.id);
-    await stripe.customers.update(stripeCustomerId, { email: updatedEmail });
+    if (IS_STRIPE_ENABLED && userMetadataParsed.stripeCustomerId) {
+      await stripe.customers.update(userMetadataParsed.stripeCustomerId, {
+        email: updatedEmail,
+      });
+    }
 
     // The user is trying to update the email to an already existing unverified secondary email of his
     // so we swap the emails and its verified status
