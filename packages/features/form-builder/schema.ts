@@ -87,13 +87,17 @@ const baseFieldSchema = z.object({
 
   /**
    * It is the minimum number of characters that can be entered in the field.
-   * It is used for `textarea` type.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
    */
   minLength: z.number().optional(),
 
   /**
    * It is the maximum number of characters that can be entered in the field.
-   * It is used for `textarea` type.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default HARD_LIMIT_MAX_LENGTH
+   * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
 });
