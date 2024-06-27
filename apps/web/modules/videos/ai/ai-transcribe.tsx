@@ -29,6 +29,12 @@ const BUTTONS = {
     iconPath: RECORDING_DEFAULT_ICON,
     iconPathDarkMode: RECORDING_DEFAULT_ICON,
   },
+  WAIT_FOR_RECORDING_TO_START: {
+    label: "Starting..",
+    tooltip: "Please wait while we start recording",
+    iconPath: RECORDING_DEFAULT_ICON,
+    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+  },
   STOP_RECORDING: {
     label: "Stop",
     tooltip: "Stop recording",
@@ -89,6 +95,13 @@ export const CalAiTranscribe = () => {
     if (recording?.isRecording) {
       await daily?.stopRecording();
     } else {
+      daily?.updateCustomTrayButtons({
+        recording: BUTTONS.WAIT_FOR_RECORDING_TO_START,
+        transcription: transcription?.isTranscribing
+          ? BUTTONS.STOP_TRANSCRIPTION
+          : BUTTONS.START_TRANSCRIPTION,
+      });
+
       await daily?.startRecording({
         // 480p
         videoBitrate: 2000,
