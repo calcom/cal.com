@@ -6,8 +6,8 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { User } from "@prisma/client";
 import * as request from "supertest";
+import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -23,19 +23,99 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-import { Team } from "@calcom/prisma/client";
+import { User, Team, Membership } from "@calcom/prisma/client";
 
 describe("Organizations Schedules Endpoints", () => {
-  describe("User Authentication", () => {
+  describe("User lacks required role", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: TeamRepositoryFixture;
-
-    let org: Team;
+    let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = "mr-robot@schedules-api.com";
     let user: User;
+    let org: Team;
+    let membership: Membership;
+
+    beforeAll(async () => {
+      const moduleRef = await withApiAuth(
+        userEmail,
+        Test.createTestingModule({
+          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
+        })
+      ).compile();
+
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+
+      org = await organizationsRepositoryFixture.create({
+        name: "Ecorp",
+        isOrganization: true,
+      });
+
+      user = await userRepositoryFixture.create({
+        email: userEmail,
+        username: userEmail,
+        organization: { connect: { id: org.id } },
+      });
+
+      membership = await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      await app.init();
+    });
+
+    it("should be defined", () => {
+      expect(userRepositoryFixture).toBeDefined();
+      expect(organizationsRepositoryFixture).toBeDefined();
+      expect(user).toBeDefined();
+      expect(org).toBeDefined();
+    });
+
+    it("should not be able to create schedule for org user", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users/${user.id}/schedules`)
+        .send({
+          name: "work",
+          timeZone: "Europe/Rome",
+          isDefault: true,
+        })
+        .expect(403);
+    });
+
+    it("should not be able to get org schedules", async () => {
+      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/schedules`).expect(403);
+    });
+
+    it("should mot be able to get user schedules", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/users/${user.id}/schedules/`)
+        .expect(403);
+    });
+
+    afterAll(async () => {
+      await membershipFixtures.delete(membership.id);
+      await userRepositoryFixture.deleteByEmail(user.email);
+      await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+    });
+  });
+
+  describe("User has required role", () => {
+    let app: INestApplication;
+
+    let userRepositoryFixture: UserRepositoryFixture;
+    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let membershipFixtures: MembershipRepositoryFixture;
+
+    const userEmail = "mr-robot@schedules-api.com";
+    let user: User;
+    let org: Team;
+    let membership: Membership;
 
     let createdSchedule: ScheduleOutput_2024_06_11;
 
@@ -63,6 +143,7 @@ describe("Organizations Schedules Endpoints", () => {
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
         name: "Ecorp",
@@ -74,6 +155,8 @@ describe("Organizations Schedules Endpoints", () => {
         username: userEmail,
         organization: { connect: { id: org.id } },
       });
+
+      membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
 
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
@@ -225,6 +308,7 @@ describe("Organizations Schedules Endpoints", () => {
     });
 
     afterAll(async () => {
+      await membershipFixtures.delete(membership.id);
       await userRepositoryFixture.deleteByEmail(user.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
