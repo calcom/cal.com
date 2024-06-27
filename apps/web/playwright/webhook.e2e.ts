@@ -604,12 +604,10 @@ test.describe("MEETING_ENDED, MEETING_STARTED", async () => {
 
 test.describe("FORM_SUBMITTED", async () => {
   test("on submitting user form, triggers user webhook", async ({ page, users, routingForms, webhooks }) => {
-    const user = await users.create(null, {
-      hasTeam: true,
-    });
+    const user = await users.create();
 
     await user.apiLogin();
-    const { webhookReceiver } = await webhooks.createTeamReceiver();
+    const webhookReceiver = await webhooks.createReceiver();
     await page.waitForLoadState("networkidle");
 
     const form = await routingForms.create({
