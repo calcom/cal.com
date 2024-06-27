@@ -135,16 +135,7 @@ const WithLabel = ({
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex">
-            <span>
-              {field.label}{" "}
-              {field.type === "textarea" && (
-                <>
-                  {typeof field.maxLength === "number" && `(Max ${field.maxLength} characters)`}
-                  {typeof field.minLength === "number" && typeof field.maxLength === "number" && " "}
-                  {typeof field.minLength === "number" && `(Min ${field.minLength} characters)`}
-                </>
-              )}
-            </span>
+            <span>{field.label}</span>
             <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>

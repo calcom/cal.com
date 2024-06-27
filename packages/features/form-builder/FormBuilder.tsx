@@ -519,7 +519,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {fieldForm?.getValues("type") === "textarea" ? (
+                    {fieldType?.supportsLengthCheck ? (
                       <div className="grid grid-cols-2 gap-4">
                         {/* Min characters */}
                         <InputField

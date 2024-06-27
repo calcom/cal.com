@@ -104,6 +104,7 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     label: "Long Text",
     value: "textarea",
     isTextType: true,
+    supportsLengthCheck: true,
   },
   select: {
     label: "Select",

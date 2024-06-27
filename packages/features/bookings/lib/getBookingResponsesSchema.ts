@@ -5,6 +5,8 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
+import { HARD_LIMIT_MAX_LENGTH } from "./constants";
+
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
@@ -112,14 +114,9 @@ function preprocess<T extends z.ZodType>({
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
         let stringSchema = z.string();
-        if (bookingField.type === "textarea") {
-          if (typeof bookingField.maxLength === "number") {
-            stringSchema = stringSchema.max(bookingField.maxLength);
-          }
-          if (typeof bookingField.minLength === "number") {
-            stringSchema = stringSchema.min(bookingField.minLength);
-          }
-        }
+        const minLength = bookingField.minLength ?? 0;
+        const maxLength = bookingField.maxLength ?? HARD_LIMIT_MAX_LENGTH;
+        stringSchema = stringSchema.min(minLength).max(maxLength);
         const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema
           ? z.string()
@@ -260,26 +257,6 @@ function preprocess<T extends z.ZodType>({
           const schema = stringSchema;
 
           if (!schema.safeParse(value).success) {
-            if (
-              bookingField.type === "textarea" &&
-              (typeof bookingField.maxLength === "number" || typeof bookingField.minLength === "number")
-            ) {
-              const hasExceededMaxLength = value.length > (bookingField.maxLength ?? 1000);
-              const hasNotReachedMinLength = value.length < (bookingField.minLength ?? 0);
-              if (hasExceededMaxLength) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: m(`Max. ${bookingField.maxLength} characters allowed`),
-                });
-              }
-              if (hasNotReachedMinLength) {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: m(`Min. ${bookingField.minLength} characters required`),
-                });
-              }
-              if (hasExceededMaxLength || hasNotReachedMinLength) return;
-            }
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
           continue;

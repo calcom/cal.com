@@ -1,0 +1,1 @@
+export const HARD_LIMIT_MAX_LENGTH = 4000;

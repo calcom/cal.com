@@ -128,6 +128,7 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
+    supportsLengthCheck: z.boolean().default(false).optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -328,6 +329,30 @@ export const fieldTypesSchemaMap: Partial<
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
+    },
+  },
+  textarea: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const value = response ?? "";
+      console.log({ response });
+      const hasExceededMaxLength = value.length > (field.maxLength ?? 1000);
+      const hasNotReachedMinLength = value.length < (field.minLength ?? 0);
+      if (hasExceededMaxLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Max. ${field.maxLength} characters allowed`),
+        });
+      }
+      if (hasNotReachedMinLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Min. ${field.minLength} characters required`),
+        });
+      }
+      if (hasExceededMaxLength || hasNotReachedMinLength) return;
     },
   },
 };
