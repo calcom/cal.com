@@ -3677,20 +3677,15 @@
           "data"
         ]
       },
-      "ScheduleAvailabilityInput_2024_06_11": {
       "CreateOrgTeamDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number"
-          },
           "name": {
             "type": "string",
-            "minimum": 1
+            "minLength": 1
           },
           "slug": {
-            "type": "string",
-            "minimum": 1
+            "type": "string"
           },
           "logoUrl": {
             "type": "string"
@@ -3708,7 +3703,8 @@
             "type": "string"
           },
           "hideBranding": {
-            "type": "boolean"
+            "type": "boolean",
+            "default": false
           },
           "isPrivate": {
             "type": "boolean"
@@ -3747,7 +3743,7 @@
           "name"
         ]
       },
-      "CreateAvailabilityInput_2024_04_15": {
+      "ScheduleAvailabilityInput_2024_06_11": {
         "type": "object",
         "properties": {
           "days": {
