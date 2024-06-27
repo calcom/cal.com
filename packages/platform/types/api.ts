@@ -68,5 +68,5 @@ export class SkipTakePagination {
   @IsNumber()
   @Min(0)
   @IsOptional()
-  skip?: number | null;
+  skip?: number;
 }
