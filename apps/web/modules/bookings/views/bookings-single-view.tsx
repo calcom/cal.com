@@ -341,6 +341,7 @@ export default function Success(props: PageProps) {
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
+  const isReschedulable = !isCancelled && !isBookingInPast;
 
   const bookingCancelledEventProps = {
     booking: bookingInfo,
@@ -413,7 +414,7 @@ export default function Success(props: PageProps) {
                           imageSrc={`${bookingInfo.user.avatarUrl}`}
                         />
                       )}
-                      {giphyImage && !needsConfirmation && !isCancelled && !isBookingInPast && (
+                      {giphyImage && !needsConfirmation && isReschedulable && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
                       )}
@@ -422,18 +423,14 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && !isCancelled && !isBookingInPast && !needsConfirmation
-                            ? "bg-success"
-                            : "",
-                          !giphyImage && !isCancelled && !isBookingInPast && needsConfirmation
-                            ? "bg-subtle"
-                            : "",
+                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
+                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
                           isCancelled || isBookingInPast ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && !isCancelled && !isBookingInPast && (
+                        {!giphyImage && !needsConfirmation && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && !isCancelled && !isBookingInPast && (
+                        {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
                         {(isCancelled || isBookingInPast) && (
@@ -446,7 +443,7 @@ export default function Success(props: PageProps) {
                         className="text-emphasis text-2xl font-semibold leading-6"
                         data-testid={isCancelled ? "cancelled-headline" : ""}
                         id="modal-headline">
-                        {needsConfirmation && !isCancelled && !isBookingInPast
+                        {needsConfirmation && isReschedulable
                           ? props.recurringBookings
                             ? t("booking_submitted_recurring")
                             : t("booking_submitted")
@@ -659,8 +656,7 @@ export default function Success(props: PageProps) {
                     )}
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
-                      !isCancelled &&
-                      !isBookingInPast &&
+                      isReschedulable &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -718,8 +714,7 @@ export default function Success(props: PageProps) {
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&
-                      !isCancelled &&
-                      !isBookingInPast &&
+                      isReschedulable &&
                       !!calculatedDuration && (
                         <>
                           <hr className="border-subtle mt-8" />
