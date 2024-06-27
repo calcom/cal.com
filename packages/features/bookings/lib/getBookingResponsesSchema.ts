@@ -111,7 +111,6 @@ function preprocess<T extends z.ZodType>({
       }
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
-        console.log(value, typeof value, value?.length);
         let stringSchema = z.string();
         if (bookingField.type === "textarea") {
           if (typeof bookingField.maxLength === "number") {
