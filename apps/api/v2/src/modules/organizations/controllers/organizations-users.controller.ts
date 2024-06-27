@@ -6,8 +6,11 @@ import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-o
 import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
-import { Controller, UseGuards, Get, Post, Param, ParseIntPipe, Body } from "@nestjs/common";
+import { GetUserOutput } from "@/modules/users/outputs/get-users.output";
+import { Controller, UseGuards, Get, Post, Param, ParseIntPipe, Body, UseInterceptors } from "@nestjs/common";
+import { ClassSerializerInterceptor } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
@@ -17,7 +20,8 @@ import { Team } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/users",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard)
+@UseInterceptors(ClassSerializerInterceptor)
+// @UseGuards(ApiAuthGuard, IsOrgGuard)
 @DocsTags("Organizations Users")
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
@@ -28,23 +32,28 @@ export class OrganizationsUsersController {
     @Body() input: GetOrganizationsUsersInput
   ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
     const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
+    console.log("🚀 ~ OrganizationsUsersController ~ users:", users);
 
     return {
       status: SUCCESS_STATUS,
-      data: { users },
+      data: {
+        users: users.map((user) =>
+          plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" })
+        ),
+      },
     };
   }
 
-  @Post()
-  //   TODO add sysadmin guard
-  async createOrganizationUser(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @GetOrg() organization: Team,
-    @Body() input: CreateOrganizationUserInput
-  ): Promise<ApiResponse<GetOrganizationUserOutput>> {
-    const user = await this.organizationsUsersService.createOrganizationUser(organization, input);
-    return user;
-  }
+  // @Post()
+  // //   TODO add sysadmin guard
+  // async createOrganizationUser(
+  //   @Param("orgId", ParseIntPipe) orgId: number,
+  //   @GetOrg() organization: Team,
+  //   @Body() input: CreateOrganizationUserInput
+  // ): Promise<ApiResponse<GetOrganizationUserOutput>> {
+  //   const user = await this.organizationsUsersService.createOrganizationUser(organization, input);
+  //   return user;
+  // }
 
   // @Patch("/:userId")
   // async updateOrganizationUser(

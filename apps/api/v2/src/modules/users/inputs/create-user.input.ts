@@ -82,5 +82,5 @@ export class CreateUserInput {
   @IsOptional()
   @IsString()
   @Validate(AvatarValidator)
-  avatar?: string;
+  avatarUrl?: string;
 }
