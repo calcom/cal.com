@@ -544,7 +544,7 @@ function FieldEditDialog({
                               "maxLength",
                               parseInt(e.target.value ?? HARD_LIMIT_MAX_LENGTH)
                             );
-                            fieldForm.trigger("maxLength");
+                            fieldForm.trigger("minLength");
                           }}
                           min={fieldForm.getValues("minLength") || 0}
                           max={HARD_LIMIT_MAX_LENGTH}
