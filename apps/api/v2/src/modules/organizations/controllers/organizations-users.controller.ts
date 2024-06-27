@@ -1,17 +1,16 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
+import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-organization-users.input";
+import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
+import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
 import { Controller, UseGuards, Get, Post, Param, ParseIntPipe, Body } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  ApiResponse,
-  GetOrganizationUsersOutput_2024_06_18,
-  GetOrganizationsUsersInput_2024_06_18,
-  CreateOrganizationUser_2024_06_18,
-} from "@calcom/platform-types";
+import { ApiResponse } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
 @Controller({
@@ -26,8 +25,8 @@ export class OrganizationsUsersController {
   @Get()
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Body() input: GetOrganizationsUsersInput_2024_06_18
-  ): Promise<ApiResponse<GetOrganizationUsersOutput_2024_06_18>> {
+    @Body() input: GetOrganizationsUsersInput
+  ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
     const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
 
     return {
@@ -41,9 +40,15 @@ export class OrganizationsUsersController {
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() organization: Team,
-    @Body() input: CreateOrganizationUser_2024_06_18
-  ): Promise<ApiResponse<GetOrganizationUserOutput_2024_06_18>> {
+    @Body() input: CreateOrganizationUserInput
+  ): Promise<ApiResponse<GetOrganizationUserOutput>> {
     const user = await this.organizationsUsersService.createOrganizationUser(organization, input);
     return user;
   }
+
+  // @Patch("/:userId")
+  // async updateOrganizationUser(
+  //   @Param("orgId", ParseIntPipe) orgId: number,
+  //   @Body() input:
+  // )
 }
