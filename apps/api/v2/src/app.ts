@@ -26,6 +26,7 @@ import { TRPCExceptionFilter } from "./filters/trpc-exception.filter";
 export const bootstrap = (app: NestExpressApplication): NestExpressApplication => {
   app.enableShutdownHooks();
 
+  // just to test
   app.enableVersioning({
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {
