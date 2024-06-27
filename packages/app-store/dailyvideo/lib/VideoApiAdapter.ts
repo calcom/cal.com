@@ -159,7 +159,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+        enable_recording_ui: false,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -194,6 +199,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
+        enable_recording: scalePlan === "true" && !!hasTeamPlan === true ? "cloud" : undefined,
         enable_transcription_storage: !!hasTeamPlan,
         ...(!!hasTeamPlan && {
           permissions: {
@@ -219,6 +225,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
+        enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,
         enable_transcription_storage: isScalePlanTrue,
         ...(!!isScalePlanTrue && {
@@ -231,7 +238,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
     const dailyEvent = await postToDailyAPI("/rooms", body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+        enable_recording_ui: false,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
