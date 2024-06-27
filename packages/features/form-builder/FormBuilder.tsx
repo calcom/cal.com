@@ -283,6 +283,14 @@ export const FormBuilder = function FormBuilder({
           }
           handleSubmit={(data: Parameters<SubmitHandler<RhfFormField>>[0]) => {
             const type = data.type || "text";
+            if ("minLength" in data || "maxLength" in data) {
+              if (Number.isNaN(data.minLength)) {
+                data.minLength = undefined;
+              }
+              if (Number.isNaN(data.maxLength)) {
+                data.maxLength = undefined;
+              }
+            }
             const isNewField = !fieldDialog.data;
             if (isNewField && fields.some((f) => f.name === data.name)) {
               showToast(t("form_builder_field_already_exists"), "error");
@@ -493,6 +501,7 @@ function FieldEditDialog({
                       containerClassName="mt-6"
                       label={t("label")}
                     />
+
                     {fieldType?.isTextType ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
@@ -508,6 +517,29 @@ function FieldEditDialog({
                           return <Options onChange={onChange} value={value} className="mt-6" />;
                         }}
                       />
+                    ) : null}
+
+                    {fieldForm?.getValues("type") === "textarea" ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Min characters */}
+                        <InputField
+                          {...fieldForm.register("minLength", {
+                            valueAsNumber: true,
+                          })}
+                          containerClassName="mt-6"
+                          label={t("Min. Characters")}
+                          type="number"
+                        />
+                        {/* Max characters */}
+                        <InputField
+                          {...fieldForm.register("maxLength", {
+                            valueAsNumber: true,
+                          })}
+                          containerClassName="mt-6"
+                          label={t("Max. Characters")}
+                          type="number"
+                        />
+                      </div>
                     ) : null}
                     <Controller
                       name="required"

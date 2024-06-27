@@ -135,7 +135,16 @@ const WithLabel = ({
       {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
         <div className="mb-2 flex items-center">
           <Label className="!mb-0 flex">
-            <span>{field.label}</span>
+            <span>
+              {field.label}{" "}
+              {field.type === "textarea" && (
+                <>
+                  {typeof field.maxLength === "number" && `(Max ${field.maxLength} characters)`}
+                  {typeof field.minLength === "number" && typeof field.maxLength === "number" && " "}
+                  {typeof field.minLength === "number" && `(Min ${field.minLength} characters)`}
+                </>
+              )}
+            </span>
             <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
@@ -230,6 +239,8 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          minLength={field.minLength}
+          maxLength={field.maxLength}
           name={field.name}
           label={field.label}
           readOnly={readOnly}

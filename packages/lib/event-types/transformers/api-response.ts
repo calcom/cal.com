@@ -117,6 +117,8 @@ function getResponseEventTypeBookingFields(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
+          minLength: field.minLength,
+          maxLength: field.maxLength,
         };
       case "number":
         return {

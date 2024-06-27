@@ -83,6 +83,18 @@ const baseFieldSchema = z.object({
       })
     )
     .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for `textarea` type.
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for `textarea` type.
+   */
+  maxLength: z.number().optional(),
 });
 
 export const variantsConfigSchema = z.object({

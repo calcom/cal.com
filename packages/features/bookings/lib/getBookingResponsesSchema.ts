@@ -111,7 +111,16 @@ function preprocess<T extends z.ZodType>({
       }
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
-        const stringSchema = z.string();
+        console.log(value, typeof value, value?.length);
+        let stringSchema = z.string();
+        if (bookingField.type === "textarea") {
+          if (typeof bookingField.maxLength === "number") {
+            stringSchema = stringSchema.max(bookingField.maxLength);
+          }
+          if (typeof bookingField.minLength === "number") {
+            stringSchema = stringSchema.min(bookingField.minLength);
+          }
+        }
         const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema
           ? z.string()
@@ -250,7 +259,28 @@ function preprocess<T extends z.ZodType>({
         // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           const schema = stringSchema;
+
           if (!schema.safeParse(value).success) {
+            if (
+              bookingField.type === "textarea" &&
+              (typeof bookingField.maxLength === "number" || typeof bookingField.minLength === "number")
+            ) {
+              const hasExceededMaxLength = value.length > (bookingField.maxLength ?? 1000);
+              const hasNotReachedMinLength = value.length < (bookingField.minLength ?? 0);
+              if (hasExceededMaxLength) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: m(`Max. ${bookingField.maxLength} characters allowed`),
+                });
+              }
+              if (hasNotReachedMinLength) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: m(`Min. ${bookingField.minLength} characters required`),
+                });
+              }
+              if (hasExceededMaxLength || hasNotReachedMinLength) return;
+            }
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
           continue;
