@@ -156,7 +156,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { room } = meetingEndedResponse.data.payload;
 
       const bookingReference = await getBookingReference(room);
-      const booking = await getBooking(bookingReference.bookingId);
+      const booking = await getBooking(bookingReference.bookingId as number);
 
       const transcripts = await getAllTranscriptsAccessLinkFromRoomName(room);
 
@@ -169,7 +169,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(200).json({ message: "Success" });
     } else if (req.body?.type === "batch-processor.job-finished") {
       const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(req.body);
-      console.log("Batch Processor Job Finished", batchProcessorJobFinishedResponse.data);
 
       if (!batchProcessorJobFinishedResponse.success) {
         return res.status(400).send({
@@ -181,7 +180,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const roomName = await getRoomNameFromRecordingId(input.recordingId);
       const bookingReference = await getBookingReference(roomName);
 
-      const booking = await getBooking(bookingReference.bookingId);
+      const booking = await getBooking(bookingReference.bookingId as number);
 
       const teamId = await getTeamIdFromEventType({
         eventType: {

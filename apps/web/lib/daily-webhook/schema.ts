@@ -52,7 +52,7 @@ export const batchProcessorJobFinishedSchema = commonSchema.extend({
     .passthrough(),
 });
 
-export const TBatchProcessorJobFinished = z.infer<typeof batchProcessorJobFinishedSchema>;
+export type TBatchProcessorJobFinished = z.infer<typeof batchProcessorJobFinishedSchema>;
 
 export const downloadLinkSchema = z.object({
   download_link: z.string(),
