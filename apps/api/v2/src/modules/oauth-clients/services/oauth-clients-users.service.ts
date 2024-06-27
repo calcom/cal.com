@@ -36,17 +36,15 @@ export class OAuthClientUsersService {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [email],
-          input: {
-            teamId: organizationId,
-            role: "MEMBER",
-            usernameOrEmail: [email],
-            isOrg: true,
-            language: "en",
-          },
+          invitations: [{
+            usernameOrEmail: email,
+            role: "MEMBER"
+          }],
+          teamId: organizationId,
+          isOrg: true,
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
-          connectionInfoMap: {
+          orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
               autoAccept: true,

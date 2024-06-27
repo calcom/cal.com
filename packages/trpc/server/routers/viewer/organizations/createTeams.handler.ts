@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -184,6 +185,7 @@ async function moveTeam({
     },
     select: {
       slug: true,
+      metadata: true,
       members: {
         select: {
           role: true,
@@ -219,28 +221,53 @@ async function moveTeam({
     },
   });
 
-  await Promise.all(
-    // TODO: Support different role for different members in usernameOrEmail list and then remove this map
-    team.members.map(async (membership) => {
-      // Invite team members to the new org. They are already members of the team.
-      await inviteMemberHandler({
-        ctx,
-        input: {
-          teamId: org.id,
-          language: "en",
-          role: membership.role,
-          usernameOrEmail: membership.user.email,
-          isOrg: true,
-        },
-      });
-    })
-  );
+  // Invite team members to the new org. They are already members of the team.
+  await inviteMemberHandler({
+    ctx,
+    input: {
+      teamId: org.id,
+      language: "en",
+      usernameOrEmail: team.members.map((m) => ({
+        email: m.user.email,
+        role: m.role,
+      })),
+      isOrg: true,
+    },
+  });
 
   await addTeamRedirect({
     oldTeamSlug: team.slug,
     teamSlug: newSlug,
     orgSlug: org.slug || (orgMetadata?.requestedSlug ?? null),
   });
+
+  // Cancel existing stripe subscriptions once the team is migrated
+  const subscriptionId = getSubscriptionId(team.metadata);
+  if (subscriptionId) {
+    await tryToCancelSubscription(subscriptionId);
+  }
+}
+
+async function tryToCancelSubscription(subscriptionId: string) {
+  try {
+    log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
+    return await stripe.subscriptions.cancel(subscriptionId);
+  } catch (error) {
+    log.error("Error while cancelling stripe subscription", error);
+  }
+}
+
+function getSubscriptionId(metadata: Prisma.JsonValue) {
+  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  if (parsedMetadata.success) {
+    const subscriptionId = parsedMetadata.data?.subscriptionId;
+    if (!subscriptionId) {
+      log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
+    }
+    return subscriptionId;
+  } else {
+    log.warn(`There has been an error`, parsedMetadata.error);
+  }
 }
 
 async function addTeamRedirect({
