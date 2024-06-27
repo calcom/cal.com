@@ -41,7 +41,7 @@ env:
 jobs:
   e2e:
     timeout-minutes: 20
-    name: E2E
+    name: E2E (${{ matrix.shard }}/${{ strategy.job-total }})
     runs-on: buildjet-8vcpu-ubuntu-2204
     services:
       postgres:
@@ -70,8 +70,8 @@ jobs:
           - 1025:1025
     strategy:
       fail-fast: false
-      # matrix:
-      #   shard: [1, 2, 3, 4]
+      matrix:
+        shard: [1, 2, 3, 4]
     steps:
       - uses: docker/login-action@v3
         with:
@@ -84,10 +84,10 @@ jobs:
       - uses: ./.github/actions/cache-db
       - uses: ./.github/actions/cache-build
       - name: Run Tests
-        run: TZ=Europe/London yarn e2e
+        run: yarn e2e --shard=${{ matrix.shard }}/${{ strategy.job-total }}
       - name: Upload Test Results
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ matrix.shard }}_${{ strategy.job-total }}
           path: test-results
