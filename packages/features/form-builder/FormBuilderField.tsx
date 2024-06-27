@@ -57,10 +57,10 @@ export const FormBuilderField = ({
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
   function handleErrorMessage(message: string | undefined) {
+    console.log("message===========>", message);
     if (field.type === "textarea" && message) {
       return (
-        t(message, { maxLength: field["max-length"] || "", minLength: field["min-length"] || "" }) ||
-        t(message || "invalid_input")
+        t(message, { minLength: field["min-length"], maxLength: field["max-length"] }) || t("invalid_input")
       );
     }
     return t(message || "invalid_input");

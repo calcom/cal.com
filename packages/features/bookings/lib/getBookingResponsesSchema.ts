@@ -251,28 +251,24 @@ function preprocess<T extends z.ZodType>({
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
           let schema = stringSchema;
           if (bookingField["min-length"]) {
-            console.log('m("error_max_log_text_field"', m("error_max_log_text_field"));
             schema = schema.min(Number(bookingField["min-length"]), {
-              message: m("error_min_log_text_field"),
+              message: m("error_min_long_text_field"),
             });
           }
           if (bookingField["max-length"]) {
             schema = schema.max(Number(bookingField["max-length"]), {
-              message: m("error_max_log_text_field"),
+              message: m("error_max_long_text_field"),
             });
           }
           const result = schema.safeParse(value);
           if (!result.success) {
+            console.log("result?.error", result?.error?.errors);
             result?.error?.errors?.forEach((error) => {
-              debugger;
               ctx.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: error.message,
               });
             });
-          }
-          if (!schema.safeParse(value).success) {
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
           continue;
         }

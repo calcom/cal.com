@@ -926,10 +926,7 @@
   "not_installed": "Não instalado",
   "error_password_mismatch": "As senhas inseridas são difererentes.",
   "error_required_field": "Este campo é obrigatório.",
-  "min_characters": "Min.Characters",
-  "max_characters": "Max.Characters",
-  "error_min_log_text_field": "Min. {{minLength}} Characters",
-  "error_max_log_text_field": "Max. {{maxLength}} Characters",
+
   "status": "Status",
   "team_view_user_availability": "Ver disponibilidade do usuário",
   "team_view_user_availability_disabled": "O usuário precisa aceitar o convite para ver a disponibilidade",
