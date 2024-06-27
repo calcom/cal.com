@@ -1,6 +1,7 @@
 import type { Prisma } from "@prisma/client";
 
 import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
+import stripe from "@calcom/features/ee/payments/server/stripe";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -189,6 +190,7 @@ async function moveTeam({
     },
     select: {
       slug: true,
+      metadata: true,
       members: {
         select: {
           role: true,
@@ -252,6 +254,33 @@ async function moveTeam({
   function isMembershipNotWithOwner(membership: { userId: number }) {
     // Org owner is already a member of the team
     return membership.userId !== org.ownerId;
+  }
+  // Cancel existing stripe subscriptions once the team is migrated
+  const subscriptionId = getSubscriptionId(team.metadata);
+  if (subscriptionId) {
+    await tryToCancelSubscription(subscriptionId);
+  }
+}
+
+async function tryToCancelSubscription(subscriptionId: string) {
+  try {
+    log.debug("Canceling stripe subscription", safeStringify({ subscriptionId }));
+    return await stripe.subscriptions.cancel(subscriptionId);
+  } catch (error) {
+    log.error("Error while cancelling stripe subscription", error);
+  }
+}
+
+function getSubscriptionId(metadata: Prisma.JsonValue) {
+  const parsedMetadata = teamMetadataSchema.safeParse(metadata);
+  if (parsedMetadata.success) {
+    const subscriptionId = parsedMetadata.data?.subscriptionId;
+    if (!subscriptionId) {
+      log.warn("No subscriptionId found in team metadata", safeStringify({ metadata, parsedMetadata }));
+    }
+    return subscriptionId;
+  } else {
+    log.warn(`There has been an error`, parsedMetadata.error);
   }
 }
 
