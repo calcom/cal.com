@@ -197,42 +197,46 @@ function Policy() {
               para seus próprios fins.
             </div>
             <div className="style-105">
-              <br className="style-107" />
-              <br className="style-108" />
               <strong className="style-106">2.5.</strong> Ao se cadastrar em nosso aplicativo, caso você
               conceda permissão por meio da funcionalidade de conectar o seu calendário, o aplicativo poderá
               acessar dados da sua conta Google Calendar exclusivamente com o objetivo de melhorar a sua
               experiência de usuário e fornecer nossos serviços, da seguinte forma:
               <ul>
+                <br className="style-107" />
                 <li>
                   Acesso e uso: Poderemos acessar e usar dados de eventos do Google Calendar para
                   disponibilizar sua agenda como profisisonal de saúde para nossos pacientes para que os
                   mesmos possam fazer solicitações de agendamentos na sua agenda através da nossa aplicação.
                   Ao nos fornecer este acesso você estará nos dando acesso à dados da sua conta Google
                   Calendar que serão obtidos pelos seguintes escopos da API do Google Calendar:
+                  <br className="style-108" />
                   <ul>
                     <li>
-                      <strong>Eventos do Calendário (somente leitura):</strong> Permitirá visualizar eventos
-                      em todos os seus calendários. Esta permissão será utilizada pela nossa aplicação para
-                      detectar dias e horários em que você tem eventos agendados e portanto, com base nisso,
-                      inferir sua disponibilidade, que por sua vez será usada para criar uma agenda de
-                      horários efetivamente disponíveis para solicitações agendamento, evitando solicitações
-                      que resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
+                      Eventos do Calendário (somente leitura): Permitirá visualizar eventos em todos os seus
+                      calendários. Esta permissão será utilizada pela nossa aplicação para detectar dias e
+                      horários em que você tem eventos agendados e portanto, com base nisso, inferir sua
+                      disponibilidade, que por sua vez será usada para criar uma agenda de horários
+                      efetivamente disponíveis para solicitações agendamento, evitando solicitações que
+                      resultem em conflito de horários, ou seja, dois eventos agendados no mesmo horário.
+                      <br className="style-108" />
                     </li>
                     <li>
-                      <strong>Eventos do Calendário (leitura e escrita):</strong> Permitirá visualizar e
-                      editar eventos em todos os seus calendários. Esta permissão será utilizada para criar
-                      eventos em seu calendário a partir de solicitações de agendamento.
+                      Eventos do Calendário (leitura e escrita): Permitirá visualizar e editar eventos em
+                      todos os seus calendários. Esta permissão será utilizada para criar eventos em seu
+                      calendário a partir de solicitações de agendamento.
+                      <br className="style-108" />
                     </li>
                   </ul>
                 </li>
                 <li>
                   Armazenamento: Dados de eventos obtidos pela API do Google Calendar não serão armazenados em
                   nossos servidores e não serão lidos por humanos.
+                  <br className="style-108" />
                 </li>
                 <li>
                   Compartilhamento: Dados de eventos obtidos pela API do Google Calendar não serão
                   compartilhados.
+                  <br className="style-108" />
                 </li>
               </ul>
             </div>
