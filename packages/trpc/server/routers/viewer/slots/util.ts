@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import type z from "zod";
 
+import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -14,7 +16,11 @@ import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import { isDateOutOfBounds, isTimeOutOfBounds, calculatePeriodLimits } from "@calcom/lib/isOutOfBounds";
+import {
+  isTimeOutOfBounds,
+  calculatePeriodLimits,
+  isTimeViolatingFutureLimit,
+} from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
@@ -26,6 +32,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -314,6 +321,57 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  teamMember?: string | undefined;
+}
+
+async function getCRMContactOwnerForRRLeadSkip(
+  bookerEmail: string,
+  apps?: z.infer<typeof EventTypeAppMetadataSchema>
+) {
+  if (!apps) return;
+  const crm = await getCRMManagerWithRRLeadSkip(apps);
+
+  if (!crm) return;
+
+  const contact = await crm.getContacts(bookerEmail, true);
+  if (contact?.length) {
+    return contact[0].ownerEmail;
+  }
+}
+
+async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
+  let crmRoundRobinLeadSkip;
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof apps];
+    if (
+      app.enabled &&
+      typeof app.appCategories === "object" &&
+      app.appCategories.some((category: string) => category === "crm") &&
+      app.roundRobinLeadSkip
+    ) {
+      crmRoundRobinLeadSkip = app;
+      break;
+    }
+  }
+
+  if (crmRoundRobinLeadSkip) {
+    const crmCredential = await prisma.credential.findUnique({
+      where: {
+        id: crmRoundRobinLeadSkip.credentialId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    if (crmCredential) {
+      return new CrmManager(crmCredential);
+    }
+  }
+  return;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -376,13 +434,36 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
-    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-    ...user,
-  }));
-  // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  let teamMember: string | undefined;
+
+  const hosts =
+    eventType.hosts?.length && eventType.schedulingType
+      ? eventType.hosts
+      : eventType.users.map((user) => {
+          return {
+            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            user: user,
+          };
+        });
+
+  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
+      input.bookerEmail,
+      eventType?.metadata?.apps
+    );
+    const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
+
+    if (contactOwnerHost) {
+      teamMember = contactOwnerHost.user.email;
+      const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
+
+      usersWithCredentials = usersWithCredentials.filter(
+        (user) => user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || user.isFixed)
+      );
+      usersWithCredentials.push({ ...contactOwnerHost.user, isFixed: true });
+    }
   }
 
   const durationToUse = input.duration || 0;
@@ -684,6 +765,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
+  const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
     periodType: eventType.periodType,
     periodDays: eventType.periodDays,
@@ -691,27 +773,37 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     periodStartDate: eventType.periodStartDate,
     periodEndDate: eventType.periodEndDate,
     allDatesWithBookabilityStatus,
-    utcOffset: input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0,
+    utcOffset,
   });
-
-  let foundALimitViolation = false;
+  let foundAFutureLimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
     (withinBoundsSlotsMappedToDate, [date, slots]) => {
-      // Computation Optimization: If a limit violation has been found, we just consider all slots to be out of bounds beyond that date.
+      // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
       // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
-      if (foundALimitViolation && doesRangeStartFromToday(eventType.periodType)) {
+      if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
         return withinBoundsSlotsMappedToDate;
       }
-      const isDateWithinBound = !isDateOutOfBounds({ dateString: date, periodLimits });
-      if (isDateWithinBound) {
-        // TODO: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-        withinBoundsSlotsMappedToDate[date] = slots.filter(
-          (slot) =>
-            !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+      const filteredSlots = slots.filter((slot) => {
+        const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
+          time: slot.time,
+          periodLimits,
+        });
+        if (isFutureLimitViolationForTheSlot) {
+          foundAFutureLimitViolation = true;
+        }
+        return (
+          !isFutureLimitViolationForTheSlot &&
+          // TODO: Perf Optmization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
+          !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
         );
-      } else {
-        foundALimitViolation = true;
+      });
+
+      if (!filteredSlots.length) {
+        // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
+        return withinBoundsSlotsMappedToDate;
       }
+
+      withinBoundsSlotsMappedToDate[date] = filteredSlots;
       return withinBoundsSlotsMappedToDate;
     },
     {} as typeof slotsMappedToDate
@@ -745,6 +837,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   return {
     slots: withinBoundsSlotsMappedToDate,
+    teamMember,
   };
 }
 

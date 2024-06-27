@@ -1,4 +1,4 @@
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import generateIcsString from "../lib/generateIcsString";
@@ -20,7 +20,7 @@ export default class OrganizerLocationChangeEmail extends OrganizerScheduledEmai
         }),
         method: "REQUEST",
       },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.t("location_changed_event_type_subject", {

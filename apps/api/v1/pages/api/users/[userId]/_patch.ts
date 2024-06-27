@@ -2,7 +2,9 @@ import type { NextApiRequest } from "next";
 
 import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import prisma from "@calcom/prisma";
+import type { Prisma } from "@calcom/prisma/client";
 
 import { schemaQueryUserId } from "~/lib/validations/shared/queryUserId";
 import { schemaUserEditBodyParams, schemaUserReadPublic } from "~/lib/validations/user";
@@ -101,7 +103,8 @@ export async function patchHandler(req: NextApiRequest) {
   if (!isSystemWideAdmin && query.userId !== req.userId)
     throw new HttpError({ statusCode: 403, message: "Forbidden" });
 
-  const body = await schemaUserEditBodyParams.parseAsync(req.body);
+  const { avatar, ...body }: { avatar?: string | undefined } & Prisma.UserUpdateInput =
+    await schemaUserEditBodyParams.parseAsync(req.body);
   // disable role or branding changes unless admin.
   if (!isSystemWideAdmin) {
     if (body.role) body.role = undefined;
@@ -119,6 +122,14 @@ export async function patchHandler(req: NextApiRequest) {
       message: "Bad request: Invalid default schedule id",
     });
   }
+
+  if (avatar) {
+    body.avatarUrl = await uploadAvatar({
+      userId: query.userId,
+      avatar: await (await import("@calcom/lib/server/resizeBase64Image")).resizeBase64Image(avatar),
+    });
+  }
+
   const data = await prisma.user.update({
     where: { id: query.userId },
     data: body,
