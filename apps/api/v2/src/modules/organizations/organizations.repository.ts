@@ -70,4 +70,12 @@ export class OrganizationsRepository {
       },
     });
   }
+  async findOrgUser(organizationId: number, userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+        organizationId,
+      },
+    });
+  }
 }

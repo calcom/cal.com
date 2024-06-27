@@ -5,7 +5,7 @@ import { Request } from "express";
 import { Team } from "@calcom/prisma/client";
 
 @Injectable()
-export class isOrgGuard implements CanActivate {
+export class IsOrgGuard implements CanActivate {
   constructor(private organizationsRepository: OrganizationsRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
