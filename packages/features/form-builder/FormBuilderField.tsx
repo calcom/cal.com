@@ -56,6 +56,16 @@ export const FormBuilderField = ({
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
+  function handleErrorMessage(message: string | undefined) {
+    if (field.type === "textarea" && message) {
+      return (
+        t(message, { maxLength: field["max-length"] || "", minLength: field["max-length"] || "" }) ||
+        t(message || "invalid_input")
+      );
+    }
+    return t(message || "invalid_input");
+  }
+
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
       <Controller
@@ -97,7 +107,7 @@ export const FormBuilderField = ({
                       data-testid={`error-message-${field.name}`}
                       className="mt-2 flex items-center text-sm text-red-700 ">
                       <Icon name="info" className="h-3 w-3 ltr:mr-2 rtl:ml-2" />
-                      <p>{t(message || "invalid_input")}</p>
+                      <p>{handleErrorMessage(message)}</p>
                     </div>
                   );
                 }}
@@ -234,6 +244,8 @@ export const ComponentForField = ({
           readOnly={readOnly}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
+          maxLength={field["max-length"]}
+          minLength={field["min-length"]}
         />
       </WithLabel>
     );

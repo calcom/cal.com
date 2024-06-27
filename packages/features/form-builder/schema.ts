@@ -216,6 +216,8 @@ export const fieldSchema = baseFieldSchema.merge(
         })
       )
       .optional(),
+    ["max-length"]: z.string().optional(),
+    ["min-length"]: z.string().optional(),
   })
 );
 

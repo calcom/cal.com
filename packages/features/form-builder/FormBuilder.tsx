@@ -104,7 +104,6 @@ export const FormBuilder = function FormBuilder({
   const removeField = (index: number) => {
     remove(index);
   };
-
   return (
     <div>
       <div>
@@ -125,21 +124,6 @@ export const FormBuilder = function FormBuilder({
             // Due to this we have to meet some strict requirements like of labelAsSafeHtml.
             if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
               field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
-            }
-            try {
-              const maxLength = field["max-length"];
-              const minLength = field["min-length"];
-              if (field && (maxLength || minLength)) {
-                field.rules = field.rules || {};
-                if (minLength) {
-                  field.rules.minLength = parseInt(minLength);
-                }
-                if (maxLength) {
-                  field.rules.maxLength = parseInt(maxLength);
-                }
-              }
-            } catch (err) {
-              //do nothing
             }
 
             const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
@@ -303,6 +287,17 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+
+            if (data.type === "textarea" && data["min-length"] && data["max-length"]) {
+              if (Number(data["min-length"]) > Number(data["max-length"])) {
+                showToast("Min length should not be greater than max length", "error");
+                return;
+              }
+            }
+            if (data.type !== "textarea") {
+              delete data["min-length"];
+              delete data["max-length"];
+            }
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
             } else {
@@ -453,7 +448,6 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
@@ -522,7 +516,7 @@ function FieldEditDialog({
                           <InputField
                             {...fieldForm.register("min-length")}
                             containerClassName="mt-6 w-full"
-                            label={t("Min.characters")}
+                            label={t("min_characters")}
                             type="number"
                             min={1}
                             max={2000}
@@ -532,7 +526,7 @@ function FieldEditDialog({
                           <InputField
                             {...fieldForm.register("max-length")}
                             containerClassName="mt-6 w-full"
-                            label={t("Max.characters")}
+                            label={t("max_characters")}
                             type="number"
                             min={1}
                             max={2000}
