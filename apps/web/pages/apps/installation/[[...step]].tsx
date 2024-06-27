@@ -16,6 +16,7 @@ import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -304,7 +305,7 @@ const getUser = async (userId: number) => {
     },
     select: {
       id: true,
-      avatar: true,
+      avatarUrl: true,
       name: true,
       username: true,
       teams: {
@@ -326,7 +327,13 @@ const getUser = async (userId: number) => {
             select: {
               id: true,
               name: true,
-              logo: true,
+              logoUrl: true,
+              parent: {
+                select: {
+                  logoUrl: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -337,7 +344,17 @@ const getUser = async (userId: number) => {
   if (!user) {
     throw new Error(ERROR_MESSAGES.userNotFound);
   }
-  return user;
+
+  const teams = user.teams.map(({ team }) => ({
+    ...team,
+    logoUrl: team.parent
+      ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
+      : getPlaceholderAvatar(team.logoUrl, team.name),
+  }));
+  return {
+    ...user,
+    teams,
+  };
 };
 
 const getAppBySlug = async (appSlug: string) => {
@@ -426,17 +443,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     const user = await getUser(session.user.id);
 
-    const userAcceptedTeams = user.teams.map((team) => ({ ...team.team }));
-    const hasTeams = Boolean(userAcceptedTeams.length);
+    const userTeams = user.teams;
+    const hasTeams = Boolean(userTeams.length);
 
     const appInstalls = await getAppInstallsBySlug(
       parsedAppSlug,
       user.id,
-      userAcceptedTeams.map(({ id }) => id)
+      userTeams.map(({ id }) => id)
     );
 
     if (parsedTeamIdParam) {
-      const isUserMemberOfTeam = userAcceptedTeams.some((team) => team.id === parsedTeamIdParam);
+      const isUserMemberOfTeam = userTeams.some((team) => team.id === parsedTeamIdParam);
       if (!isUserMemberOfTeam) {
         throw new Error(ERROR_MESSAGES.userNotInTeam);
       }
@@ -457,12 +474,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const personalAccount = {
       id: user.id,
       name: user.name,
-      avatar: user.avatar,
+      avatarUrl: user.avatarUrl,
       alreadyInstalled: appInstalls.some((install) => !Boolean(install.teamId) && install.userId === user.id),
     };
 
     const teamsWithIsAppInstalled = hasTeams
-      ? userAcceptedTeams.map((team) => ({
+      ? userTeams.map((team) => ({
           ...team,
           alreadyInstalled: appInstalls.some(
             (install) => Boolean(install.teamId) && install.teamId === team.id

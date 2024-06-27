@@ -45,10 +45,10 @@ function VerifyEmailPage() {
                 className="underline"
                 loading={mutation.isPending}
                 onClick={() => {
-                  showToast("Send email", "success");
+                  showToast(t("send_email"), "success");
                   mutation.mutate();
                 }}>
-                Resend Email
+                {t("resend_email")}
               </Button>
             }
           />
