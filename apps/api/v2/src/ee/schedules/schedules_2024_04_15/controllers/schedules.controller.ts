@@ -8,7 +8,7 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
@@ -35,7 +35,7 @@ import { CreateScheduleInput_2024_04_15 } from "../inputs/create-schedule.input"
   path: "/v2/schedules",
   version: VERSION_2024_04_15_VALUE,
 })
-@UseGuards(AccessTokenGuard, PermissionsGuard)
+@UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Schedules")
 export class SchedulesController_2024_04_15 {
   constructor(private readonly schedulesService: SchedulesService_2024_04_15) {}
