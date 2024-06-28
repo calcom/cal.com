@@ -1,4 +1,4 @@
-import { transformScheduleToAvailabilityForClient } from "@calcom/lib";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/lib";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
@@ -118,7 +118,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
-  const userAvailability = transformScheduleToAvailabilityForClient(schedule);
+  const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
 
   return {
     schedule,
