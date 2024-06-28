@@ -1,4 +1,5 @@
 import type { App } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -7,6 +8,7 @@ import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
+import type { Booking } from "./createBooking";
 import type {
   AwaitedBookingData,
   RescheduleReason,
@@ -18,11 +20,13 @@ import type {
   ReqBodyMetadata,
 } from "./getBookingData";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
+import type { BookingType, OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
 import type { getRequiresConfirmationFlags } from "./getRequiresConfirmationFlags";
+import type { AwaitedLoadUsers } from "./loadUsers";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-export type OrganizerUser = Awaited<ReturnType<typeof loadUsers>>[number] & {
+export type OrganizerUser = AwaitedLoadUsers[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
 };
@@ -68,6 +72,10 @@ export type {
   SmsReminderNumber,
   EventTypeId,
   ReqBodyMetadata,
-  IsConfirmedByDefault,
   PaymentAppData,
+  BookingType,
+  Booking,
+  OriginalRescheduledBooking,
+  AwaitedLoadUsers,
+  getEventTypeResponse,
 };

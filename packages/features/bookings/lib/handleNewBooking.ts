@@ -88,6 +88,7 @@ import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCred
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
+import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
@@ -96,15 +97,18 @@ import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRes
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
 import { loadUsers } from "./handleNewBooking/loadUsers";
-import type { Invitee, IEventTypePaymentCredentialType, IsFixedAwareUser } from "./handleNewBooking/types";
+import type {
+  Invitee,
+  IEventTypePaymentCredentialType,
+  IsFixedAwareUser,
+  BookingType,
+  Booking,
+} from "./handleNewBooking/types";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
-
-type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
-export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
 
 export function getCustomInputsResponses(
   reqBody: {

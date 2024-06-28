@@ -1,8 +1,10 @@
 import { Prisma } from "@prisma/client";
 import type short from "short-uuid";
 
+import dayjs from "@calcom/dayjs";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import prisma from "@calcom/prisma";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
@@ -12,11 +14,13 @@ import type {
   NewBookingEventType,
   IsConfirmedByDefault,
   PaymentAppData,
+  OriginalRescheduledBooking,
+  AwaitedLoadUsers,
 } from "./types";
 
 type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
-type Props = {
+type CreateBookingParams = {
   originalRescheduledBooking: OriginalRescheduledBooking;
   evt: CalendarEvent;
   eventType: NewBookingEventType;
@@ -29,7 +33,7 @@ type Props = {
   responses: ReqBodyWithEnd["responses"] | null;
   isConfirmedByDefault: IsConfirmedByDefault;
   smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
-  organizerUser: Awaited<ReturnType<typeof loadUsers>>[number] & {
+  organizerUser: AwaitedLoadUsers[number] & {
     isFixed?: boolean;
     metadata?: Prisma.JsonValue;
   };
@@ -57,7 +61,7 @@ export async function createBooking({
   bookerEmail,
   paymentAppData,
   changedOrganizer,
-}: Props) {
+}: CreateBookingParams) {
   if (originalRescheduledBooking) {
     evt.title = originalRescheduledBooking?.title || evt.title;
     evt.description = originalRescheduledBooking?.description || evt.description;
@@ -195,3 +199,5 @@ export async function createBooking({
 
   return prisma.booking.create(createBookingObj);
 }
+
+export type Booking = Prisma.PromiseReturnType<typeof createBooking>;

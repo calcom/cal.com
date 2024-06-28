@@ -2,12 +2,16 @@ import type { EventTypeCustomInput } from "@prisma/client";
 import type { NextApiRequest } from "next";
 import type z from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 
 import type { TgetBookingDataSchema } from "../getBookingDataSchema";
-import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
-import { handleCustomInputs } from "./handleNewBooking/handleCustomInputs";
+import { handleCustomInputs } from "./handleCustomInputs";
+import type { getEventTypeResponse } from "./types";
+
+type ReqBodyWithEnd = TgetBookingDataSchema & { end: string };
 
 export async function getBookingData<T extends z.ZodType>({
   req,

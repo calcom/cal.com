@@ -3,12 +3,14 @@ import type { Logger } from "tslog";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import { getUsersAvailability } from "@calcom/core/getUserAvailability";
 import dayjs from "@calcom/dayjs";
+import type { Dayjs } from "@calcom/dayjs";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { ErrorCode } from "@calcom/lib/errorCodes";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
-import type { IsFixedAwareUser } from "./types";
+import type { IsFixedAwareUser, BookingType } from "./types";
 
 export type DateRange = {
   start: Dayjs;

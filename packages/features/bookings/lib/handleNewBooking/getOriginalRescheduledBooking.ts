@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -52,3 +54,7 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
     },
   });
 }
+
+export type BookingType = Prisma.PromiseReturnType<typeof getOriginalRescheduledBooking>;
+
+export type OriginalRescheduledBooking = Awaited<ReturnType<typeof getOriginalRescheduledBooking>>;
