@@ -2,6 +2,7 @@ import type { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
+import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -43,6 +44,8 @@ export type WebhookDataType = CalendarEvent &
     createdAt: string;
     downloadLink?: string;
     paymentId?: number;
+    transcription?: TGetTranscriptAccessLink["transcription"];
+    recordingDownloadLink?: string;
   };
 
 function addUTCOffset(
