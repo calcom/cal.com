@@ -513,15 +513,14 @@ export const EventTypeList = ({
                                   </DropdownItem>
                                 </DropdownMenuItem>
                               )}
-                              {!isManagedEventType && !isChildrenManagedEventType && (
+                              {!isManagedEventType && !isChildrenManagedEventType && !readOnly && (
                                 <>
                                   <DropdownMenuItem className="outline-none">
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
                                       StartIcon="copy"
-                                      onClick={() => openDuplicateModal(type, group)}
-                                      disabled={readOnly}>
+                                      onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
                                     </DropdownItem>
                                   </DropdownMenuItem>
@@ -630,7 +629,7 @@ export const EventTypeList = ({
                             </DropdownItem>
                           </DropdownMenuItem>
                         )}
-                        {!isManagedEventType && !isChildrenManagedEventType && (
+                        {!isManagedEventType && !isChildrenManagedEventType && !readOnly && (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
