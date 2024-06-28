@@ -43,6 +43,15 @@ export class OrganizationsUsersRepository {
     });
   }
 
+  async getOrganizationUserByEmail(orgId: number, email: string) {
+    return await this.dbRead.prisma.user.findFirst({
+      where: {
+        email,
+        ...this.filterOnOrgMembership(orgId),
+      },
+    });
+  }
+
   async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
     const createdUser = await this.dbWrite.prisma.user.create({
       data: createUserBody,

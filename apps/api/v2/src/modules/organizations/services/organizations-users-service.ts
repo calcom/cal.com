@@ -17,6 +17,14 @@ export class OrganizationsUsersService {
   }
 
   async createOrganizationUser(orgId: number, userCreateBody: CreateOrganizationUserInput) {
+    // Check if email exists in the system
+    const userEmailCheck = await this.organizationsUsersRepository.getOrganizationUserByEmail(
+      orgId,
+      userCreateBody.email
+    );
+
+    if (userEmailCheck) throw new ConflictException("A user already exists with that email");
+
     // Check if username is already in use in the org
     if (userCreateBody.username) {
       const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
