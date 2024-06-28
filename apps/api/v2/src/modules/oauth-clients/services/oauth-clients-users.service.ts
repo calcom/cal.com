@@ -1,4 +1,4 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
@@ -7,14 +7,14 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.2";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.15";
 
 @Injectable()
 export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService,
+    private readonly eventTypesService: EventTypesService_2024_04_15,
     private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
@@ -36,17 +36,17 @@ export class OAuthClientUsersService {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [email],
-          input: {
-            teamId: organizationId,
-            role: "MEMBER",
-            usernameOrEmail: [email],
-            isOrg: true,
-            language: "en",
-          },
+          invitations: [
+            {
+              usernameOrEmail: email,
+              role: "MEMBER",
+            },
+          ],
+          teamId: organizationId,
+          isOrg: true,
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
-          connectionInfoMap: {
+          orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
               autoAccept: true,

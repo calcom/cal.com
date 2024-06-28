@@ -4065,6 +4065,7 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-libraries-0.0.13": "npm:@calcom/platform-libraries@0.0.13"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4"
     "@calcom/platform-types": "*"
@@ -5017,6 +5018,17 @@ __metadata:
   resolution: "@calcom/platform-constants@workspace:packages/platform/constants"
   languageName: unknown
   linkType: soft
+
+"@calcom/platform-libraries-0.0.13@npm:@calcom/platform-libraries@0.0.13":
+  version: 0.0.13
+  resolution: "@calcom/platform-libraries@npm:0.0.13"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 53b92db84c669c2ff179acc4056ebc3c7426779aa0b9b7578f1bdd1abab5426bb45b9cb0b4858f0f8c8760c352e0a6f96e2062428a9e9cf0c695601d0f210349
+  languageName: node
+  linkType: hard
 
 "@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
@@ -21861,15 +21873,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-variance-authority@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "class-variance-authority@npm:0.7.0"
-  dependencies:
-    clsx: 2.0.0
-  checksum: e7fd1fab433ef06f52a1b7b241b70b4a185864deef199d3b0a2c3412f1cc179517288264c383f3b971a00d76811625fc8f7ffe709e6170219e88cd7368f08a20
-  languageName: node
-  linkType: hard
-
 "classnames@npm:^2.2.5, classnames@npm:^2.2.6":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
@@ -22139,13 +22142,6 @@ __metadata:
   version: 0.1.19
   resolution: "clone@npm:0.1.19"
   checksum: 5e710e16da67abe30c0664c8fd69c280635be59a4fae0a5fe58ed324e701e99348b48ce67288716fa223edd42ba574e58a3783cb2fcfa381b8b49ce7e56ac3f4
-  languageName: node
-  linkType: hard
-
-"clsx@npm:2.0.0":
-  version: 2.0.0
-  resolution: "clsx@npm:2.0.0"
-  checksum: a2cfb2351b254611acf92faa0daf15220f4cd648bdf96ce369d729813b85336993871a4bf6978ddea2b81b5a130478339c20d9d0b5c6fc287e5147f0c059276e
   languageName: node
   linkType: hard
 
