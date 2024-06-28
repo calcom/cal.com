@@ -41,72 +41,69 @@ jobs:
     name: Check for E2E label
     outputs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
-      run-jobs: ${{ github.event.action != 'labeled' }}
     steps:
       - name: Check if PR exists with ready-for-e2e label for this SHA
         id: check-if-pr-has-label
         uses: actions/github-script@v7
         with:
           script: |
-            console.log('github.event.action', '${{ github.event.action }}');
-            try {
-              const sha = '${{ needs.changes.outputs.commit-sha }}';
-              console.log('sha', sha);
-              const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                commit_sha: sha
-              });
+            let labels = [];
 
-              if (prs.length === 0) {
-                core.setOutput('run-e2e', false);
-                console.log(`No pull requests found for commit SHA ${sha}`);
-                return;
+            if (context.payload.pull_request) {
+              labels = context.payload.pull_request.labels;
+            } else {
+              try {
+                const sha = '${{ needs.changes.outputs.commit-sha }}';
+                console.log('sha', sha);
+                const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  commit_sha: sha
+                });
+
+                if (prs.length === 0) {
+                  core.setOutput('run-e2e', false);
+                  console.log(`No pull requests found for commit SHA ${sha}`);
+                  return;
+                }
+
+                const pr = prs[0];
+                console.log(`PR number: ${pr.number}`);
+                console.log(`PR title: ${pr.title}`);
+                console.log(`PR state: ${pr.state}`);
+                console.log(`PR URL: ${pr.html_url}`);
+
+                labels = pr.labels;
               }
-
-              const pr = prs[0];
-              console.log(`PR number: ${pr.number}`);
-              console.log(`PR title: ${pr.title}`);
-              console.log(`PR state: ${pr.state}`);
-              console.log(`PR URL: ${pr.html_url}`);
-
-              const labels = pr.labels.map(label => label.name);
-              const labelFound = labels.includes('ready-for-e2e');
-              console.log('PR #', pr.number);
-              console.log('Found the label?', labelFound);
-              core.setOutput('run-e2e', labelFound);
+              catch (e) {
+                core.setOutput('run-e2e', false);
+                console.log(e);
+              }
             }
-            catch (e) {
-              core.setOutput('run-e2e', false);
-              console.log(e);
-            }
+
+            const labelFound = labels.map(l => l.name).includes('ready-for-e2e');
+            console.log('Found the label?', labelFound);
+            core.setOutput('run-e2e', labelFound);
 
   type-check:
     name: Type check
     needs: [changes, check-label]
-    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
     needs: [changes, check-label]
-    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
     needs: [changes, check-label]
-    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
-    secrets: inherit
-
-  integration-test:
-    name: Tests
-    needs: [changes, check-label]
-    if: ${{ needs.check-label.outputs.run-jobs == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   build-api-v1:
@@ -130,30 +127,37 @@ jobs:
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
+  integration-test:
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
   e2e:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -166,7 +170,7 @@ jobs:
 
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' }}
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
