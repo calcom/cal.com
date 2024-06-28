@@ -1,6 +1,8 @@
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
+import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
+import { plainToInstance } from "class-transformer";
 
 import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.2";
 
@@ -56,10 +58,12 @@ export class OrganizationsUsersService {
     });
 
     const createdUser = createdUserCall[0];
-    console.log("🚀 ~ OrganizationsUsersService ~ createOrganizationUser ~ createdUser:", createdUser);
+
+    // Update user fields that weren't included in createNewUsersConnectToOrgIfExists
+    const updateUserBody = plainToInstance(CreateUserInput, userCreateBody, { strategy: "excludeAll" });
 
     // Update new user with other userCreateBody params
-    const user = await this.organizationsUsersRepository.updateUser(orgId, createdUser.id, userCreateBody);
+    const user = await this.organizationsUsersRepository.updateUser(orgId, createdUser.id, updateUserBody);
 
     return user;
   }
