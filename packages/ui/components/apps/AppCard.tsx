@@ -37,7 +37,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
 
   const appInstalled = enabledOnTeams && userAdminTeams ? userAdminTeams.length < appAdded : appAdded > 0;
 
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      setIsLoading(false);
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      setIsLoading(false);
+    },
+  });
 
   const [searchTextIndex, setSearchTextIndex] = useState<number | undefined>(undefined);
   /**
@@ -54,30 +64,17 @@ export function AppCard({ app, credentials, searchText, userAdminTeams }: AppCar
   const handleAppInstall = () => {
     setIsLoading(true);
     if (isConferencing(app.categories)) {
-      mutation.mutate(
-        {
-          isOmniInstall: true,
-          type: app.type,
-          variant: app.variant,
-          slug: app.slug,
-          returnTo:
-            WEBAPP_URL +
-            getAppOnboardingUrl({
-              slug: app.slug,
-              step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            }),
-        },
-        {
-          onSuccess: (data) => {
-            if (data?.setupPending) return;
-            showToast(t("app_successfully_installed"), "success");
-          },
-          onError: (error) => {
-            if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-            setIsLoading(false);
-          },
-        }
-      );
+      mutation.mutate({
+        type: app.type,
+        variant: app.variant,
+        slug: app.slug,
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug: app.slug,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      });
     } else if (
       !doesAppSupportTeamInstall({
         appCategories: app.categories,

@@ -31,7 +31,6 @@ export function AccountDialog(props: DialogProps) {
               type="button"
               onClick={() =>
                 mutation.mutate({
-                  isOmniInstall: true,
                   type: "office365_video",
                   variant: "conferencing",
                   slug: "msteams",

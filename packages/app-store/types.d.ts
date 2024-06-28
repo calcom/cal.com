@@ -6,7 +6,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
 
 export type IntegrationOAuthCallbackState = {
-  returnTo: string;
+  returnTo?: string;
   onErrorReturnTo: string;
   fromApp: boolean;
   installGoogleVideo?: boolean;

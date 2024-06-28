@@ -80,7 +80,17 @@ export const AppPage = ({
 
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      setIsLoading(false);
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      setIsLoading(false);
+    },
+  });
 
   /**
    * @todo Refactor to eliminate the isLoading state by using mutation.isPending directly.
@@ -92,30 +102,17 @@ export const AppPage = ({
   const handleAppInstall = () => {
     setIsLoading(true);
     if (isConferencing(categories)) {
-      mutation.mutate(
-        {
-          isOmniInstall: true,
-          type,
-          variant,
-          slug,
-          returnTo:
-            WEBAPP_URL +
-            getAppOnboardingUrl({
-              slug,
-              step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            }),
-        },
-        {
-          onSuccess: (data) => {
-            if (data?.setupPending) return;
-            showToast(t("app_successfully_installed"), "success");
-          },
-          onError: (error) => {
-            if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-            setIsLoading(false);
-          },
-        }
-      );
+      mutation.mutate({
+        type,
+        variant,
+        slug,
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      });
     } else if (
       !doesAppSupportTeamInstall({
         appCategories: categories,

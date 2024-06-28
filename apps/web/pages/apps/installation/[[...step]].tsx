@@ -148,7 +148,15 @@ const OnboardingPage = ({
       eventTypes,
     },
   });
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
 
   useEffect(() => {
     eventTypes && formMethods.setValue("eventTypes", eventTypes);
@@ -186,34 +194,22 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    mutation.mutate(
-      {
-        isOmniInstall: true,
-        type: appMetadata.type,
-        variant: appMetadata.variant,
-        slug: appMetadata.slug,
-        ...(teamId && { teamId }),
-        // for oAuth apps
-        ...(showEventTypesStep && {
-          returnTo:
-            WEBAPP_URL +
-            getAppOnboardingUrl({
-              slug: appMetadata.slug,
-              teamId,
-              step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            }),
-        }),
-      },
-      {
-        onSuccess: (data) => {
-          if (data?.setupPending) return;
-          showToast(t("app_successfully_installed"), "success");
-        },
-        onError: (error) => {
-          if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-        },
-      }
-    );
+    mutation.mutate({
+      type: appMetadata.type,
+      variant: appMetadata.variant,
+      slug: appMetadata.slug,
+      ...(teamId && { teamId }),
+      // for oAuth apps
+      ...(showEventTypesStep && {
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug: appMetadata.slug,
+            teamId,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      }),
+    });
   };
 
   const handleSetUpLater = () => {
