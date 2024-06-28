@@ -4,6 +4,15 @@ import type z from "zod";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
 import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking";
+import type {
+  RescheduleReason,
+  NoEmail,
+  AdditionalNotes,
+  ReqAppsStatus,
+  SmsReminderNumber,
+  EventTypeId,
+  ReqBodyMetadata,
+} from "../handleNewBooking/types";
 
 export type BookingSeat = Prisma.BookingSeatGetPayload<{ include: { booking: true; attendee: true } }> | null;
 

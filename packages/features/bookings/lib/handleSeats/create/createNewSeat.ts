@@ -16,7 +16,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { IEventTypePaymentCredentialType } from "../../handleNewBooking";
-import { findBookingQuery } from "../../handleNewBooking";
+import { findBookingQuery } from "../../handleNewBooking/findBookingQuery";
 import type { SeatedBooking, NewSeatedBookingObject, HandleSeatsResultBooking } from "../types";
 
 const createNewSeat = async (
