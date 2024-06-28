@@ -45,7 +45,7 @@ describe("getDefaultLocation ", async () => {
     await mockUser(user);
     await addAppsToDb([TestData.apps["google-meet"]]);
     const res = await getDefaultLocations(user);
-    expect(res[0]).toContain({
+    expect(res[0]).toEqual({
       link: "https://example.com",
       type: MeetLocationType,
     });
