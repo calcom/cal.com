@@ -24,9 +24,6 @@ export const EditableHeading = function EditableHeading({
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
         <label className="min-w-8 relative inline-block">
           <span className="whitespace-pre text-xl tracking-normal text-transparent">{value}&nbsp;</span>
-          {!isEditing && isReady && !disabled && (
-            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
-          )}
           <input
             {...passThroughProps}
             disabled={disabled}
@@ -49,6 +46,9 @@ export const EditableHeading = function EditableHeading({
             }}
             onChange={(e) => onChange && onChange(e.target.value)}
           />
+          {!isEditing && isReady && !disabled && (
+            <Icon name="pencil" className="text-subtle group-hover:text-subtle -mt-px ml-1 inline  h-3 w-3" />
+          )}
         </label>
       </div>
     </div>

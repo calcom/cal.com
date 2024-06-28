@@ -3,56 +3,27 @@ import { z } from "zod";
 import { handleErrorsJson } from "@calcom/lib/errors";
 import { prisma } from "@calcom/prisma";
 import type { GetRecordingsResponseSchema, GetAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
-import { getRecordingsResponseSchema, getAccessLinkResponseSchema } from "@calcom/prisma/zod-utils";
+import {
+  getRecordingsResponseSchema,
+  getAccessLinkResponseSchema,
+  recordingItemSchema,
+} from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { PartialReference } from "@calcom/types/EventManager";
 import type { VideoApiAdapter, VideoCallData } from "@calcom/types/VideoApiAdapter";
 
+import { ZSubmitBatchProcessorJobRes, ZGetTranscriptAccessLink } from "../zod";
+import type { TSubmitBatchProcessorJobRes, TGetTranscriptAccessLink, batchProcessorBody } from "../zod";
 import { getDailyAppKeys } from "./getDailyAppKeys";
-
-/** @link https://docs.daily.co/reference/rest-api/rooms/create-room */
-const dailyReturnTypeSchema = z.object({
-  /** Long UID string ie: 987b5eb5-d116-4a4e-8e2c-14fcb5710966 */
-  id: z.string(),
-  /** Not a real name, just a random generated string ie: "ePR84NQ1bPigp79dDezz" */
-  name: z.string(),
-  api_created: z.boolean(),
-  privacy: z.union([z.literal("private"), z.literal("public")]),
-  /** https://api-demo.daily.co/ePR84NQ1bPigp79dDezz */
-  url: z.string(),
-  created_at: z.string(),
-  config: z.object({
-    /** Timestamps expressed in seconds, not in milliseconds */
-    nbf: z.number().optional(),
-    /** Timestamps expressed in seconds, not in milliseconds */
-    exp: z.number(),
-    enable_chat: z.boolean(),
-    enable_knocking: z.boolean(),
-    enable_prejoin_ui: z.boolean(),
-    enable_transcription_storage: z.boolean().default(false),
-  }),
-});
-
-const getTranscripts = z.object({
-  total_count: z.number(),
-  data: z.array(
-    z.object({
-      transcriptId: z.string(),
-      domainId: z.string(),
-      roomId: z.string(),
-      mtgSessionId: z.string(),
-      duration: z.number(),
-      status: z.string(),
-    })
-  ),
-});
-
-const getRooms = z
-  .object({
-    id: z.string(),
-  })
-  .passthrough();
+import {
+  dailyReturnTypeSchema,
+  getTranscripts,
+  getBatchProcessJobs,
+  getRooms,
+  meetingTokenSchema,
+  ZGetMeetingTokenResponseSchema,
+} from "./types";
 
 export interface DailyEventResult {
   id: string;
@@ -70,10 +41,6 @@ export interface DailyVideoCallData {
   password: string;
   url: string;
 }
-
-const meetingTokenSchema = z.object({
-  token: z.string(),
-});
 
 /** @deprecated use metadata on index file */
 export const FAKE_DAILY_CREDENTIAL: CredentialPayload & { invalid: boolean } = {
@@ -134,6 +101,21 @@ async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   return allTranscriptsAccessLinks;
 }
 
+export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToken: string | null) => {
+  if (!meetingToken) return null;
+
+  const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  const guestMeetingToken = await postToDailyAPI("/meeting-tokens", {
+    properties: {
+      room_name: token.room_name,
+      exp: token.exp,
+      enable_recording_ui: false,
+    },
+  }).then(meetingTokenSchema.parse);
+
+  return guestMeetingToken.token;
+};
+
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
@@ -142,7 +124,12 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
     const body = await translateEvent(event);
     const dailyEvent = await postToDailyAPI(endpoint, body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+        enable_recording_ui: false,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -191,6 +178,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createInstantMeeting(endTime: string) {
     // added a 1 hour buffer for room expiration
     const exp = Math.round(new Date(endTime).getTime() / 1000) + 60 * 60;
+    const { scale_plan: scalePlan } = await getDailyAppKeys();
+
+    const isScalePlanTrue = scalePlan === "true";
 
     const body = {
       privacy: "public",
@@ -200,15 +190,25 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
         enable_screenshare: true,
         enable_chat: true,
         exp: exp,
-        enable_recording: "cloud",
+        enable_recording: isScalePlanTrue ? "cloud" : undefined,
         start_video_off: true,
-        enable_transcription_storage: true,
+        enable_transcription_storage: isScalePlanTrue,
+        ...(!!isScalePlanTrue && {
+          permissions: {
+            canAdmin: ["transcription"],
+          },
+        }),
       },
     };
 
     const dailyEvent = await postToDailyAPI("/rooms", body).then(dailyReturnTypeSchema.parse);
     const meetingToken = await postToDailyAPI("/meeting-tokens", {
-      properties: { room_name: dailyEvent.name, exp: dailyEvent.config.exp, is_owner: true },
+      properties: {
+        room_name: dailyEvent.name,
+        exp: dailyEvent.config.exp,
+        is_owner: true,
+        enable_recording_ui: false,
+      },
     }).then(meetingTokenSchema.parse);
 
     return Promise.resolve({
@@ -270,6 +270,53 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
       } catch (err) {
         console.log("err", err);
         throw new Error("Something went wrong! Unable to get transcription access link");
+      }
+    },
+    submitBatchProcessorJob: async (body: batchProcessorBody): Promise<TSubmitBatchProcessorJobRes> => {
+      try {
+        const batchProcessorJob = await postToDailyAPI("/batch-processor", body).then(
+          ZSubmitBatchProcessorJobRes.parse
+        );
+        return batchProcessorJob;
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! Unable to submit batch processor job");
+      }
+    },
+    getTranscriptsAccessLinkFromRecordingId: async (
+      recordingId: string
+    ): Promise<TGetTranscriptAccessLink["transcription"] | { message: string }> => {
+      try {
+        const batchProcessorJobs = await fetcher(`/batch-processor?recordingId=${recordingId}`).then(
+          getBatchProcessJobs.parse
+        );
+        if (!batchProcessorJobs.data.length) {
+          return { message: `No Batch processor jobs found for recording id ${recordingId}` };
+        }
+
+        const transcriptJobId = batchProcessorJobs.data.filter(
+          (job) => job.preset === "transcript" && job.status === "finished"
+        )?.[0]?.id;
+
+        if (!transcriptJobId) return [];
+
+        const accessLinkRes = await fetcher(`/batch-processor/${transcriptJobId}/access-link`).then(
+          ZGetTranscriptAccessLink.parse
+        );
+
+        return accessLinkRes.transcription;
+      } catch (err) {
+        console.log("err", err);
+        throw new Error("Something went wrong! can't get transcripts");
+      }
+    },
+    checkIfRoomNameMatchesInRecording: async (roomName: string, recordingId: string): Promise<boolean> => {
+      try {
+        const recording = await fetcher(`/recordings/${recordingId}`).then(recordingItemSchema.parse);
+        return recording.room_name === roomName;
+      } catch (err) {
+        console.error("err", err);
+        throw new Error(`Something went wrong! Unable to checkIfRoomNameMatchesInRecording. ${err}`);
       }
     },
   };

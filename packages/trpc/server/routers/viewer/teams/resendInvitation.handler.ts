@@ -4,7 +4,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { checkPermissions, getTeamOrThrow } from "./inviteMember/utils";
+import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
 import type { TResendInvitationInputSchema } from "./resendInvitation.schema";
 
 type InviteMemberOptions = {
@@ -17,7 +17,7 @@ type InviteMemberOptions = {
 export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId);
 
-  await checkPermissions({
+  await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
