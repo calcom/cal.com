@@ -3,7 +3,7 @@ import type z from "zod";
 
 import type { AppsStatus } from "@calcom/types/Calendar";
 
-import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking";
+import type { Booking, NewBookingEventType, OriginalRescheduledBooking } from "../handleNewBooking/types";
 import type {
   RescheduleReason,
   NoEmail,
