@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import type { PrismaClient } from "@calcom/prisma";
+import { BookingStatus, MembershipRole, PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -144,4 +145,148 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
 
     return discoveredFields;
   }, {} as Record<string, true>);
+}
+
+type Host = {
+  userId: number;
+  isFixed?: boolean | undefined;
+  priority?: number | null | undefined;
+  weight?: number | null | undefined;
+};
+
+type User = {
+  id: number;
+  email: string;
+};
+
+export async function addWeightAdjustmentToNewHosts({
+  hosts,
+  previousRRHosts,
+  isWeightsEnabled,
+  eventTypeId,
+  prisma,
+}: {
+  hosts: Host[];
+  previousRRHosts: { user: User }[];
+  isWeightsEnabled: boolean;
+  eventTypeId: number;
+  prisma: PrismaClient;
+}): Promise<(Host & { weightAdjustment?: number })[]> {
+  if (!isWeightsEnabled) return hosts;
+
+  // to also have the user email to check for attendees
+  const hostsWithUserData = await prisma.host.findMany({
+    where: {
+      userId: {
+        in: hosts.map((host) => host.userId),
+      },
+      eventTypeId,
+    },
+    select: {
+      user: {
+        select: {
+          email: true,
+          id: true,
+        },
+      },
+      isFixed: true,
+      weightAdjustment: true,
+    },
+  });
+
+  const ongoingRRHosts = hostsWithUserData.filter(
+    (host) =>
+      !host.isFixed &&
+      previousRRHosts.some((prevHost) => {
+        return prevHost.user.id === host.user.id;
+      })
+  );
+
+  if (ongoingRRHosts.length === hosts.length) {
+    //no new RR host was added
+    return hosts;
+  }
+
+  const allBookingsOngoingHosts = await getAllBookingsOfUsers({
+    users: ongoingRRHosts.map((host) => {
+      return { id: host.user.id, email: host.user.email };
+    }),
+    eventTypeId,
+    prisma,
+  });
+
+  const allWeightAdjustments = ongoingRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
+
+  const hostsWithWeightAdjustments = await Promise.all(
+    hosts.map(async (host) => {
+      const newRRHost = hostsWithUserData.find(
+        (hostUser) =>
+          hostUser.user.id === host.userId &&
+          !ongoingRRHosts.some((ongoingHost) => ongoingHost.user.id === host.userId)
+      );
+
+      let weightAdjustment = 0;
+
+      if (newRRHost) {
+        // host can already have bookings, if they ever was assigned before
+        const existingBookings = await getAllBookingsOfUsers({
+          users: [{ id: newRRHost.user.id, email: newRRHost.user.email }],
+          eventTypeId,
+          prisma,
+        });
+
+        weightAdjustment =
+          (allBookingsOngoingHosts.length + allWeightAdjustments) / ongoingRRHosts.length -
+          existingBookings.length;
+      }
+
+      return {
+        ...host,
+        weightAdjustment: weightAdjustment > 0 ? Math.floor(weightAdjustment) : 0,
+      };
+    })
+  );
+
+  return hostsWithWeightAdjustments;
+}
+
+async function getAllBookingsOfUsers({
+  users,
+  eventTypeId,
+  prisma,
+}: {
+  users: { id: number; email: string }[];
+  eventTypeId: number;
+  prisma: PrismaClient;
+}) {
+  const allBookings = await prisma.booking.findMany({
+    where: {
+      eventTypeId,
+      status: BookingStatus.ACCEPTED,
+      OR: [
+        {
+          user: {
+            id: {
+              in: users.map((user) => user.id),
+            },
+          },
+        },
+        {
+          attendees: {
+            some: {
+              email: {
+                in: users.map((user) => user.email),
+              },
+            },
+          },
+        },
+      ],
+    },
+    select: {
+      attendees: true,
+      userId: true,
+    },
+  });
+
+  return allBookings;
 }

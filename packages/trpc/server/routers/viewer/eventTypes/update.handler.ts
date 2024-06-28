@@ -9,14 +9,19 @@ import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
 import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
-import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
+import {
+  addWeightAdjustmentToNewHosts,
+  ensureUniqueBookingFields,
+  handleCustomInputs,
+  handlePeriodType,
+} from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -246,15 +251,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
-    let hostWithWeightAdjustment: {
-      userId: number;
-      profileId?: number | null | undefined;
-      isFixed?: boolean | undefined;
-      priority?: number | null | undefined;
-      weight?: number | null | undefined;
-      weightAdjustment?: number;
-    }[] = hosts;
-
     const previousRRHosts = await ctx.prisma.host.findMany({
       where: {
         eventTypeId: id,
@@ -263,95 +259,24 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       select: {
         user: {
           select: {
+            id: true,
             email: true,
           },
         },
-        userId: true,
         weightAdjustment: true,
       },
     });
 
-    // add weightAdjustment for all new rr hosts
-    if (isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled)) {
-      // find all new rr hosts to set rrWeightAdjustment
-      const newRRHosts = hosts
-        .filter(
-          (host) => !host.isFixed && !previousRRHosts.find((prevHost) => prevHost.userId === host.userId)
-        )
-        .map((host) => ({
-          weight: host.weight,
-          userId: host.userId,
-        }));
+    const isWeightsEnabled =
+      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-      if (newRRHosts.length) {
-        // to also have the user email to check for attendees
-        const hostsWithUserData = await ctx.prisma.host.findMany({
-          where: {
-            userId: {
-              in: hosts.map((host) => host.userId),
-            },
-            eventTypeId: id,
-          },
-          select: {
-            user: {
-              select: {
-                email: true,
-                id: true,
-              },
-            },
-            weightAdjustment: true,
-          },
-        });
-
-        const continuingHosts = hostsWithUserData.filter(
-          (host) => !newRRHosts.find((newHost) => newHost.userId === host.user.id)
-        );
-
-        // all accepted bookings of event type assigned host that were already hosts before
-        const allBookings = await ctx.prisma.booking.findMany({
-          where: {
-            eventTypeId: id,
-            status: BookingStatus.ACCEPTED,
-            OR: [
-              {
-                user: {
-                  id: {
-                    in: continuingHosts.map((host) => host.user.id),
-                  },
-                },
-              },
-              {
-                attendees: {
-                  some: {
-                    email: {
-                      in: continuingHosts.map((host) => host.user.email),
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        });
-
-        const totalWeight = hosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
-
-        const allWeightAdjustments = continuingHosts.reduce(
-          (sum, host) => sum + (host.weightAdjustment ?? 0),
-          0
-        );
-
-        hostWithWeightAdjustment = hosts.map((host) => {
-          const newRRHost = newRRHosts.find((newHost) => host.userId === host.userId);
-
-          const weightAdjustment = newRRHost.adjustedWeight ?? 0;
-
-          return {
-            ...host,
-            weightAdjustment,
-          };
-        });
-      }
-    }
+    const hostWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
+      hosts,
+      previousRRHosts,
+      isWeightsEnabled,
+      eventTypeId: id,
+      prisma: ctx.prisma,
+    });
 
     data.hosts = {
       deleteMany: {},
@@ -359,7 +284,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         const { ...rest } = host;
 
         const previousAdjustedWeight = previousRRHosts.find(
-          (prevHost) => prevHost.userId === host.userId
+          (prevHost) => prevHost.user.id === host.userId
         )?.weightAdjustment;
 
         return {

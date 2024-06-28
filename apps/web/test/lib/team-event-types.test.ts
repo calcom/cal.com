@@ -4,6 +4,7 @@ import { expect, it, describe } from "vitest";
 
 import { getLuckyUser } from "@calcom/lib/server";
 import { buildUser, buildBooking } from "@calcom/lib/test/builder";
+import { addWeightAdjustmentToNewHosts } from "@calcom/trpc/server/routers/viewer/eventTypes/util";
 
 it("can find lucky user with maximize availability", async () => {
   const user1 = buildUser({
@@ -473,5 +474,211 @@ describe("maximize availability and weights", () => {
         allRRHosts,
       })
     ).resolves.toStrictEqual(user1);
+  });
+});
+
+function convertHostsToUsers(
+  hosts: {
+    user: { id: number; email: string };
+    isFixed: boolean;
+    priority: number;
+    weight: number;
+    weightAdjustment?: number;
+  }[]
+) {
+  return hosts.map((host) => {
+    return {
+      userId: host.user.id,
+      isFixed: host.isFixed,
+      priority: host.priority,
+      weight: host.weight,
+    };
+  });
+}
+
+describe("addWeightAdjustmentToNewHosts", () => {
+  it("weight adjustment is correctly added to host with two hosts that have the same weight", async () => {
+    const hosts = [
+      {
+        user: {
+          id: 1,
+          email: "test1@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+      {
+        user: {
+          id: 2,
+          email: "test2@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+    ];
+
+    const users = convertHostsToUsers(hosts);
+
+    //test2 is a new host
+    const previousRRHosts = [hosts[0]];
+
+    // mock for hostsWithUserData
+    prismaMock.host.findMany.mockResolvedValue(hosts);
+
+    // mock for allBookings (for ongoing RR hosts)
+    prismaMock.booking.findMany
+      .mockResolvedValueOnce([
+        buildBooking({
+          id: 1,
+          userId: 1,
+        }),
+        buildBooking({
+          id: 2,
+          userId: 1,
+        }),
+        buildBooking({
+          id: 3,
+          userId: 1,
+        }),
+        buildBooking({
+          id: 4,
+          userId: 1,
+        }),
+      ])
+      // mock for bookings of new RR host
+      .mockResolvedValueOnce([
+        buildBooking({
+          id: 5,
+          userId: 2,
+        }),
+      ]);
+
+    const hostsWithAdjustedWeight = await addWeightAdjustmentToNewHosts({
+      hosts: users,
+      previousRRHosts,
+      isWeightsEnabled: true,
+      eventTypeId: 1,
+      prisma: prismaMock,
+    });
+
+    /*
+    both users have weight 100, user1 has 4 bookings user 2 has 1 bookings already
+    */
+    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
+  });
+
+  it("weight adjustment is correctly added to host with several hosts that have different weights", async () => {
+    const hosts = [
+      {
+        user: {
+          id: 1,
+          email: "test1@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+      {
+        user: {
+          id: 2,
+          email: "test2@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+      {
+        user: {
+          id: 3,
+          email: "test3@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+      {
+        user: {
+          id: 4,
+          email: "test4@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+      {
+        user: {
+          id: 5,
+          email: "test5@example.com",
+        },
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+      },
+    ];
+
+    const users = convertHostsToUsers(hosts);
+
+    //test2 and test 5 are new hosts
+    const previousRRHosts = [hosts[0], hosts[2], hosts[3]];
+
+    // mock for hostsWithUserData
+    prismaMock.host.findMany.mockResolvedValue(hosts);
+
+    // mock for allBookings (for ongoing RR hosts)
+    prismaMock.booking.findMany
+      .mockResolvedValueOnce([
+        buildBooking({
+          id: 1,
+          userId: 1,
+        }),
+        buildBooking({
+          id: 2,
+          userId: 1,
+        }),
+        buildBooking({
+          id: 3,
+          userId: 2,
+        }),
+        buildBooking({
+          id: 4,
+          userId: 2,
+        }),
+        buildBooking({
+          id: 4,
+          userId: 3,
+        }),
+        buildBooking({
+          id: 4,
+          userId: 3,
+        }),
+        buildBooking({
+          id: 4,
+          userId: 4,
+        }),
+      ])
+      // mock for bookings of new RR host
+      .mockResolvedValueOnce([
+        buildBooking({
+          id: 5,
+          userId: 2,
+        }),
+      ])
+      .mockResolvedValue([]);
+
+    const hostsWithAdjustedWeight = await addWeightAdjustmentToNewHosts({
+      hosts: users,
+      previousRRHosts,
+      isWeightsEnabled: true,
+      eventTypeId: 1,
+      prisma: prismaMock,
+    });
+
+    // 7 bookings overall, 3 previous hosts --> average 2.33 bookings, user 2 already has 1 bookings --> 1 weight adjustment
+    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(1);
+
+    // 7 bookings overall, 3 previous hosts --> average 2.33 bookings, user 5 has no bookings yet --> 2 weight adjustment
+    expect(hostsWithAdjustedWeight.find((host) => host.userId === 5)?.weightAdjustment).toBe(2);
   });
 });
