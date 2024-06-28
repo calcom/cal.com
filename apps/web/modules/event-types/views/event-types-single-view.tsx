@@ -402,12 +402,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
 
-      // Check if event is managed event type - skip if there is assigned users
-      const assignedUsers = eventType.children;
+      // Use form values as that is what is updated onSuccess - eventType is not inSync
+      const assignedUsers = formMethods.getValues("children");
+      const assignAllTeamMembers = formMethods.getValues("assignAllTeamMembers");
       const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-      if (eventType.assignAllTeamMembers) {
-        return;
-      } else if (isManagedEventType && assignedUsers.length > 0) {
+
+      // Skip if event is managed event type - skip if there is assigned users or assignAllTeamMembers is true
+      if (isManagedEventType && (assignAllTeamMembers || assignedUsers.length > 0)) {
         return;
       }
 
