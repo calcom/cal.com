@@ -88,29 +88,22 @@ jobs:
   type-check:
     name: Type check
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/check-types.yml
     secrets: inherit
 
   lint:
     name: Linters
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/lint.yml
     secrets: inherit
 
   unit-test:
     name: Tests
     needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
-    secrets: inherit
-
-  integration-test:
-    name: Tests
-    needs: [changes, check-label]
-    if: ${{ github.event.action != 'labeled' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration-tests.yml
     secrets: inherit
 
   build-api-v1:
@@ -134,30 +127,37 @@ jobs:
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
+  integration-test:
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
   e2e:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
     name: Tests
-    needs: [changes, check-label, build]
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -170,6 +170,7 @@ jobs:
 
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed

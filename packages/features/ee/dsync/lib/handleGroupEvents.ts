@@ -5,7 +5,6 @@ import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAn
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import {
   getTeamOrThrow,
   sendSignupToOrganizationEmail,
@@ -115,7 +114,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         newUserEmails.map((email) => {
           return sendSignupToOrganizationEmail({
             usernameOrEmail: email,
-            team: { ...group.team, metadata: teamMetadataSchema.parse(group.team.metadata) },
+            team: group.team,
             translation,
             inviterName: org.name,
             teamId: group.teamId,
