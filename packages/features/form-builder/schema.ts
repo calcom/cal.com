@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-import { HARD_LIMIT_MAX_LENGTH } from "@calcom/features/bookings/lib/constants";
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
@@ -96,7 +95,6 @@ const baseFieldSchema = z.object({
   /**
    * It is the maximum number of characters that can be entered in the field.
    * It is used for types with `supportsLengthCheck= true`.
-   * @default HARD_LIMIT_MAX_LENGTH
    * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
@@ -133,7 +131,11 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
-    supportsLengthCheck: z.boolean().default(false).optional(),
+    supportsLengthCheck: z
+      .object({
+        maxLength: z.number(),
+      })
+      .optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -341,8 +343,13 @@ export const fieldTypesSchemaMap: Partial<
       return response.trim();
     },
     superRefine: ({ field, response, ctx, m }) => {
+      const fieldTypeConfig = fieldTypesConfigMap[field.type];
       const value = response ?? "";
-      const hasExceededMaxLength = value.length > (field.maxLength ?? HARD_LIMIT_MAX_LENGTH);
+      const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;
+      if (!maxLength) {
+        throw new Error("maxLength must be there for textarea field");
+      }
+      const hasExceededMaxLength = value.length > maxLength;
       const hasNotReachedMinLength = value.length < (field.minLength ?? 0);
       if (hasExceededMaxLength) {
         ctx.addIssue({

@@ -5,8 +5,6 @@ import { dbReadResponseSchema, fieldTypesSchemaMap } from "@calcom/features/form
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import { bookingResponses, emailSchemaRefinement } from "@calcom/prisma/zod-utils";
 
-import { HARD_LIMIT_MAX_LENGTH } from "./constants";
-
 // eslint-disable-next-line @typescript-eslint/ban-types
 type View = ALL_VIEWS | (string & {});
 type BookingFields = (z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">) | null;
@@ -113,10 +111,7 @@ function preprocess<T extends z.ZodType>({
       }
       for (const bookingField of bookingFields) {
         const value = responses[bookingField.name];
-        let stringSchema = z.string();
-        const minLength = bookingField.minLength ?? 0;
-        const maxLength = bookingField.maxLength ?? HARD_LIMIT_MAX_LENGTH;
-        stringSchema = stringSchema.min(minLength).max(maxLength);
+        const stringSchema = z.string();
         const emailSchema = isPartialSchema ? z.string() : z.string().refine(emailSchemaRefinement);
         const phoneSchema = isPartialSchema
           ? z.string()

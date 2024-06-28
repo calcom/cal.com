@@ -1,7 +1,5 @@
 import { expect } from "@playwright/test";
 
-import { HARD_LIMIT_MAX_LENGTH } from "@calcom/features/bookings/lib/constants";
-
 import { test } from "./lib/fixtures";
 import { createNewEventType } from "./lib/testUtils";
 
@@ -96,14 +94,13 @@ test.describe("Text area min and max characters text", () => {
       let validationMessage = await minInput?.evaluate((input: any) => input?.validationMessage as string);
       expect(validationMessage).toBe("Value must be less than or equal to 5.");
 
-      // Edit the max value to be greater HARD_LIMIT_MAX_LENGTH
       await page.fill(minLengthSelector, "0");
       await page.fill(maxLengthSelector, "100000");
       await saveQuestion();
       // Expect the native <input> element to show an error message
 
       validationMessage = await maxInput?.evaluate((input: any) => input?.validationMessage as string);
-      expect(validationMessage).toBe(`Value must be less than or equal to ${HARD_LIMIT_MAX_LENGTH}.`);
+      expect(validationMessage).toBe(`Value must be less than or equal to 4000.`);
       await cancelQuestion();
       // Save the event type
       await page.locator("[data-testid=update-eventtype]").click();

@@ -4,7 +4,6 @@ import type { SubmitHandler, UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
-import { HARD_LIMIT_MAX_LENGTH } from "@calcom/features/bookings/lib/constants";
 import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -512,7 +511,7 @@ function FieldEditDialog({
                       />
                     ) : null}
 
-                    {fieldType?.supportsLengthCheck ? (
+                    {!!fieldType?.supportsLengthCheck ? (
                       <div className="grid grid-cols-2 gap-4">
                         {/* Min characters */}
                         <InputField
@@ -528,26 +527,29 @@ function FieldEditDialog({
                             fieldForm.trigger("maxLength");
                           }}
                           min={0}
-                          max={fieldForm.getValues("maxLength") || HARD_LIMIT_MAX_LENGTH}
+                          max={fieldForm.getValues("maxLength") || fieldType.supportsLengthCheck.maxLength}
                         />
                         {/* Max characters */}
                         <InputField
                           {...fieldForm.register("maxLength", {
                             valueAsNumber: true,
                           })}
-                          defaultValue={HARD_LIMIT_MAX_LENGTH}
+                          defaultValue={fieldType.supportsLengthCheck.maxLength}
                           containerClassName="mt-6"
                           label={t("max_characters")}
                           type="number"
                           onChange={(e) => {
+                            if (!fieldType.supportsLengthCheck) {
+                              return;
+                            }
                             fieldForm.setValue(
                               "maxLength",
-                              parseInt(e.target.value ?? HARD_LIMIT_MAX_LENGTH)
+                              parseInt(e.target.value ?? fieldType.supportsLengthCheck.maxLength)
                             );
                             fieldForm.trigger("minLength");
                           }}
                           min={fieldForm.getValues("minLength") || 0}
-                          max={HARD_LIMIT_MAX_LENGTH}
+                          max={fieldType.supportsLengthCheck.maxLength}
                         />
                       </div>
                     ) : null}
