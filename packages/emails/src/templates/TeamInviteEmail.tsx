@@ -234,7 +234,7 @@ export const TeamInviteEmail = (
             </Trans>
           ) : (
             <Trans i18nKey="email_team_invite|content|invited_to_subteam">
-              {invitedBy} has added you to the team <strong>{teamName}</strong> in their organization{" "}
+              {invitedBy} has invited you to the team <strong>{teamName}</strong> in their organization{" "}
               <strong>{parentTeamName}</strong>.
             </Trans>
           )}{" "}
