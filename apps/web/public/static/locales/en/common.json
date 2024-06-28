@@ -1923,7 +1923,7 @@
   "members_default_schedule_description": "We will use each members default availability schedule. They will be able to edit or change it.",
   "requires_at_least_one_schedule": "You are required to have at least one schedule",
   "default_conferencing_bulk_description": "Update the locations for the selected event types",
-  "default_timezone_bulk_description": "Update the locations for the selected event types",
+  "default_timezone_bulk_description": "Update the timezone for selected availabilities.",
   "locked_for_members": "Locked for members",
   "unlocked_for_members": "Unlocked for members",
   "apps_locked_for_members_description": "Members will be able to see the active apps but will not be able to edit any app settings",
