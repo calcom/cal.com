@@ -2,7 +2,6 @@ import { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { keyBy } from "lodash";
 import type { GetServerSidePropsContext, NextApiResponse } from "next";
-import { v4 as uuidv4 } from "uuid";
 
 import stripe from "@calcom/app-store/stripepayment/lib/server";
 import { getPremiumMonthlyPlanPriceId } from "@calcom/app-store/stripepayment/lib/utils";
@@ -12,6 +11,7 @@ import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
+import { uploadAvatar } from "@calcom/lib/server/avatar";
 import { checkUsername } from "@calcom/lib/server/checkUsername";
 import { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";
 import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
@@ -24,7 +24,6 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
-import { getDefaultScheduleId } from "../viewer/availability/util";
 import { updateUserMetadataAllowedKeys, type TUpdateProfileInputSchema } from "./updateProfile.schema";
 
 const log = logger.getSubLogger({ prefix: ["updateProfile"] });
@@ -36,39 +35,13 @@ type UpdateProfileOptions = {
   input: TUpdateProfileInputSchema;
 };
 
-export const uploadAvatar = async ({ userId, avatar: data }: { userId: number; avatar: string }) => {
-  const objectKey = uuidv4();
-
-  await prisma.avatar.upsert({
-    where: {
-      teamId_userId_isBanner: {
-        teamId: 0,
-        userId,
-        isBanner: false,
-      },
-    },
-    create: {
-      userId: userId,
-      data,
-      objectKey,
-      isBanner: false,
-    },
-    update: {
-      data,
-      objectKey,
-    },
-  });
-
-  return `/api/avatar/${objectKey}.png`;
-};
-
 export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions) => {
   const { user } = ctx;
   const userMetadata = handleUserMetadata({ ctx, input });
   const locale = input.locale || user.locale;
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
-  const { travelSchedules, ...rest } = input;
+  const { travelSchedules, availabilityIds, ...rest } = input;
 
   const secondaryEmails = input?.secondaryEmails || [];
   delete input.secondaryEmails;
@@ -283,24 +256,11 @@ export const updateProfileHandler = async ({ ctx, input }: UpdateProfileOptions)
   }
 
   if (user.timeZone !== data.timeZone && updatedUser.schedules.length > 0) {
-    // on timezone change update timezone of default schedule
-    const defaultScheduleId = await getDefaultScheduleId(user.id, prisma);
-
-    if (!user.defaultScheduleId) {
-      // set default schedule if not already set
-      await prisma.user.update({
-        where: {
-          id: user.id,
-        },
-        data: {
-          defaultScheduleId,
-        },
-      });
-    }
-
     await prisma.schedule.updateMany({
       where: {
-        id: defaultScheduleId,
+        id: {
+          in: input.availabilityIds,
+        },
       },
       data: {
         timeZone: data.timeZone,

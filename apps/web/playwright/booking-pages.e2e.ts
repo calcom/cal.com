@@ -47,6 +47,13 @@ test("check SSR and OG - User Event Type", async ({ page, users }) => {
   const canonicalLink = document.querySelector('link[rel="canonical"]')?.getAttribute("href");
   expect(titleText).toContain(name);
   expect(ogUrl).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
+  const avatarLocators = await page.locator('[data-testid="avatar-href"]').all();
+  expect(avatarLocators.length).toBe(1);
+
+  for (const avatarLocator of avatarLocators) {
+    expect(await avatarLocator.getAttribute("href")).toEqual(`${WEBAPP_URL}/${user.username}?redirect=false`);
+  }
+
   expect(canonicalLink).toEqual(`${WEBAPP_URL}/${user.username}/30-min`);
   // Verify that there is correct URL that would generate the awesome OG image
   expect(ogImage).toContain(
@@ -144,6 +151,13 @@ testBothFutureAndLegacyRoutes.describe("pro user", () => {
     await page.goto(`${pro.username}/${pro.eventTypes[1].slug}?rescheduleUid=${bookingFixture.uid}`);
 
     await expect(page).toHaveURL(new RegExp(`${pro.username}/${eventType.slug}`));
+  });
+
+  test("it returns a 404 when a requested event type does not exist", async ({ page, users }) => {
+    const [pro] = users.get();
+    const unexistingPageUrl = new URL(`${pro.username}/invalid-event-type`, WEBAPP_URL);
+    const response = await page.goto(unexistingPageUrl.href);
+    expect(response?.status()).toBe(404);
   });
 
   test("Can cancel the recently created booking and rebook the same timeslot", async ({
@@ -470,13 +484,17 @@ testBothFutureAndLegacyRoutes.describe("Booking round robin event", () => {
         schedulingType: SchedulingType.ROUND_ROBIN,
         teamEventLength: 120,
         teammates: teamMatesObj,
+        seatsPerTimeSlot: 5,
       }
     );
     const team = await testUser.getFirstTeamMembership();
     await page.goto(`/team/${team.team.slug}`);
   });
 
-  test("Does not book round robin host outside availability with date override", async ({ page, users }) => {
+  test("Does not book seated round robin host outside availability with date override", async ({
+    page,
+    users,
+  }) => {
     const [testUser] = users.get();
     await testUser.apiLogin();
 

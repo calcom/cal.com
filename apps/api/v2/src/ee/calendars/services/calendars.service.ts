@@ -1,3 +1,4 @@
+import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
   CredentialsWithUserEmail,
@@ -11,21 +12,27 @@ import {
   UnauthorizedException,
   NotFoundException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { User } from "@prisma/client";
 import { DateTime } from "luxon";
+import { z } from "zod";
 
-import { getConnectedDestinationCalendars } from "@calcom/platform-libraries";
-import { getBusyCalendarTimes } from "@calcom/platform-libraries";
+import { getConnectedDestinationCalendars } from "@calcom/platform-libraries-0.0.2";
+import { getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.2";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
 export class CalendarsService {
+  private oAuthCalendarResponseSchema = z.object({ client_id: z.string(), client_secret: z.string() });
+
   constructor(
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
+    private readonly appsRepository: AppsRepository,
     private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private readonly config: ConfigService
   ) {}
 
   async getCalendars(userId: number) {
@@ -109,5 +116,25 @@ export class CalendarsService {
       };
     });
     return composedSelectedCalendars;
+  }
+
+  async getAppKeys(appName: string) {
+    const app = await this.appsRepository.getAppBySlug(appName);
+
+    if (!app) {
+      throw new NotFoundException();
+    }
+
+    const { client_id, client_secret } = this.oAuthCalendarResponseSchema.parse(app.keys);
+
+    if (!client_id) {
+      throw new NotFoundException();
+    }
+
+    if (!client_secret) {
+      throw new NotFoundException();
+    }
+
+    return { client_id, client_secret };
   }
 }
