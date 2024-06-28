@@ -105,7 +105,8 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
     value: "textarea",
     isTextType: true,
     supportsLengthCheck: {
-      maxLength: 4000,
+      // Keep it as small as possible. It is easier to change to a higher value but coming back to a lower value(due to any reason) would be problematic for users who have saved higher value.
+      maxLength: 1000,
     },
   },
   select: {
