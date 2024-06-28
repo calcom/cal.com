@@ -43,6 +43,19 @@ type CreateBookingParams = {
   changedOrganizer: boolean;
 };
 
+function updateEventDetails(
+  evt: CalendarEvent,
+  originalRescheduledBooking: OriginalRescheduledBooking | null,
+  changedOrganizer: boolean
+) {
+  if (originalRescheduledBooking) {
+    evt.title = originalRescheduledBooking?.title || evt.title;
+    evt.description = originalRescheduledBooking?.description || evt.description;
+    evt.location = originalRescheduledBooking?.location || evt.location;
+    evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
+  }
+}
+
 export async function createBooking({
   originalRescheduledBooking,
   evt,
@@ -62,37 +75,83 @@ export async function createBooking({
   paymentAppData,
   changedOrganizer,
 }: CreateBookingParams) {
-  if (originalRescheduledBooking) {
-    evt.title = originalRescheduledBooking?.title || evt.title;
-    evt.description = originalRescheduledBooking?.description || evt.description;
-    evt.location = originalRescheduledBooking?.location || evt.location;
-    evt.location = changedOrganizer ? evt.location : originalRescheduledBooking?.location || evt.location;
-  }
+  updateEventDetails(evt, originalRescheduledBooking, changedOrganizer);
 
-  const eventTypeRel = !eventTypeId
-    ? {}
-    : {
-        connect: {
-          id: eventTypeId,
-        },
-      };
-
-  const dynamicEventSlugRef = !eventTypeId ? eventTypeSlug : null;
-  const dynamicGroupSlugRef = !eventTypeId ? (reqBodyUser as string).toLowerCase() : null;
-
-  const attendeesData = evt.attendees.map((attendee) => {
-    //if attendee is team member, it should fetch their locale not booker's locale
-    //perhaps make email fetch request to see if his locale is stored, else
-    return {
-      name: attendee.name,
-      email: attendee.email,
-      timeZone: attendee.timeZone,
-      locale: attendee.language.locale,
-    };
+  const newBookingData = buildNewBookingData({
+    uid,
+    evt,
+    responses,
+    isConfirmedByDefault,
+    reqBodyMetadata,
+    smsReminderNumber,
+    eventTypeSlug,
+    organizerUser,
+    reqBodyRecurringEventId,
+    originalRescheduledBooking,
+    bookerEmail,
+    rescheduleReason,
+    eventType,
+    eventTypeId,
+    reqBodyUser,
   });
 
+  return await saveBooking(newBookingData, originalRescheduledBooking, paymentAppData, organizerUser);
+}
+
+async function saveBooking(
+  newBookingData: Prisma.BookingCreateInput,
+  originalRescheduledBooking: OriginalRescheduledBooking,
+  paymentAppData: PaymentAppData,
+  organizerUser: CreateBookingParams["organizerUser"]
+) {
+  const createBookingObj = {
+    include: {
+      user: {
+        select: { email: true, name: true, timeZone: true, username: true },
+      },
+      attendees: true,
+      payment: true,
+      references: true,
+    },
+    data: newBookingData,
+  };
+
+  if (originalRescheduledBooking?.paid && originalRescheduledBooking?.payment) {
+    const bookingPayment = originalRescheduledBooking.payment.find((payment) => payment.success);
+    if (bookingPayment) {
+      createBookingObj.data.payment = { connect: { id: bookingPayment.id } };
+    }
+  }
+
+  if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
+    await prisma.credential.findFirstOrThrow({
+      where: {
+        appId: paymentAppData.appId,
+        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
+      },
+      select: { id: true },
+    });
+  }
+
+  return prisma.booking.create(createBookingObj);
+}
+
+function getEventTypeRel(eventTypeId: EventTypeId) {
+  return eventTypeId ? { connect: { id: eventTypeId } } : {};
+}
+
+function getAttendeesData(evt: Pick<CalendarEvent, "attendees" | "team">) {
+  //if attendee is team member, it should fetch their locale not booker's locale
+  //perhaps make email fetch request to see if his locale is stored, else
+  const attendees = evt.attendees.map((attendee) => ({
+    name: attendee.name,
+    email: attendee.email,
+    timeZone: attendee.timeZone,
+    locale: attendee.language.locale,
+  }));
+
   if (evt.team?.members) {
-    attendeesData.push(
+    attendees.push(
       ...evt.team.members.map((member) => ({
         email: member.email,
         name: member.name,
@@ -101,6 +160,47 @@ export async function createBooking({
       }))
     );
   }
+
+  return attendees;
+}
+
+function buildNewBookingData(params: {
+  uid: short.SUUID;
+  evt: CalendarEvent;
+  responses: ReqBodyWithEnd["responses"] | null;
+  isConfirmedByDefault: IsConfirmedByDefault;
+  reqBodyMetadata: ReqBodyWithEnd["metadata"];
+  smsReminderNumber: AwaitedBookingData["smsReminderNumber"];
+  eventTypeSlug: AwaitedBookingData["eventTypeSlug"];
+  organizerUser: CreateBookingParams["organizerUser"];
+  reqBodyRecurringEventId: ReqBodyWithEnd["recurringEventId"];
+  originalRescheduledBooking: OriginalRescheduledBooking | null;
+  bookerEmail: AwaitedBookingData["email"];
+  rescheduleReason: AwaitedBookingData["rescheduleReason"];
+  eventType: NewBookingEventType;
+  eventTypeId: EventTypeId;
+  reqBodyUser: ReqBodyWithEnd["user"];
+}): Prisma.BookingCreateInput {
+  const {
+    uid,
+    evt,
+    responses,
+    isConfirmedByDefault,
+    reqBodyMetadata,
+    smsReminderNumber,
+    eventTypeSlug,
+    organizerUser,
+    reqBodyRecurringEventId,
+    originalRescheduledBooking,
+    bookerEmail,
+    rescheduleReason,
+    eventType,
+    eventTypeId,
+    reqBodyUser,
+  } = params;
+
+  const attendeesData = getAttendeesData(evt);
+  const eventTypeRel = getEventTypeRel(eventTypeId);
 
   const newBookingData: Prisma.BookingCreateInput = {
     uid,
@@ -121,8 +221,8 @@ export async function createBooking({
         data: attendeesData,
       },
     },
-    dynamicEventSlugRef,
-    dynamicGroupSlugRef,
+    dynamicEventSlugRef: !eventTypeId ? eventTypeSlug : null,
+    dynamicGroupSlugRef: !eventTypeId ? (reqBodyUser as string).toLowerCase() : null,
     iCalUID: evt.iCalUID ?? "",
     user: {
       connect: {
@@ -140,64 +240,28 @@ export async function createBooking({
   if (reqBodyRecurringEventId) {
     newBookingData.recurringEventId = reqBodyRecurringEventId;
   }
+
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
       ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
     };
-    newBookingData["paid"] = originalRescheduledBooking.paid;
-    newBookingData["fromReschedule"] = originalRescheduledBooking.uid;
+    newBookingData.paid = originalRescheduledBooking.paid;
+    newBookingData.fromReschedule = originalRescheduledBooking.uid;
     if (originalRescheduledBooking.uid) {
       newBookingData.cancellationReason = rescheduleReason;
     }
-    if (newBookingData.attendees?.createMany?.data) {
-      // Reschedule logic with booking with seats
-      if (eventType?.seatsPerTimeSlot && bookerEmail) {
-        newBookingData.attendees.createMany.data = attendeesData.filter(
-          (attendee) => attendee.email === bookerEmail
-        );
-      }
+    // Reschedule logic with booking with seats
+    if (newBookingData.attendees?.createMany?.data && eventType?.seatsPerTimeSlot && bookerEmail) {
+      newBookingData.attendees.createMany.data = attendeesData.filter(
+        (attendee) => attendee.email === bookerEmail
+      );
     }
     if (originalRescheduledBooking.recurringEventId) {
       newBookingData.recurringEventId = originalRescheduledBooking.recurringEventId;
     }
   }
 
-  const createBookingObj = {
-    include: {
-      user: {
-        select: { email: true, name: true, timeZone: true, username: true },
-      },
-      attendees: true,
-      payment: true,
-      references: true,
-    },
-    data: newBookingData,
-  };
-
-  if (originalRescheduledBooking?.paid && originalRescheduledBooking?.payment) {
-    const bookingPayment = originalRescheduledBooking?.payment?.find((payment) => payment.success);
-
-    if (bookingPayment) {
-      createBookingObj.data.payment = {
-        connect: { id: bookingPayment.id },
-      };
-    }
-  }
-
-  if (typeof paymentAppData.price === "number" && paymentAppData.price > 0) {
-    /* Validate if there is any payment app credential for this user */
-    await prisma.credential.findFirstOrThrow({
-      where: {
-        appId: paymentAppData.appId,
-        ...(paymentAppData.credentialId ? { id: paymentAppData.credentialId } : { userId: organizerUser.id }),
-      },
-      select: {
-        id: true,
-      },
-    });
-  }
-
-  return prisma.booking.create(createBookingObj);
+  return newBookingData;
 }
 
 export type Booking = Prisma.PromiseReturnType<typeof createBooking>;
