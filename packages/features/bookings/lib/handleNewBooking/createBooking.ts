@@ -243,7 +243,6 @@ function buildNewBookingData(params: {
   if (reqBodyRecurringEventId) {
     newBookingData.recurringEventId = reqBodyRecurringEventId;
   }
-
   if (originalRescheduledBooking) {
     newBookingData.metadata = {
       ...(typeof originalRescheduledBooking.metadata === "object" && originalRescheduledBooking.metadata),
