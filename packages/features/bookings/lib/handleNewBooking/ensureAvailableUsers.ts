@@ -12,7 +12,7 @@ import { checkForConflicts } from "../conflictChecker/checkForConflicts";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { IsFixedAwareUser, BookingType } from "./types";
 
-export type DateRange = {
+type DateRange = {
   start: Dayjs;
   end: Dayjs;
 };
@@ -32,11 +32,19 @@ const hasDateRangeForBooking = (
   startDateTimeUtc: dayjs.Dayjs,
   endDateTimeUtc: dayjs.Dayjs
 ) => {
-  return dateRanges.some(
-    (dateRange) =>
+  let dateRangeForBooking = false;
+
+  for (const dateRange of dateRanges) {
+    if (
       (startDateTimeUtc.isAfter(dateRange.start) || startDateTimeUtc.isSame(dateRange.start)) &&
       (endDateTimeUtc.isBefore(dateRange.end) || endDateTimeUtc.isSame(dateRange.end))
-  );
+    ) {
+      dateRangeForBooking = true;
+      break;
+    }
+  }
+
+  return dateRangeForBooking;
 };
 
 export async function ensureAvailableUsers(
