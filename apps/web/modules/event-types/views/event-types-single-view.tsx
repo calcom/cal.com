@@ -400,6 +400,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
   useEffect(() => {
     const handleRouteChange = (url: string) => {
+      // If navigating to /event-types then skip this so we can leave without assigning hosts
       const paths = url.split("/");
 
       // Use form values as that is what is updated onSuccess - eventType is not inSync
@@ -412,27 +413,34 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         return;
       }
 
-      const hosts = eventType.hosts;
-      if (
-        !leaveWithoutAssigningHosts.current &&
-        !!team &&
-        (hosts.length === 0 || assignedUsers.length === 0) &&
-        (url === "/event-types" || paths[1] !== "event-types")
-      ) {
-        setIsOpenAssignmentWarnDialog(true);
-        setPendingRoute(url);
-        router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
+      const hosts = formMethods.getValues("hosts");
+      // Skip for round-robin
+      const isRoundRobin = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+      if (isRoundRobin) {
+        if (hosts.length > 0 || assignedUsers.length > 0) {
+          return;
+        }
       }
+
+      const isInForm = paths[1] === "event-types" && Boolean(paths[2]);
+      if (isInForm || url.includes("skipConfirmation=true")) {
+        return;
+      }
+
+      setIsOpenAssignmentWarnDialog(true);
+      setPendingRoute(url);
+      router.events.emit(
+        "routeChangeError",
+        new Error(`Aborted route change to ${url} because none was assigned to team event`)
+      );
+      throw "Aborted";
     };
+
     router.events.on("routeChangeStart", handleRouteChange);
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router]);
+  }, [router, eventType.schedulingType]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");

@@ -46,7 +46,8 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
               e.preventDefault();
               setIsOpenAssignmentWarnDialog(false);
               leaveWithoutAssigningHosts.current = true;
-              router.replace(pendingRoute);
+              // Add skipConfirmation to the query string to avoid the confirmation dialog
+              router.replace(`${pendingRoute}?skipConfirmation=true`);
             }}>
             {t("leave_without_assigning")}
           </Button>
