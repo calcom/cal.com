@@ -116,6 +116,38 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
   return guestMeetingToken.token;
 };
 
+// Only for backward compatibility
+export const hideRecordingButtonsForOrganizer = async (
+  bookingReferenceId: number,
+  meetingToken: string | null
+) => {
+  if (!meetingToken) return null;
+
+  const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
+  if (token.enable_recording_ui === false) return null;
+
+  const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
+    properties: {
+      room_name: token.room_name,
+      exp: token.exp,
+      enable_recording_ui: false,
+      is_owner: true,
+    },
+  }).then(meetingTokenSchema.parse);
+
+  // Update the meetingPassword in the database
+  await prisma.bookingReference.update({
+    where: {
+      id: bookingReferenceId,
+    },
+    data: {
+      meetingPassword: organizerMeetingToken.token,
+    },
+  });
+
+  return organizerMeetingToken.token;
+};
+
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
   async function createOrUpdateMeeting(endpoint: string, event: CalendarEvent): Promise<VideoCallData> {
     if (!event.uid) {
