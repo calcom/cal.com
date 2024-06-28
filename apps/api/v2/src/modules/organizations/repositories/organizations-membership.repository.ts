@@ -5,7 +5,7 @@ import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class OrganizationsTeamsRepository {
+export class OrganizationsMembershipRepository {
   constructor(
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,

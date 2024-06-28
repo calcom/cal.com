@@ -3,7 +3,7 @@ import { OrganizationsMembershipRepository } from "@/modules/organizations/repos
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
-export class OrganizationsTeamsService {
+export class OrganizationsMembershipService {
   constructor(private readonly organizationsMembershipRepository: OrganizationsMembershipRepository) {}
 
   async getPaginatedOrgMemberships(organizationId: number, skip = 0, take = 250) {
