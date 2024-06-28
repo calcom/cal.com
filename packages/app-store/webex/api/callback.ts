@@ -18,23 +18,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
   const redirectUri = encodeURI(`${WEBAPP_URL}/api/integrations/${config.slug}/callback`);
-  const authHeader = `Basic ${Buffer.from(`${client_id}:${client_secret}`).toString("base64")}`;
-  const result = await fetch(
-    `https://webexapis.com/v1/access_token?grant_type=authorization_code&client_id=${client_id}&client_secret=${client_secret}&code=${code}&redirect_uri=${redirectUri}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: authHeader,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    }
-  );
+  const params = new URLSearchParams([
+    ["grant_type", "authorization_code"],
+    ["client_id", client_id],
+    ["client_secret", client_secret],
+    ["code", code as string],
+    ["redirect_uri", redirectUri],
+  ]);
+
+  const options = {
+    method: "POST",
+    headers: {
+      "Content-type": "application/x-www-form-urlencoded",
+    },
+    body: params,
+  };
+
+  const result = await fetch("https://webexapis.com/v1/access_token", options);
 
   if (result.status !== 200) {
     let errorMessage = "Something is wrong with Webex API";
     try {
       const responseBody = await result.json();
-      errorMessage = responseBody.error;
+      errorMessage = responseBody.message;
     } catch (e) {}
 
     res.status(400).json({ message: errorMessage });
@@ -43,8 +49,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const responseBody = await result.json();
 
-  if (responseBody.error) {
-    res.status(400).json({ message: responseBody.error });
+  if (responseBody.message) {
+    res.status(400).json({ message: responseBody.message });
     return;
   }
 

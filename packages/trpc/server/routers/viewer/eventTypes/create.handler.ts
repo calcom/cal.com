@@ -1,14 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { DailyLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getDefaultLocations } from "@calcom/lib/server";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -116,22 +112,3 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 };
-
-async function getDefaultLocations(user: User): Promise<EventTypeLocation[]> {
-  const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
-  const appKeys = await getAppKeysFromSlug("daily-video");
-
-  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(user);
-    const foundApp = getApps(credentials, true).filter(
-      (app) => app.slug === defaultConferencingData.appSlug
-    )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
-    const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
-    const credentialId = foundApp.credential.id ?? undefined;
-    return [{ type: locationType, link: defaultConferencingData.appLink, credentialId }];
-  } else if (typeof appKeys.api_key === "string") {
-    return [{ type: DailyLocationType }];
-  }
-
-  return [];
-}
