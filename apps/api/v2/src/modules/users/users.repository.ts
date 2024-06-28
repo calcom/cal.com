@@ -181,6 +181,18 @@ export class UsersRepository {
 
     return user?.defaultScheduleId;
   }
+
+  async getOrganizationUsers(organizationId: number) {
+    const profiles = await this.dbRead.prisma.profile.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profiles.map((profile) => profile.user);
+  }
 }
 
 function capitalizeTimezone(timezone: string) {
