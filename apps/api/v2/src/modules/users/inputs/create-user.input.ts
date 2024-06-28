@@ -22,7 +22,7 @@ export class CreateUserInput {
   @Transform(({ value }) => {
     return value && value.toLowerCase();
   })
-  email?: string;
+  email!: string;
 
   @IsOptional()
   @IsString()

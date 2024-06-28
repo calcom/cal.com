@@ -1,3 +1,4 @@
+import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { Injectable, ConflictException } from "@nestjs/common";
 
@@ -7,19 +8,19 @@ import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-li
 export class OrganizationsUsersService {
   constructor(private readonly organizationsUsersRepository: OrganizationsUsersRepository) {}
 
-  async getOrganizationUsers(organizationId: number, emailInput?: string | string[]) {
+  async getOrganizationUsers(orgId: number, emailInput?: string | string[]) {
     const emailArray = !emailInput ? [] : Array.isArray(emailInput) ? emailInput : [emailInput];
 
-    const users = await this.organizationsUsersRepository.getOrganizationUsers(organizationId, emailArray);
+    const users = await this.organizationsUsersRepository.getOrganizationUsers(orgId, emailArray);
 
     return users;
   }
 
-  async createOrganizationUser(organization, userCreateBody) {
+  async createOrganizationUser(orgId: number, userCreateBody: CreateOrganizationUserInput) {
     // Check if username is already in use in the org
     if (userCreateBody.username) {
-      const isUsernameTaken = this.organizationsUsersRepository.getOrganizationUserByUsername(
-        organization.id,
+      const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
+        orgId,
         userCreateBody.username
       );
 
@@ -29,24 +30,29 @@ export class OrganizationsUsersService {
     const usernamesOrEmails = userCreateBody.username ? [userCreateBody.username] : [userCreateBody.email];
 
     // Create new org user
-    const createdUser = await createNewUsersConnectToOrgIfExists({
+    const createdUserCall = await createNewUsersConnectToOrgIfExists({
       usernamesOrEmails,
       input: {
-        teamId: organization.id,
-        role: userCreateBody.role,
-        usernameOrEmail,
+        teamId: orgId,
+        role: userCreateBody.organizationRole,
+        usernameOrEmail: usernamesOrEmails[0],
         isOrg: true,
         language: userCreateBody.locale,
       },
       connectionInfoMap: {
-        [usernamesOrEmail[0]]: {
-          orgId: organization.id,
+        [usernamesOrEmails[0]]: {
+          orgId: orgId,
           autoAccept: userCreateBody.autoAccept,
         },
       },
-    })[0];
+    });
+
+    const createdUser = createdUserCall[0];
+    console.log("🚀 ~ OrganizationsUsersService ~ createOrganizationUser ~ createdUser:", createdUser);
 
     // Update new user with other userCreateBody params
-    await this.organizationsUsersRepository.updateUser(organization.id, createdUser.id, userCreateBody);
+    const user = await this.organizationsUsersRepository.updateUser(orgId, createdUser.id, userCreateBody);
+
+    return user;
   }
 }

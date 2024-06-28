@@ -874,6 +874,44 @@
         "tags": [
           "Organizations Users"
         ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
       }
     },
     "/v2/schedules": {
@@ -3396,6 +3434,69 @@
             "description": "The email address or an array of email addresses to filter by"
           }
         }
+      },
+      "CreateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "object",
+            "nullable": true,
+            "default": "en"
+          },
+          "organizationRole": {
+            "type": "object",
+            "default": "MEMBER"
+          },
+          "autoAccept": {
+            "type": "object",
+            "default": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "weekday": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "organizationRole",
+          "autoAccept",
+          "email"
+        ]
       },
       "CreateAvailabilityInput_2024_04_15": {
         "type": "object",

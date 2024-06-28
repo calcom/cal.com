@@ -1,3 +1,5 @@
+import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
+import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
@@ -8,66 +10,56 @@ import { Injectable } from "@nestjs/common";
 export class OrganizationsUsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async getOrganizationUsers(orgId: number, emailArray?: string[]) {
-    const users = await this.dbRead.prisma.user.findMany({
-      where: {
-        OR: [
-          { organizationId: orgId },
-          {
-            teams: {
-              some: {
-                teamId: orgId,
-              },
+  private filterOnOrgMembership(orgId: number) {
+    return {
+      OR: [
+        { organizationId: orgId },
+        {
+          teams: {
+            some: {
+              teamId: orgId,
             },
           },
-        ],
+        },
+      ],
+    };
+  }
+
+  async getOrganizationUsers(orgId: number, emailArray?: string[]) {
+    return await this.dbRead.prisma.user.findMany({
+      where: {
+        ...this.filterOnOrgMembership(orgId),
         ...(emailArray && emailArray.length && { email: { in: emailArray } }),
       },
     });
-    return users;
   }
 
-  // async getOrganizationUserByUsername(orgId: number, username: string) {
-  //   const userQuery = await this.dbRead.prisma.user.findFirst({
-  //     where: {
-  //       username,
-  //       orgId,
-  //     },
-  //   });
+  async getOrganizationUserByUsername(orgId: number, username: string) {
+    return await this.dbRead.prisma.user.findFirst({
+      where: {
+        username,
+        ...this.filterOnOrgMembership(orgId),
+      },
+    });
+  }
 
-  //   return userQuery;
-  // }
+  async createOrganizationUser(orgId: number, createUserBody: CreateOrganizationUserInput) {
+    const createdUser = await this.dbWrite.prisma.user.create({
+      data: createUserBody,
+    });
 
-  // async createOrganizationUser(orgId, createUserBody) {
-  //   if (createUserBody.avatar) {
-  //     createUserBody.avatarUrl = createUserBody.avatar;
-  //     delete createUserBody.avatar;
-  //   }
+    return createdUser;
+  }
 
-  //   const createdUser = await this.dbWrite.prisma.user.create({
-  //     data: createUserBody,
-  //     select: userSelect,
-  //   });
-
-  //   return { ...createdUser, avatar: createdUser.avatarUrl };
-  // }
-
-  // async updateUser(orgId, userId, updateUserBody) {
-  //   if (createUserBody.avatar) {
-  //     createUserBody.avatarUrl = createUserBody.avatar;
-  //     delete createUserBody.avatar;
-  //   }
-
-  //   const updatedUser = await this.dbWrite.prisma.user.update({
-  //     where: {
-  //       id: userId,
-  //       organizationId: orgId,
-  //     },
-  //     data: updateUserBody,
-  //   });
-
-  //   return { ...updatedUser, avatar: updatedUser.avatarUrl };
-  // }
+  async updateUser(orgId: number, userId: number, updateUserBody: UpdateOrganizationUserInput) {
+    return await this.dbWrite.prisma.user.update({
+      where: {
+        id: userId,
+        organizationId: orgId,
+      },
+      data: updateUserBody,
+    });
+  }
 
   //   async updateOrganizationUser(
   //     orgId: number,
