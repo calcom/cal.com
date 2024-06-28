@@ -117,7 +117,7 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
 };
 
 // Only for backward compatibility
-export const hideRecordingButtonsForOrganizer = async (
+export const setEnableRecordingUIForOrganizer = async (
   bookingReferenceId: number,
   meetingToken: string | null
 ) => {

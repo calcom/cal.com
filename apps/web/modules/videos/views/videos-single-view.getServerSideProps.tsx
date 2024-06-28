@@ -3,7 +3,7 @@ import type { GetServerSidePropsContext } from "next";
 
 import {
   generateGuestMeetingTokenFromOwnerMeetingToken,
-  hideRecordingButtonsForOrganizer,
+  setEnableRecordingUIForOrganizer,
 } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
@@ -122,7 +122,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
   // Only for backward compatibility for organizer
   else {
-    const meetingPassword = await hideRecordingButtonsForOrganizer(
+    const meetingPassword = await setEnableRecordingUIForOrganizer(
       oldVideoReference.id,
       oldVideoReference.meetingPassword
     );
