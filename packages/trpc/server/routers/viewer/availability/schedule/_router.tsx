@@ -5,6 +5,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZScheduleDuplicateSchema } from "./duplicate.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAllByUserIdInputSchema } from "./getAllSchedulesByUserId.schema";
 import { ZGetByEventSlugInputSchema } from "./getScheduleByEventTypeSlug.schema";
 import { ZGetByUserIdInputSchema } from "./getScheduleByUserId.schema";
 import { ZUpdateInputSchema } from "./update.schema";
@@ -16,6 +17,7 @@ type ScheduleRouterHandlerCache = {
   update?: typeof import("./update.handler").updateHandler;
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
   getScheduleByUserId?: typeof import("./getScheduleByUserId.handler").getScheduleByUserIdHandler;
+  getAllSchedulesByUserId?: typeof import("./getAllSchedulesByUserId.handler").getAllSchedulesByUserIdHandler;
   getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
   bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
 };
@@ -122,6 +124,25 @@ export const scheduleRouter = router({
       input,
     });
   }),
+
+  getAllSchedulesByUserId: authedProcedure.input(ZGetAllByUserIdInputSchema).query(async ({ input, ctx }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId) {
+      UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId = await import("./getAllSchedulesByUserId.handler").then(
+        (mod) => mod.getAllSchedulesByUserIdHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getAllSchedulesByUserId({
+      ctx,
+      input,
+    });
+  }),
+
   getScheduleByEventSlug: authedProcedure.input(ZGetByEventSlugInputSchema).query(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug) {
       UNSTABLE_HANDLER_CACHE.getScheduleByEventSlug = await import(

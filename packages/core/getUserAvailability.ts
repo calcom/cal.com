@@ -65,6 +65,21 @@ const _getEventType = async (id: number) => {
           user: {
             select: {
               email: true,
+              id: true,
+            },
+          },
+          schedule: {
+            select: {
+              availability: {
+                select: {
+                  date: true,
+                  startTime: true,
+                  endTime: true,
+                  days: true,
+                },
+              },
+              timeZone: true,
+              id: true,
             },
           },
         },
@@ -324,7 +339,10 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   )[0];
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
-  const schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+  let schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
+
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+  schedule = useHostSchedulesForTeamEvent && hostSchedule ? hostSchedule : schedule;
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
 
@@ -334,6 +352,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
       useHostSchedulesForTeamEvent: eventType?.metadata?.config?.useHostSchedulesForTeamEvent,
     })
   );

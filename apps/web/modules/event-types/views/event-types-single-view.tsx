@@ -15,7 +15,7 @@ import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/check
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import type { FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -118,7 +118,13 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  scheduleId: number | null;
+  availability: AvailabilityOption | null;
+};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 

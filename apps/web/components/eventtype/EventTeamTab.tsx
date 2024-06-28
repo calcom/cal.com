@@ -134,6 +134,8 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
+                    scheduleId: null,
+                    availability: null,
                   })),
                   { shouldDirty: true }
                 )
@@ -175,6 +177,8 @@ const FixedHosts = ({
                     isFixed: true,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
+                    scheduleId: null,
+                    availability: null,
                   })),
                   { shouldDirty: true }
                 )
@@ -227,6 +231,8 @@ const RoundRobinHosts = ({
                   isFixed: false,
                   userId: parseInt(teamMember.value, 10),
                   priority: 2,
+                  scheduleId: null,
+                  availability: null,
                 }))
                 .sort((a, b) => b.priority - a.priority),
               { shouldDirty: true }

@@ -49,10 +49,13 @@ model Host {
   eventTypeId Int
   isFixed     Boolean   @default(false)
   priority    Int?
+  schedule    Schedule? @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  scheduleId  Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
   @@index([eventTypeId])
+  @@index([scheduleId])
 }
 
 model EventType {
@@ -591,6 +594,7 @@ model Schedule {
   name         String
   timeZone     String?
   availability Availability[]
+  Host         Host[]
 
   @@index([userId])
 }
