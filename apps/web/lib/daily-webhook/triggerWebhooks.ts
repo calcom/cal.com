@@ -77,7 +77,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
   recordingDownloadLink: string;
 }) => {
   const webhooks = await getWebhooksByEventTrigger(
-    WebhookTriggerEvents.RECORDING_TRANSCRIPTION_READY,
+    WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
     booking
   );
 
@@ -91,7 +91,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
   const promises = webhooks.map((webhook) =>
     sendPayload(
       webhook.secret,
-      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_READY,
+      WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
       new Date().toISOString(),
       webhook,
       {
@@ -101,7 +101,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
       }
     ).catch((e) => {
       log.error(
-        `Error executing webhook for event: ${WebhookTriggerEvents.RECORDING_TRANSCRIPTION_READY}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        `Error executing webhook for event: ${WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
       );
     })

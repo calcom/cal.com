@@ -464,7 +464,7 @@
   "booking_cancelled": "Booking Canceled",
   "booking_rescheduled": "Booking Rescheduled",
   "recording_ready": "Recording Download Link Ready",
-  "recording_transcription_ready": "Transcript Generated",
+  "recording_transcription_generated": "Transcript Generated",
   "booking_created": "Booking Created",
   "booking_rejected": "Booking Rejected",
   "booking_requested": "Booking Requested",
