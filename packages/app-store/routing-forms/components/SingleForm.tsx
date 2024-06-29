@@ -335,7 +335,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
             CTA={<Actions form={form} mutation={mutation} />}>
             <div className="-mx-4 mt-4 px-4 sm:px-6 md:-mx-8 md:mt-0 md:px-8">
               <div className="flex flex-col items-center items-baseline md:flex-row md:items-start">
-                <div className="lg:min-w-72 lg:max-w-72 mb-6 md:mr-6">
+                <div className="mb-6 md:mr-6 lg:min-w-72 lg:max-w-72">
                   <TextField
                     type="text"
                     containerClassName="mb-6"
@@ -369,6 +369,8 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             isFixed: true,
                             userId: userId,
                             priority: 1,
+                            scheduleId: 1,
+                            availability: null,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(
