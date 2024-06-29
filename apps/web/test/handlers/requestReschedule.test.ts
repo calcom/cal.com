@@ -95,6 +95,7 @@ describe("Handler: requestReschedule", () => {
                   locale: "hi",
                   // Booker's timezone when the fresh booking happened earlier
                   timeZone: "Asia/Kolkata",
+                  noShow: false,
                 }),
               ],
             },
@@ -214,6 +215,7 @@ describe("Handler: requestReschedule", () => {
                   locale: "hi",
                   // Booker's timezone when the fresh booking happened earlier
                   timeZone: "Asia/Kolkata",
+                  noShow: false,
                 }),
               ],
             },

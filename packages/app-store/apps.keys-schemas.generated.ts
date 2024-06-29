@@ -4,12 +4,14 @@
 **/
 import { appKeysSchema as alby_zod_ts } from "./alby/zod";
 import { appKeysSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appKeysSchema as closecom_zod_ts } from "./closecom/zod";
 import { appKeysSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appKeysSchema as fathom_zod_ts } from "./fathom/zod";
 import { appKeysSchema as feishucalendar_zod_ts } from "./feishucalendar/zod";
 import { appKeysSchema as ga4_zod_ts } from "./ga4/zod";
 import { appKeysSchema as giphy_zod_ts } from "./giphy/zod";
 import { appKeysSchema as googlecalendar_zod_ts } from "./googlecalendar/zod";
+import { appKeysSchema as googlevideo_zod_ts } from "./googlevideo/zod";
 import { appKeysSchema as gtm_zod_ts } from "./gtm/zod";
 import { appKeysSchema as hubspot_zod_ts } from "./hubspot/zod";
 import { appKeysSchema as intercom_zod_ts } from "./intercom/zod";
@@ -34,6 +36,8 @@ import { appKeysSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appKeysSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appKeysSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appKeysSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
+import { appKeysSchema as twipla_zod_ts } from "./twipla/zod";
+import { appKeysSchema as umami_zod_ts } from "./umami/zod";
 import { appKeysSchema as vital_zod_ts } from "./vital/zod";
 import { appKeysSchema as webex_zod_ts } from "./webex/zod";
 import { appKeysSchema as wordpress_zod_ts } from "./wordpress/zod";
@@ -46,12 +50,14 @@ import { appKeysSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appKeysSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
   feishucalendar: feishucalendar_zod_ts,
   ga4: ga4_zod_ts,
   giphy: giphy_zod_ts,
   googlecalendar: googlecalendar_zod_ts,
+  googlevideo: googlevideo_zod_ts,
   gtm: gtm_zod_ts,
   hubspot: hubspot_zod_ts,
   intercom: intercom_zod_ts,
@@ -76,6 +82,8 @@ export const appKeysSchemas = {
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
+  twipla: twipla_zod_ts,
+  umami: umami_zod_ts,
   vital: vital_zod_ts,
   webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,

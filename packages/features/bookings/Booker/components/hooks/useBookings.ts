@@ -7,9 +7,9 @@ import { useHandleBookEvent } from "@calcom/atoms/monorepo";
 import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { updateQueryParam, getQueryParam } from "@calcom/features/bookings/Booker/utils/query-param";
 import { createBooking, createRecurringBooking, createInstantBooking } from "@calcom/features/bookings/lib";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -21,10 +21,33 @@ import { showToast } from "@calcom/ui";
 import type { UseBookingFormReturnType } from "./useBookingForm";
 
 export interface IUseBookings {
-  event: useEventReturnType;
+  event: {
+    data?:
+      | (Pick<
+          BookerEvent,
+          | "id"
+          | "slug"
+          | "hosts"
+          | "requiresConfirmation"
+          | "isDynamic"
+          | "metadata"
+          | "forwardParamsSuccessRedirect"
+          | "successRedirectUrl"
+          | "length"
+          | "recurringEvent"
+          | "schedulingType"
+        > & {
+          users: Pick<
+            BookerEvent["users"][number],
+            "name" | "username" | "avatarUrl" | "weekStart" | "profile" | "bookerUrl"
+          >[];
+        })
+      | null;
+  };
   hashedLink?: string | null;
   bookingForm: UseBookingFormReturnType["bookingForm"];
   metadata: Record<string, string>;
+  teamMemberEmail?: string;
 }
 
 export interface IUseBookingLoadingStates {
@@ -39,7 +62,7 @@ export interface IUseBookingErrors {
 }
 export type UseBookingsReturnType = ReturnType<typeof useBookings>;
 
-export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBookings) => {
+export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemberEmail }: IUseBookings) => {
   const router = useRouter();
   const eventSlug = useBookerStore((state) => state.eventSlug);
   const rescheduleUid = useBookerStore((state) => state.rescheduleUid);
@@ -103,7 +126,15 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data?.length;
-
+      const eventPayload = {
+        uid: responseData.uid,
+        title: responseData.title,
+        startTime: responseData.startTime,
+        endTime: responseData.endTime,
+        eventTypeId: responseData.eventTypeId,
+        status: responseData.status,
+        paymentRequired: responseData.paymentRequired,
+      };
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
           booking: responseData,
@@ -117,6 +148,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", eventPayload);
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
           booking: responseData,
@@ -130,6 +162,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
           },
           confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
+
+        sdkActionManager?.fire("bookingSuccessfulV2", eventPayload);
       }
 
       if (paymentUid) {
@@ -170,11 +204,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
       });
     },
     onError: (err, _, ctx) => {
-      // TODO:
-      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
-      // if (vercelId) {
-      //   setResponseVercelIdHeader(vercelId);
-      // }
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });
@@ -229,6 +258,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata }: IUseBo
     bookingForm,
     hashedLink,
     metadata,
+    teamMemberEmail,
     handleInstantBooking: createInstantBookingMutation.mutate,
     handleRecBooking: createRecurringBookingMutation.mutate,
     handleBooking: createBookingMutation.mutate,
