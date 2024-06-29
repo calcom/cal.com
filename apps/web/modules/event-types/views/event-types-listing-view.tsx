@@ -629,7 +629,7 @@ export const EventTypeList = ({
                             </DropdownItem>
                           </DropdownMenuItem>
                         )}
-                        {!isManagedEventType && !isChildrenManagedEventType && (
+                        {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
