@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
@@ -13,6 +14,7 @@ import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiResponse } from "@calcom/platform-types";
+import { Team } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/users",
@@ -20,6 +22,7 @@ import { ApiResponse } from "@calcom/platform-types";
 })
 @UseInterceptors(ClassSerializerInterceptor)
 // @UseGuards(ApiAuthGuard, IsOrgGuard)
+@UseGuards(IsOrgGuard)
 @DocsTags("Organizations Users")
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
@@ -27,6 +30,7 @@ export class OrganizationsUsersController {
   @Get()
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
+    @GetOrg() organization: Team,
     @Body() input: GetOrganizationsUsersInput
   ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
     const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
@@ -45,6 +49,7 @@ export class OrganizationsUsersController {
   //   TODO add sysadmin guard
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
+    @GetOrg() organization: Team,
     @Body() input: CreateOrganizationUserInput
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
     const user = await this.organizationsUsersService.createOrganizationUser(orgId, input);

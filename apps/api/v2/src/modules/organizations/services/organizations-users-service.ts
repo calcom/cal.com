@@ -4,7 +4,11 @@ import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.2";
+import { getTranslation } from "@calcom/lib/server/i18n";
+import {
+  createNewUsersConnectToOrgIfExists,
+  sendExistingUserTeamInviteEmails,
+} from "@calcom/platform-libraries-0.0.2";
 
 @Injectable()
 export class OrganizationsUsersService {
@@ -64,6 +68,15 @@ export class OrganizationsUsersService {
 
     // Update new user with other userCreateBody params
     const user = await this.organizationsUsersRepository.updateUser(orgId, createdUser.id, updateUserBody);
+
+    // Need to send email to new user to create password
+    // const newMemberTFunction = await getTranslation(user.locale || "en", "common");
+    // sendExistingUserTeamInviteEmails({
+    //   language: newMemberTFunction,
+    //   isAutoJoin: userCreateBody.autoAccept,
+    //   isOrg: true,
+    //   teamId: orgId
+    // })
 
     return user;
   }

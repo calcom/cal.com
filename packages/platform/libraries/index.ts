@@ -7,9 +7,13 @@ import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
-import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
+import {
+  createNewUsersConnectToOrgIfExists,
+  sendExistingUserTeamInviteEmails,
+} from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { slugify } from "@calcom/lib/slugify";
 export { getBookingForReschedule };
@@ -74,6 +78,7 @@ export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
 export { createNewUsersConnectToOrgIfExists };
+export { sendExistingUserTeamInviteEmails };
 
 export { getAllUserBookings };
 export { getBookingInfo };
@@ -97,3 +102,4 @@ export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
 export { symmetricEncrypt };
 export { CalendarService };
+export { getTranslation };
