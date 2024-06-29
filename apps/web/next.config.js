@@ -54,6 +54,20 @@ if (!process.env.NEXT_PUBLIC_API_V2_URL) {
   console.error("Please set NEXT_PUBLIC_API_V2_URL");
 }
 
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
