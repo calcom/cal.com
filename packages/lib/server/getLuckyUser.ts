@@ -61,7 +61,9 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
               email: {
                 in: availableUsers.map((user) => user.email),
               },
-              noShow: false,
+              noShow: {
+                not: true,
+              },
             },
           },
         },
