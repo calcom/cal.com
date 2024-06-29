@@ -4,6 +4,7 @@ import BaseSelect from "react-timezone-select";
 
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { classNames } from "@calcom/lib";
+import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 import { trpc } from "@calcom/trpc/react";
 
@@ -19,9 +20,14 @@ export type TimezoneSelectProps = SelectProps & {
   timezoneSelectCustomClassname?: string;
 };
 export function TimezoneSelect(props: TimezoneSelectProps) {
-  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(undefined, {
-    trpc: { context: { skipBatch: true } },
-  });
+  const { data, isPending } = trpc.viewer.timezones.cityTimezones.useQuery(
+    {
+      CalComVersion: CALCOM_VERSION,
+    },
+    {
+      trpc: { context: { skipBatch: true } },
+    }
+  );
 
   return <TimezoneSelectComponent data={data} isPending={isPending} {...props} />;
 }
