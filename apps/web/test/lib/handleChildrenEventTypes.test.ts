@@ -147,7 +147,6 @@ describe("handleChildrenEventTypes", () => {
           bookingLimits: undefined,
           durationLimits: undefined,
           recurringEvent: undefined,
-          seatsMinimumBookingNotice: undefined,
           userId: 4,
         },
       });
@@ -201,7 +200,6 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: { create: { link: expect.any(String) } },
-          seatsMinimumBookingNotice: undefined,
         },
         where: {
           userId_parentId: {
@@ -309,7 +307,6 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
-          seatsMinimumBookingNotice: undefined,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -359,7 +356,6 @@ describe("handleChildrenEventTypes", () => {
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
-          seatsMinimumBookingNotice: undefined,
         },
         where: {
           userId_parentId: {
@@ -438,7 +434,6 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
-          seatsMinimumBookingNotice: undefined,
         },
       });
       const { profileId, ...rest } = evType;
@@ -450,7 +445,6 @@ describe("handleChildrenEventTypes", () => {
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
           hashedLink: undefined,
-          seatsMinimumBookingNotice: undefined,
         },
         where: {
           userId_parentId: {
