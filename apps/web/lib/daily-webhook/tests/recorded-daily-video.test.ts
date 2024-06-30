@@ -139,7 +139,7 @@ describe("Handler: /api/recorded-daily-video", () => {
         webhooks: [
           {
             userId: organizer.id,
-            eventTriggers: ["RECORDING_TRANSCRIPTION_GENERATED"],
+            eventTriggers: [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED],
             subscriberUrl,
             active: true,
             eventTypeId: 1,
