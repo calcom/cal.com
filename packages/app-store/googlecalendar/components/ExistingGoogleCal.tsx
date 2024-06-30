@@ -15,7 +15,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
             <Icon name="check" className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
-            <span className="font-semibold">{t("google_calendar_is_connected")}</span>
+            <span className="font-semibold">{t("connected_google_calendar")}</span>
             <div>
               <div>
                 <span>{t("requires_google_calendar")}</span>
@@ -40,7 +40,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
                   <Link
                     href={`${WEBAPP_URL}/apps/google-calendar`}
                     className="text-info flex items-center underline">
-                    <span className="mr-1">{t("connect_google_calendar")}</span>
+                    <span className="mr-1">{t("connected_google_calendar")}</span>
                     <Icon name="arrow-right" />
                   </Link>
                 </>
