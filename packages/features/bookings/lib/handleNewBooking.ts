@@ -1072,12 +1072,13 @@ async function handler(
     if (booking) isFirstSeat = false;
   }
 
-  const seatsMinimumBookingNoticeActive = !!(
+  const effectiveMinimumBookingNotice =
     eventType.seatsPerTimeSlot &&
-    eventType.seatsMinimumBookingNotice &&
+    eventType.seatsMinimumBookingNotice !== null &&
     eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice &&
     !isFirstSeat
-  );
+      ? eventType.seatsMinimumBookingNotice
+      : eventType.minimumBookingNotice;
 
   try {
     timeOutOfBounds = isOutOfBounds(
@@ -1090,9 +1091,7 @@ async function handler(
         periodCountCalendarDays: eventType.periodCountCalendarDays,
         utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
       },
-      seatsMinimumBookingNoticeActive
-        ? eventType.seatsMinimumBookingNotice ?? undefined
-        : eventType.minimumBookingNotice
+      effectiveMinimumBookingNotice
     );
   } catch (error) {
     loggerWithEventDetails.warn({

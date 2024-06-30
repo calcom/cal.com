@@ -17,8 +17,8 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
-  isTimeOutOfBounds,
   calculatePeriodLimits,
+  isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -419,8 +419,23 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       input.eventTypeId
     }`
   );
+
+  // The effectiveMinimumBookingNotice just makes sure we don't discard slots too early, so we can later decide
+  // which minimumBookingNotice to apply based on if the slot has any attendees or not.
+  let seatsMinimumBookingNoticeActive = false;
+  let effectiveMinimumBookingNotice = eventType.minimumBookingNotice;
+  // not using ternary's here to help TS narrow down the type of effectiveMinimumBookingNotice correctly
+  if (
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsMinimumBookingNotice !== null &&
+    eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice
+  ) {
+    seatsMinimumBookingNoticeActive = true;
+    effectiveMinimumBookingNotice = eventType.seatsMinimumBookingNotice;
+  }
+
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    const startTimeMin = dayjs.utc().add(1, "minutes");
+    const startTimeMin = dayjs.utc().add(Math.max(effectiveMinimumBookingNotice, 1), "minutes"); // at least 1 minute
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
@@ -619,17 +634,12 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
 
-  const seatsMinimumBookingNoticeActive = !!(
-    eventType.seatsPerTimeSlot &&
-    eventType.seatsMinimumBookingNotice &&
-    eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice
-  );
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
-    minimumBookingNotice: seatsMinimumBookingNoticeActive ? 0 : eventType.minimumBookingNotice,
+    minimumBookingNotice: effectiveMinimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone:
       eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
@@ -800,8 +810,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         }
 
         let isOutOfBounds = false;
+        // We must decided for each slot individually based on if the slot has any attendees or not,
         if (seatsMinimumBookingNoticeActive && slot.attendees && slot.attendees > 0) {
-          // logic for handling eventType.seatsMinimumBookingNotice if the eventType has seats
           isOutOfBounds = isTimeOutOfBounds({
             time: slot.time,
             minimumBookingNotice: eventType.seatsMinimumBookingNotice ?? undefined,
