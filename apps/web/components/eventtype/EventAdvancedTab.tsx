@@ -537,20 +537,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                         />
                       </div>
                       <div className="mt-6 w-full">
-                        <Label htmlFor="seats_minimum_booking_notice">
-                          {t("seats_minimum_booking_notice")}
-                        </Label>
-                        <MinimumBookingNoticeInput
-                          disabled={seatsLocked.disabled}
-                          {...formMethods.register("seatsMinimumBookingNotice")}
-                          placeholder=""
-                        />
+                        <div className="max-w-80">
+                          <Label htmlFor="seats_minimum_booking_notice">
+                            {t("seats_minimum_booking_notice")}
+                          </Label>
+                          <MinimumBookingNoticeInput
+                            disabled={seatsLocked.disabled}
+                            {...formMethods.register("seatsMinimumBookingNotice")}
+                            placeholder=""
+                          />
+                        </div>
                         <div className="text-default mt-2 flex items-center text-sm">
-                          {
-                            // we do not use TextField.hint because we want the hint to span over both inputs
-                            // also no need to move it to MinimumBookingNoticeInput because only used once
-                            getSeatsMinimumBookingNoticeHint()
-                          }
+                          {getSeatsMinimumBookingNoticeHint()}
                         </div>
                       </div>
                     </div>
