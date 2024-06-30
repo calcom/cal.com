@@ -1,16 +1,11 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
-import { StripeService } from "@/modules/stripe/stripe.service";
 import { Injectable } from "@nestjs/common";
 
 @Injectable()
 export class OrganizationsMembershipRepository {
-  constructor(
-    private readonly dbRead: PrismaReadService,
-    private readonly dbWrite: PrismaWriteService,
-    private readonly stripeService: StripeService
-  ) {}
+  constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   private async findAllTeamsInOrg(organizationId: number) {
     const teams = await this.dbRead.prisma.team.findMany({

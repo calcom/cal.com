@@ -1,25 +1,24 @@
-import { IsBoolean, IsOptional, IsString, Length, IsNumber } from "class-validator";
+import { IsBoolean, IsOptional, IsString, Length, IsInt } from "class-validator";
 
-// import { MembershipRole } from "@calcom/prisma/enums";
+import { MembershipRole } from "@calcom/prisma/enums";
 
 export class CreateOrgMembershipDto {
   @IsString()
   @Length(1)
   readonly name!: string;
 
-  @IsNumber()
+  @IsInt()
   readonly teamId!: number;
 
-  @IsNumber()
+  @IsInt()
   readonly userId!: number;
 
   @IsOptional()
   @IsBoolean()
   readonly accepted?: boolean = false;
 
-  @IsOptional()
   @IsString()
-  readonly role?: string = "MEMBER";
+  readonly role: MembershipRole = MembershipRole.MEMBER;
 
   @IsOptional()
   @IsBoolean()
