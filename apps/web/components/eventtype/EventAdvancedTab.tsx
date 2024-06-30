@@ -536,7 +536,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                           )}
                         />
                       </div>
-                      <div className="mt-4 w-full">
+                      <div className="mt-6 w-full">
                         <Label htmlFor="seats_minimum_booking_notice">
                           {t("seats_minimum_booking_notice")}
                         </Label>

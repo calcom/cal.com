@@ -188,7 +188,7 @@ function buildSlotsWithDateRanges({
     const dateYYYYMMDD = range.start.format("YYYY-MM-DD");
     const startTimeWithMinNotice = dayjs.utc().add(minimumBookingNotice, "minute");
 
-    // if seatsMinimumBookingNoticeActive is true, we use do not use the minimum booking notice, as we need all slots
+    // if seatsMinimumBookingNoticeActive is true, we do not use the minimum booking notice, as we need all slots
     // out of bounds check for minimum booking notice happens in getAvailableSlots
     let slotStartTime = range.start.utc().isAfter(startTimeWithMinNotice)
       ? range.start
