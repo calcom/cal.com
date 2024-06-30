@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import { uuid } from "short-uuid";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -28,9 +29,9 @@ function getOrgOrigin(orgSlug: string | null) {
 }
 
 test.describe("Bookings", () => {
-  test.afterEach(({ orgs, users }) => {
-    orgs.deleteAll();
-    users.deleteAll();
+  test.afterEach(async ({ orgs, users, page }) => {
+    await users.deleteAll();
+    await orgs.deleteAll();
   });
 
   test.describe("Team Event", () => {
@@ -324,6 +325,8 @@ test.describe("Bookings", () => {
       const username = "john";
       const userInsideOrganization = await users.create({
         username,
+        useExactUsername: true,
+        email: `john-inside-${uuid()}@example.com`,
         name: "John Inside Organization",
         organizationId: org.id,
         roleInOrganization: MembershipRole.MEMBER,
@@ -339,6 +342,8 @@ test.describe("Bookings", () => {
       const userOutsideOrganization = await users.create({
         username,
         name: "John Outside Organization",
+        email: `john-outside-${uuid()}@example.com`,
+        useExactUsername: true,
         eventTypes: [
           {
             title: "John Outside Org's Meeting",
