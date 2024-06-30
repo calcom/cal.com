@@ -14,7 +14,7 @@ const SylapsApiAdapter = (): VideoApiAdapter => {
         type: "sylaps_video",
         id: meetingID,
         password: "",
-        url: "https://sylaps.com/r/" + meetingID,
+        url: `https://sylaps.com/r/${meetingID}`,
       });
     },
     deleteMeeting: async (): Promise<void> => {

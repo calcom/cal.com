@@ -17,7 +17,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -25,7 +24,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -36,7 +35,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const ApiKeysView = () => {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
+  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
@@ -47,7 +46,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -57,7 +56,7 @@ const ApiKeysView = () => {
     );
   };
 
-  if (isLoading || !data) {
+  if (isPending || !data) {
     return (
       <SkeletonLoader
         title={t("api_keys")}
@@ -79,7 +78,7 @@ const ApiKeysView = () => {
         <div>
           {data?.length ? (
             <>
-              <div className="border-subtle rounded-b-md border border-t-0">
+              <div className="border-subtle rounded-b-lg border border-t-0">
                 {data.map((apiKey, index) => (
                   <ApiKeyListItem
                     key={apiKey.id}
@@ -95,10 +94,10 @@ const ApiKeysView = () => {
             </>
           ) : (
             <EmptyScreen
-              Icon={LinkIcon}
+              Icon="link"
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
-              className="rounded-b-md rounded-t-none border-t-0"
+              className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={<NewApiKeyButton />}
             />
           )}

@@ -73,7 +73,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       redirectUrl = handler.redirect?.url || getInstalledAppPath(handler);
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
-    return res.status(200);
+    if (!res.writableEnded) return res.status(200);
+    return res;
   } catch (error) {
     console.error(error);
     if (error instanceof HttpError) {

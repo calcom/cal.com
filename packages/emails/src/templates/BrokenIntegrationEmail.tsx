@@ -1,3 +1,5 @@
+"use client";
+
 import type { TFunction } from "next-i18next";
 import { Trans } from "react-i18next";
 
@@ -65,7 +67,7 @@ export const BrokenIntegrationEmail = (
       location = "Cal Video";
     }
     if (location === "GoogleMeet") {
-      location = location.slice(0, 5) + " " + location.slice(5);
+      location = `${location.slice(0, 5)} ${location.slice(5)}`;
     }
 
     return (
@@ -92,7 +94,7 @@ export const BrokenIntegrationEmail = (
 
     if (Array.isArray(calendar)) {
       const calendarCap = calendar.map((name) => name.charAt(0).toUpperCase() + name.slice(1));
-      calendar = calendarCap[0] + " " + calendarCap[1];
+      calendar = `${calendarCap[0]} ${calendarCap[1]}`;
     }
 
     return (

@@ -3,11 +3,11 @@ import { v4 as uuidv4 } from "uuid";
 import dayjs from "@calcom/dayjs";
 import { parseRecurringDates } from "@calcom/lib/parse-dates";
 
-import type { PublicEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
+import type { BookerEvent, BookingCreateBody, RecurringBookingCreateBody } from "../../types";
 
-type BookingOptions = {
+export type BookingOptions = {
   values: Record<string, unknown>;
-  event: PublicEvent;
+  event: Pick<BookerEvent, "id" | "length" | "slug" | "schedulingType" | "recurringEvent">;
   date: string;
   // @NOTE: duration is not validated in this function
   duration: number | undefined | null;
@@ -18,6 +18,9 @@ type BookingOptions = {
   metadata?: Record<string, string>;
   bookingUid?: string;
   seatReferenceUid?: string;
+  hashedLink?: string | null;
+  teamMemberEmail?: string;
+  orgSlug?: string;
 };
 
 export const mapBookingToMutationInput = ({
@@ -32,6 +35,9 @@ export const mapBookingToMutationInput = ({
   metadata,
   bookingUid,
   seatReferenceUid,
+  hashedLink,
+  teamMemberEmail,
+  orgSlug,
 }: BookingOptions): BookingCreateBody => {
   return {
     ...values,
@@ -47,11 +53,12 @@ export const mapBookingToMutationInput = ({
     language: language,
     rescheduleUid,
     metadata: metadata || {},
-    hasHashedBookingLink: false,
+    hasHashedBookingLink: hashedLink ? true : false,
     bookingUid,
     seatReferenceUid,
-    // hasHashedBookingLink,
-    // hashedLink,
+    hashedLink,
+    teamMemberEmail,
+    orgSlug,
   };
 };
 
@@ -75,7 +82,7 @@ export const mapRecurringBookingToMutationInput = (
     booking.language
   );
 
-  const input = mapBookingToMutationInput(booking);
+  const input = mapBookingToMutationInput({ ...booking, bookingUid: undefined });
 
   return recurringDates.map((recurringDate) => ({
     ...input,
@@ -84,6 +91,7 @@ export const mapRecurringBookingToMutationInput = (
       .add(booking.duration || booking.event.length, "minute")
       .format(),
     recurringEventId,
+    schedulingType: booking.event.schedulingType || undefined,
     recurringCount: recurringDates.length,
   }));
 };

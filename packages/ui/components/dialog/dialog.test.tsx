@@ -3,6 +3,12 @@ import { vi } from "vitest";
 
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader } from "./Dialog";
 
+vi.mock("@calcom/lib/hooks/useCompatSearchParams", () => ({
+  useCompatSearchParams() {
+    return new URLSearchParams();
+  },
+}));
+
 vi.mock("next/navigation", () => ({
   usePathname() {
     return "";
@@ -122,7 +128,7 @@ describe("Tests for Dialog component", () => {
 
   test("Should use color from props in CloseDialog", async () => {
     render(<DialogComponent open color="destructive" />);
-    const closeBtn = screen.getByText("Close");
+    const closeBtn = screen.getByText("close");
     expect(closeBtn.classList.toString()).toContain("hover:text-red-700");
   });
 

@@ -1,19 +1,9 @@
-import type { GetServerSidePropsContext } from "next";
+"use client";
 
-import { getServerSideProps as _getServerSideProps } from "../[type]";
+import withEmbedSsr from "@lib/withEmbedSsr";
 
-export { default } from "../[type]";
+import { getServerSideProps as _getServerSideProps } from ".";
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const ssrResponse = await _getServerSideProps(context);
-  if (ssrResponse.notFound) {
-    return ssrResponse;
-  }
-  return {
-    ...ssrResponse,
-    props: {
-      ...ssrResponse.props,
-      isEmbed: true,
-    },
-  };
-};
+export { default, type PageProps } from ".";
+
+export const getServerSideProps = withEmbedSsr(_getServerSideProps);

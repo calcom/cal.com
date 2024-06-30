@@ -10,7 +10,7 @@ type TestTriggerOptions = {
 };
 
 export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOptions) => {
-  const { url, type, payloadTemplate = null } = input;
+  const { url, type, payloadTemplate = null, secret = null } = input;
   const translation = await getTranslation("en", "common");
   const language = {
     locale: "en",
@@ -40,8 +40,8 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
   };
 
   try {
-    const webhook = { subscriberUrl: url, payloadTemplate, appId: null, secret: null };
-    return await sendPayload(null, type, new Date().toISOString(), webhook, data);
+    const webhook = { subscriberUrl: url, appId: null, payloadTemplate };
+    return await sendPayload(secret, type, new Date().toISOString(), webhook, data);
   } catch (_err) {
     const error = getErrorFromUnknown(_err);
     return {

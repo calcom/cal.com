@@ -4,6 +4,9 @@ import type { AppCategories } from "@prisma/client";
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventLocationType } from "@calcom/app-store/locations";
+import logger from "@calcom/lib/logger";
+import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { App, AppMeta } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
@@ -44,7 +47,7 @@ export const ALL_APPS = Object.values(ALL_APPS_MAP);
  */
 function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?: boolean) {
   const apps = ALL_APPS.reduce((reducedArray, appMeta) => {
-    const appCredentials = credentials.filter((credential) => credential.type === appMeta.type);
+    const appCredentials = credentials.filter((credential) => credential.appId === appMeta.slug);
 
     if (filterOnCredentials && !appCredentials.length && !appMeta.isGlobal) return reducedArray;
 
@@ -52,7 +55,7 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
 
     /** If the app is a globally installed one, let's inject it's key */
     if (appMeta.isGlobal) {
-      appCredentials.push({
+      const credential = {
         id: 0,
         type: appMeta.type,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -65,7 +68,12 @@ function getApps(credentials: CredentialDataWithTeamName[], filterOnCredentials?
         team: {
           name: "Global",
         },
-      });
+      };
+      logger.debug(
+        `${appMeta.type} is a global app, injecting credential`,
+        safeStringify(getPiiFreeCredential(credential))
+      );
+      appCredentials.push(credential);
     }
 
     /** Check if app has location option AND add it if user has credentials for it */
@@ -134,10 +142,19 @@ export function getAppFromLocationValue(type: string): AppMeta | undefined {
  * @param concurrentMeetings - from app metadata
  * @returns - true if app supports team install
  */
-export function doesAppSupportTeamInstall(
-  appCategories: string[],
-  concurrentMeetings: boolean | undefined = undefined
-) {
+export function doesAppSupportTeamInstall({
+  appCategories,
+  concurrentMeetings = undefined,
+  isPaid,
+}: {
+  appCategories: string[];
+  concurrentMeetings: boolean | undefined;
+  isPaid: boolean;
+}) {
+  // Paid apps can't be installed on team level - That isn't supported
+  if (isPaid) {
+    return false;
+  }
   return !appCategories.some(
     (category) =>
       category === "calendar" ||

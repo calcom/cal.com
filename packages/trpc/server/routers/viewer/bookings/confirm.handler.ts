@@ -1,12 +1,16 @@
 import { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import { getLocationValueForDB } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store/locations";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
 import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhookTrigger";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -48,6 +52,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       attendees: true,
       eventTypeId: true,
       responses: true,
+      metadata: true,
+      userPrimaryEmail: true,
       eventType: {
         select: {
           id: true,
@@ -55,6 +61,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           teamId: true,
           recurringEvent: true,
           title: true,
+          slug: true,
           requiresConfirmation: true,
           currency: true,
           length: true,
@@ -63,6 +70,12 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           bookingFields: true,
           disableGuests: true,
           metadata: true,
+          locations: true,
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
           workflows: {
             include: {
               workflow: {
@@ -86,7 +99,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       recurringEventId: true,
       status: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
     },
   });
 
@@ -98,7 +110,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
         schedulingType: SchedulingType.COLLECTIVE,
       },
       select: {
-        users: true,
+        users: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
@@ -147,12 +163,25 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     };
   });
 
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+
+  const bookerUrl = await getBookerBaseUrl(
+    booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+  );
+
   const attendeesList = await Promise.all(attendeesListPromises);
 
   const evt: CalendarEvent = {
-    type: booking.eventType?.title || booking.title,
+    type: booking?.eventType?.slug as string,
     title: booking.title,
     description: booking.description,
+    bookerUrl,
     // TODO: Remove the usage of `bookingFields` in computing responses. We can do that by storing `label` with the response. Also, this would allow us to correctly show the label for a field even after the Event Type has been deleted.
     ...getCalEventResponses({
       bookingFields: booking.eventType?.bookingFields ?? null,
@@ -162,7 +191,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
     organizer: {
-      email: user.email,
+      email: booking.userPrimaryEmail ?? user.email,
       name: user.name || "Unnamed",
       username: user.username || undefined,
       timeZone: user.timeZone,
@@ -217,11 +246,16 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
   }
 
   if (confirmed) {
-    const credentials = await getUsersCredentials(user.id);
+    const credentials = await getUsersCredentials(user);
     const userWithCredentials = {
       ...user,
       credentials,
     };
+    const conferenceCredentialId = getLocationValueForDB(
+      booking.location ?? "",
+      (booking.eventType?.locations as LocationObject[]) || []
+    );
+    evt.conferenceCredentialId = conferenceCredentialId.conferenceCredentialId;
     await handleConfirmation({
       user: userWithCredentials,
       evt,
@@ -300,7 +334,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           // Posible to refactor TODO:
           const paymentApp = (await appStore[
             paymentAppCredential?.app?.dirName as keyof typeof appStore
-          ]()) as PaymentApp;
+          ]?.()) as PaymentApp;
           if (!paymentApp?.lib?.PaymentService) {
             console.warn(`payment App service of type ${paymentApp} is not implemented`);
             return null;
@@ -337,12 +371,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
     // send BOOKING_REJECTED webhooks
     const subscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       teamId,
+      orgId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {
@@ -364,7 +401,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
-  const message = "Booking " + confirmed ? "confirmed" : "rejected";
+  const message = `Booking ${confirmed}` ? "confirmed" : "rejected";
   const status = confirmed ? BookingStatus.ACCEPTED : BookingStatus.REJECTED;
 
   return { message, status };

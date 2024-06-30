@@ -26,7 +26,7 @@ export const getWorkflowActionOptionsHandler = async ({ ctx }: GetWorkflowAction
     isTeamsPlan = !!hasTeamPlan;
   }
 
-  const hasOrgsPlan = !!user.organizationId;
+  const hasOrgsPlan = !!user.profile?.organizationId;
 
   const t = await getTranslation(ctx.user.locale, "common");
   return getWorkflowActionOptions(

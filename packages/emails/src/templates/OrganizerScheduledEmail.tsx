@@ -39,8 +39,9 @@ export const OrganizerScheduledEmail = (
       t={t}
       subject={t(subject)}
       title={t(title)}
-      isOrganizer
+      includeAppsStatus
       timeFormat={timeFormat}
+      isOrganizer
       subtitle={
         <>
           {props.attendeeCancelled

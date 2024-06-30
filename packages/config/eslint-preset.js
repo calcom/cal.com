@@ -42,6 +42,7 @@ module.exports = {
         patterns: ["lodash"],
       },
     ],
+    "prefer-template": "error",
   },
   overrides: [
     {
@@ -67,6 +68,13 @@ module.exports = {
           rules: {
             "@typescript-eslint/no-unused-vars": "off",
             "no-undef": "off",
+          },
+        },
+        {
+          files: ["apps/website/**/*.{tsx,ts}"],
+          rules: {
+            /** TODO: Remove once website router is migrated  */
+            "@calcom/eslint/deprecated-imports-next-router": "off",
           },
         },
       ],

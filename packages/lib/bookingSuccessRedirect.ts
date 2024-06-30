@@ -1,8 +1,9 @@
 import type { EventType } from "@prisma/client";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import type { BookingResponse } from "@calcom/features/bookings/types";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 function getNewSeachParams(args: {
   query: Record<string, string | null | undefined | boolean>;
@@ -41,26 +42,32 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
 
 export const useBookingSuccessRedirect = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = ({
     successRedirectUrl,
     query,
     booking,
+    forwardParamsSuccessRedirect,
   }: {
     successRedirectUrl: EventType["successRedirectUrl"];
+    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
     query: Record<string, string | null | undefined | boolean>;
     booking: SuccessRedirectBookingType;
   }) => {
     if (successRedirectUrl) {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
+      if (!forwardParamsSuccessRedirect) {
+        window.parent.location.href = url.toString();
+        return;
+      }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
       const newSearchParams = getNewSeachParams({
         query: {
           ...query,
           ...bookingExtraParams,
         },
-        searchParams,
+        searchParams: searchParams ?? undefined,
       });
       window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
       return;

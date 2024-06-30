@@ -1,5 +1,5 @@
-import { getLayout } from "@calcom/features/MainLayout";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+"use client";
+
 import {
   AverageEventDurationChart,
   BookingKPICards,
@@ -7,16 +7,22 @@ import {
   LeastBookedTeamMembersTable,
   MostBookedTeamMembersTable,
   PopularEventsTable,
+  HighestNoShowHostTable,
+  RecentFeedbackTable,
+  HighestRatedMembersTable,
+  LowestRatedMembersTable,
 } from "@calcom/features/insights/components";
 import { FiltersProvider } from "@calcom/features/insights/context/FiltersProvider";
 import { Filters } from "@calcom/features/insights/filters";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell from "@calcom/features/shell/Shell";
 import { UpgradeTip } from "@calcom/features/tips";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, ButtonGroup } from "@calcom/ui";
-import { RefreshCcw, UserPlus, Users } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
+
+import { getServerSideProps } from "@lib/insights/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -26,17 +32,17 @@ export default function InsightsPage() {
 
   const features = [
     {
-      icon: <Users className="h-5 w-5" />,
+      icon: <Icon name="users" className="h-5 w-5" />,
       title: t("view_bookings_across"),
       description: t("view_bookings_across_description"),
     },
     {
-      icon: <RefreshCcw className="h-5 w-5" />,
+      icon: <Icon name="refresh-ccw" className="h-5 w-5" />,
       title: t("identify_booking_trends"),
       description: t("identify_booking_trends_description"),
     },
     {
-      icon: <UserPlus className="h-5 w-5" />,
+      icon: <Icon name="user-plus" className="h-5 w-5" />,
       title: t("spot_popular_event_types"),
       description: t("spot_popular_event_types_description"),
     },
@@ -44,8 +50,14 @@ export default function InsightsPage() {
 
   return (
     <div>
-      <ShellMain heading="Insights" subtitle={t("insights_subtitle")}>
+      <Shell
+        withoutMain={false}
+        heading="Insights"
+        subtitle={t("insights_subtitle")}
+        title="Insights"
+        description="View booking insights across your events.">
         <UpgradeTip
+          plan="team"
           title={t("make_informed_decisions")}
           description={t("make_informed_decisions_description")}
           features={features}
@@ -68,19 +80,25 @@ export default function InsightsPage() {
             <FiltersProvider>
               <Filters />
 
-              <div className="mb-4 space-y-6">
+              <div className="mb-4 space-y-4">
                 <BookingKPICards />
 
                 <BookingStatusLineChart />
 
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <PopularEventsTable />
 
                   <AverageEventDurationChart />
                 </div>
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <MostBookedTeamMembersTable />
                   <LeastBookedTeamMembersTable />
+                </div>
+                <RecentFeedbackTable />
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <HighestNoShowHostTable />
+                  <HighestRatedMembersTable />
+                  <LowestRatedMembersTable />
                 </div>
                 <small className="text-default block text-center">
                   {t("looking_for_more_insights")}{" "}
@@ -95,26 +113,11 @@ export default function InsightsPage() {
             </FiltersProvider>
           )}
         </UpgradeTip>
-      </ShellMain>
+      </Shell>
     </div>
   );
 }
 
 InsightsPage.PageWrapper = PageWrapper;
-InsightsPage.getLayout = getLayout;
 
-// If feature flag is disabled, return not found on getServerSideProps
-export const getServerSideProps = async () => {
-  const prisma = await import("@calcom/prisma").then((mod) => mod.default);
-  const flags = await getFeatureFlagMap(prisma);
-
-  if (flags.insights === false) {
-    return {
-      notFound: true,
-    };
-  }
-
-  return {
-    props: {},
-  };
-};
+export { getServerSideProps };

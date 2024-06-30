@@ -28,7 +28,7 @@ export default function ZendeskMenuItem(props: ZendeskMenuItemProps) {
         {t("contact_support")}
       </button>
       {active && (
-        <Script id="ze-snippet" src={"https://static.zdassets.com/ekr/snippet.js?key=" + ZENDESK_KEY} />
+        <Script id="ze-snippet" src={`https://static.zdassets.com/ekr/snippet.js?key=${ZENDESK_KEY}`} />
       )}
     </>
   );

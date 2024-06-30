@@ -1,3 +1,5 @@
+"use client";
+
 import { FlagListingView } from "@calcom/features/flags/pages/flag-listing-view";
 
 import PageWrapper from "@components/PageWrapper";

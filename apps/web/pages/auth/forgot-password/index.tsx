@@ -1,20 +1,23 @@
+"use client";
+
 // eslint-disable-next-line no-restricted-imports
 import { debounce } from "lodash";
-import type { GetServerSidePropsContext } from "next";
-import { getCsrfToken } from "next-auth/react";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
 import type { CSSProperties, SyntheticEvent } from "react";
 import React from "react";
 
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, EmailField } from "@calcom/ui";
+
+import { type inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
+import { getServerSideProps } from "@server/lib/forgot-password/getServerSideProps";
+
+export default function ForgotPassword(props: inferSSRProps<typeof getServerSideProps>) {
+  const csrfToken = "csrfToken" in props ? (props.csrfToken as string) : undefined;
   const { t } = useLocale();
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<{ message: string } | null>(null);
@@ -126,8 +129,9 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
             />
             <div className="space-y-2">
               <Button
-                className="w-full justify-center"
+                className="w-full justify-center dark:bg-white dark:text-black"
                 type="submit"
+                color="primary"
                 disabled={loading}
                 aria-label={t("request_password_reset")}
                 loading={loading}>
@@ -141,24 +145,6 @@ export default function ForgotPassword({ csrfToken }: { csrfToken: string }) {
   );
 }
 
-ForgotPassword.isThemeSupported = false;
 ForgotPassword.PageWrapper = PageWrapper;
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const { req, res } = context;
-
-  const session = await getServerSession({ req, res });
-
-  if (session) {
-    res.writeHead(302, { Location: "/" });
-    res.end();
-    return { props: {} };
-  }
-
-  return {
-    props: {
-      csrfToken: await getCsrfToken(context),
-      ...(await serverSideTranslations(context.locale || "en", ["common"])),
-    },
-  };
-};
+export { getServerSideProps };

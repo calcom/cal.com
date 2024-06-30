@@ -2,13 +2,13 @@ import type { Payment } from "@prisma/client";
 import type { EventType } from "@prisma/client";
 import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import type { StripeElementLocale } from "@stripe/stripe-js";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { getBookingRedirectExtraParams, useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { CAL_URL } from "@calcom/lib/constants";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
 
@@ -21,6 +21,7 @@ type Props = {
   eventType: {
     id: number;
     successRedirectUrl: EventType["successRedirectUrl"];
+    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
   };
   user: {
     username: string | null;
@@ -45,35 +46,20 @@ type States =
       status: "ok";
     };
 
-const getReturnUrl = (props: Props) => {
-  if (!props.eventType.successRedirectUrl) {
-    return `${CAL_URL}/booking/${props.booking.uid}`;
-  }
-
-  const returnUrl = new URL(props.eventType.successRedirectUrl);
-  const queryParams = getBookingRedirectExtraParams(props.booking);
-
-  Object.entries(queryParams).forEach(([key, value]) => {
-    if (value === null || value === undefined) {
-      return;
-    }
-    returnUrl.searchParams.append(key, String(value));
-  });
-
-  return returnUrl.toString();
-};
-
 const PaymentForm = (props: Props) => {
+  const {
+    user: { username },
+  } = props;
   const { t, i18n } = useLocale();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const [state, setState] = useState<States>({ status: "idle" });
+  const [isCanceling, setIsCanceling] = useState<boolean>(false);
   const stripe = useStripe();
   const elements = useElements();
   const paymentOption = props.payment.paymentOption;
   const [holdAcknowledged, setHoldAcknowledged] = useState<boolean>(paymentOption === "HOLD" ? false : true);
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-
   useEffect(() => {
     elements?.update({ locale: i18n.language as StripeElementLocale });
   }, [elements, i18n.language]);
@@ -81,30 +67,44 @@ const PaymentForm = (props: Props) => {
   const handleSubmit = async (ev: SyntheticEvent) => {
     ev.preventDefault();
 
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || searchParams === null) {
+      return;
+    }
+
     setState({ status: "processing" });
 
     let payload;
     const params: {
-      [k: string]: any;
+      uid: string;
+      email: string | null;
+      location?: string;
+      payment_intent?: string;
+      payment_intent_client_secret?: string;
+      redirect_status?: string;
     } = {
       uid: props.booking.uid,
-      email: searchParams.get("email"),
+      email: searchParams?.get("email"),
     };
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
+      if (payload.setupIntent) {
+        params.payment_intent = payload.setupIntent.id;
+        params.payment_intent_client_secret = payload.setupIntent.client_secret || undefined;
+        params.redirect_status = payload.setupIntent.status;
+      }
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
+      if (payload.paymentIntent) {
+        params.payment_intent = payload.paymentIntent.id;
+        params.payment_intent_client_secret = payload.paymentIntent.client_secret || undefined;
+        params.redirect_status = payload.paymentIntent.status;
+      }
     }
 
     if (payload?.error) {
@@ -125,9 +125,12 @@ const PaymentForm = (props: Props) => {
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
         booking: props.booking,
+        forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
       });
     }
   };
+
+  const disableButtons = isCanceling || !holdAcknowledged || ["processing", "error"].includes(state.status);
 
   return (
     <form id="payment-form" className="bg-subtle mt-4 rounded-md p-6" onSubmit={handleSubmit}>
@@ -142,21 +145,29 @@ const PaymentForm = (props: Props) => {
               formatParams: { amount: { currency: props.payment.currency } },
             })}
             onChange={(e) => setHoldAcknowledged(e.target.checked)}
-            descriptionClassName="text-blue-900 font-semibold"
+            descriptionClassName="text-info font-semibold"
           />
         </div>
       )}
       <div className="mt-2 flex justify-end space-x-2">
         <Button
           color="minimal"
-          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          disabled={disableButtons}
           id="cancel"
-          onClick={() => router.back()}>
+          type="button"
+          loading={isCanceling}
+          onClick={() => {
+            setIsCanceling(true);
+            if (username) {
+              return router.push(`/${username}`);
+            }
+            return router.back();
+          }}>
           <span id="button-text">{t("cancel")}</span>
         </Button>
         <Button
           type="submit"
-          disabled={!holdAcknowledged || ["processing", "error"].includes(state.status)}
+          disabled={disableButtons}
           loading={state.status === "processing"}
           id="submit"
           color="secondary">

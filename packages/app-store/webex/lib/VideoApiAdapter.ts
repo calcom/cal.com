@@ -154,7 +154,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
       method: "GET",
       ...options,
       headers: {
-        Authorization: "Bearer " + accessToken,
+        Authorization: `Bearer ${accessToken}`,
         ...options?.headers,
       },
     });
@@ -208,7 +208,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
             url: result.webLink,
           };
         }
-        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
         throw new Error("Unexpected error");
@@ -258,7 +258,7 @@ const WebexVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter =>
             url: result.webLink,
           };
         }
-        throw new Error("Failed to create meeting. Response is " + JSON.stringify(result));
+        throw new Error(`Failed to create meeting. Response is ${JSON.stringify(result)}`);
       } catch (err) {
         console.error(err);
         throw new Error("Unexpected error");

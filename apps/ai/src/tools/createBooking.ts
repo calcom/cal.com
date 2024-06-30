@@ -1,4 +1,4 @@
-import { DynamicStructuredTool } from "langchain/tools";
+import { DynamicStructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
 
 import type { UserList } from "~/src/types/user";
@@ -47,7 +47,7 @@ const createBooking = async ({
   }
 
   const responses = {
-    id: invite,
+    id: invite.toString(),
     name: user.username,
     email: user.email,
   };

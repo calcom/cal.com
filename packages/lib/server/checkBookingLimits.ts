@@ -11,14 +11,23 @@ import { parseBookingLimit } from "../isBookingLimits";
 export async function checkBookingLimits(
   bookingLimits: IntervalLimit,
   eventStartDate: Date,
-  eventId: number
+  eventId: number,
+  rescheduleUid?: string | undefined,
+  timeZone?: string | null
 ) {
   const parsedBookingLimits = parseBookingLimit(bookingLimits);
   if (!parsedBookingLimits) return false;
 
   // not iterating entries to preserve types
   const limitCalculations = ascendingLimitKeys.map((key) =>
-    checkBookingLimit({ key, limitingNumber: parsedBookingLimits[key], eventStartDate, eventId })
+    checkBookingLimit({
+      key,
+      limitingNumber: parsedBookingLimits[key],
+      eventStartDate,
+      eventId,
+      timeZone,
+      rescheduleUid,
+    })
   );
 
   try {
@@ -33,19 +42,25 @@ export async function checkBookingLimit({
   eventId,
   key,
   limitingNumber,
+  rescheduleUid,
+  timeZone,
 }: {
   eventStartDate: Date;
   eventId: number;
   key: keyof IntervalLimit;
   limitingNumber: number | undefined;
+  rescheduleUid?: string | undefined;
+  timeZone?: string | null;
 }) {
   {
+    const eventDateInOrganizerTz = timeZone ? dayjs(eventStartDate).tz(timeZone) : dayjs(eventStartDate);
+
     if (!limitingNumber) return;
 
     const unit = intervalLimitKeyToUnit(key);
 
-    const startDate = dayjs(eventStartDate).startOf(unit).toDate();
-    const endDate = dayjs(eventStartDate).endOf(unit).toDate();
+    const startDate = dayjs(eventDateInOrganizerTz).startOf(unit).toDate();
+    const endDate = dayjs(eventDateInOrganizerTz).endOf(unit).toDate();
 
     const bookingsInPeriod = await prisma.booking.count({
       where: {
@@ -57,6 +72,9 @@ export async function checkBookingLimit({
         },
         endTime: {
           lte: endDate,
+        },
+        uid: {
+          not: rescheduleUid,
         },
       },
     });

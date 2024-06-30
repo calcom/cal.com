@@ -1,6 +1,7 @@
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { APP_NAME } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Meta, showToast, SkeletonContainer } from "@calcom/ui";
@@ -11,8 +12,8 @@ import WebhookForm from "../components/WebhookForm";
 import { subscriberUrlReserved } from "../lib/subscriberUrlReserved";
 
 const EditWebhook = () => {
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id");
+  const searchParams = useCompatSearchParams();
+  const id = searchParams?.get("id");
 
   if (!id) return <SkeletonContainer />;
 
@@ -22,9 +23,9 @@ const EditWebhook = () => {
 
 function Component({ webhookId }: { webhookId: string }) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -45,6 +46,7 @@ function Component({ webhookId }: { webhookId: string }) {
   const editWebhookMutation = trpc.viewer.webhook.edit.useMutation({
     async onSuccess() {
       await utils.viewer.webhook.list.invalidate();
+      await utils.viewer.webhook.get.invalidate({ webhookId });
       showToast(t("webhook_updated_successfully"), "success");
       router.back();
     },
@@ -53,7 +55,7 @@ function Component({ webhookId }: { webhookId: string }) {
     },
   });
 
-  if (isLoading || !webhook) return <SkeletonContainer />;
+  if (isPending || !webhook) return <SkeletonContainer />;
 
   return (
     <>
@@ -61,6 +63,7 @@ function Component({ webhookId }: { webhookId: string }) {
         title={t("edit_webhook")}
         description={t("add_webhook_description", { appName: APP_NAME })}
         borderInShellHeader={true}
+        backButton
       />
       <WebhookForm
         noRoutingFormTriggers={false}
@@ -73,6 +76,7 @@ function Component({ webhookId }: { webhookId: string }) {
               webhooks,
               teamId: webhook.teamId ?? undefined,
               userId: webhook.userId ?? undefined,
+              platform: webhook.platform ?? undefined,
             })
           ) {
             showToast(t("webhook_subscriber_url_reserved"), "error");

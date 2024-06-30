@@ -20,7 +20,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   const params = {
     client_id,
     response_type: "code",
-    redirect_uri: WEBAPP_URL + "/api/integrations/zohocalendar/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/zohocalendar/callback`,
     scope: [
       "ZohoCalendar.calendar.ALL",
       "ZohoCalendar.event.ALL",

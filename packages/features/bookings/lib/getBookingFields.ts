@@ -44,7 +44,7 @@ export const getSmsReminderNumberSource = ({
   workflowId: Workflow["id"];
   isSmsReminderNumberRequired: boolean;
 }) => ({
-  id: "" + workflowId,
+  id: `${workflowId}`,
   type: "workflow",
   label: "Workflow",
   fieldRequired: isSmsReminderNumberRequired,

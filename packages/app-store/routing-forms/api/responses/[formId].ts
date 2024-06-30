@@ -108,10 +108,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   // Make Header
   res.write(
-    headerFields
+    `${headerFields
       .map((field) => `${field.label}${field.deleted ? "(Deleted)" : ""}`)
       .concat(["Submission Time"])
-      .join(",") + "\n"
+      .join(",")}\n`
   );
 
   for await (const partialCsv of csvIterator) {

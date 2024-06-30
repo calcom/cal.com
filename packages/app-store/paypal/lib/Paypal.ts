@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import z from "zod";
 
 import { IS_PRODUCTION, WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 class Paypal {
@@ -197,12 +198,15 @@ class Paypal {
         body: JSON.stringify(body),
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        return result.id as string;
+      if (!response.ok) {
+        const message = `${response.statusText}: ${JSON.stringify(await response.json())}`;
+        throw new Error(message);
       }
-    } catch (error) {
-      console.error(error);
+
+      const result = await response.json();
+      return result.id as string;
+    } catch (e) {
+      logger.error("Error creating webhook", e);
     }
 
     return false;
@@ -272,7 +276,7 @@ class Paypal {
       webhook_id: options.body.webhook_id,
     });
 
-    const bodyToString = stringy.slice(0, -1) + `,"webhook_event":${options.body.webhook_event}` + "}";
+    const bodyToString = `${stringy.slice(0, -1)},"webhook_event":${options.body.webhook_event}}`;
 
     try {
       const response = await this.fetcher(`/v1/notifications/verify-webhook-signature`, {

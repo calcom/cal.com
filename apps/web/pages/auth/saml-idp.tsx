@@ -1,12 +1,11 @@
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-import PageWrapper from "@components/PageWrapper";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 
 // To handle the IdP initiated login flow callback
 export default function Page() {
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
 
   useEffect(() => {
     const code = searchParams?.get("code");
@@ -20,4 +19,3 @@ export default function Page() {
 
   return null;
 }
-Page.PageWrapper = PageWrapper;

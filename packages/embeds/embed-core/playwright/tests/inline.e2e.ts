@@ -7,8 +7,7 @@ import { bookFirstEvent, deleteAllBookingsByEmail, getEmbedIframe, todo } from "
 test.describe("Inline Iframe", () => {
   test("Inline Iframe - Configured with Dark Theme", async ({
     page,
-    getActionFiredDetails,
-    addEmbedListeners,
+    embeds: { addEmbedListeners, getActionFiredDetails },
   }) => {
     await deleteAllBookingsByEmail("embed-user@example.com");
     await addEmbedListeners("");

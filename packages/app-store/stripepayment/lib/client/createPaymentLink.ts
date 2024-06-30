@@ -15,5 +15,5 @@ export function createPaymentLink(opts: {
   let link = "";
   if (absolute) link = WEBSITE_URL;
   const query = stringify({ date, name, email });
-  return link + `/payment/${paymentUid}?${query}`;
+  return `${link}/payment/${paymentUid}?${query}`;
 }

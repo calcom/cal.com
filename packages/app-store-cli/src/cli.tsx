@@ -4,7 +4,7 @@ import meow from "meow";
 import React from "react";
 
 import App from "./App";
-import { SupportedCommands } from "./types";
+import type { SupportedCommands } from "./types";
 
 const cli = meow(
   `

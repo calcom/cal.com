@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL, WEBAPP_URL_FOR_OAUTH } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
@@ -16,8 +16,17 @@ let client_secret = "";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
+  const state = decodeOAuthState(req);
 
   if (typeof code !== "string") {
+    if (state?.onErrorReturnTo || state?.returnTo) {
+      res.redirect(
+        getSafeRedirectUrl(state.onErrorReturnTo) ??
+          getSafeRedirectUrl(state?.returnTo) ??
+          `${WEBAPP_URL}/apps/installed`
+      );
+      return;
+    }
     res.status(400).json({ message: "No code returned" });
     return;
   }
@@ -30,7 +39,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const toUrlEncoded = (payload: Record<string, string>) =>
     Object.keys(payload)
-      .map((key) => key + "=" + encodeURIComponent(payload[key]))
+      .map((key) => `${key}=${encodeURIComponent(payload[key])}`)
       .join("&");
 
   const body = toUrlEncoded({
@@ -38,7 +47,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     grant_type: "authorization_code",
     code,
     scope: scopes.join(" "),
-    redirect_uri: WEBAPP_URL + "/api/integrations/office365video/callback",
+    redirect_uri: `${WEBAPP_URL_FOR_OAUTH}/api/integrations/office365video/callback`,
     client_secret,
   });
 
@@ -53,11 +62,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const responseBody = await response.json();
 
   if (!response.ok) {
-    return res.redirect("/apps/installed?error=" + JSON.stringify(responseBody));
+    return res.redirect(`/apps/installed?error=${JSON.stringify(responseBody)}`);
   }
 
   const whoami = await fetch("https://graph.microsoft.com/v1.0/me", {
-    headers: { Authorization: "Bearer " + responseBody.access_token },
+    headers: { Authorization: `Bearer ${responseBody.access_token}` },
   });
   const graphUser = await whoami.json();
 
@@ -95,7 +104,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
 
-  const state = decodeOAuthState(req);
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
+  }
+
   return res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "msteams" })
   );

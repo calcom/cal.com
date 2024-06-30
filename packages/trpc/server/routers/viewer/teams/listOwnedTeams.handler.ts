@@ -1,6 +1,5 @@
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 
@@ -33,8 +32,7 @@ export const listOwnedTeamsHandler = async ({ ctx }: ListOptions) => {
 
   return user?.teams
     ?.filter((m) => {
-      const metadata = teamMetadataSchema.parse(m.team.metadata);
-      return !metadata?.isOrganization;
+      return !m.team.isOrganization;
     })
     ?.map(({ team }) => team);
 };

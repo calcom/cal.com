@@ -1,6 +1,8 @@
-import { checkPremiumUsername } from "@calcom/features/ee/common/lib/checkPremiumUsername";
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 
 import { checkRegularUsername } from "./checkRegularUsername";
+import { usernameCheck as checkPremiumUsername } from "./username";
 
-export const checkUsername = IS_SELF_HOSTED ? checkRegularUsername : checkPremiumUsername;
+// TODO: Replace `lib/checkPremiumUsername` with `usernameCheck` and then import checkPremiumUsername directly here.
+// We want to remove dependency on website for signup stuff as signup is now part of app.
+export const checkUsername = !IS_PREMIUM_USERNAME_ENABLED ? checkRegularUsername : checkPremiumUsername;

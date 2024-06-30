@@ -1,4 +1,5 @@
-import { MailOpenIcon } from "lucide-react";
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -15,7 +16,7 @@ function VerifyEmailPage() {
   const { data } = useEmailVerifyCheck();
   const { data: session } = useSession();
   const router = useRouter();
-  const { t } = useLocale();
+  const { t, isLocaleReady } = useLocale();
   const mutation = trpc.viewer.auth.resendVerifyEmail.useMutation();
 
   useEffect(() => {
@@ -24,7 +25,9 @@ function VerifyEmailPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.isVerified]);
-
+  if (!isLocaleReady) {
+    return null;
+  }
   return (
     <div className="h-[100vh] w-full ">
       <div className="flex h-full w-full flex-col items-center justify-center">
@@ -32,7 +35,7 @@ function VerifyEmailPage() {
           <EmptyScreen
             border
             dashedBorder={false}
-            Icon={MailOpenIcon}
+            Icon="mail-open"
             headline={t("check_your_email")}
             description={t("verify_email_page_body", { email: session?.user?.email, appName: APP_NAME })}
             className="bg-default"
@@ -40,12 +43,12 @@ function VerifyEmailPage() {
               <Button
                 color="minimal"
                 className="underline"
-                loading={mutation.isLoading}
+                loading={mutation.isPending}
                 onClick={() => {
-                  showToast("Send email", "success");
+                  showToast(t("send_email"), "success");
                   mutation.mutate();
                 }}>
-                Resend Email
+                {t("resend_email")}
               </Button>
             }
           />

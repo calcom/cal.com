@@ -1,3 +1,5 @@
+"use client";
+
 import { useReducer } from "react";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -5,7 +7,6 @@ import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, EmptyScreen, Meta, SkeletonContainer, SkeletonText } from "@calcom/ui";
-import { Calendar, Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -16,7 +17,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
   return (
     <SkeletonContainer>
       <Meta title={title} description={description} borderInShellHeader={true} />
-      <div className="divide-subtle border-subtle space-y-6 rounded-b-xl border border-t-0 px-6 py-4">
+      <div className="divide-subtle border-subtle space-y-6 rounded-b-lg border border-t-0 px-6 py-4">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
       </div>
@@ -28,7 +29,7 @@ const AddConferencingButton = () => {
   const { t } = useLocale();
 
   return (
-    <Button color="secondary" StartIcon={Plus} href="/apps/categories/conferencing">
+    <Button color="secondary" StartIcon="plus" href="/apps/categories/conferencing">
       {t("add")}
     </Button>
   );
@@ -82,7 +83,7 @@ const ConferencingLayout = () => {
             if (!data.items.length) {
               return (
                 <EmptyScreen
-                  Icon={Calendar}
+                  Icon="calendar"
                   headline={t("no_category_apps", {
                     category: t("conferencing").toLowerCase(),
                   })}
@@ -100,7 +101,7 @@ const ConferencingLayout = () => {
             }
             return (
               <AppList
-                listClassName="rounded-xl rounded-t-none border-t-0"
+                listClassName="rounded-lg rounded-t-none border-t-0"
                 handleDisconnect={handleDisconnect}
                 data={data}
                 variant="conferencing"

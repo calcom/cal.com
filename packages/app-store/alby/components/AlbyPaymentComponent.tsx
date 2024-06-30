@@ -1,17 +1,15 @@
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import z from "zod";
 
 import type { PaymentPageProps } from "@calcom/features/ee/payments/pages/payment";
 import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
-import { Button } from "@calcom/ui";
-import { showToast } from "@calcom/ui";
-import { ClipboardCheck, Clipboard } from "@calcom/ui/components/icon";
+import { Button, showToast } from "@calcom/ui";
 import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 interface IAlbyPaymentComponentProps {
@@ -99,7 +97,7 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
                 color="secondary"
                 onClick={() => copyToClipboard(paymentRequest)}
                 className="text-subtle rounded-md"
-                StartIcon={isCopied ? ClipboardCheck : Clipboard}>
+                StartIcon={isCopied ? "clipboard-check" : "clipboard"}>
                 Copy Invoice
               </Button>
               <Link target="_blank" href="https://getalby.com" className="link mt-4 text-sm underline">
@@ -111,9 +109,14 @@ export const AlbyPaymentComponent = (props: IAlbyPaymentComponentProps) => {
       )}
       <Link target="_blank" href="https://getalby.com">
         <div className="mt-4 flex items-center text-sm">
-          Powered by
-          <img title="Alby" src="/app-store/alby/icon.svg" alt="Alby" className="h-8 w-8" />
-          Alby
+          Powered by&nbsp;
+          <img title="Alby" src="/app-store/alby/logo.svg" alt="Alby" className="h-8 dark:hidden" />
+          <img
+            title="Alby"
+            src="/app-store/alby/logo-dark.svg"
+            alt="Alby"
+            className="hidden h-8 dark:block"
+          />
         </div>
       </Link>
     </div>
@@ -125,11 +128,19 @@ type PaymentCheckerProps = PaymentPageProps;
 function PaymentChecker(props: PaymentCheckerProps) {
   // TODO: move booking success code to a common lib function
   // TODO: subscribe rather than polling
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const bookingSuccessRedirect = useBookingSuccessRedirect();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
+
   useEffect(() => {
+    if (searchParams === null) {
+      return;
+    }
+
+    // use closure to ensure non-nullability
+    const sp = searchParams;
+
     const interval = setInterval(() => {
       (async () => {
         if (props.booking.status === "ACCEPTED") {
@@ -148,7 +159,7 @@ function PaymentChecker(props: PaymentCheckerProps) {
             location: string;
           } = {
             uid: props.booking.uid,
-            email: searchParams.get("email"),
+            email: sp.get("email"),
             location: t("web_conferencing_details_to_follow"),
           };
 
@@ -156,10 +167,12 @@ function PaymentChecker(props: PaymentCheckerProps) {
             successRedirectUrl: props.eventType.successRedirectUrl,
             query: params,
             booking: props.booking,
+            forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
           });
         }
       })();
     }, 1000);
+
     return () => clearInterval(interval);
   }, [
     bookingSuccessRedirect,
@@ -168,10 +181,12 @@ function PaymentChecker(props: PaymentCheckerProps) {
     props.booking.status,
     props.eventType.id,
     props.eventType.successRedirectUrl,
+    props.eventType.forwardParamsSuccessRedirect,
     props.payment.success,
     searchParams,
     t,
     utils.viewer.bookings,
   ]);
+
   return null;
 }

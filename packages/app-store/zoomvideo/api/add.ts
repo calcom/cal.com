@@ -25,7 +25,7 @@ async function handler(req: NextApiRequest) {
   const params = {
     response_type: "code",
     client_id,
-    redirect_uri: WEBAPP_URL + "/api/integrations/zoomvideo/callback",
+    redirect_uri: `${WEBAPP_URL}/api/integrations/zoomvideo/callback`,
     state,
   };
   const query = stringify(params);

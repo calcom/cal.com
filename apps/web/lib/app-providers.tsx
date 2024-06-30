@@ -1,4 +1,5 @@
 import { TooltipProvider } from "@radix-ui/react-tooltip";
+import { dir } from "i18next";
 import type { Session } from "next-auth";
 import { SessionProvider, useSession } from "next-auth/react";
 import { EventCollectionProvider } from "next-collect/client";
@@ -7,7 +8,8 @@ import { appWithTranslation } from "next-i18next";
 import { ThemeProvider } from "next-themes";
 import type { AppProps as NextAppProps, AppProps as NextJsAppProps } from "next/app";
 import type { ParsedUrlQuery } from "querystring";
-import type { ComponentProps, PropsWithChildren, ReactNode } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
+import { useEffect } from "react";
 
 import { OrgBrandingProvider } from "@calcom/features/ee/organizations/context/provider";
 import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/providerDynamic";
@@ -17,9 +19,10 @@ import { useFlags } from "@calcom/features/flags/hooks";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
+import type { WithLocaleProps } from "@lib/withLocale";
 import type { WithNonceProps } from "@lib/withNonce";
 
-import { useClientViewerI18n } from "@components/I18nLanguageHandler";
+import { useViewerI18n } from "@components/I18nLanguageHandler";
 
 const I18nextAdapter = appWithTranslation<
   NextJsAppProps<SSRConfig> & {
@@ -30,10 +33,13 @@ const I18nextAdapter = appWithTranslation<
 // Workaround for https://github.com/vercel/next.js/issues/8592
 export type AppProps = Omit<
   NextAppProps<
-    WithNonceProps & {
-      themeBasis?: string;
-      session: Session;
-    } & Record<string, unknown>
+    WithLocaleProps<
+      WithNonceProps<{
+        themeBasis?: string;
+        session: Session;
+        i18n?: SSRConfig;
+      }>
+    >
   >,
   "Component"
 > & {
@@ -41,7 +47,7 @@ export type AppProps = Omit<
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextAppProps["router"]) => ReactNode;
+    getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -68,17 +74,51 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   /**
    * i18n should never be clubbed with other queries, so that it's caching can be managed independently.
    **/
-  const clientViewerI18n = useClientViewerI18n(props.router.locales || []);
-  const { i18n, locale } = clientViewerI18n.data || {};
+
+  const session = useSession();
+  const locale = session?.data?.user.locale ?? props.pageProps.newLocale;
+
+  useEffect(() => {
+    try {
+      // @ts-expect-error TS2790: The operand of a 'delete' operator must be optional.
+      delete window.document.documentElement["lang"];
+
+      window.document.documentElement.lang = locale;
+
+      // Next.js writes the locale to the same attribute
+      // https://github.com/vercel/next.js/blob/1609da2d9552fed48ab45969bdc5631230c6d356/packages/next/src/shared/lib/router/router.ts#L1786
+      // which can result in a race condition
+      // this property descriptor ensures this never happens
+      Object.defineProperty(window.document.documentElement, "lang", {
+        configurable: true,
+        // value: locale,
+        set: function (this) {
+          // empty setter on purpose
+        },
+        get: function () {
+          return locale;
+        },
+      });
+    } catch (error) {
+      console.error(error);
+
+      window.document.documentElement.lang = locale;
+    }
+
+    window.document.dir = dir(locale);
+  }, [locale]);
+
+  const clientViewerI18n = useViewerI18n(locale);
+  const i18n = clientViewerI18n.data?.i18n ?? props.pageProps.i18n;
 
   const passedProps = {
     ...props,
     pageProps: {
       ...props.pageProps,
+
       ...i18n,
     },
-    router: locale ? { locale } : props.router,
-  } as unknown as ComponentProps<typeof I18nextAdapter>;
+  };
 
   return <I18nextAdapter {...passedProps} />;
 };
@@ -87,9 +127,9 @@ const enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
-  App = "systemOnly",
+  App = "appConfigured",
   // Booking Pages(including Routing Forms)
-  Booking = "userConfigured",
+  Booking = "bookingConfigured",
 }
 
 type CalcomThemeProps = PropsWithChildren<
@@ -104,8 +144,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
+  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+
   return (
-    <ThemeProvider {...getThemeProviderProps({ props, isEmbedMode, embedNamespace })}>
+    <ThemeProvider {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -173,20 +215,20 @@ function getThemeProviderProps({
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
 
-  if ((isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
+  if (!process.env.NEXT_PUBLIC_IS_E2E && (isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );
   }
 
-  const appearanceIdSuffix = themeBasis ? ":" + themeBasis : "";
+  const appearanceIdSuffix = themeBasis ? `:${themeBasis}` : "";
   const forcedTheme = themeSupport === ThemeSupport.None ? "light" : undefined;
   let embedExplicitlySetThemeSuffix = "";
 
   if (typeof window !== "undefined") {
     const embedTheme = window.getEmbedTheme();
     if (embedTheme) {
-      embedExplicitlySetThemeSuffix = ":" + embedTheme;
+      embedExplicitlySetThemeSuffix = `:${embedTheme}`;
     }
   }
 
@@ -233,7 +275,9 @@ const AppProviders = (props: AppPropsWithChildren) => {
   // No need to have intercom on public pages - Good for Page Performance
   const isBookingPage = useIsBookingPage();
   const { pageProps, ...rest } = props;
-  const { _nonce, ...restPageProps } = pageProps;
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { nonce, ...restPageProps } = pageProps;
   const propsWithoutNonce = {
     pageProps: {
       ...restPageProps,

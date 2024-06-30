@@ -1,13 +1,13 @@
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { Provider as TooltipPrimitiveProvider } from "@radix-ui/react-tooltip";
 import Link from "next/link";
 
 import classNames from "@calcom/lib/classNames";
 import { AVATAR_FALLBACK } from "@calcom/lib/constants";
 
-import type { Maybe } from "@trpc/server";
-
 import { Tooltip } from "../tooltip";
+
+type Maybe<T> = T | null | undefined;
 
 export type AvatarProps = {
   className?: string;
@@ -15,7 +15,7 @@ export type AvatarProps = {
   imageSrc?: Maybe<string>;
   title?: string;
   alt: string;
-  href?: string;
+  href?: string | null;
   fallback?: React.ReactNode;
   accepted?: boolean;
   asChild?: boolean; // Added to ignore the outer span on the fallback component - messes up styling
@@ -41,7 +41,7 @@ export function Avatar(props: AvatarProps) {
     <AvatarPrimitive.Root
       data-testid={props?.["data-testid"]}
       className={classNames(
-        "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full",
+        "bg-emphasis item-center relative inline-flex aspect-square justify-center rounded-full align-top",
         indicator ? "overflow-visible" : "overflow-hidden",
         props.className,
         sizesPropsBySize[size]
@@ -66,13 +66,17 @@ export function Avatar(props: AvatarProps) {
   );
 
   if (href) {
-    avatar = <Link href={href}>{avatar}</Link>;
+    avatar = (
+      <Link data-testid="avatar-href" href={href}>
+        {avatar}
+      </Link>
+    );
   }
 
   return title ? (
-    <TooltipPrimitive.Provider>
+    <TooltipPrimitiveProvider>
       <Tooltip content={title}>{avatar}</Tooltip>
-    </TooltipPrimitive.Provider>
+    </TooltipPrimitiveProvider>
   ) : (
     <>{avatar}</>
   );

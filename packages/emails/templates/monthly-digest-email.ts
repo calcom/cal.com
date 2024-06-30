@@ -1,4 +1,4 @@
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import type { MonthlyDigestEmailData } from "../src/templates/MonthlyDigestEmail";
@@ -12,12 +12,12 @@ export default class MonthlyDigestEmail extends BaseEmail {
     this.eventData = eventData;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.eventData.admin.email,
       subject: `${APP_NAME}: Your monthly digest`,
-      html: renderEmail("MonthlyDigestEmail", this.eventData),
+      html: await renderEmail("MonthlyDigestEmail", this.eventData),
       text: "",
     };
   }

@@ -33,7 +33,7 @@ export default class CloseComCalendarService implements Calendar {
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "sendgrid_other_calendar";
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
 
     const parsedCredentialKey = apiKeySchema.safeParse(credential.key);
 

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import type { FC } from "react";
 import { LiveChatLoaderProvider } from "react-live-chat-loader";
 
 const Provider: FC<{ children: React.ReactNode }> = ({ children }) => (

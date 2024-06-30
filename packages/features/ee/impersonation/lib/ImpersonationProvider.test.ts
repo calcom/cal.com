@@ -7,7 +7,7 @@ import {
   parseTeamId,
   checkSelfImpersonation,
   checkUserIdentifier,
-  checkPermission,
+  checkGlobalPermission,
 } from "./ImpersonationProvider";
 
 const session: Session = {
@@ -65,17 +65,17 @@ describe("checkUserIdentifier", () => {
 describe("checkPermission", () => {
   it("should throw an error if the user is not an admin and team impersonation is disabled", () => {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION = "false";
-    expect(() => checkPermission(session)).toThrow();
+    expect(() => checkGlobalPermission(session)).toThrow();
   });
 
   it("should not throw an error if the user is an admin and team impersonation is disabled", () => {
     const modifiedSession = { ...session, user: { ...session.user, role: UserPermissionRole.ADMIN } };
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION = "false";
-    expect(() => checkPermission(modifiedSession)).not.toThrow();
+    expect(() => checkGlobalPermission(modifiedSession)).not.toThrow();
   });
 
   it("should not throw an error if the user is not an admin but team impersonation is enabled", () => {
     process.env.NEXT_PUBLIC_TEAM_IMPERSONATION = "true";
-    expect(() => checkPermission(session)).not.toThrow();
+    expect(() => checkGlobalPermission(session)).not.toThrow();
   });
 });

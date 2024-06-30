@@ -99,15 +99,47 @@ describe("next.config.js - Org Rewrite", () => {
       expect(orgUserRouteMatch("/abc")?.params).toContain({
         user: "abc",
       });
+
+      // Tests that something that starts with 'd' which could accidentally match /d route is correctly identified as a booking page
+      expect(orgUserRouteMatch("/designer")?.params).toContain({
+        user: "designer",
+      });
+
+      // Tests that something that starts with 'apps' which could accidentally match /apps route is correctly identified as a booking page
+      expect(orgUserRouteMatch("/apps-conflict-possibility")?.params).toContain({
+        user: "apps-conflict-possibility",
+      });
+
+      // Tests that something that starts with '_next' which could accidentally match /_next route is correctly identified as a booking page
+      expect(orgUserRouteMatch("/_next-candidate")?.params).toContain({
+        user: "_next-candidate",
+      });
+
+      // Tests that something that starts with 'public' which could accidentally match /public route is correctly identified as a booking page
+      expect(orgUserRouteMatch("/public-person")?.params).toContain({
+        user: "public-person",
+      });
     });
 
     it("Non booking pages", () => {
       expect(orgUserTypeRouteMatch("/_next/def")).toEqual(false);
       expect(orgUserTypeRouteMatch("/public/def")).toEqual(false);
+
       expect(orgUserRouteMatch("/_next/")).toEqual(false);
       expect(orgUserRouteMatch("/public/")).toEqual(false);
+
+      expect(orgUserRouteMatch("/event-types/")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/event-types/")).toEqual(false);
+
+      expect(orgUserRouteMatch("/event-types/?abc=1")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/event-types/?abc=1")).toEqual(false);
+
       expect(orgUserRouteMatch("/event-types")).toEqual(false);
       expect(orgUserTypeRouteMatch("/event-types")).toEqual(false);
+
+      expect(orgUserRouteMatch("/event-types?abc=1")).toEqual(false);
+      expect(orgUserTypeRouteMatch("/event-types?abc=1")).toEqual(false);
+
       expect(orgUserTypeRouteMatch("/john/avatar.png")).toEqual(false);
       expect(orgUserTypeRouteMatch("/cancel/abcd")).toEqual(false);
       expect(orgUserTypeRouteMatch("/success/abcd")).toEqual(false);

@@ -2,7 +2,16 @@
 
 Contributions are what makes the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
-- Before jumping into a PR be sure to search [existing PRs](https://github.com/calcom/cal.com/pulls) or [issues](https://github.com/calcom/cal.com/issues) for an open or closed item that relates to your submission.
+## House rules
+
+- Before submitting a new issue or PR, check if it already exists in [issues](https://github.com/calcom/cal.com/issues) or [PRs](https://github.com/calcom/cal.com/pulls).
+- GitHub issues: take note of the `🚨 needs approval` label.
+  - **For Contributors**:
+    - Feature Requests: Wait for a core member to approve and remove the `🚨 needs approval` label before you start coding or submit a PR.
+    - Bugs, Security, Performance, Documentation, etc.: You can start coding immediately, even if the `🚨 needs approval` label is present. This label mainly concerns feature requests.
+  - **Our Process**:
+    - Issues from non-core members automatically receive the `🚨 needs approval` label.
+    - We greatly value new feature ideas. To ensure consistency in the product's direction, they undergo review and approval.
 
 ## Priorities
 
@@ -90,15 +99,17 @@ To develop locally:
 
    - Duplicate `.env.example` to `.env`.
    - Use `openssl rand -base64 32` to generate a key and add it under `NEXTAUTH_SECRET` in the `.env` file.
-   - Use `openssl rand -base64 24` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
+   - Use `openssl rand -base64 32` to generate a key and add it under `CALENDSO_ENCRYPTION_KEY` in the `.env` file.
 
 6. Setup Node
    If your Node version does not meet the project's requirements as instructed by the docs, "nvm" (Node Version Manager) allows using Node at the version required by the project:
+
    ```sh
    nvm use
    ```
-   
+
    You first might need to install the specific version and then use it:
+
    ```sh
    nvm install && nvm use
    ```
@@ -134,6 +145,7 @@ yarn test-e2e
 ```
 
 #### Resolving issues
+
 ##### E2E test browsers not installed
 
 Run `npx playwright install` to download test browsers and resolve the error below when running `yarn test-e2e`:
@@ -158,3 +170,61 @@ If you get errors, be sure to fix them before committing.
 - If your PR refers to or fixes an issue, be sure to add `refs #XXX` or `fixes #XXX` to the PR description. Replacing `XXX` with the respective issue number. See more about [Linking a pull request to an issue](https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue).
 - Be sure to fill the PR Template accordingly.
 - Review [App Contribution Guidelines](./packages/app-store/CONTRIBUTING.md) when building integrations
+
+## Guidelines for committing yarn lockfile
+
+Do not commit your `yarn.lock` unless you've made changes to the `package.json`. If you've already committed `yarn.lock` unintentionally, follow these steps to undo:
+
+If your last commit has the `yarn.lock` file alongside other files and you only wish to uncommit the `yarn.lock`:
+
+   ```bash
+   git checkout HEAD~1 yarn.lock
+   git commit -m "Revert yarn.lock changes"
+   ```
+
+_NB_: You may have to bypass the pre-commit hook with by appending `--no-verify` to the git commit
+If you've pushed the commit with the `yarn.lock`:
+
+   1. Correct the commit locally using the above method.
+   2. Carefully force push:
+
+   ```bash
+   git push origin <your-branch-name> --force
+   ```
+
+If `yarn.lock` was committed a while ago and there have been several commits since, you can use the following steps to revert just the `yarn.lock` changes without impacting the subsequent changes:
+
+1. **Checkout a Previous Version**:
+   - Find the commit hash before the `yarn.lock` was unintentionally committed. You can do this by viewing the Git log:
+
+     ```bash
+     git log yarn.lock
+     ```
+
+   - Once you have identified the commit hash, use it to checkout the previous version of `yarn.lock`:
+
+     ```bash
+     git checkout <commit_hash> yarn.lock
+     ```
+
+2. **Commit the Reverted Version**:
+   - After checking out the previous version of the `yarn.lock`, commit this change:
+
+     ```bash
+     git commit -m "Revert yarn.lock to its state before unintended changes"
+     ```
+
+3. **Proceed with Caution**:
+   - If you need to push this change, first pull the latest changes from your remote branch to ensure you're not overwriting other recent changes:
+
+     ```bash
+     git pull origin <your-branch-name>
+     ```
+
+   - Then push the updated branch:
+
+     ```bash
+     git push origin <your-branch-name>
+     ```
+
+Lastly, make sure to keep the branches updated (e.g. click the `Update branch` button on GitHub PR).

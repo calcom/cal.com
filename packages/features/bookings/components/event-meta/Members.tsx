@@ -1,78 +1,71 @@
-import { usePathname } from "next/navigation";
-
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { CAL_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type { BookerEvent } from "@calcom/features/bookings/types";
+import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
-
-import type { PublicEvent } from "../../types";
 
 export interface EventMembersProps {
   /**
    * Used to determine whether all members should be shown or not.
    * In case of Round Robin type, members aren't shown.
    */
-  schedulingType: PublicEvent["schedulingType"];
-  users: PublicEvent["users"];
-  profile: PublicEvent["profile"];
-  entity: PublicEvent["entity"];
+  schedulingType: BookerEvent["schedulingType"];
+  users: BookerEvent["users"];
+  profile: BookerEvent["profile"];
+  entity: BookerEvent["entity"];
 }
 
-type Avatar = {
-  title: string;
-  image: string | undefined;
-  alt: string | undefined;
-  href: string | undefined;
-};
-
-type AvatarWithRequiredImage = Avatar & { image: string };
-
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
-  const pathname = usePathname();
+  const username = useBookerStore((state) => state.username);
+  const isDynamic = !!(username && username.indexOf("+") > -1);
+  const isEmbed = useIsEmbed();
   const showMembers = schedulingType !== SchedulingType.ROUND_ROBIN;
   const shownUsers = showMembers ? users : [];
-
   // In some cases we don't show the user's names, but only show the profile name.
   const showOnlyProfileName =
     (profile.name && schedulingType === SchedulingType.ROUND_ROBIN) ||
     !users.length ||
     (profile.name !== users[0].name && schedulingType === SchedulingType.COLLECTIVE);
 
-  const avatars: Avatar[] = shownUsers.map((user) => ({
-    title: `${user.name || user.username}`,
-    image: "image" in user ? `${user.image}` : `/${user.username}/avatar.png`,
-    alt: user.name || undefined,
-    href: `/${user.username}`,
-  }));
-
-  // Add organization avatar
-  if (entity.orgSlug) {
-    avatars.unshift({
-      title: `${entity.name}`,
-      image: `${WEBAPP_URL}/team/${entity.orgSlug}/avatar.png`,
-      alt: entity.name || undefined,
-      href: getOrgFullDomain(entity.orgSlug),
-    });
-  }
-
-  // Add profile later since we don't want to force creating an avatar for this if it doesn't exist.
-  avatars.unshift({
-    title: `${profile.name || profile.username}`,
-    image: "logo" in profile && profile.logo ? `${profile.logo}` : undefined,
-    alt: profile.name || undefined,
-    href: profile.username
-      ? `${CAL_URL}` + (pathname.indexOf("/team/") !== -1 ? "/team" : "") + `/${profile.username}`
-      : undefined,
-  });
-
-  const uniqueAvatars = avatars
-    .filter((item): item is AvatarWithRequiredImage => !!item.image)
-    .filter((item, index, self) => self.findIndex((t) => t.image === item.image) === index);
+  const orgOrTeamAvatarItem =
+    isDynamic || (!profile.image && !entity.logoUrl) || !entity.teamSlug
+      ? []
+      : [
+          {
+            // We don't want booker to be able to see the list of other users or teams inside the embed
+            href: isEmbed
+              ? null
+              : entity.teamSlug
+              ? getTeamUrlSync({ orgSlug: entity.orgSlug, teamSlug: entity.teamSlug })
+              : getBookerBaseUrlSync(entity.orgSlug),
+            image: entity.logoUrl ?? profile.image ?? "",
+            alt: entity.name ?? profile.name ?? "",
+            title: entity.name ?? profile.name ?? "",
+          },
+        ];
 
   return (
     <>
-      <AvatarGroup size="sm" className="border-muted" items={uniqueAvatars} />
-      <p className="text-subtle text-sm font-semibold">
+      <AvatarGroup
+        size="sm"
+        className="border-muted"
+        items={[
+          ...orgOrTeamAvatarItem,
+          ...shownUsers.map((user) => ({
+            href: `${getBookerBaseUrlSync(user.profile?.organization?.slug ?? null)}/${
+              user.profile?.username
+            }?redirect=false`,
+            alt: user.name || "",
+            title: user.name || "",
+            image: getUserAvatarUrl(user),
+          })),
+        ]}
+      />
+
+      <p className="text-subtle mt-2 text-sm font-semibold">
         {showOnlyProfileName
           ? profile.name
           : shownUsers

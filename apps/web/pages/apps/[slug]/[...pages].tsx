@@ -1,3 +1,5 @@
+"use client";
+
 import type { GetServerSidePropsContext } from "next";
 
 import { getAppWithMetadata } from "@calcom/app-store/_appRegistry";
@@ -48,7 +50,6 @@ function getRoute(appName: string, pages: string[]) {
   }
   const mainPage = pages[0];
   const appPage = routingConfig.layoutHandler || (routingConfig[mainPage] as AppPageType);
-
   if (!appPage) {
     return {
       notFound: true,
@@ -60,7 +61,7 @@ function getRoute(appName: string, pages: string[]) {
 const AppPage: AppPageType["default"] = function AppPage(props) {
   const appName = props.appName;
   const params = useParamsWithFallback();
-  const pages = (params.pages || []) as string[];
+  const pages = Array.isArray(params.pages) ? params.pages : params.pages?.split("/") ?? [];
   const route = getRoute(appName, pages);
 
   const componentProps = {
@@ -87,18 +88,22 @@ AppPage.isBookingPage = ({ router }) => {
   return !!isBookingPage;
 };
 
-AppPage.getLayout = (page, router) => {
-  const route = getRoute(router.query.slug as string, router.query.pages as string[]);
+export const getLayout: NonNullable<(typeof AppPage)["getLayout"]> = (page) => {
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  const { slug, pages } = useParamsWithFallback();
+  const route = getRoute(slug as string, pages as string[]);
+
   if (route.notFound) {
     return null;
   }
   if (!route.Component.getLayout) {
     return page;
   }
-  return route.Component.getLayout(page, router);
+  return route.Component.getLayout(page);
 };
 
 AppPage.PageWrapper = PageWrapper;
+AppPage.getLayout = getLayout;
 
 export default AppPage;
 

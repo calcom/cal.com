@@ -5,23 +5,22 @@ import { InstallAppButton } from "@calcom/app-store/components";
 import { getEventLocationTypeFromApp, type EventLocationType } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
-import { BulkEditDefaultConferencingModal } from "@calcom/features/eventtypes/components/BulkEditDefaultConferencingModal";
+import { BulkEditDefaultModal } from "@calcom/features/eventtypes/components/BulkEditDefaultModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
 import type { App } from "@calcom/types/App";
 import {
+  Alert,
+  Button,
   Dropdown,
   DropdownItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   List,
   showToast,
-  Button,
-  DropdownMenuItem,
-  Alert,
 } from "@calcom/ui";
-import { MoreHorizontal, Trash, Video } from "@calcom/ui/components/icon";
 
 import AppListCard from "@components/AppListCard";
 
@@ -34,7 +33,7 @@ interface AppListProps {
 
 export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppListProps) => {
   const { data: defaultConferencingApp } = trpc.viewer.getUsersDefaultConferencingApp.useQuery();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
   const [locationType, setLocationType] = useState<(EventLocationType & { slug: string }) | undefined>(
     undefined
@@ -82,7 +81,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
             <div className="flex justify-end">
               <Dropdown modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button StartIcon={MoreHorizontal} variant="icon" color="secondary" />
+                  <Button StartIcon="ellipsis" variant="icon" color="secondary" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   {!appIsDefault && variant === "conferencing" && !item.credentialOwner?.teamId && (
@@ -90,7 +89,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                       <DropdownItem
                         type="button"
                         color="secondary"
-                        StartIcon={Video}
+                        StartIcon="video"
                         onClick={() => {
                           const locationType = getEventLocationTypeFromApp(item?.locationOption?.value ?? "");
                           if (locationType?.linkType === "static") {
@@ -140,7 +139,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
               ...app,
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
                 readOnly: !team.isAdmin,
@@ -154,6 +153,14 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
   });
 
   const { t } = useLocale();
+  const [eventTypeIds, setEventTypeIds] = useState<number[]>([]);
+  const { data: bulkEventTypes } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
+  const updateLocationsMutation = trpc.viewer.eventTypes.bulkUpdateToDefaultLocation.useMutation({
+    onSuccess: () => {
+      utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      setBulkUpdateModal(false);
+    },
+  });
   return (
     <>
       <List className={listClassName}>
@@ -173,7 +180,21 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
       )}
 
       {bulkUpdateModal && (
-        <BulkEditDefaultConferencingModal open={bulkUpdateModal} setOpen={setBulkUpdateModal} />
+        <BulkEditDefaultModal
+          handleSubmit={() => {
+            updateLocationsMutation.mutate({
+              eventTypeIds,
+            });
+          }}
+          open={bulkUpdateModal}
+          setOpen={setBulkUpdateModal}
+          isPending={updateLocationsMutation.isPending}
+          title={t("default_conferencing_bulk_title")}
+          description={t("default_conferencing_bulk_description")}
+          data={bulkEventTypes?.eventTypes}
+          ids={eventTypeIds}
+          setIds={setEventTypeIds}
+        />
       )}
     </>
   );
@@ -191,7 +212,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
   const { type, credentialId, isGlobal, installed, handleDisconnect, teamId } = props;
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const handleOpenChange = () => {
     utils.viewer.integrations.invalidate();
   };
@@ -203,7 +224,7 @@ function ConnectOrDisconnectIntegrationMenuItem(props: {
           color="destructive"
           onClick={() => handleDisconnect(credentialId, teamId)}
           disabled={isGlobal}
-          StartIcon={Trash}>
+          StartIcon="trash">
           {t("remove_app")}
         </DropdownItem>
       </DropdownMenuItem>

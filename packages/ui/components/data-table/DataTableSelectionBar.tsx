@@ -1,8 +1,9 @@
 import type { Table } from "@tanstack/react-table";
+import type { Table as TableType } from "@tanstack/table-core/build/lib/types";
+import { AnimatePresence } from "framer-motion";
 import { Fragment } from "react";
 
-import type { SVGComponent } from "@calcom/types/SVGComponent";
-
+import type { IconName } from "../..";
 import { Button } from "../button";
 
 export type ActionItem<TData> =
@@ -10,37 +11,60 @@ export type ActionItem<TData> =
       type: "action";
       label: string;
       onClick: () => void;
-      icon?: SVGComponent;
+      icon?: IconName;
+      needsXSelected?: number;
     }
   | {
       type: "render";
       render: (table: Table<TData>) => React.ReactNode;
+      needsXSelected?: number;
     };
 
 interface DataTableSelectionBarProps<TData> {
   table: Table<TData>;
   actions?: ActionItem<TData>[];
+  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
 }
 
-export function DataTableSelectionBar<TData>({ table, actions }: DataTableSelectionBarProps<TData>) {
+export function DataTableSelectionBar<TData>({
+  table,
+  actions,
+  renderAboveSelection,
+}: DataTableSelectionBarProps<TData>) {
   const numberOfSelectedRows = table.getSelectedRowModel().rows.length;
+  const isVisible = numberOfSelectedRows > 0;
 
-  if (numberOfSelectedRows === 0) return null;
+  // Hacky left % to center
+  const actionsVisible = actions?.filter((a) => {
+    if (!a.needsXSelected) return true;
+    return a.needsXSelected <= numberOfSelectedRows;
+  });
 
   return (
-    <div className="bg-brand-default text-brand item-center absolute bottom-0 left-1/2 flex -translate-x-1/2 gap-4 rounded-lg p-2">
-      <div className="text-brand-subtle my-auto px-2">{numberOfSelectedRows} selected</div>
-      {actions?.map((action, index) => (
-        <Fragment key={index}>
-          {action.type === "action" ? (
-            <Button aria-label={action.label} onClick={action.onClick} StartIcon={action.icon}>
-              {action.label}
-            </Button>
-          ) : action.type === "render" ? (
-            action.render(table)
-          ) : null}
-        </Fragment>
-      ))}
-    </div>
+    <AnimatePresence>
+      {isVisible ? (
+        <div className="fade-in fixed bottom-6 left-1/2 hidden -translate-x-1/2 gap-1 md:flex md:flex-col">
+          {renderAboveSelection && renderAboveSelection(table)}
+          <div className="bg-brand-default text-brand hidden items-center justify-between rounded-lg p-2 md:flex">
+            <p className="text-brand-subtle w-full px-2 text-center leading-none">
+              {numberOfSelectedRows} selected
+            </p>
+            {actionsVisible?.map((action, index) => {
+              return (
+                <Fragment key={index}>
+                  {action.type === "action" ? (
+                    <Button aria-label={action.label} onClick={action.onClick} StartIcon={action.icon}>
+                      {action.label}
+                    </Button>
+                  ) : action.type === "render" ? (
+                    action.render(table)
+                  ) : null}
+                </Fragment>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </AnimatePresence>
   );
 }

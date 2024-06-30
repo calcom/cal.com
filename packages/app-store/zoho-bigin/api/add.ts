@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const clientId = typeof appKeys.client_id === "string" ? appKeys.client_id : "";
     if (!clientId) return res.status(400).json({ message: "Zoho Bigin client_id missing." });
 
-    const redirectUri = WEBAPP_URL + `/api/integrations/zoho-bigin/callback`;
+    const redirectUri = `${WEBAPP_URL}/api/integrations/zoho-bigin/callback`;
 
     const authUrl = axios.getUri({
       url: "https://accounts.zoho.com/oauth/v2/auth",

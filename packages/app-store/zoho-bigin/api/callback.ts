@@ -13,6 +13,7 @@ import appConfig from "../config.json";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, "accounts-server": accountsServer } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
@@ -33,7 +34,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!clientSecret) return res.status(400).json({ message: "Zoho Bigin client_secret missing." });
 
   const accountsUrl = `${accountsServer}/oauth/v2/token`;
-  const redirectUri = WEBAPP_URL + `/api/integrations/${appConfig.slug}/callback`;
+  const redirectUri = `${WEBAPP_URL}/api/integrations/${appConfig.slug}/callback`;
 
   const formData = {
     client_id: clientId,
@@ -54,7 +55,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
 
-  const state = decodeOAuthState(req);
+  if (state?.appOnboardingRedirectUrl && state.appOnboardingRedirectUrl !== "") {
+    return res.redirect(state.appOnboardingRedirectUrl);
+  }
+
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })
