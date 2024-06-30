@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Request Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <form id="booking-form">
+            <div class="form-group">
+                <label for="hear-about-us">How did you hear about us?</label>
+                <select id="hear-about-us" name="hear-about-us" required>
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="web">Web</option>
+                    <option value="print">Print</option>
+                    <option value="social-media">Social Media</option>
+                    <option value="personal-reference">Personal Reference</option>
+                </select>
+            </div>
+            <div class="form-group hidden" id="web-source-group">
+                <label for="web-source">Source web site</label>
+                <input type="text" id="web-source" name="web-source">
+            </div>
+            <div class="form-group hidden" id="social-media-site-group">
+                <label for="social-media-site">Social media site</label>
+                <select id="social-media-site" name="social-media-site">
+                    <option value="" disabled selected>Select an option</option>
+                    <option value="twitter">X/Twitter</option>
+                    <option value="mastodon">Mastodon</option>
+                    <option value="facebook">Facebook</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
