@@ -1,10 +1,7 @@
 import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import {
-  getRoomNameFromRecordingId,
-  getBatchProcessorJobAccessLink,
-} from "@calcom/app-store/dailyvideo/lib/videoApiAdapter";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
 import {
   getDownloadLinkOfCalVideoByRecordingId,
   submitBatchProcessorTranscriptionJob,
