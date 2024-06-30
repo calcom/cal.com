@@ -33,7 +33,7 @@ const ExistingGoogleCal = ({ gCalInstalled, appName }: { gCalInstalled?: boolean
             <Icon name="circle-alert" className="mr-2 mt-1 font-semibold" />
           </div>
           <div>
-            <span className="font-semibold">{t("this_app_requires_google_calendar", { appName })}</span>
+            <span className="font-semibold">{t("requires_google_calendar", { appName })}</span>
             <div>
               <div>
                 <>
