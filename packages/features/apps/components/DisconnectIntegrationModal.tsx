@@ -1,3 +1,5 @@
+import type { SetStateAction, Dispatch } from "react";
+
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, showToast, ConfirmationDialogContent } from "@calcom/ui";
@@ -7,6 +9,7 @@ interface DisconnectIntegrationModalProps {
   isOpen: boolean;
   handleModelClose: () => void;
   teamId?: number;
+  onOpenChange: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function DisconnectIntegrationModal({
@@ -14,6 +17,7 @@ export default function DisconnectIntegrationModal({
   isOpen,
   handleModelClose,
   teamId,
+  onOpenChange,
 }: DisconnectIntegrationModalProps) {
   const { t } = useLocale();
   const utils = trpc.useUtils();
@@ -32,7 +36,7 @@ export default function DisconnectIntegrationModal({
   });
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleModelClose}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <ConfirmationDialogContent
         variety="danger"
         title={t("remove_app")}
