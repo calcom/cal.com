@@ -38,7 +38,9 @@ const postHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     await checkInstalled(slug, session.user.id);
     await createDefaultInstallation({
       appType,
-      userId: session.user.id,
+      user: {
+        id: session.user.id,
+      },
       slug,
       key: symmetricEncrypt(JSON.stringify(opts), process.env.CALENDSO_ENCRYPTION_KEY),
       teamId,
