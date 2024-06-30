@@ -4,7 +4,7 @@ import { debounce, noop } from "lodash";
 import { useSession } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { RefCallback } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { getPremiumPlanPriceValue } from "@calcom/app-store/stripepayment/lib/utils";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -71,17 +71,13 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
   const isCurrentUsernamePremium =
     user && user.metadata && hasKeyInMetadata(user, "isPremium") ? !!user.metadata.isPremium : false;
   const [isInputUsernamePremium, setIsInputUsernamePremium] = useState(false);
-  const debouncedApiCall = useMemo(
-    () =>
-      debounce(async (username: string) => {
-        // TODO: Support orgSlug
-        const { data } = await fetchUsername(username, null);
-        setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
-        setIsInputUsernamePremium(data.premium);
-        setUsernameIsAvailable(data.available);
-      }, 150),
-    [currentUsername]
-  );
+  const debouncedApiCall = debounce(async (username: string) => {
+    // TODO: Support orgSlug
+    const { data } = await fetchUsername(username, null);
+    setMarkAsError(!data.available && !!currentUsername && username !== currentUsername);
+    setIsInputUsernamePremium(data.premium);
+    setUsernameIsAvailable(data.available);
+  }, 150);
 
   useEffect(() => {
     // Use the current username or if it's not set, use the one available from stripe
@@ -94,6 +90,9 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       return;
     }
     debouncedApiCall(inputUsernameValue);
+
+    // cancle the debouncedApiCall when the component unmounts
+    return () => debouncedApiCall.cancel();
   }, [debouncedApiCall, inputUsernameValue]);
 
   const updateUsername = trpc.viewer.updateProfile.useMutation({

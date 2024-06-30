@@ -3,7 +3,7 @@ import classNames from "classnames";
 import { debounce, noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -41,16 +41,12 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
 
-  const debouncedApiCall = useMemo(
-    () =>
-      debounce(async (username) => {
-        // TODO: Support orgSlug
-        const { data } = await fetchUsername(username, null);
-        setMarkAsError(!data.available);
-        setUsernameIsAvailable(data.available);
-      }, 150),
-    []
-  );
+  const debouncedApiCall = debounce(async (username) => {
+    // TODO: Support orgSlug
+    const { data } = await fetchUsername(username, null);
+    setMarkAsError(!data.available);
+    setUsernameIsAvailable(data.available);
+  }, 150);
 
   useEffect(() => {
     if (!inputUsernameValue) {
@@ -65,6 +61,8 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
     } else {
       setUsernameIsAvailable(false);
     }
+    // cancle the debouncedApiCall when the component unmounts
+    () => debouncedApiCall.cancel();
   }, [inputUsernameValue, debouncedApiCall, currentUsername]);
 
   const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
