@@ -15,10 +15,7 @@ import { createMocks } from "node-mocks-http";
 import { describe, afterEach, beforeEach, test, vi } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import {
-  getRoomNameFromRecordingId,
-  getBatchProcessorJobAccessLink,
-} from "@calcom/app-store/dailyvideo/lib/videoApiAdapter";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
 import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -28,7 +25,7 @@ import handler from "@calcom/web/pages/api/recorded-daily-video";
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
 
-vi.mock("@calcom/app-store/dailyvideo/lib/videoApiAdapter", () => {
+vi.mock("@calcom/app-store/dailyvideo/lib", () => {
   return {
     getRoomNameFromRecordingId: vi.fn(),
     getBatchProcessorJobAccessLink: vi.fn(),
