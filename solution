@@ -1,0 +1,28 @@
+# Example pseudocode to exclude skippable events in availability calculation
+
+def calculate_availability(events):
+    total_time = 0
+    uptime = 0
+
+    for event in events:
+        if not event.is_skippable:
+            total_time += event.duration
+            if event.type == 'uptime':
+                uptime += event.duration
+
+    if total_time == 0:
+        return 0
+
+    availability = uptime / total_time
+    return availability
+
+# Example event list
+events = [
+    {"duration": 2, "type": "uptime", "is_skippable": False},
+    {"duration": 1, "type": "downtime", "is_skippable": True},
+    {"duration": 3, "type": "uptime", "is_skippable": False},
+    {"duration": 2, "type": "downtime", "is_skippable": False}
+]
+
+availability = calculate_availability(events)
+print(f"Calculated Availability: {availability}")
