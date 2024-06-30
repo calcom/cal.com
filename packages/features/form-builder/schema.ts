@@ -3,7 +3,8 @@ import { z } from "zod";
 import { getValidRhfFieldName } from "@calcom/lib/getValidRhfFieldName";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
-import { getVariantsConfig, preprocessNameFieldDataWithVariant } from "./utils";
+import { preprocessNameFieldDataWithVariant } from "./utils";
+import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 const nonEmptyString = () => z.string().refine((value: string) => value.trim().length > 0);
 
