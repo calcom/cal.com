@@ -1,6 +1,10 @@
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 
+import {
+  generateGuestMeetingTokenFromOwnerMeetingToken,
+  setEnableRecordingUIForOrganizer,
+} from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -39,6 +43,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       references: {
         select: {
+          id: true,
           uid: true,
           type: true,
           meetingUrl: true,
@@ -60,6 +65,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     };
   }
 
+  const hasTeamPlan = booking.user?.id
+    ? await prisma.membership.findFirst({
+        where: {
+          userId: booking.user.id,
+          team: {
+            slug: {
+              not: null,
+            },
+          },
+        },
+      })
+    : false;
+
   const profile = booking.user
     ? (
         await UserRepository.enrichUserWithItsProfile({
@@ -68,9 +86,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ).profile
     : null;
 
-  //daily.co calls have a 60 minute exit buffer when a user enters a call when it's not available it will trigger the modals
+  //daily.co calls have a 14 days exit buffer when a user enters a call when it's not available it will trigger the modals
   const now = new Date();
-  const exitDate = new Date(now.getTime() - 60 * 60 * 1000);
+  const exitDate = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
 
   //find out if the meeting is in the past
   const isPast = booking?.endTime <= exitDate;
@@ -90,12 +108,31 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const session = await getServerSession({ req });
 
-  // set meetingPassword to null for guests
+  const oldVideoReference = getCalVideoReference(bookingObj.references);
+
+  // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
+    const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
+      oldVideoReference.meetingPassword
+    );
+
     bookingObj.references.forEach((bookRef) => {
-      bookRef.meetingPassword = null;
+      bookRef.meetingPassword = guestMeetingPassword;
     });
   }
+  // Only for backward compatibility for organizer
+  else {
+    const meetingPassword = await setEnableRecordingUIForOrganizer(
+      oldVideoReference.id,
+      oldVideoReference.meetingPassword
+    );
+    if (!!meetingPassword) {
+      bookingObj.references.forEach((bookRef) => {
+        bookRef.meetingPassword = meetingPassword;
+      });
+    }
+  }
+
   const videoReference = getCalVideoReference(bookingObj.references);
 
   return {
@@ -114,6 +151,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
             }
           : bookingObj.user,
       },
+      hasTeamPlan: !!hasTeamPlan,
       trpcState: ssr.dehydrate(),
     },
   };

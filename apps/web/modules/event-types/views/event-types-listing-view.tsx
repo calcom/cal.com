@@ -17,7 +17,7 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
-import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -26,6 +26,7 @@ import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
+import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
@@ -49,6 +50,7 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
+  Icon,
   Label,
   showToast,
   Skeleton,
@@ -57,20 +59,6 @@ import {
   ArrowButton,
   UserAvatarGroup,
 } from "@calcom/ui";
-import {
-  Clipboard,
-  Code,
-  Copy,
-  Edit,
-  Edit2,
-  ExternalLink,
-  Link as LinkIcon,
-  MoreHorizontal,
-  Trash,
-  Upload,
-  Users,
-  VenetianMask,
-} from "@calcom/ui/components/icon";
 
 import type { AppProps } from "@lib/app-providers";
 import useMeQuery from "@lib/hooks/useMeQuery";
@@ -109,6 +97,7 @@ interface EventTypeListProps {
   readOnly: boolean;
   bookerUrl: string | null;
   types: DeNormalizedEventType[];
+  lockedByOrg?: boolean;
 }
 
 interface MobileTeamsTabProps {
@@ -121,13 +110,10 @@ const querySchema = z.object({
 
 const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const { eventTypeGroups } = props;
-  const orgBranding = useOrgBranding();
   const tabs = eventTypeGroups.map((item) => ({
     name: item.profile.name ?? "",
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
-    avatar: orgBranding
-      ? `${orgBranding.fullDomain}${item.teamId ? "/team" : ""}/${item.profile.slug}/avatar.png`
-      : item.profile.image ?? `${WEBAPP_URL + (item.teamId && "/team")}/${item.profile.slug}/avatar.png`,
+    avatar: item.profile.image,
   }));
   const { data } = useTypedQuery(querySchema);
   const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
@@ -230,6 +216,7 @@ export const EventTypeList = ({
   readOnly,
   types,
   bookerUrl,
+  lockedByOrg,
 }: EventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -241,7 +228,7 @@ export const EventTypeList = ({
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
     null
   );
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
@@ -390,8 +377,10 @@ export const EventTypeList = ({
   if (!types.length) {
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
-    ) : (
+    ) : !group.profile.eventTypesLockedByOrg ? (
       <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    ) : (
+      <></>
     );
   }
 
@@ -450,6 +439,7 @@ export const EventTypeList = ({
                               <div className="self-center rounded-md p-2">
                                 <Switch
                                   name="Hidden"
+                                  disabled={lockedByOrg}
                                   checked={!type.hidden}
                                   onCheckedChange={() => {
                                     setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
@@ -470,7 +460,7 @@ export const EventTypeList = ({
                                   target="_blank"
                                   variant="icon"
                                   href={calLink}
-                                  StartIcon={ExternalLink}
+                                  StartIcon="external-link"
                                 />
                               </Tooltip>
 
@@ -478,7 +468,7 @@ export const EventTypeList = ({
                                 <Button
                                   color="secondary"
                                   variant="icon"
-                                  StartIcon={LinkIcon}
+                                  StartIcon="link"
                                   onClick={() => {
                                     showToast(t("link_copied"), "success");
                                     navigator.clipboard.writeText(calLink);
@@ -491,7 +481,7 @@ export const EventTypeList = ({
                                   <Button
                                     color="secondary"
                                     variant="icon"
-                                    StartIcon={VenetianMask}
+                                    StartIcon="venetian-mask"
                                     onClick={() => {
                                       showToast(t("private_link_copied"), "success");
                                       navigator.clipboard.writeText(placeholderHashedLink);
@@ -507,7 +497,7 @@ export const EventTypeList = ({
                                 type="button"
                                 variant="icon"
                                 color="secondary"
-                                StartIcon={MoreHorizontal}
+                                StartIcon="ellipsis"
                                 className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
                               />
                             </DropdownMenuTrigger>
@@ -517,7 +507,7 @@ export const EventTypeList = ({
                                   <DropdownItem
                                     type="button"
                                     data-testid={`event-type-edit-${type.id}`}
-                                    StartIcon={Edit2}
+                                    StartIcon="pencil"
                                     onClick={() => router.push(`/event-types/${type.id}`)}>
                                     {t("edit")}
                                   </DropdownItem>
@@ -529,7 +519,7 @@ export const EventTypeList = ({
                                     <DropdownItem
                                       type="button"
                                       data-testid={`event-type-duplicate-${type.id}`}
-                                      StartIcon={Copy}
+                                      StartIcon="copy"
                                       onClick={() => openDuplicateModal(type, group)}>
                                       {t("duplicate")}
                                     </DropdownItem>
@@ -542,7 +532,7 @@ export const EventTypeList = ({
                                     namespace=""
                                     as={DropdownItem}
                                     type="button"
-                                    StartIcon={Code}
+                                    StartIcon="code"
                                     className="w-full rounded-none"
                                     embedUrl={encodeURIComponent(embedLink)}
                                     eventId={type.id}>
@@ -563,7 +553,7 @@ export const EventTypeList = ({
                                           setDeleteDialogTypeId(type.id);
                                           setDeleteDialogSchedulingType(type.schedulingType);
                                         }}
-                                        StartIcon={Trash}
+                                        StartIcon="trash"
                                         className="w-full rounded-none">
                                         {t("delete")}
                                       </DropdownItem>
@@ -580,7 +570,7 @@ export const EventTypeList = ({
                 <div className="min-w-9 mx-5 flex sm:hidden">
                   <Dropdown>
                     <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
-                      <Button type="button" variant="icon" color="secondary" StartIcon={MoreHorizontal} />
+                      <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
                     </DropdownMenuTrigger>
                     <DropdownMenuPortal>
                       <DropdownMenuContent>
@@ -590,7 +580,7 @@ export const EventTypeList = ({
                               <DropdownItem
                                 href={calLink}
                                 target="_blank"
-                                StartIcon={ExternalLink}
+                                StartIcon="external-link"
                                 className="w-full rounded-none">
                                 {t("preview")}
                               </DropdownItem>
@@ -602,7 +592,7 @@ export const EventTypeList = ({
                                   navigator.clipboard.writeText(calLink);
                                   showToast(t("link_copied"), "success");
                                 }}
-                                StartIcon={Clipboard}
+                                StartIcon="clipboard"
                                 className="w-full rounded-none text-left">
                                 {t("copy_link")}
                               </DropdownItem>
@@ -623,7 +613,7 @@ export const EventTypeList = ({
                                   .then(() => showToast(t("link_shared"), "success"))
                                   .catch(() => showToast(t("failed"), "error"));
                               }}
-                              StartIcon={Upload}
+                              StartIcon="upload"
                               className="w-full rounded-none">
                               {t("share")}
                             </DropdownItem>
@@ -633,7 +623,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => router.push(`/event-types/${type.id}`)}
-                              StartIcon={Edit}
+                              StartIcon="pencil"
                               className="w-full rounded-none">
                               {t("edit")}
                             </DropdownItem>
@@ -643,7 +633,7 @@ export const EventTypeList = ({
                           <DropdownMenuItem className="outline-none">
                             <DropdownItem
                               onClick={() => openDuplicateModal(type, group)}
-                              StartIcon={Copy}
+                              StartIcon="copy"
                               data-testid={`event-type-duplicate-${type.id}`}>
                               {t("duplicate")}
                             </DropdownItem>
@@ -661,7 +651,7 @@ export const EventTypeList = ({
                                     setDeleteDialogTypeId(type.id);
                                     setDeleteDialogSchedulingType(type.schedulingType);
                                   }}
-                                  StartIcon={Trash}
+                                  StartIcon="trash"
                                   className="w-full rounded-none">
                                   {t("delete")}
                                 </DropdownItem>
@@ -762,7 +752,7 @@ const EventTypeListHeading = ({
           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
             <Link href={`/settings/teams/${teamId}/members`}>
               <Badge variant="gray">
-                <Users className="-mt-px mr-1 inline h-3 w-3" />
+                <Icon name="users" className="-mt-px mr-1 inline h-3 w-3" />
                 {membershipCount}
               </Badge>
             </Link>
@@ -790,7 +780,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 
   return (
     <EmptyScreen
-      Icon={LinkIcon}
+      Icon="link"
       headline={t("new_event_type_heading")}
       description={t("new_event_type_description")}
       className="mb-16"
@@ -803,21 +793,22 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   );
 };
 
-const CTA = ({ data, isOrganization }: { data: GetByViewerResponse; isOrganization: boolean }) => {
+const CTA = ({
+  profileOptions,
+  isOrganization,
+}: {
+  profileOptions: {
+    teamId: number | null | undefined;
+    label: string | null;
+    image: string;
+    membershipRole: MembershipRole | null | undefined;
+    slug: string | null;
+  }[];
+  isOrganization: boolean;
+}) => {
   const { t } = useLocale();
 
-  if (!data) return null;
-  const profileOptions = data.profiles
-    .filter((profile) => !profile.readOnly)
-    .map((profile) => {
-      return {
-        teamId: profile.teamId,
-        label: profile.name || profile.slug,
-        image: profile.image,
-        membershipRole: profile.membershipRole,
-        slug: profile.slug,
-      };
-    });
+  if (!profileOptions.length) return null;
 
   return (
     <CreateButton
@@ -831,10 +822,10 @@ const CTA = ({ data, isOrganization }: { data: GetByViewerResponse; isOrganizati
   );
 };
 
-const Actions = () => {
+const Actions = (props: { showDivider: boolean }) => {
   return (
     <div className="hidden items-center md:flex">
-      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={true} />
+      <TeamsFilter useProfileFilter popoverTriggerClassNames="mb-0" showVerticalDivider={props.showDivider} />
     </div>
   );
 };
@@ -872,12 +863,12 @@ const Main = ({
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
 
-  if (!rawData || status === "pending") {
-    return <SkeletonLoader />;
-  }
-
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
+  }
+
+  if (!rawData || status === "pending") {
+    return <SkeletonLoader />;
   }
 
   const isFilteredByOnlyOneItem =
@@ -885,7 +876,6 @@ const Main = ({
     rawData.eventTypeGroups.length === 1;
 
   const data = denormalizePayload(rawData);
-
   return (
     <>
       {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
@@ -893,33 +883,45 @@ const Main = ({
           {isMobile ? (
             <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group, index: number) => (
-              <div
-                className="mt-4 flex flex-col"
-                data-testid={`slug-${group.profile.slug}`}
-                key={group.profile.slug}>
-                <EventTypeListHeading
-                  profile={group.profile}
-                  membershipCount={group.metadata.membershipCount}
-                  teamId={group.teamId}
-                  bookerUrl={group.bookerUrl}
-                />
+            data.eventTypeGroups.map((group, index: number) => {
+              const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
+              const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
+                (event) => event.metadata?.managedEventConfig || event.hidden
+              );
+              if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
+              return (
+                <div
+                  className="mt-4 flex flex-col"
+                  data-testid={`slug-${group.profile.slug}`}
+                  key={group.profile.slug}>
+                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
+                    to it being readonly for that user */}
+                  {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
+                    <EventTypeListHeading
+                      profile={group.profile}
+                      membershipCount={group.metadata.membershipCount}
+                      teamId={group.teamId}
+                      bookerUrl={group.bookerUrl}
+                    />
+                  )}
 
-                {group.eventTypes.length ? (
-                  <EventTypeList
-                    types={group.eventTypes}
-                    group={group}
-                    bookerUrl={group.bookerUrl}
-                    groupIndex={index}
-                    readOnly={group.metadata.readOnly}
-                  />
-                ) : group.teamId ? (
-                  <EmptyEventTypeList group={group} />
-                ) : (
-                  <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
-                )}
-              </div>
-            ))
+                  {group.eventTypes.length ? (
+                    <EventTypeList
+                      types={group.eventTypes}
+                      group={group}
+                      bookerUrl={group.bookerUrl}
+                      groupIndex={index}
+                      readOnly={group.metadata.readOnly}
+                      lockedByOrg={eventsLockedByOrg}
+                    />
+                  ) : group.teamId && !group.metadata.readOnly ? (
+                    <EmptyEventTypeList group={group} />
+                  ) : !group.metadata.readOnly ? (
+                    <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
+                  ) : null}
+                </div>
+              );
+            })
           )}
         </>
       ) : (
@@ -953,6 +955,7 @@ const EventTypesPage: React.FC & {
   const orgBranding = useOrgBranding();
   const routerQuery = useRouterQuery();
   const filters = getTeamsFiltersFromQuery(routerQuery);
+  const router = useRouter();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
@@ -965,6 +968,13 @@ const EventTypesPage: React.FC & {
     if (searchParams?.get("openIntercom") === "true") {
       open();
     }
+    /**
+     * During signup, if the account already exists, we redirect the user to /event-types instead of onboarding.
+     * Adding this redirection logic here as well to ensure the user is redirected to the correct redirectUrl.
+     */
+    const redirectUrl = localStorage.getItem("onBoardingRedirect");
+    localStorage.removeItem("onBoardingRedirect");
+    redirectUrl && router.push(redirectUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -973,6 +983,21 @@ const EventTypesPage: React.FC & {
       !!orgBranding && !document.cookie.includes("calcom-profile-banner=1") && !user?.completedOnboarding
     );
   }, [orgBranding, user]);
+
+  const profileOptions = data
+    ? data?.profiles
+        .filter((profile) => !profile.readOnly)
+        .filter((profile) => !profile.eventTypesLockedByOrg)
+        .map((profile) => {
+          return {
+            teamId: profile.teamId,
+            label: profile.name || profile.slug,
+            image: profile.image,
+            membershipRole: profile.membershipRole,
+            slug: profile.slug,
+          };
+        })
+    : [];
 
   return (
     <Shell
@@ -983,8 +1008,8 @@ const EventTypesPage: React.FC & {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      beforeCTAactions={<Actions />}
-      CTA={<CTA data={data} isOrganization={!!user?.organizationId} />}>
+      beforeCTAactions={<Actions showDivider={profileOptions.length > 0} />}
+      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."

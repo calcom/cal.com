@@ -2,7 +2,7 @@ import type { Webhook } from "@prisma/client";
 import { useSession } from "next-auth/react";
 import type { EventTypeSetup } from "pages/event-types/[type]";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, Controller } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -15,8 +15,17 @@ import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Alert, Button, EmptyScreen, SettingsToggle, Dialog, DialogContent, showToast } from "@calcom/ui";
-import { PhoneCall, Plus, Lock, Webhook as TbWebhook } from "@calcom/ui/components/icon";
+import {
+  Alert,
+  Button,
+  EmptyScreen,
+  SettingsToggle,
+  Dialog,
+  DialogContent,
+  showToast,
+  TextField,
+  Label,
+} from "@calcom/ui";
 
 type InstantEventControllerProps = {
   eventType: EventTypeSetup;
@@ -48,7 +57,7 @@ export default function InstantEventController({
         {!isOrg || !isTeamEvent ? (
           <EmptyScreen
             headline={t("instant_tab_title")}
-            Icon={PhoneCall}
+            Icon="phone-call"
             description={t("uprade_to_create_instant_bookings")}
             buttonRaw={<Button href="/enterprise">{t("upgrade")}</Button>}
           />
@@ -86,7 +95,33 @@ export default function InstantEventController({
                     }
                   }}>
                   <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                    {instantEventState && <InstantMeetingWebhooks eventType={eventType} />}
+                    {instantEventState && (
+                      <div className="flex flex-col gap-2">
+                        <Controller
+                          name="instantMeetingExpiryTimeOffsetInSeconds"
+                          render={({ field: { value, onChange } }) => (
+                            <>
+                              <Label>{t("set_instant_meeting_expiry_time_offset_description")}</Label>
+                              <TextField
+                                required
+                                name="instantMeetingExpiryTimeOffsetInSeconds"
+                                labelSrOnly
+                                type="number"
+                                defaultValue={value}
+                                min={10}
+                                containerClassName="max-w-80"
+                                addOnSuffix={<>{t("seconds")}</>}
+                                onChange={(e) => {
+                                  onChange(Math.abs(Number(e.target.value)));
+                                }}
+                                data-testid="instant-meeting-expiry-time-offset"
+                              />
+                            </>
+                          )}
+                        />
+                        <InstantMeetingWebhooks eventType={eventType} />
+                      </div>
+                    )}
                   </div>
                 </SettingsToggle>
               </>
@@ -100,7 +135,7 @@ export default function InstantEventController({
 
 const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const formMethods = useFormContext<FormValues>();
 
   const { data: webhooks } = trpc.viewer.webhook.list.useQuery({
@@ -171,7 +206,7 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
       <Button
         color="secondary"
         data-testid="new_webhook"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => setCreateModalOpen(true)}>
         {t("new_webhook")}
       </Button>
@@ -214,16 +249,13 @@ const InstantMeetingWebhooks = ({ eventType }: { eventType: EventTypeSetup }) =>
               </>
             ) : (
               <>
-                <p className="text-default mb-4 text-sm font-normal">
-                  {t("warning_payment_instant_meeting_event")}
-                </p>
                 <EmptyScreen
-                  Icon={TbWebhook}
+                  Icon="webhook"
                   headline={t("create_your_first_webhook")}
                   description={t("create_instant_meeting_webhook_description")}
                   buttonRaw={
                     isChildrenManagedEventType && !isManagedEventType ? (
-                      <Button StartIcon={Lock} color="secondary" disabled>
+                      <Button StartIcon="lock" color="secondary" disabled>
                         {t("locked_by_admin")}
                       </Button>
                     ) : (

@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "resolveJsonModule": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2021",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@prisma/client/*": ["@calcom/prisma/client/*"],
+      "@calcom/platform-constants": ["../../../packages/platform/constants/index.ts"],
+      "@calcom/platform-types": ["../../../packages/platform/types/index.ts"],
+      "@calcom/platform-utils": ["../../../packages/platform/utils/index.ts"]
+    },
+    "incremental": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "forceConsistentCasingInFileNames": false,
+    "noFallthroughCasesInSwitch": false
+  },
+  "watchOptions": {
+    "watchFile": "fixedPollingInterval",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": true,
+    "excludeDirectories": ["**/node_modules", "dist"]
+  },
+  "exclude": ["./dist", "./node_modules", "next-i18next.config.js"],
+  "include": ["./**/*.ts", "../../../packages/types/*.d.ts"]
+}

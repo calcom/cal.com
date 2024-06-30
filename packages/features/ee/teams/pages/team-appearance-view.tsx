@@ -28,7 +28,7 @@ type ProfileViewProps = { team: RouterOutputs["viewer"]["teams"]["get"] };
 
 const ProfileView = ({ team }: ProfileViewProps) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const [hideBrandingValue, setHideBrandingValue] = useState(team?.hideBranding ?? false);
   const [hideBookATeamMember, setHideBookATeamMember] = useState(team?.hideBookATeamMember ?? false);
@@ -193,7 +193,7 @@ const ProfileViewWrapper = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [error]

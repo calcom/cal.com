@@ -4,7 +4,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
-import { checkPermissions, getTeamOrThrow } from "./inviteMember/utils";
+import { ensureAtleastAdminPermissions, getTeamOrThrow } from "./inviteMember/utils";
 import type { TResendInvitationInputSchema } from "./resendInvitation.schema";
 
 type InviteMemberOptions = {
@@ -17,7 +17,7 @@ type InviteMemberOptions = {
 export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOptions) => {
   const team = await getTeamOrThrow(input.teamId);
 
-  await checkPermissions({
+  await ensureAtleastAdminPermissions({
     userId: ctx.user.id,
     teamId:
       ctx.user.organization.id && ctx.user.organization.isOrgAdmin ? ctx.user.organization.id : input.teamId,
@@ -56,6 +56,10 @@ export const resendInvitationHandler = async ({ ctx, input }: InviteMemberOption
     ...inviteTeamOptions,
     isOrg: input.isOrg,
     parentTeamName: team?.parent?.name,
+    // We don't know at his moment if this user was an existing user or a new user as it is a resend. So, we assume it's a new user and we can avoid sending the prevLink and newLink.
+    isExistingUserMovedToOrg: false,
+    prevLink: null,
+    newLink: null,
   });
 
   return input;

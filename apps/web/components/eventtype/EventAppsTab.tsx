@@ -3,7 +3,6 @@ import Link from "next/link";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
-import type { GetAppData, SetAppData } from "@calcom/app-store/EventTypeAppContext";
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store/types";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
@@ -11,8 +10,9 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Button, EmptyScreen, Alert } from "@calcom/ui";
-import { Grid, Lock } from "@calcom/ui/components/icon";
+import { Alert, Button, EmptyScreen } from "@calcom/ui";
+
+import useAppsData from "@lib/hooks/useAppsData";
 
 export type EventType = Pick<EventTypeSetupProps, "eventType">["eventType"] &
   EventTypeAppCardComponentProps["eventType"];
@@ -29,51 +29,8 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
     eventTypeApps?.items.filter((app) => app.userCredentialIds.length || app.teams.length) || [];
   const notInstalledApps =
     eventTypeApps?.items.filter((app) => !app.userCredentialIds.length && !app.teams.length) || [];
-  const allAppsData = formMethods.watch("metadata")?.apps || {};
 
-  const setAllAppsData = (_allAppsData: typeof allAppsData) => {
-    formMethods.setValue(
-      "metadata",
-      {
-        ...formMethods.getValues("metadata"),
-        apps: _allAppsData,
-      },
-      { shouldDirty: true }
-    );
-  };
-
-  const getAppDataGetter = (appId: EventTypeAppsList): GetAppData => {
-    return function (key) {
-      const appData = allAppsData[appId as keyof typeof allAppsData] || {};
-      if (key) {
-        return appData[key as keyof typeof appData];
-      }
-      return appData;
-    };
-  };
-
-  const eventTypeFormMetadata = formMethods.getValues("metadata");
-
-  const getAppDataSetter = (
-    appId: EventTypeAppsList,
-    appCategories: string[],
-    credentialId?: number
-  ): SetAppData => {
-    return function (key, value) {
-      // Always get latest data available in Form because consequent calls to setData would update the Form but not allAppsData(it would update during next render)
-      const allAppsDataFromForm = formMethods.getValues("metadata")?.apps || {};
-      const appData = allAppsDataFromForm[appId];
-      setAllAppsData({
-        ...allAppsDataFromForm,
-        [appId]: {
-          ...appData,
-          [key]: value,
-          credentialId,
-          appCategories,
-        },
-      });
-    };
-  };
+  const { getAppDataGetter, getAppDataSetter, eventTypeFormMetadata } = useAppsData();
 
   const { shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } = useLockedFieldsManager({
     eventType,
@@ -116,7 +73,7 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
               // credentialIds: team?.credentialId ? [team.credentialId] : [],
               credentialOwner: {
                 name: team.name,
-                avatar: team.logo,
+                avatar: team.logoUrl,
                 teamId: team.teamId,
                 credentialId: team.credentialId,
               },
@@ -161,12 +118,12 @@ export const EventAppsTab = ({ eventType }: { eventType: EventType }) => {
           )}
           {!isPending && !installedApps?.length ? (
             <EmptyScreen
-              Icon={Grid}
+              Icon="grid-3x3"
               headline={t("empty_installed_apps_headline")}
               description={t("empty_installed_apps_description")}
               buttonRaw={
                 appsDisableProps.disabled ? (
-                  <Button StartIcon={Lock} color="secondary" disabled>
+                  <Button StartIcon="lock" color="secondary" disabled>
                     {t("locked_by_team_admin")}
                   </Button>
                 ) : (

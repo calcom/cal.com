@@ -90,6 +90,7 @@
   "copy_public_page_link": "Αντιγραφή συνδέσμου δημόσιας σελίδας",
   "sign_out": "Αποσύνδεση",
   "2fa_confirm_current_password": "Επιβεβαιώστε τον κωδικό πρόσβασης σας για να ξεκινήσετε.",
+  "your_phone_number": "Ο αριθμός τηλεφώνου σας",
   "required": "Υποχρεωτικό",
   "optional": "Προαιρετικό",
   "guests": "Επισκέπτες",
@@ -277,5 +278,8 @@
   "disable_guests": "Απενεργοποίηση επισκεπτών",
   "location_variable": "Τοποθεσία",
   "additional_notes_variable": "Πρόσθετες σημειώσεις",
-  "already_have_account": "Έχετε ήδη λογαριασμό;"
+  "app_theme": "Θέμα του πίνακα ελέγχου",
+  "app_theme_applies_note": "Αυτό ισχύει μόνο για το πίνακα ελέγχου σας που έχεις συνδεθεί",
+  "already_have_account": "Έχετε ήδη λογαριασμό;",
+  "email_team_invite|subject|invited_to_regular_team": "Ο χρήστης {{user}} σας προσκάλεσε να συμμετάσχετε στην ομάδα {{team}} στο {{appName}}"
 }

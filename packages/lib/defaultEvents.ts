@@ -49,6 +49,7 @@ const user: User & { credentials: CredentialPayload[] } = {
   darkBrandColor: "#efefef",
   allowDynamicBooking: true,
   timeFormat: 12,
+  travelSchedules: [],
 };
 
 const customInputs: CustomInputSchema[] = [];
@@ -71,6 +72,7 @@ const commons = {
   schedule: null,
   timeZone: null,
   successRedirectUrl: "",
+  forwardParamsSuccessRedirect: true,
   teamId: null,
   scheduleId: null,
   availability: [],
@@ -106,7 +108,7 @@ const commons = {
   secondaryEmail: null,
 };
 
-const dynamicEvent = {
+export const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Group Meeting",
@@ -115,10 +117,10 @@ const dynamicEvent = {
   descriptionAsSafeHTML: "",
   position: 0,
   ...commons,
-  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 60, 90] }),
+  metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
-const defaultEvents = [dynamicEvent];
+export const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;

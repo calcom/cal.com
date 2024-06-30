@@ -5,6 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import AddMembersWithSwitch from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import { ShellMain } from "@calcom/features/shell/Shell";
 import useApp from "@calcom/lib/hooks/useApp";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -30,14 +31,6 @@ import {
   Tooltip,
   VerticalDivider,
 } from "@calcom/ui";
-import {
-  ExternalLink,
-  Link as LinkIcon,
-  Download,
-  Code,
-  Trash,
-  MessageCircle,
-} from "@calcom/ui/components/icon";
 
 import { getAbsoluteEventTypeRedirectUrl } from "../getEventTypeRedirectUrl";
 import { RoutingPages } from "../lib/RoutingPages";
@@ -89,7 +82,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}
+            StartIcon="external-link"
           />
         </Tooltip>
         <FormAction
@@ -98,7 +91,7 @@ const Actions = ({
           color="secondary"
           variant="icon"
           type="button"
-          StartIcon={LinkIcon}
+          StartIcon="link"
           tooltip={t("copy_link_to_form")}
         />
 
@@ -110,7 +103,7 @@ const Actions = ({
             color="secondary"
             variant="icon"
             type="button"
-            StartIcon={Download}
+            StartIcon="download"
           />
         </Tooltip>
         <FormAction
@@ -118,7 +111,7 @@ const Actions = ({
           action="embed"
           color="secondary"
           variant="icon"
-          StartIcon={Code}
+          StartIcon="code"
           tooltip={t("embed")}
         />
         <DropdownMenuSeparator />
@@ -127,7 +120,7 @@ const Actions = ({
           action="_delete"
           // className="mr-3"
           variant="icon"
-          StartIcon={Trash}
+          StartIcon="trash"
           color="secondary"
           type="button"
           tooltip={t("delete")}
@@ -140,7 +133,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon="link">
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           </FormActionsDropdown>
@@ -156,7 +149,7 @@ const Actions = ({
             type="button"
             rel="noreferrer"
             action="preview"
-            StartIcon={ExternalLink}>
+            StartIcon="external-link">
             {t("preview")}
           </FormAction>
           <FormAction
@@ -165,7 +158,7 @@ const Actions = ({
             routingForm={form}
             color="minimal"
             type="button"
-            StartIcon={LinkIcon}>
+            StartIcon="link">
             {t("copy_link_to_form")}
           </FormAction>
           <FormAction
@@ -174,7 +167,7 @@ const Actions = ({
             className="w-full"
             color="minimal"
             type="button"
-            StartIcon={Download}>
+            StartIcon="download">
             {t("download_responses")}
           </FormAction>
           <FormAction
@@ -183,7 +176,7 @@ const Actions = ({
             color="minimal"
             type="button"
             className="w-full"
-            StartIcon={Code}>
+            StartIcon="code">
             {t("embed")}
           </FormAction>
           {typeformApp ? (
@@ -193,7 +186,7 @@ const Actions = ({
               action="copyRedirectUrl"
               color="minimal"
               type="button"
-              StartIcon={LinkIcon}>
+              StartIcon="link">
               {t("Copy Typeform Redirect Url")}
             </FormAction>
           ) : null}
@@ -204,7 +197,7 @@ const Actions = ({
             className="w-full"
             type="button"
             color="destructive"
-            StartIcon={Trash}>
+            StartIcon="trash">
             {t("delete")}
           </FormAction>
           <div className="block sm:hidden">
@@ -241,7 +234,7 @@ type SingleFormComponentProps = {
 };
 
 function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleFormComponentProps) {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
 
   const [isTestPreviewOpen, setIsTestPreviewOpen] = useState(false);
@@ -292,6 +285,9 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form]);
+
+  const sendUpdatesTo = hookForm.watch("settings.sendUpdatesTo", []) as number[];
+  const sendToAll = hookForm.watch("settings.sendToAll", false) as boolean;
 
   const mutation = trpc.viewer.appRoutingForms.formMutation.useMutation({
     onSuccess() {
@@ -356,20 +352,73 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                   />
 
                   <div className="mt-6">
-                    <Controller
-                      name="settings.emailOwnerOnSubmission"
-                      control={hookForm.control}
-                      render={({ field: { value, onChange } }) => {
-                        return (
-                          <SettingsToggle
-                            title={t("routing_forms_send_email_owner")}
-                            description={t("routing_forms_send_email_owner_description")}
-                            checked={value}
-                            onCheckedChange={(val) => onChange(val)}
-                          />
-                        );
-                      }}
-                    />
+                    {form.teamId ? (
+                      <div className="flex flex-col">
+                        <span className="text-emphasis mb-3 block text-sm font-medium leading-none">
+                          {t("routing_forms_send_email_to")}
+                        </span>
+                        <AddMembersWithSwitch
+                          teamMembers={form.teamMembers.map((member) => ({
+                            value: member.id.toString(),
+                            label: member.name || "",
+                            avatar: member.avatarUrl || "",
+                            email: member.email,
+                            isFixed: true,
+                          }))}
+                          value={sendUpdatesTo.map((userId) => ({
+                            isFixed: true,
+                            userId: userId,
+                            priority: 1,
+                          }))}
+                          onChange={(value) => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              value.map((teamMember) => teamMember.userId),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          assignAllTeamMembers={sendToAll}
+                          setAssignAllTeamMembers={(value) => {
+                            hookForm.setValue("settings.sendToAll", !!value, { shouldDirty: true });
+                          }}
+                          automaticAddAllEnabled={true}
+                          isFixed={true}
+                          onActive={() => {
+                            hookForm.setValue(
+                              "settings.sendUpdatesTo",
+                              form.teamMembers.map((teamMember) => teamMember.id),
+                              { shouldDirty: true }
+                            );
+                            hookForm.setValue("settings.emailOwnerOnSubmission", false, {
+                              shouldDirty: true,
+                            });
+                          }}
+                          placeholder={t("select_members")}
+                          containerClassName="!px-0 !pb-0 !pt-0"
+                        />
+                      </div>
+                    ) : (
+                      <Controller
+                        name="settings.emailOwnerOnSubmission"
+                        control={hookForm.control}
+                        render={({ field: { value, onChange } }) => {
+                          return (
+                            <SettingsToggle
+                              title={t("routing_forms_send_email_owner")}
+                              description={t("routing_forms_send_email_owner_description")}
+                              checked={value}
+                              onCheckedChange={(val) => {
+                                onChange(val);
+                                hookForm.unregister("settings.sendUpdatesTo");
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    )}
                   </div>
 
                   {form.routers.length ? (
@@ -438,7 +487,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         className="mt-2 px-4 py-3"
                         severity="neutral"
                         title={t("no_responses_yet")}
-                        CustomIcon={MessageCircle}
+                        CustomIcon="message-circle"
                       />
                     </>
                   )}

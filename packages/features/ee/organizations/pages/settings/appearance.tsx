@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -17,7 +18,7 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Button, Form, Meta, showToast, SettingsToggle, Avatar, ImageUploader } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 type BrandColorsFormValues = {
   brandColor: string;
@@ -32,7 +33,7 @@ const OrgAppearanceView = ({
   isAdminOrOwner: boolean;
 }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const themeForm = useForm<{ theme: string | null | undefined }>({
     defaultValues: {
@@ -91,7 +92,7 @@ const OrgAppearanceView = ({
               <Avatar
                 alt="calVideoLogo"
                 imageSrc={currentOrg?.calVideoLogo}
-                fallback={<Plus className="text-subtle h-6 w-6" />}
+                fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                 size="lg"
               />
               <div className="ms-4">
@@ -212,12 +213,14 @@ const OrgAppearanceView = ({
 const OrgAppearanceViewWrapper = () => {
   const router = useRouter();
   const { t } = useLocale();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
   const { data: currentOrg, isPending, error } = trpc.viewer.organizations.listCurrent.useQuery();
 
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [error]
@@ -229,9 +232,7 @@ const OrgAppearanceViewWrapper = () => {
 
   if (!currentOrg) return null;
 
-  const isAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return <OrgAppearanceView currentOrg={currentOrg} isAdminOrOwner={isAdminOrOwner} />;
 };

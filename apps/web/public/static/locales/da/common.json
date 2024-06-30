@@ -151,6 +151,7 @@
   "2fa_confirm_current_password": "Bekræft din nuværende adgangskode for at komme i gang.",
   "2fa_scan_image_or_use_code": "Scan billedet nedenfor med autentificerings-appen på din telefon, eller indtast tekstkoden manuelt i stedet.",
   "text": "Tekst",
+  "your_phone_number": "Dit Telefonnummer",
   "multiline_text": "Flerlinje Tekst",
   "number": "Nummer",
   "checkbox": "Afkrydsningsfelt",
@@ -799,7 +800,6 @@
   "verify_wallet": "Verificér Wallet",
   "create_events_on": "Opret begivenheder på",
   "enterprise_license": "Dette er en virksomhedsfunktion",
-  "enterprise_license_description": "For at aktivere denne funktion, skal du gå til {{setupUrl}} for at indtaste en licensnøgle. Hvis en licensnøgle allerede er på plads, bedes du kontakte {{supportMail}} for hjælp.",
   "missing_license": "Manglende Licens",
   "next_steps": "Næste Trin",
   "acquire_commercial_license": "Erhverv en kommerciel licens",
@@ -1230,6 +1230,8 @@
   "copy_link_to_form": "Kopiér link til formular",
   "theme": "Tema",
   "theme_applies_note": "Dette gælder kun for dine offentlige bookingsider",
+  "app_theme": "Dashboard-tema",
+  "app_theme_applies_note": "Dette gælder kun for din loggede dashboard",
   "theme_system": "System standard",
   "add_a_team": "Tilføj et team",
   "add_webhook_description": "Modtag mødedata i realtid, når der sker noget i {{appName}}",
@@ -1534,5 +1536,7 @@
   "timezone_variable": "Tidszone",
   "confirm_your_details": "Bekræft dine oplysninger",
   "overlay_my_calendar": "Vis min kalender",
-  "need_help": "Brug for hjælp?"
+  "need_help": "Brug for hjælp?",
+  "send_email": "Send e-mail",
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterede dig til at deltage i teamet {{team}} på {{appName}}"
 }

@@ -20,6 +20,12 @@ export type AvailabilityOption = {
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type Host = { isFixed: boolean; userId: number; priority: number };
+export type TeamMember = {
+  value: string;
+  label: string;
+  avatar: string;
+  email: string;
+};
 
 export type FormValues = {
   id: number;
@@ -28,6 +34,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
   description: string;
@@ -52,12 +59,34 @@ export type FormValues = {
     credentialId?: number;
     teamName?: string;
   }[];
+  aiPhoneCallConfig: {
+    generalPrompt: string;
+    enabled: boolean;
+    beginMessage: string;
+    yourPhoneNumber: string;
+    numberToCall: string;
+    guestName: string;
+    guestEmail: string;
+    guestCompany: string;
+  };
   customInputs: CustomInputParsed[];
   schedule: number | null;
+
   periodType: PeriodType;
+  /**
+   * Number of days(Applicable only for ROLLING period type)
+   */
   periodDays: number;
+  /**
+   * Should consider Calendar Days(and not Business Days)(Applicable only for ROLLING period type)
+   */
   periodCountCalendarDays: boolean;
+  /**
+   * Date Range(Applicable only for RANGE period type)
+   */
   periodDates: { startDate: Date; endDate: Date };
+  rollingExcludeUnavailableDays: boolean;
+
   seatsPerTimeSlot: number | null;
   seatsShowAttendees: boolean | null;
   seatsShowAvailabilityCount: boolean | null;
@@ -86,5 +115,6 @@ export type FormValues = {
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
+  forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
 };

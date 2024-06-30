@@ -5,7 +5,9 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+// eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
+import { useRouter } from "next/router";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -22,6 +24,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -33,6 +36,42 @@ import type { AppProps } from "@lib/app-providers";
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
 import { type PageProps } from "~/event-types/views/event-types-single-view.getServerSideProps";
+
+const DEFAULT_PROMPT_VALUE = `## You are helping user set up a call with the support team. The appointment is 15 min long. You are a pleasant and friendly.
+
+  ## Style Guardrails
+  Be Concise: Respond succinctly, addressing one topic at most.
+  Embrace Variety: Use diverse language and rephrasing to enhance clarity without repeating content.
+  Be Conversational: Use everyday language, making the chat feel like talking to a friend.
+  Be Proactive: Lead the conversation, often wrapping up with a question or next-step suggestion.
+  Avoid multiple questions in a single response.
+  Get clarity: If the user only partially answers a question, or if the answer is unclear, keep asking to get clarity.
+  Use a colloquial way of referring to the date (like Friday, Jan 14th, or Tuesday, Jan 12th, 2024 at 8am).
+  If you are saying a time like 8:00 AM, just say 8 AM and emit the trailing zeros.
+
+  ## Response Guideline
+  Adapt and Guess: Try to understand transcripts that may contain transcription errors. Avoid mentioning \"transcription error\" in the response.
+  Stay in Character: Keep conversations within your role'''s scope, guiding them back creatively without repeating.
+  Ensure Fluid Dialogue: Respond in a role-appropriate, direct manner to maintain a smooth conversation flow.
+
+  ## Schedule Rule
+  Current time is {{current_time}}. You only schedule time in current calendar year, you cannot schedule time that'''s in the past.
+
+  ## Task Steps
+  1. I am here to learn more about your issue and help schedule an appointment with our support team.
+  2. If {{email}} is not unknown then Use name {{name}} and email {{email}} for creating booking else Ask for user name and email and Confirm the name and email with user by reading it back to user.
+  3. Ask user for \"When would you want to meet with one of our representive\".
+  4. Call function check_availability to check for availability in the user provided time range.
+    - if availability exists, inform user about the availability range (do not repeat the detailed available slot) and ask user to choose from it. Make sure user chose a slot within detailed available slot.
+    - if availability does not exist, ask user to select another time range for the appointment, repeat this step 3.
+  5. Confirm the date and time selected by user: \"Just to confirm, you want to book the appointment at ...\".
+  6. Once confirmed, call function book_appointment to book the appointment.
+    - if booking returned booking detail, it means booking is successful, proceed to step 7.
+    - if booking returned error message, let user know why the booking was not successful, and maybe start over with step 3.
+  7. Inform the user booking is successful, and ask if user have any questions. Answer them if there are any.
+  8. After all questions answered, call function end_call to hang up.`;
+
+const DEFAULT_BEGIN_MESSAGE = "Hi. How are you doing?";
 
 // These can't really be moved into calcom/ui due to the fact they use infered getserverside props typings;
 const EventSetupTab = dynamic(() =>
@@ -73,7 +112,11 @@ const EventWebhooksTab = dynamic(() =>
   import("@components/eventtype/EventWebhooksTab").then((mod) => mod.EventWebhooksTab)
 );
 
+const EventAITab = dynamic(() => import("@components/eventtype/EventAITab").then((mod) => mod.EventAITab));
+
 const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/ManagedEventDialog"));
+
+const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
 export type Host = { isFixed: boolean; userId: number; priority: number };
 
@@ -92,6 +135,7 @@ const querySchema = z.object({
       "advanced",
       "workflows",
       "webhooks",
+      "ai",
     ])
     .optional()
     .default("setup"),
@@ -102,7 +146,7 @@ export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["event
 
 const EventTypePage = (props: EventTypeSetupProps) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const telemetry = useTelemetry();
   const {
     data: { tabName },
@@ -115,6 +159,9 @@ const EventTypePage = (props: EventTypeSetupProps) => {
   });
 
   const { eventType, locationOptions, team, teamMembers, currentUserMembership, destinationCalendar } = props;
+  const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
+  const [pendingRoute, setPendingRoute] = useState("");
+  const leaveWithoutAssigningHosts = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -156,6 +203,8 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       showToast(message ? t(message) : t(err.message), "error");
     },
   });
+
+  const router = useRouter();
 
   const [periodDates] = useState<{ startDate: Date; endDate: Date }>({
     startDate: new Date(eventType.periodStartDate || Date.now()),
@@ -202,6 +251,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       destinationCalendar: eventType.destinationCalendar,
       recurringEvent: eventType.recurringEvent || null,
       isInstantEvent: eventType.isInstantEvent,
+      instantMeetingExpiryTimeOffsetInSeconds: eventType.instantMeetingExpiryTimeOffsetInSeconds,
       description: eventType.description ?? undefined,
       schedule: eventType.schedule || undefined,
       bookingLimits: eventType.bookingLimits || undefined,
@@ -226,6 +276,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
+      forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
       useEventTypeDestinationCalendarEmail: eventType.useEventTypeDestinationCalendarEmail,
       secondaryEmailId: eventType?.secondaryEmailId || -1,
@@ -243,6 +294,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
+      aiPhoneCallConfig: {
+        generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
+        enabled: eventType.aiPhoneCallConfig?.enabled,
+        beginMessage: eventType.aiPhoneCallConfig?.beginMessage ?? DEFAULT_BEGIN_MESSAGE,
+        guestName: eventType.aiPhoneCallConfig?.guestName,
+        guestEmail: eventType.aiPhoneCallConfig?.guestEmail,
+        guestCompany: eventType.aiPhoneCallConfig?.guestCompany,
+        yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
+        numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
+      },
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({
@@ -337,6 +398,41 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const paths = url.split("/");
+
+      // Check if event is managed event type - skip if there is assigned users
+      const assignedUsers = eventType.children;
+      const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+      if (eventType.assignAllTeamMembers) {
+        return;
+      } else if (isManagedEventType && assignedUsers.length > 0) {
+        return;
+      }
+
+      const hosts = eventType.hosts;
+      if (
+        !leaveWithoutAssigningHosts.current &&
+        !!team &&
+        (hosts.length === 0 || assignedUsers.length === 0) &&
+        (url === "/event-types" || paths[1] !== "event-types")
+      ) {
+        setIsOpenAssignmentWarnDialog(true);
+        setPendingRoute(url);
+        router.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
+        throw "Aborted";
+      }
+    };
+    router.events.on("routeChangeStart", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router]);
+
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
   let numberOfActiveApps = 0;
@@ -375,6 +471,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       />
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
+    ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
   } as const;
   const isObject = <T,>(value: T): boolean => {
     return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -717,13 +814,12 @@ const EventTypePage = (props: EventTypeSetupProps) => {
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id });
+              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
         </Form>
       </EventTypeSingleLayout>
-
       {slugExistsChildrenDialogOpen.length ? (
         <ManagedEventTypeDialog
           slugExistsChildrenDialogOpen={slugExistsChildrenDialogOpen}
@@ -740,10 +836,16 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }}
         />
       ) : null}
+      <AssignmentWarningDialog
+        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        pendingRoute={pendingRoute}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
+      />
     </>
   );
 };
-
 const EventTypePageWrapper: React.FC<PageProps> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
