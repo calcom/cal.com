@@ -7,7 +7,7 @@ const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
 export const getBookingReference = async (roomName: string) => {
   const bookingReference = await prisma.bookingReference.findFirst({
-    where: { type: "daily_video", uid: roomName, meetingId: roomName },
+    where: { type: "daily_video", uid: roomName, meetingId: roomName, bookingId: { not: null } },
     select: { bookingId: true },
   });
 

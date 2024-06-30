@@ -38,7 +38,7 @@ const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 const computeSignature = (
   hmacSecret: string,
   reqBody: NextApiRequest["body"],
-  webhookTimestampHeader: string
+  webhookTimestampHeader: string | string[] | undefined
 ) => {
   const signature = `${webhookTimestampHeader}.${JSON.stringify(reqBody)}`;
   const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
@@ -63,16 +63,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json({ message: "Test request successful" });
   }
 
-  const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
-  if (!hmacSecret) {
-    return res.status(405).json({ message: "No Daily Webhook Secret" });
+  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
+
+  if (!testMode) {
+    const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
+    if (!hmacSecret) {
+      return res.status(405).json({ message: "No Daily Webhook Secret" });
+    }
+
+    const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
+
+    if (req.headers["x-webhook-signature"] !== computed_signature) {
+      return res.status(403).json({ message: "Signature does not match" });
+    }
   }
-
-  const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
-
-  // if (req.headers["x-webhook-signature"] !== computed_signature) {
-  //   return res.status(403).json({ message: "Signature does not match" });
-  // }
 
   log.debug(
     "Daily video webhook Request Body:",
@@ -100,8 +104,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       }
 
       const bookingReference = await getBookingReference(room_name);
-
-      const booking = await getBooking(bookingReference.bookingId);
+      const booking = await getBooking(bookingReference.bookingId as number);
 
       const evt = await getCalendarEvent(booking);
 
@@ -178,6 +181,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const { id, input } = batchProcessorJobFinishedResponse.data.payload;
       const roomName = await getRoomNameFromRecordingId(input.recordingId);
+
       const bookingReference = await getBookingReference(roomName);
 
       const booking = await getBooking(bookingReference.bookingId as number);
