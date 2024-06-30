@@ -164,7 +164,7 @@ const Item = ({
         </small>
       ) : null}
       {readOnly && (
-        <Badge variant="gray" className="ml-2">
+        <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
           {t("readonly")}
         </Badge>
       )}
@@ -195,7 +195,7 @@ const Item = ({
           </small>
         ) : null}
         {readOnly && (
-          <Badge variant="gray" className="ml-2">
+          <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
             {t("readonly")}
           </Badge>
         )}
