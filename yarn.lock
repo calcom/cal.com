@@ -3788,7 +3788,7 @@ __metadata:
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
-    fast-xml-parser: ^4.2.7
+    fast-xml-parser: ^4.4.0
   languageName: unknown
   linkType: soft
 
@@ -24304,7 +24304,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-xml-parser@npm:^4.2.7":
+"fast-xml-parser@npm:^4.4.0":
   version: 4.4.0
   resolution: "fast-xml-parser@npm:4.4.0"
   dependencies:

@@ -6,7 +6,7 @@
   "main": "./index.ts",
   "dependencies": {
     "@calcom/lib": "*",
-    "fast-xml-parser": "^4.2.7"
+    "fast-xml-parser": "^4.4.0"
   },
   "devDependencies": {
     "@calcom/types": "*"
