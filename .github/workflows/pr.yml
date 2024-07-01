@@ -2,6 +2,7 @@ name: PR Update
 
 on:
   pull_request_target:
+    types: [opened, synchronize, reopened, labeled]
     branches:
       - main
       - gh-actions-test-branch
@@ -105,13 +106,6 @@ jobs:
     uses: ./.github/workflows/unit-tests.yml
     secrets: inherit
 
-  integration-test:
-    name: Tests
-    needs: [changes, check-label]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration-tests.yml
-    secrets: inherit
-
   build-api-v1:
     name: Production builds
     needs: [changes, check-label]
@@ -133,30 +127,37 @@ jobs:
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
+  integration-test:
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/integration-tests.yml
+    secrets: inherit
+
   e2e:
-    name: e2e
-    needs: [changes, check-label, build]
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
   e2e-app-store:
-    name: e2e-app-store
-    needs: [changes, check-label, build]
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-app-store.yml
     secrets: inherit
 
   e2e-embed:
-    name: e2e-embed
-    needs: [changes, check-label, build]
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed.yml
     secrets: inherit
 
   e2e-embed-react:
-    name: e2e-embed-react
-    needs: [changes, check-label, build]
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
     if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
@@ -169,6 +170,7 @@ jobs:
 
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed
