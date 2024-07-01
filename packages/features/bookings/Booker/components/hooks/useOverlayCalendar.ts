@@ -32,7 +32,7 @@ export const useOverlayCalendar = ({
   const { timezone } = useTimePreferences();
 
   useEffect(() => {
-    if (overlayBusyDates) {
+    if (overlayBusyDates?.length > 0) {
       const nowDate = dayjs();
       const usersTimezoneDate = nowDate.tz(timezone);
 
@@ -51,7 +51,7 @@ export const useOverlayCalendar = ({
   }, [overlayBusyDates]);
 
   useEffect(() => {
-    if (connectedCalendars && set.size === 0 && !initalised) {
+    if (connectedCalendars?.length > 0 && set.size === 0 && !initalised) {
       connectedCalendars.forEach((item) => {
         item.calendars?.forEach((cal) => {
           const id = { credentialId: item.credentialId, externalId: cal.externalId };
