@@ -715,6 +715,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       label: "Bottom left",
     },
   ];
+  const previewTab = tabs.find((tab) => tab.name === "Preview");
 
   return (
     <DialogContent
@@ -1020,25 +1021,26 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flow-y-scroll flex h-[95vh] w-2/3 flex-col px-8 pt-8">
+        <div className="flex h-[95vh] w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs
             data-testid="embed-tabs"
-            tabs={parsedTabs.filter((tab) => tab.name !== "Preview")}
+            tabs={
+              embedType === "email"
+                ? parsedTabs.filter((tab) => tab.name === "Preview")
+                : parsedTabs.filter((tab) => tab.name !== "Preview")
+            }
             linkShallow
           />
-          {tabs.map((tab) => {
-            const previewTab = tabs.find((tab) => tab.name === "Preview");
-            if (embedType !== "email") {
-              return (
-                <div
-                  key={tab.href}
-                  className={classNames(
-                    searchParams?.get("embedTabName") === tab.href.split("=")[1]
-                      ? "flex h-full flex-col"
-                      : "hidden"
-                  )}>
-                  <div className="flex h-full flex-col">
-                    <div className="flex flex-1 flex-col">
+          <>
+            <div className="flex h-full flex-col">
+              {tabs.map((tab) => {
+                if (embedType !== "email") {
+                  return (
+                    <div
+                      key={tab.href}
+                      className={classNames(
+                        searchParams?.get("embedTabName") === tab.href.split("=")[1] ? "flex-1" : "hidden"
+                      )}>
                       {tab.type === "code" ? (
                         <tab.Component
                           namespace={namespace}
@@ -1056,78 +1058,79 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           ref={iframeRef}
                         />
                       )}
+                      <div
+                        className={
+                          searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                        }
+                      />
                     </div>
-                    <div className="flex-1">
-                      {previewTab && (
-                        <previewTab.Component
-                          namespace={namespace}
-                          embedType={embedType}
-                          calLink={calLink}
-                          previewState={previewState}
-                          ref={iframeRef}
-                        />
-                      )}
+                  );
+                }
+
+                if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
+
+                return (
+                  <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
+                    <div className="flex h-[55vh] flex-grow flex-col">
+                      <EmailEmbedPreview
+                        calLink={calLink}
+                        eventType={eventTypeData?.eventType}
+                        emailContentRef={emailContentRef}
+                        username={teamSlug ?? (data?.user.username as string)}
+                        month={month as string}
+                        selectedDateAndTime={
+                          selectedDatesAndTimes
+                            ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
+                            : {}
+                        }
+                      />
                     </div>
+                    <div
+                      className={
+                        searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                      }
+                    />
                   </div>
-                  <div
-                    className={
-                      searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
-                    }
-                  />
-                  <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-                    <DialogClose />
-                    {tab.type === "code" ? (
-                      <Button
-                        type="submit"
-                        onClick={() => {
-                          const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
-                          if (!currentTabCodeEl) {
-                            return;
-                          }
-                          navigator.clipboard.writeText(currentTabCodeEl.value);
-                          showToast(t("code_copied"), "success");
-                        }}>
-                        {t("copy_code")}
-                      </Button>
-                    ) : null}
-                  </DialogFooter>
-                </div>
-              );
-            }
+                );
+              })}
 
-            if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
-
-            return (
-              <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
-                <div className="flex h-[55vh] flex-grow flex-col">
-                  <EmailEmbedPreview
+              {embedType !== "email" && previewTab && (
+                <div className="flex-1">
+                  <previewTab.Component
+                    namespace={namespace}
+                    embedType={embedType}
                     calLink={calLink}
-                    eventType={eventTypeData?.eventType}
-                    emailContentRef={emailContentRef}
-                    username={teamSlug ?? (data?.user.username as string)}
-                    month={month as string}
-                    selectedDateAndTime={
-                      selectedDatesAndTimes
-                        ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
-                        : {}
-                    }
+                    previewState={previewState}
+                    ref={iframeRef}
                   />
                 </div>
-                <div
-                  className={searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"}
-                />
-                <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-                  <DialogClose />
-                  <Button
-                    onClick={() => {
-                      handleCopyEmailText();
-                    }}>
-                    {embedType === "email" ? t("copy") : t("copy_code")}
-                  </Button>
-                </DialogFooter>
-              </div>
-            );
-          })}
+              )}
+            </div>
+            <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
+              <DialogClose />
+              <Button
+                type="submit"
+                onClick={() => {
+                  if (embedType === "email") {
+                    handleCopyEmailText();
+                  } else {
+                    const currentTabHref = searchParams?.get("embedTabName");
+                    const currentTabName = tabs.find(
+                      (tab) => tab.href === `embedTabName=${currentTabHref}`
+                    )?.name;
+                    if (!currentTabName) return;
+                    const currentTabCodeEl = refOfEmbedCodesRefs.current[currentTabName].current;
+                    if (!currentTabCodeEl) {
+                      return;
+                    }
+                    navigator.clipboard.writeText(currentTabCodeEl.value);
+                    showToast(t("code_copied"), "success");
+                  }
+                }}>
+                {embedType === "email" ? t("copy") : t("copy_code")}
+              </Button>
+            </DialogFooter>
+          </>
         </div>
       </div>
     </DialogContent>
