@@ -1034,6 +1034,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <>
             <div className="flex h-full flex-col">
               {tabs.map((tab) => {
+                if (tab.name === "Preview") return null;
                 if (embedType !== "email") {
                   return (
                     <div
