@@ -1,7 +1,7 @@
 import type { TFunction } from "next-i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -21,18 +21,18 @@ export default class BrokenIntegrationEmail extends BaseEmail {
     this.type = type;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.calEvent.organizer.email];
 
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `[Action Required] ${this.t("confirmed_event_type_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("BrokenIntegrationEmail", {
+      html: await renderEmail("BrokenIntegrationEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
         type: this.type,
@@ -53,7 +53,7 @@ ${this.t(
 )}
 ${this.t(subtitle)}
 ${extraInfo}
-${getRichDescription(this.calEvent)}
+${getRichDescription(this.calEvent, this.t, true)}
 ${callToAction}
 `.trim();
   }

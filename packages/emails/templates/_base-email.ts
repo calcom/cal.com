@@ -3,11 +3,13 @@ import { createTransport } from "nodemailer";
 import { z } from "zod";
 
 import dayjs from "@calcom/dayjs";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
+import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
 import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
 import prisma from "@calcom/prisma";
+
+import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
 
 export default class BaseEmail {
   name = "";
@@ -24,13 +26,13 @@ export default class BaseEmail {
     return dayjs(time).tz(this.getTimezone()).locale(this.getLocale()).format(format);
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {};
   }
   public async sendEmail() {
-    const featureFlags = await getFeatureFlagMap(prisma);
+    const emailsDisabled = await getFeatureFlag(prisma, "emails");
     /** If email kill switch exists and is active, we prevent emails being sent. */
-    if (featureFlags.emails) {
+    if (emailsDisabled) {
       console.warn("Skipped Sending Email due to active Kill Switch");
       return new Promise((r) => r("Skipped Sending Email due to active Kill Switch"));
     }
@@ -38,20 +40,31 @@ export default class BaseEmail {
     if (process.env.INTEGRATION_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-expect-error
-      setTestEmail(this.getNodeMailerPayload());
+      setTestEmail(await this.getNodeMailerPayload());
       console.log(
         "Skipped Sending Email as process.env.NEXT_PUBLIC_UNIT_TESTS is set. Emails are available in globalThis.testEmails"
       );
       return new Promise((r) => r("Skipped sendEmail for Unit Tests"));
     }
 
-    const payload = this.getNodeMailerPayload();
+    const payload = await this.getNodeMailerPayload();
+
+    const from = "from" in payload ? (payload.from as string) : "";
+    const to = "to" in payload ? (payload.to as string) : "";
+
+    const sanitizedFrom = sanitizeDisplayName(from);
+    const sanitizedTo = sanitizeDisplayName(to);
+
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
+      headers: this.getMailerOptions().headers,
       ...payload,
+      ...{
+        from: sanitizedFrom,
+        to: sanitizedTo,
+      },
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
-
     await new Promise((resolve, reject) =>
       createTransport(this.getMailerOptions().transport).sendMail(
         payloadWithUnEscapedSubject,
@@ -65,17 +78,23 @@ export default class BaseEmail {
           }
         }
       )
-    ).catch((e) => console.error("sendEmail", e));
+    ).catch((e) =>
+      console.error(
+        "sendEmail",
+        `from: ${"from" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.from : ""}`,
+        `subject: ${"subject" in payloadWithUnEscapedSubject ? payloadWithUnEscapedSubject.subject : ""}`,
+        e
+      )
+    );
     return new Promise((resolve) => resolve("send mail async"));
   }
-
   protected getMailerOptions() {
     return {
       transport: serverConfig.transport,
       from: serverConfig.from,
+      headers: serverConfig.headers,
     };
   }
-
   protected printNodeMailerError(error: Error): void {
     /** Don't clog the logs with unsent emails in E2E */
     if (process.env.NEXT_PUBLIC_IS_E2E) return;

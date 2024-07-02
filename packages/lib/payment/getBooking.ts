@@ -8,6 +8,8 @@ import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/crede
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
+import { getBookerBaseUrl } from "../getBookerUrl/server";
+
 async function getEventType(id: number) {
   return prisma.eventType.findUnique({
     where: {
@@ -29,7 +31,45 @@ export async function getBooking(bookingId: number) {
     select: {
       ...bookingMinimalSelect,
       responses: true,
-      eventType: true,
+      eventType: {
+        select: {
+          currency: true,
+          description: true,
+          id: true,
+          length: true,
+          price: true,
+          requiresConfirmation: true,
+          metadata: true,
+          title: true,
+          teamId: true,
+          parentId: true,
+          slug: true,
+          workflows: {
+            select: {
+              workflow: {
+                select: {
+                  id: true,
+                  userId: true,
+                  name: true,
+                  steps: true,
+                  position: true,
+                  teamId: true,
+                  time: true,
+                  timeUnit: true,
+                  trigger: true,
+                },
+              },
+            },
+          },
+          bookingFields: true,
+          team: {
+            select: {
+              parentId: true,
+            },
+          },
+        },
+      },
+      metadata: true,
       smsReminderNumber: true,
       location: true,
       eventTypeId: true,
@@ -81,11 +121,24 @@ export async function getBooking(bookingId: number) {
     };
   });
 
+  const organizerOrganizationProfile = await prisma.profile.findFirst({
+    where: {
+      userId: booking.userId ?? undefined,
+    },
+  });
+
+  const organizerOrganizationId = organizerOrganizationProfile?.organizationId;
+
+  const bookerUrl = await getBookerBaseUrl(
+    booking.eventType?.team?.parentId ?? organizerOrganizationId ?? null
+  );
+
   const attendeesList = await Promise.all(attendeesListPromises);
   const selectedDestinationCalendar = booking.destinationCalendar || user.destinationCalendar;
   const evt: CalendarEvent = {
-    type: booking.title,
+    type: booking?.eventType?.slug as string,
     title: booking.title,
+    bookerUrl,
     description: booking.description || undefined,
     startTime: booking.startTime.toISOString(),
     endTime: booking.endTime.toISOString(),
@@ -95,7 +148,8 @@ export async function getBooking(bookingId: number) {
       bookingFields: booking.eventType?.bookingFields || null,
     }),
     organizer: {
-      email: user.email,
+      email: booking?.userPrimaryEmail ?? user.email,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       name: user.name!,
       timeZone: user.timeZone,
       timeFormat: getTimeFormatStringFromUserTimeFormat(user.timeFormat),

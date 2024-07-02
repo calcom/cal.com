@@ -1,3 +1,5 @@
+"use client";
+
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 

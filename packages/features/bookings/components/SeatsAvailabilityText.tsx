@@ -34,7 +34,7 @@ export const SeatsAvailabilityText = ({
   const isNearlyFull = bookedSeats / totalSeats >= 0.83;
 
   return (
-    <span className={classNames(showExact && "lowercase")}>
+    <span className={classNames(showExact && "lowercase", "truncate")}>
       {showExact
         ? `${availableSeats}${variant === "fraction" ? ` / ${totalSeats}` : ""} ${t("seats_available", {
             count: availableSeats,

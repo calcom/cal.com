@@ -1,10 +1,11 @@
-import type { GroupBase, InputProps, OptionProps } from "react-select";
+import type { GroupBase, InputProps, OptionProps, ControlProps } from "react-select";
 import { components as reactSelectComponents } from "react-select";
 
 import { classNames } from "@calcom/lib";
 
-import { UpgradeTeamsBadge, UpgradeOrgsBadge } from "../../badge";
-import { Check } from "../../icon";
+import { Icon } from "../../..";
+import { UpgradeTeamsBadge } from "../../badge";
+import type { SelectProps } from "./Select";
 
 export const InputComponent = <
   Option,
@@ -30,7 +31,6 @@ type ExtendedOption = {
   value: string | number;
   label: string;
   needsTeamsUpgrade?: boolean;
-  needsOrgsUpgrade?: boolean;
 };
 
 export const OptionComponent = <
@@ -47,16 +47,27 @@ export const OptionComponent = <
         <span className="mr-auto" data-testid={`select-option-${(props as unknown as ExtendedOption).value}`}>
           {props.label || <>&nbsp;</>}
         </span>
-        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? (
-          <UpgradeTeamsBadge />
-        ) : (props.data as unknown as ExtendedOption).needsOrgsUpgrade ? (
-          <UpgradeOrgsBadge />
-        ) : (
-          <></>
-        )}
-        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
+        {(props.data as unknown as ExtendedOption).needsTeamsUpgrade ? <UpgradeTeamsBadge /> : <></>}
+        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </reactSelectComponents.Option>
+  );
+};
+
+export const ControlComponent = <
+  Option,
+  IsMulti extends boolean,
+  Group extends GroupBase<Option> = GroupBase<Option>
+>(
+  controlProps: ControlProps<Option, IsMulti, Group> & {
+    selectProps: SelectProps<Option, IsMulti, Group>;
+  }
+) => {
+  const dataTestId = controlProps.selectProps["data-testid"] ?? "select-control";
+  return (
+    <span data-testid={dataTestId}>
+      <reactSelectComponents.Control {...controlProps} />
+    </span>
   );
 };
 

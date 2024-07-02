@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { APP_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -23,14 +23,14 @@ export default class ForgotPasswordEmail extends BaseEmail {
     this.passwordEvent = passwordEvent;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.passwordEvent.user.name} <${this.passwordEvent.user.email}>`,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       subject: this.passwordEvent.language("reset_password_subject", {
         appName: APP_NAME,
       }),
-      html: renderEmail("ForgotPasswordEmail", this.passwordEvent),
+      html: await renderEmail("ForgotPasswordEmail", this.passwordEvent),
       text: this.getTextBody(),
     };
   }

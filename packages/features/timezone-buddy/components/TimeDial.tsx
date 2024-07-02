@@ -106,7 +106,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
 
   return (
     <>
-      <div className="flex items-end overflow-auto text-sm">
+      <div className="flex items-end justify-center overflow-auto text-sm">
         {days.map((day, i) => {
           if (!day.length) return null;
           const dateWithDaySet = usersTimezoneDate.add(i - 1, "day");
@@ -165,7 +165,7 @@ export function TimeDial({ timezone, dateRanges }: TimeDialProps) {
                       key={h}
                       className={classNames(
                         "flex h-8 flex-col items-center justify-center",
-                        isInRange ? "text-emphasis dark:text-inverted" : "",
+                        isInRange ? "text-emphasis" : "",
                         isInRange && !rangeOverlap ? "bg-success" : "",
                         hours ? "" : "bg-subtle font-medium"
                       )}

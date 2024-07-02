@@ -23,6 +23,14 @@ export type Fields = z.infer<typeof zodFieldsView>;
 export type Field = Fields[number];
 export type Routes = z.infer<typeof zodRoutesView>;
 export type Route = Routes[0];
+export type NonRouterRoute = z.infer<typeof zodNonRouterRoute>;
+
+export type SerializableFormTeamMembers = {
+  id: number;
+  name: string | null;
+  email: string;
+  avatarUrl: string | null;
+};
 export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   T,
   "fields" | "routes" | "createdAt" | "updatedAt" | "settings"
@@ -34,6 +42,7 @@ export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   updatedAt: string;
   connectedForms: { name: string; description: string | null; id: string }[];
   routers: { name: string; description: string | null; id: string }[];
+  teamMembers: SerializableFormTeamMembers[];
 };
 
 export type LocalRoute = z.infer<typeof zodNonRouterRoute>;

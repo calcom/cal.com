@@ -1,10 +1,11 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 
-import { getLayout } from "@calcom/features/MainLayout";
-import { ShellMain } from "@calcom/features/shell/Shell";
+import Shell, { ShellMain } from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -50,50 +51,53 @@ function WorkflowsPage() {
   });
 
   return (
-    <ShellMain
-      heading={t("workflows")}
-      title={t("workflows")}
-      subtitle={t("workflows_to_automate_notifications")}
-      hideHeadingOnMobile
-      CTA={
-        session.data?.hasValidLicense ? (
-          <CreateButtonWithTeamsList
-            subtitle={t("new_workflow_subtitle").toUpperCase()}
-            createFunction={(teamId?: number) => {
-              createMutation.mutate({ teamId });
-            }}
-            isLoading={createMutation.isLoading}
-            disableMobileButton={true}
-            onlyShowWithNoTeams={true}
-          />
-        ) : null
-      }>
+    <Shell withoutMain>
       <LicenseRequired>
-        <>
-          {queryRes.data?.totalCount ? (
-            <div className="flex">
-              <TeamsFilter />
-              <div className="ml-auto">
-                <CreateButtonWithTeamsList
-                  subtitle={t("new_workflow_subtitle").toUpperCase()}
-                  createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
-                  isLoading={createMutation.isLoading}
-                  disableMobileButton={true}
-                  onlyShowWithTeams={true}
-                />
+        <ShellMain
+          heading={t("workflows")}
+          subtitle={t("workflows_to_automate_notifications")}
+          title="Workflows"
+          description="Create workflows to automate notifications and reminders."
+          hideHeadingOnMobile
+          CTA={
+            session.data?.hasValidLicense ? (
+              <CreateButtonWithTeamsList
+                subtitle={t("new_workflow_subtitle").toUpperCase()}
+                createFunction={(teamId?: number) => {
+                  createMutation.mutate({ teamId });
+                }}
+                isPending={createMutation.isPending}
+                disableMobileButton={true}
+                onlyShowWithNoTeams={true}
+              />
+            ) : null
+          }>
+          <>
+            {queryRes.data?.totalCount ? (
+              <div className="flex">
+                <TeamsFilter />
+                <div className="ml-auto">
+                  <CreateButtonWithTeamsList
+                    subtitle={t("new_workflow_subtitle").toUpperCase()}
+                    createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
+                    isPending={createMutation.isPending}
+                    disableMobileButton={true}
+                    onlyShowWithTeams={true}
+                  />
+                </div>
               </div>
-            </div>
-          ) : null}
-          <FilterResults
-            queryRes={queryRes}
-            emptyScreen={<EmptyScreen isFilteredView={false} />}
-            noResultsScreen={<EmptyScreen isFilteredView={true} />}
-            SkeletonLoader={SkeletonLoader}>
-            <WorkflowList workflows={queryRes.data?.filtered} />
-          </FilterResults>
-        </>
+            ) : null}
+            <FilterResults
+              queryRes={queryRes}
+              emptyScreen={<EmptyScreen isFilteredView={false} />}
+              noResultsScreen={<EmptyScreen isFilteredView={true} />}
+              SkeletonLoader={SkeletonLoader}>
+              <WorkflowList workflows={queryRes.data?.filtered} />
+            </FilterResults>
+          </>
+        </ShellMain>
       </LicenseRequired>
-    </ShellMain>
+    </Shell>
   );
 }
 
@@ -147,7 +151,7 @@ const Filter = (props: {
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -211,7 +215,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-primary-600 focus:ring-primary-500 border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
             />
           </div>
         ))}
@@ -219,7 +223,5 @@ const Filter = (props: {
     </div>
   );
 };
-
-WorkflowsPage.getLayout = getLayout;
 
 export default WorkflowsPage;

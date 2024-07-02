@@ -40,7 +40,7 @@ export default class LarkCalendarService implements Calendar {
   constructor(credential: CredentialPayload) {
     this.integrationName = "lark_calendar";
     this.auth = this.larkAuth(credential);
-    this.log = logger.getChildLogger({ prefix: [`[[lib] ${this.integrationName}`] });
+    this.log = logger.getSubLogger({ prefix: [`[[lib] ${this.integrationName}`] });
     this.credential = credential;
   }
 

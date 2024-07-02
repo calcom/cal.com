@@ -14,8 +14,10 @@ const config = {
       "es",
       "fr",
       "he",
+      "hu",
       "it",
       "ja",
+      "km",
       "ko",
       "nl",
       "no",
@@ -32,6 +34,10 @@ const config = {
       "zh-CN",
       "zh-TW",
     ],
+  },
+  fallbackLng: {
+    default: ["en"],
+    zh: ["zh-CN"],
   },
   reloadOnPrerender: process.env.NODE_ENV !== "production",
 };

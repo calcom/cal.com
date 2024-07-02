@@ -1,5 +1,27 @@
 # @calcom/embed-snippet
 
+## 1.3.0
+
+### Minor Changes
+
+- Added namespacing support throughout
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.5.0
+
+## 1.2.0
+
+### Minor Changes
+
+- Added a few more events
+
+### Patch Changes
+
+- Updated dependencies
+  - @calcom/embed-core@1.4.0
+
 ## 1.1.2
 
 ### Patch Changes

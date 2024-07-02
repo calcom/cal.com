@@ -13,12 +13,19 @@ export function defaultResponder<T>(f: Handle<T>) {
       performance.mark("Start");
       const result = await f(req, res);
       ok = true;
-      if (result) res.json(result);
+      if (result && !res.writableEnded) {
+        return res.json(result);
+      }
     } catch (err) {
       console.error(err);
       const error = getServerErrorFromUnknown(err);
-      res.statusCode = error.statusCode;
-      res.json({ message: error.message });
+      // dynamic import of Sentry so it's only loaded when something goes wrong.
+      const captureException = (await import("@sentry/nextjs")).captureException;
+      captureException(err);
+      // return API route response
+      return res
+        .status(error.statusCode)
+        .json({ message: error.message, url: error.url, method: error.method });
     } finally {
       performance.mark("End");
       performance.measure(`[${ok ? "OK" : "ERROR"}][$1] ${req.method} '${req.url}'`, "Start", "End");

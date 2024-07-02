@@ -14,7 +14,7 @@ const handler: AppDeclarativeHandler = {
     newTab: true,
   },
   createCredential: ({ appType, user, slug, teamId }) =>
-    createDefaultInstallation({ appType, userId: user.id, slug, key: {}, teamId }),
+    createDefaultInstallation({ appType, user: user, slug, key: {}, teamId }),
 };
 
 export default handler;

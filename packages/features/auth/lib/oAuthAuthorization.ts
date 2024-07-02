@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import type { NextApiRequest } from "next";
 
 import prisma from "@calcom/prisma";
-import type { OAuthTokenPayload } from "@calcom/web/pages/api/auth/oauth/token";
+import type { OAuthTokenPayload } from "@calcom/types/oauth";
 
 export default async function isAuthorized(req: NextApiRequest, requiredScopes: string[] = []) {
   const token = req.headers.authorization?.split(" ")[1] || "";

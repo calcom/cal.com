@@ -1,13 +1,12 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SheetClose, Button } from "@calcom/ui";
-import { Pencil } from "@calcom/ui/components/icon";
 
 import { useEditMode } from "./store";
 
 function EditModeFooter() {
   const { t } = useLocale();
   const setEditMode = useEditMode((state) => state.setEditMode);
-  const isLoading = useEditMode((state) => state.mutationLoading);
+  const isPending = useEditMode((state) => state.mutationLoading);
 
   return (
     <>
@@ -21,7 +20,7 @@ function EditModeFooter() {
         {t("cancel")}
       </Button>
 
-      <Button type="submit" className="w-full justify-center" form="edit-user-form" loading={isLoading}>
+      <Button type="submit" className="w-full justify-center" form="edit-user-form" loading={isPending}>
         {t("update")}
       </Button>
     </>
@@ -47,7 +46,7 @@ function MoreInfoFooter() {
         className="w-full justify-center gap-2"
         variant="icon"
         key="EDIT_BUTTON"
-        StartIcon={Pencil}>
+        StartIcon="pencil">
         {t("edit")}
       </Button>
     </>

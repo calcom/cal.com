@@ -1,9 +1,12 @@
 import type { Prisma } from "@prisma/client";
 
+import { getOrgFullOrigin } from "@calcom/ee/organizations/lib/orgDomains";
 import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { uploadLogo } from "@calcom/lib/server/avatar";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
 import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -46,7 +49,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
   const data: Prisma.TeamUpdateArgs["data"] = {
     name: input.name,
-    logo: input.logo,
     bio: input.bio,
     hideBranding: input.hideBranding,
     isPrivate: input.isPrivate,
@@ -55,6 +57,12 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     darkBrandColor: input.darkBrandColor,
     theme: input.theme,
   };
+
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+    data.logoUrl = await uploadLogo({ teamId: input.id, logo: input.logo });
+  } else if (typeof input.logo !== "undefined" && !input.logo) {
+    data.logoUrl = null;
+  }
 
   if (
     input.slug &&
@@ -84,6 +92,52 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     data,
   });
 
+  if (updatedTeam.parentId && prevTeam.slug) {
+    // No changes made lets skip this logic
+    if (updatedTeam.slug === prevTeam.slug) return;
+
+    // Fetch parent team slug to construct toUrl
+    const parentTeam = await prisma.team.findUnique({
+      where: {
+        id: updatedTeam.parentId,
+      },
+      select: {
+        slug: true,
+      },
+    });
+
+    if (!parentTeam?.slug) {
+      throw new Error(`Parent team wth slug: ${parentTeam?.slug} not found`);
+    }
+
+    const orgUrlPrefix = getOrgFullOrigin(parentTeam.slug);
+
+    const toUrlOld = `${orgUrlPrefix}/${prevTeam.slug}`;
+    const toUrlNew = `${orgUrlPrefix}/${updatedTeam.slug}`;
+
+    await prisma.tempOrgRedirect.updateMany({
+      where: {
+        type: RedirectType.Team,
+        toUrl: toUrlOld,
+      },
+      data: {
+        toUrl: toUrlNew,
+      },
+    });
+  }
+
   // Sync Services: Close.com
   if (prevTeam) closeComUpdateTeam(prevTeam, updatedTeam);
+
+  return {
+    logoUrl: updatedTeam.logoUrl,
+    name: updatedTeam.name,
+    bio: updatedTeam.bio,
+    slug: updatedTeam.slug,
+    theme: updatedTeam.theme,
+    brandColor: updatedTeam.brandColor,
+    darkBrandColor: updatedTeam.darkBrandColor,
+  };
 };
+
+export default updateHandler;

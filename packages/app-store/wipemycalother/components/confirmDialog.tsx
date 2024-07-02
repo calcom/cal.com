@@ -6,8 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import logger from "@calcom/lib/logger";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, showToast } from "@calcom/ui";
-import { Clock } from "@calcom/ui/components/icon";
+import { Button, Dialog, DialogContent, DialogFooter, DialogHeader, Icon, showToast } from "@calcom/ui";
 
 interface IConfirmDialogWipe {
   isOpenDialog: boolean;
@@ -44,17 +43,17 @@ const wipeMyCalAction = async (props: IWipeMyCalAction) => {
 export const ConfirmDialog = (props: IConfirmDialogWipe) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog } = props;
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(false);
   const today = dayjs();
   const initialDate = today.startOf("day");
   const endDate = today.endOf("day");
   const dateFormat = "ddd, MMM D, YYYY h:mm A";
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
-  const rescheduleApi = useMutation(
-    async () => {
-      setIsLoading(true);
+  const rescheduleApi = useMutation({
+    mutationFn: async () => {
+      setIsPending(true);
       try {
         const result = await wipeMyCalAction({
           initialDate: initialDate.toISOString(),
@@ -68,21 +67,19 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
         showToast(t("unexpected_error_try_again"), "error");
         // @TODO: notify
       }
-      setIsLoading(false);
+      setIsPending(false);
     },
-    {
-      async onSettled() {
-        await utils.viewer.bookings.invalidate();
-      },
-    }
-  );
+    async onSettled() {
+      await utils.viewer.bookings.invalidate();
+    },
+  });
 
   return (
     <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
       <DialogContent onOpenAutoFocus={(e) => e.preventDefault()}>
         <div className="flex flex-row space-x-3">
           <div className="flex h-10 w-10 flex-shrink-0 justify-center rounded-full bg-[#FAFAFA]">
-            <Clock className="m-auto h-5 w-5" />
+            <Icon name="clock" className="m-auto h-5 w-5" />
           </div>
           <div className="pt-1">
             <DialogHeader title="Wipe My Calendar" />
@@ -104,7 +101,7 @@ export const ConfirmDialog = (props: IConfirmDialogWipe) => {
           <Button
             color="primary"
             data-testid="send_request"
-            disabled={isLoading}
+            disabled={isPending}
             onClick={async () => {
               try {
                 rescheduleApi.mutate();

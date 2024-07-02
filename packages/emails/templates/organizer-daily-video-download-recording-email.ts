@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -19,16 +19,16 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
     this.downloadLink = downloadLink;
     this.t = this.calEvent.organizer.language.translate;
   }
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.calEvent.organizer.email}>`,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: `${this.t("download_recording_subject", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("DailyVideoDownloadRecordingEmail", {
+      html: await renderEmail("DailyVideoDownloadRecordingEmail", {
         title: this.calEvent.title,
         date: this.getFormattedDate(),
         downloadLink: this.downloadLink,
@@ -50,8 +50,13 @@ export default class OrganizerDailyVideoDownloadRecordingEmail extends BaseEmail
     return this.getFormattedRecipientTime({ time: this.calEvent.endTime, format });
   }
 
+  protected getLocale(): string {
+    return this.calEvent.organizer.language.locale;
+  }
+
   protected getFormattedDate() {
     const organizerTimeFormat = this.calEvent.organizer.timeFormat || TimeFormat.TWELVE_HOUR;
+
     return `${this.getOrganizerStart(organizerTimeFormat)} - ${this.getOrganizerEnd(
       organizerTimeFormat
     )}, ${this.t(this.getOrganizerStart("dddd").toLowerCase())}, ${this.t(

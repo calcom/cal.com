@@ -25,14 +25,14 @@ export default class ResponseEmail extends BaseEmail {
     this.toAddresses = toAddresses;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = this.toAddresses;
     const subject = `${this.form.name} has a new response`;
     return {
       from: `Cal.com <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject,
-      html: renderEmail("ResponseEmail", {
+      html: await renderEmail("ResponseEmail", {
         form: this.form,
         orderedResponses: this.orderedResponses,
         subject,

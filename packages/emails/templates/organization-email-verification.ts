@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
@@ -22,12 +22,12 @@ export default class OrganizationEmailVerification extends BaseEmail {
     this.orgVerifyInput = orgVerifyInput;
   }
 
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.orgVerifyInput.user.email,
       subject: this.orgVerifyInput.language("verify_email_organization"),
-      html: renderEmail("OrganisationAccountVerifyEmail", this.orgVerifyInput),
+      html: await renderEmail("OrganisationAccountVerifyEmail", this.orgVerifyInput),
       text: this.getTextBody(),
     };
   }

@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 import ConnectionInfo from "@calcom/ee/sso/components/ConnectionInfo";
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import OIDCConnection from "@calcom/features/ee/sso/components/OIDCConnection";
@@ -22,23 +20,15 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 };
 
 export default function SSOConfiguration({ teamId }: { teamId: number | null }) {
-  const [errorMessage, setErrorMessage] = useState("");
   const { t } = useLocale();
 
-  const { data: connection, isLoading } = trpc.viewer.saml.get.useQuery(
-    { teamId },
-    {
-      onError: (err) => {
-        setErrorMessage(err.message);
-      },
-    }
-  );
+  const { data: connection, isPending, error } = trpc.viewer.saml.get.useQuery({ teamId });
 
-  if (isLoading) {
+  if (isPending) {
     return <SkeletonLoader title={t("sso_configuration")} description={t("sso_configuration_description")} />;
   }
 
-  if (errorMessage) {
+  if (error) {
     return (
       <>
         <Meta
@@ -46,7 +36,7 @@ export default function SSOConfiguration({ teamId }: { teamId: number | null }) 
           description={t("sso_configuration_description")}
           borderInShellHeader={true}
         />
-        <Alert severity="warning" message={t(errorMessage)} className="mt-4" />
+        <Alert severity="warning" message={t(error.message)} className="mt-4" />
       </>
     );
   }

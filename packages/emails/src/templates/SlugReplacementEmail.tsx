@@ -1,7 +1,9 @@
+"use client";
+
 import type { TFunction } from "next-i18next";
 import { Trans } from "next-i18next";
 
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 
 import { BaseEmailHtml, CallToAction } from "../components";
 
@@ -47,7 +49,7 @@ export const SlugReplacementEmail = (
               <td align="center">
                 <CallToAction
                   label={t("review_event_type")}
-                  href={`${CAL_URL}/event-types`}
+                  href={`${WEBAPP_URL}/event-types`}
                   endIconName="white-arrow-right"
                 />
               </td>

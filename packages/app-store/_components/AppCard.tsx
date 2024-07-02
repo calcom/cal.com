@@ -5,8 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { Switch, Badge, Avatar, Button } from "@calcom/ui";
-import { Settings } from "@calcom/ui/components/icon";
+import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
 
 import type { CredentialOwner } from "../types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
@@ -19,6 +18,10 @@ export default function AppCard({
   children,
   returnTo,
   teamId,
+  disableSwitch,
+  switchTooltip,
+  hideSettingsIcon = false,
+  hideAppCardOptions = false,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -28,10 +31,14 @@ export default function AppCard({
   returnTo?: string;
   teamId?: number;
   LockedIcon?: React.ReactNode;
+  disableSwitch?: boolean;
+  switchTooltip?: string;
+  hideSettingsIcon?: boolean;
+  hideAppCardOptions?: boolean;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
-  const { setAppData, LockedIcon, disabled } = useAppContextWithSchema();
+  const { setAppData, LockedIcon, disabled: managedDisabled } = useAppContextWithSchema();
 
   return (
     <div
@@ -90,7 +97,7 @@ export default function AppCard({
             {app?.isInstalled || app.credentialOwner ? (
               <div className="ml-auto flex items-center">
                 <Switch
-                  disabled={!app.enabled || disabled}
+                  disabled={!app.enabled || managedDisabled || disableSwitch}
                   onCheckedChange={(enabled) => {
                     if (switchOnClick) {
                       switchOnClick(enabled);
@@ -99,6 +106,8 @@ export default function AppCard({
                   }}
                   checked={switchChecked}
                   LockedIcon={LockedIcon}
+                  data-testid={`${app.slug}-app-switch`}
+                  tooltip={switchTooltip}
                 />
               </div>
             ) : (
@@ -112,27 +121,31 @@ export default function AppCard({
           </div>
         </div>
       </div>
-      <div ref={animationRef}>
-        {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
+      {hideAppCardOptions ? null : (
+        <div ref={animationRef}>
+          {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
 
-        {app?.isInstalled && switchChecked ? (
-          app.isSetupAlready === undefined || app.isSetupAlready ? (
-            <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
-              <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                <Settings className="text-default h-4 w-4" aria-hidden="true" />
-              </Link>
-              {children}
-            </div>
-          ) : (
-            <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-              <p>{t("this_app_is_not_setup_already")}</p>
-              <Link href={`/apps/${app.slug}/setup`}>
-                <Button StartIcon={Settings}>{t("setup")}</Button>
-              </Link>
-            </div>
-          )
-        ) : null}
-      </div>
+          {app?.isInstalled && switchChecked ? (
+            app.isSetupAlready === undefined || app.isSetupAlready ? (
+              <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
+                {!hideSettingsIcon && (
+                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                  </Link>
+                )}
+                {children}
+              </div>
+            ) : (
+              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+                <p>{t("this_app_is_not_setup_already")}</p>
+                <Link href={`/apps/${app.slug}/setup`}>
+                  <Button StartIcon="settings">{t("setup")}</Button>
+                </Link>
+              </div>
+            )
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

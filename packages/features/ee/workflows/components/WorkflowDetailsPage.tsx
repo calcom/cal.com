@@ -1,18 +1,17 @@
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { Dispatch, SetStateAction } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller } from "react-hook-form";
 
 import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { WorkflowActions } from "@calcom/prisma/enums";
-import { trpc } from "@calcom/trpc/react";
+import { WorkflowTemplates } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
+import { trpc } from "@calcom/trpc/react";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
-import { Button, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
-import { ArrowDown, Trash2 } from "@calcom/ui/components/icon";
+import { Button, Icon, Label, MultiSelectCheckboxes, TextField } from "@calcom/ui";
 
 import { isSMSAction, isWhatsappAction } from "../lib/actionHelperFunctions";
 import type { FormValues } from "../pages/workflow";
@@ -43,7 +42,10 @@ export default function WorkflowDetailsPage(props: Props) {
   const [reload, setReload] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const { data, isLoading } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const { data, isPending } = trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const searchParams = useSearchParams();
+  const eventTypeId = searchParams?.get("eventTypeId");
 
   const eventTypeOptions = useMemo(
     () =>
@@ -54,12 +56,19 @@ export default function WorkflowDetailsPage(props: Props) {
         if (teamId && teamId !== group.teamId) return options;
         return [
           ...options,
-          ...group.eventTypes.map((eventType) => ({
-            value: String(eventType.id),
-            label: `${eventType.title} ${
-              eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
-            }`,
-          })),
+          ...group.eventTypes
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig ||
+                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+                !!teamId
+            )
+            .map((eventType) => ({
+              value: String(eventType.id),
+              label: `${eventType.title} ${
+                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+              }`,
+            })),
         ];
       }, [] as Option[]) || [],
     [data]
@@ -76,6 +85,16 @@ export default function WorkflowDetailsPage(props: Props) {
       return !duplicate;
     });
   }
+
+  useEffect(() => {
+    const matchingOption = allEventTypeOptions.find((option) => option.value === eventTypeId);
+    if (matchingOption && !selectedEventTypes.find((option) => option.value === eventTypeId)) {
+      const newOptions = [...selectedEventTypes, matchingOption];
+      setSelectedEventTypes(newOptions);
+      form.setValue("activeOn", newOptions);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventTypeId, allEventTypeOptions]);
 
   const addAction = (
     action: WorkflowActions,
@@ -138,7 +157,7 @@ export default function WorkflowDetailsPage(props: Props) {
                 <MultiSelectCheckboxes
                   options={allEventTypeOptions}
                   isDisabled={props.readOnly}
-                  isLoading={isLoading}
+                  isLoading={isPending}
                   className="w-full md:w-64"
                   setSelected={setSelectedEventTypes}
                   selected={selectedEventTypes}
@@ -153,7 +172,7 @@ export default function WorkflowDetailsPage(props: Props) {
           {!props.readOnly && (
             <Button
               type="button"
-              StartIcon={Trash2}
+              StartIcon="trash-2"
               color="destructive"
               className="border"
               onClick={() => setDeleteDialogOpen(true)}>
@@ -196,7 +215,7 @@ export default function WorkflowDetailsPage(props: Props) {
           {!props.readOnly && (
             <>
               <div className="my-3 flex justify-center">
-                <ArrowDown className="text-subtle stroke-[1.5px] text-3xl" />
+                <Icon name="arrow-down" className="text-subtle stroke-[1.5px] text-3xl" />
               </div>
               <div className="flex justify-center">
                 <Button

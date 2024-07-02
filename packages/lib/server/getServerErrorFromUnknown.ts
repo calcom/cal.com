@@ -55,6 +55,8 @@ export function getServerErrorFromUnknown(cause: unknown): HttpError {
     const redactedCause = redactError(cause);
     return {
       ...redactedCause,
+      name: cause.name,
+      message: cause.message ?? "",
       cause: cause.cause,
       url: cause.url,
       statusCode: cause.statusCode,

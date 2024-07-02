@@ -2,7 +2,7 @@ import { vi } from "vitest";
 
 vi.mock("@calcom/lib/logger", () => ({
   default: {
-    getChildLogger: () => ({
+    getSubLogger: () => ({
       debug: vi.fn(),
       error: vi.fn(),
       log: vi.fn(),

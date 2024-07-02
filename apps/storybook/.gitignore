@@ -8,7 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
-storybook-static
+storybook-static/*
+!storybook-static/favicon.ico
+!storybook-static/sb-cover.jpg
 dist
 dist-ssr
 *.local

@@ -3,7 +3,7 @@
   "slug": "paypal",
   "type": "paypal_payment",
   "logo": "icon.svg",
-  "url": "https://example.com/link",
+  "url": "https://paypal.com",
   "variant": "payment",
   "categories": ["payment"],
   "publisher": "Cal.com",
@@ -14,5 +14,6 @@
   "__createdUsingCli": true,
   "imageSrc": "icon.svg",
   "__template": "event-type-app-card",
-  "dirName": "paypal"
+  "dirName": "paypal",
+  "isOAuth": true
 }

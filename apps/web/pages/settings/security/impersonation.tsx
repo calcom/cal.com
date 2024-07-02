@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -21,7 +23,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 
 const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"] }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [disableImpersonation, setDisableImpersonation] = useState<boolean | undefined>(
     user?.disableImpersonation
   );
@@ -66,8 +68,8 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
           onCheckedChange={(checked) => {
             mutation.mutate({ disableImpersonation: !checked });
           }}
-          disabled={mutation.isLoading}
-          switchContainerClassName="py-6 px-4 sm:px-6 border-subtle rounded-b-xl border border-t-0"
+          switchContainerClassName="rounded-t-none border-t-0"
+          disabled={mutation.isPending}
         />
       </div>
     </>
@@ -75,10 +77,10 @@ const ProfileImpersonationView = ({ user }: { user: RouterOutputs["viewer"]["me"
 };
 
 const ProfileImpersonationViewWrapper = () => {
-  const { data: user, isLoading } = trpc.viewer.me.useQuery();
+  const { data: user, isPending } = trpc.viewer.me.useQuery();
   const { t } = useLocale();
 
-  if (isLoading || !user)
+  if (isPending || !user)
     return <SkeletonLoader title={t("impersonation")} description={t("impersonation_description")} />;
 
   return <ProfileImpersonationView user={user} />;

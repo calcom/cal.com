@@ -236,4 +236,34 @@ test.describe("Insights", async () => {
     // expect for "Team: test-insight" text in page
     expect(await page.locator("text=Team: test-insights").isVisible()).toBeTruthy();
   });
+
+  test("should test download button", async ({ page, users }) => {
+    const owner = await users.create();
+    const member = await users.create();
+
+    await createTeamsAndMembership(owner.id, member.id);
+
+    await owner.apiLogin();
+
+    await page.goto("/insights");
+    await page.waitForLoadState("networkidle");
+
+    const downloadPromise = page.waitForEvent("download");
+
+    // Expect download button to be visible
+    expect(await page.locator("text=Download").isVisible()).toBeTruthy();
+
+    // Click on Download button
+    await page.getByText("Download").click();
+
+    // Expect as csv option to be visible
+    expect(await page.locator("text=as CSV").isVisible()).toBeTruthy();
+
+    // Start waiting for download before clicking. Note no await.
+    await page.getByText("as CSV").click();
+    const download = await downloadPromise;
+
+    // Wait for the download process to complete and save the downloaded file somewhere.
+    await download.saveAs("./" + "test-insights.csv");
+  });
 });

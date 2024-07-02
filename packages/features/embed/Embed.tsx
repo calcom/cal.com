@@ -1,7 +1,7 @@
 import { Collapsible, CollapsibleContent } from "@radix-ui/react-collapsible";
 import classNames from "classnames";
 import { useSession } from "next-auth/react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { RefObject } from "react";
 import { createRef, useRef, useState } from "react";
 import type { ControlProps } from "react-select";
@@ -10,17 +10,16 @@ import { shallow } from "zustand/shallow";
 
 import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
-import { AvailableTimesHeader } from "@calcom/features/bookings";
-import { AvailableTimes } from "@calcom/features/bookings";
+import { AvailableTimes, AvailableTimesHeader } from "@calcom/features/bookings";
 import { useBookerStore, useInitializeBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useEvent, useScheduleForEvent } from "@calcom/features/bookings/Booker/utils/event";
 import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import DatePicker from "@calcom/features/calendars/DatePicker";
-import { useFlagMap } from "@calcom/features/flags/context/provider";
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { useSlotsForDate } from "@calcom/features/schedules/lib/use-schedule/useSlotsForDate";
-import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -33,6 +32,7 @@ import {
   DialogContent,
   DialogFooter,
   HorizontalTabs,
+  Icon,
   Label,
   Select,
   showToast,
@@ -40,7 +40,6 @@ import {
   TextField,
   TimezoneSelect,
 } from "@calcom/ui";
-import { ArrowLeft, Sun } from "@calcom/ui/components/icon";
 
 import { getDimension } from "./lib/getDimension";
 import type { EmbedTabs, EmbedType, EmbedTypes, PreviewState } from "./types";
@@ -53,15 +52,23 @@ const enum Theme {
   dark = "dark",
 }
 
-const queryParamsForDialog = ["embedType", "embedTabName", "embedUrl", "eventId"];
+const queryParamsForDialog = [
+  "embedType",
+  "embedTabName",
+  "embedUrl",
+  "eventId",
+  "namespace",
+  "date",
+  "month",
+];
 
 function useRouterHelpers() {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
 
   const goto = (newSearchParams: Record<string, string>) => {
-    const newQuery = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(searchParams ?? undefined);
     Object.keys(newSearchParams).forEach((key) => {
       newQuery.set(key, newSearchParams[key]);
     });
@@ -70,7 +77,7 @@ function useRouterHelpers() {
   };
 
   const removeQueryParams = (queryParams: string[]) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams ?? undefined);
 
     queryParams.forEach((param) => {
       params.delete(param);
@@ -85,7 +92,7 @@ function useRouterHelpers() {
 const ThemeSelectControl = ({ children, ...props }: ControlProps<{ value: Theme; label: string }, false>) => {
   return (
     <components.Control {...props}>
-      <Sun className="text-subtle mr-2 h-4 w-4" />
+      <Icon name="sun" className="text-subtle mr-2 h-4 w-4" />
       {children}
     </components.Control>
   );
@@ -97,7 +104,7 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   return (
     <DialogContent className="rounded-lg p-10" type="creation" size="lg">
       <div className="mb-2">
-        <h3 className="font-cal text-emphasis mb-2 text-2xl font-bold leading-none" id="modal-title">
+        <h3 className="font-cal text-emphasis mb-2 text-2xl font-semibold leading-none" id="modal-title">
           {t("how_you_want_add_cal_site", { appName: APP_NAME })}
         </h3>
         <div>
@@ -127,7 +134,17 @@ const ChooseEmbedTypesDialogContent = ({ types }: { types: EmbedTypes }) => {
   );
 };
 
-const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: string }) => {
+const EmailEmbed = ({
+  eventType,
+  username,
+  orgSlug,
+  isTeamEvent,
+}: {
+  eventType?: EventType;
+  username: string;
+  orgSlug?: string;
+  isTeamEvent: boolean;
+}) => {
   const { t, i18n } = useLocale();
 
   const [timezone] = useTimePreferences((state) => [state.timezone]);
@@ -137,6 +154,8 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     eventSlug: eventType?.slug ?? "",
     eventId: eventType?.id,
     layout: BookerLayouts.MONTH_VIEW,
+    org: orgSlug,
+    isTeamEvent,
   });
 
   const [month, selectedDate, selectedDatesAndTimes] = useBookerStore(
@@ -153,7 +172,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
     shallow
   );
   const event = useEvent();
-  const schedule = useScheduleForEvent();
+  const schedule = useScheduleForEvent({ orgSlug });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
 
   const onTimeSelect = (time: string) => {
@@ -221,7 +240,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
           <CollapsibleContent>
             <div className="text-default text-sm">{t("select_date")}</div>
             <DatePicker
-              isLoading={schedule.isLoading}
+              isPending={schedule.isPending}
               onChange={(date: Dayjs | null) => {
                 setSelectedDate(date === null ? date : date.format("YYYY-MM-DD"));
               }}
@@ -242,7 +261,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
       {selectedDate ? (
         <div className="mt-[9px] font-medium ">
           {selectedDate ? (
-            <div className="flex h-full w-full flex-row gap-4">
+            <div className="flex h-full w-full flex-col gap-4">
               <AvailableTimesHeader date={dayjs(selectedDate)} />
               <AvailableTimes
                 className="w-full"
@@ -257,6 +276,7 @@ const EmailEmbed = ({ eventType, username }: { eventType?: EventType; username: 
                 onTimeSelect={onTimeSelect}
                 slots={slots}
                 showAvailableSeatsCount={eventType.seatsShowAvailabilityCount}
+                event={event}
               />
             </div>
           ) : null}
@@ -293,6 +313,7 @@ const EmailEmbedPreview = ({
   username,
   month,
   selectedDateAndTime,
+  calLink,
 }: {
   eventType: EventType;
   timezone?: string;
@@ -300,9 +321,11 @@ const EmailEmbedPreview = ({
   username?: string;
   month?: string;
   selectedDateAndTime: { [key: string]: string[] };
+  calLink: string;
 }) => {
   const { t } = useLocale();
   const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+
   if (!eventType) {
     return null;
   }
@@ -362,7 +385,7 @@ const EmailEmbedPreview = ({
                 Object.keys(selectedDateAndTime)
                   .sort()
                   .map((key) => {
-                    const date = new Date(key);
+                    const selectedDate = dayjs(key).tz(timezone).format("dddd, MMMM D, YYYY");
                     return (
                       <table
                         key={key}
@@ -383,12 +406,7 @@ const EmailEmbedPreview = ({
                                   color: "rgb(26, 26, 26)",
                                   fontWeight: "bold",
                                 }}>
-                                {date.toLocaleDateString("en-US", {
-                                  weekday: "long",
-                                  month: "long",
-                                  day: "numeric",
-                                  year: "numeric",
-                                })}
+                                {selectedDate}
                                 &nbsp;
                               </span>
                             </td>
@@ -400,7 +418,13 @@ const EmailEmbedPreview = ({
                                   <tr style={{ height: "25px" }}>
                                     {selectedDateAndTime[key]?.length > 0 &&
                                       selectedDateAndTime[key].map((time) => {
-                                        const bookingURL = `${CAL_URL}/${username}/${eventType.slug}?duration=${eventType.length}&date=${key}&month=${month}&slot=${time}`;
+                                        // If teamId is present on eventType and is not null, it means it is a team event.
+                                        // So we add 'team/' to the url.
+                                        const bookingURL = `${WEBSITE_URL}/${
+                                          eventType.teamId !== null ? "team/" : ""
+                                        }${username}/${eventType.slug}?duration=${
+                                          eventType.length
+                                        }&date=${key}&month=${month}&slot=${time}`;
                                         return (
                                           <td
                                             key={time}
@@ -463,7 +487,8 @@ const EmailEmbedPreview = ({
               <div style={{ marginTop: "13px" }}>
                 <a
                   className="more"
-                  href={`${CAL_URL}/${username}/${eventType.slug}`}
+                  data-testid="see_all_available_times"
+                  href={`${eventType.bookerUrl}/${calLink}`}
                   style={{
                     textDecoration: "none",
                     cursor: "pointer",
@@ -497,41 +522,45 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
   embedType,
   embedUrl,
   tabs,
+  namespace,
   eventTypeHideOptionDisabled,
   types,
 }: {
   embedType: EmbedType;
   embedUrl: string;
   tabs: EmbedTabs;
+  namespace: string;
   eventTypeHideOptionDisabled: boolean;
   types: EmbedTypes;
 }) => {
   const { t } = useLocale();
-  const searchParams = useSearchParams();
+  const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const { goto, removeQueryParams } = useRouterHelpers();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const dialogContentRef = useRef<HTMLDivElement>(null);
-  const flags = useFlagMap();
-  const isBookerLayoutsEnabled = flags["booker-layouts"] === true;
   const emailContentRef = useRef<HTMLDivElement>(null);
   const { data } = useSession();
+
   const [month, selectedDatesAndTimes] = useBookerStore(
     (state) => [state.month, state.selectedDatesAndTimes],
     shallow
   );
-  const eventId = searchParams.get("eventId");
+  const eventId = searchParams?.get("eventId");
+  const parsedEventId = parseInt(eventId ?? "", 10);
   const calLink = decodeURIComponent(embedUrl);
   const { data: eventTypeData } = trpc.viewer.eventTypes.get.useQuery(
-    { id: parseInt(eventId as string) },
-    { enabled: !!eventId && embedType === "email", refetchOnWindowFocus: false }
+    { id: parsedEventId },
+    { enabled: !Number.isNaN(parsedEventId) && embedType === "email", refetchOnWindowFocus: false }
   );
 
+  const teamSlug = !!eventTypeData?.team ? eventTypeData.team.slug : null;
+
   const s = (href: string) => {
-    const _searchParams = new URLSearchParams(searchParams);
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
     const [a, b] = href.split("=");
     _searchParams.set(a, b);
-    return `${pathname?.split("?")[0]}?${_searchParams.toString()}`;
+    return `${pathname?.split("?")[0] ?? ""}?${_searchParams.toString()}`;
   };
   const parsedTabs = tabs.map((t) => ({ ...t, href: s(t.href) }));
   const embedCodeRefs: Record<(typeof tabs)[0]["name"], RefObject<HTMLTextAreaElement>> = {};
@@ -703,13 +732,18 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               onClick={() => {
                 removeQueryParams(["embedType", "embedTabName"]);
               }}>
-              <ArrowLeft className="mr-4 w-4" />
+              <Icon name="arrow-left" className="mr-4 w-4" />
             </button>
             {embed.title}
           </h3>
           <h4 className="text-subtle mb-6 text-sm font-normal">{embed.subtitle}</h4>
           {eventTypeData?.eventType && embedType === "email" ? (
-            <EmailEmbed eventType={eventTypeData?.eventType} username={data?.user.username as string} />
+            <EmailEmbed
+              eventType={eventTypeData?.eventType}
+              username={teamSlug ?? (data?.user.username as string)}
+              orgSlug={data?.user?.org?.slug}
+              isTeamEvent={!!teamSlug}
+            />
           ) : (
             <div className="flex flex-col">
               <div className={classNames("font-medium", embedType === "element-click" ? "hidden" : "")}>
@@ -953,34 +987,32 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                           </div>
                         </Label>
                       ))}
-                      {isBookerLayoutsEnabled && (
-                        <Label className="mb-6">
-                          <div className="mb-2">{t("layout")}</div>
-                          <Select
-                            className="w-full"
-                            defaultValue={layoutOptions[0]}
-                            onChange={(option) => {
-                              if (!option) {
-                                return;
-                              }
-                              setPreviewState((previewState) => {
-                                const config = {
-                                  ...(previewState.floatingPopup.config ?? {}),
-                                  layout: option.value,
-                                };
-                                return {
-                                  ...previewState,
-                                  floatingPopup: {
-                                    config,
-                                  },
-                                  layout: option.value,
-                                };
-                              });
-                            }}
-                            options={layoutOptions}
-                          />
-                        </Label>
-                      )}
+                      <Label className="mb-6">
+                        <div className="mb-2">{t("layout")}</div>
+                        <Select
+                          className="w-full"
+                          defaultValue={layoutOptions[0]}
+                          onChange={(option) => {
+                            if (!option) {
+                              return;
+                            }
+                            setPreviewState((previewState) => {
+                              const config = {
+                                ...(previewState.floatingPopup.config ?? {}),
+                                layout: option.value,
+                              };
+                              return {
+                                ...previewState,
+                                floatingPopup: {
+                                  config,
+                                },
+                                layout: option.value,
+                              };
+                            });
+                          }}
+                          options={layoutOptions}
+                        />
+                      </Label>
                     </div>
                   </CollapsibleContent>
                 </Collapsible>
@@ -1007,6 +1039,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                   <div className="flex h-[55vh] flex-grow flex-col">
                     {tab.type === "code" ? (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1014,6 +1047,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                       />
                     ) : (
                       <tab.Component
+                        namespace={namespace}
                         embedType={embedType}
                         calLink={calLink}
                         previewState={previewState}
@@ -1053,9 +1087,10 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
               <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
                 <div className="flex h-[55vh] flex-grow flex-col">
                   <EmailEmbedPreview
+                    calLink={calLink}
                     eventType={eventTypeData?.eventType}
                     emailContentRef={emailContentRef}
-                    username={data?.user.username as string}
+                    username={teamSlug ?? (data?.user.username as string)}
                     month={month as string}
                     selectedDateAndTime={
                       selectedDatesAndTimes
@@ -1094,8 +1129,9 @@ export const EmbedDialog = ({
   tabs: EmbedTabs;
   eventTypeHideOptionDisabled: boolean;
 }) => {
-  const searchParams = useSearchParams();
-  const embedUrl = searchParams?.get("embedUrl") as string;
+  const searchParams = useCompatSearchParams();
+  const embedUrl = (searchParams?.get("embedUrl") || "") as string;
+  const namespace = (searchParams?.get("namespace") || "") as string;
   return (
     <Dialog name="embed" clearQueryParamsOnClose={queryParamsForDialog}>
       {!searchParams?.get("embedType") ? (
@@ -1104,6 +1140,7 @@ export const EmbedDialog = ({
         <EmbedTypeCodeAndPreviewDialogContent
           embedType={searchParams?.get("embedType") as EmbedType}
           embedUrl={embedUrl}
+          namespace={namespace}
           tabs={tabs}
           types={types}
           eventTypeHideOptionDisabled={eventTypeHideOptionDisabled}
@@ -1115,26 +1152,30 @@ export const EmbedDialog = ({
 
 type EmbedButtonProps<T> = {
   embedUrl: string;
+  namespace: string;
   children?: React.ReactNode;
   className?: string;
   as?: T;
   eventId?: number;
 };
 
-export const EmbedButton = <T extends React.ElementType>({
+export const EmbedButton = <T extends React.ElementType = typeof Button>({
   embedUrl,
   children,
   className = "",
   as,
   eventId,
+  namespace,
   ...props
 }: EmbedButtonProps<T> & React.ComponentPropsWithoutRef<T>) => {
   const { goto } = useRouterHelpers();
   className = classNames("hidden lg:inline-flex", className);
+
   const openEmbedModal = () => {
     goto({
       dialog: "embed",
       eventId: eventId ? eventId.toString() : "",
+      namespace,
       embedUrl,
     });
   };

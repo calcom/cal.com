@@ -36,7 +36,7 @@ test.describe("Routing Forms", () => {
       await page.goto(`apps/routing-forms/route-builder/${formId}`);
       await disableForm(page);
       await gotoRoutingLink({ page, formId });
-      await expect(page.locator("text=ERROR 404")).toBeVisible();
+      await expect(page.getByTestId(`404-page`)).toBeVisible();
     });
 
     test("should be able to edit the form", async ({ page }) => {
@@ -261,6 +261,7 @@ test.describe("Routing Forms", () => {
         ["custom-page", ""],
       ]);
 
+      await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
       const [download] = await Promise.all([
         // Start waiting for the download
         page.waitForEvent("download"),
@@ -399,6 +400,7 @@ async function fillSeededForm(page: Page, routingFormId: string) {
   await gotoRoutingLink({ page, formId: routingFormId });
   await page.fill('[data-testid="form-field-Test field"]', "event-routing");
   page.click('button[type="submit"]');
+
   await page.waitForURL((url) => {
     return url.pathname.endsWith("/pro/30min");
   });

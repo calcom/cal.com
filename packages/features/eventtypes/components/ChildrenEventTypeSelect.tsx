@@ -1,26 +1,26 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
-import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { getOrgFullDomain } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { UserProfile } from "@calcom/types/UserProfile";
 import { Avatar, Badge, Button, ButtonGroup, Select, Switch, Tooltip } from "@calcom/ui";
-import { ExternalLink, X } from "@calcom/ui/components/icon";
 
 export type ChildrenEventType = {
   value: string;
   label: string;
   created: boolean;
   owner: {
+    avatar: string;
     id: number;
     email: string;
     name: string;
     username: string;
     membership: MembershipRole;
     eventTypeSlugs: string[];
+    profile: UserProfile;
   };
   slug: string;
   hidden: boolean;
@@ -36,7 +36,6 @@ export const ChildrenEventTypeSelect = ({
   onChange: (value: readonly ChildrenEventType[]) => void;
 }) => {
   const { t } = useLocale();
-  const orgBranding = useOrgBranding();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
   return (
@@ -63,9 +62,7 @@ export const ChildrenEventTypeSelect = ({
               <Avatar
                 size="mdLg"
                 className="overflow-visible"
-                imageSrc={`${orgBranding ? getOrgFullDomain(orgBranding.slug) : CAL_URL}/${
-                  children.owner.username
-                }/avatar.png`}
+                imageSrc={children.owner.avatar}
                 alt={children.owner.name || children.owner.email || ""}
               />
               <div className="flex w-full flex-row justify-between">
@@ -106,11 +103,14 @@ export const ChildrenEventTypeSelect = ({
                     {children.created && children.owner.username && (
                       <Tooltip content={t("preview")}>
                         <Button
+                          data-testid="preview-button"
                           color="secondary"
                           target="_blank"
                           variant="icon"
-                          href={`${CAL_URL}/${children.owner?.username}/${children.slug}`}
-                          StartIcon={ExternalLink}
+                          href={`${getBookerBaseUrlSync(
+                            children.owner.profile?.organization?.slug ?? null
+                          )}/${children.owner?.username}/${children.slug}`}
+                          StartIcon="external-link"
                         />
                       </Tooltip>
                     )}
@@ -122,7 +122,7 @@ export const ChildrenEventTypeSelect = ({
                         onClick={() =>
                           props.onChange(value.filter((item) => item.owner.id !== children.owner.id))
                         }
-                        StartIcon={X}
+                        StartIcon="x"
                       />
                     </Tooltip>
                   </ButtonGroup>

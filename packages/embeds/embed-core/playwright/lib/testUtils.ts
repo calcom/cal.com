@@ -56,9 +56,13 @@ export const getEmbedIframe = async ({
             clearInterval(interval);
             resolve(true);
           } else {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            console.log("Iframe Status:", !!iframe, !!iframe?.contentWindow, window.iframeReady);
+            console.log("Waiting for all three to be true:", {
+              iframeElement: iframe,
+              contentWindow: iframe?.contentWindow,
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              // @ts-ignore
+              iframeReady: window.iframeReady,
+            });
           }
         }, 500);
 

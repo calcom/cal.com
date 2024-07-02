@@ -110,7 +110,6 @@ export const BaseAppFork = {
       isTemplate,
       // Store the template used to create an app
       __template: template,
-      dirName: slug,
     };
     const currentConfig = JSON.parse(fs.readFileSync(`${appDirPath}/config.json`).toString());
     config = {

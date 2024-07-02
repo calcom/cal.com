@@ -15,6 +15,11 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
 
   if (!ctx.user.organizationId) return [];
 
+  const isOrgPrivate = ctx.user.organization.isPrivate;
+  const isOrgAdmin = ctx.user.organization.isOrgAdmin;
+
+  if (isOrgPrivate && !isOrgAdmin) return [];
+
   const teamQuery = await prisma.team.findUnique({
     where: {
       id: ctx.user.organizationId,
@@ -38,6 +43,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
             select: {
               id: true,
               username: true,
+              avatarUrl: true,
               email: true,
               completedOnboarding: true,
               name: true,
@@ -50,6 +56,24 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
       },
     },
   });
+
+  if (teamIdToExclude && teamQuery?.members) {
+    const excludedteamUsers = await prisma.team.findUnique({
+      where: {
+        id: teamIdToExclude,
+      },
+      select: {
+        members: {
+          select: {
+            userId: true,
+          },
+        },
+      },
+    });
+    const excludedUserIds = excludedteamUsers?.members.map((item) => item.userId) ?? [];
+    teamQuery.members = teamQuery?.members.filter((member) => !excludedUserIds.includes(member.userId));
+  }
+
   return teamQuery?.members || [];
 };
 

@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const os = require("os");
 const englishTranslation = require("./public/static/locales/en/common.json");
 const { withAxiom } = require("next-axiom");
+const { withSentryConfig } = require("@sentry/nextjs");
 const { version } = require("./package.json");
 const { i18n } = require("./next-i18next.config");
 const {
@@ -49,6 +50,24 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
+if (!process.env.NEXT_PUBLIC_API_V2_URL) {
+  console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -70,13 +89,21 @@ if (process.env.GOOGLE_API_CREDENTIALS && !validJson(process.env.GOOGLE_API_CRED
 }
 
 const informAboutDuplicateTranslations = () => {
-  const valueSet = new Set();
+  const valueMap = {};
 
   for (const key in englishTranslation) {
-    if (valueSet.has(englishTranslation[key])) {
-      console.warn("\x1b[33mDuplicate value found in:", "\x1b[0m", key);
+    const value = englishTranslation[key];
+
+    if (valueMap[value]) {
+      console.warn(
+        "\x1b[33mDuplicate value found in common.json keys:",
+        "\x1b[0m ",
+        key,
+        "and",
+        valueMap[value]
+      );
     } else {
-      valueSet.add(englishTranslation[key]);
+      valueMap[value] = key;
     }
   }
 };
@@ -92,6 +119,7 @@ if (process.env.ANALYZE === "true") {
 }
 
 plugins.push(withAxiom);
+
 const matcherConfigRootPath = {
   has: [
     {
@@ -100,6 +128,16 @@ const matcherConfigRootPath = {
     },
   ],
   source: "/",
+};
+
+const matcherConfigRootPathEmbed = {
+  has: [
+    {
+      type: "host",
+      value: orgHostPath,
+    },
+  ],
+  source: "/embed",
 };
 
 const matcherConfigUserRoute = {
@@ -134,11 +172,18 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  output: "standalone",
+  experimental: {
+    // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
+    serverComponentsExternalPackages: ["next-i18next"],
+    optimizePackageImports: ["@calcom/ui"],
+    instrumentationHook: true,
+  },
   i18n: {
     ...i18n,
     localeDetection: false,
   },
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   /* We already do type check on GH actions */
   typescript: {
     ignoreBuildErrors: !!process.env.CI,
@@ -163,10 +208,6 @@ const nextConfig = {
     "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,
@@ -183,7 +224,24 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  webpack: (config, { webpack, buildId }) => {
+  webpack: (config, { webpack, buildId, isServer }) => {
+    if (isServer) {
+      // Module not found fix @see https://github.com/boxyhq/jackson/issues/1535#issuecomment-1704381612
+      config.plugins.push(
+        new webpack.IgnorePlugin({
+          resourceRegExp:
+            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^@sap\/hana-client\/extension\/Stream$|^@sap\/hana-client|^@sap\/hana-client$|^aws-crt|^aws4$|^better-sqlite3$|^bson-ext$|^cardinal$|^cloudflare:sockets$|^hdb-pool$|^ioredis$|^kerberos$|^mongodb-client-encryption$|^mysql$|^oracledb$|^pg-native$|^pg-query-stream$|^react-native-sqlite-storage$|^snappy\/package\.json$|^snappy$|^sql.js$|^sqlite3$|^typeorm-aurora-data-api-driver$)/,
+        })
+      );
+    }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+      })
+    );
+
     config.plugins.push(
       new CopyWebpackPlugin({
         patterns: [
@@ -211,6 +269,9 @@ const nextConfig = {
       ...config.resolve.fallback, // if you miss it, all the other options in fallback, specified
       // by next.js will be dropped. Doesn't make much sense, but how it is
       fs: false,
+      // ignore module resolve errors caused by the server component bundler
+      "pg-native": false,
+      "superagent-proxy": false,
     };
 
     /**
@@ -227,6 +288,37 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
+      {
+        /**
+         * Needed due to the introduction of dotted usernames
+         * @see https://github.com/calcom/cal.com/pull/11706
+         */
+        source: "/embed.js",
+        destination: "/embed/embed.js",
+      },
+      {
         source: "/login",
         destination: "/auth/login",
       },
@@ -235,7 +327,11 @@ const nextConfig = {
         ? [
             {
               ...matcherConfigRootPath,
-              destination: "/team/:orgSlug",
+              destination: "/team/:orgSlug?isOrgProfile=1",
+            },
+            {
+              ...matcherConfigRootPathEmbed,
+              destination: "/team/:orgSlug/embed?isOrgProfile=1",
             },
             {
               ...matcherConfigUserRoute,
@@ -255,6 +351,10 @@ const nextConfig = {
 
     let afterFiles = [
       {
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      },
+      {
         source: "/org/:slug",
         destination: "/team/:slug",
       },
@@ -272,29 +372,6 @@ const nextConfig = {
         {
           source: "/:user/avatar.png",
           destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/forms/:formQuery*",
-          destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/router",
-          destination: "/apps/routing-forms/router",
-        },
-        {
-          source: "/success/:path*",
-          has: [
-            {
-              type: "query",
-              key: "uid",
-              value: "(?<uid>.*)",
-            },
-          ],
-          destination: "/booking/:uid/:path*",
-        },
-        {
-          source: "/cancel/:path*",
-          destination: "/booking/:path*",
         },
       ],
 
@@ -478,6 +555,16 @@ const nextConfig = {
         destination: "/apps/installed/conferencing",
         permanent: true,
       },
+      {
+        source: "/apps/installed",
+        destination: "/apps/installed/calendar",
+        permanent: true,
+      },
+      {
+        source: "/settings/organizations/platform/:path*",
+        destination: "/settings/platform",
+        permanent: true,
+      },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
       ...(process.env.NODE_ENV === "development" &&
       // Safer to enable the redirect only when the user is opting to test out organizations
@@ -524,5 +611,16 @@ const nextConfig = {
     return redirects;
   },
 };
+
+if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  plugins.push((nextConfig) =>
+    withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: true,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    })
+  );
+}
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

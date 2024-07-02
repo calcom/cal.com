@@ -2,6 +2,7 @@ import { expect } from "@playwright/test";
 import { randomBytes } from "crypto";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { prisma } from "@calcom/prisma";
 import { generateSecret } from "@calcom/trpc/server/routers/viewer/oAuth/addClient.handler";
 
 import { test } from "./lib/fixtures";
@@ -103,7 +104,7 @@ test.describe("OAuth Provider", () => {
     expect(meData.username.startsWith("test user")).toBe(true);
   });
 
-  test("should create valid access toke & refresh token for team", async ({ page, users }) => {
+  test("should create valid access token & refresh token for team", async ({ page, users }) => {
     const user = await users.create({ username: "test user", name: "test user" }, { hasTeam: true });
     await user.apiLogin();
 
@@ -156,8 +157,8 @@ test.describe("OAuth Provider", () => {
 
     const meData = await meResponse.json();
 
-    // check if team access token is valid
-    expect(meData.username.endsWith("Team Team")).toBe(true);
+    // Check if team access token is valid
+    expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
 
     // request new token with refresh token
     const refreshTokenResponse = await fetch(`${WEBAPP_URL}/api/auth/oauth/refreshToken`, {
@@ -185,7 +186,7 @@ test.describe("OAuth Provider", () => {
       },
     });
 
-    expect(meData.username.endsWith("Team Team")).toBe(true);
+    expect(meData.username).toEqual(`user-id-${user.id}'s Team`);
   });
 
   test("redirect not logged-in users to login page and after forward to authorization page", async ({

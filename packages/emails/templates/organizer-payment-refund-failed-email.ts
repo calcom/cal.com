@@ -1,21 +1,21 @@
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
 
 export default class OrganizerPaymentRefundFailedEmail extends OrganizerScheduledEmail {
-  protected getNodeMailerPayload(): Record<string, unknown> {
+  protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("refund_failed_subject", {
         eventType: this.calEvent.type,
         name: this.calEvent.attendees[0].name,
         date: this.getFormattedDate(),
       })}`,
-      html: renderEmail("OrganizerPaymentRefundFailedEmail", {
+      html: await renderEmail("OrganizerPaymentRefundFailedEmail", {
         calEvent: this.calEvent,
         attendee: this.calEvent.organizer,
       }),

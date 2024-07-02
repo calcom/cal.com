@@ -1,7 +1,12 @@
+"use client";
+
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
+import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -21,10 +26,13 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
+
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
     <SkeletonContainer>
-      <Meta title={title} description={description} />
+      <Meta title={title} description={description} borderInShellHeader={true} />
       <div className="mb-8 mt-6 space-y-6">
         <SkeletonText className="h-8 w-full" />
         <SkeletonText className="h-8 w-full" />
@@ -46,20 +54,30 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
 
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const {
+    data: currentOrg,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
   const { data: user } = trpc.viewer.me.useQuery();
 
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.replace("/enterprise");
+      }
+    },
+    [error]
+  );
+
+  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner =
-    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>
@@ -68,6 +86,9 @@ const OrgGeneralView = () => {
         isAdminOrOwner={isAdminOrOwner}
         localeProp={user?.locale ?? "en"}
       />
+
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };
@@ -131,68 +152,76 @@ const GeneralView = ({ currentOrg, isAdminOrOwner, localeProp }: GeneralViewProp
           weekStart: values.weekStart.value,
         });
       }}>
-      <Meta title={t("general")} description={t("organization_general_description")} />
-
-      <Controller
-        name="timeZone"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("timezone")}</>
-            </Label>
-            <TimezoneSelect
-              id="timezone"
-              value={value}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
+      <Meta
+        title={t("general")}
+        description={t("organization_general_description")}
+        borderInShellHeader={true}
       />
-      <Controller
-        name="timeFormat"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("time_format")}</>
-            </Label>
-            <Select
-              value={value}
-              options={timeFormatOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <div className="text-gray text-default mt-2 flex items-center text-sm">
-        {t("timeformat_profile_hint")}
+      <div className="border-subtle border-x border-y-0 px-4 py-8 sm:px-6">
+        <Controller
+          name="timeZone"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis">
+                <>{t("timezone")}</>
+              </Label>
+              <TimezoneSelect
+                id="timezone"
+                value={value}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("timeZone", event.value, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
+        <Controller
+          name="timeFormat"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis mt-6">
+                <>{t("time_format")}</>
+              </Label>
+              <Select
+                value={value}
+                options={timeFormatOptions}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("timeFormat", { ...event }, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
+        <div className="text-gray text-default mt-2 flex items-center text-sm">
+          {t("timeformat_profile_hint")}
+        </div>
+        <Controller
+          name="weekStart"
+          control={formMethods.control}
+          render={({ field: { value } }) => (
+            <>
+              <Label className="text-emphasis mt-6">
+                <>{t("start_of_week")}</>
+              </Label>
+              <Select
+                value={value}
+                options={weekStartOptions}
+                onChange={(event) => {
+                  if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
+                }}
+              />
+            </>
+          )}
+        />
       </div>
-      <Controller
-        name="weekStart"
-        control={formMethods.control}
-        render={({ field: { value } }) => (
-          <>
-            <Label className="text-emphasis mt-8">
-              <>{t("start_of_week")}</>
-            </Label>
-            <Select
-              value={value}
-              options={weekStartOptions}
-              onChange={(event) => {
-                if (event) formMethods.setValue("weekStart", { ...event }, { shouldDirty: true });
-              }}
-            />
-          </>
-        )}
-      />
-      <Button disabled={isDisabled} color="primary" type="submit" className="mt-8">
-        <>{t("update")}</>
-      </Button>
+
+      <SectionBottomActions align="end">
+        <Button disabled={isDisabled} color="primary" type="submit">
+          {t("update")}
+        </Button>
+      </SectionBottomActions>
     </Form>
   );
 };

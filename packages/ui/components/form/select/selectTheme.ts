@@ -1,6 +1,6 @@
 import type { GroupBase, SelectComponentsConfig, MenuPlacement } from "react-select";
 
-import { InputComponent, OptionComponent } from "./components";
+import { InputComponent, OptionComponent, ControlComponent } from "./components";
 
 export const getReactSelectProps = <
   Option,
@@ -18,6 +18,7 @@ export const getReactSelectProps = <
     components: {
       Input: InputComponent,
       Option: OptionComponent,
+      Control: ControlComponent,
       ...components,
     },
     unstyled: true,

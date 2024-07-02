@@ -1,12 +1,10 @@
 import { useSession } from "next-auth/react";
-import { Trans } from "next-i18next";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";
 
-import { SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { EmptyScreen, TopBanner } from "@calcom/ui";
-import { AlertTriangle } from "@calcom/ui/components/icon";
+import { EmptyScreen, Alert, Button } from "@calcom/ui";
 
 type LicenseRequiredProps = {
   as?: keyof JSX.IntrinsicElements | "";
@@ -37,42 +35,30 @@ const LicenseRequired = ({ children, as = "", ...rest }: LicenseRequiredProps) =
       ) : process.env.NODE_ENV === "development" ? (
         /** We only show a warning in development mode, but allow the feature to be displayed for development/testing purposes */
         <>
-          <TopBanner
-            text=""
-            actions={
+          <Alert
+            className="mb-4"
+            severity="warning"
+            title={
               <>
-                {t("enterprise_license")}.{" "}
-                <Trans i18nKey="enterprise_license_development">
-                  You can test this feature on development mode. For production usage please have an
-                  administrator go to{" "}
-                  <a href={`${WEBAPP_URL}/auth/setup`} className="underline">
-                    /auth/setup
-                  </a>{" "}
-                  to enter a license key.
-                </Trans>
+                {t("enterprise_license_locally")} {t("enterprise_license_sales")}{" "}
+                <a className="underline" href="https://cal.com/sales">
+                  {t("contact_sales")}
+                </a>
               </>
             }
-            variant="warning"
           />
           {children}
         </>
       ) : (
         <EmptyScreen
-          Icon={AlertTriangle}
+          Icon="triangle-alert"
           headline={t("enterprise_license")}
-          description={
-            <Trans i18nKey="enterprise_license_description">
-              To enable this feature, have an administrator go to{" "}
-              <a href={`${WEBAPP_URL}/auth/setup`} className="underline">
-                /auth/setup
-              </a>
-              to enter a license key. If a license key is already in place, please contact{" "}
-              <a href={`mailto:${SUPPORT_MAIL_ADDRESS}`} className="underline">
-                <Trans>{{ SUPPORT_MAIL_ADDRESS }}</Trans>
-              </a>
-              for help.
-            </Trans>
+          buttonRaw={
+            <Button color="secondary" href="https://cal.com/sales">
+              {t(`contact_sales`)}
+            </Button>
           }
+          description={t("enterprise_license_sales")}
         />
       )}
     </Component>

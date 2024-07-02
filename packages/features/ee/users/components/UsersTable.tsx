@@ -1,19 +1,27 @@
-import { useState, useRef, useMemo, useCallback, useEffect } from "react";
+import { keepPreviousData } from "@tanstack/react-query";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
+  Avatar,
   Badge,
+  Button,
   ConfirmationDialogContent,
   Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
   DropdownActions,
+  Icon,
   showToast,
   Table,
   TextField,
-  Avatar,
 } from "@calcom/ui";
-import { Edit, Trash, Lock } from "@calcom/ui/components/icon";
 
 import { withLicenseRequired } from "../../common/components/LicenseRequired";
 
@@ -22,10 +30,14 @@ const { Cell, ColumnTitle, Header, Row } = Table;
 const FETCH_LIMIT = 25;
 
 function UsersTableBare() {
+  const { t } = useLocale();
   const tableContainerRef = useRef<HTMLDivElement>(null);
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showImpersonateModal, setShowImpersonateModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const router = useRouter();
 
   const mutation = trpc.viewer.users.delete.useMutation({
     onSuccess: async () => {
@@ -65,7 +77,7 @@ function UsersTableBare() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
       refetchOnWindowFocus: false,
     }
   );
@@ -75,6 +87,42 @@ function UsersTableBare() {
       showToast("Password reset email has been sent", "success");
     },
   });
+
+  const removeTwoFactor = trpc.viewer.admin.removeTwoFactor.useMutation({
+    onSuccess: () => {
+      showToast("2FA has been removed", "success");
+    },
+  });
+
+  const lockUserAccount = trpc.viewer.admin.lockUserAccount.useMutation({
+    onSuccess: ({ userId, locked }) => {
+      showToast(locked ? "User was locked" : "User was unlocked", "success");
+      utils.viewer.admin.listPaginated.setInfiniteData({ limit: FETCH_LIMIT }, (cachedData) => {
+        if (!cachedData) {
+          return {
+            pages: [],
+            pageParams: [],
+          };
+        }
+        return {
+          ...cachedData,
+          pages: cachedData.pages.map((page) => ({
+            ...page,
+            rows: page.rows.map((row) => {
+              const newUser = row;
+              if (row.id === userId) newUser.locked = locked;
+              return newUser;
+            }),
+          })),
+        };
+      });
+    },
+  });
+
+  const handleImpersonateUser = async (username: string | null) => {
+    await signIn("impersonation-auth", { redirect: false, username: username });
+    router.push(`/event-types`);
+  };
 
   //we must flatten the array of arrays from the useInfiniteQuery hook
   const flatData = useMemo(() => data?.pages?.flatMap((page) => page.rows) ?? [], [data]);
@@ -134,12 +182,18 @@ function UsersTableBare() {
                     <Avatar
                       size="md"
                       alt={`Avatar of ${user.username || "Nameless"}`}
+                      // @ts-expect-error - Figure it out later. Ideally we should show all the profiles here for the user.
                       imageSrc={`${WEBAPP_URL}/${user.username}/avatar.png?orgId=${user.organizationId}`}
                     />
 
                     <div className="text-subtle ml-4 font-medium">
                       <span className="text-default">{user.name}</span>
                       <span className="ml-3">/{user.username}</span>
+                      {user.locked && (
+                        <span className="ml-3">
+                          <Icon name="lock" />
+                        </span>
+                      )}
                       <br />
                       <span className="break-all">{user.email}</span>
                     </div>
@@ -159,20 +213,48 @@ function UsersTableBare() {
                           id: "edit",
                           label: "Edit",
                           href: `/settings/admin/users/${user.id}/edit`,
-                          icon: Edit,
+                          icon: "pencil",
                         },
                         {
                           id: "reset-password",
                           label: "Reset Password",
                           onClick: () => sendPasswordResetEmail.mutate({ userId: user.id }),
-                          icon: Lock,
+                          icon: "lock",
+                        },
+                        {
+                          id: "impersonate-user",
+                          label: "Impersonate User",
+                          onClick: () => handleImpersonateUser(user?.username),
+                          icon: "user",
+                        },
+                        {
+                          id: "lock-user",
+                          label: user.locked ? "Unlock User Account" : "Lock User Account",
+                          onClick: () => lockUserAccount.mutate({ userId: user.id, locked: !user.locked }),
+                          icon: "lock",
+                        },
+                        {
+                          id: "impersonation",
+                          label: "Impersonate",
+                          onClick: () => {
+                            setSelectedUser(user.username);
+                            setShowImpersonateModal(true);
+                          },
+                          icon: "venetian-mask",
+                        },
+                        {
+                          id: "remove-2fa",
+                          label: "Remove 2FA",
+                          color: "destructive",
+                          onClick: () => removeTwoFactor.mutate({ userId: user.id }),
+                          icon: "shield",
                         },
                         {
                           id: "delete",
                           label: "Delete",
                           color: "destructive",
                           onClick: () => setUserToDelete(user.id),
-                          icon: Trash,
+                          icon: "trash",
                         },
                       ]}
                     />
@@ -191,6 +273,26 @@ function UsersTableBare() {
           }}
         />
       </div>
+      {showImpersonateModal && selectedUser && (
+        <Dialog open={showImpersonateModal} onOpenChange={() => setShowImpersonateModal(false)}>
+          <DialogContent type="creation" title={t("impersonate")} description={t("impersonation_user_tip")}>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                await signIn("impersonation-auth", { redirect: false, username: selectedUser });
+                setShowImpersonateModal(false);
+                router.replace("/settings/my-account/profile");
+              }}>
+              <DialogFooter showDivider className="mt-8">
+                <DialogClose color="secondary">{t("cancel")}</DialogClose>
+                <Button color="primary" type="submit">
+                  {t("impersonate")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

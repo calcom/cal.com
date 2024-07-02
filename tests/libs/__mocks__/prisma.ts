@@ -7,13 +7,14 @@ import * as selects from "@calcom/prisma/selects";
 vi.mock("@calcom/prisma", () => ({
   default: prisma,
   prisma,
+  readonlyPrisma: prisma,
   ...selects,
 }));
 
 const handlePrismockBugs = () => {
   const __updateBooking = prismock.booking.update;
+  const __findFirstOrThrowBooking = prismock.booking.findFirstOrThrow;
   const __findManyWebhook = prismock.webhook.findMany;
-  const __findManyBooking = prismock.booking.findMany;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.booking.update = (...rest: any[]) => {
     // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
@@ -35,6 +36,14 @@ const handlePrismockBugs = () => {
     return __updateBooking(...rest);
   };
 
+  prismock.booking.findFirstOrThrow = (...rest: any[]) => {
+    const { where } = rest[0];
+    delete where.NOT;
+    logger.silly("Fixed Prismock bug with using NOT in where clause");
+
+    return __findFirstOrThrowBooking(...rest);
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   prismock.webhook.findMany = (...rest: any[]) => {
     // There is some bug in prismock where it can't handle complex where clauses
@@ -45,35 +54,6 @@ const handlePrismockBugs = () => {
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore
     return __findManyWebhook(...rest);
-  };
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  prismock.booking.findMany = (...rest: any[]) => {
-    // There is a bug in prismock where it considers `createMany` and `create` itself to have the data directly
-    // In booking flows, we encounter such scenario, so let's fix that here directly till it's fixed in prismock
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const where = rest[0]?.where;
-    if (where?.OR) {
-      logger.silly("Fixed Prismock bug-3");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      where.OR.forEach((or: any) => {
-        if (or.startTime?.gte) {
-          or.startTime.gte = or.startTime.gte.toISOString ? or.startTime.gte.toISOString() : or.startTime.gte;
-        }
-        if (or.startTime?.lte) {
-          or.startTime.lte = or.startTime.lte.toISOString ? or.startTime.lte.toISOString() : or.startTime.lte;
-        }
-        if (or.endTime?.gte) {
-          or.endTime.lte = or.endTime.gte.toISOString ? or.endTime.gte.toISOString() : or.endTime.gte;
-        }
-        if (or.endTime?.lte) {
-          or.endTime.lte = or.endTime.lte.toISOString ? or.endTime.lte.toISOString() : or.endTime.lte;
-        }
-      });
-    }
-    return __findManyBooking(...rest);
   };
 };
 
