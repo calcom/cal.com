@@ -68,7 +68,11 @@ export class OrganizationsUsersService {
     const updateUserBody = plainToInstance(CreateUserInput, userCreateBody, { strategy: "excludeAll" });
 
     // Update new user with other userCreateBody params
-    const user = await this.organizationsUsersRepository.updateUser(orgId, createdUser.id, updateUserBody);
+    const user = await this.organizationsUsersRepository.updateOrganizationUser(
+      orgId,
+      createdUser.id,
+      updateUserBody
+    );
 
     // Need to send email to new user to create password
     // const newMemberTFunction = await getTranslation(user.locale || "en", "common");
@@ -83,7 +87,15 @@ export class OrganizationsUsersService {
   }
 
   async updateOrganizationUser(orgId: number, userId: number, userUpdateBody: UpdateOrganizationUserInput) {
-    const user = await this.organizationsUsersRepository.updateUser(orgId, userId, userUpdateBody);
+    const user = await this.organizationsUsersRepository.updateOrganizationUser(
+      orgId,
+      userId,
+      userUpdateBody
+    );
     return user;
+  }
+
+  async deleteOrganizationUser(orgId: number, userId: number) {
+    await this.organizationsUsersRepository.deleteUser(orgId, userId);
   }
 }

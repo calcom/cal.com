@@ -60,7 +60,7 @@ export class OrganizationsUsersRepository {
     return createdUser;
   }
 
-  async updateUser(orgId: number, userId: number, updateUserBody: UpdateOrganizationUserInput) {
+  async updateOrganizationUser(orgId: number, userId: number, updateUserBody: UpdateOrganizationUserInput) {
     return await this.dbWrite.prisma.user.update({
       where: {
         id: userId,
@@ -70,23 +70,12 @@ export class OrganizationsUsersRepository {
     });
   }
 
-  //   async updateOrganizationUser(
-  //     orgId: number,
-  //     userId: number,
-  //     updateData: UpdateOrganizationUserInput_2024_06_18
-  //   ) {
-  //     const updateUser = await this.dbRead.prisma.user.update({
-  //       where: {
-  //         id: userId,
-  //         teams: {
-  //           some: {
-  //             teamId: orgId,
-  //           },
-  //         },
-  //       },
-  //       data: updateData,
-  //     });
-
-  //     return { ...updateUser, avatar: updateUser.avatarUrl };
-  //   }
+  async deleteOrganizationuser(orgId: number, userId: number) {
+    return await this.dbWrite.prisma.user.delete({
+      where: {
+        id: userId,
+        organizationId: orgId,
+      },
+    });
+  }
 }
