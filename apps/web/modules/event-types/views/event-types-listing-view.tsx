@@ -1,6 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { Reorder } from "framer-motion";
 import { Trans } from "next-i18next";
 import Link from "next/link";
@@ -18,6 +17,7 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
+import cx from "@calcom/lib/classNames";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -141,10 +141,12 @@ const Item = ({
   type,
   group,
   readOnly,
+  isReordering,
 }: {
   type: DeNormalizedEventType;
   group: DeNormalizedEventTypeGroup;
   readOnly: boolean;
+  isReordering: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -180,7 +182,15 @@ const Item = ({
   ) : (
     <Link
       href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 overflow-hidden pr-4 text-sm"
+      className={cx("flex-1 overflow-hidden pr-4 text-sm", isReordering && "cursor-grabbing")}
+      onMouseDown={(e) => {
+        e.preventDefault();
+      }}
+      onClick={(e) => {
+        if (isReordering) {
+          e.preventDefault();
+        }
+      }}
       title={type.title}>
       <div>
         <span
@@ -223,7 +233,6 @@ export const EventTypeList = ({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const [parent, enableAnimations] = useAutoAnimate<HTMLUListElement>();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
   const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
@@ -276,8 +285,7 @@ export const EventTypeList = ({
     },
   });
 
-  async function moveEventType(index: number, increment: number, enableAnimation: boolean) {
-    enableAnimations(enableAnimation);
+  async function moveEventType(index: number, increment: number) {
     const newList = types;
     const type = types[index];
 
@@ -285,7 +293,11 @@ export const EventTypeList = ({
 
     const newIndex = index + increment;
     newList.splice(newIndex, 0, type);
+    updateEventTypeList(newList);
+  }
 
+  async function updateEventTypeList(reorderedList: DeNormalizedEventType[]) {
+    const normalizedList = [...reorderedList.map(normalizeEventType)];
     await utils.viewer.eventTypes.getByViewer.cancel();
 
     const previousValue = utils.viewer.eventTypes.getByViewer.getData();
@@ -294,15 +306,15 @@ export const EventTypeList = ({
         ...previousValue,
         eventTypeGroups: [
           ...previousValue.eventTypeGroups.slice(0, groupIndex),
-          { ...group, eventTypes: [...newList.map(normalizeEventType)] },
+          { ...group, eventTypes: normalizedList },
           ...previousValue.eventTypeGroups.slice(groupIndex + 1),
         ],
       });
     }
 
-    setShadowList(newList);
+    setShadowList(reorderedList);
     mutation.mutate({
-      ids: newList.map((type) => type.id),
+      ids: normalizedList.map((type) => type.id),
     });
   }
 
@@ -399,36 +411,12 @@ export const EventTypeList = ({
         <Reorder.Group
           axis="y"
           values={shadowList}
-          ref={parent}
           onMouseUp={async () => {
             if (reorderingList) {
-              const newList = [...shadowList.map(normalizeEventType)];
-              enableAnimations(false);
-              await utils.viewer.eventTypes.getByViewer.cancel();
-
-              const previousValue = utils.viewer.eventTypes.getByViewer.getData();
-              if (previousValue) {
-                utils.viewer.eventTypes.getByViewer.setData(undefined, {
-                  ...previousValue,
-                  eventTypeGroups: [
-                    ...previousValue.eventTypeGroups.slice(0, groupIndex),
-                    { ...group, eventTypes: newList },
-                    ...previousValue.eventTypeGroups.slice(groupIndex + 1),
-                  ],
-                });
-              }
-
-              mutation.mutate({
-                ids: newList.map((type) => type.id),
-              });
-              setReorderingList(false);
+              updateEventTypeList(shadowList);
             }
           }}
-          onReorder={(newShadowList) => {
-            setReorderingList(true);
-            enableAnimations(false);
-            setShadowList(newShadowList);
-          }}
+          onReorder={setShadowList}
           className="divide-subtle !static w-full divide-y"
           data-testid="event-types">
           {shadowList.map((type, index) => {
@@ -441,17 +429,31 @@ export const EventTypeList = ({
               type.metadata?.managedEventConfig !== undefined &&
               type.schedulingType !== SchedulingType.MANAGED;
             return (
-              <Reorder.Item key={type.id} value={type}>
+              <Reorder.Item
+                onDragStart={() => {
+                  setReorderingList(true);
+                }}
+                onDragEnd={() => {
+                  setReorderingList(false);
+                }}
+                key={type.id}
+                className={cx(reorderingList && "cursor-grabbing")}
+                value={type}>
                 <div className="hover:bg-muted flex w-full items-center justify-between">
                   <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
                     {!(firstItem && firstItem.id === type.id) && (
-                      <ArrowButton onClick={() => moveEventType(index, -1, true)} arrowDirection="up" />
+                      <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                     )}
 
                     {!(lastItem && lastItem.id === type.id) && (
-                      <ArrowButton onClick={() => moveEventType(index, 1, true)} arrowDirection="down" />
+                      <ArrowButton onClick={() => moveEventType(index, 1)} arrowDirection="down" />
                     )}
-                    <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                    <MemoizedItem
+                      type={type}
+                      group={group}
+                      readOnly={readOnly}
+                      isReordering={reorderingList}
+                    />
                     <div className="mt-4 hidden sm:mt-0 sm:flex">
                       <div className="flex justify-between space-x-2 rtl:space-x-reverse">
                         {!!type.teamId && !isManagedEventType && (
