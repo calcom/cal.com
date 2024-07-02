@@ -141,7 +141,7 @@ export const tabs = [
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="border"
+          className="rounded-md border"
           width="100%"
           height="100%"
           src={iframeSrc}
