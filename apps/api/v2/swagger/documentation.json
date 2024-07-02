@@ -806,6 +806,194 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/membership": {
+      "get": {
+        "operationId": "OrganizationsMembershipController_getAllMemberships",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Membership"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsMembershipController_createMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgMembershipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Membership"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/membership/{membershipId}": {
+      "get": {
+        "operationId": "OrganizationsMembershipController_getMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Membership"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsTeamsController_deleteMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "membershipId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Membership"
+        ]
+      },
+      "patch": {
+        "operationId": "OrganizationsTeamsController_updateMembership",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "teamId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrgMembershipDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Membership"
+        ]
+      }
+    },
     "/v2/organizations/{orgId}/teams": {
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
@@ -3675,6 +3863,31 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "CreateOrgMembershipDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "role": {
+            "type": "string"
+          },
+          "impersonation": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "userId",
+          "teamId",
+          "role"
         ]
       },
       "CreateOrgTeamDto": {
