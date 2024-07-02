@@ -1,18 +1,15 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect } from "react";
-import { useFormContext, Controller } from "react-hook-form";
-import type { Props, OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
+import type { Props } from "react-select";
 
 import type { FormValues, Host, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
 import {
   Avatar,
   Button,
-  Badge,
   Dialog,
   DialogClose,
   DialogContent,
@@ -22,170 +19,6 @@ import {
   Select,
   Tooltip,
 } from "@calcom/ui";
-import { SelectSkeletonLoader } from "@calcom/web/components/availability/SkeletonLoader";
-
-const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
-  const { label, isDefault, isManaged = false } = props.data;
-  const { t } = useLocale();
-  return (
-    <components.Option {...props}>
-      <span>{label}</span>
-      {isDefault && (
-        <Badge variant="blue" className="ml-2">
-          {t("default")}
-        </Badge>
-      )}
-      {isManaged && (
-        <Badge variant="gray" className="ml-2">
-          {t("managed")}
-        </Badge>
-      )}
-    </components.Option>
-  );
-};
-
-const SingleValue = ({ ...props }: SingleValueProps<AvailabilityOption>) => {
-  const { label, isDefault, isManaged = false } = props.data;
-  const { t } = useLocale();
-  return (
-    <components.SingleValue {...props}>
-      <span>{label}</span>
-      {isDefault && (
-        <Badge variant="blue" className="ml-2">
-          {t("default")}
-        </Badge>
-      )}
-      {isManaged && (
-        <Badge variant="gray" className="ml-2">
-          {t("managed")}
-        </Badge>
-      )}
-    </components.SingleValue>
-  );
-};
-
-const CheckedTeamMemberAvailability = ({
-  selectedHostOption,
-}: {
-  selectedHostOption: CheckedSelectOption;
-}) => {
-  const { t } = useLocale();
-
-  const formMethods = useFormContext<FormValues>();
-  const { watch, setValue, getValues } = formMethods;
-  const watchScheduleConfig = watch("metadata.config.useHostSchedulesForTeamEvent");
-  const watchHosts = getValues("hosts");
-
-  const getIdx = () =>
-    Math.max(
-      watchHosts.findIndex((host) => host.userId === parseInt(selectedHostOption.value, 10)),
-      0
-    );
-
-  const [options, setOptions] = useState<AvailabilityOption[]>([]);
-  const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
-    userId: parseInt(selectedHostOption.value, 10),
-  });
-  const [availabilityValue, setAvailabilityValue] = useState(watchHosts[getIdx()]?.availability);
-
-  const updateSchedule = () => {
-    if (!data) {
-      return;
-    }
-
-    if (!watchScheduleConfig) {
-      setValue(`hosts.${getIdx()}.scheduleId`, null, { shouldDirty: true });
-      return;
-    }
-
-    const schedules = data.schedules;
-    console.log(schedules);
-    const scheduleOptions = schedules.map((schedule) => ({
-      value: schedule.id,
-      label: schedule.name,
-      isDefault: schedule.isDefault,
-      isManaged: false,
-    }));
-
-    setOptions(scheduleOptions);
-
-    //select defaultSchedule if Host Schedule is not previously selected
-    const scheduleId = getValues(`hosts.${getIdx()}.scheduleId`);
-    const availability = getValues(`hosts.${getIdx()}.availability`);
-    console.log(availability);
-
-    const value = scheduleOptions.find((option) =>
-      scheduleId
-        ? option.value === scheduleId
-        : availability
-        ? option.value === availability?.value
-        : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-    );
-
-    if (!scheduleId) {
-      setValue(`hosts.${getIdx()}.scheduleId`, value?.value || null, { shouldDirty: true });
-      setValue(`hosts.${getIdx()}.availability`, value || null, { shouldDirty: true });
-    }
-
-    if (!availability) {
-      setValue(`hosts.${getIdx()}.availability`, value || null, { shouldDirty: true });
-    }
-
-    setAvailabilityValue(value || null);
-    selectedHostOption.availabilityOption = value;
-  };
-
-  useEffect(() => {
-    updateSchedule();
-  }, [data, watchScheduleConfig, watchHosts]);
-
-  useEffect(() => {
-    if (availabilityValue?.value) {
-      selectedHostOption.availabilityOption = availabilityValue;
-    }
-  }, [availabilityValue, setAvailabilityValue]);
-
-  return (
-    <>
-      {watchScheduleConfig && (
-        <div className="mt-2 flex w-full flex-col pt-2 ">
-          <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
-            {t("availability")}
-          </label>
-          {isPending && <SelectSkeletonLoader />}
-          {!isPending && (
-            <Controller<FormValues>
-              name={`hosts.${getIdx()}.scheduleId`}
-              render={({ field }) => {
-                return (
-                  <Select
-                    placeholder={t("select")}
-                    options={options}
-                    isSearchable={false}
-                    onChange={(selected) => {
-                      field.onChange(selected?.value || null);
-                      if (selected?.value) {
-                        const idx = watchHosts.findIndex(
-                          (host) => host.userId === parseInt(selectedHostOption.value, 10)
-                        );
-                        setValue(`hosts.${idx}.availability`, selected, { shouldDirty: true });
-                        setAvailabilityValue(selected);
-                      }
-                    }}
-                    className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-                    value={availabilityValue}
-                    components={{ Option, SingleValue }}
-                    isMulti={false}
-                  />
-                );
-              }}
-            />
-          )}
-        </div>
-      )}
-    </>
-  );
-};
 
 export type CheckedSelectOption = {
   avatar: string;
@@ -211,10 +44,6 @@ export const CheckedTeamSelect = ({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const formMethods = useFormContext<FormValues>();
-  const { watch } = formMethods;
-  const watchAssignAllTeamMembers = watch("assignAllTeamMembers");
-
   return (
     <>
       <Select
@@ -224,7 +53,6 @@ export const CheckedTeamSelect = ({
         options={options}
         value={value}
         isMulti
-        isDisabled={watchAssignAllTeamMembers}
         {...props}
       />
       {/* This class name conditional looks a bit odd but it allows a seemless transition when using autoanimate
@@ -236,43 +64,35 @@ export const CheckedTeamSelect = ({
           <>
             <li
               key={option.value}
-              className={`flex flex-col px-3 py-2 ${
-                index === value.length - 1 ? "" : "border-subtle border-b"
-              }`}>
-              <div className="flex w-full items-center">
-                <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
-                <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
-                <div className="ml-auto flex items-center">
-                  {option && !option.isFixed ? (
-                    <Tooltip content={t("change_priority")}>
-                      <Button
-                        color="minimal"
-                        onClick={() => {
-                          setPriorityDialogOpen(true);
-                          setCurrentOption(option);
-                        }}
-                        className={classNames(
-                          "mr-6 h-2 p-0 text-sm hover:bg-transparent",
-                          getPriorityTextAndColor(option.priority).color
-                        )}>
-                        {t(getPriorityTextAndColor(option.priority).text)}
-                      </Button>
-                    </Tooltip>
-                  ) : (
-                    <></>
-                  )}
-                  {!watchAssignAllTeamMembers ? (
-                    <Icon
-                      name="x"
-                      onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
-                      className="my-auto h-4 w-4"
-                    />
-                  ) : (
-                    <></>
-                  )}
-                </div>
+              className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-subtle border-b"}`}>
+              <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
+              <p className="text-emphasis my-auto ms-3 text-sm">{option.label}</p>
+              <div className="ml-auto flex items-center">
+                {option && !option.isFixed ? (
+                  <Tooltip content={t("change_priority")}>
+                    <Button
+                      color="minimal"
+                      onClick={() => {
+                        setPriorityDialogOpen(true);
+                        setCurrentOption(option);
+                      }}
+                      className={classNames(
+                        "mr-6 h-2 p-0 text-sm hover:bg-transparent",
+                        getPriorityTextAndColor(option.priority).color
+                      )}>
+                      {t(getPriorityTextAndColor(option.priority).text)}
+                    </Button>
+                  </Tooltip>
+                ) : (
+                  <></>
+                )}
+
+                <Icon
+                  name="x"
+                  onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
+                  className="my-auto h-4 w-4"
+                />
               </div>
-              <CheckedTeamMemberAvailability selectedHostOption={option} />
             </li>
           </>
         ))}
@@ -325,6 +145,8 @@ const PriorityDialog = (props: IPriiorityDialog) => {
             isFixed: false,
             scheduleId: host.scheduleId,
             availabilityOption: host.availability || null,
+            avatar: host.avatar ?? "",
+            label: host.label ?? "",
           };
         })
         .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);

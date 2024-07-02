@@ -123,7 +123,9 @@ export type Host = {
   userId: number;
   priority: number;
   scheduleId: number | null;
-  availability: AvailabilityOption | null;
+  availability?: AvailabilityOption | null;
+  avatar?: string;
+  label?: string;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -280,7 +282,15 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
-      hosts: eventType.hosts,
+      hosts: eventType.hosts.map((host) => {
+        const member = eventType.team?.members.find((mem) => mem.user.id === host.userId) || null;
+        return {
+          ...host,
+          avatar: member?.user?.avatarUrl,
+          label: member?.user?.name,
+          availability: null,
+        };
+      }),
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -641,6 +651,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, users, scheduleName, ...rest } = input;
+    // remove availability,avatar,label from host before sending payload
+    rest.hosts =
+      rest.hosts?.map((host) => ({
+        isFixed: host.isFixed,
+        userId: host.userId,
+        priority: host.priority,
+        scheduleId: host.scheduleId,
+      })) ?? rest.hosts;
     const payload = {
       ...rest,
       length,
@@ -789,6 +807,14 @@ const EventTypePage = (props: EventTypeSetupProps) => {
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, users, scheduleName, ...rest } = input;
+            // remove availability,avatar,label from host before sending payload
+            rest.hosts =
+              rest.hosts?.map((host) => ({
+                isFixed: host.isFixed,
+                userId: host.userId,
+                priority: host.priority,
+                scheduleId: host.scheduleId,
+              })) ?? rest.hosts;
             const payload = {
               ...rest,
               children,

@@ -1636,7 +1636,7 @@
   "invalid_credential_action": "Reinstall app",
   "reschedule_reason": "Reschedule reason",
   "choose_common_schedule_team_event": "Choose a common schedule",
-  "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule.",
+  "choose_common_schedule_team_event_description": "Enable this if you want to use a common schedule between hosts. When disabled, each host will be booked based on their default schedule or their choosen schedule.",
   "reason": "Reason",
   "sender_id": "Sender ID",
   "sender_id_error_message": "Only letters, numbers and spaces allowed (max. 11 characters)",
@@ -2486,5 +2486,8 @@
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
   "rescheduling_not_possible": "Rescheduling is not possible as the event has expired",
   "event_expired": "This event is expired",
+  "choose_hosts_schedule" : "Choose hosts schedule",
+  "hosts_schedule_description": "You can select different schedule for each host. Each host's default schedule is choosen by default.",
+  "no_hosts_description": "No hosts assigned, add hosts in assignment tab.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

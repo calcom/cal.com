@@ -71,6 +71,8 @@ const CheckedHostField = ({
                   priority: option.priority ?? 2,
                   scheduleId: option.availabilityOption?.value || null,
                   availability: option.availabilityOption || null,
+                  avatar: option.avatar,
+                  label: option.label,
                 }))
               );
           }}
@@ -132,13 +134,17 @@ const AddMembersWithSwitch = ({
         ) : (
           <></>
         )}
-        <CheckedHostField
-          value={value}
-          onChange={onChange}
-          isFixed={isFixed}
-          options={teamMembers.sort(sortByLabel)}
-          placeholder={placeholder ?? t("add_attendees")}
-        />
+        {!assignAllTeamMembers || !automaticAddAllEnabled ? (
+          <CheckedHostField
+            value={value}
+            onChange={onChange}
+            isFixed={isFixed}
+            options={teamMembers.sort(sortByLabel)}
+            placeholder={placeholder ?? t("add_attendees")}
+          />
+        ) : (
+          <></>
+        )}
       </div>
     </div>
   );

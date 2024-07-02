@@ -136,6 +136,8 @@ const FixedHosts = ({
                     priority: 2,
                     scheduleId: null,
                     availability: null,
+                    avatar: teamMember.avatar,
+                    label: teamMember.label,
                   })),
                   { shouldDirty: true }
                 )
@@ -179,6 +181,8 @@ const FixedHosts = ({
                     priority: 2,
                     scheduleId: null,
                     availability: null,
+                    avatar: teamMember.avatar,
+                    label: teamMember.label,
                   })),
                   { shouldDirty: true }
                 )
@@ -233,6 +237,8 @@ const RoundRobinHosts = ({
                   priority: 2,
                   scheduleId: null,
                   availability: null,
+                  avatar: teamMember.avatar,
+                  label: teamMember.label,
                 }))
                 .sort((a, b) => b.priority - a.priority),
               { shouldDirty: true }

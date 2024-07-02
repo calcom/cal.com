@@ -1,5 +1,6 @@
-import type { EventTypeSetup } from "pages/event-types/[type]";
-import { useState, memo, useEffect } from "react";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import type { EventTypeSetup, Host } from "pages/event-types/[type]";
+import { useState, memo, useEffect, useCallback } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { OptionProps, SingleValueProps } from "react-select";
 import { components } from "react-select";
@@ -13,7 +14,7 @@ import { weekdayNames } from "@calcom/lib/weekday";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -278,25 +279,171 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   );
 };
 
+const TeamMemberSchedule = ({ host }: { host: Host }) => {
+  const { t } = useLocale();
+
+  const formMethods = useFormContext<FormValues>();
+  const { watch, setValue, getValues } = formMethods;
+  const hosts = getValues("hosts");
+
+  const getIdx = () =>
+    Math.max(
+      hosts.findIndex((_host) => _host.userId === host.userId),
+      0
+    );
+
+  const [options, setOptions] = useState<AvailabilityOption[]>([]);
+  const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
+    userId: host.userId,
+  });
+
+  const updateSchedule = useCallback(() => {
+    if (!data) {
+      return;
+    }
+
+    const schedules = data.schedules;
+    const scheduleOptions = schedules.map((schedule) => ({
+      value: schedule.id,
+      label: schedule.name,
+      isDefault: schedule.isDefault,
+      isManaged: false,
+    }));
+
+    setOptions(scheduleOptions);
+
+    //Set to defaultSchedule if Host Schedule is not previously selected
+    const scheduleId = getValues(`hosts.${getIdx()}.scheduleId`);
+    const availability = getValues(`hosts.${getIdx()}.availability`);
+    const value = scheduleOptions.find((option) =>
+      scheduleId
+        ? option.value === scheduleId
+        : availability
+        ? option.value === availability?.value
+        : option.value === schedules.find((schedule) => schedule.isDefault)?.id
+    );
+
+    if (!scheduleId) {
+      setValue(`hosts.${getIdx()}.scheduleId`, value?.value || null, { shouldDirty: true });
+      setValue(`hosts.${getIdx()}.availability`, value || null, { shouldDirty: true });
+    }
+
+    if (!availability) {
+      setValue(`hosts.${getIdx()}.availability`, value || null, { shouldDirty: false });
+    }
+  }, [data, getValues, setValue, hosts]);
+
+  useEffect(() => {
+    updateSchedule();
+  }, [data, updateSchedule]);
+
+  const availabilityValue = watch(`hosts.${getIdx()}.availability`);
+
+  return (
+    <div className="flex w-full flex-col pt-2 ">
+      <Controller
+        name={`hosts.${getIdx()}.scheduleId`}
+        render={({ field }) => {
+          return (
+            <Select
+              placeholder={t("select")}
+              options={options}
+              isSearchable={false}
+              onChange={(selected) => {
+                field.onChange(selected?.value || null);
+                if (selected?.value) {
+                  setValue(`hosts.${getIdx()}.availability`, selected, { shouldDirty: true });
+                }
+              }}
+              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+              value={availabilityValue}
+              components={{ Option, SingleValue }}
+              isMulti={false}
+              isDisabled={isPending}
+            />
+          );
+        }}
+      />
+    </div>
+  );
+};
+
+export const TeamAvailability = ({ hosts = [] }: { hosts: Host[] }) => {
+  const { t } = useLocale();
+  const [animationRef] = useAutoAnimate<HTMLUListElement>();
+
+  const formMethods = useFormContext<FormValues>();
+
+  return (
+    <>
+      <div className="border-subtle flex flex-col rounded-md">
+        <div className="border-subtle mt-5 rounded-t-md border p-6 pb-5">
+          <Label className="mb-1 text-sm font-semibold">{t("choose_hosts_schedule")}</Label>
+          <p className="text-subtle max-w-full break-words text-sm leading-tight">
+            {t("hosts_schedule_description")}
+          </p>
+        </div>
+        <div className="border-subtle rounded-b-md border border-t-0 p-6">
+          {hosts.length > 0 ? (
+            <ul
+              className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
+              ref={animationRef}>
+              {hosts.map((host, index) => (
+                <>
+                  <li
+                    key={host.userId}
+                    className={`flex flex-col px-3 py-2 ${
+                      index === hosts.length - 1 ? "" : "border-subtle border-b"
+                    }`}>
+                    <div className="flex w-full items-center">
+                      <Avatar size="sm" imageSrc={host.avatar} alt={host.label || ""} />
+                      <p className="text-emphasis my-auto ms-3 text-sm">{host.label}</p>
+                    </div>
+                    <TeamMemberSchedule host={host} />
+                  </li>
+                </>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-subtle max-w-full break-words text-sm leading-tight">
+              {t("no_hosts_description")}
+            </p>
+          )}
+        </div>
+      </div>
+    </>
+  );
+};
+
 const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues, watch } = useFormContext<FormValues>();
+  const watchScheduleConfig = watch("metadata.config.useHostSchedulesForTeamEvent");
+  const watchHosts = watch("hosts");
+
   return (
     <Controller
       name="metadata.config.useHostSchedulesForTeamEvent"
       render={({ field: { value, onChange } }) => (
-        <SettingsToggle
-          checked={!value}
-          onCheckedChange={(checked) => {
-            onChange(!checked);
-            if (!checked) {
-              setValue("schedule", null, { shouldDirty: true });
-            }
-          }}
-          title={t("choose_common_schedule_team_event")}
-          description={t("choose_common_schedule_team_event_description")}>
-          <EventTypeSchedule eventType={eventType} />
-        </SettingsToggle>
+        <>
+          <SettingsToggle
+            checked={!value}
+            onCheckedChange={(checked) => {
+              onChange(!checked);
+              if (!checked) {
+                setValue("schedule", null, { shouldDirty: true });
+              } else {
+                getValues("hosts").map((_, index) => {
+                  setValue(`hosts.${index}.scheduleId`, null, { shouldDirty: true });
+                });
+              }
+            }}
+            title={t("choose_common_schedule_team_event")}
+            description={t("choose_common_schedule_team_event_description")}>
+            <EventTypeSchedule eventType={eventType} />
+          </SettingsToggle>
+          {watchScheduleConfig && <TeamAvailability hosts={watchHosts} />}
+        </>
       )}
     />
   );

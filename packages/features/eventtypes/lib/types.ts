@@ -24,7 +24,9 @@ export type Host = {
   userId: number;
   priority: number;
   scheduleId: number | null;
-  availability: AvailabilityOption | null;
+  availability?: AvailabilityOption | null;
+  avatar?: string;
+  label?: string;
 };
 export type TeamMember = {
   value: string;
