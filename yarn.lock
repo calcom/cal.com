@@ -5558,7 +5558,6 @@ __metadata:
     "@types/nodemailer": ^6.4.5
     "@types/qrcode": ^1.4.3
     "@types/react": 18.0.26
-    "@types/react-beautiful-dnd": ^13.1.8
     "@types/react-phone-number-input": ^3.0.14
     "@types/remove-markdown": ^0.3.1
     "@types/sanitize-html": ^2.9.0
@@ -5614,7 +5613,6 @@ __metadata:
     qrcode: ^1.5.1
     raw-body: ^2.5.1
     react: ^18.2.0
-    react-beautiful-dnd: ^13.1.1
     react-colorful: ^5.6.0
     react-date-picker: ^8.3.6
     react-digit-input: ^2.1.0
@@ -17537,15 +17535,6 @@ __metadata:
   version: 1.2.4
   resolution: "@types/range-parser@npm:1.2.4"
   checksum: b7c0dfd5080a989d6c8bb0b6750fc0933d9acabeb476da6fe71d8bdf1ab65e37c136169d84148034802f48378ab94e3c37bb4ef7656b2bec2cb9c0f8d4146a95
-  languageName: node
-  linkType: hard
-
-"@types/react-beautiful-dnd@npm:^13.1.8":
-  version: 13.1.8
-  resolution: "@types/react-beautiful-dnd@npm:13.1.8"
-  dependencies:
-    "@types/react": "*"
-  checksum: f71c64ba7e2e1f8480e772b45268856d2bf99adf90d12dd5f31486075dfd3e33a0b0922969851c660f01aa9593aa38b38e17ee9038eb866af9ec4327be903cb9
   languageName: node
   linkType: hard
 
@@ -40116,24 +40105,6 @@ __metadata:
     react-dom: ^16.8.4 || ^17.0.1
     reactstrap: ^9.0.0
   checksum: 6efab0fcbb98d4843fbe3b5036a7831fd097774869fc0e175ca40c4770d7939dd3efcb2c3365c6fe539c8ba6b6bb19ddef55d93f491770a9bfdc3f1355cc5e4e
-  languageName: node
-  linkType: hard
-
-"react-beautiful-dnd@npm:^13.1.1":
-  version: 13.1.1
-  resolution: "react-beautiful-dnd@npm:13.1.1"
-  dependencies:
-    "@babel/runtime": ^7.9.2
-    css-box-model: ^1.2.0
-    memoize-one: ^5.1.1
-    raf-schd: ^4.0.2
-    react-redux: ^7.2.0
-    redux: ^4.0.4
-    use-memo-one: ^1.1.1
-  peerDependencies:
-    react: ^16.8.5 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.5 || ^17.0.0 || ^18.0.0
-  checksum: 5f90f7c0ab77a14dfcd496cbd94bbde457612f380c6fc815f3bba7b52effd75132948fcaa661a902a184bb1e6ae5896dcf5b0c77c4ddf809a2c65288f3eed5a7
   languageName: node
   linkType: hard
 
