@@ -1,4 +1,5 @@
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
+import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
@@ -78,6 +79,11 @@ export class OrganizationsUsersService {
     //   teamId: orgId
     // })
 
+    return user;
+  }
+
+  async updateOrganizationUser(orgId: number, userId: number, userUpdateBody: UpdateOrganizationUserInput) {
+    const user = await this.organizationsUsersRepository.updateUser(orgId, userId, userUpdateBody);
     return user;
   }
 }

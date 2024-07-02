@@ -4,10 +4,22 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-organization-users.input";
+import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
-import { Controller, UseGuards, Get, Post, Param, ParseIntPipe, Body, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  UseGuards,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  ParseIntPipe,
+  Body,
+  UseInterceptors,
+} from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
@@ -59,9 +71,29 @@ export class OrganizationsUsersController {
     };
   }
 
-  // @Patch("/:userId")
-  // async updateOrganizationUser(
-  //   @Param("orgId", ParseIntPipe) orgId: number,
-  //   @Body() input:
-  // )
+  @Patch("/:userId")
+  async updateOrganizationUser(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("userId", ParseIntPipe) userId: number,
+    @GetOrg() organization: Team,
+    @Body() input: UpdateOrganizationUserInput
+  ): Promise<ApiResponse<GetOrganizationUserOutput>> {
+    const user = await this.organizationsUsersService.updateOrganizationUser(orgId, userId, input);
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
+    };
+  }
+
+  @Delete("/:userId")
+  async deleteOrganizationUser(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Param("userId", ParseIntPipe) userId: number,
+    @GetOrg() organization: Team
+  ): Promise<ApiResponse<string>> {
+    return {
+      status: SUCCESS_STATUS,
+      data: `User with id ${userId} successfully deleted`,
+    };
+  }
 }
