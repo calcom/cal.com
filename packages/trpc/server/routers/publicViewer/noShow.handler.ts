@@ -104,7 +104,7 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         // @ts-expect-error payload is too booking specific, we need to refactor this
         message: t(payload.message, { x: payload.attendees[0]?.email || "User" }),
         bookingUid,
-        bookingId: booking.id,
+        bookingId: booking?.id,
       });
       return payload;
     }
