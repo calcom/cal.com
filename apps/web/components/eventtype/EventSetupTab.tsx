@@ -421,9 +421,7 @@ export const EventSetupTab = (
                 <p>
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
                   Change it{" "}
-                  <Link
-                    href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
-                    className="underline">
+                  <Link href={`${WEBAPP_URL}/apps/google-calendar`} className="underline">
                     here.
                   </Link>{" "}
                 </p>
