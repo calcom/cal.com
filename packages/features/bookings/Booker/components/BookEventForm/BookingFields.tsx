@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 
 import type { LocationObject } from "@calcom/app-store/locations";
@@ -25,10 +26,33 @@ export const BookingFields = ({
   isDynamicGroupBooking: boolean;
 }) => {
   const { t } = useLocale();
-  const { watch, setValue } = useFormContext();
+  const { watch, setValue, getValues } = useFormContext();
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
+
+  useEffect(() => {
+    const firstLastNameField = fields.find((field) => field.variant === "firstAndLastName");
+
+    if (!firstLastNameField) {
+      return;
+    }
+
+    const variant = firstLastNameField.variant;
+    if (
+      firstLastNameField &&
+      variant &&
+      firstLastNameField.variantsConfig?.variants[variant].fields[1].required
+    ) {
+      const name = getValues("responses.name");
+      if (rescheduleUid && name?.split(" ").length !== 2) {
+        // if the owner of the meeting has changed the lastname to required after the booking was made,
+        // we should allow the booking user to edit the name field
+        setValue("responses.name", "");
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
@@ -44,6 +68,23 @@ export const BookingFields = ({
           (field.editable === "system" || field.editable === "system-but-optional") &&
           !!rescheduleUid &&
           bookingData !== null;
+
+        // [CAL-3992] if the name variant is firstAndLastName and Last Name is
+        // required but bookingData.responses.name has lastName empty
+        // then we should allow the user to edit the name field during reschedule
+        // since the booking owner may have updated the "required" on the lastName
+        // after the original booking was made.
+        if (
+          field.variant === "firstAndLastName" &&
+          field.variantsConfig?.variants[field.variant].fields[1].required
+        ) {
+          const nameField = bookingData?.responses.name || {};
+          // @ts-expect-error the nameField is an object and it has lastName
+          // it appears that the type definition is incorrect. TODO: Fix the type definition
+          if (nameField && Object.keys(nameField).length === 2 && !nameField.lastName) {
+            readOnly = false;
+          }
+        }
 
         let hidden = !!field.hidden;
         const fieldViews = field.views;
