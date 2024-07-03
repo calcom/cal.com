@@ -417,8 +417,16 @@ export const EventSetupTab = (
               <div className="mr-1.5 h-3 w-3">
                 <Icon name="check" className="h-3 w-3" />
               </div>
-              <Trans i18nKey="requires_google_calendar">
-                <p>This app requires a Google Calendar connection</p>
+              <Trans i18nKey="event_type_requres_google_cal">
+                <p>
+                  The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
+                  Change it{" "}
+                  <Link
+                    href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
+                    className="underline">
+                    here.
+                  </Link>{" "}
+                </p>
               </Trans>
             </div>
           )}
