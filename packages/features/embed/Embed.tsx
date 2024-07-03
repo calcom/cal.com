@@ -1034,29 +1034,21 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
           <>
             <div className="flex h-full flex-col">
               {tabs.map((tab) => {
-                if (tab.name === "Preview") return null;
                 if (embedType !== "email") {
+                  if (tab.name === "Preview") return null;
                   return (
                     <div
                       key={tab.href}
                       className={classNames(
                         searchParams?.get("embedTabName") === tab.href.split("=")[1] ? "flex-1" : "hidden"
                       )}>
-                      {tab.type === "code" ? (
+                      {tab.type === "code" && (
                         <tab.Component
                           namespace={namespace}
                           embedType={embedType}
                           calLink={calLink}
                           previewState={previewState}
                           ref={refOfEmbedCodesRefs.current[tab.name]}
-                        />
-                      ) : (
-                        <tab.Component
-                          namespace={namespace}
-                          embedType={embedType}
-                          calLink={calLink}
-                          previewState={previewState}
-                          ref={iframeRef}
                         />
                       )}
                       <div
