@@ -17,7 +17,9 @@ type Booking = {
 };
 
 const getWebhooksByEventTrigger = async (eventTrigger: WebhookTriggerEvents, booking: Booking) => {
-  const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
+  const isTeamBooking = booking.teamId;
+  const isBookingForManagedEventtype = booking.teamId && booking.eventTypeParentId;
+  const triggerForUser = !isTeamBooking || isBookingForManagedEventtype;
   const organizerUserId = triggerForUser ? booking.userId : null;
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId: booking.teamId });
 
@@ -67,14 +69,15 @@ export const triggerRecordingReadyWebhook = async ({
 
 export const triggerTranscriptionGeneratedWebhook = async ({
   evt,
-  transcription,
+  downloadLinks,
   booking,
-  recordingDownloadLink,
 }: {
   evt: CalendarEvent;
-  transcription: TGetTranscriptAccessLink["transcription"];
+  downloadLinks?: {
+    transcription: TGetTranscriptAccessLink["transcription"];
+    recording: string;
+  };
   booking: Booking;
-  recordingDownloadLink: string;
 }) => {
   const webhooks = await getWebhooksByEventTrigger(
     WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
@@ -96,8 +99,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
       webhook,
       {
         ...evt,
-        transcription,
-        recordingDownloadLink,
+        downloadLinks,
       }
     ).catch((e) => {
       log.error(

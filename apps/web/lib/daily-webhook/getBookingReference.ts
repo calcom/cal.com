@@ -1,15 +1,12 @@
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import prisma from "@calcom/prisma";
+import { BookingReferenceRepository } from "@calcom/web/lib/daily-webhook/repository/bookingReference";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
 export const getBookingReference = async (roomName: string) => {
-  const bookingReference = await prisma.bookingReference.findFirst({
-    where: { type: "daily_video", uid: roomName, meetingId: roomName, bookingId: { not: null } },
-    select: { bookingId: true },
-  });
+  const bookingReference = await BookingReferenceRepository.findDailyVideoReferenceByRoomName({ roomName });
 
   if (!bookingReference || !bookingReference.bookingId) {
     log.error(

@@ -192,13 +192,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       const evt = await getCalendarEvent(booking);
 
-      const recordingDownloadLink = await getDownloadLinkOfCalVideo(input.recordingId);
+      const recording = await getDownloadLinkOfCalVideo(input.recordingId);
       const batchProcessorJobAccessLink = await getBatchProcessorJobAccessLink(id);
 
       await triggerTranscriptionGeneratedWebhook({
         evt,
-        transcription: batchProcessorJobAccessLink.transcription,
-        recordingDownloadLink,
+        downloadLinks: {
+          transcription: batchProcessorJobAccessLink.transcription,
+          recording,
+        },
         booking: {
           userId: booking?.user?.id,
           eventTypeId: booking.eventTypeId,

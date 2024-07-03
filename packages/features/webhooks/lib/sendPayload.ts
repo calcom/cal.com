@@ -37,7 +37,15 @@ export type BookingNoShowUpdatedPayload = {
   attendees: { email: string; noShow: boolean }[];
 };
 
+export type TranscriptionGeneratedPayload = {
+  downloadLinks?: {
+    transcription: TGetTranscriptAccessLink["transcription"];
+    recording: string;
+  };
+};
+
 export type WebhookDataType = CalendarEvent &
+  TranscriptionGeneratedPayload &
   // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
@@ -52,8 +60,6 @@ export type WebhookDataType = CalendarEvent &
     createdAt: string;
     downloadLink?: string;
     paymentId?: number;
-    transcription?: TGetTranscriptAccessLink["transcription"];
-    recordingDownloadLink?: string;
   };
 
 function addUTCOffset(

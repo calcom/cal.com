@@ -5,6 +5,7 @@ import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
+// TODO: use BookingRepository
 export const getBooking = async (bookingId: number) => {
   const booking = await prisma.booking.findUniqueOrThrow({
     where: {
