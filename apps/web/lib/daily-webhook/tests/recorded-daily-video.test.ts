@@ -216,8 +216,10 @@ describe("Handler: /api/recorded-daily-video", () => {
       payload: {
         type: "Test Booking Title",
         uid: bookingUid,
-        transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
-        recordingDownloadLink,
+        downloadLinks: {
+          transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
+          recording: recordingDownloadLink,
+        },
         organizer: {
           email: organizer.email,
           name: organizer.name,
