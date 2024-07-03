@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@calcom/prisma";
 
-const bookingReferenceSelect = Prisma.validator<Prisma.bookingReferenceSelect>()({
+const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()({
   id: true,
   type: true,
   uid: true,
