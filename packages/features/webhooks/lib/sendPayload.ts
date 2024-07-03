@@ -32,6 +32,7 @@ export type WithUTCOffsetType<T> = T & {
 export type BookingNoShowUpdatedPayload = {
   message: string;
   bookingUid: string;
+  bookingId: number;
   attendees: { email: string; noShow: boolean }[];
 };
 
