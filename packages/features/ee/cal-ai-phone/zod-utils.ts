@@ -1,7 +1,7 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-export const templateTypeEnum = z.enum(["CHECK_IN_APPPOINTMENT"]);
+export const templateTypeEnum = z.enum(["CHECK_IN_APPPOINTMENT", "CUSTOM_TEMPLATE"]);
 
 const requiredFields = z.object({
   yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
@@ -86,7 +86,14 @@ const fieldTypeEnum = z.enum([
   "boolean",
 ]);
 
-export const fieldNameEnum = z.enum(["schedulerName"]);
+export const fieldNameEnum = z.enum([
+  "schedulerName",
+  "generalPrompt",
+  "guestName",
+  "guestEmail",
+  "guestCompany",
+  "beginMessage",
+]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 

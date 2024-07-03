@@ -108,7 +108,7 @@ const TemplateFields = () => {
   const fields = TEMPLATES_FIELDS[templateType as TemplateType];
 
   return (
-    <div>
+    <div className="space-y-4">
       {fields?.map((field) => (
         <div key={field.name}>
           <Controller
@@ -118,7 +118,7 @@ const TemplateFields = () => {
               return (
                 <div>
                   <ComponentForField
-                    field={{ ...field, label: t(field.defaultLabel) }}
+                    field={{ ...field, label: t(field.defaultLabel), placeholder: t(field.placeholder) }}
                     value={value ?? ""}
                     readOnly={false}
                     setValue={(val: unknown) => {
@@ -219,13 +219,13 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
           <>
             <RadioGroup.Root
-              defaultValue="CHECK_IN_APPPOINTMENT"
+              defaultValue={templateType ?? "CHECK_IN_APPPOINTMENT"}
               onValueChange={(val) => {
                 formMethods.setValue("aiPhoneCallConfig.templateType", val, { shouldDirty: true });
               }}>
               <div className="flex gap-2">
                 <RadioGroup.Item
-                  className="h-120 flex w-80 items-start rounded-lg border p-4"
+                  className="h-120 flex flex-1 items-start rounded-lg border p-4"
                   key="CHECK_IN_APPPOINTMENT"
                   value="CHECK_IN_APPPOINTMENT">
                   <div>
@@ -239,7 +239,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                   </div>
                 </RadioGroup.Item>
                 <RadioGroup.Item
-                  className="flex h-80 w-80 items-start rounded-lg border p-4"
+                  className="flex h-80 flex-1  items-start rounded-lg border p-4"
                   key="DENTIST_APPOINTMENT"
                   value="DENTIST_APPOINTMENT">
                   <div>
@@ -248,6 +248,18 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                     <h2 className="font-semibold">Dentist Receptionist</h2>
                     <p className="text-subtle mt-2">
                       Makes an outbound call to patients to reschedule their appointments.
+                    </p>
+                  </div>
+                </RadioGroup.Item>
+                <RadioGroup.Item
+                  className="flex h-80 flex-1 items-start rounded-lg border p-4"
+                  key="CUSTOM_TEMPLATE"
+                  value="CUSTOM_TEMPLATE">
+                  <div>
+                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
+                    <h2 className="font-semibold">Custom Template</h2>
+                    <p className="text-subtle mt-2">
+                      Create your own prompt and use it to make an outbound call.
                     </p>
                   </div>
                 </RadioGroup.Item>

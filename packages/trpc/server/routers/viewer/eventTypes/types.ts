@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { customInputSchema, EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -23,6 +24,7 @@ export const EventTypeUpdateInput = _EventTypeModel
           .transform((val) => (!!val ? val : undefined)),
         guestEmail: z.string().nullable().default(null),
         guestCompany: z.string().nullable().default(null),
+        templateType: templateTypeEnum,
       })
       .optional(),
     calAiPhoneScript: z.string().optional(),

@@ -11,4 +11,41 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
       placeholder: "Enter your name",
     },
   ],
+  CUSTOM_TEMPLATE: [
+    {
+      type: "textarea",
+      name: fieldNameEnum.enum.generalPrompt,
+      required: true,
+      defaultLabel: "general_prompt",
+      placeholder: "Enter your prompt",
+    },
+    {
+      type: "text",
+      name: fieldNameEnum.enum.generalPrompt,
+      required: true,
+      defaultLabel: "begin_message",
+      placeholder: "begin_message",
+    },
+    {
+      type: "text",
+      name: fieldNameEnum.enum.guestName,
+      required: false,
+      defaultLabel: "guest_name",
+      placeholder: "guest_name",
+    },
+    {
+      type: "email",
+      name: fieldNameEnum.enum.guestEmail,
+      required: false,
+      defaultLabel: "guest_email",
+      placeholder: "guest_email",
+    },
+    {
+      type: "text",
+      name: fieldNameEnum.enum.guestCompany,
+      required: false,
+      defaultLabel: "guest_company",
+      placeholder: "guest_company",
+    },
+  ],
 };
