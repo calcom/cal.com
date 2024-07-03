@@ -7,8 +7,9 @@ import { useEffect, useState } from "react";
 import { Controller, useFormContext, useFieldArray } from "react-hook-form";
 import type { MultiValue } from "react-select";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
-import { getEventLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store-types";
+import { MeetLocationType } from "@calcom/app-store-types";
+import { getEventLocationType } from "@calcom/app-store/locations";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";

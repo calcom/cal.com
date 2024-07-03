@@ -1,8 +1,8 @@
 import type {
   DefaultEventLocationType,
-  EventLocationTypeFromApp,
+  EventLocationTypeFromAppMeta,
   LocationObject,
-} from "@calcom/app-store/locations";
+} from "@calcom/app-store-types";
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
@@ -16,7 +16,7 @@ function RenderIcon({
   eventLocationType,
   isTooltip,
 }: {
-  eventLocationType: DefaultEventLocationType | EventLocationTypeFromApp;
+  eventLocationType: DefaultEventLocationType | EventLocationTypeFromAppMeta;
   isTooltip: boolean;
 }) {
   const isPlatform = useIsPlatform();

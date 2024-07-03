@@ -1,7 +1,7 @@
 import type { User as UserType } from "@prisma/client";
 import { Prisma } from "@prisma/client";
 
-import type { LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store-types";
 import { privacyFilteredLocations } from "@calcom/app-store/locations";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";

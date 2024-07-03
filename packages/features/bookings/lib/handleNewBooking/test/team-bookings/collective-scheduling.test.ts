@@ -30,8 +30,8 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { describe, expect } from "vitest";
 
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store-types";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import { WEBAPP_URL, WEBSITE_URL } from "@calcom/lib/constants";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { SchedulingType } from "@calcom/prisma/enums";

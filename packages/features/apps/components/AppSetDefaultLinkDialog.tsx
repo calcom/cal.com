@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { EventLocationType } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store-types";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";

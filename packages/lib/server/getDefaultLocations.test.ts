@@ -4,7 +4,7 @@ import { getGoogleMeetCredential, TestData } from "@calcom/web/test/utils/bookin
 
 import { describe, expect, it } from "vitest";
 
-import { DailyLocationType, MeetLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType, MeetLocationType } from "@calcom/app-store-types";
 
 import { getDefaultLocations } from "./getDefaultLocations";
 

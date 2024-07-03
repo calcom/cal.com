@@ -2,14 +2,16 @@ import type { AppCategories, Prisma } from "@prisma/client";
 
 import type { Tag } from "@calcom/app-store/types";
 
+import type { EventLocationTypeFromAppMeta } from "./Locations";
+
 type CommonProperties = {
   default?: false;
   type: string;
   label: string;
   messageForOrganizer?: string;
   iconUrl?: string;
-  variable?: "locationLink";
-  defaultValueVariable?: "link";
+  variable: "locationLink";
+  defaultValueVariable: "link";
   attendeeInputType?: null;
   attendeeInputPlaceholder?: null;
 };

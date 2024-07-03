@@ -1,4 +1,4 @@
-import type { LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store-types";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma, { userSelect } from "@calcom/prisma";

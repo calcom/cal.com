@@ -1,4 +1,4 @@
-import type { LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store-types";
 import { locationKeyToString } from "@calcom/app-store/locations";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { getTranslatedLocation } from "@calcom/app-store/locations";

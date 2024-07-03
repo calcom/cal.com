@@ -1,4 +1,4 @@
-import type { LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store-types";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import getBulkEventTypes from "@calcom/lib/event-types/getBulkEventTypes";
 import prisma from "@calcom/prisma";

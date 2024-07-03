@@ -1,5 +1,5 @@
+import { DailyLocationType } from "@calcom/app-store-types";
 import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { DailyLocationType } from "@calcom/app-store/locations";
 import getApps from "@calcom/app-store/utils";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";

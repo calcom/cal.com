@@ -1,8 +1,8 @@
 import { Prisma } from "@prisma/client";
 
+import type { LocationObject } from "@calcom/app-store-types";
 import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";

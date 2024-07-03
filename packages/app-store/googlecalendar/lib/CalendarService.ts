@@ -4,7 +4,7 @@ import type { calendar_v3 } from "googleapis";
 import { google } from "googleapis";
 import { RRule } from "rrule";
 
-import { MeetLocationType } from "@calcom/app-store/locations";
+import { MeetLocationType } from "@calcom/app-store-types";
 import dayjs from "@calcom/dayjs";
 import { getFeatureFlag } from "@calcom/features/flags/server/utils";
 import { getLocation, getRichDescription } from "@calcom/lib/CalEventParser";

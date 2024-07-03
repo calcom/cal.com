@@ -1,8 +1,8 @@
 import z from "zod";
 
+import { DailyLocationType } from "@calcom/app-store-types";
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { DailyLocationType } from "@calcom/core/location";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";

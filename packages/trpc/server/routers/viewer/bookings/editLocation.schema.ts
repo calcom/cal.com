@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store-types";
 
 import { commonBookingSchema } from "./types";
 

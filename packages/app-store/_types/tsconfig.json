@@ -1,0 +1,11 @@
+{
+  "extends": "@calcom/tsconfig/base.json",
+  "compilerOptions": {
+    "target": "ES5",
+    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "dist"
+  },
+  "exclude": ["dist", "build", "node_modules"]
+}

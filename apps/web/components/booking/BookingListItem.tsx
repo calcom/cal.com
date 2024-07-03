@@ -2,7 +2,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 
-import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
+import type { EventLocationType } from "@calcom/app-store-types";
+import type { getEventLocationValue } from "@calcom/app-store/locations";
 import {
   getEventLocationType,
   getSuccessPageLocationMessage,

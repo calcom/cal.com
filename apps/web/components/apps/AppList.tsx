@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
 
+import type { EventLocationType } from "@calcom/app-store-types";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
-import { getEventLocationTypeFromApp, type EventLocationType } from "@calcom/app-store/locations";
+import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
 import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultModal } from "@calcom/features/eventtypes/components/BulkEditDefaultModal";

@@ -7,13 +7,13 @@ import { useEffect } from "react";
 import { Controller, useForm, useWatch, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
-import type { EventLocationType, LocationObject } from "@calcom/app-store/locations";
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store-types";
+import type { EventLocationType, LocationObject } from "@calcom/app-store-types";
 import {
   getEventLocationType,
   getHumanReadableLocationValue,
   getMessageForOrganizer,
   LocationType,
-  OrganizerDefaultConferencingAppType,
 } from "@calcom/app-store/locations";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";

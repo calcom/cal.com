@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
 
-import type { LocationObject } from "@calcom/app-store/locations";
+import type { LocationObject } from "@calcom/app-store-types";
 import { getOrganizerInputLocationTypes } from "@calcom/app-store/locations";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";

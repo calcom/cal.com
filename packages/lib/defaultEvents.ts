@@ -1,6 +1,6 @@
 import type { Prisma } from "@prisma/client";
 
-import { DailyLocationType } from "@calcom/app-store/locations";
+import { DailyLocationType } from "@calcom/app-store-types";
 import slugify from "@calcom/lib/slugify";
 import { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { userSelect } from "@calcom/prisma/selects";
