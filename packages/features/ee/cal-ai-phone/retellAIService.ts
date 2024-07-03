@@ -1,4 +1,3 @@
-import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { fetcher } from "@calcom/lib/retellAIFetcher";
@@ -19,7 +18,7 @@ import {
   ZGetPhoneNumberSchema,
 } from "./zod-utils";
 
-const log = logger.getSubLogger({ prefix: ["retellAIFacade"] });
+const log = logger.getSubLogger({ prefix: ["retellAIService: "] });
 
 type DynamicVariables = Pick<
   TCreatePhoneCallSchema,
@@ -34,6 +33,7 @@ type initProps = {
   loggedInUserTimeZone: string;
   beginMessage?: string;
   dynamicVariables: DynamicVariables;
+  generalPrompt: string;
 };
 
 const updateAgentWebsocketUrl = async (phoneNumber: string, llmWebsocketUrl: string): Promise<void> => {
@@ -54,7 +54,7 @@ const updateAgentWebsocketUrl = async (phoneNumber: string, llmWebsocketUrl: str
   }
 };
 
-// Command + Facade Design Pattern
+// Command Design Pattern
 interface Command<T> {
   execute(): Promise<T>;
 }
@@ -63,13 +63,11 @@ class CreateRetellLLMCommand implements Command<TCreateRetellLLMSchema> {
   constructor(private props: initProps) {}
 
   async execute(): Promise<TCreateRetellLLMSchema> {
-    const generalPrompt = PROMPT_TEMPLATES[this.props.templateType].generalPrompt;
-
     try {
       const createdRetellLLM = await fetcher("/create-retell-llm", {
         method: "POST",
         body: JSON.stringify({
-          general_prompt: generalPrompt,
+          general_prompt: this.props.generalPrompt,
           begin_message: this.props.beginMessage,
           inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
           general_tools: [
@@ -125,13 +123,11 @@ class UpdateRetellLLMCommand implements Command<TGetRetellLLMSchema> {
   constructor(private props: initProps, private llmId: string) {}
 
   async execute(): Promise<TGetRetellLLMSchema> {
-    const generalPrompt = PROMPT_TEMPLATES[this.props.templateType].generalPrompt;
-
     try {
       const updatedRetellLLM = await fetcher(`/update-retell-llm/${this.llmId}`, {
         method: "PATCH",
         body: JSON.stringify({
-          general_prompt: generalPrompt,
+          general_prompt: this.props.generalPrompt,
           begin_message: this.props.beginMessage,
           inbound_dynamic_variables_webhook_url: `${WEBAPP_URL}/api/get-inbound-dynamic-variables`,
         }),
@@ -190,7 +186,7 @@ class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
   }
 }
 
-export class RetellAIFacade {
+export class RetellAIService {
   private props: initProps;
 
   constructor(props: initProps) {

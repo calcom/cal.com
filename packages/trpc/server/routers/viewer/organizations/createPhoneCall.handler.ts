@@ -1,7 +1,7 @@
 import type { z } from "zod";
 
 import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import { RetellAIFacade } from "@calcom/features/ee/cal-ai-phone/retellAIFacade";
+import { RetellAIService } from "@calcom/features/ee/cal-ai-phone/retellAIService";
 import type { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -33,11 +33,15 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     calApiKey,
     templateType,
     schedulerName,
+    generalPrompt: userCustomPrompt,
   } = input;
 
-  const generalPrompt = PROMPT_TEMPLATES[templateType].generalPrompt;
+  const generalPrompt =
+    templateType === templateTypeEnum.CUSTOM_TEMPLATE
+      ? userCustomPrompt
+      : PROMPT_TEMPLATES[templateType].generalPrompt;
 
-  const retellAI = new RetellAIFacade({
+  const retellAI = new RetellAIService({
     templateType,
     yourPhoneNumber,
     loggedInUserTimeZone: ctx.user.timeZone,
@@ -64,6 +68,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       numberToCall,
       yourPhoneNumber,
       schedulerName,
+      templateType,
+      generalPrompt,
     },
     create: {
       eventTypeId,
@@ -75,10 +81,14 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
       numberToCall,
       yourPhoneNumber,
       schedulerName,
+      templateType,
+      generalPrompt,
     },
   });
 
-  if (!aiPhoneCallConfig.llmId) {
+  const doesRetellLLMExist = aiPhoneCallConfig.llmId;
+
+  if (!doesRetellLLMExist) {
     const createdRetellLLM = await retellAI.createRetellLLMAndUpdateWebsocketUrl();
 
     await ctx.prisma.aIPhoneCallConfiguration.update({
@@ -92,7 +102,9 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
   } else {
     const retellLLM = await retellAI.getRetellLLM(aiPhoneCallConfig.llmId);
 
-    if (retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage) {
+    const doWeNeedToUpdateLLM =
+      retellLLM.general_prompt !== generalPrompt || retellLLM.begin_message !== beginMessage;
+    if (doWeNeedToUpdateLLM) {
       const updatedRetellLLM = await retellAI.updatedRetellLLMAndUpdateWebsocketUrl(aiPhoneCallConfig.llmId);
       logger.debug("updated Retell LLM", updatedRetellLLM);
     }
