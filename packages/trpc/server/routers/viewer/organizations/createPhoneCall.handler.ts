@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import { RetellAIService } from "@calcom/features/ee/cal-ai-phone/retellAIService";
 import type { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
+import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
@@ -37,12 +38,13 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
   } = input;
 
   const generalPrompt =
-    templateType === templateTypeEnum.CUSTOM_TEMPLATE
+    templateType === templateTypeEnum.enum.CUSTOM_TEMPLATE
       ? userCustomPrompt
-      : PROMPT_TEMPLATES[templateType].generalPrompt;
+      : PROMPT_TEMPLATES[templateType]?.generalPrompt;
 
   const retellAI = new RetellAIService({
     templateType,
+    generalPrompt: generalPrompt ?? "",
     yourPhoneNumber,
     loggedInUserTimeZone: ctx.user.timeZone,
     eventTypeId,
@@ -86,9 +88,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     },
   });
 
-  const doesRetellLLMExist = aiPhoneCallConfig.llmId;
-
-  if (!doesRetellLLMExist) {
+  // If no retell LLM is associated with the event type, create one
+  if (!aiPhoneCallConfig.llmId) {
     const createdRetellLLM = await retellAI.createRetellLLMAndUpdateWebsocketUrl();
 
     await ctx.prisma.aIPhoneCallConfiguration.update({
