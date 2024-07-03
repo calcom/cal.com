@@ -16,6 +16,7 @@ import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
+import { createWebhookPageFixture } from "../fixtures/webhooks";
 import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
@@ -34,6 +35,7 @@ export interface Fixtures {
   features: ReturnType<typeof createFeatureFixture>;
   eventTypePage: ReturnType<typeof createEventTypeFixture>;
   appsPage: ReturnType<typeof createAppsFixture>;
+  webhooks: ReturnType<typeof createWebhookPageFixture>;
 }
 
 declare global {
@@ -109,5 +111,9 @@ export const test = base.extend<Fixtures>({
   appsPage: async ({ page }, use) => {
     const appsPage = createAppsFixture(page);
     await use(appsPage);
+  },
+  webhooks: async ({ page }, use) => {
+    const webhooks = createWebhookPageFixture(page);
+    await use(webhooks);
   },
 });
