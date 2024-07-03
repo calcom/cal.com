@@ -342,7 +342,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (assignAllTeamMembers) {
+  if (typeof assignAllTeamMembers) {
     data.assignAllTeamMembers = assignAllTeamMembers;
   }
 
