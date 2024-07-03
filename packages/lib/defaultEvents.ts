@@ -109,7 +109,7 @@ const commons = {
   secondaryEmail: null,
 };
 
-const dynamicEvent = {
+export const dynamicEvent = {
   length: 30,
   slug: "dynamic",
   title: "Group Meeting",
@@ -121,7 +121,7 @@ const dynamicEvent = {
   metadata: EventTypeMetaDataSchema.parse({ multipleDuration: [15, 30, 45, 60, 90] }),
 };
 
-const defaultEvents = [dynamicEvent];
+export const defaultEvents = [dynamicEvent];
 
 export const getDynamicEventDescription = (dynamicUsernames: string[], slug: string): string => {
   return `Book a ${slug} min event with ${dynamicUsernames.join(", ")}`;

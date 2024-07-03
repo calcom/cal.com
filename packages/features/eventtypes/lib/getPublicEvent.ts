@@ -240,6 +240,7 @@ export const getPublicEvent = async (
                 }
               : {
                   username,
+                  profiles: { none: {} },
                 }),
           },
         },

@@ -1,22 +1,21 @@
 import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getTeamUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { AvatarGroup } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
-
 export interface EventMembersProps {
   /**
    * Used to determine whether all members should be shown or not.
    * In case of Round Robin type, members aren't shown.
    */
-  schedulingType: PublicEvent["schedulingType"];
-  users: PublicEvent["users"];
-  profile: PublicEvent["profile"];
-  entity: PublicEvent["entity"];
+  schedulingType: BookerEvent["schedulingType"];
+  users: BookerEvent["users"];
+  profile: BookerEvent["profile"];
+  entity: BookerEvent["entity"];
 }
 
 export const EventMembers = ({ schedulingType, users, profile, entity }: EventMembersProps) => {
