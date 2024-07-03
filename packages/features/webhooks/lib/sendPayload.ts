@@ -29,7 +29,15 @@ export type WithUTCOffsetType<T> = T & {
   attendees?: (Person & UTCOffset)[];
 };
 
+export type BookingNoShowUpdatedPayload = {
+  message: string;
+  bookingUid: string;
+  bookingId: number;
+  attendees: { email: string; noShow: boolean }[];
+};
+
 export type WebhookDataType = CalendarEvent &
+  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
