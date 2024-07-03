@@ -210,6 +210,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       });
 
       return res.status(200).json({ message: "Success" });
+    } else {
+      log.error("Invalid type in /recorded-daily-video", req.body);
+
+      return res.status(200).json({ message: "Invalid type in /recorded-daily-video" });
     }
   } catch (err) {
     log.error("Error in /recorded-daily-video", err);
