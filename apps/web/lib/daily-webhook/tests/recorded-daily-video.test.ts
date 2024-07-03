@@ -12,7 +12,7 @@ import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookin
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, afterEach, beforeEach, test, vi } from "vitest";
+import { describe, afterEach, test, vi } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
@@ -36,11 +36,6 @@ vi.mock("@calcom/core/videoClient", () => {
   return {
     getDownloadLinkOfCalVideoByRecordingId: vi.fn(),
   };
-});
-
-beforeEach(() => {
-  // Reset all mocks before each test
-  vi.clearAllMocks();
 });
 
 afterEach(() => {
