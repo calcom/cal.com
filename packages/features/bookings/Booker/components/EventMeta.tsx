@@ -11,6 +11,7 @@ import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
@@ -70,7 +71,11 @@ export const EventMeta = ({
   const { i18n, t } = useLocale();
   const embedUiConfig = useEmbedUiConfig();
   const isEmbed = useIsEmbed();
-  const hideEventTypeDetails = isEmbed ? embedUiConfig.hideEventTypeDetails : false;
+  const routerQuery = useRouterQuery();
+
+  const { hideEventTypeDetails: shouldHideEventTypeDetails } = routerQuery;
+  const hideEventTypeDetails =
+    shouldHideEventTypeDetails == "true" ? true : isEmbed ? embedUiConfig.hideEventTypeDetails : false;
   const [TimezoneSelect] = useMemo(
     () => (isPlatform ? [PlatformTimezoneSelect] : [WebTimezoneSelect]),
     [isPlatform]
