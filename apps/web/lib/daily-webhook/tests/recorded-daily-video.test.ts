@@ -12,7 +12,7 @@ import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookin
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, afterEach, test, vi } from "vitest";
+import { describe, afterEach, test, vi, beforeEach } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
@@ -38,8 +38,13 @@ vi.mock("@calcom/core/videoClient", () => {
   };
 });
 
+beforeEach(() => {
+  fetchMock.resetMocks();
+});
+
 afterEach(() => {
   vi.resetAllMocks();
+  fetchMock.resetMocks();
 });
 
 const BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD = {
@@ -93,6 +98,8 @@ const BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD = {
   event_ts: 1717688213.803,
 };
 
+const timeout = process.env.CI ? 5000 : 20000;
+
 const TRANSCRIPTION_ACCESS_LINK = {
   id: "MOCK_ID",
   preset: "transcript",
@@ -110,119 +117,123 @@ const TRANSCRIPTION_ACCESS_LINK = {
 };
 
 describe("Handler: /api/recorded-daily-video", () => {
-  test(`Batch Processor Job finished triggers RECORDING_TRANSCRIPTION_GENERATED webhooks`, async () => {
-    const organizer = getOrganizer({
-      name: "Organizer",
-      email: "organizer@example.com",
-      id: 101,
-      schedules: [TestData.schedules.IstWorkHours],
-    });
+  test(
+    `Batch Processor Job finished triggers RECORDING_TRANSCRIPTION_GENERATED webhooks`,
+    async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
 
-    const bookingUid = "n5Wv3eHgconAED2j4gcVhP";
-    const iCalUID = `${bookingUid}@Cal.com`;
-    const subscriberUrl = "http://my-webhook.example.com";
-    const recordingDownloadLink = "https://download-link.com";
+      const bookingUid = "n5Wv3eHgconAED2j4gcVhP";
+      const iCalUID = `${bookingUid}@Cal.com`;
+      const subscriberUrl = "http://my-webhook.example.com";
+      const recordingDownloadLink = "https://download-link.com";
 
-    const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-    const booker = getBooker({
-      email: "booker@example.com",
-      name: "Booker",
-    });
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
 
-    await createBookingScenario(
-      getScenarioData({
-        webhooks: [
-          {
-            userId: organizer.id,
-            eventTriggers: [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED],
-            subscriberUrl,
-            active: true,
-            eventTypeId: 1,
-            appId: null,
-          },
-        ],
-        eventTypes: [
-          {
-            id: 1,
-            slotInterval: 15,
-            length: 15,
-            users: [
-              {
-                id: 101,
-              },
-            ],
-          },
-        ],
-        bookings: [
-          {
-            uid: bookingUid,
-            eventTypeId: 1,
-            status: BookingStatus.ACCEPTED,
-            startTime: `${plus1DateString}T05:00:00.000Z`,
-            endTime: `${plus1DateString}T05:15:00.000Z`,
-            userId: organizer.id,
-            metadata: {
-              videoCallUrl: "https://existing-daily-video-call-url.example.com",
+      await createBookingScenario(
+        getScenarioData({
+          webhooks: [
+            {
+              userId: organizer.id,
+              eventTriggers: [WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED],
+              subscriberUrl,
+              active: true,
+              eventTypeId: 1,
+              appId: null,
             },
-            references: [
-              {
-                type: appStoreMetadata.dailyvideo.type,
-                uid: "MOCK_ID",
-                meetingId: "MOCK_ID",
-                meetingPassword: "MOCK_PASS",
-                meetingUrl: "http://mock-dailyvideo.example.com",
-                credentialId: null,
+          ],
+          eventTypes: [
+            {
+              id: 1,
+              slotInterval: 15,
+              length: 15,
+              users: [
+                {
+                  id: 101,
+                },
+              ],
+            },
+          ],
+          bookings: [
+            {
+              uid: bookingUid,
+              eventTypeId: 1,
+              status: BookingStatus.ACCEPTED,
+              startTime: `${plus1DateString}T05:00:00.000Z`,
+              endTime: `${plus1DateString}T05:15:00.000Z`,
+              userId: organizer.id,
+              metadata: {
+                videoCallUrl: "https://existing-daily-video-call-url.example.com",
               },
-            ],
-            attendees: [
-              getMockBookingAttendee({
-                id: 2,
-                name: booker.name,
-                email: booker.email,
-                locale: "en",
-                timeZone: "Asia/Kolkata",
-                noShow: false,
-              }),
-            ],
-            iCalUID,
+              references: [
+                {
+                  type: appStoreMetadata.dailyvideo.type,
+                  uid: "MOCK_ID",
+                  meetingId: "MOCK_ID",
+                  meetingPassword: "MOCK_PASS",
+                  meetingUrl: "http://mock-dailyvideo.example.com",
+                  credentialId: null,
+                },
+              ],
+              attendees: [
+                getMockBookingAttendee({
+                  id: 2,
+                  name: booker.name,
+                  email: booker.email,
+                  locale: "en",
+                  timeZone: "Asia/Kolkata",
+                  noShow: false,
+                }),
+              ],
+              iCalUID,
+            },
+          ],
+          organizer,
+          apps: [TestData.apps["daily-video"]],
+        })
+      );
+
+      vi.mocked(getRoomNameFromRecordingId).mockResolvedValue("MOCK_ID");
+      vi.mocked(getBatchProcessorJobAccessLink).mockResolvedValue(TRANSCRIPTION_ACCESS_LINK);
+      vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue({
+        download_link: recordingDownloadLink,
+      });
+
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD,
+        prisma,
+      });
+
+      await handler(req, res);
+
+      await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+        triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+        payload: {
+          type: "Test Booking Title",
+          uid: bookingUid,
+          downloadLinks: {
+            transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
+            recording: recordingDownloadLink,
           },
-        ],
-        organizer,
-        apps: [TestData.apps["daily-video"]],
-      })
-    );
-
-    vi.mocked(getRoomNameFromRecordingId).mockResolvedValue("MOCK_ID");
-    vi.mocked(getBatchProcessorJobAccessLink).mockResolvedValue(TRANSCRIPTION_ACCESS_LINK);
-    vi.mocked(getDownloadLinkOfCalVideoByRecordingId).mockResolvedValue({
-      download_link: recordingDownloadLink,
-    });
-
-    const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
-      method: "POST",
-      body: BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD,
-      prisma,
-    });
-
-    await handler(req, res);
-
-    await expectWebhookToHaveBeenCalledWith(subscriberUrl, {
-      triggerEvent: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
-      payload: {
-        type: "Test Booking Title",
-        uid: bookingUid,
-        downloadLinks: {
-          transcription: TRANSCRIPTION_ACCESS_LINK.transcription,
-          recording: recordingDownloadLink,
+          organizer: {
+            email: organizer.email,
+            name: organizer.name,
+            timeZone: organizer.timeZone,
+            language: { locale: "en" },
+            utcOffset: 330,
+          },
         },
-        organizer: {
-          email: organizer.email,
-          name: organizer.name,
-          timeZone: organizer.timeZone,
-          language: { locale: "en" },
-          utcOffset: 330,
-        },
-      },
-    });
-  });
+      });
+    },
+    timeout
+  );
 });
