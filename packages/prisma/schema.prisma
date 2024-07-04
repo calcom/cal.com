@@ -946,7 +946,7 @@ model AIPhoneCallConfiguration {
   id              Int       @id @default(autoincrement())
   eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId     Int
-  templateType    String    @default("CHECK_IN_APPPOINTMENT")
+  templateType    String    @default("CUSTOM_TEMPLATE")
   schedulerName   String?
   generalPrompt   String?
   yourPhoneNumber String
