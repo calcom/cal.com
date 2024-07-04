@@ -16,7 +16,7 @@ const bookingReferenceSelect = Prisma.validator<Prisma.BookingReferenceSelect>()
 export class BookingReferenceRepository {
   static async findDailyVideoReferenceByRoomName({ roomName }: { roomName: string }) {
     return prisma.bookingReference.findFirst({
-      where: { type: "daily_video", uid: roomName, meetingId: roomName },
+      where: { type: "daily_video", uid: roomName, meetingId: roomName, bookingId: { not: null } },
       select: bookingReferenceSelect,
     });
   }
