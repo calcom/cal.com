@@ -79,9 +79,7 @@ export const BookingFields = ({
           field.variantsConfig?.variants[field.variant].fields[1].required
         ) {
           const nameField = bookingData?.responses.name || {};
-          // @ts-expect-error the nameField is an object and it has lastName
-          // it appears that the type definition is incorrect. TODO: Fix the type definition
-          if (nameField && Object.keys(nameField).length === 2 && !nameField.lastName) {
+          if (typeof nameField === "object" && "lastName" in nameField && !nameField.lastName) {
             readOnly = false;
           }
         }
