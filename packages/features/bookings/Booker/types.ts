@@ -5,10 +5,8 @@ import type { UseCalendarsReturnType } from "@calcom/features/bookings/Booker/co
 import type { UseSlotsReturnType } from "@calcom/features/bookings/Booker/components/hooks/useSlots";
 import type { UseVerifyCodeReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyCode";
 import type { UseVerifyEmailReturnType } from "@calcom/features/bookings/Booker/components/hooks/useVerifyEmail";
-import type {
-  useEventReturnType,
-  useScheduleForEventReturnType,
-} from "@calcom/features/bookings/Booker/utils/event";
+import type { useScheduleForEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
+import type { BookerEventQuery } from "@calcom/features/bookings/types";
 import type { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 import type { GetBookingType } from "../lib/get-booking";
@@ -107,7 +105,7 @@ export type WrappedBookerPropsMain = {
   slots: UseSlotsReturnType;
   calendars: UseCalendarsReturnType;
   bookerForm: UseBookingFormReturnType;
-  event: useEventReturnType;
+  event: BookerEventQuery;
   schedule: useScheduleForEventReturnType;
   bookerLayout: UseBookerLayoutType;
   verifyEmail: UseVerifyEmailReturnType;

@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 
 import type EventManager from "@calcom/core/EventManager";
 import { sendRescheduledSeatEmail } from "@calcom/emails";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 
@@ -17,10 +18,27 @@ const attendeeRescheduleSeatedBooking = async (
   originalBookingEvt: CalendarEvent,
   eventManager: EventManager
 ) => {
-  const { tAttendees, bookingSeat, bookerEmail, rescheduleUid, evt } = rescheduleSeatedBookingObject;
+  const { tAttendees, bookingSeat, bookerEmail, evt } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
+
+  // Update the original calendar event by removing the attendee that is rescheduling
+  if (originalBookingEvt && originalRescheduledBooking) {
+    // Event would probably be deleted so we first check than instead of updating references
+    const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+      return attendee.email !== bookerEmail;
+    });
+    const deletedReference = await lastAttendeeDeleteBooking(
+      originalRescheduledBooking,
+      filteredAttendees,
+      originalBookingEvt
+    );
+
+    if (!deletedReference) {
+      await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
+    }
+  }
 
   // If there is no booking then remove the attendee from the old booking and create a new one
   if (!newTimeSlotBooking) {
@@ -29,23 +47,6 @@ const attendeeRescheduleSeatedBooking = async (
         id: seatAttendee?.id,
       },
     });
-
-    // Update the original calendar event by removing the attendee that is rescheduling
-    if (originalBookingEvt && originalRescheduledBooking) {
-      // Event would probably be deleted so we first check than instead of updating references
-      const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-        return attendee.email !== bookerEmail;
-      });
-      const deletedReference = await lastAttendeeDeleteBooking(
-        originalRescheduledBooking,
-        filteredAttendees,
-        originalBookingEvt
-      );
-
-      if (!deletedReference) {
-        await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
-      }
-    }
 
     // We don't want to trigger rescheduling logic of the original booking
     originalRescheduledBooking = null;
@@ -76,17 +77,19 @@ const attendeeRescheduleSeatedBooking = async (
     ]);
   }
 
-  const copyEvent = cloneDeep(evt);
+  // Add the new attendees to the new time slot booking attendees
+  for (const attendee of newTimeSlotBooking.attendees) {
+    const language = await getTranslation(attendee.locale ?? "en", "common");
+    evt.attendees.push({
+      email: attendee.email,
+      name: attendee.name,
+      language,
+    });
+  }
 
-  const updateManager = await eventManager.reschedule(copyEvent, rescheduleUid, newTimeSlotBooking.id);
+  const copyEvent = cloneDeep({ ...evt, iCalUID: newTimeSlotBooking.iCalUID });
 
-  const results = updateManager.results;
-
-  const calendarResult = results.find((result) => result.type.includes("_calendar"));
-
-  evt.iCalUID = Array.isArray(calendarResult?.updatedEvent)
-    ? calendarResult?.updatedEvent[0]?.iCalUID
-    : calendarResult?.updatedEvent?.iCalUID || undefined;
+  await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
   await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
