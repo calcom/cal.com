@@ -115,10 +115,16 @@ const TemplateFields = () => {
             control={control}
             name={`aiPhoneCallConfig.${field.name}`}
             render={({ field: { value, onChange }, fieldState: { error } }) => {
+              const { variableName, ...restField } = field;
+              const variableInfo = !!variableName ? `: ${t("variable")} {{${variableName}}}` : "";
               return (
                 <div>
                   <ComponentForField
-                    field={{ ...field, label: t(field.defaultLabel), placeholder: t(field.placeholder) }}
+                    field={{
+                      ...restField,
+                      label: `${t(field.defaultLabel)}${variableInfo}`,
+                      placeholder: t(field.placeholder),
+                    }}
                     value={value ?? ""}
                     readOnly={false}
                     setValue={(val: unknown) => {
@@ -140,7 +146,6 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
-  const templateType = formMethods.watch("aiPhoneCallConfig.templateType");
 
   const [calApiKey, setCalApiKey] = useState("");
 
@@ -158,6 +163,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
   const handleSubmit = async () => {
     try {
       const values = formMethods.getValues("aiPhoneCallConfig");
+      const { templateType } = values;
 
       const schema = getTemplateFieldsSchema({ templateType });
 
@@ -166,6 +172,7 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
         guestEmail: values.guestEmail && values.guestEmail.trim().length ? values.guestEmail : undefined,
         guestCompany:
           values.guestCompany && values.guestCompany.trim().length ? values.guestCompany : undefined,
+        guestName: values.guestName && values.guestName.trim().length ? values.guestName : undefined,
         eventTypeId: eventType.id,
         calApiKey,
       });
@@ -219,36 +226,20 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
 
           <>
             <RadioGroup.Root
-              defaultValue={templateType ?? "CHECK_IN_APPPOINTMENT"}
+              defaultValue={eventType?.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE"}
               onValueChange={(val) => {
                 formMethods.setValue("aiPhoneCallConfig.templateType", val, { shouldDirty: true });
               }}>
               <div className="flex gap-2">
                 <RadioGroup.Item
-                  className="h-120 flex flex-1 items-start rounded-lg border p-4"
+                  className="flex h-80 flex-1 items-start rounded-lg border p-4"
                   key="CHECK_IN_APPPOINTMENT"
                   value="CHECK_IN_APPPOINTMENT">
                   <div>
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
 
-                    <h2 className="font-semibold">Check-in Assistant</h2>
-                    <p className="text-subtle mt-2">
-                      Makes an outbound call to check if scheduled appointment works or if you want to
-                      reschedule.
-                    </p>
-                  </div>
-                </RadioGroup.Item>
-                <RadioGroup.Item
-                  className="flex h-80 flex-1  items-start rounded-lg border p-4"
-                  key="DENTIST_APPOINTMENT"
-                  value="DENTIST_APPOINTMENT">
-                  <div>
-                    <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-
-                    <h2 className="font-semibold">Dentist Receptionist</h2>
-                    <p className="text-subtle mt-2">
-                      Makes an outbound call to patients to reschedule their appointments.
-                    </p>
+                    <h2 className="font-semibold">{t("check_in_assistant")}</h2>
+                    <p className="text-subtle mt-2">{t("check_in_assistant_description")}</p>
                   </div>
                 </RadioGroup.Item>
                 <RadioGroup.Item
@@ -257,10 +248,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                   value="CUSTOM_TEMPLATE">
                   <div>
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-                    <h2 className="font-semibold">Custom Template</h2>
-                    <p className="text-subtle mt-2">
-                      Create your own prompt and use it to make an outbound call.
-                    </p>
+                    <h2 className="font-semibold">{t("custom_template")}</h2>
+                    <p className="text-subtle mt-2">{t("create_your_own_prompt")}</p>
                   </div>
                 </RadioGroup.Item>
               </div>

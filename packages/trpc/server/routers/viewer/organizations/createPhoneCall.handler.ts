@@ -9,6 +9,8 @@ import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { TRPCError } from "@trpc/server";
+
 type CreatePhoneCallProps = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -18,6 +20,10 @@ type CreatePhoneCallProps = {
 };
 
 const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
+  if (!!!ctx.user.profile.organization) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: `createPhoneCall:${ctx.user.id}`,

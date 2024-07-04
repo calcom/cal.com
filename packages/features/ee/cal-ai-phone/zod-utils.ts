@@ -16,7 +16,7 @@ const requiredFields = z.object({
 
 export const createPhoneCallSchema = requiredFields.merge(
   z.object({
-    schedulerName: z.string().min(1).optional(),
+    schedulerName: z.string().min(1).optional().nullable(),
     guestName: z
       .string()
       .optional()
@@ -45,6 +45,8 @@ export type TCreatePhoneCallSchema = z.infer<typeof createPhoneCallSchema>;
 export const ZGetPhoneNumberSchema = z
   .object({
     agent_id: z.string(),
+    inbound_agent_id: z.string(),
+    outbound_agent_id: z.string(),
   })
   .passthrough();
 
@@ -63,6 +65,11 @@ export const fieldSchemaMap = {
   CHECK_IN_APPPOINTMENT: requiredFields.merge(
     z.object({
       schedulerName: z.string().min(1),
+    })
+  ),
+  CUSTOM_TEMPLATE: createPhoneCallSchema.omit({ generalPrompt: true }).merge(
+    z.object({
+      generalPrompt: z.string(),
     })
   ),
 };
@@ -103,6 +110,7 @@ const FieldSchema = z.object({
   required: z.boolean(),
   defaultLabel: z.string(),
   placeholder: z.string(),
+  variableName: z.string().optional(),
 });
 
 const FieldsSchema = z.array(FieldSchema);

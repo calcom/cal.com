@@ -21,7 +21,7 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
     },
     {
       type: "text",
-      name: fieldNameEnum.enum.generalPrompt,
+      name: fieldNameEnum.enum.beginMessage,
       required: true,
       defaultLabel: "begin_message",
       placeholder: "begin_message",
@@ -32,6 +32,7 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
       required: false,
       defaultLabel: "guest_name",
       placeholder: "guest_name",
+      variableName: "name",
     },
     {
       type: "email",
@@ -39,6 +40,7 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
       required: false,
       defaultLabel: "guest_email",
       placeholder: "guest_email",
+      variableName: "email",
     },
     {
       type: "text",
@@ -46,6 +48,7 @@ export const TEMPLATES_FIELDS: Record<TemplateType, Fields> = {
       required: false,
       defaultLabel: "guest_company",
       placeholder: "guest_company",
+      variableName: "company",
     },
   ],
 };

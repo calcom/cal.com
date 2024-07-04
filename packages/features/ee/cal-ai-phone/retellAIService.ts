@@ -42,7 +42,7 @@ const updateAgentWebsocketUrl = async (phoneNumber: string, llmWebsocketUrl: str
       ZGetPhoneNumberSchema.parse
     );
 
-    await fetcher(`/update-agent/${phoneNumberDetails.agent_id}`, {
+    await fetcher(`/update-agent/${phoneNumberDetails.outbound_agent_id}`, {
       method: "PATCH",
       body: JSON.stringify({
         llm_websocket_url: llmWebsocketUrl,

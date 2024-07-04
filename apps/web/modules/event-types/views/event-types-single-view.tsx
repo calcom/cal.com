@@ -271,7 +271,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
         guestCompany: eventType.aiPhoneCallConfig?.guestCompany,
         yourPhoneNumber: eventType.aiPhoneCallConfig?.yourPhoneNumber,
         numberToCall: eventType.aiPhoneCallConfig?.numberToCall,
-        templateType: eventType.aiPhoneCallConfig?.templateType ?? "CHECK_IN_APPPOINTMENT",
+        templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
     };
