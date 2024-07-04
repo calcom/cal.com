@@ -382,7 +382,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
+        <Button
+          data-testid="update-org-profile-button"
+          color="primary"
+          type="submit"
+          loading={mutation.isPending}
+          disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>
