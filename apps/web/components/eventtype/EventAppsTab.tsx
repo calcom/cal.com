@@ -4,8 +4,8 @@ import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useFormContext } from "react-hook-form";
 
 import type { EventTypeAppCardComponentProps } from "@calcom/app-store-types";
+import type { EventTypeAppsList } from "@calcom/app-store-types";
 import { EventTypeAppCard } from "@calcom/app-store/_components/EventTypeAppCardInterface";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";

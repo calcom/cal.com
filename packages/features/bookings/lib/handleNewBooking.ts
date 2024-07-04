@@ -10,10 +10,10 @@ import { v5 as uuidv5 } from "uuid";
 import type z from "zod";
 
 import { MeetLocationType, OrganizerDefaultConferencingAppType } from "@calcom/app-store-types";
+import type { EventTypeAppsList } from "@calcom/app-store-types";
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";

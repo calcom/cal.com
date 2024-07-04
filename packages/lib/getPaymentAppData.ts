@@ -1,9 +1,9 @@
 import type { z } from "zod";
 
+import type { EventTypeAppsList } from "@calcom/app-store-types";
 import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import type { appDataSchema, paymentOptionEnum } from "@calcom/app-store/stripepayment/zod";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import type { BookerEvent } from "@calcom/features/bookings/types";
 
 export default function getPaymentAppData(

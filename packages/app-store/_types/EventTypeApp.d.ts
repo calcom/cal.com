@@ -49,3 +49,7 @@ export type EventTypeAppCardComponent = React.FC<EventTypeAppCardComponentProps>
 export type EventTypeAppSettingsComponent = React.FC<EventTypeAppSettingsComponentProps>;
 
 export type EventTypeModel = z.infer<typeof EventTypeModel>;
+
+export type EventTypeApps = NonNullable<NonNullable<z.infer<typeof EventTypeMetaDataSchema>>["apps"]>;
+
+export type EventTypeAppsList = keyof EventTypeApps;

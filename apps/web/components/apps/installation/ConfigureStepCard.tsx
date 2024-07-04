@@ -8,8 +8,8 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import type { EventTypeAppsList } from "@calcom/app-store-types";
 import { EventTypeAppSettings } from "@calcom/app-store/_components/EventTypeAppSettingsInterface";
-import type { EventTypeAppsList } from "@calcom/app-store/utils";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
