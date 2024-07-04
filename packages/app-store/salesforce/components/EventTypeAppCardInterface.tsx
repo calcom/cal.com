@@ -1,9 +1,9 @@
 import { usePathname } from "next/navigation";
 
+import type { EventTypeAppCardComponent } from "@calcom/app-store-types";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import useIsAppEnabled from "@calcom/app-store/_utils/useIsAppEnabled";
-import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";

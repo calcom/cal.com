@@ -2,6 +2,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { useEffect, useState } from "react";
 
+import type { AppFrontendPayload as App } from "@calcom/app-store-types";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { InstallAppButton } from "@calcom/app-store/components";
@@ -14,7 +15,6 @@ import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectTo
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 import type { ButtonProps } from "@calcom/ui";
 import {

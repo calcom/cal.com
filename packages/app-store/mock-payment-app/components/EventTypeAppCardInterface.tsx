@@ -1,6 +1,7 @@
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 
+import type { EventTypeAppCardComponent } from "@calcom/app-store-types";
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 import AppCard from "@calcom/app-store/_components/AppCard";
 import {
@@ -8,7 +9,6 @@ import {
   currencySymbols,
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
-import type { EventTypeAppCardComponent } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";

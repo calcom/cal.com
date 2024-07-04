@@ -1,16 +1,15 @@
 import { useCallback, useState } from "react";
 
-import type { EventLocationType } from "@calcom/app-store-types";
+import type { App, EventLocationType } from "@calcom/app-store-types";
+import type { CredentialOwner } from "@calcom/app-store-types";
 import { AppSettings } from "@calcom/app-store/_components/AppSettings";
 import { InstallAppButton } from "@calcom/app-store/components";
 import { getEventLocationTypeFromApp } from "@calcom/app-store/locations";
-import type { CredentialOwner } from "@calcom/app-store/types";
 import { AppSetDefaultLinkDialog } from "@calcom/features/apps/components/AppSetDefaultLinkDialog";
 import { BulkEditDefaultModal } from "@calcom/features/eventtypes/components/BulkEditDefaultModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { AppCategories } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc";
-import type { App } from "@calcom/types/App";
 import {
   Alert,
   Button,

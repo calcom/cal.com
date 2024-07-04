@@ -1,10 +1,10 @@
+import type { AppFrontendPayload as App } from "@calcom/app-store-types";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
-import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
 /**

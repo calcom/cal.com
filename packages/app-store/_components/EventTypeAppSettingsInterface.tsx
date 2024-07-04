@@ -1,6 +1,6 @@
 import { EventTypeSettingsMap } from "@calcom/app-store/apps.browser.generated";
 
-import type { EventTypeAppSettingsComponentProps } from "../types";
+import type { EventTypeAppSettingsComponentProps } from "../_types";
 import { DynamicComponent } from "./DynamicComponent";
 
 export const EventTypeAppSettings = (props: EventTypeAppSettingsComponentProps) => {

@@ -1,4 +1,4 @@
-import type { AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/app-store-types";
 
 // We have to import all the booker-apps config/metadata in here as without that we couldn't
 import type { appStoreMetadata as rawAppStoreMetadata } from "./apps.metadata.generated";

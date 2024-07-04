@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 import "vitest-fetch-mock";
 import type { z } from "zod";
 
+import type { AppMeta } from "@calcom/app-store-types";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { handleStripePaymentSuccess } from "@calcom/features/ee/payments/api/webhook";
 import { weekdayToWeekIndex, type WeekDays } from "@calcom/lib/date-fns";
@@ -22,7 +23,6 @@ import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
-import type { AppMeta } from "@calcom/types/App";
 import type { NewCalendarEventType } from "@calcom/types/Calendar";
 import type { EventBusyDate, IntervalLimit } from "@calcom/types/Calendar";
 

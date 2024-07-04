@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 
+import type { EventTypeAppSettingsComponent } from "@calcom/app-store-types";
 import {
   currencyOptions,
   currencySymbols,
   isAcceptedCurrencyCode,
 } from "@calcom/app-store/paypal/lib/currencyOptions";
-import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Select, TextField } from "@calcom/ui";
 

@@ -5,10 +5,10 @@ import { debounce } from "lodash";
 import path from "path";
 import prettier from "prettier";
 
+import type { AppMeta } from "@calcom/app-store-types";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 //@ts-ignore
 import prettierConfig from "@calcom/config/prettier-preset";
-import type { AppMeta } from "@calcom/types/App";
 
 import { APP_STORE_PATH } from "./constants";
 import { getAppName } from "./utils/getAppName";

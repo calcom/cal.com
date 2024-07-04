@@ -1,4 +1,4 @@
-import type { AppFrontendPayload as App } from "@calcom/types/App";
+import type { AppFrontendPayload as App } from "@calcom/app-store-types";
 
 export const _SBApps: App[] = [
   {

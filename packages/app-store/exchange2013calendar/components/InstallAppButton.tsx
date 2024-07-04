@@ -1,4 +1,4 @@
-import type { InstallAppButtonProps } from "@calcom/app-store/types";
+import type { InstallAppButtonProps } from "@calcom/app-store-types";
 
 import useAddAppMutation from "../../_utils/useAddAppMutation";
 

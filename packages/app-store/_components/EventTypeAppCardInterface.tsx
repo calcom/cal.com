@@ -7,7 +7,7 @@ import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { ErrorBoundary } from "@calcom/ui";
 
-import type { EventTypeAppCardComponentProps, CredentialOwner } from "../types";
+import type { EventTypeAppCardComponentProps, CredentialOwner } from "../_types";
 import { DynamicComponent } from "./DynamicComponent";
 
 export const EventTypeAppCard = (props: {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import type { App } from "@calcom/app-store-types";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,7 +11,6 @@ import { useHasTeamPlan } from "@calcom/lib/hooks/useHasPaidPlan";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui";
 
 import { InstallAppButtonMap } from "./apps.browser.generated";

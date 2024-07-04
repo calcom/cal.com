@@ -4,7 +4,7 @@ import SelectInput from "ink-select-input";
 import TextInput from "ink-text-input";
 import React, { useEffect, useState } from "react";
 
-import type { AppMeta } from "@calcom/types/App";
+import type { AppMeta } from "@calcom/app-store-types";
 
 import { getSlugFromAppName, BaseAppFork, generateAppFiles, getAppDirPath } from "../core";
 import { getApp } from "../utils/getApp";

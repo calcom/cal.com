@@ -7,7 +7,7 @@ import { classNames } from "@calcom/lib";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Switch, Badge, Avatar, Button, Icon } from "@calcom/ui";
 
-import type { CredentialOwner } from "../types";
+import type { CredentialOwner } from "../_types";
 import OmniInstallAppButton from "./OmniInstallAppButton";
 
 export default function AppCard({

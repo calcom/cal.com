@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
+import type { App as AppType } from "@calcom/app-store-types";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -10,7 +11,6 @@ import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/consta
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import type { App as AppType } from "@calcom/types/App";
 import { Badge, Button, Icon, SkeletonButton, SkeletonText, showToast } from "@calcom/ui";
 
 import { InstallAppButtonChild } from "./InstallAppButtonChild";

@@ -7,9 +7,9 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
+import type { AppMeta, EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store-types";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
@@ -21,7 +21,6 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
 
 import { HttpError } from "@lib/core/http/error";

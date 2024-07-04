@@ -1,5 +1,5 @@
+import type { AppMeta } from "@calcom/app-store-types";
 import { randomString } from "@calcom/lib/random";
-import type { AppMeta } from "@calcom/types/App";
 
 import _package from "./package.json";
 

@@ -2,7 +2,7 @@ import { useState } from "react";
 
 import { useAppContextWithSchema } from "@calcom/app-store/EventTypeAppContext";
 
-import type { EventTypeAppCardApp } from "../types";
+import type { EventTypeAppCardApp } from "../_types";
 
 function useIsAppEnabled(app: EventTypeAppCardApp) {
   const { getAppData, setAppData } = useAppContextWithSchema();

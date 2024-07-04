@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 
-import type { CredentialOwner } from "@calcom/app-store/types";
+import type { CredentialOwner } from "@calcom/app-store-types";
 import classNames from "@calcom/lib/classNames";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";

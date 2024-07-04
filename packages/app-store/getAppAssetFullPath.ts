@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { App } from "@calcom/app-store-types";
 
 export function getAppAssetFullPath(assetPath: string, metadata: Pick<App, "dirName" | "isTemplate">) {
   const appDirName = `${metadata.isTemplate ? "templates/" : ""}${metadata.dirName}`;

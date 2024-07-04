@@ -7,5 +7,5 @@
     "experimentalDecorators": true,
     "outDir": "dist"
   },
-  "exclude": ["dist", "build", "node_modules"]
+  "exclude": ["dist", "build"]
 }

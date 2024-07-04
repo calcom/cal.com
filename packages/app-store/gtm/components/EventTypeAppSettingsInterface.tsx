@@ -1,4 +1,4 @@
-import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import type { EventTypeAppSettingsComponent } from "@calcom/app-store-types";
 import { TextField } from "@calcom/ui";
 
 const EventTypeAppSettingsInterface: EventTypeAppSettingsComponent = ({

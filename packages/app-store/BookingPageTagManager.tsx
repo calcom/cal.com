@@ -1,10 +1,10 @@
 import Script from "next/script";
 
+import type { Tag } from "@calcom/app-store-types";
+import type { AppMeta } from "@calcom/app-store-types";
 import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppData";
 import { appStoreMetadata } from "@calcom/app-store/bookerAppsMetaData";
-import type { Tag } from "@calcom/app-store/types";
 import { sdkActionManager } from "@calcom/lib/sdk-event";
-import type { AppMeta } from "@calcom/types/App";
 
 import type { appDataSchemas } from "./apps.schemas.generated";
 

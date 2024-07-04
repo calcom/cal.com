@@ -1,4 +1,4 @@
-import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import type { EventTypeAppSettingsComponent } from "@calcom/app-store-types";
 
 import SelectGifInput from "./SelectGifInput";
 

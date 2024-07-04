@@ -1,13 +1,13 @@
 import type { AppCategories } from "@prisma/client";
 
 import type { EventLocationType } from "@calcom/app-store-types";
+import type { App, AppMeta } from "@calcom/app-store-types";
 // If you import this file on any app it should produce circular dependency
 // import appStore from "./index";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import logger from "@calcom/lib/logger";
 import { getPiiFreeCredential } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import type { App, AppMeta } from "@calcom/types/App";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 export * from "./_utils/getEventTypeAppData";

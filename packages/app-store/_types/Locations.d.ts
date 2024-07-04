@@ -74,6 +74,8 @@ type LinkType = "static" | "dynamic";
 
 export type EventLocationType = (DefaultEventLocationType | EventLocationTypeFromAppMeta) & {
   linkType?: LinkType;
+  variable: NonNullable<LocationVariable>;
+  defaultValueVariable: NonNullable<LocationDefaultValueVariable>;
 };
 
 export type LocationObject = {

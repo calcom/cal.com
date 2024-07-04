@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import type { EventTypeAppSettingsComponent } from "@calcom/app-store/types";
+import type { EventTypeAppSettingsComponent } from "@calcom/app-store-types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextField, Tooltip } from "@calcom/ui";

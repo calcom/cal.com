@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 
+import type { AppFrontendPayload } from "@calcom/app-store-types";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { doesAppSupportTeamInstall } from "@calcom/app-store/utils";
@@ -12,7 +13,6 @@ import { shouldRedirectToAppOnboarding } from "@calcom/lib/apps/shouldRedirectTo
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import type { AppFrontendPayload } from "@calcom/types/App";
 import type { ButtonProps } from "@calcom/ui";
 import {
   Avatar,

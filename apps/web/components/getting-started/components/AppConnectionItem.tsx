@@ -1,6 +1,6 @@
+import type { App } from "@calcom/app-store-types";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { App } from "@calcom/types/App";
 import { Button } from "@calcom/ui";
 
 interface IAppConnectionItem {

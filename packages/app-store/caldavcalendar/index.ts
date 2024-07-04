@@ -1,4 +1,4 @@
-import type { App } from "@calcom/types/App";
+import type { App } from "@calcom/app-store-types";
 
 import _package from "./package.json";
 
