@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { PublicEvent } from "bookings/types";
 import type { ComponentProps } from "react";
 
 import { Examples, Example, VariantsTable, VariantRow } from "@calcom/storybook/components";
@@ -49,9 +48,15 @@ export const AllVariants: Story = {
           <EventMembers
             users={mockEvent.users}
             schedulingType="COLLECTIVE"
-            entity={{ isUnpublished: false, name: "Example", orgSlug: null }}
+            entity={{
+              considerUnpublished: false,
+              fromRedirectOfNonOrgLink: true,
+              teamSlug: null,
+              name: "Example",
+              orgSlug: null,
+            }}
             // TODO remove type assertion
-            profile={{ weekStart: "Sunday" } as PublicEvent["profile"]}
+            profile={{ bookerLayouts: null }}
           />
           <EventTitle>Quick catch-up</EventTitle>
           <EventDetails event={mockEvent} />

@@ -17,6 +17,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { classNames } from "@calcom/lib";
 
 import ExampleTheme from "./ExampleTheme";
+import { VariableNode } from "./nodes/VariableNode";
+import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
@@ -60,6 +62,7 @@ const editorConfig = {
     TableRowNode,
     AutoLinkNode,
     LinkNode,
+    VariableNode,
   ],
 };
 
@@ -100,6 +103,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin
               transformers={

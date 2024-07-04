@@ -1,4 +1,5 @@
 import { getEnv } from "@/env";
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
@@ -33,8 +34,8 @@ import { Response as ExpressResponse } from "express";
 import { SUCCESS_STATUS, X_CAL_SECRET_KEY } from "@calcom/platform-constants";
 
 @Controller({
-  path: "oauth/:clientId",
-  version: "2",
+  path: "/v2/oauth/:clientId",
+  version: API_VERSIONS_VALUES,
 })
 @DocsExcludeController(getEnv("NODE_ENV") === "production")
 @DocsTags("OAuth - development only")
@@ -117,16 +118,18 @@ export class OAuthFlowController {
       throw new BadRequestException("Missing 'Bearer' Authorization header.");
     }
 
-    const { accessToken, refreshToken } = await this.oAuthFlowService.exchangeAuthorizationToken(
-      authorizeEndpointCode,
-      clientId,
-      body.clientSecret
-    );
+    const { accessToken, refreshToken, accessTokenExpiresAt } =
+      await this.oAuthFlowService.exchangeAuthorizationToken(
+        authorizeEndpointCode,
+        clientId,
+        body.clientSecret
+      );
 
     return {
       status: SUCCESS_STATUS,
       data: {
         accessToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
         refreshToken,
       },
     };
@@ -140,7 +143,7 @@ export class OAuthFlowController {
     @Headers(X_CAL_SECRET_KEY) secretKey: string,
     @Body() body: RefreshTokenInput
   ): Promise<KeysResponseDto> {
-    const { accessToken, refreshToken } = await this.oAuthFlowService.refreshToken(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.oAuthFlowService.refreshToken(
       clientId,
       secretKey,
       body.refreshToken
@@ -150,6 +153,7 @@ export class OAuthFlowController {
       status: SUCCESS_STATUS,
       data: {
         accessToken: accessToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
         refreshToken: refreshToken,
       },
     };
