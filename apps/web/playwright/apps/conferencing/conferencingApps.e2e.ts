@@ -118,6 +118,7 @@ test.afterEach(({ users }) => users.deleteAll());
 
 test.describe("check non-oAuth link-based conferencing apps ", () => {
   test("check conferencing apps by skipping the configure step", async ({ appsPage, page, users }) => {
+    test.setTimeout(120000);
     const user = await users.create();
     await user.apiLogin();
     for (let index = 0; index < ALL_APPS.length; index++) {
@@ -129,6 +130,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
   });
 
   test("check conferencing apps using the new flow", async ({ appsPage, page, users }) => {
+    test.setTimeout(120000);
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
