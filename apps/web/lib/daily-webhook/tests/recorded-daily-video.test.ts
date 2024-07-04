@@ -38,15 +38,6 @@ vi.mock("@calcom/core/videoClient", () => {
   };
 });
 
-beforeEach(() => {
-  fetchMock.resetMocks();
-});
-
-afterEach(() => {
-  vi.resetAllMocks();
-  fetchMock.resetMocks();
-});
-
 const BATCH_PROCESSOR_JOB_FINSISHED_PAYLOAD = {
   version: "1.1.0",
   type: "batch-processor.job-finished",
@@ -117,6 +108,15 @@ const TRANSCRIPTION_ACCESS_LINK = {
 };
 
 describe("Handler: /api/recorded-daily-video", () => {
+  beforeEach(() => {
+    fetchMock.resetMocks();
+  });
+
+  afterEach(() => {
+    vi.resetAllMocks();
+    fetchMock.resetMocks();
+  });
+
   test(
     `Batch Processor Job finished triggers RECORDING_TRANSCRIPTION_GENERATED webhooks`,
     async () => {
