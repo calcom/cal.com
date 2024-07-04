@@ -342,11 +342,11 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
         // Remove Both of the locations
         const removeButtomId = "delete-locations.0.type";
-        await page.getByTestId(removeButtomId).click();
+        await page.getByTestId(removeButtomId).nth(0).click();
         await page.getByTestId(removeButtomId).nth(0).click();
 
         // Add Multiple Organizer Phone Number options
-        await page.getByTestId("location-select").click();
+        await page.getByTestId("location-select").last().click();
         await page.locator(`text="Organizer Phone Number"`).click();
 
         const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
