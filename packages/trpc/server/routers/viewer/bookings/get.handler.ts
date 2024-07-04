@@ -1,6 +1,7 @@
 import { parseRecurringEvent } from "@calcom/lib";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrganizationIdOfBooking from "@calcom/lib/getOrganizationIdOfBooking";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
@@ -403,9 +404,7 @@ export async function getBookings({
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
     }
-    const bookerBaseUrl = booking.eventType?.team?.parentId
-      ? await getBookerBaseUrl(booking.eventType?.team?.parentId)
-      : await getBookerBaseUrl(booking.user?.movedToProfile?.organizationId ?? null);
+    const bookerBaseUrl = await getBookerBaseUrl(getOrganizationIdOfBooking(booking));
     return {
       ...booking,
       eventType: {
