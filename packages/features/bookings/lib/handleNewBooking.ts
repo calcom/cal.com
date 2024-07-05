@@ -481,7 +481,6 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
-  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
