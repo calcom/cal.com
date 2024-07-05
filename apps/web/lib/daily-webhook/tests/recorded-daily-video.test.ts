@@ -12,7 +12,7 @@ import { expectWebhookToHaveBeenCalledWith } from "@calcom/web/test/utils/bookin
 import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
-import { describe, afterEach, test, vi, beforeEach } from "vitest";
+import { describe, afterEach, test, vi, beforeEach, beforeAll } from "vitest";
 
 import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
 import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
@@ -24,6 +24,11 @@ import handler from "@calcom/web/pages/api/recorded-daily-video";
 
 type CustomNextApiRequest = NextApiRequest & Request;
 type CustomNextApiResponse = NextApiResponse & Response;
+beforeAll(() => {
+  // Setup env vars
+  vi.stubEnv("SENDGRID_API_KEY", "FAKE_SENDGRID_API_KEY");
+  vi.stubEnv("SENDGRID_EMAIL", "FAKE_SENDGRID_EMAIL");
+});
 
 vi.mock("@calcom/app-store/dailyvideo/lib", () => {
   return {
