@@ -76,7 +76,7 @@ const ZoomVideoApiAdapter = (credential: CredentialPayload): VideoApiAdapter => 
       recurringEvent,
       startTime,
       attendees,
-    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 8 } | undefined => {
+    }: CalendarEvent): { recurrence: ZoomRecurrence; type: 2 } | undefined => {
       if (!recurringEvent) {
         return;
       }
