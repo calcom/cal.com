@@ -49,7 +49,7 @@ model Host {
   eventTypeId Int
   isFixed     Boolean   @default(false)
   priority    Int?
-  schedule    Schedule? @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+  schedule    Schedule? @relation(fields: [scheduleId], references: [id])
   scheduleId  Int?
 
   @@id([userId, eventTypeId])
