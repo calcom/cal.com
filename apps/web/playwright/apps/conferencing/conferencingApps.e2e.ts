@@ -129,7 +129,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
     }
   });
   test.describe("check non-oAuth link-based conferencing apps using the new flow", () => {
-    test("check around app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add around app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -139,7 +139,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
 
-    test("check campfire app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add campfire app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -149,7 +149,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
 
-    test("check demodesk app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add demodesk app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -159,7 +159,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
 
-    test("check discord app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add discord app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -168,7 +168,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check eightxeight app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add eightxeight app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -177,7 +178,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check element-call app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add element-call app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -186,7 +188,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check facetime app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add facetime app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -195,7 +198,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check mirotalk app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add mirotalk app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -204,7 +208,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check ping app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add ping app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -214,7 +219,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
 
-    test("check riverside app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add riverside app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -224,7 +229,7 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
 
-    test("check roam app using the new flow", async ({ appsPage, page, users }) => {
+    test("can add roam app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -233,7 +238,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check salesroom app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add salesroom app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -242,7 +248,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check sirius_video app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add sirius_video app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
@@ -251,7 +258,8 @@ test.describe("check non-oAuth link-based conferencing apps ", () => {
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
-    test("check whereby app using the new flow", async ({ appsPage, page, users }) => {
+
+    test("can add whereby app and book with it", async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
