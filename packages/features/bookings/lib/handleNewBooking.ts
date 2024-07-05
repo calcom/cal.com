@@ -1,11 +1,9 @@
 import type { DestinationCalendar } from "@prisma/client";
-import type { Prisma } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
 import short, { uuid } from "short-uuid";
 import { v5 as uuidv5 } from "uuid";
-import type z from "zod";
 
 import processExternalId from "@calcom/app-store/_utils/calendars/processExternalId";
 import { metadata as GoogleMeetMetadata } from "@calcom/app-store/googlevideo/_metadata";
@@ -48,7 +46,6 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { getErrorFromUnknown } from "@calcom/lib/errors";
@@ -58,45 +55,39 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
-import isOutOfBounds, { BookingDateInPastError } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
 import { handlePayment } from "@calcom/lib/payment/handlePayment";
-import { getPiiFreeCalendarEvent, getPiiFreeEventType, getPiiFreeUser } from "@calcom/lib/piiFreeData";
+import { getPiiFreeCalendarEvent, getPiiFreeEventType } from "@calcom/lib/piiFreeData";
 import { safeStringify } from "@calcom/lib/safeStringify";
-import { checkBookingLimits, checkDurationLimits, getLuckyUser } from "@calcom/lib/server";
+import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
-import { slugify } from "@calcom/lib/slugify";
 import { updateWebUser as syncServicesUpdateWebUser } from "@calcom/lib/sync/SyncServiceManager";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
-import prisma, { userSelect } from "@calcom/prisma";
-import type { BookingReference } from "@calcom/prisma/client";
+import prisma from "@calcom/prisma";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
-import type {
-  AdditionalInformation,
-  AppsStatus,
-  CalendarEvent,
-  IntervalLimit,
-  Person,
-} from "@calcom/types/Calendar";
+import type { AdditionalInformation, AppsStatus, CalendarEvent, Person } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
 import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
+import { addVideoCallDataToEvent } from "./handleNewBooking/addVideoCallDataToEvent";
+import { checkBookingAndDurationLimits } from "./handleNewBooking/checkBookingAndDurationLimits";
 import { checkIfBookerEmailIsBlocked } from "./handleNewBooking/checkIfBookerEmailIsBlocked";
 import { createBooking } from "./handleNewBooking/createBooking";
 import { ensureAvailableUsers } from "./handleNewBooking/ensureAvailableUsers";
 import { getBookingData } from "./handleNewBooking/getBookingData";
+import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResponses";
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
+import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
 import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
+import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
-import { loadUsers } from "./handleNewBooking/loadUsers";
+import { loadAndValidateUsers } from "./handleNewBooking/loadAndValidateUsers";
 import type {
   Invitee,
   IEventTypePaymentCredentialType,
@@ -104,61 +95,13 @@ import type {
   BookingType,
   Booking,
 } from "./handleNewBooking/types";
+import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
+import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
 import type { BookingSeat } from "./handleSeats/types";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
-
-export function getCustomInputsResponses(
-  reqBody: {
-    responses?: Record<string, object>;
-    customInputs?: z.infer<typeof bookingCreateSchemaLegacyPropsForApi>["customInputs"];
-  },
-  eventTypeCustomInputs: getEventTypeResponse["customInputs"]
-) {
-  const customInputsResponses = {} as NonNullable<CalendarEvent["customInputs"]>;
-  if (reqBody.customInputs && (reqBody.customInputs.length || 0) > 0) {
-    reqBody.customInputs.forEach(({ label, value }) => {
-      customInputsResponses[label] = value;
-    });
-  } else {
-    const responses = reqBody.responses || {};
-    // Backward Compatibility: Map new `responses` to old `customInputs` format so that webhooks can still receive same values.
-    for (const [fieldName, fieldValue] of Object.entries(responses)) {
-      const foundACustomInputForTheResponse = eventTypeCustomInputs.find(
-        (input) => slugify(input.label) === fieldName
-      );
-      if (foundACustomInputForTheResponse) {
-        customInputsResponses[foundACustomInputForTheResponse.label] = fieldValue;
-      }
-    }
-  }
-
-  return customInputsResponses;
-}
-
-/** Updates the evt object with video call data found from booking references
- *
- * @param bookingReferences
- * @param evt
- *
- * @returns updated evt with video call data
- */
-export const addVideoCallDataToEvent = (bookingReferences: BookingReference[], evt: CalendarEvent) => {
-  const videoCallReference = bookingReferences.find((reference) => reference.type.includes("_video"));
-
-  if (videoCallReference) {
-    evt.videoCallData = {
-      type: videoCallReference.type,
-      id: videoCallReference.meetingId,
-      password: videoCallReference?.meetingPassword,
-      url: videoCallReference.meetingUrl,
-    };
-  }
-
-  return evt;
-};
 
 export const createLoggerWithEventDetails = (
   eventTypeId: number,
@@ -185,6 +128,23 @@ function getICalSequence(originalRescheduledBooking: BookingType | null) {
   return originalRescheduledBooking.iCalSequence + 1;
 }
 
+const getEventType = async ({
+  eventTypeId,
+  eventTypeSlug,
+}: {
+  eventTypeId: number;
+  eventTypeSlug?: string;
+}) => {
+  // handle dynamic user
+  const eventType =
+    !eventTypeId && !!eventTypeSlug ? getDefaultEvent(eventTypeSlug) : await getEventTypesFromDB(eventTypeId);
+
+  return {
+    ...eventType,
+    bookingFields: getBookingFieldsWithSystemFields(eventType),
+  };
+};
+
 type BookingDataSchemaGetter =
   | typeof getBookingDataSchema
   | typeof import("@calcom/features/bookings/lib/getBookingDataSchemaForApi").default;
@@ -209,16 +169,10 @@ async function handler(
     platformBookingLocation,
   } = req;
 
-  // handle dynamic user
-  let eventType =
-    !req.body.eventTypeId && !!req.body.eventTypeSlug
-      ? getDefaultEvent(req.body.eventTypeSlug)
-      : await getEventTypesFromDB(req.body.eventTypeId);
-
-  eventType = {
-    ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
-  };
+  const eventType = await getEventType({
+    eventTypeId: req.body.eventTypeId,
+    eventTypeSlug: req.body.eventTypeSlug,
+  });
 
   const bookingDataSchema = bookingDataSchemaGetter({
     view: req.body?.rescheduleUid ? "reschedule" : "booking",
@@ -295,146 +249,42 @@ async function handler(
     })
   );
 
-  let timeOutOfBounds = false;
-  try {
-    timeOutOfBounds = isOutOfBounds(
-      reqBody.start,
-      {
-        periodType: eventType.periodType,
-        periodDays: eventType.periodDays,
-        periodEndDate: eventType.periodEndDate,
-        periodStartDate: eventType.periodStartDate,
-        periodCountCalendarDays: eventType.periodCountCalendarDays,
-        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
-      },
-      eventType.minimumBookingNotice
-    );
-  } catch (error) {
-    loggerWithEventDetails.warn({
-      message: "NewBooking: Unable set timeOutOfBounds. Using false. ",
-    });
-    if (error instanceof BookingDateInPastError) {
-      // TODO: HttpError should not bleed through to the console.
-      loggerWithEventDetails.info(`Booking eventType ${eventTypeId} failed`, JSON.stringify({ error }));
-      throw new HttpError({ statusCode: 400, message: error.message });
-    }
-  }
-
-  if (timeOutOfBounds) {
-    const error = {
-      errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
-    };
-    loggerWithEventDetails.warn({
-      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
-    });
-    throw new HttpError({ statusCode: 400, message: error.message });
-  }
-
-  const reqEventLength = dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes");
-  const validEventLengths = eventType.metadata?.multipleDuration?.length
-    ? eventType.metadata.multipleDuration
-    : [eventType.length];
-  if (!validEventLengths.includes(reqEventLength)) {
-    loggerWithEventDetails.warn({ message: "NewBooking: Invalid event length" });
-    throw new HttpError({ statusCode: 400, message: "Invalid event length" });
-  }
-
-  // loadUsers allows type inferring
-  let users: (Awaited<ReturnType<typeof loadUsers>>[number] & {
-    isFixed?: boolean;
-    metadata?: Prisma.JsonValue;
-  })[] = await loadUsers(eventType, dynamicUserList, req);
-
-  const isDynamicAllowed = !users.some((user) => !user.allowDynamicBooking);
-  if (!isDynamicAllowed && !eventTypeId) {
-    loggerWithEventDetails.warn({
-      message: "NewBooking: Some of the users in this group do not allow dynamic booking",
-    });
-    throw new HttpError({
-      message: "Some of the users in this group do not allow dynamic booking",
-      statusCode: 400,
-    });
-  }
-
-  // If this event was pre-relationship migration
-  // TODO: Establish whether this is dead code.
-  if (!users.length && eventType.userId) {
-    const eventTypeUser = await prisma.user.findUnique({
-      where: {
-        id: eventType.userId,
-      },
-      select: {
-        credentials: {
-          select: credentialForCalendarServiceSelect,
-        }, // Don't leak to client
-        ...userSelect.select,
-      },
-    });
-    if (!eventTypeUser) {
-      loggerWithEventDetails.warn({ message: "NewBooking: eventTypeUser.notFound" });
-      throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
-    }
-    users.push(eventTypeUser);
-  }
-
-  if (!users) throw new HttpError({ statusCode: 404, message: "eventTypeUser.notFound" });
-
-  users = users.map((user) => ({
-    ...user,
-    isFixed:
-      user.isFixed === false
-        ? false
-        : user.isFixed || eventType.schedulingType !== SchedulingType.ROUND_ROBIN,
-  }));
-
-  loggerWithEventDetails.debug(
-    "Concerned users",
-    safeStringify({
-      users: users.map(getPiiFreeUser),
-    })
+  await validateBookingTimeIsNotOutOfBounds<typeof eventType>(
+    reqBody.start,
+    reqBody.timeZone,
+    eventType,
+    loggerWithEventDetails
   );
 
-  let locationBodyString = location;
+  validateEventLength({
+    reqBodyStart: reqBody.start,
+    reqBodyEnd: reqBody.end,
+    eventTypeMutipleDuration: eventType.metadata?.multipleDuration,
+    eventTypeLength: eventType.length,
+    logger: loggerWithEventDetails,
+  });
 
-  // TODO: It's definition should be moved to getLocationValueForDb
-  let organizerOrFirstDynamicGroupMemberDefaultLocationUrl = undefined;
+  let users = await loadAndValidateUsers({
+    req,
+    eventType,
+    eventTypeId,
+    dynamicUserList,
+    logger: loggerWithEventDetails,
+  });
 
-  if (dynamicUserList.length > 1) {
-    users = users.sort((a, b) => {
-      const aIndex = (a.username && dynamicUserList.indexOf(a.username)) || 0;
-      const bIndex = (b.username && dynamicUserList.indexOf(b.username)) || 0;
-      return aIndex - bIndex;
-    });
-    const firstUsersMetadata = userMetadataSchema.parse(users[0].metadata);
-    locationBodyString = firstUsersMetadata?.defaultConferencingApp?.appLink || locationBodyString;
-    organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-      firstUsersMetadata?.defaultConferencingApp?.appLink;
-  }
+  let { locationBodyString, organizerOrFirstDynamicGroupMemberDefaultLocationUrl } = getLocationValuesForDb(
+    dynamicUserList,
+    users,
+    location
+  );
+
+  await checkBookingAndDurationLimits({
+    eventType,
+    reqBodyStart: reqBody.start,
+    reqBodyRescheduleUid: reqBody.rescheduleUid,
+  });
 
   let rescheduleUid = reqBody.rescheduleUid;
-
-  if (
-    Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
-    Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
-  ) {
-    const startAsDate = dayjs(reqBody.start).toDate();
-    if (
-      eventType.bookingLimits &&
-      /* Empty object is truthy */ Object.keys(eventType.bookingLimits).length > 0
-    ) {
-      await checkBookingLimits(
-        eventType.bookingLimits as IntervalLimit,
-        startAsDate,
-        eventType.id,
-        rescheduleUid,
-        eventType.schedule?.timeZone
-      );
-    }
-    if (eventType.durationLimits) {
-      await checkDurationLimits(eventType.durationLimits as IntervalLimit, startAsDate, eventType.id);
-    }
-  }
 
   let bookingSeat: BookingSeat = null;
 
@@ -658,6 +508,7 @@ async function handler(
     throw new Error(ErrorCode.NoAvailableUsersFound);
   }
 
+  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   // If the team member is requested then they should be the organizer
   const organizerUser = reqBody.teamMemberEmail
     ? users.find((user) => user.email === reqBody.teamMemberEmail) ?? users[0]
@@ -891,7 +742,7 @@ async function handler(
     eventDescription: eventType.description,
     price: paymentAppData.price,
     currency: eventType.currency,
-    length: reqEventLength,
+    length: dayjs(reqBody.end).diff(dayjs(reqBody.start), "minutes"),
   };
 
   const teamId = await getTeamIdFromEventType({ eventType });
@@ -1765,28 +1616,3 @@ async function handler(
 }
 
 export default handler;
-
-function getVideoCallDetails({
-  results,
-}: {
-  results: EventResult<AdditionalInformation & { url?: string | undefined; iCalUID?: string | undefined }>[];
-}) {
-  const firstVideoResult = results.find((result) => result.type.includes("_video"));
-  const metadata: AdditionalInformation = {};
-  let updatedVideoEvent = null;
-
-  if (firstVideoResult && firstVideoResult.success) {
-    updatedVideoEvent = Array.isArray(firstVideoResult.updatedEvent)
-      ? firstVideoResult.updatedEvent[0]
-      : firstVideoResult.updatedEvent;
-
-    if (updatedVideoEvent) {
-      metadata.hangoutLink = updatedVideoEvent.hangoutLink;
-      metadata.conferenceData = updatedVideoEvent.conferenceData;
-      metadata.entryPoints = updatedVideoEvent.entryPoints;
-    }
-  }
-  const videoCallUrl = metadata.hangoutLink || updatedVideoEvent?.url;
-
-  return { videoCallUrl, metadata, updatedVideoEvent };
-}
