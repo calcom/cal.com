@@ -40,6 +40,14 @@ export const isDedicatedIntegration = (location: string): boolean => {
   return location !== MeetLocationType && location.includes("integrations:");
 };
 
+interface HasId {
+  id: number;
+}
+
+const oldestCredentialFirst = <T extends HasId>(a: T, b: T) => {
+  return b.id - a.id;
+};
+
 export const getLocationRequestFromIntegration = (location: string) => {
   const eventLocationType = getEventLocationTypeFromApp(location);
   if (eventLocationType) {
@@ -104,17 +112,13 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      .sort((a, b) => {
-        return b.id - a.id;
-      });
+      .sort(oldestCredentialFirst);
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
       // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
       // We also don't have updatedAt or createdAt dates on credentials so this is the best we can do
-      .sort((a, b) => {
-        return b.id - a.id;
-      });
+      .sort(oldestCredentialFirst);
     this.crmCredentials = appCredentials.filter(
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
