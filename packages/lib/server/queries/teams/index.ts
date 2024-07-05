@@ -136,7 +136,7 @@ export async function getTeamWithMembers(args: {
           {
             id: "asc",
           },
-        ],
+        ] as Prisma.EventTypeOrderByWithRelationInput[],
         select: {
           hosts: {
             select: {
