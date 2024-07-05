@@ -83,7 +83,7 @@ import { getCustomInputsResponses } from "./handleNewBooking/getCustomInputsResp
 import { getEventTypesFromDB } from "./handleNewBooking/getEventTypesFromDB";
 import type { getEventTypeResponse } from "./handleNewBooking/getEventTypesFromDB";
 import { getLocationValuesForDb } from "./handleNewBooking/getLocationValuesForDb";
-import { getOriginalRescheduledBooking } from "./handleNewBooking/getOriginalRescheduledBooking";
+import { getOriginalRescheduledBookingAndSeat } from "./handleNewBooking/getOriginalRescheduledBookingAndSeat";
 import { getRequiresConfirmationFlags } from "./handleNewBooking/getRequiresConfirmationFlags";
 import { getVideoCallDetails } from "./handleNewBooking/getVideoCallDetails";
 import { handleAppsStatus } from "./handleNewBooking/handleAppsStatus";
@@ -98,7 +98,6 @@ import type {
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
-import type { BookingSeat } from "./handleSeats/types";
 
 const translator = short();
 const log = logger.getSubLogger({ prefix: ["[api] book:user"] });
@@ -284,42 +283,16 @@ async function handler(
     reqBodyRescheduleUid: reqBody.rescheduleUid,
   });
 
-  let rescheduleUid = reqBody.rescheduleUid;
+  const {
+    rescheduleUid,
+    originalRescheduledBooking: originalBooking,
+    bookingSeat,
+  } = await getOriginalRescheduledBookingAndSeat({
+    reqBodyRescheduleUid: reqBody.rescheduleUid,
+    seatsPerTimeSlot: eventType.seatsPerTimeSlot,
+  });
 
-  let bookingSeat: BookingSeat = null;
-
-  let originalRescheduledBooking: BookingType = null;
-
-  //this gets the original rescheduled booking
-  if (rescheduleUid) {
-    // rescheduleUid can be bookingUid and bookingSeatUid
-    bookingSeat = await prisma.bookingSeat.findUnique({
-      where: {
-        referenceUid: rescheduleUid,
-      },
-      include: {
-        booking: true,
-        attendee: true,
-      },
-    });
-    if (bookingSeat) {
-      rescheduleUid = bookingSeat.booking.uid;
-    }
-    originalRescheduledBooking = await getOriginalRescheduledBooking(
-      rescheduleUid,
-      !!eventType.seatsPerTimeSlot
-    );
-    if (!originalRescheduledBooking) {
-      throw new HttpError({ statusCode: 404, message: "Could not find original booking" });
-    }
-
-    if (
-      originalRescheduledBooking.status === BookingStatus.CANCELLED &&
-      !originalRescheduledBooking.rescheduled
-    ) {
-      throw new HttpError({ statusCode: 403, message: ErrorCode.CancelledBookingsCannotBeRescheduled });
-    }
-  }
+  let originalRescheduledBooking = originalBooking;
 
   let luckyUserResponse;
   let isFirstSeat = true;

@@ -6,8 +6,8 @@ import { sendRescheduledEmails } from "@calcom/emails";
 import prisma from "@calcom/prisma";
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 
-import { addVideoCallDataToEvent } from "../../../handleNewBooking";
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import { handleAppsStatus } from "../../../handleNewBooking/handleAppsStatus";
 import type { Booking } from "../../../handleNewBooking/types";
