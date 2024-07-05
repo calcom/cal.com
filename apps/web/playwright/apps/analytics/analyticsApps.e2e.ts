@@ -35,7 +35,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("fathom", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("fathom", id);
     }
   });
 
@@ -49,7 +49,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("matomo", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("matomo", id);
     }
   });
 
@@ -63,7 +63,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("plausible", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("plausible", id);
     }
   });
 
@@ -77,7 +77,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("ga4", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("ga4", id);
     }
   });
 
@@ -91,7 +91,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("gtm", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("gtm", id);
     }
   });
 
@@ -105,7 +105,7 @@ test.describe("Check analytics Apps", () => {
     await appsPage.installAnalyticsApp("metapixel", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("metapixel", id);
     }
   });
 });

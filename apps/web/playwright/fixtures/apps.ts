@@ -133,12 +133,10 @@ export function createAppsFixture(page: Page) {
     verifyAppsInfo: async (activeApps: number) => {
       await expect(page.locator(`text=6 apps, ${activeApps} active`)).toBeVisible();
     },
-    verifyAppsInfoNew: async (apps: string[], eventTypeId: number) => {
+    verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
       await page.waitForLoadState("domcontentloaded");
-      for (const app of apps) {
-        await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
-      }
+      await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };
 }
