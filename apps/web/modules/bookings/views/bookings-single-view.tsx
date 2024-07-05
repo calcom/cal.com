@@ -686,7 +686,7 @@ export default function Success(props: PageProps) {
                                   props.recurringBookings && "ltr:mr-2 rtl:ml-2"
                                 )}
                                 onClick={() => setIsCancellationMode(true)}>
-                                {t("cancel")}
+                                {t("cancel_event")}
                               </button>
                             </>
                           </div>

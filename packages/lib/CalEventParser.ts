@@ -177,7 +177,7 @@ export const getPlatformManageLink = (calEvent: CalendarEvent, t: TFunction) => 
     }&changes=true${calEvent.platformCancelUrl || shouldDisplayReschedule ? ` ${t("or_lowercase")} ` : ""}`;
   }
   if (calEvent.platformCancelUrl) {
-    res += `${t("cancel")}: ${getCancelLink(calEvent)}`;
+    res += `${t("cancel_event")}: ${getCancelLink(calEvent)}`;
   }
 
   if (!calEvent.recurringEvent && calEvent.platformRescheduleUrl) {

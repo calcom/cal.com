@@ -432,7 +432,7 @@ export function expectSuccessfulBookingCreationEmails({
         ? [
             {
               href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
-              text: "cancel",
+              text: "cancel_event",
             },
           ]
         : [
@@ -485,7 +485,7 @@ export function expectSuccessfulBookingCreationEmails({
         ? [
             {
               href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=true`,
-              text: "cancel",
+              text: "cancel_event",
             },
           ]
         : [
@@ -527,7 +527,7 @@ export function expectSuccessfulBookingCreationEmails({
             },
             {
               href: `${bookingUrlOrigin}/booking/${booking.uid}?cancel=true&allRemainingBookings=false`,
-              text: "cancel",
+              text: "cancel_event",
             },
           ],
         },

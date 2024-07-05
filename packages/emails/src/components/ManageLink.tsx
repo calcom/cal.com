@@ -64,7 +64,7 @@ export function ManageLink(props: { calEvent: CalendarEvent; attendee: Person })
                   marginLeft: "5px",
                   textDecoration: "underline",
                 }}>
-                <>{t("cancel")}</>
+                <>{t("cancel_event")}</>
               </a>
             </span>
           )}
