@@ -559,6 +559,20 @@ export const EventTypeList = ({
                                     </DropdownItem>
                                   </DropdownMenuItem>
                                 )}
+                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                                  <>
+                                    <DropdownMenuItem className="outline-none">
+                                      <DropdownItem
+                                        type="button"
+                                        data-testid={`event-type-duplicate-${type.id}`}
+                                        StartIcon="copy"
+                                        onClick={() => openDuplicateModal(type, group)}>
+                                        {t("duplicate")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                                 {!isManagedEventType && (
                                   <DropdownMenuItem className="outline-none">
                                     <EventTypeEmbedButton
@@ -631,36 +645,6 @@ export const EventTypeList = ({
                                 </DropdownItem>
                               </DropdownMenuItem>
                             </>
-                          )}
-                          {isNativeShare ? (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                data-testid={`event-type-duplicate-${type.id}`}
-                                onClick={() => {
-                                  navigator
-                                    .share({
-                                      title: t("share"),
-                                      text: t("share_event", { appName: APP_NAME }),
-                                      url: calLink,
-                                    })
-                                    .then(() => showToast(t("link_shared"), "success"))
-                                    .catch(() => showToast(t("failed"), "error"));
-                                }}
-                                StartIcon="upload"
-                                className="w-full rounded-none">
-                                {t("share")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
-                          ) : null}
-                          {!readOnly && (
-                            <DropdownMenuItem className="outline-none">
-                              <DropdownItem
-                                onClick={() => router.push(`/event-types/${type.id}`)}
-                                StartIcon="pencil"
-                                className="w-full rounded-none">
-                                {t("edit")}
-                              </DropdownItem>
-                            </DropdownMenuItem>
                           )}
                           {isNativeShare ? (
                             <DropdownMenuItem className="outline-none">
