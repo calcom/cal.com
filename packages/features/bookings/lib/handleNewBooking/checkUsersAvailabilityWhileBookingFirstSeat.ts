@@ -1,3 +1,6 @@
+import type { Logger } from "tslog";
+
+import dayjs from "@calcom/dayjs";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { getLuckyUser } from "@calcom/lib/server";
@@ -8,12 +11,12 @@ import {
   getDateParams,
 } from "./checkUsersAreAvailableInFirstRecurringSlot";
 import { ensureAvailableUsers } from "./ensureAvailableUsers";
-import type { getEventTypeResponse, IsFixedAwareUser, EventTypeWithUsers, Users } from "./types";
+import type { NewBookingEventType, IsFixedAwareUser, EventTypeWithUsers, Users, BookingType } from "./types";
 
 type InputProps = {
-  allRecurringDates?: { start: string; end: string }[];
+  allRecurringDates: { start: string; end: string }[];
   users: Users;
-  eventType: getEventTypeResponse;
+  eventType: NewBookingEventType;
   numSlotsToCheckForAvailability: number;
   originalRescheduledBooking: BookingType;
   logger: Logger<unknown>;
@@ -22,6 +25,8 @@ type InputProps = {
   reqBodyEnd: string;
   timeZone: string;
   teamMemberEmail?: string;
+  reqBodyLuckyUsersIds?: number[];
+  isTeamEventType: boolean;
 };
 
 const checkUsersAvailabilityWhileBookingFirstSeat = async ({
@@ -35,6 +40,9 @@ const checkUsersAvailabilityWhileBookingFirstSeat = async ({
   teamMemberEmail,
   reqBodyEnd,
   reqBodyStart,
+  reqBodyLuckyUsersIds,
+  isTeamEventType,
+  timeZone,
 }: InputProps) => {
   const eventTypeWithUsers: EventTypeWithUsers = enrichEventTypeWithUsers(eventType, users);
 
@@ -50,34 +58,32 @@ const checkUsersAvailabilityWhileBookingFirstSeat = async ({
   });
 
   if (!allRecurringDates || isFirstRecurringSlot) {
-    return await handleInitialRecurringSlotAvailability({
+    const { updatedUsers, updatedLuckyUserResponse } = await handleInitialRecurringSlotAvailability({
       teamMemberEmail,
+      timeZone,
+      originalRescheduledBooking,
       reqBodyStart,
       reqBodyEnd,
-      eventType,
-      eventTypeWithUsers,
-      users,
       logger,
+      users,
+      eventType,
+      isFirstRecurringSlot,
+      eventTypeWithUsers,
+      allRecurringDates,
     });
+    return { updatedUsers, updatedLuckyUserResponse };
   } else if (allRecurringDates && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
-    return handleSubsequentRecurringSlotAvailability(req, eventTypeWithUsers, users);
+    const { updatedUsers, updatedLuckyUserResponse } = handleSubsequentRecurringSlotAvailability(
+      eventTypeWithUsers,
+      reqBodyLuckyUsersIds
+    );
+    return { updatedUsers, updatedLuckyUserResponse };
   }
+
+  return { updatedUsers: null, updatedLuckyUserResponse: null };
 };
 
 export default checkUsersAvailabilityWhileBookingFirstSeat;
-
-const enrichEventTypeWithUsers = (eventType: getEventTypeResponse, users: Users) => {
-  return {
-    ...eventType,
-    users: users as IsFixedAwareUser[],
-    ...(eventType.recurringEvent && {
-      recurringEvent: {
-        ...eventType.recurringEvent,
-        count: eventType.recurringEvent.count,
-      },
-    }),
-  };
-};
 
 const handleInitialRecurringSlotAvailability = async ({
   teamMemberEmail,
@@ -87,7 +93,23 @@ const handleInitialRecurringSlotAvailability = async ({
   reqBodyEnd,
   logger,
   users,
-}) => {
+  eventType,
+  isFirstRecurringSlot,
+  eventTypeWithUsers,
+  allRecurringDates,
+}: Pick<
+  InputProps,
+  | "teamMemberEmail"
+  | "timeZone"
+  | "originalRescheduledBooking"
+  | "reqBodyStart"
+  | "reqBodyEnd"
+  | "logger"
+  | "users"
+  | "eventType"
+  | "isFirstRecurringSlot"
+  | "allRecurringDates"
+> & { eventTypeWithUsers: EventTypeWithUsers }) => {
   const availableUsers = await ensureAvailableUsers(
     eventTypeWithUsers,
     {
@@ -99,17 +121,23 @@ const handleInitialRecurringSlotAvailability = async ({
     logger
   );
 
-  const { luckyUsers, fixedUserPool, notAvailableLuckyUsers } = segregateUsers(availableUsers);
+  const { luckyUsers, luckyUserPool, fixedUserPool, notAvailableLuckyUsers } = segregateUsers(
+    availableUsers,
+    logger
+  );
 
   await assignTeamMemberIfRequested({ luckyUsers, teamMemberEmail, availableUsers, fixedUserPool });
 
   await assignLuckyUsers({
     isFirstRecurringSlot,
-    eventType,
+    eventTypeId: eventType.id,
+    isRoundRobin: eventType.schedulingType === SchedulingType.ROUND_ROBIN,
     eventTypeWithUsers,
     luckyUsers,
     notAvailableLuckyUsers,
     logger,
+    allRecurringDates,
+    luckyUserPool,
   });
 
   // ALL fixed users must be available
@@ -168,37 +196,38 @@ const assignTeamMemberIfRequested = async ({
 // Assigns lucky users based on availability
 async function assignLuckyUsers({
   isFirstRecurringSlot,
-  eventType,
+  eventTypeId,
+  isRoundRobin,
   eventTypeWithUsers,
   luckyUsers,
   notAvailableLuckyUsers,
   logger,
-}: Pick<
-  InputProps,
-  | "isFirstRecurringSlot"
-  | "eventType"
-  | "eventTypeWithUsers"
-  | "luckyUsers"
-  | "notAvailableLuckyUsers"
-  | "logger"
->) {
+  allRecurringDates,
+  luckyUserPool,
+}: Pick<InputProps, "isFirstRecurringSlot" | "logger" | "allRecurringDates"> & {
+  eventTypeId: number;
+  isRoundRobin: boolean;
+  luckyUsers: Users;
+  notAvailableLuckyUsers: Users;
+  eventTypeWithUsers: EventTypeWithUsers;
+  luckyUserPool: IsFixedAwareUser[];
+}) {
   // loop through all non-fixed hosts and get the lucky users
   while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
     const allLuckyUserIds = new Set([...luckyUsers, ...notAvailableLuckyUsers].map((user) => user.id));
     const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
       availableUsers: luckyUserPool.filter((user) => !allLuckyUserIds.has(user.id)),
-      eventTypeId: eventType.id,
+      eventTypeId,
     });
 
     if (!newLuckyUser) break;
 
-    const isFirstRoundRobinRecurringEvent =
-      isFirstRecurringSlot && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
+    const isFirstRoundRobinRecurringEvent = isFirstRecurringSlot && isRoundRobin;
 
     if (isFirstRoundRobinRecurringEvent) {
       // for recurring round robin events check if lucky user is available for next slots
       await handleRoundRobinAvailability({
-        req,
+        allRecurringDates,
         eventTypeWithUsers,
         newLuckyUser,
         luckyUsers,
@@ -224,16 +253,17 @@ async function handleRoundRobinAvailability({
   originalRescheduledBooking,
 }: Pick<
   InputProps,
-  | "allRecurringDates"
   | "numSlotsToCheckForAvailability"
   | "timeZone"
-  | "eventTypeWithUsers"
-  | "newLuckyUser"
-  | "luckyUsers"
-  | "notAvailableLuckyUsers"
   | "logger"
   | "originalRescheduledBooking"
->) {
+  | "allRecurringDates"
+> & {
+  luckyUsers: Users;
+  newLuckyUser: IsFixedAwareUser;
+  eventTypeWithUsers: EventTypeWithUsers;
+  notAvailableLuckyUsers: Users;
+}) {
   try {
     const slotsToCheck = Math.min(allRecurringDates.length, numSlotsToCheckForAvailability);
 
@@ -259,11 +289,26 @@ async function handleRoundRobinAvailability({
 // all recurring slots except the first one
 function handleSubsequentRecurringSlotAvailability(
   eventTypeWithUsers: EventTypeWithUsers,
-  luckyUsers: Users
+  reqBodyLuckyUsersIds?: number[]
 ) {
-  const luckyUsersFromFirstBooking = luckyUsers
-    ? eventTypeWithUsers.users.filter((user) => luckyUsers.find((luckyUserId) => luckyUserId === user.id))
+  const luckyUsersFromFirstBooking = reqBodyLuckyUsersIds
+    ? eventTypeWithUsers.users.filter((user) =>
+        reqBodyLuckyUsersIds.find((luckyUserId) => luckyUserId === user.id)
+      )
     : [];
   const fixedHosts = eventTypeWithUsers.users.filter((user: IsFixedAwareUser) => user.isFixed);
   return { updatedUsers: [...fixedHosts, ...luckyUsersFromFirstBooking], updatedLuckyUserResponse: null };
 }
+
+const enrichEventTypeWithUsers = (eventType: NewBookingEventType, users: Users) => {
+  return {
+    ...eventType,
+    users: users as IsFixedAwareUser[],
+    ...(eventType.recurringEvent && {
+      recurringEvent: {
+        ...eventType.recurringEvent,
+        count: eventType.recurringEvent.count,
+      },
+    }),
+  };
+};

@@ -1,4 +1,4 @@
-import type { DestinationCalendar, EventType } from "@prisma/client";
+import type { DestinationCalendar } from "@prisma/client";
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { NextApiRequest } from "next";
@@ -93,7 +93,9 @@ import type {
   BookingType,
   Booking,
   Users,
+  NewBookingEventType,
 } from "./handleNewBooking/types";
+import { updateHashedLink } from "./handleNewBooking/updateHashedLink";
 import { validateBookingTimeIsNotOutOfBounds } from "./handleNewBooking/validateBookingTimeIsNotOutOfBounds";
 import { validateEventLength } from "./handleNewBooking/validateEventLength";
 import handleSeats from "./handleSeats/handleSeats";
@@ -148,7 +150,7 @@ const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
   : [];
 
 const selectDestinationCalendar = (
-  eventTypeCalendar: EventType["destinationCalendar"],
+  eventTypeCalendar: NewBookingEventType["destinationCalendar"],
   organizerCalendar: Users[number]["destinationCalendar"]
 ) => {
   if (eventTypeCalendar) return [eventTypeCalendar];
@@ -331,9 +333,11 @@ async function handler(
       reqBodyEnd: reqBody.end,
       originalRescheduledBooking,
       logger: loggerWithEventDetails,
+      reqBodyLuckyUsersIds: luckyUsers,
+      isTeamEventType,
     });
 
-    users = updatedUsers;
+    if (!!updatedUsers) users = updatedUsers;
     if (!!updatedLuckyUserResponse) luckyUserResponse = updatedLuckyUserResponse;
   }
 
@@ -501,7 +505,7 @@ async function handler(
   // For bookings made before introducing iCalSequence, assume that the sequence should start at 1. For new bookings start at 0.
   const iCalSequence = getICalSequence(originalRescheduledBooking);
 
-  const bookerUrl = getBookerBaseUrlFromEventType(eventType.team, organizerUser.id, dynamicUserList);
+  const bookerUrl = await getBookerBaseUrlFromEventType(eventType.team, organizerUser.id, dynamicUserList);
 
   const destinationCalendar = selectDestinationCalendar(
     eventType.destinationCalendar,

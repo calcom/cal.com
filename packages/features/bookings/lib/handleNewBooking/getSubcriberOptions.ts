@@ -8,10 +8,10 @@ export const getSubcriberOptions = async ({
   organizerId,
   triggerEvent,
 }: {
-  eventType: { team: { id: number | null } | null; parentId: number | null };
-  organizerUserId: number;
+  eventType: { id: number; team: { id: number | null } | null; parentId: number | null };
+  organizerId: number;
   triggerEvent: WebhookTriggerEvents;
-}): GetSubscriberOptions => {
+}): Promise<GetSubscriberOptions> => {
   const teamId = await getTeamIdFromEventType({ eventType });
   const isManagedEvent = teamId && eventType.parentId;
 
@@ -21,8 +21,8 @@ export const getSubcriberOptions = async ({
   const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
   return {
-    userId: triggerForUser ? organizerUser.id : null,
-    eventTypeId,
+    userId: triggerForUser ? organizerId : null,
+    eventTypeId: eventType.id,
     triggerEvent,
     teamId,
     orgId,

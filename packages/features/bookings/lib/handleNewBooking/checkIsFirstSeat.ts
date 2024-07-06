@@ -1,6 +1,6 @@
+import dayjs from "@calcom/dayjs";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import dayjs from "@calcom/utils/dayjs";
 
 export const checkIsFirstSeat = async ({
   uid,

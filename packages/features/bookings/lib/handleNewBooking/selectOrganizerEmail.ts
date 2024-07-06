@@ -1,4 +1,4 @@
-import type { EventType } from "@prisma/client";
+import type { NewBookingEventType } from "./types";
 
 export const selectOrganizerEmail = ({
   organizerEmail,
@@ -9,9 +9,9 @@ export const selectOrganizerEmail = ({
 }: {
   organizerEmail: string;
   useEventTypeDestinationCalendarEmail: boolean;
-  destinationCalendar: EventType["destinationCalendar"];
-  secondaryEmailId: EventType["secondaryEmailId"];
-  secondaryEmail: EventType["secondaryEmail"];
+  destinationCalendar: NewBookingEventType["destinationCalendar"];
+  secondaryEmailId: NewBookingEventType["secondaryEmailId"];
+  secondaryEmail: NewBookingEventType["secondaryEmail"];
 }) => {
   if (useEventTypeDestinationCalendarEmail && destinationCalendar?.[0]?.primaryEmail) {
     return destinationCalendar[0].primaryEmail;

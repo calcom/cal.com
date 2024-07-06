@@ -1,5 +1,4 @@
-import type { EventType } from "@prisma/client";
-
+import type { NewBookingEventType } from "@calcom/features/bookings/lib/handleNewBooking/types";
 import prisma from "@calcom/prisma";
 
 import { WEBSITE_URL } from "../constants";
@@ -16,12 +15,13 @@ export const getTeamBookerUrl = async (team: { organizationId: number | null }) 
 };
 
 export const getBookerBaseUrlFromEventType = async (
-  eventTypeTeam: EventType["team"],
-  organizerId: string,
+  eventTypeTeam: NewBookingEventType["team"],
+  organizerId: number,
   dynamicUserList: string[]
 ) => {
   if (eventTypeTeam) {
-    return await getBookerBaseUrl(eventTypeTeam.parentId);
+    const bookerBaseUrl = getBookerBaseUrl(eventTypeTeam.parentId);
+    return bookerBaseUrl;
   }
 
   const organizerOrganizationProfile = await prisma.profile.findFirst({
@@ -31,5 +31,7 @@ export const getBookerBaseUrlFromEventType = async (
     },
   });
 
-  return await getBookerBaseUrl(organizerOrganizationProfile?.organizationId ?? null);
+  const bookerBaseUrl = await getBookerBaseUrl(organizerOrganizationProfile?.organizationId ?? null);
+
+  return bookerBaseUrl;
 };
