@@ -54,9 +54,6 @@ const WorkflowListItem = (props: ItemProps) => {
         setActiveEventTypeIds(newActiveEventTypeIds);
         offOn = "off";
       } else {
-        const newActiveEventTypeIds = activeEventTypeIds;
-        newActiveEventTypeIds.push(eventType.id);
-        setActiveEventTypeIds(newActiveEventTypeIds);
         offOn = "on";
       }
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
