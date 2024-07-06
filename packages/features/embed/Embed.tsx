@@ -715,7 +715,6 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       label: "Bottom left",
     },
   ];
-  const previewTab = tabs.find((tab) => tab.name === "Preview");
 
   return (
     <DialogContent
@@ -724,7 +723,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
       className="rounded-lg p-0.5 sm:max-w-[80rem]"
       type="creation">
       <div className="flex">
-        <div className="bg-muted flex h-[95vh] w-1/3 flex-col overflow-y-auto p-8">
+        <div className="bg-muted flex h-[90vh] w-1/3 flex-col overflow-y-auto p-8">
           <h3
             className="text-emphasis mb-2.5 flex items-center text-xl font-semibold leading-5"
             id="modal-title">
@@ -1021,109 +1020,100 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
             </div>
           )}
         </div>
-        <div className="flex h-[95vh] w-2/3 flex-col px-8 pt-8">
+        <div className="flex w-2/3 flex-col px-8 pt-8">
           <HorizontalTabs
             data-testid="embed-tabs"
-            tabs={
-              embedType === "email"
-                ? parsedTabs.filter((tab) => tab.name === "Preview")
-                : parsedTabs.filter((tab) => tab.name !== "Preview")
-            }
+            tabs={embedType === "email" ? parsedTabs.filter((tab) => tab.name === "Preview") : parsedTabs}
             linkShallow
           />
-          <>
-            <div className="flex h-full flex-col">
-              {tabs.map((tab) => {
-                if (embedType !== "email") {
-                  if (tab.name === "Preview") return null;
-                  return (
-                    <div
-                      key={tab.href}
-                      className={classNames(
-                        searchParams?.get("embedTabName") === tab.href.split("=")[1] ? "flex-1" : "hidden"
-                      )}>
-                      {tab.type === "code" && (
-                        <tab.Component
-                          namespace={namespace}
-                          embedType={embedType}
-                          calLink={calLink}
-                          previewState={previewState}
-                          ref={refOfEmbedCodesRefs.current[tab.name]}
-                        />
-                      )}
-                      <div
-                        className={
-                          searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
-                        }
-                      />
-                    </div>
-                  );
-                }
-
-                if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
-
-                return (
-                  <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
-                    <div className="flex h-[55vh] flex-grow flex-col">
-                      <EmailEmbedPreview
+          {tabs.map((tab) => {
+            if (embedType !== "email") {
+              return (
+                <div
+                  key={tab.href}
+                  className={classNames(
+                    searchParams?.get("embedTabName") === tab.href.split("=")[1]
+                      ? "flex flex-grow flex-col"
+                      : "hidden"
+                  )}>
+                  <div className="flex h-[55vh] flex-grow flex-col">
+                    {tab.type === "code" ? (
+                      <tab.Component
+                        namespace={namespace}
+                        embedType={embedType}
                         calLink={calLink}
-                        eventType={eventTypeData?.eventType}
-                        emailContentRef={emailContentRef}
-                        username={teamSlug ?? (data?.user.username as string)}
-                        month={month as string}
-                        selectedDateAndTime={
-                          selectedDatesAndTimes
-                            ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
-                            : {}
-                        }
+                        previewState={previewState}
+                        ref={refOfEmbedCodesRefs.current[tab.name]}
                       />
-                    </div>
-                    <div
-                      className={
-                        searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
-                      }
-                    />
+                    ) : (
+                      <tab.Component
+                        namespace={namespace}
+                        embedType={embedType}
+                        calLink={calLink}
+                        previewState={previewState}
+                        ref={iframeRef}
+                      />
+                    )}
                   </div>
-                );
-              })}
+                  <div
+                    className={
+                      searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"
+                    }
+                  />
+                  <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
+                    <DialogClose />
+                    {tab.type === "code" ? (
+                      <Button
+                        type="submit"
+                        onClick={() => {
+                          const currentTabCodeEl = refOfEmbedCodesRefs.current[tab.name].current;
+                          if (!currentTabCodeEl) {
+                            return;
+                          }
+                          navigator.clipboard.writeText(currentTabCodeEl.value);
+                          showToast(t("code_copied"), "success");
+                        }}>
+                        {t("copy_code")}
+                      </Button>
+                    ) : null}
+                  </DialogFooter>
+                </div>
+              );
+            }
 
-              {embedType !== "email" && previewTab && (
-                <div className="flex-1">
-                  <previewTab.Component
-                    namespace={namespace}
-                    embedType={embedType}
+            if (embedType === "email" && (tab.name !== "Preview" || !eventTypeData?.eventType)) return;
+
+            return (
+              <div key={tab.href} className={classNames("flex flex-grow flex-col")}>
+                <div className="flex h-[55vh] flex-grow flex-col">
+                  <EmailEmbedPreview
                     calLink={calLink}
-                    previewState={previewState}
-                    ref={iframeRef}
+                    eventType={eventTypeData?.eventType}
+                    emailContentRef={emailContentRef}
+                    username={teamSlug ?? (data?.user.username as string)}
+                    month={month as string}
+                    selectedDateAndTime={
+                      selectedDatesAndTimes
+                        ? selectedDatesAndTimes[eventTypeData?.eventType.slug as string]
+                        : {}
+                    }
                   />
                 </div>
-              )}
-            </div>
-            <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
-              <DialogClose />
-              <Button
-                type="submit"
-                onClick={() => {
-                  if (embedType === "email") {
-                    handleCopyEmailText();
-                  } else {
-                    const currentTabHref = searchParams?.get("embedTabName");
-                    const currentTabName = tabs.find(
-                      (tab) => tab.href === `embedTabName=${currentTabHref}`
-                    )?.name;
-                    if (!currentTabName) return;
-                    const currentTabCodeEl = refOfEmbedCodesRefs.current[currentTabName].current;
-                    if (!currentTabCodeEl) {
-                      return;
-                    }
-                    navigator.clipboard.writeText(currentTabCodeEl.value);
-                    showToast(t("code_copied"), "success");
-                  }
-                }}>
-                {embedType === "email" ? t("copy") : t("copy_code")}
-              </Button>
-            </DialogFooter>
-          </>
+                <div
+                  className={searchParams?.get("embedTabName") === "embed-preview" ? "mt-2 block" : "hidden"}
+                />
+                <DialogFooter className="mt-10 flex-row-reverse gap-x-2" showDivider>
+                  <DialogClose />
+                  <Button
+                    onClick={() => {
+                      handleCopyEmailText();
+                    }}>
+                    {embedType === "email" ? t("copy") : t("copy_code")}
+                  </Button>
+                </DialogFooter>
+              </div>
+            );
+          })}
         </div>
       </div>
     </DialogContent>

@@ -74,16 +74,6 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   });
 }
 
-export const getBatchProcessorJobAccessLink = (id: string) => {
-  return fetcher(`/batch-processor/${id}/access-link`).then(ZGetTranscriptAccessLink.parse);
-};
-
-export const getRoomNameFromRecordingId = (recordingId: string) => {
-  return fetcher(`/recordings/${recordingId}`)
-    .then(recordingItemSchema.parse)
-    .then((res) => res.room_name);
-};
-
 async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   const batchSize = 5; // Batch size
   const batches = []; // Array to hold batches of transcript IDs
@@ -124,38 +114,6 @@ export const generateGuestMeetingTokenFromOwnerMeetingToken = async (meetingToke
   }).then(meetingTokenSchema.parse);
 
   return guestMeetingToken.token;
-};
-
-// Only for backward compatibility
-export const setEnableRecordingUIForOrganizer = async (
-  bookingReferenceId: number,
-  meetingToken: string | null
-) => {
-  if (!meetingToken) return null;
-
-  const token = await fetcher(`/meeting-tokens/${meetingToken}`).then(ZGetMeetingTokenResponseSchema.parse);
-  if (token.enable_recording_ui === false) return null;
-
-  const organizerMeetingToken = await postToDailyAPI("/meeting-tokens", {
-    properties: {
-      room_name: token.room_name,
-      exp: token.exp,
-      enable_recording_ui: false,
-      is_owner: true,
-    },
-  }).then(meetingTokenSchema.parse);
-
-  // Update the meetingPassword in the database
-  await prisma.bookingReference.update({
-    where: {
-      id: bookingReferenceId,
-    },
-    data: {
-      meetingPassword: organizerMeetingToken.token,
-    },
-  });
-
-  return organizerMeetingToken.token;
 };
 
 const DailyVideoApiAdapter = (): VideoApiAdapter => {
@@ -342,7 +300,9 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         if (!transcriptJobId) return [];
 
-        const accessLinkRes = await getBatchProcessorJobAccessLink(transcriptJobId);
+        const accessLinkRes = await fetcher(`/batch-processor/${transcriptJobId}/access-link`).then(
+          ZGetTranscriptAccessLink.parse
+        );
 
         return accessLinkRes.transcription;
       } catch (err) {

@@ -91,8 +91,6 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
       const firstSlug = firstFullSlug.split("/")[2];
 
-      await expect(page.locator("[data-testid=readonly-badge]")).toBeHidden();
-
       await page.click(`[data-testid=event-type-options-${eventTypeId}]`);
       await page.click(`[data-testid=event-type-duplicate-${eventTypeId}]`);
       // Wait for the dialog to appear so we can get the URL

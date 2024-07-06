@@ -1,6 +1,6 @@
 import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
 
-import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { BookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -9,7 +9,9 @@ import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } f
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
-export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
+export type NewBookingEventType =
+  | Awaited<ReturnType<typeof getDefaultEvent>>
+  | Awaited<ReturnType<typeof getEventTypesFromDB>>;
 
 export async function scheduleMandatoryReminder(
   evt: BookingInfo,

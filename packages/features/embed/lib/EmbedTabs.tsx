@@ -36,7 +36,7 @@ export const tabs = [
       return (
         <>
           <div>
-            <small className="text-subtle flex py-2">
+            <small className="text-subtle flex py-4">
               {t("place_where_cal_widget_appear", { appName: APP_NAME })}
             </small>
           </div>
@@ -91,7 +91,7 @@ export const tabs = [
       }
       return (
         <>
-          <small className="text-subtle flex py-2">{t("create_update_react_component")}</small>
+          <small className="text-subtle flex py-4">{t("create_update_react_component")}</small>
           <TextArea
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
@@ -100,10 +100,10 @@ export const tabs = [
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
-
+  
   /* If you are using yarn */
   // yarn add @calcom/embed-react
-
+  
   /* If you are using npm */
   // npm install @calcom/embed-react
   ${getEmbedTypeSpecificString({
@@ -141,7 +141,7 @@ export const tabs = [
         <iframe
           ref={ref as typeof ref & MutableRefObject<HTMLIFrameElement>}
           data-testid="embed-preview"
-          className="rounded-md border"
+          className="h-[100vh] border"
           width="100%"
           height="100%"
           src={iframeSrc}

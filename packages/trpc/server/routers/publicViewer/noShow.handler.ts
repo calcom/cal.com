@@ -75,7 +75,6 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
       const booking = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: {
-          id: true,
           eventType: {
             select: {
               id: true,
@@ -104,7 +103,6 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         // @ts-expect-error payload is too booking specific, we need to refactor this
         message: t(payload.message, { x: payload.attendees[0]?.email || "User" }),
         bookingUid,
-        bookingId: booking?.id,
       });
       return payload;
     }

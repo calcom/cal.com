@@ -14,7 +14,7 @@ type IToast = {
 export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "data-testid-toast-success bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "data-testid-toast-success bg-brand-default text-inverted mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
@@ -30,7 +30,7 @@ export const SuccessToast = ({ message, toastVisible, onClose, toastId }: IToast
 export const ErrorToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-error text-error text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-error text-error mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>
@@ -62,7 +62,7 @@ export const WarningToast = ({ message, toastVisible, onClose, toastId }: IToast
 export const DefaultToast = ({ message, toastVisible, onClose, toastId }: IToast) => (
   <button
     className={classNames(
-      "animate-fade-in-up bg-brand-default text-brand mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
+      "animate-fade-in-up bg-brand-default text-inverted mb-2 flex h-auto space-x-2 rounded-md p-3 text-sm font-semibold shadow-md rtl:space-x-reverse md:max-w-sm",
       toastVisible && "animate-fade-in-up cursor-pointer"
     )}
     onClick={() => onClose(toastId)}>

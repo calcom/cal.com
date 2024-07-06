@@ -9,7 +9,6 @@ import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -17,7 +16,6 @@ import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Icon } from "@calcom/ui";
 import {
   Avatar,
   BannerUploader,
@@ -43,7 +41,6 @@ const orgProfileFormSchema = z.object({
   name: z.string(),
   logoUrl: z.string().nullable(),
   banner: z.string().nullable(),
-  calVideoLogo: z.string().nullable(),
   bio: z.string(),
 });
 
@@ -53,7 +50,6 @@ type FormValues = {
   banner: string | null;
   bio: string;
   slug: string;
-  calVideoLogo: string | null;
 };
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -118,7 +114,6 @@ const OrgProfileView = () => {
     logoUrl: currentOrganisation?.logoUrl,
     banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
-    calVideoLogo: currentOrganisation?.calVideoLogo || "",
     slug:
       currentOrganisation?.slug ||
       ((currentOrganisation?.metadata as Prisma.JsonObject)?.requestedSlug as string) ||
@@ -130,10 +125,7 @@ const OrgProfileView = () => {
       <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
       <>
         {isOrgAdminOrOwner ? (
-          <>
-            <OrgProfileForm defaultValues={defaultValues} />
-            <OrgAppearanceViewWrapper />
-          </>
+          <OrgProfileForm defaultValues={defaultValues} />
         ) : (
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
@@ -190,7 +182,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
         banner: (res.data?.bannerUrl || "") as string,
-        calVideoLogo: (res.data?.calVideoLogo || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -215,7 +206,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           slug: values.slug,
           bio: values.bio,
           banner: values.banner,
-          calVideoLogo: values.calVideoLogo,
         };
 
         mutation.mutate(variables);
@@ -298,44 +288,6 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             }}
           />
         </div>
-        <div className="mt-2 flex items-center">
-          <Controller
-            control={form.control}
-            name="calVideoLogo"
-            render={({ field: { value, onChange } }) => {
-              const showRemoveLogoButton = !!value;
-              return (
-                <>
-                  <Avatar
-                    alt="calVideoLogo"
-                    imageSrc={value}
-                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
-                    size="lg"
-                  />
-                  <div className="ms-4">
-                    <div className="flex gap-2">
-                      <ImageUploader
-                        target="avatar"
-                        id="cal-video-logo-upload"
-                        buttonMsg={t("upload_cal_video_logo")}
-                        handleAvatarChange={onChange}
-                        imageSrc={value || undefined}
-                        uploadInstruction={t("cal_video_logo_upload_instruction")}
-                        triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
-                        testId="cal-video-logo"
-                      />
-                      {showRemoveLogoButton && (
-                        <Button color="secondary" onClick={() => onChange(null)}>
-                          {t("remove")}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </>
-              );
-            }}
-          />
-        </div>
 
         <Controller
           control={form.control}
@@ -382,12 +334,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button
-          data-testid="update-org-profile-button"
-          color="primary"
-          type="submit"
-          loading={mutation.isPending}
-          disabled={isDisabled}>
+        <Button color="primary" type="submit" loading={mutation.isPending} disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>

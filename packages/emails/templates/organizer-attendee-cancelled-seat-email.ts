@@ -1,4 +1,4 @@
-import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
@@ -16,7 +16,7 @@ export default class OrganizerCancelledEmail extends OrganizerScheduledEmail {
     }
 
     return {
-      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       subject: `${this.t("event_cancelled_subject", {
         title: this.calEvent.title,

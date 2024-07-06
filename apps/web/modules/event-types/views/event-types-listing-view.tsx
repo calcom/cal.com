@@ -167,7 +167,7 @@ const Item = ({
         </small>
       ) : null}
       {readOnly && (
-        <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
+        <Badge variant="gray" className="ml-2">
           {t("readonly")}
         </Badge>
       )}
@@ -206,7 +206,7 @@ const Item = ({
           </small>
         ) : null}
         {readOnly && (
-          <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
+          <Badge variant="gray" className="ml-2">
             {t("readonly")}
           </Badge>
         )}
@@ -560,8 +560,7 @@ export const EventTypeList = ({
                                     </DropdownItem>
                                   </DropdownMenuItem>
                                 )}
-                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                                {!isManagedEventType && !isChildrenManagedEventType && (
                                   <>
                                     <DropdownMenuItem className="outline-none">
                                       <DropdownItem
@@ -589,24 +588,25 @@ export const EventTypeList = ({
                                   </DropdownMenuItem>
                                 )}
                                 {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                                {!readOnly && !isChildrenManagedEventType && (
-                                  <>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem>
-                                      <DropdownItem
-                                        color="destructive"
-                                        onClick={() => {
-                                          setDeleteDialogOpen(true);
-                                          setDeleteDialogTypeId(type.id);
-                                          setDeleteDialogSchedulingType(type.schedulingType);
-                                        }}
-                                        StartIcon="trash"
-                                        className="w-full rounded-none">
-                                        {t("delete")}
-                                      </DropdownItem>
-                                    </DropdownMenuItem>
-                                  </>
-                                )}
+                                {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                                  !isChildrenManagedEventType && (
+                                    <>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem>
+                                        <DropdownItem
+                                          color="destructive"
+                                          onClick={() => {
+                                            setDeleteDialogOpen(true);
+                                            setDeleteDialogTypeId(type.id);
+                                            setDeleteDialogSchedulingType(type.schedulingType);
+                                          }}
+                                          StartIcon="trash"
+                                          className="w-full rounded-none">
+                                          {t("delete")}
+                                        </DropdownItem>
+                                      </DropdownMenuItem>
+                                    </>
+                                  )}
                               </DropdownMenuContent>
                             </Dropdown>
                           </ButtonGroup>
@@ -676,7 +676,7 @@ export const EventTypeList = ({
                               </DropdownItem>
                             </DropdownMenuItem>
                           )}
-                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                          {!isManagedEventType && !isChildrenManagedEventType && (
                             <DropdownMenuItem className="outline-none">
                               <DropdownItem
                                 onClick={() => openDuplicateModal(type, group)}
@@ -687,23 +687,24 @@ export const EventTypeList = ({
                             </DropdownMenuItem>
                           )}
                           {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
-                          {!readOnly && !isChildrenManagedEventType && (
-                            <>
-                              <DropdownMenuItem className="outline-none">
-                                <DropdownItem
-                                  color="destructive"
-                                  onClick={() => {
-                                    setDeleteDialogOpen(true);
-                                    setDeleteDialogTypeId(type.id);
-                                    setDeleteDialogSchedulingType(type.schedulingType);
-                                  }}
-                                  StartIcon="trash"
-                                  className="w-full rounded-none">
-                                  {t("delete")}
-                                </DropdownItem>
-                              </DropdownMenuItem>
-                            </>
-                          )}
+                          {(group.metadata?.readOnly === false || group.metadata.readOnly === null) &&
+                            !isChildrenManagedEventType && (
+                              <>
+                                <DropdownMenuItem className="outline-none">
+                                  <DropdownItem
+                                    color="destructive"
+                                    onClick={() => {
+                                      setDeleteDialogOpen(true);
+                                      setDeleteDialogTypeId(type.id);
+                                      setDeleteDialogSchedulingType(type.schedulingType);
+                                    }}
+                                    StartIcon="trash"
+                                    className="w-full rounded-none">
+                                    {t("delete")}
+                                  </DropdownItem>
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           <DropdownMenuSeparator />
                           {!isManagedEventType && (
                             <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
@@ -732,32 +733,33 @@ export const EventTypeList = ({
             );
           })}
         </Reorder.Group>
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <ConfirmationDialogContent
-            variety="danger"
-            title={t(`delete${isManagedEventPrefix()}_event_type`)}
-            confirmBtnText={t(`confirm_delete_event_type`)}
-            loadingText={t(`confirm_delete_event_type`)}
-            isPending={deleteMutation.isPending}
-            onConfirm={(e) => {
-              e.preventDefault();
-              deleteEventTypeHandler(deleteDialogTypeId);
-            }}>
-            <p className="mt-5">
-              <Trans
-                i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
-                components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
-                <ul>
-                  <li>Members assigned to this event type will also have their event types deleted.</li>
-                  <li>
-                    Anyone who they&apos;ve shared their link with will no longer be able to book using it.
-                  </li>
-                </ul>
-              </Trans>
-            </p>
-          </ConfirmationDialogContent>
-        </Dialog>
       </div>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t(`delete${isManagedEventPrefix()}_event_type`)}
+          confirmBtnText={t(`confirm_delete_event_type`)}
+          loadingText={t(`confirm_delete_event_type`)}
+          isPending={deleteMutation.isPending}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteEventTypeHandler(deleteDialogTypeId);
+          }}>
+          <p className="mt-5">
+            <Trans
+              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
+              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
+          </p>
+        </ConfirmationDialogContent>
+      </Dialog>
     </div>
   );
 };
