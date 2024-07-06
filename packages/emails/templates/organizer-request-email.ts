@@ -1,4 +1,4 @@
-import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import OrganizerScheduledEmail from "./organizer-scheduled-email";
@@ -8,7 +8,7 @@ export default class OrganizerRequestEmail extends OrganizerScheduledEmail {
     const toAddresses = [this.teamMember?.email || this.calEvent.organizer.email];
 
     return {
-      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
+      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.t("awaiting_approval")}: ${this.calEvent.title}`,

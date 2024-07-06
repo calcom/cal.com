@@ -1,4 +1,4 @@
-import formbricks from "@formbricks/js/app";
+import formbricks from "@formbricks/js";
 import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 

@@ -112,7 +112,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventSlug: slug,
     isTeamEvent,
     org,
-    fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
   });
 
   if (!eventData) {

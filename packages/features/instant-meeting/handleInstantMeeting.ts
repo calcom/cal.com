@@ -8,8 +8,11 @@ import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { getBookingData, getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking";
-import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
+import {
+  getBookingData,
+  getCustomInputsResponses,
+  getEventTypesFromDB,
+} from "@calcom/features/bookings/lib/handleNewBooking";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";

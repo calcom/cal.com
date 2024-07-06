@@ -21,7 +21,6 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
-  testId?: string;
 };
 
 // This is separate to prevent loading the component until file upload
@@ -74,7 +73,6 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
-  testId,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -127,7 +125,7 @@ export default function ImageUploader({
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
-          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
+          data-testid="open-upload-avatar-dialog"
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
         </Button>
@@ -149,7 +147,7 @@ export default function ImageUploader({
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
-              data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
+              data-testid="open-upload-image-filechooser"
               className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
@@ -169,7 +167,7 @@ export default function ImageUploader({
         <DialogFooter className="relative">
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
           <DialogClose
-            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
+            data-testid="upload-avatar"
             color="primary"
             onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}

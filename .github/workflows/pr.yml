@@ -2,7 +2,6 @@ name: PR Update
 
 on:
   pull_request_target:
-    types: [opened, synchronize, reopened, labeled]
     branches:
       - main
       - gh-actions-test-branch
@@ -170,7 +169,6 @@ jobs:
 
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
-    if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
       - name: fail if conditional jobs failed

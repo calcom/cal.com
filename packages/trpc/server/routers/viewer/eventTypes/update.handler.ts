@@ -342,9 +342,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     }
   }
 
-  if (assignAllTeamMembers !== undefined) {
-    data.assignAllTeamMembers = assignAllTeamMembers;
-  }
+  data.assignAllTeamMembers = assignAllTeamMembers ?? false;
 
   // Validate the secondary email
   if (secondaryEmailId) {
