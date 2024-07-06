@@ -390,6 +390,10 @@ export const EventTypeList = ({
   const [shadowList, setShadowList] = useState(types);
   const [reorderingList, setReorderingList] = useState(false);
 
+  useEffect(() => {
+    setShadowList(types);
+  }, [types]);
+
   if (!types.length) {
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
