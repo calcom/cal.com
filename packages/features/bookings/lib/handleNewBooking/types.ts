@@ -63,6 +63,15 @@ export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;
 
 export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
 
+export type Users = (AwaitedLoadUsers[number] & {
+  isFixed?: boolean;
+  metadata?: Prisma.JsonValue;
+})[];
+
+export type EventTypeWithUsers = getEventTypeResponse & {
+  users: IsFixedAwareUser[];
+};
+
 export type {
   AwaitedBookingData,
   RescheduleReason,
