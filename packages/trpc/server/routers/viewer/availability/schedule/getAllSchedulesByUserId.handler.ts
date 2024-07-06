@@ -18,6 +18,19 @@ type GetOptions = {
 export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions) => {
   const { user } = ctx;
 
+  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({
+    ctx,
+    input: { memberId: input?.userId },
+  });
+
+  const isCurrentUserOwner = input?.userId === user.id;
+
+  if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+    });
+  }
+
   const schedules = await prisma.schedule.findMany({
     where: {
       userId: input.userId,
@@ -32,18 +45,6 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
   });
 
   if (!schedules) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-    });
-  }
-  const isCurrentUserPartOfTeam = hasReadPermissionsForUserId({
-    ctx,
-    input: { memberId: input?.userId },
-  });
-
-  const isCurrentUserOwner = input?.userId === user.id;
-
-  if (!isCurrentUserPartOfTeam && !isCurrentUserOwner) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
     });
