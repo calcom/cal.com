@@ -266,10 +266,10 @@ const Days = ({
             <div key={`e-${idx}`} />
           ) : props.isPending ? (
             <button
-              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-50 transition"
+              className="bg-muted text-muted absolute bottom-0 left-0 right-0 top-0 mx-auto flex w-full items-center justify-center rounded-sm border-transparent text-center font-medium opacity-75 transition"
               key={`e-${idx}`}
               disabled>
-              <SkeletonText className="h-4 w-5" />
+              <SkeletonText className="h-8 w-9" />
             </button>
           ) : (
             <DayComponent
