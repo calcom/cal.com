@@ -55,6 +55,7 @@ type InputWorkflow = {
 type InputHost = {
   userId: number;
   isFixed?: boolean;
+  scheduleId?: number;
 };
 /**
  * Data to be mocked
@@ -183,6 +184,11 @@ async function addHostsToDb(eventTypes: InputEventType[]) {
         user: {
           connect: {
             id: host.userId,
+          },
+        },
+        schedule: {
+          connect: {
+            id: host.scheduleId,
           },
         },
       };

@@ -1472,4 +1472,150 @@ describe("getSchedule", () => {
       );
     });
   });
+
+  describe("Round robin event", async () => {
+    test("correctly get slots for event with round robin hosts choosen schedule (non-default)", async () => {
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
+
+      // An event with no common schedule and hosts choosen schedule (non-default schedule)
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+                scheduleId: 2,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+                scheduleId: 3,
+              },
+            ],
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              config: {
+                useHostSchedulesForTeamEvent: true,
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstMorningShift, TestData.schedules.IstEveningShift],
+            defaultScheduleId: 1,
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstEveningShift, TestData.schedules.IstMorningShift],
+            defaultScheduleId: 4,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleWithHostChoosenSch = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "test@test.com",
+        },
+      });
+
+      // expect only slots of IstEveningShift , as this is the choosen schedule for hosts
+      expect(scheduleWithHostChoosenSch).toHaveTimeSlots(
+        [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+    test("correctly get slots for event with commom schedule", async () => {
+      vi.setSystemTime("2024-05-21T00:00:13Z");
+
+      const plus1DateString = "2024-05-22";
+      const plus2DateString = "2024-05-23";
+
+      // An event with common schedule
+      await createBookingScenario({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 60,
+            length: 60,
+            hosts: [
+              {
+                userId: 101,
+                isFixed: false,
+              },
+              {
+                userId: 102,
+                isFixed: false,
+              },
+            ],
+            schedule: TestData.schedules.IstEveningShift,
+            schedulingType: "ROUND_ROBIN",
+            metadata: {
+              config: {
+                useHostSchedulesForTeamEvent: false,
+              },
+            },
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            email: "example@example.com",
+            id: 101,
+            schedules: [TestData.schedules.IstMorningShift],
+            defaultScheduleId: 1,
+          },
+          {
+            ...TestData.users.example,
+            email: "example1@example.com",
+            id: 102,
+            schedules: [TestData.schedules.IstMidShift],
+            defaultScheduleId: 2,
+          },
+        ],
+        bookings: [],
+      });
+
+      const scheduleWithEventCommonSch = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T18:30:00.000Z`,
+          endTime: `${plus2DateString}T18:29:59.999Z`,
+          timeZone: Timezones["+5:30"],
+          isTeamEvent: true,
+          bookerEmail: "test@test.com",
+        },
+      });
+
+      // expect only slots of IstEveningShift , as this is the common schedule of event
+      expect(scheduleWithEventCommonSch).toHaveTimeSlots(
+        [`11:30:00.000Z`, `12:30:00.000Z`, `13:30:00.000Z`, `14:30:00.000Z`, `15:30:00.000Z`],
+        {
+          dateString: plus2DateString,
+        }
+      );
+    });
+  });
 });

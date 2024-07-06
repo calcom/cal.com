@@ -127,21 +127,26 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                    scheduleId: null,
-                    availability: null,
-                    avatar: teamMember.avatar,
-                    label: teamMember.label,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      // if host was already added, retain scheduleId and availability
+                      scheduleId: host?.scheduleId || null,
+                      availability: host?.availability || null,
+                      avatar: teamMember.avatar,
+                      label: teamMember.label,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </>
@@ -172,21 +177,26 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                    scheduleId: null,
-                    availability: null,
-                    avatar: teamMember.avatar,
-                    label: teamMember.label,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      // if host was already added, retain scheduleId and availability
+                      scheduleId: host?.scheduleId || null,
+                      availability: host?.availability || null,
+                      avatar: teamMember.avatar,
+                      label: teamMember.label,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </SettingsToggle>
@@ -210,7 +220,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -227,23 +237,28 @@ const RoundRobinHosts = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
           isFixed={false}
-          onActive={() =>
+          onActive={() => {
+            const currentHosts = getValues("hosts");
             setValue(
               "hosts",
               teamMembers
-                .map((teamMember) => ({
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: 2,
-                  scheduleId: null,
-                  availability: null,
-                  avatar: teamMember.avatar,
-                  label: teamMember.label,
-                }))
+                .map((teamMember) => {
+                  const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                  return {
+                    isFixed: false,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: 2,
+                    // if host was already added, retain scheduleId and availability
+                    scheduleId: host?.scheduleId || null,
+                    availability: host?.availability || null,
+                    avatar: teamMember.avatar,
+                    label: teamMember.label,
+                  };
+                })
                 .sort((a, b) => b.priority - a.priority),
               { shouldDirty: true }
-            )
-          }
+            );
+          }}
         />
       </div>
     </div>
