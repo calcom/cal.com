@@ -116,6 +116,11 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
+    supportsLengthCheck: z
+      .object({
+        maxLength: z.number(),
+      })
+      .optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -217,8 +222,8 @@ export const fieldSchema = baseFieldSchema.merge(
         })
       )
       .optional(),
-    ["max-length"]: z.string().optional(),
-    ["min-length"]: z.string().optional(),
+    minLength: z.number().optional(),
+    maxLength: z.number().optional(),
   })
 );
 
@@ -318,6 +323,37 @@ export const fieldTypesSchemaMap: Partial<
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
+    },
+  },
+  textarea: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const fieldTypeConfig = fieldTypesConfigMap[field.type];
+      const value = response ?? "";
+      const maxLength = field.maxLength ?? fieldTypeConfig?.supportsLengthCheck?.maxLength ?? 1000;
+
+      let schema = z.string();
+      if (field.minLength) {
+        schema = schema.min(field.minLength, {
+          message: m("error_min_long_text_field"),
+        });
+      }
+      if (maxLength) {
+        schema = schema.max(maxLength, {
+          message: m("error_max_long_text_field"),
+        });
+      }
+      const result = schema.safeParse(value);
+      if (!result.success) {
+        result?.error?.errors?.forEach((error) => {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: error.message,
+          });
+        });
+      }
     },
   },
 };

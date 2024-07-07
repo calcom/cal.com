@@ -59,7 +59,7 @@ export const FormBuilderField = ({
   function handleErrorMessage(message: string | undefined) {
     if (field.type === "textarea" && message) {
       return (
-        t(message, { minLength: field["min-length"], maxLength: field["max-length"] }) || t("invalid_input")
+        t(message, { minLength: field["minLength"], maxLength: field["maxLength"] }) || t("invalid_input")
       );
     }
     return t(message || "invalid_input");
@@ -244,8 +244,8 @@ export const ComponentForField = ({
           readOnly={readOnly}
           value={value as string}
           setValue={setValue as (arg: typeof value) => void}
-          maxLength={field["max-length"]}
-          minLength={field["min-length"]}
+          maxLength={field["maxLength"]}
+          minLength={field["minLength"]}
         />
       </WithLabel>
     );

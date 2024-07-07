@@ -249,32 +249,9 @@ function preprocess<T extends z.ZodType>({
         // Use fieldTypeConfig.propsType to validate for propsType=="text" or propsType=="select" as in those cases, the response would be a string.
         // If say we want to do special validation for 'address' that can be added to `fieldTypesSchemaMap`
         if (["address", "text", "select", "number", "radio", "textarea"].includes(bookingField.type)) {
-          let schema = stringSchema;
-          if (bookingField["min-length"]) {
-            schema = schema.min(Number(bookingField["min-length"]), {
-              message: m("error_min_long_text_field"),
-            });
-          }
-          if (bookingField["max-length"]) {
-            schema = schema.max(Number(bookingField["max-length"]), {
-              message: m("error_max_long_text_field"),
-            });
-          }
-          const result = schema.safeParse(value);
-          if (!result.success) {
-            if (bookingField.type === "textarea") {
-              result?.error?.errors?.forEach((error) => {
-                ctx.addIssue({
-                  code: z.ZodIssueCode.custom,
-                  message: error.message,
-                });
-              });
-            } else {
-              ctx.addIssue({
-                code: z.ZodIssueCode.custom,
-                message: m("Invalid string"),
-              });
-            }
+          const schema = stringSchema;
+          if (!schema.safeParse(value).success) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
           }
           continue;
         }

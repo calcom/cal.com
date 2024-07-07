@@ -288,15 +288,21 @@ export const FormBuilder = function FormBuilder({
               return;
             }
 
-            if (data.type === "textarea" && data["min-length"] && data["max-length"]) {
-              if (Number(data["min-length"]) > Number(data["max-length"])) {
+            if (data.type === "textarea") {
+              if (data.minLength && data.maxLength && data.minLength > data.maxLength) {
                 showToast(t("error_min_should_be_less_than_max"), "error");
                 return;
               }
+              if (!data.minLength) {
+                delete data.minLength;
+              }
+              if (!data.maxLength) {
+                delete data.maxLength;
+              }
             }
             if (data.type !== "textarea") {
-              delete data["min-length"];
-              delete data["max-length"];
+              delete data.minLength;
+              delete data.maxLength;
             }
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
@@ -514,22 +520,26 @@ function FieldEditDialog({
                       <div className="flex justify-between">
                         <div className="mr-2 w-full">
                           <InputField
-                            {...fieldForm.register("min-length")}
+                            {...fieldForm.register("minLength", {
+                              valueAsNumber: true,
+                            })}
                             containerClassName="mt-6 w-full"
                             label={t("min_characters")}
                             type="number"
                             min={1}
-                            max={2000}
+                            max={fieldType?.supportsLengthCheck?.maxLength || 2000}
                           />
                         </div>
                         <div className="ml-2 w-full">
                           <InputField
-                            {...fieldForm.register("max-length")}
+                            {...fieldForm.register("maxLength", {
+                              valueAsNumber: true,
+                            })}
                             containerClassName="mt-6 w-full"
                             label={t("max_characters")}
                             type="number"
                             min={1}
-                            max={2000}
+                            max={fieldType?.supportsLengthCheck?.maxLength || 2000}
                           />
                         </div>
                       </div>

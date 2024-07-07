@@ -12,7 +12,7 @@ test.describe.configure({
   mode: "serial",
 });
 
-test.describe("Should not have max characters and min characters for other Field Types except Long text", () => {
+test.describe("max characters and min characters for Long text", () => {
   test("Create a new event", async ({ page, users, context }) => {
     const eventTitle = `Min Max Characters Test`;
     const user = await users.create();
@@ -57,8 +57,8 @@ test.describe("Should not have max characters and min characters for other Field
         throw error; // Rethrow the error to fail the test
       }
     };
-    const minLengthSelector = '[name="min-length"]';
-    const maxLengthSelector = '[name="max-length"]';
+    const minLengthSelector = '[name="minLength"]';
+    const maxLengthSelector = '[name="maxLength"]';
     const fieldTypes = ["email", "number", "text"];
     for (const type of fieldTypes) {
       await test.step(`Add a new field with ${type}`, async () => {
