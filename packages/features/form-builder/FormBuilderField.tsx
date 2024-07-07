@@ -11,7 +11,7 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -220,6 +220,7 @@ export const ComponentForField = ({
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
+  const { t } = useLocale();
 
   const isValueOfPropsType = (val: unknown, propsType: typeof componentConfig.propsType) => {
     const isValid = isValidValueProp[propsType](val);
@@ -344,8 +345,8 @@ export const ComponentForField = ({
   }
 
   if (componentConfig.propsType === "variants") {
-    const variantsConfig = getVariantsConfig(field);
-    if (!variantsConfig) {
+    const translatedVariantsConfig = getTranslatedVariantsConfig(field, t);
+    if (!translatedVariantsConfig) {
       return null;
     }
 
@@ -357,7 +358,7 @@ export const ComponentForField = ({
         variant={field.variant}
         value={value as { value: string; optionValue: string }}
         setValue={setValue as (arg: Record<string, string> | string) => void}
-        variants={variantsConfig.variants}
+        variants={translatedVariantsConfig.variants}
       />
     );
   }
