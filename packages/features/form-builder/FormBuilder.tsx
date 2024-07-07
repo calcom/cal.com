@@ -527,7 +527,7 @@ function FieldEditDialog({
                             label={t("min_characters")}
                             type="number"
                             min={1}
-                            max={fieldType?.supportsLengthCheck?.maxLength || 2000}
+                            max={fieldType?.supportsLengthCheck?.maxLength || 1000}
                           />
                         </div>
                         <div className="ml-2 w-full">
@@ -539,7 +539,7 @@ function FieldEditDialog({
                             label={t("max_characters")}
                             type="number"
                             min={1}
-                            max={fieldType?.supportsLengthCheck?.maxLength || 2000}
+                            max={fieldType?.supportsLengthCheck?.maxLength || 1000}
                           />
                         </div>
                       </div>
