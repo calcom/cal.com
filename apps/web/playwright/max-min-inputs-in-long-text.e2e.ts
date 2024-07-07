@@ -34,9 +34,7 @@ test.describe("Should not have max characters and min characters for other Field
 
       await selectOption.click();
       await page.fill('[name="name"]', questionName);
-      await page.waitForTimeout(1000);
       await page.fill('[name="label"]', questionName);
-      await page.waitForTimeout(1000);
       // eslint-disable-next-line playwright/no-conditional-in-test
       if (!["checkbox"].includes(select)) {
         await page.fill('[name="placeholder"]', questionName);
@@ -66,7 +64,6 @@ test.describe("Should not have max characters and min characters for other Field
       await test.step(`Add a new field with ${type}`, async () => {
         const questionName = `new ${type}`;
         await insertQuestion(questionName, type);
-        await page.waitForTimeout(1000);
         const minInput = page.locator(minLengthSelector);
         const maxInput = page.locator(maxLengthSelector);
         await expect(minInput).toBeHidden();
@@ -77,7 +74,6 @@ test.describe("Should not have max characters and min characters for other Field
     await test.step(`Add a new field with textarea`, async () => {
       const questionName = `new textarea`;
       await insertQuestion(questionName, "textarea");
-      await page.waitForTimeout(1000);
       const minInput = page.locator(minLengthSelector);
       const maxInput = page.locator(maxLengthSelector);
       await expect(minInput).toBeVisible();
@@ -175,14 +171,11 @@ test.describe("Should not have max characters and min characters for other Field
         await page.fill('[label="Text area without min and max"]', "1");
         await page.click('[data-testid="confirm-book-button"]');
         await expect(page.locator('[data-testid="error-message-Text-area-with-min---5"]')).toBeVisible();
-        await page.waitForTimeout(1000);
         await page.fill('[label="Text area with min = 5"]', "12345");
         await page.click('[data-testid="confirm-book-button"]');
-        await page.waitForTimeout(1000);
         await expect(
           page.locator('[data-testid="error-message-Text-area-with-min--4---max---10"]')
         ).toBeVisible();
-        await page.waitForTimeout(1000);
         await page.fill('[label="Text area with min= 4 & max = 10"]', "12345");
         await page.click('[data-testid="confirm-book-button"]');
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
