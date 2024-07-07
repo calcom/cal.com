@@ -145,7 +145,7 @@ export const bookTimeSlot = async (
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
   }
-  if (opts?.pressEnter || (opts && !("pressEnter" in opts))) {
+  if (!opts || opts?.pressEnter || (opts && !("pressEnter" in opts))) {
     await page.press('[name="email"]', "Enter");
   }
 };
