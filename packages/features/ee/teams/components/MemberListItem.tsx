@@ -319,7 +319,7 @@ export default function MemberListItem(props: Props) {
       </div>
 
       {editMode && (
-        <Dialog open={showDeleteModal} onOpenChange={() => setShowDeleteModal((prev) => !prev)}>
+        <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
           <ConfirmationDialogContent
             variety="danger"
             title={t("remove_member")}

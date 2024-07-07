@@ -538,7 +538,7 @@ function FieldEditDialog({
             })()}
           </div>
 
-          <DialogFooter className="relative rounded px-8" showDivider>
+          <DialogFooter className="relative rounded" showDivider>
             <DialogClose color="secondary">{t("cancel")}</DialogClose>
             <Button data-testid="field-add-save" type="submit">
               {isFieldEditMode ? t("save") : t("add")}
