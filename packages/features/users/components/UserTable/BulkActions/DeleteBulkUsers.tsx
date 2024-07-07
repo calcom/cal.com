@@ -40,7 +40,7 @@ export function DeleteBulkUsers({ allUsers, users, onRemove }: Props) {
         isPending={deleteMutation.isPending}
         onConfirm={() => {
           deleteMutation.mutateAsync({
-            redirectTo: selectedMember?.value,
+            redirectToUserId: selectedMember?.value,
             userIds: selectedRows.map((user) => user.id),
           });
           onRemove();

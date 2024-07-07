@@ -58,7 +58,7 @@ export function DeleteMemberModal({
             teamIds: [session?.user.org.id],
             memberIds: [state?.deleteMember?.user.id],
             isOrg: true,
-            redirectTo: selectedMember?.value,
+            redirectToUserId: selectedMember?.value,
           });
         }}>
         {t("remove_member_confirmation_message")}

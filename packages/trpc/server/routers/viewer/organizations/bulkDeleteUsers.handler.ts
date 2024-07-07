@@ -65,11 +65,11 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
   const operations = [removeProfiles, deleteMany, removeOrgrelation];
 
   const organizationId = currentUser.organizationId;
-  const redirectTo = input.redirectTo;
-  if (redirectTo && organizationId) {
+  const redirectToUserId = input.redirectToUserId;
+  if (redirectToUserId && organizationId) {
     const users = await ProfileRepository.findManyForOrg({ organizationId });
     const redirectToUser = await ProfileRepository.findByUserIdAndOrgId({
-      userId: redirectTo,
+      userId: redirectToUserId,
       organizationId,
     });
 
@@ -80,7 +80,7 @@ export async function bulkDeleteUsersHandler({ ctx, input }: BulkDeleteUsersHand
         .map((user) => ({
           from: user.username,
           toUrl: `${orgUrlPrefix}/${redirectToUser.username}`,
-          type: RedirectType.User,
+          type: RedirectType.UserToProfile,
           fromOrgId: organizationId,
         }));
 

@@ -12,12 +12,12 @@ const removeMember = async ({
   memberId,
   teamId,
   isOrg,
-  redirectTo,
+  redirectToUserId,
 }: {
   memberId: number;
   teamId: number;
   isOrg: boolean;
-  redirectTo?: number;
+  redirectToUserId?: number;
 }) => {
   const [membership] = await prisma.$transaction([
     prisma.membership.delete({
@@ -65,7 +65,6 @@ const removeMember = async ({
         metadata: true,
       },
     });
-    const orgMetadata = orgInfo?.organizationSettings;
 
     if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
 
@@ -86,9 +85,9 @@ const removeMember = async ({
       organizationId: orgInfo.id,
     });
 
-    if (redirectTo && profileToDelete) {
+    if (redirectToUserId && profileToDelete) {
       const userToRedirectTo = await ProfileRepository.findByUserIdAndOrgId({
-        userId: redirectTo,
+        userId: redirectToUserId,
         organizationId: orgInfo.id,
       });
 
@@ -98,7 +97,7 @@ const removeMember = async ({
           data: {
             from: profileToDelete.username,
             toUrl: `${orgUrlPrefix}/${userToRedirectTo.username}`,
-            type: RedirectType.User,
+            type: RedirectType.UserToProfile,
             fromOrgId: orgInfo.id,
           },
         });

@@ -94,11 +94,22 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       redirectType: RedirectType.User,
       eventTypeSlug: null,
       currentQuery: context.query,
-      orgSlug: isValidOrgDomain ? currentOrgDomain : null,
     });
 
     if (redirect) {
       return redirect;
+    }
+
+    const redirectDeletedUser = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.UserToProfile,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+      orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+    });
+
+    if (redirectDeletedUser) {
+      return redirectDeletedUser;
     }
   }
 
