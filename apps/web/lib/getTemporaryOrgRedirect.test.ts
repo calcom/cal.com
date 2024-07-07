@@ -128,7 +128,7 @@ describe("getTemporaryOrgRedirect", () => {
 
   it("should generate replacement User URL for deleted Org user", async () => {
     mockARedirectInDB({
-      redirectType: RedirectType.User,
+      redirectType: RedirectType.UserToProfile,
       slug: "slug",
       toUrl: "https://calcom.cal.com/john",
       fromOrgId: 1,
@@ -138,7 +138,7 @@ describe("getTemporaryOrgRedirect", () => {
 
     const redirect = await getTemporaryOrgRedirect({
       slugs: "slug",
-      redirectType: RedirectType.User,
+      redirectType: RedirectType.UserToProfile,
       eventTypeSlug: null,
       currentQuery: {},
       orgSlug: "acme",
