@@ -1,4 +1,4 @@
-import type { Frame, Page } from "@playwright/test";
+import type { Frame, Page, PlaywrightTestArgs } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -135,14 +135,19 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
+export const bookTimeSlot = async (
+  page: Page,
+  opts?: { name?: string; email?: string; title?: string; pressEnter?: boolean }
+) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
   }
-  await page.press('[name="email"]', "Enter");
+  if (opts?.pressEnter || (opts && !("pressEnter" in opts))) {
+    await page.press('[name="email"]', "Enter");
+  }
 };
 
 // Provide an standalone localize utility not managed by next-i18n
@@ -371,3 +376,91 @@ export async function doOnOrgDomain(
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
+
+export async function doOnFreshPreviewWithSearchParams(
+  searchParams: URLSearchParams,
+  page: Page,
+  context: PlaywrightTestArgs["context"],
+  callback: (page: Page) => Promise<void>,
+  persistTab = false
+) {
+  const previewUrl = (await page.locator('[data-testid="preview-button"]').getAttribute("href")) || "";
+  const previewUrlObj = new URL(previewUrl);
+  searchParams.forEach((value, key) => {
+    previewUrlObj.searchParams.append(key, value);
+  });
+  const previewTabPage = await context.newPage();
+  await previewTabPage.goto(previewUrlObj.toString());
+  await callback(previewTabPage);
+  if (!persistTab) {
+    await previewTabPage.close();
+  }
+  return previewTabPage;
+}
+
+export async function expectSystemFieldsToBeThereOnBookingPage({
+  page,
+  isFirstAndLastNameVariant,
+  values,
+}: {
+  page: Page;
+  isFirstAndLastNameVariant?: boolean;
+  values?: Partial<{
+    name: {
+      firstName?: string;
+      lastName?: string;
+      fullName?: string;
+    };
+    email: string;
+    notes: string;
+    guests: string[];
+  }>;
+}) {
+  const allFieldsLocator = page.locator("[data-fob-field-name]:not(.hidden)");
+  const nameLocator = allFieldsLocator.nth(0);
+  const emailLocator = allFieldsLocator.nth(1);
+  // Location isn't rendered unless explicitly set which isn't the case here
+  // const locationLocator = allFieldsLocator.nth(2);
+  const additionalNotes = allFieldsLocator.nth(3);
+  const guestsLocator = allFieldsLocator.nth(4);
+
+  if (isFirstAndLastNameVariant) {
+    if (values?.name) {
+      await expect(nameLocator.locator('[name="firstName"]')).toHaveValue(values?.name?.firstName || "");
+      await expect(nameLocator.locator('[name="lastName"]')).toHaveValue(values?.name?.lastName || "");
+      expect(await nameLocator.locator(".testid-firstName > label").innerText()).toContain("*");
+    } else {
+      await expect(nameLocator.locator('[name="firstName"]')).toBeVisible();
+      await expect(nameLocator.locator('[name="lastName"]')).toBeVisible();
+    }
+  } else {
+    if (values?.name) {
+      await expect(nameLocator.locator('[name="name"]')).toHaveValue(values?.name?.fullName || "");
+    }
+    await expect(nameLocator.locator('[name="name"]')).toBeVisible();
+    expect(await nameLocator.locator("label").innerText()).toContain("*");
+  }
+
+  if (values?.email) {
+    await expect(emailLocator.locator('[name="email"]')).toHaveValue(values?.email || "");
+  } else {
+    await expect(emailLocator.locator('[name="email"]')).toBeVisible();
+  }
+
+  if (values?.notes) {
+    await expect(additionalNotes.locator('[name="notes"]')).toHaveValue(values?.notes);
+  } else {
+    await expect(additionalNotes.locator('[name="notes"]')).toBeVisible();
+  }
+
+  if (values?.guests) {
+    const allGuestsLocators = guestsLocator.locator('[type="email"]');
+    for (let i = 0; i < values.guests.length; i++) {
+      await expect(allGuestsLocators.nth(i)).toHaveValue(values.guests[i] || "");
+    }
+    await expect(guestsLocator.locator("[data-testid='add-another-guest']")).toBeVisible();
+  } else {
+    await expect(guestsLocator.locator("[data-testid='add-guests']")).toBeVisible();
+  }
+  return allFieldsLocator;
+}
