@@ -380,6 +380,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
             return;
           },
           renderConfirmNotVerifyEmailButtonCond: true,
+          isVerificationCodeSending: false,
         }}
         bookerForm={bookerForm}
         event={event}
