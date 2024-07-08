@@ -12,7 +12,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { clientSecretVerifier, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -900,7 +900,8 @@ export const getOptions = (req: NextApiRequest): AuthOptions => ({
         });
 
         // only run this code if it's a hosted cal account and DUB_API_KEY is configured
-        if (HOSTED_CAL_FEATURES && process.env.DUB_API_KEY) {
+        const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+        if (hostedCal && process.env.DUB_API_KEY) {
           const { dclid } = req.cookies;
           waitUntil(
             Promise.allSettled([
