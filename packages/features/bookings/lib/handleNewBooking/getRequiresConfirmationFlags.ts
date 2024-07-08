@@ -69,3 +69,5 @@ function determineIsConfirmedByDefault(
 ): boolean {
   return (!requiresConfirmation && price === 0) || userReschedulingIsOwner;
 }
+
+export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
