@@ -2,14 +2,14 @@ import type { Locator, Page, PlaywrightTestArgs } from "@playwright/test";
 import { expect } from "@playwright/test";
 import type { createUsersFixture } from "playwright/fixtures/users";
 import { uuid } from "short-uuid";
-import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
-import { createNewEventType } from "./lib/testUtils";
 
 import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
 
 import { test } from "./lib/fixtures";
+import { createNewEventType } from "./lib/testUtils";
 import { createHttpServer, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 function getLabelLocator(field: Locator) {
