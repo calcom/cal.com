@@ -32,7 +32,8 @@ module.exports = {
   ],
   overrides: [
     {
-      files: ["apps/website/lib/utils/wordlist/wordlist.ts"],
+      /** This path not availabe so  i am removing */
+      // files: ["apps/website/lib/utils/wordlist/wordlist.ts"],
       options: {
         quoteProps: "consistent",
       },
