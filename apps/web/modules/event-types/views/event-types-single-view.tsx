@@ -14,6 +14,7 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
@@ -144,7 +145,7 @@ const querySchema = z.object({
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
-const EventTypePage = (props: EventTypeSetupProps) => {
+const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const telemetry = useTelemetry();
@@ -464,11 +465,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: (
-      <EventWorkflowsTab
-        eventType={eventType}
-        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
-      />
+    workflows: props.allActiveWorkflows ? (
+      <EventWorkflowsTab eventType={eventType} workflows={props.allActiveWorkflows} />
+    ) : (
+      <></>
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
@@ -705,7 +705,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
         installedAppsNumber={eventTypeApps?.items.length || 0}
-        enabledWorkflowsNumber={eventType.workflows.length}
+        enabledWorkflowsNumber={props.allActiveWorkflows ? props.allActiveWorkflows.length : 0}
         eventType={eventType}
         activeWebhooksNumber={eventType.webhooks.filter((webhook) => webhook.active).length}
         team={team}
@@ -853,7 +853,25 @@ const EventTypePageWrapper: React.FC<PageProps> & {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
   if (!data) return null;
-  return <EventTypePage {...(data as EventTypeSetupProps)} />;
+
+  const eventType = data.eventType;
+
+  const { data: workflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+    eventType: {
+      workflows: eventType.workflows,
+      teamId: eventType.teamId,
+      userId: eventType.userId,
+      parent: eventType.parent,
+      metadata: eventType.metadata,
+    },
+  });
+
+  const propsData = {
+    ...(data as EventTypeSetupProps),
+    allActiveWorkflows: workflows,
+  };
+
+  return <EventTypePage {...propsData} />;
 };
 
 export default EventTypePageWrapper;
