@@ -101,6 +101,7 @@ export default function CancelBooking(props: Props) {
                       uid: booking?.uid,
                       cancellationReason,
                       allRemainingBookings,
+                       // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
                       rescheduledBy,
                       canceledBy,
