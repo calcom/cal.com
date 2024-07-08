@@ -288,6 +288,13 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+            //handling edge-case when user clears the min max length values.
+            if (!data?.minLength) {
+              delete data.minLength;
+            }
+            if (!data?.maxLength) {
+              delete data.maxLength;
+            }
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
             } else {
