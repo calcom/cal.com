@@ -1,6 +1,8 @@
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
+import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Icon, List } from "@calcom/ui";
 
 import { AppConnectionItem } from "../components/AppConnectionItem";
@@ -17,7 +19,10 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     onlyInstalled: false,
     sortByMostPopular: true,
   });
+  const { data } = useMeQuery();
   const { t } = useLocale();
+
+  const metadata = userMetadata.parse(data?.metadata);
 
   const hasAnyInstalledVideoApps = queryConnectedVideoApps?.items.some(
     (item) => item.userCredentialIds.length > 0
@@ -36,9 +41,13 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                     <AppConnectionItem
                       type={item.type}
                       title={item.name}
+                      isDefault={item.slug === metadata?.defaultConferencingApp?.appSlug}
                       description={item.description}
                       logo={item.logo}
                       installed={item.userCredentialIds.length > 0}
+                      defaultInstall={
+                        (item.isOAuth || item.slug === "google-meet") && !hasAnyInstalledVideoApps
+                      }
                     />
                   )}
                 </li>

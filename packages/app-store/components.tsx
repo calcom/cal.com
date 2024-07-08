@@ -19,6 +19,7 @@ import type { InstallAppButtonProps } from "./types";
 export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
+    defaultInstall?: boolean;
   } & InstallAppButtonProps
 ) => {
   const mutation = useAddAppMutation(null);
@@ -31,7 +32,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           useDefaultComponent: true,
           disabled: props.disableInstall,
           onClick: () => {
-            mutation.mutate({ type: props.type, defaultInstall: true });
+            mutation.mutate({ type: props.type, defaultInstall: props.defaultInstall });
           },
           loading: mutation.isPending,
         })}
