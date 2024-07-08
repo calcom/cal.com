@@ -6,9 +6,6 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -24,12 +21,13 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { deleteAllWorkflowReminders } from "../workflows/util";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -149,23 +147,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   // delete scheduled jobs of previous booking
-  const webhookWorkflowPromises = [];
-  webhookWorkflowPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+  const webhookPromises = [];
+  webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+
+  await Promise.all(webhookPromises).catch((error) => {
+    log.error("Error while deleting scheduled webhook triggers", JSON.stringify({ error }));
+  });
 
   //cancel workflow reminders of previous booking
-  for (const reminder of bookingToReschedule.workflowReminders) {
-    if (reminder.method === WorkflowMethods.EMAIL) {
-      webhookWorkflowPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
-    } else if (reminder.method === WorkflowMethods.SMS) {
-      webhookWorkflowPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
-    } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      webhookWorkflowPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
-    }
-  }
-
-  await Promise.all(webhookWorkflowPromises).catch((error) => {
-    log.error("Error while scheduling or canceling webhook triggers", JSON.stringify({ error }));
-  });
+  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?

@@ -36,10 +36,7 @@ import {
   allowDisablingAttendeeConfirmationEmails,
   allowDisablingHostConfirmationEmails,
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
-import {
-  cancelWorkflowReminders,
-  scheduleWorkflowReminders,
-} from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -73,7 +70,15 @@ import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import {
+  bookingCreateSchemaLegacyPropsForApi,
+  userMetadata as userMetadataSchema,
+} from "@calcom/prisma/zod-utils";
+import {
+  deleteAllWorkflowReminders,
+  getAllWorkflowsFromEventType,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
+
 import type {
   AdditionalInformation,
   AppsStatus,
@@ -932,6 +937,8 @@ async function handler(
     orgId,
   };
 
+  const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -964,6 +971,7 @@ async function handler(
       subscriberOptions,
       eventTrigger,
       responses,
+      workflows,
     });
 
     if (newBooking) {
@@ -1119,15 +1127,8 @@ async function handler(
   //this is the actual rescheduling logic
   if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
     log.silly("Rescheduling booking", originalRescheduledBooking.uid);
-    try {
-      // cancel workflow reminders from previous rescheduled booking
-      await cancelWorkflowReminders(originalRescheduledBooking.workflowReminders);
-    } catch (error) {
-      loggerWithEventDetails.error(
-        "Error while canceling scheduled workflow reminders",
-        JSON.stringify({ error })
-      );
-    }
+    // cancel workflow reminders from previous rescheduled booking
+    await deleteAllWorkflowReminders(originalRescheduledBooking.workflowReminders);
 
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
 
@@ -1446,21 +1447,17 @@ async function handler(
         let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
-        const workflows = eventType.workflows.map((workflow) => workflow.workflow);
+        isHostConfirmationEmailsDisabled =
+          eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
+        isAttendeeConfirmationEmailDisabled =
+          eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
 
-        if (eventType.workflows) {
-          isHostConfirmationEmailsDisabled =
-            eventType.metadata?.disableStandardEmails?.confirmation?.host || false;
-          isAttendeeConfirmationEmailDisabled =
-            eventType.metadata?.disableStandardEmails?.confirmation?.attendee || false;
+        if (isHostConfirmationEmailsDisabled) {
+          isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
+        }
 
-          if (isHostConfirmationEmailsDisabled) {
-            isHostConfirmationEmailsDisabled = allowDisablingHostConfirmationEmails(workflows);
-          }
-
-          if (isAttendeeConfirmationEmailDisabled) {
-            isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
-          }
+        if (isAttendeeConfirmationEmailDisabled) {
+          isAttendeeConfirmationEmailDisabled = allowDisablingAttendeeConfirmationEmails(workflows);
         }
 
         loggerWithEventDetails.debug(
@@ -1721,7 +1718,7 @@ async function handler(
 
   await scheduleMandatoryReminder(
     evtWithMetadata,
-    eventType.workflows || [],
+    workflows,
     !isConfirmedByDefault,
     !!eventType.owner?.hideBranding,
     evt.attendeeSeatId
@@ -1729,7 +1726,7 @@ async function handler(
 
   try {
     await scheduleWorkflowReminders({
-      workflows: eventType.workflows,
+      workflows,
       smsReminderNumber: smsReminderNumber || null,
       calendarEvent: evtWithMetadata,
       isNotConfirmed: rescheduleUid ? false : !isConfirmedByDefault,
