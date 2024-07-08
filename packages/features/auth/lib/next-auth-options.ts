@@ -281,9 +281,6 @@ if (isSAMLLoginEnabled) {
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) throw new Error(ErrorCode.UserNotFound);
-
-      const [userProfile] = user.allProfiles;
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -292,7 +289,7 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: userProfile,
+        ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
     options: {
