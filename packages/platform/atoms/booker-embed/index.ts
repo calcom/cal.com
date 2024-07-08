@@ -1,0 +1,1 @@
+export { BookerEmbedPlatformWrapper } from "./BookerEmbedPlatformWrapper";
