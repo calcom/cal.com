@@ -1,4 +1,3 @@
-
 import { useRouter } from "next/router";
 import { useCallback, useState } from "react";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
@@ -143,3 +142,4 @@ export default function CancelBooking(props: Props) {
     </>
   );
 }
+
