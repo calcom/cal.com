@@ -14,3 +14,4 @@ export { useGetBookings } from "./hooks/useGetBookings";
 export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";
+export { BookerEmbedPlatformWrapper as BookerEmbed } from "./booker-embed/BookerEmbedPlatformWrapper";
