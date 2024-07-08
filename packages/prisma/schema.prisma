@@ -404,6 +404,7 @@ model Team {
   platformOAuthClient   PlatformOAuthClient[]
   smsLockState          SMSLockState            @default(UNLOCKED)
   platformBilling       PlatformBilling?
+  activeOrgWorkflows    WorkflowsOnTeams[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -714,6 +715,7 @@ enum WebhookTriggerEvents {
   MEETING_STARTED
   RECORDING_READY
   INSTANT_MEETING
+  RECORDING_TRANSCRIPTION_GENERATED
 }
 
 model Webhook {
@@ -925,18 +927,20 @@ model WorkflowStep {
 }
 
 model Workflow {
-  id       Int                     @id @default(autoincrement())
-  position Int                     @default(0)
-  name     String
-  userId   Int?
-  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId   Int?
-  activeOn WorkflowsOnEventTypes[]
-  trigger  WorkflowTriggerEvents
-  time     Int?
-  timeUnit TimeUnit?
-  steps    WorkflowStep[]
+  id            Int                     @id @default(autoincrement())
+  position      Int                     @default(0)
+  name          String
+  userId        Int?
+  user          User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team          Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId        Int?
+  activeOn      WorkflowsOnEventTypes[]
+  activeOnTeams WorkflowsOnTeams[]
+  isActiveOnAll Boolean                 @default(false)
+  trigger       WorkflowTriggerEvents
+  time          Int?
+  timeUnit      TimeUnit?
+  steps         WorkflowStep[]
 
   @@index([userId])
   @@index([teamId])
@@ -972,6 +976,18 @@ model WorkflowsOnEventTypes {
   @@index([eventTypeId])
 }
 
+model WorkflowsOnTeams {
+  id         Int      @id @default(autoincrement())
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId Int
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     Int
+
+  @@unique([workflowId, teamId])
+  @@index([workflowId])
+  @@index([teamId])
+}
+
 model Deployment {
   /// This is a single row table, so we use a fixed id
   id              Int       @id @default(1)
@@ -997,7 +1013,7 @@ model WorkflowReminder {
   referenceId         String?         @unique
   scheduled           Boolean
   workflowStepId      Int?
-  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
   cancelled           Boolean?
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)

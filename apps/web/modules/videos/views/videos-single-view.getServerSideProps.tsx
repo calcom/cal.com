@@ -1,7 +1,10 @@
 import MarkdownIt from "markdown-it";
 import type { GetServerSidePropsContext } from "next";
 
-import { generateGuestMeetingTokenFromOwnerMeetingToken } from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
+import {
+  generateGuestMeetingTokenFromOwnerMeetingToken,
+  setEnableRecordingUIForOrganizer,
+} from "@calcom/app-store/dailyvideo/lib/VideoApiAdapter";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getCalVideoReference } from "@calcom/features/get-cal-video-reference";
 import { UserRepository } from "@calcom/lib/server/repository/user";
@@ -40,6 +43,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       references: {
         select: {
+          id: true,
           uid: true,
           type: true,
           meetingUrl: true,
@@ -104,16 +108,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const session = await getServerSession({ req });
 
+  const oldVideoReference = getCalVideoReference(bookingObj.references);
+
   // set meetingPassword for guests
   if (session?.user.id !== bookingObj.user?.id) {
-    const videoReference = getCalVideoReference(bookingObj.references);
     const guestMeetingPassword = await generateGuestMeetingTokenFromOwnerMeetingToken(
-      videoReference.meetingPassword
+      oldVideoReference.meetingPassword
     );
 
     bookingObj.references.forEach((bookRef) => {
       bookRef.meetingPassword = guestMeetingPassword;
     });
+  }
+  // Only for backward compatibility for organizer
+  else {
+    const meetingPassword = await setEnableRecordingUIForOrganizer(
+      oldVideoReference.id,
+      oldVideoReference.meetingPassword
+    );
+    if (!!meetingPassword) {
+      bookingObj.references.forEach((bookRef) => {
+        bookRef.meetingPassword = meetingPassword;
+      });
+    }
   }
 
   const videoReference = getCalVideoReference(bookingObj.references);
