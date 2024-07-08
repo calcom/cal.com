@@ -1092,6 +1092,7 @@ export function ShellMain(props: LayoutProps) {
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
+              data-testid="go-back-button"
             />
           )}
           {props.heading && (
