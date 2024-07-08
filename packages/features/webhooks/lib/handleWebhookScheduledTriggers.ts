@@ -22,6 +22,7 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
     select: {
       id: true,
       jobName: true,
+      legacyPayload: true,
       payload: true,
       subscriberUrl: true,
       webhook: {
@@ -56,24 +57,30 @@ export async function handleWebhookScheduledTriggers(prisma: PrismaClient) {
         !job.payload || jsonParse(job.payload) ? "application/json" : "application/x-www-form-urlencoded",
     };
 
+    const parsedLegacyPayload = jsonParse(job.legacyPayload);
+    const parsedPayload = jsonParse(job.payload);
+
+    const body = JSON.stringify({
+      ...parsedLegacyPayload, // for ensures backward compatibility. Note: It also populate the triggerEvent which is part of the both actual and legacy payload
+      ...(job.payload && {
+        payload: parsedPayload,
+        createdAt: new Date().toISOString(),
+      }),
+    });
+
     if (webhook) {
-      headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body: job.payload });
+      headers["X-Cal-Signature-256"] = createWebhookSignature({ secret: webhook.secret, body });
     }
+
     fetchPromises.push(
       fetch(job.subscriberUrl, {
         method: "POST",
-        body: job.payload,
+        body,
         headers,
       }).catch((error) => {
         console.error(`Webhook trigger for subscriber url ${job.subscriberUrl} failed with error: ${error}`);
       })
     );
-
-    const parsedJobPayload = JSON.parse(job.payload) as {
-      id: number; // booking id
-      endTime: string;
-      triggerEvent: string;
-    };
 
     // clean finished job
     await prisma.webhookScheduledTriggers.delete({

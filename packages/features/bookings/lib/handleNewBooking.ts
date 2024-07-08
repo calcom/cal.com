@@ -2168,6 +2168,7 @@ async function handler(
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
+            webhookData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -2179,6 +2180,7 @@ async function handler(
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
+            webhookData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,

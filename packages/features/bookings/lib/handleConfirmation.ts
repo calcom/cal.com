@@ -331,11 +331,31 @@ export async function handleConfirmation(args: {
 
     const scheduleTriggerPromises: Promise<unknown>[] = [];
 
+    const eventTypeInfo: EventTypeInfo = {
+      eventTitle: booking.eventType?.title,
+      eventDescription: booking.eventType?.description,
+      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
+      price: booking.eventType?.price,
+      currency: booking.eventType?.currency,
+      length: booking.eventType?.length,
+    };
+
+    const webhookData = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId,
+      eventTypeId: booking.eventType?.id,
+      status: "ACCEPTED",
+      smsReminderNumber: booking.smsReminderNumber || undefined,
+      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+    };
+
     subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
+            webhookData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
@@ -348,6 +368,7 @@ export async function handleConfirmation(args: {
         scheduleTriggerPromises.push(
           scheduleTrigger({
             booking,
+            webhookData,
             subscriberUrl: subscriber.subscriberUrl,
             subscriber,
             triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
@@ -358,25 +379,14 @@ export async function handleConfirmation(args: {
 
     await Promise.all(scheduleTriggerPromises);
 
-    const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
-    };
-
     const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
-        ...evt,
-        ...eventTypeInfo,
-        bookingId,
-        eventTypeId: booking.eventType?.id,
-        status: "ACCEPTED",
-        smsReminderNumber: booking.smsReminderNumber || undefined,
-        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      }).catch((e) => {
+      sendPayload(
+        sub.secret,
+        WebhookTriggerEvents.BOOKING_CREATED,
+        new Date().toISOString(),
+        sub,
+        webhookData
+      ).catch((e) => {
         log.error(
           `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
           safeStringify(e)
