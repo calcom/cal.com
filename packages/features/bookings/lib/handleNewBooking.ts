@@ -2245,7 +2245,11 @@ async function handler(
     loggerWithEventDetails.error("Error while creating booking references", JSON.stringify({ error }));
   }
 
-  const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
+  const evtWithMetadata = {
+    ...evt,
+    metadata,
+    eventType: { slug: eventType.slug, schedulingType: eventType.schedulingType, hosts: eventType.hosts },
+  };
 
   await scheduleMandatoryReminder(
     evtWithMetadata,

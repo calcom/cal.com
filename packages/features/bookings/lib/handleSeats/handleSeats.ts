@@ -103,7 +103,17 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       await scheduleWorkflowReminders({
         workflows: eventType.workflows,
         smsReminderNumber: smsReminderNumber || null,
-        calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
+        calendarEvent: {
+          ...evt,
+          ...{
+            metadata,
+            eventType: {
+              slug: eventType.slug,
+              schedulingType: eventType.schedulingType,
+              hosts: eventType.hosts,
+            },
+          },
+        },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
         emailAttendeeSendToOverride: bookerEmail,

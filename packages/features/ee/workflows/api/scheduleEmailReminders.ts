@@ -9,7 +9,7 @@ import logger from "@calcom/lib/logger";
 import { defaultHandler } from "@calcom/lib/server";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
-import { WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
+import { SchedulingType, WorkflowActions, WorkflowMethods, WorkflowTemplates } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
@@ -119,6 +119,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         switch (reminder.workflowStep.action) {
           case WorkflowActions.EMAIL_HOST:
             sendTo = reminder.booking?.userPrimaryEmail ?? reminder.booking.user?.email;
+            const hosts = reminder?.booking?.eventType?.hosts
+              ?.filter((host) =>
+                reminder.booking?.attendees.some((attendee) => attendee.email === host.user.email)
+              )
+              .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+            const schedulingType = reminder.booking.eventType?.schedulingType;
+
+            if (
+              hosts &&
+              (schedulingType === SchedulingType.COLLECTIVE || schedulingType === SchedulingType.ROUND_ROBIN)
+            ) {
+              sendTo = sendTo ? [sendTo, ...hosts] : hosts;
+            }
             break;
           case WorkflowActions.EMAIL_ATTENDEE:
             sendTo = reminder.booking.attendees[0].email;

@@ -17,7 +17,13 @@ import { IS_SELF_HOSTED } from "@calcom/lib/constants";
 import hasKeyInMetadata from "@calcom/lib/hasKeyInMetadata";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import {
+  BookingStatus,
+  SchedulingType,
+  WorkflowActions,
+  WorkflowMethods,
+  WorkflowTriggerEvents,
+} from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
@@ -294,7 +300,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         },
         include: {
           attendees: true,
-          eventType: true,
+          eventType: {
+            select: {
+              slug: true,
+              schedulingType: true,
+              hosts: {
+                select: {
+                  user: {
+                    select: {
+                      email: true,
+                      destinationCalendar: {
+                        select: {
+                          primaryEmail: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
           user: true,
         },
       });
@@ -332,6 +357,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               language: { locale: booking?.user?.locale || defaultLocale },
               eventType: {
                 slug: booking.eventType?.slug,
+                schedulingType: booking.eventType?.schedulingType,
+                hosts: booking.eventType?.hosts,
               },
             };
             if (
@@ -344,6 +371,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               switch (step.action) {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
+                  const schedulingType = bookingInfo.eventType.schedulingType;
+                  const hosts = bookingInfo.eventType.hosts
+                    ?.filter((host) =>
+                      bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
+                    )
+                    .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+                  if (
+                    hosts &&
+                    (schedulingType === SchedulingType.ROUND_ROBIN ||
+                      schedulingType === SchedulingType.COLLECTIVE)
+                  ) {
+                    sendTo = sendTo.concat(hosts);
+                  }
                   break;
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
@@ -531,7 +571,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           },
           include: {
             attendees: true,
-            eventType: true,
+            eventType: {
+              select: {
+                slug: true,
+                schedulingType: true,
+                hosts: {
+                  select: {
+                    user: {
+                      select: {
+                        email: true,
+                        destinationCalendar: {
+                          select: {
+                            primaryEmail: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
             user: true,
           },
         });
@@ -562,6 +621,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             language: { locale: booking?.user?.locale || defaultLocale },
             eventType: {
               slug: booking.eventType?.slug,
+              schedulingType: booking.eventType?.schedulingType,
+              hosts: booking.eventType?.hosts,
             },
           };
           if (
@@ -574,6 +635,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             switch (newStep.action) {
               case WorkflowActions.EMAIL_HOST:
                 sendTo = [bookingInfo.organizer?.email];
+                const schedulingType = bookingInfo.eventType.schedulingType;
+                const hosts = bookingInfo.eventType.hosts
+                  ?.filter((host) =>
+                    bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
+                  )
+                  .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+                if (
+                  hosts &&
+                  (schedulingType === SchedulingType.ROUND_ROBIN ||
+                    schedulingType === SchedulingType.COLLECTIVE)
+                ) {
+                  sendTo = sendTo.concat(hosts);
+                }
                 break;
               case WorkflowActions.EMAIL_ATTENDEE:
                 sendTo = bookingInfo.attendees.map((attendee) => attendee.email);
@@ -677,7 +751,26 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
             },
             include: {
               attendees: true,
-              eventType: true,
+              eventType: {
+                select: {
+                  slug: true,
+                  schedulingType: true,
+                  hosts: {
+                    select: {
+                      user: {
+                        select: {
+                          email: true,
+                          destinationCalendar: {
+                            select: {
+                              primaryEmail: true,
+                            },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
               user: true,
             },
           });
@@ -708,6 +801,8 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               language: { locale: booking?.user?.locale || defaultLocale },
               eventType: {
                 slug: booking.eventType?.slug,
+                schedulingType: booking.eventType?.schedulingType,
+                hosts: booking.eventType?.hosts,
               },
             };
 
@@ -721,6 +816,19 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
               switch (step.action) {
                 case WorkflowActions.EMAIL_HOST:
                   sendTo = [bookingInfo.organizer?.email];
+                  const schedulingType = bookingInfo.eventType.schedulingType;
+                  const hosts = bookingInfo.eventType.hosts
+                    ?.filter((host) =>
+                      bookingInfo.attendees.some((attendee) => attendee.email === host.user.email)
+                    )
+                    .map(({ user }) => user.destinationCalendar?.primaryEmail ?? user.email);
+                  if (
+                    hosts &&
+                    (schedulingType === SchedulingType.ROUND_ROBIN ||
+                      schedulingType === SchedulingType.COLLECTIVE)
+                  ) {
+                    sendTo = sendTo.concat(hosts);
+                  }
                   break;
                 case WorkflowActions.EMAIL_ATTENDEE:
                   sendTo = bookingInfo.attendees.map((attendee) => attendee.email);

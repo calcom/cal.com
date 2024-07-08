@@ -391,8 +391,7 @@ describe("handleNewBooking", () => {
         });
 
         expectWorkflowToBeTriggered({
-          // emailsToReceive: [organizer.email].concat(otherTeamMembers.map(member => member.email)),
-          emailsToReceive: [organizer.email],
+          emailsToReceive: [organizer.email].concat(otherTeamMembers.map((member) => member.email)),
           emails,
         });
       },
