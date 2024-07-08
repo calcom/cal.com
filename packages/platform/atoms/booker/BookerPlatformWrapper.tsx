@@ -41,7 +41,7 @@ import { useMe } from "../hooks/useMe";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
+export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
   username: string | string[];
@@ -380,6 +380,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
             return;
           },
           renderConfirmNotVerifyEmailButtonCond: true,
+          isVerificationCodeSending: false,
         }}
         bookerForm={bookerForm}
         event={event}
