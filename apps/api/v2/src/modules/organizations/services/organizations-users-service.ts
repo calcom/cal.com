@@ -8,8 +8,8 @@ import { plainToInstance } from "class-transformer";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import {
   createNewUsersConnectToOrgIfExists,
-  sendExistingUserTeamInviteEmails,
-} from "@calcom/platform-libraries";
+  sendSignupToOrganizationEmail,
+} from "@calcom/platform-libraries-0.0.0";
 
 @Injectable()
 export class OrganizationsUsersService {

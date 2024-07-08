@@ -30,6 +30,7 @@
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4",
     "@calcom/platform-libraries-0.0.14": "npm:@calcom/platform-libraries@0.0.14",
+    "@calcom/platform-libraries-0.0.0": "../../../packages/platform/libraries/dist",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",

@@ -12,7 +12,7 @@ import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/rout
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import {
   createNewUsersConnectToOrgIfExists,
-  sendExistingUserTeamInviteEmails,
+  sendSignupToOrganizationEmail,
 } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 
 export { slugify } from "@calcom/lib/slugify";
@@ -78,7 +78,7 @@ export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
 export { createNewUsersConnectToOrgIfExists };
-export { sendExistingUserTeamInviteEmails };
+export { sendSignupToOrganizationEmail };
 
 export { getAllUserBookings };
 export { getBookingInfo };

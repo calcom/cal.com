@@ -1,7 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
+import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
+import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
@@ -33,13 +35,14 @@ import { Team } from "@calcom/prisma/client";
   version: API_VERSIONS_VALUES,
 })
 @UseInterceptors(ClassSerializerInterceptor)
-// @UseGuards(ApiAuthGuard, IsOrgGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
 @UseGuards(IsOrgGuard)
 @DocsTags("Organizations Users")
 export class OrganizationsUsersController {
   constructor(private readonly organizationsUsersService: OrganizationsUsersService) {}
 
   @Get()
+  @Roles("ORG_ADMIN")
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() organization: Team,
@@ -58,7 +61,7 @@ export class OrganizationsUsersController {
   }
 
   @Post()
-  //   TODO add sysadmin guard
+  @Roles("ORG_ADMIN")
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() organization: Team,
@@ -72,6 +75,7 @@ export class OrganizationsUsersController {
   }
 
   @Patch("/:userId")
+  @Roles("ORG_ADMIN")
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
@@ -86,6 +90,7 @@ export class OrganizationsUsersController {
   }
 
   @Delete("/:userId")
+  @Roles("ORG_ADMIN")
   async deleteOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
