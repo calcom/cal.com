@@ -719,9 +719,6 @@ async function expectWebhookToBeCalled(
   expect(body).toMatchObject(expectedBody);
 }
 
-test.describe.configure({
-  mode: "serial",
-});
 test.describe("Text area min and max characters text", () => {
   test("Create a new event", async ({ page, users }) => {
     const eventTitle = `Min Max Characters Test`;
