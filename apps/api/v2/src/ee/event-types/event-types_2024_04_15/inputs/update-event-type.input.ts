@@ -177,6 +177,14 @@ export class BookingField_2024_04_15 {
   @ValidateNested({ each: true })
   @Type(() => Source)
   sources?: Source[];
+
+  @IsOptional()
+  @IsNumber()
+  maxLength?: number;
+
+  @IsOptional()
+  @IsNumber()
+  minLength?: number;
 }
 
 export class RecurringEvent_2024_04_15 {
