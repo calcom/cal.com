@@ -1,4 +1,5 @@
 import TwilioClient from "twilio";
+import { v4 as uuidv4 } from "uuid";
 
 import { checkSMSRateLimit } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
@@ -7,6 +8,8 @@ import prisma from "@calcom/prisma";
 import { SMSLockState } from "@calcom/prisma/enums";
 
 const log = logger.getSubLogger({ prefix: ["[twilioProvider]"] });
+
+const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 function createTwilioClient() {
   if (process.env.TWILIO_SID && process.env.TWILIO_TOKEN && process.env.TWILIO_MESSAGING_SID) {
@@ -41,8 +44,6 @@ export const sendSMS = async (
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
     return;
   }
-
-  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
   if (testMode) {
     setTestSMS({
@@ -85,14 +86,26 @@ export const scheduleSMS = async (
   teamId?: number | null,
   whatsapp = false
 ) => {
-  const twilio = createTwilioClient();
-
   const isSMSSendingLocked = await isLockedForSMSSending(userId, teamId);
 
   if (isSMSSendingLocked) {
     log.debug(`${teamId ? `Team id ${teamId} ` : `User id ${userId} `} is locked for SMS sending `);
     return;
   }
+
+  if (testMode) {
+    setTestSMS({
+      to: getSMSNumber(phoneNumber, whatsapp),
+      from: whatsapp ? getDefaultSender(whatsapp) : sender ? sender : getDefaultSender(),
+      message: body,
+    });
+    console.log(
+      "Skipped sending SMS because process.env.NEXT_PUBLIC_IS_E2E or process.env.INTEGRATION_TEST_MODE is set. SMS are available in globalThis.testSMS"
+    );
+    return { sid: uuidv4() };
+  }
+
+  const twilio = createTwilioClient();
 
   if (!teamId && userId) {
     await checkSMSRateLimit({
