@@ -8,11 +8,10 @@ export function CreateButtonWithTeamsList(
     onlyShowWithTeams?: boolean;
     onlyShowWithNoTeams?: boolean;
     isAdmin?: boolean;
+    includeOrg?: boolean;
   }
 ) {
-  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({
-    includeOrg: true,
-  });
+  const query = trpc.viewer.teamsAndUserProfilesQuery.useQuery({ includeOrg: props.includeOrg });
   if (!query.data) return null;
 
   const teamsAndUserProfiles: Option[] = query.data
