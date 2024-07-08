@@ -17,7 +17,12 @@ import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import type {
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+  WorkflowMethods,
+} from "@calcom/prisma/client";
 import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -43,6 +48,7 @@ type InputWebhook = {
 };
 
 type InputWorkflow = {
+  id?: number;
   userId?: number | null;
   teamId?: number | null;
   name?: string;
@@ -50,6 +56,16 @@ type InputWorkflow = {
   trigger: WorkflowTriggerEvents;
   action: WorkflowActions;
   template: WorkflowTemplates;
+};
+
+type InputWorkflowReminder = {
+  id?: number;
+  bookingUid: string;
+  method: WorkflowMethods;
+  scheduledDate: Date;
+  scheduled: boolean;
+  workflowStepId?: number;
+  workflowId: number;
 };
 
 type InputHost = {
@@ -452,10 +468,11 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 }
 
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  await prismock.$transaction(
+  return await prismock.$transaction(
     workflows.map((workflow) => {
       return prismock.workflow.create({
         data: {
+          ...(workflow.id && { id: workflow.id }),
           userId: workflow.userId,
           teamId: workflow.teamId,
           trigger: workflow.trigger,
@@ -485,7 +502,15 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
 async function addWorkflows(workflows: InputWorkflow[]) {
   log.silly("TestData: Creating Workflows", safeStringify(workflows));
 
-  await addWorkflowsToDb(workflows);
+  return await addWorkflowsToDb(workflows);
+}
+
+export async function addWorkflowReminders(workflowReminders: InputWorkflowReminder[]) {
+  log.silly("TestData: Creating Workflow Reminders", safeStringify(workflowReminders));
+
+  return await prismock.workflowReminder.createMany({
+    data: workflowReminders,
+  });
 }
 
 export async function addUsersToDb(
@@ -651,10 +676,11 @@ export async function createBookingScenario(data: ScenarioData) {
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
-  await addWorkflows(data.workflows || []);
+  const workflows = await addWorkflows(data.workflows || []);
 
   return {
     eventTypes,
+    workflows,
   };
 }
 

@@ -4,6 +4,7 @@ import {
   getScenarioData,
   getMockBookingAttendee,
   TestData,
+  addWorkflowReminders,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import {
   expectBookingToBeInDatabase,
@@ -15,7 +16,7 @@ import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAn
 import { describe, vi, expect } from "vitest";
 
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
-import { SchedulingType, BookingStatus } from "@calcom/prisma/enums";
+import { SchedulingType, BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
 import { test } from "@calcom/web/test/fixtures/fixtures";
 
 vi.mock("@calcom/core/EventManager");
@@ -69,10 +70,11 @@ describe("roundRobinReassignment test", () => {
 
     const { dateString: dateStringPlusOne } = getDate({ dateIncrement: 1 });
     const { dateString: dateStringMinusOne } = getDate({ dateIncrement: -1 });
+    const { dateString: dateStringPlusTwo } = getDate({ dateIncrement: 2 });
 
     const bookingToReassignUid = "booking-to-reassign";
 
-    await createBookingScenario(
+    const bookingData = await createBookingScenario(
       getScenarioData({
         workflows: [
           {
@@ -144,6 +146,16 @@ describe("roundRobinReassignment test", () => {
         usersApartFromOrganizer: users.slice(1),
       })
     );
+    const workflowReminders = await addWorkflowReminders([
+      {
+        bookingUid: bookingToReassignUid,
+        method: WorkflowMethods.EMAIL,
+        scheduledDate: dateStringPlusTwo,
+        scheduled: true,
+        workflowStepId: 1,
+        workflowId: 1,
+      },
+    ]);
 
     await roundRobinReassignment({
       bookingId: 123,
