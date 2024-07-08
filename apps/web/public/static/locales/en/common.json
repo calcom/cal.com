@@ -1475,6 +1475,7 @@
   "team_disable_cal_branding_description": "Removes any {{appName}} related brandings, i.e. 'Powered by {{appName}}'",
   "invited_by_team": "{{teamName}} has invited you to join their team as a {{role}}",
   "token_invalid_expired": "Token is either invalid or expired.",
+  "rescheduled_to": "Rescheduled To",
   "exchange_add": "Connect to Microsoft Exchange",
   "exchange_authentication": "Authentication method",
   "exchange_authentication_standard": "Basic authentication",

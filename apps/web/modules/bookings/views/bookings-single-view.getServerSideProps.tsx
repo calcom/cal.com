@@ -4,6 +4,7 @@ import { z } from "zod";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
+import { getRescheduledToBooking } from "@calcom/features/bookings/lib/getRescheduledToBooking";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
@@ -70,6 +71,12 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  let rescheduledToUid: string | null = null;
+  if (bookingInfo.rescheduled) {
+    const rescheduledTo = await getRescheduledToBooking(bookingInfo.uid);
+    rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -176,6 +183,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      rescheduledToUid,
     },
   };
 }

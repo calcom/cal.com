@@ -64,7 +64,6 @@ import {
   parseRecurringEvent,
 } from "@calcom/lib";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -1697,6 +1696,19 @@ async function handler(
     })
   );
 
+  // update original rescheduled booking (no seats event)
+  if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
+    await prisma.booking.update({
+      where: {
+        id: originalRescheduledBooking.id,
+      },
+      data: {
+        rescheduled: true,
+        status: BookingStatus.CANCELLED,
+      },
+    });
+  }
+
   try {
     booking = await createBooking({
       originalRescheduledBooking,
@@ -1717,22 +1729,6 @@ async function handler(
       paymentAppData,
       changedOrganizer,
     });
-
-    // update original rescheduled booking (no seats event)
-    if (!eventType.seatsPerTimeSlot && originalRescheduledBooking?.uid) {
-      const description = originalRescheduledBooking.description || "";
-
-      await prisma.booking.update({
-        where: {
-          id: originalRescheduledBooking.id,
-        },
-        data: {
-          rescheduled: true,
-          status: BookingStatus.CANCELLED,
-          description: `${description}\n\n Event has been rescheduled to: ${WEBAPP_URL}/booking/${booking.uid}`,
-        },
-      });
-    }
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
     // Sync Services
