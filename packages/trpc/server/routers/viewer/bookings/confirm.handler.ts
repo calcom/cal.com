@@ -14,6 +14,8 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus, MembershipRole, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
@@ -39,68 +41,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
   const tOrganizer = await getTranslation(user.locale ?? "en", "common");
 
-  const booking = await prisma.booking.findUniqueOrThrow({
-    where: {
-      id: bookingId,
-    },
-    select: {
-      title: true,
-      description: true,
-      customInputs: true,
-      startTime: true,
-      endTime: true,
-      attendees: true,
-      eventTypeId: true,
-      responses: true,
-      metadata: true,
-      userPrimaryEmail: true,
-      eventType: {
-        select: {
-          id: true,
-          owner: true,
-          teamId: true,
-          recurringEvent: true,
-          title: true,
-          slug: true,
-          requiresConfirmation: true,
-          currency: true,
-          length: true,
-          description: true,
-          price: true,
-          bookingFields: true,
-          disableGuests: true,
-          metadata: true,
-          locations: true,
-          team: {
-            select: {
-              parentId: true,
-            },
-          },
-          workflows: {
-            include: {
-              workflow: {
-                include: {
-                  steps: true,
-                },
-              },
-            },
-          },
-          customInputs: true,
-          parentId: true,
-        },
-      },
-      location: true,
-      userId: true,
-      id: true,
-      uid: true,
-      payment: true,
-      destinationCalendar: true,
-      paid: true,
-      recurringEventId: true,
-      status: true,
-      smsReminderNumber: true,
-    },
-  });
+  const booking = await BookingRepository.findBookingById({ id: bookingId });
 
   if (booking.userId !== user.id && booking.eventTypeId) {
     // Only query database when it is explicitly required.
@@ -131,10 +72,8 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
 
   // If booking requires payment and is not paid, we don't allow confirmation
   if (confirmed && booking.payment.length > 0 && !booking.paid) {
-    await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
+    await BookingRepository.updateBookingById({
+      id: bookingId,
       data: {
         status: BookingStatus.ACCEPTED,
       },
@@ -290,11 +229,9 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           if (booking.eventType?.owner) {
             eventTypeOwnerId = booking.eventType.owner.id;
           } else if (booking.eventType?.teamId) {
-            const teamOwner = await prisma.membership.findFirst({
-              where: {
-                teamId: booking.eventType.teamId,
-                role: MembershipRole.OWNER,
-              },
+            const teamOwner = await MembershipRepository.getUserIdByTeamRole({
+              role: MembershipRole.OWNER,
+              teamId: booking.eventType.teamId,
               select: {
                 userId: true,
               },

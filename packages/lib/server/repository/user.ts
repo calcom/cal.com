@@ -489,4 +489,13 @@ export class UserRepository {
       },
     });
   }
+
+  static async updateById({ id, data }: { id: number; data: Prisma.UserUpdateInput }) {
+    return prisma.user.update({
+      where: {
+        id,
+      },
+      data: Prisma.validator<Prisma.UserUpdateInput>()(data),
+    });
+  }
 }

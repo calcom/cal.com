@@ -131,4 +131,74 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async getRequestedMember({ userId, orgId }: { userId: number; orgId: number }) {
+    return prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: orgId,
+        accepted: true,
+      },
+      include: {
+        team: {
+          include: {
+            children: {
+              where: {
+                members: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+              include: {
+                members: true,
+              },
+            },
+          },
+        },
+        user: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+  }
+
+  static async getUserOrgMembership({
+    userId,
+    orgId,
+    include = {},
+  }: {
+    userId: number;
+    orgId: number;
+    include?: Prisma.MembershipInclude;
+  }) {
+    return prisma.membership.findFirst({
+      where: {
+        userId,
+        teamId: orgId,
+        accepted: true,
+      },
+      include: Prisma.validator<Prisma.MembershipInclude>()(include),
+    });
+  }
+
+  static async getUserIdByTeamRole({
+    role,
+    teamId,
+    select,
+  }: {
+    teamId: number;
+    role: MembershipRole;
+    select: Prisma.MembershipSelect;
+  }) {
+    return prisma.membership.findFirst({
+      where: {
+        teamId: teamId,
+        role,
+      },
+      select: Prisma.validator<Prisma.MembershipSelect>()(select),
+    });
+  }
 }
