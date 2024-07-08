@@ -4,8 +4,8 @@ import { OrganizationsTeamsController } from "@/modules/organizations/controller
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/repositories/organizations-schedules.repository";
-import { OrganizationsSchedulesService } from "@/modules/organizations/services/organizations-schedules.service";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
+import { OrganizationsSchedulesService } from "@/modules/organizations/services/organizations-schedules.service";
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
