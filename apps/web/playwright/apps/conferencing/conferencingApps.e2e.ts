@@ -98,7 +98,7 @@ const ALL_APPS: TAllApps = {
   },
 };
 
-const ALL_APPS_ARRAY: TApp[] = Object.values((item: TApp) => item);
+const ALL_APPS_ARRAY: TApp[] = Object.values(ALL_APPS);
 /**
  * @todo add tests for
  * shimmervideo
