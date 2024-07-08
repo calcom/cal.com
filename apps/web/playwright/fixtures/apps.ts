@@ -2,11 +2,11 @@ import { expect, type Page } from "@playwright/test";
 
 import type { TApp } from "../apps/conferencing/conferencingApps.e2e";
 import {
+  bookTimeSlot,
   gotoBookingPage,
   gotoFirstEventType,
-  bookTimeSlot,
-  selectFirstAvailableTimeSlotNextMonth,
   saveEventType,
+  selectFirstAvailableTimeSlotNextMonth,
 } from "../lib/testUtils";
 
 export function createAppsFixture(page: Page) {
@@ -52,14 +52,10 @@ export function createAppsFixture(page: Page) {
       await page.waitForURL(`apps/installation/event-types?slug=${app}`);
       await page.click('[data-testid="set-up-later"]');
     },
-    verifyConferencingApp: async (app: TApp, index: number) => {
+    verifyConferencingApp: async (app: TApp) => {
       await page.goto("/event-types");
       await gotoFirstEventType(page);
-      if (index == 0) {
-        await page.getByTestId("location-select").last().click();
-      } else {
-        await page.locator("[data-testid=add-location]").click();
-      }
+      await page.getByTestId("location-select").last().click();
       await page.getByTestId(`location-select-item-${app.type}`).click();
       if (app.organizerInputPlaceholder) {
         await page.getByTestId(`${app.type}-location-input`).fill(app.organizerInputPlaceholder);
@@ -69,14 +65,6 @@ export function createAppsFixture(page: Page) {
       await page.waitForLoadState("networkidle");
       await gotoBookingPage(page);
       await selectFirstAvailableTimeSlotNextMonth(page);
-
-      if (index > 0) {
-        if (app.label) {
-          await page.getByLabel(app.label).click();
-        } else if (app.organizerInputPlaceholder) {
-          await page.getByLabel(app.organizerInputPlaceholder).click();
-        }
-      }
       await bookTimeSlot(page);
       await page.waitForLoadState("networkidle");
 
@@ -94,13 +82,10 @@ export function createAppsFixture(page: Page) {
         await page.click(`[data-testid="select-event-type-${id}"]`);
       }
       await page.click(`[data-testid="save-event-types"]`);
+
       for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
-        if (app.organizerInputPlaceholder) {
-          await page
-            .getByTestId(`${app.type}-location-input`)
-            .nth(eindex)
-            .fill(app.organizerInputPlaceholder);
-        }
+        if (!app.organizerInputPlaceholder) continue;
+        await page.getByTestId(`${app.type}-location-input`).nth(eindex).fill(app.organizerInputPlaceholder);
       }
       await page.click(`[data-testid="configure-step-save"]`);
       await page.waitForURL("/event-types");
