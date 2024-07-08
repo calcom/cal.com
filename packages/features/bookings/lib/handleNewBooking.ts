@@ -70,15 +70,11 @@ import type { BookingReference } from "@calcom/prisma/client";
 import { BookingStatus, SchedulingType, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import type { bookingCreateSchemaLegacyPropsForApi } from "@calcom/prisma/zod-utils";
-import {
-  bookingCreateSchemaLegacyPropsForApi,
-  userMetadata as userMetadataSchema,
-} from "@calcom/prisma/zod-utils";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import {
   deleteAllWorkflowReminders,
   getAllWorkflowsFromEventType,
 } from "@calcom/trpc/server/routers/viewer/workflows/util";
-
 import type {
   AdditionalInformation,
   AppsStatus,
