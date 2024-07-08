@@ -1,4 +1,5 @@
 import type { LocationObject } from "@calcom/app-store/locations";
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
 import { parseRecurringEvent } from "@calcom/lib";
 import prisma, { userSelect } from "@calcom/prisma";
@@ -60,6 +61,11 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       durationLimits: true,
       assignAllTeamMembers: true,
       parentId: true,
+      parent: {
+        select: {
+          teamId: true,
+        },
+      },
       useEventTypeDestinationCalendarEmail: true,
       owner: {
         select: {
@@ -67,11 +73,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       workflows: {
-        include: {
+        select: {
           workflow: {
-            include: {
-              steps: true,
-            },
+            select: workflowSelect,
           },
         },
       },

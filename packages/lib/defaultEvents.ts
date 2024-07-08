@@ -97,6 +97,7 @@ const commons = {
   hidden: false,
   userId: 0,
   parentId: null,
+  parent: null,
   owner: null,
   workflows: [],
   users: [user],

@@ -125,6 +125,7 @@ export const getEventTypeById = async ({
       },
       parent: {
         select: {
+          id: true,
           teamId: true,
         },
       },
@@ -216,7 +217,14 @@ export const getEventTypeById = async ({
       workflows: {
         include: {
           workflow: {
-            include: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              teamId: true,
               team: {
                 select: {
                   id: true,
