@@ -1,6 +1,6 @@
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
 
+import { useRouter } from "next/router";
+import { useCallback, useState } from "react";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
@@ -51,6 +51,11 @@ export default function CancelBooking(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Extract rescheduledBy and canceledBy from URL parameters
+  const { query } = router;
+  const rescheduledBy = query.rescheduledBy as string;
+  const canceledBy = query.canceledBy as string;
+
   return (
     <>
       {error && (
@@ -95,10 +100,11 @@ export default function CancelBooking(props: Props) {
                   const res = await fetch("/api/cancel", {
                     body: JSON.stringify({
                       uid: booking?.uid,
-                      cancellationReason: cancellationReason,
+                      cancellationReason,
                       allRemainingBookings,
-                      // @NOTE: very important this shouldn't cancel with number ID use uid instead
                       seatReferenceUid,
+                      rescheduledBy,
+                      canceledBy,
                     }),
                     headers: {
                       "Content-Type": "application/json",
