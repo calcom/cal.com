@@ -9,7 +9,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import {
   createNewUsersConnectToOrgIfExists,
   sendExistingUserTeamInviteEmails,
-} from "@calcom/platform-libraries-0.0.2";
+} from "@calcom/platform-libraries";
 
 @Injectable()
 export class OrganizationsUsersService {
@@ -46,15 +46,17 @@ export class OrganizationsUsersService {
 
     // Create new org user
     const createdUserCall = await createNewUsersConnectToOrgIfExists({
-      usernamesOrEmails,
-      input: {
-        teamId: orgId,
-        role: userCreateBody.organizationRole,
-        usernameOrEmail: usernamesOrEmails[0],
-        isOrg: true,
-        language: userCreateBody.locale,
-      },
-      connectionInfoMap: {
+      invitations: [
+        {
+          usernameOrEmail: usernamesOrEmails[0],
+          role: userCreateBody.organizationRole,
+        },
+      ],
+      teamId: orgId,
+      isOrg: true,
+      parentId: null,
+      autoAcceptEmailDomain: "not-required-for-this-endpoint",
+      orgConnectInfoByUsernameOrEmail: {
         [usernamesOrEmails[0]]: {
           orgId: orgId,
           autoAccept: userCreateBody.autoAccept,

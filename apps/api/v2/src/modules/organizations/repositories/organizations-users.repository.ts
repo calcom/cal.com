@@ -70,7 +70,7 @@ export class OrganizationsUsersRepository {
     });
   }
 
-  async deleteOrganizationuser(orgId: number, userId: number) {
+  async deleteUser(orgId: number, userId: number) {
     return await this.dbWrite.prisma.user.delete({
       where: {
         id: userId,
