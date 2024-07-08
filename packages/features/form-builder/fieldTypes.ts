@@ -66,7 +66,7 @@ const configMap: Record<FieldType, Omit<z.infer<typeof fieldTypeConfigSchema>, "
               {
                 name: "fullName",
                 type: "text",
-                label: "Your Name",
+                label: "your_name",
                 required: true,
               },
             ],

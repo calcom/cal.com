@@ -163,6 +163,13 @@ export default class EventManager {
         evt.videoCallData = result.createdEvent;
         evt.location = result.originalEvent.location;
         result.type = result.createdEvent.type;
+        //responses data is later sent to webhook
+        if (evt.location && evt.responses) {
+          evt.responses["location"].value = {
+            optionValue: "",
+            value: evt.location,
+          };
+        }
       }
 
       results.push(result);
@@ -224,6 +231,15 @@ export default class EventManager {
       const result = await this.createVideoEvent(evt);
       if (result.createdEvent) {
         evt.videoCallData = result.createdEvent;
+        evt.location = result.originalEvent.location;
+        result.type = result.createdEvent.type;
+        //responses data is later sent to webhook
+        if (evt.location && evt.responses) {
+          evt.responses["location"].value = {
+            optionValue: "",
+            value: evt.location,
+          };
+        }
       }
 
       results.push(result);

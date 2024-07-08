@@ -1,9 +1,8 @@
+import NotFoundPage from "@pages/404";
+import { WithLayout } from "app/layoutHOC";
 import type { GetStaticPropsContext } from "next";
 
 import { getTranslations } from "@server/lib/getTranslations";
-
-import NotFoundPage from "./404/page";
-import { WithLayout } from "./layoutHOC";
 
 const getData = async (context: GetStaticPropsContext) => {
   const i18n = await getTranslations(context);
