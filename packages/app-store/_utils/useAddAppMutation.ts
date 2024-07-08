@@ -6,8 +6,6 @@ import type { IntegrationOAuthCallbackState } from "@calcom/app-store/types";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import type { App } from "@calcom/types/App";
 
-import getInstalledAppPath from "./getInstalledAppPath";
-
 function gotoUrl(url: string, newTab?: boolean) {
   if (newTab) {
     window.open(url, "_blank");
@@ -27,17 +25,7 @@ type UseAddAppMutationOptions = CustomUseMutationOptions & {
   returnTo?: string;
 };
 
-type useAddAppMutationVariables = {
-  type?: App["type"];
-  variant?: string;
-  slug?: string;
-  isOmniInstall?: boolean;
-  teamId?: number;
-  onErrorReturnTo?: string;
-};
-
-function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMutationOptions) {
-  const { returnTo, ...options } = allOptions || {};
+function useAddAppMutation(_type: App["type"] | null, options?: UseAddAppMutationOptions) {
   const pathname = usePathname();
   const onErrorReturnTo = `${WEBAPP_URL}${pathname}`;
 
@@ -48,8 +36,8 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         type?: App["type"];
         variant?: string;
         slug?: string;
-        isOmniInstall?: boolean;
         teamId?: number;
+        returnTo?: string;
         defaultInstall?: boolean;
       }
     | ""
@@ -57,13 +45,16 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
     ...options,
     mutationFn: async (variables) => {
       let type: string | null | undefined;
-      let isOmniInstall;
       const teamId = variables && variables.teamId ? variables.teamId : undefined;
       const defaultInstall = variables && variables.defaultInstall ? variables.defaultInstall : undefined;
+      const returnTo = options?.returnTo
+        ? options.returnTo
+        : variables && variables.returnTo
+        ? variables.returnTo
+        : undefined;
       if (variables === "") {
         type = _type;
       } else {
-        isOmniInstall = variables.isOmniInstall;
         type = variables.type;
       }
       if (type?.endsWith("_other_calendar")) {
@@ -74,22 +65,20 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
         throw new Error("Could not install Google Meet");
 
       const state: IntegrationOAuthCallbackState = {
-        returnTo:
-          returnTo ||
-          WEBAPP_URL +
-            getInstalledAppPath(
-              { variant: variables && variables.variant, slug: variables && variables.slug },
-              location.search
-            ),
         onErrorReturnTo,
         fromApp: true,
         ...(type === "google_calendar" && { installGoogleVideo: options?.installGoogleVideo }),
         ...(teamId && { teamId }),
+        ...(returnTo && { returnTo }),
         ...(defaultInstall && { defaultInstall }),
       };
 
       const stateStr = JSON.stringify(state);
-      const searchParams = generateSearchParamString({ stateStr, teamId, returnTo });
+      const searchParams = generateSearchParamString({
+        stateStr,
+        teamId,
+        returnTo,
+      });
 
       const res = await fetch(`/api/integrations/${type}/add${searchParams}`);
 
@@ -99,23 +88,25 @@ function useAddAppMutation(_type: App["type"] | null, allOptions?: UseAddAppMuta
       }
 
       const json = await res.json();
-      const externalUrl = /https?:\/\//.test(json.url) && !json.url.startsWith(window.location.origin);
-      if (!isOmniInstall) {
-        gotoUrl(json.url, json.newTab);
-        return { setupPending: externalUrl || json.url.endsWith("/setup") };
-      }
-
-      // Skip redirection only if it is an OmniInstall and redirect URL isn't of some other origin
-      // This allows installation of apps like Stripe to still redirect to their authentication pages.
+      const externalUrl = /https?:\/\//.test(json?.url) && !json?.url?.startsWith(window.location.origin);
 
       // Check first that the URL is absolute, then check that it is of different origin from the current.
       if (externalUrl) {
         // TODO: For Omni installation to authenticate and come back to the page where installation was initiated, some changes need to be done in all apps' add callbacks
         gotoUrl(json.url, json.newTab);
-        return { setupPending: externalUrl };
+        return { setupPending: !json.newTab };
+      } else if (json.url) {
+        gotoUrl(json.url, json.newTab);
+        return {
+          setupPending:
+            json?.url?.endsWith("/setup") || json?.url?.includes("/apps/installation/event-types"),
+        };
+      } else if (returnTo) {
+        gotoUrl(returnTo, false);
+        return { setupPending: true };
+      } else {
+        return { setupPending: false };
       }
-
-      return { setupPending: externalUrl || json.url.endsWith("/setup") };
     },
   });
 
