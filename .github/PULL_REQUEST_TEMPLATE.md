@@ -2,12 +2,10 @@
 
 <!-- Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change. -->
 
-- Fixes #XXXX (GitHub issue number)
-- Fixes CAL-XXXX (Linear issue number - should be visible at the bottom of the GitHub issue description)
+- Fixes #15623 (GitHub issue number)
+- Fixes #15623 (Linear issue number - should be visible at the bottom of the GitHub issue description)
 
-<!-- Please provide a loom video for visual changes to speed up reviews
- Loom Video: https://www.loom.com/
--->
+https://www.loom.com/share/b8e6737ad9d24220a5ac93993a35917c?sid=5c460ed1-5cf0-4bf0-bc4b-ccd605f7f176
 
 ## Mandatory Tasks (DO NOT REMOVE)
 
