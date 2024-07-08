@@ -47,7 +47,10 @@ const createNewSeat = async (
 
   evt = { ...evt, attendees: [...bookingAttendees, invitee[0]] };
 
-  if (eventType.seatsPerTimeSlot && eventType.seatsPerTimeSlot <= seatedBooking.attendees.length) {
+  if (
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsPerTimeSlot <= seatedBooking.attendees.filter((attendee) => !!attendee.bookingSeat).length
+  ) {
     throw new HttpError({ statusCode: 409, message: ErrorCode.BookingSeatsFull });
   }
 
