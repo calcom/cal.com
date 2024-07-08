@@ -83,6 +83,21 @@ const baseFieldSchema = z.object({
       })
     )
     .optional(),
+
+  /**
+   * It is the minimum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @default 0
+   * @requires supportsLengthCheck = true
+   */
+  minLength: z.number().optional(),
+
+  /**
+   * It is the maximum number of characters that can be entered in the field.
+   * It is used for types with `supportsLengthCheck= true`.
+   * @requires supportsLengthCheck = true
+   */
+  maxLength: z.number().optional(),
 });
 
 export const variantsConfigSchema = z.object({
@@ -116,6 +131,11 @@ export const fieldTypeConfigSchema = z
     isTextType: z.boolean().default(false).optional(),
     systemOnly: z.boolean().default(false).optional(),
     needsOptions: z.boolean().default(false).optional(),
+    supportsLengthCheck: z
+      .object({
+        maxLength: z.number(),
+      })
+      .optional(),
     propsType: z.enum([
       "text",
       "textList",
@@ -316,6 +336,34 @@ export const fieldTypesSchemaMap: Partial<
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
+    },
+  },
+  textarea: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ field, response, ctx, m }) => {
+      const fieldTypeConfig = fieldTypesConfigMap[field.type];
+      const value = response ?? "";
+      const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;
+      if (!maxLength) {
+        throw new Error("maxLength must be there for textarea field");
+      }
+      const hasExceededMaxLength = value.length > maxLength;
+      const hasNotReachedMinLength = value.length < (field.minLength ?? 0);
+      if (hasExceededMaxLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Max. ${field.maxLength} characters allowed`),
+        });
+      }
+      if (hasNotReachedMinLength) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m(`Min. ${field.minLength} characters required`),
+        });
+      }
+      if (hasExceededMaxLength || hasNotReachedMinLength) return;
     },
   },
 };
