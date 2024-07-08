@@ -836,13 +836,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }}
         />
       ) : null}
-      <AssignmentWarningDialog
-        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
-        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
-        pendingRoute={pendingRoute}
-        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
-        id={eventType.id}
-      />
+      {/*<AssignmentWarningDialog*/}
+      {/*  isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}*/}
+      {/*  setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}*/}
+      {/*  pendingRoute={pendingRoute}*/}
+      {/*  leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}*/}
+      {/*  id={eventType.id}*/}
+      {/*/>*/}
     </>
   );
 };
