@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -29,6 +30,7 @@ import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
+import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
@@ -404,7 +406,7 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const AUTH_OPTIONS: AuthOptions = {
+export const getOptions = (req: NextApiRequest): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
@@ -897,6 +899,33 @@ export const AUTH_OPTIONS: AuthOptions = {
           },
         });
 
+        // only run this code if it's a hosted cal account and DUB_API_KEY is configured
+        if (HOSTED_CAL_FEATURES && process.env.DUB_API_KEY) {
+          const { dclid } = req.cookies;
+          waitUntil(
+            Promise.allSettled([
+              dub.links.create({
+                domain: "go.cal.com",
+                key: newUser.username || undefined,
+                url: "https://cal.com?utm_source=embed&utm_medium=powered-by-button",
+                prefix: "/r/", // resulting link will be go.cal.com/r/steven
+                externalId: newUser.id.toString(), // ref: https://dub.co/docs/quickstart/nextjs#3a-create-link-with-externalid
+                trackConversion: true,
+              }),
+              // if dclid is present, track a lead event (user came from a referral link)
+              dclid &&
+                dub.track.lead({
+                  clickId: dclid,
+                  eventName: "Sign Up",
+                  customerId: newUser.id.toString(),
+                  customerName: newUser.name,
+                  customerEmail: newUser.email,
+                  customerAvatar: newUser.avatarUrl,
+                }),
+            ])
+          );
+        }
+
         const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
         await calcomAdapter.linkAccount(linkAccountNewUserData);
 
@@ -920,7 +949,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       return baseUrl;
     },
   },
-};
+});
 
 /**
  * Identifies the profile the user should be logged into.
