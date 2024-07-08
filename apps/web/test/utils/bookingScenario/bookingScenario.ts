@@ -23,7 +23,7 @@ import type {
   WorkflowTriggerEvents,
   WorkflowMethods,
 } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
+import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -52,10 +52,14 @@ type InputWorkflow = {
   userId?: number | null;
   teamId?: number | null;
   name?: string;
-  activeEventTypeId?: number;
+  activeOn?: number[];
+  activeOnTeams?: number[];
   trigger: WorkflowTriggerEvents;
   action: WorkflowActions;
   template: WorkflowTemplates;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
+  sendTo?: string;
 };
 
 type InputWorkflowReminder = {
@@ -111,6 +115,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       id: number;
       name: string;
       slug: string;
+      parentId?: number;
     };
   }[];
   schedules: {
@@ -146,6 +151,10 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
+  team?: {
+    id?: number | null;
+    parentId?: number | null;
+  };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
@@ -468,33 +477,76 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 }
 
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  return await prismock.$transaction(
-    workflows.map((workflow) => {
-      return prismock.workflow.create({
+  await Promise.all(
+    workflows.map(async (workflow) => {
+      const team = await prismock.team.findFirst({
+        where: {
+          id: workflow.teamId ?? 0,
+        },
+      });
+
+      if (workflow.teamId && !team) {
+        throw new Error(`Team with ID ${workflow.teamId} not found`);
+      }
+
+      const isOrg = team?.isOrganization;
+
+      // Create the workflow first
+      const createdWorkflow = await prismock.workflow.create({
         data: {
           ...(workflow.id && { id: workflow.id }),
           userId: workflow.userId,
           teamId: workflow.teamId,
           trigger: workflow.trigger,
           name: workflow.name ? workflow.name : "Test Workflow",
-          steps: {
-            create: {
-              stepNumber: 1,
-              action: workflow.action,
-              template: workflow.template,
-              numberVerificationPending: false,
-              includeCalendarEvent: false,
-            },
-          },
-          activeOn: {
-            create: workflow.activeEventTypeId ? { eventTypeId: workflow.activeEventTypeId } : undefined,
-          },
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
         },
         include: {
-          activeOn: true,
           steps: true,
         },
       });
+
+      await prismock.workflowStep.create({
+        data: {
+          stepNumber: 1,
+          action: workflow.action,
+          template: workflow.template,
+          numberVerificationPending: false,
+          includeCalendarEvent: false,
+          sendTo: workflow.sendTo,
+          workflow: {
+            connect: {
+              id: createdWorkflow.id,
+            },
+          },
+        },
+      });
+
+      //activate event types and teams on workflows
+      if (isOrg && workflow.activeOnTeams) {
+        await Promise.all(
+          workflow.activeOnTeams.map((id) =>
+            prismock.workflowsOnTeams.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                teamId: id,
+              },
+            })
+          )
+        );
+      } else if (workflow.activeOn) {
+        await Promise.all(
+          workflow.activeOn.map((id) =>
+            prismock.workflowsOnEventTypes.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                eventTypeId: id,
+              },
+            })
+          )
+        );
+      }
     })
   );
 }
@@ -547,9 +599,25 @@ export async function addUsersToDb(
 
 export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
-  await prismock.team.createMany({
-    data: teams,
-  });
+
+  for (const team of teams) {
+    const teamsWithParentId = {
+      ...team,
+      parentId: team.parentId,
+    };
+    await prismock.team.upsert({
+      where: {
+        id: teamsWithParentId.id,
+      },
+      update: {
+        ...teamsWithParentId,
+      },
+      create: {
+        ...teamsWithParentId,
+      },
+    });
+  }
+
   const addedTeams = await prismock.team.findMany({
     where: {
       id: {
@@ -688,17 +756,34 @@ export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
+  withTeam?: boolean;
 }) {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
       slug: orgData.slug,
+      isOrganization: true,
       metadata: {
         ...(orgData.metadata || {}),
         isOrganization: true,
       },
     },
   });
+  if (orgData.withTeam) {
+    await prismock.team.create({
+      data: {
+        name: "Org Team",
+        slug: "org-team",
+        isOrganization: false,
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+    });
+  }
+
   return org;
 }
 
@@ -1170,6 +1255,10 @@ export function getScenarioData(
       return {
         ...eventType,
         teamId: eventType.teamId || null,
+        team: {
+          id: eventType.teamId,
+          parentId: org ? org.id : null,
+        },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
       };

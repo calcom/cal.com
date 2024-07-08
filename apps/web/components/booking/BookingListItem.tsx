@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useState } from "react";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 
 import type { EventLocationType, getEventLocationValue } from "@calcom/app-store/locations";
 import {
@@ -31,20 +31,20 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  Dropdown,
+  DropdownItem,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Icon,
   MeetingTimeInTimezones,
   showToast,
   TableActions,
   TextAreaField,
   Tooltip,
-  Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuCheckboxItem,
 } from "@calcom/ui";
 
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
@@ -712,13 +712,8 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const { copyToClipboard, isCopied } = useCopy();
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
-    onSuccess: async () => {
-      showToast(
-        t(noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
-          x: name || email,
-        }),
-        "success"
-      );
+    onSuccess: async (data) => {
+      showToast(t(data.message, { x: name || email }), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -825,8 +820,8 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   });
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
-    onSuccess: async () => {
-      showToast(t("no_show_updated"), "success");
+    onSuccess: async (data) => {
+      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -905,6 +900,69 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     </Dropdown>
   );
 };
+const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
+  const [openDropdown, setOpenDropdown] = useState(false);
+  const { t } = useLocale();
+  const { copyToClipboard, isCopied } = useCopy();
+  const [selectedEmail, setSelectedEmail] = useState("");
+
+  return (
+    <Dropdown
+      open={openDropdown}
+      onOpenChange={(value) => {
+        setOpenDropdown(value);
+        setSelectedEmail("");
+      }}>
+      <DropdownMenuTrigger asChild>
+        <button
+          onClick={(e) => e.stopPropagation()}
+          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          {t("plus_more", { count: guests.length - 1 })}
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuLabel className="text-xs font-medium uppercase">{t("guests")}</DropdownMenuLabel>
+        {guests.slice(1).map((guest) => (
+          <DropdownMenuItem key={guest.id}>
+            <DropdownItem
+              className="pr-6 focus:outline-none"
+              StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedEmail(guest.email);
+              }}>
+              <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
+            </DropdownItem>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <div className=" flex justify-end space-x-2 p-2">
+          <Link href={`mailto:${selectedEmail}`}>
+            <Button
+              color="secondary"
+              disabled={selectedEmail.length === 0}
+              onClick={(e) => {
+                setOpenDropdown(false);
+                e.stopPropagation();
+              }}>
+              {t("email")}
+            </Button>
+          </Link>
+          <Button
+            color="secondary"
+            disabled={selectedEmail.length === 0}
+            onClick={(e) => {
+              e.preventDefault();
+              copyToClipboard(selectedEmail);
+              showToast(t("email_copied"), "success");
+            }}>
+            {!isCopied ? t("copy") : t("copied")}
+          </Button>
+        </div>
+      </DropdownMenuContent>
+    </Dropdown>
+  );
+};
 
 const DisplayAttendees = ({
   attendees,
@@ -937,7 +995,11 @@ const DisplayAttendees = ({
                   <Attendee {...attendee} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />
                 </p>
               ))}>
-              {isBookingInPast && <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />}
+              {isBookingInPast ? (
+                <GroupedAttendees attendees={attendees} bookingUid={bookingUid} />
+              ) : (
+                <GroupedGuests guests={attendees} />
+              )}
             </Tooltip>
           ) : (
             <Attendee {...attendees[1]} bookingUid={bookingUid} isBookingInPast={isBookingInPast} />

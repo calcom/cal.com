@@ -2,12 +2,15 @@ import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
 import { JSDOM } from "jsdom";
+import { v4 as uuidv4 } from "uuid";
 
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
 
 let sendgridAPIKey: string;
 let senderEmail: string;
+
+const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 function assertSendgrid() {
   if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL) {
@@ -21,6 +24,9 @@ function assertSendgrid() {
 }
 
 export async function getBatchId() {
+  if (testMode) {
+    return uuidv4();
+  }
   assertSendgrid();
   if (!process.env.SENDGRID_API_KEY) {
     console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
@@ -39,7 +45,6 @@ export function sendSendgridMail(
 ) {
   assertSendgrid();
 
-  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
   if (testMode) {
     if (!mailData.sendAt) {
       setTestEmail({

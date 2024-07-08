@@ -16,6 +16,8 @@ import slugify from "../../slugify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
 
+export type UserAdminTeams = number[];
+
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
 export const ORGANIZATION_ID_UNKNOWN = "ORGANIZATION_ID_UNKNOWN";
@@ -515,5 +517,28 @@ export class UserRepository {
       },
     });
     return !!teams.length;
+  }
+
+  static async getUserAdminTeams(userId: number): Promise<number[]> {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        teams: {
+          where: {
+            accepted: true,
+            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          },
+          select: { teamId: true },
+        },
+      },
+    });
+
+    const teamIds = [];
+    for (const team of user?.teams || []) {
+      teamIds.push(team.teamId);
+    }
+    return teamIds;
   }
 }
