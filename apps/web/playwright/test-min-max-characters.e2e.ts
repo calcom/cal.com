@@ -1,5 +1,7 @@
 import { expect } from "@playwright/test";
 
+import { fieldTypesConfigMap } from "@calcom/features/form-builder/fieldTypes";
+
 import { test } from "./lib/fixtures";
 import { createNewEventType } from "./lib/testUtils";
 
@@ -9,6 +11,9 @@ test.describe.configure({
 test.describe("Text area min and max characters text", () => {
   test("Create a new event", async ({ page, users }) => {
     const eventTitle = `Min Max Characters Test`;
+    const fieldType = fieldTypesConfigMap["textarea"];
+    const MAX_LENGTH = fieldType?.supportsLengthCheck?.maxLength;
+
     // We create a new event type
     const user = await users.create();
     await user.apiLogin();
@@ -92,7 +97,7 @@ test.describe("Text area min and max characters text", () => {
       // Expect the native <input> element to show an error message
 
       let validationMessage = await minInput?.evaluate((input: any) => input?.validationMessage as string);
-      expect(validationMessage).toBe("Value must be less than or equal to 5.");
+      expect(validationMessage?.toString()).toBe("Value must be less than or equal to 5.");
 
       await page.fill(minLengthSelector, "0");
       await page.fill(maxLengthSelector, "100000");
@@ -100,7 +105,10 @@ test.describe("Text area min and max characters text", () => {
       // Expect the native <input> element to show an error message
 
       validationMessage = await maxInput?.evaluate((input: any) => input?.validationMessage as string);
-      expect(validationMessage).toBe(`Value must be less than or equal to 4000.`);
+
+      expect(validationMessage?.toString()).toBe(
+        `Value must be less than or equal to ${MAX_LENGTH || 1000}.`
+      );
       await cancelQuestion();
       // Save the event type
       await page.locator("[data-testid=update-eventtype]").click();
