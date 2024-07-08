@@ -1,4 +1,4 @@
-import type { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking";
+import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -9,9 +9,7 @@ import type { ExtendedCalendarEvent } from "./reminderScheduler";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
-export type NewBookingEventType =
-  | Awaited<ReturnType<typeof getDefaultEvent>>
-  | Awaited<ReturnType<typeof getEventTypesFromDB>>;
+export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
 
 export async function scheduleMandatoryReminder(
   evt: ExtendedCalendarEvent,
