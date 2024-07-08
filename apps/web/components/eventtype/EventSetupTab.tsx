@@ -158,6 +158,7 @@ export const EventSetupTab = (
 
     const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
+    const seatsEnabled = formMethods.getValues("seatsPerTimeSlotEnabled");
     const validLocations = formMethods.getValues("locations").filter((location) => {
       const eventLocation = getEventLocationType(location.type);
       if (!eventLocation) {
@@ -416,17 +417,16 @@ export const EventSetupTab = (
               <div className="mr-1.5 h-3 w-3">
                 <Icon name="check" className="h-3 w-3" />
               </div>
-              <Trans i18nKey="event_type_requres_google_cal">
-                <p>
+              <p className="text-default text-sm">
+                <Trans i18nKey="event_type_requires_google_calendar">
                   The “Add to calendar” for this event type needs to be a Google Calendar for Meet to work.
-                  Change it{" "}
-                  <Link
-                    href={`${WEBAPP_URL}/event-types/${formMethods.getValues("id")}?tabName=advanced`}
-                    className="underline">
-                    here.
-                  </Link>{" "}
-                </p>
-              </Trans>
+                  Connect it
+                  <Link className="cursor-pointer text-blue-500 underline" href="/apps/google-calendar">
+                    here
+                  </Link>
+                  .
+                </Trans>
+              </p>
             </div>
           )}
           {isChildrenManagedEventType && !locationAvailable && locationDetails && (
@@ -444,6 +444,8 @@ export const EventSetupTab = (
                 data-testid="add-location"
                 StartIcon="plus"
                 color="minimal"
+                disabled={seatsEnabled}
+                tooltip={seatsEnabled ? t("seats_option_doesnt_support_multi_location") : undefined}
                 onClick={() => setShowEmptyLocationSelect(true)}>
                 {t("add_location")}
               </Button>
