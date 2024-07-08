@@ -67,10 +67,10 @@ const EventTypeAppSettingsForm = forwardRef<HTMLButtonElement, EventTypeAppSetti
     const formMethods = useForm<TFormType>({
       defaultValues: {
         id: eventType.id,
-        metadata: eventType?.metadata,
-        locations: eventType?.locations,
-        bookingFields: eventType?.bookingFields,
-        seatsPerTimeSlot: eventType?.seatsPerTimeSlot,
+        metadata: eventType?.metadata ?? undefined,
+        locations: eventType?.locations ?? undefined,
+        bookingFields: eventType?.bookingFields ?? undefined,
+        seatsPerTimeSlot: eventType?.seatsPerTimeSlot ?? undefined,
       },
       resolver: zodResolver(
         z.object({

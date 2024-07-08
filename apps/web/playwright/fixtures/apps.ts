@@ -43,6 +43,7 @@ export function createAppsFixture(page: Page) {
         }
       }
       await page.click(`[data-testid="configure-step-save"]`);
+      await page.waitForURL("/event-types");
     },
 
     installConferencingAppSkipConfigure: async (app: string) => {
@@ -82,6 +83,41 @@ export function createAppsFixture(page: Page) {
       await expect(page.locator("[data-testid=success-page]")).toBeVisible();
       await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
     },
+
+    installConferencingAppNewFlow: async (app: TApp, eventTypeIds: number[]) => {
+      await page.goto("apps/categories/conferencing");
+      await page.getByTestId(`app-store-app-card-${app.slug}`).click();
+      await page.getByTestId("install-app-button").click();
+      await page.waitForURL(`apps/installation/event-types?slug=${app.slug}`);
+
+      for (const id of eventTypeIds) {
+        await page.click(`[data-testid="select-event-type-${id}"]`);
+      }
+      await page.click(`[data-testid="save-event-types"]`);
+      for (let eindex = 0; eindex < eventTypeIds.length; eindex++) {
+        if (app.organizerInputPlaceholder) {
+          await page
+            .getByTestId(`${app.type}-location-input`)
+            .nth(eindex)
+            .fill(app.organizerInputPlaceholder);
+        }
+      }
+      await page.click(`[data-testid="configure-step-save"]`);
+      await page.waitForURL("/event-types");
+    },
+
+    verifyConferencingAppNew: async (app: TApp, eventTypeIds: number[]) => {
+      for (const id of eventTypeIds) {
+        await page.goto(`/event-types/${id}`);
+        await page.waitForLoadState("networkidle");
+        await gotoBookingPage(page);
+        await selectFirstAvailableTimeSlotNextMonth(page);
+        await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
+        await page.waitForLoadState("networkidle");
+        await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
+      }
+    },
     goBackToAppsPage: async () => {
       await page.getByTestId("add-apps").click();
     },
@@ -97,12 +133,10 @@ export function createAppsFixture(page: Page) {
     verifyAppsInfo: async (activeApps: number) => {
       await expect(page.locator(`text=6 apps, ${activeApps} active`)).toBeVisible();
     },
-    verifyAppsInfoNew: async (apps: string[], eventTypeId: number) => {
+    verifyAppsInfoNew: async (app: string, eventTypeId: number) => {
       await page.goto(`event-types/${eventTypeId}?tabName=apps`);
       await page.waitForLoadState("domcontentloaded");
-      for (const app of apps) {
-        await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
-      }
+      await expect(page.locator(`[data-testid='${app}-app-switch'][data-state="checked"]`)).toBeVisible();
     },
   };
 }

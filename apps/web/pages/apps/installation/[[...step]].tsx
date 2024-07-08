@@ -10,7 +10,6 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
@@ -23,10 +22,8 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { Prisma, Team } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
@@ -41,7 +38,6 @@ import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
-import type { TLocationOptions } from "@components/eventtype/Locations";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
@@ -49,7 +45,6 @@ export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
     "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
   > & {
     selected: boolean;
-    locationOptions?: TLocationOptions;
     locations: LocationFormValues["locations"];
     bookingFields?: LocationFormValues["bookingFields"];
   };
@@ -170,7 +165,15 @@ const OnboardingPage = ({
       eventTypeGroups,
     },
   });
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, {
+    onSuccess: (data) => {
+      if (data?.setupPending) return;
+      showToast(t("app_successfully_installed"), "success");
+    },
+    onError: (error) => {
+      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+    },
+  });
 
   useEffect(() => {
     eventTypeGroups && formMethods.setValue("eventTypeGroups", eventTypeGroups);
@@ -208,33 +211,22 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    mutation.mutate(
-      {
-        isOmniInstall: true,
-        type: appMetadata.type,
-        variant: appMetadata.variant,
-        slug: appMetadata.slug,
-        ...(teamId && { teamId }), // for oAuth apps
-        ...(showEventTypesStep && {
-          returnTo:
-            WEBAPP_URL +
-            getAppOnboardingUrl({
-              slug: appMetadata.slug,
-              teamId,
-              step: AppOnboardingSteps.EVENT_TYPES_STEP,
-            }),
-        }),
-      },
-      {
-        onSuccess: (data) => {
-          if (data?.setupPending) return;
-          showToast(t("app_successfully_installed"), "success");
-        },
-        onError: (error) => {
-          if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-        },
-      }
-    );
+    mutation.mutate({
+      type: appMetadata.type,
+      variant: appMetadata.variant,
+      slug: appMetadata.slug,
+      ...(teamId && { teamId }),
+      // for oAuth apps
+      ...(showEventTypesStep && {
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug: appMetadata.slug,
+            teamId,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      }),
+    });
   };
 
   const handleSetUpLater = () => {
@@ -630,40 +622,17 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         eventTypeGroups = await getEventTypes(user.id);
       }
       if (isConferencing && eventTypeGroups) {
-        const t = await getTranslation(locale ?? "en", "common");
-        const locationOptions = await getLocationGroupedOptions({ userId: user.id }, t);
+        const destinationCalendar = await prisma.destinationCalendar.findFirst({
+          where: {
+            userId: user.id,
+            eventTypeId: null,
+          },
+        });
         for (let groupIndex = 0; groupIndex < eventTypeGroups.length; groupIndex++) {
           for (let eventIndex = 0; eventIndex < eventTypeGroups[groupIndex].eventTypes.length; eventIndex++) {
             let eventType = eventTypeGroups[groupIndex].eventTypes[eventIndex];
-            let destinationCalendar = eventType.destinationCalendar;
-            if (!destinationCalendar) {
-              destinationCalendar = await prisma.destinationCalendar.findFirst({
-                where: {
-                  userId: user.id,
-                  eventTypeId: null,
-                },
-              });
+            if (!eventType.destinationCalendar) {
               eventType = { ...eventType, destinationCalendar };
-            }
-            if (eventType.schedulingType === SchedulingType.MANAGED) {
-              eventType = {
-                ...eventType,
-                locationOptions: [
-                  {
-                    label: t("default"),
-                    options: [
-                      {
-                        label: t("members_default_location"),
-                        value: "",
-                        icon: "/user-check.svg",
-                      },
-                    ],
-                  },
-                  ...locationOptions,
-                ],
-              };
-            } else {
-              eventType = { ...eventType, locationOptions };
             }
             eventTypeGroups[groupIndex].eventTypes[eventIndex] = eventType;
           }
@@ -724,6 +693,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       } as OnboardingPageProps,
     };
   } catch (err) {
+    console.log("eerrerrerrerrerrerrerrerrrr: ", err);
     if (err instanceof z.ZodError) {
       return { redirect: { permanent: false, destination: "/apps" } };
     }

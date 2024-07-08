@@ -5,7 +5,7 @@ const ALL_APPS = ["fathom", "matomo", "plausible", "ga4", "gtm", "metapixel"];
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("Check analytics Apps ", () => {
+test.describe("Check analytics Apps", () => {
   test("Check analytics Apps by skipping the configure step", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
@@ -25,19 +25,87 @@ test.describe("Check analytics Apps ", () => {
     await appsPage.verifyAppsInfo(6);
   });
 
-  test("Check analytics Apps using the new flow", async ({ appsPage, page, users }) => {
+  test("Check fathom App using the new flow", async ({ appsPage, page, users }) => {
     const user = await users.create();
     await user.apiLogin();
     const eventTypes = await user.getUserEventsAsOwner();
     const eventTypesIds = eventTypes.map((item) => item.id);
 
-    for (const app of ALL_APPS) {
-      await page.goto("/apps/categories/analytics");
-      await appsPage.installAnalyticsApp(app, eventTypesIds);
-    }
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("fathom", eventTypesIds);
 
     for (const id of eventTypesIds) {
-      await appsPage.verifyAppsInfoNew(ALL_APPS, id);
+      await appsPage.verifyAppsInfoNew("fathom", id);
+    }
+  });
+
+  test("Check matomo App using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("matomo", eventTypesIds);
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew("matomo", id);
+    }
+  });
+
+  test("Check plausible App using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("plausible", eventTypesIds);
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew("plausible", id);
+    }
+  });
+
+  test("Check ga4 App using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("ga4", eventTypesIds);
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew("ga4", id);
+    }
+  });
+
+  test("Check gtm App using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("gtm", eventTypesIds);
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew("gtm", id);
+    }
+  });
+
+  test("Check metapixel App using the new flow", async ({ appsPage, page, users }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const eventTypes = await user.getUserEventsAsOwner();
+    const eventTypesIds = eventTypes.map((item) => item.id);
+
+    await page.goto("/apps/categories/analytics");
+    await appsPage.installAnalyticsApp("metapixel", eventTypesIds);
+
+    for (const id of eventTypesIds) {
+      await appsPage.verifyAppsInfoNew("metapixel", id);
     }
   });
 });

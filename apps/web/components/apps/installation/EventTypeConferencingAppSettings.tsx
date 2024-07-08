@@ -5,14 +5,28 @@ import type { UseFormGetValues, UseFormSetValue, Control, FormState } from "reac
 
 import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { SchedulingType } from "@calcom/prisma/client";
+import { trpc } from "@calcom/trpc/react";
+import { SkeletonContainer, SkeletonText } from "@calcom/ui";
 import { Skeleton, Label } from "@calcom/ui";
 
+import { QueryCell } from "@lib/QueryCell";
+
 import type { TFormType } from "@components/apps/installation/ConfigureStepCard";
+import type { TLocationOptions } from "@components/eventtype/Locations";
 import type { TEventTypeLocation } from "@components/eventtype/Locations";
 import Locations from "@components/eventtype/Locations";
 import type { SingleValueLocationOption } from "@components/ui/form/LocationSelect";
 
-const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEventType; slug: string }) => {
+const LocationsWrapper = ({
+  eventType,
+  slug,
+}: {
+  eventType: TEventType & {
+    locationOptions?: TLocationOptions;
+  };
+  slug: string;
+}) => {
   const { t } = useLocale();
   const formMethods = useFormContext<TFormType>();
 
@@ -51,6 +65,53 @@ const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEve
         formState={formMethods.formState as unknown as FormState<LocationFormValues>}
       />
     </div>
+  );
+};
+
+const EventTypeConferencingAppSettings = ({ eventType, slug }: { eventType: TEventType; slug: string }) => {
+  const locationsQuery = trpc.viewer.locationOptions.useQuery({});
+  const { t } = useLocale();
+
+  const SkeletonLoader = () => {
+    return (
+      <SkeletonContainer>
+        <SkeletonText className="my-2 h-8 w-full" />
+      </SkeletonContainer>
+    );
+  };
+
+  return (
+    <QueryCell
+      query={locationsQuery}
+      customLoader={<SkeletonLoader />}
+      success={({ data }) => {
+        let updatedEventType: TEventType & {
+          locationOptions?: TLocationOptions;
+        } = { ...eventType };
+
+        if (updatedEventType.schedulingType === SchedulingType.MANAGED) {
+          updatedEventType = {
+            ...updatedEventType,
+            locationOptions: [
+              {
+                label: t("default"),
+                options: [
+                  {
+                    label: t("members_default_location"),
+                    value: "",
+                    icon: "/user-check.svg",
+                  },
+                ],
+              },
+              ...data,
+            ],
+          };
+        } else {
+          updatedEventType = { ...updatedEventType, locationOptions: data };
+        }
+        return <LocationsWrapper eventType={updatedEventType} slug={slug} />;
+      }}
+    />
   );
 };
 
