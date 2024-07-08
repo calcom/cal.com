@@ -1,7 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
-import { IsString, IsBoolean, IsArray, IsIn, IsOptional } from "class-validator";
+import { IsString, IsBoolean, IsArray, IsIn, IsOptional, IsNumber } from "class-validator";
 import type { ValidationOptions, ValidatorConstraintInterface } from "class-validator";
 import { registerDecorator, validate, ValidatorConstraint } from "class-validator";
 
@@ -183,6 +183,16 @@ export class TextAreaField_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   placeholder?: string;
+
+  @IsNumber()
+  @DocsProperty()
+  @IsOptional()
+  maxLength?: number;
+
+  @IsNumber()
+  @DocsProperty()
+  @IsOptional()
+  minLength?: number;
 }
 
 export class SelectField_2024_06_14 {
