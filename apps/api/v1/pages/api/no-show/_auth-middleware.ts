@@ -49,7 +49,7 @@ async function authMiddleware(req: NextApiRequest) {
   if (!userBookingUIds.includes(bookingUid)) {
     const teamBookings = await prisma.booking.findUnique({
       where: {
-        id: id,
+        uid: bookingUid,
         eventType: {
           team: {
             id: {

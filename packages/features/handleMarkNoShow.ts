@@ -119,7 +119,7 @@ const handleMarkNoShow = async ({ bookingUid, attendees }: TNoShowInputSchema) =
     if (error instanceof Error) {
       logger.error(error.message);
     }
-    return { message: "Failed to update no-show status", error: true };
+    return { message: "Failed to update no-show status" };
   }
 };
 
