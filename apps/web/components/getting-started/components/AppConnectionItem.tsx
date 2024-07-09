@@ -1,3 +1,4 @@
+import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { App } from "@calcom/types/App";
@@ -9,10 +10,11 @@ interface IAppConnectionItem {
   logo: string;
   type: App["type"];
   installed?: boolean;
+  dependencyData?: TDependencyData;
 }
 
 const AppConnectionItem = (props: IAppConnectionItem) => {
-  const { title, logo, type, installed } = props;
+  const { title, logo, type, installed, dependencyData } = props;
   const { t } = useLocale();
   return (
     <div className="flex flex-row items-center justify-between p-5">
@@ -26,7 +28,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
           <Button
             {...buttonProps}
             color="secondary"
-            disabled={installed}
+            disabled={installed || dependencyData?.some((data) => !data.installed)}
             type="button"
             loading={buttonProps?.isPending}
             onClick={(event) => {
