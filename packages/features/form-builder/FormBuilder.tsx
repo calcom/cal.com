@@ -288,7 +288,6 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
-            console.log("data=====>", data);
             const fieldType = fieldTypesConfigMap[type];
             //handling edge-case. when user manually cleared the maxLength and minLength, making sure default values were set
             if (fieldType?.supportsLengthCheck) {
@@ -299,9 +298,6 @@ export const FormBuilder = function FormBuilder({
               if (!data.minLength) {
                 data.minLength = 0;
               }
-            }
-            if (!data?.maxLength) {
-              delete data.maxLength;
             }
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
