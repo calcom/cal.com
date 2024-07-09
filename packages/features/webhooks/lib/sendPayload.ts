@@ -155,7 +155,7 @@ const sendPayload = async (
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ) => {
-  const { payloadTemplate: template } = webhook;
+  const { appId, payloadTemplate: template } = webhook;
 
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
@@ -164,8 +164,9 @@ const sendPayload = async (
   data = addUTCOffset(data);
 
   let body;
-
-  if (template) {
+  if (appId === "zapier" && triggerEvent !== "OOO_CREATED") {
+    body = getZapierPayload({ ...data, createdAt });
+  } else if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {
     body = JSON.stringify({
