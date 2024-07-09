@@ -1,4 +1,3 @@
-/* eslint-disable playwright/no-conditional-in-test */
 import { test } from "../../lib/fixtures";
 
 export type TApp = {
@@ -98,7 +97,7 @@ const ALL_APPS: TAllApps = {
   },
 };
 
-const ALL_APPS_ARRAY: TApp[] = Object.values((item: TApp) => item);
+const ALL_APPS_ARRAY: TApp[] = Object.values(ALL_APPS);
 /**
  * @todo add tests for
  * shimmervideo
@@ -117,154 +116,29 @@ const ALL_APPS_ARRAY: TApp[] = Object.values((item: TApp) => item);
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
 
-test.describe("check non-oAuth link-based conferencing apps ", () => {
-  test("check conferencing apps by skipping the configure step", async ({ appsPage, page, users }) => {
-    const user = await users.create();
-    await user.apiLogin();
-    for (let index = 0; index < ALL_APPS_ARRAY.length; index++) {
-      const app = ALL_APPS_ARRAY[index];
+test.describe("check non-oAuth link-based conferencing apps", () => {
+  ALL_APPS_ARRAY.forEach((app) => {
+    test(`check conferencing app: ${app.slug} by skipping the configure step`, async ({
+      appsPage,
+      page,
+      users,
+    }) => {
+      const user = await users.create();
+      await user.apiLogin();
       await page.goto("apps/categories/conferencing");
       await appsPage.installConferencingAppSkipConfigure(app.slug);
-      await appsPage.verifyConferencingApp(app, index);
-    }
+      await appsPage.verifyConferencingApp(app);
+    });
   });
-  test.describe("check non-oAuth link-based conferencing apps using the new flow", () => {
-    test("can add around app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["around"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
+});
 
-    test("can add campfire app and book with it", async ({ appsPage, page, users }) => {
+test.describe("check non-oAuth link-based conferencing apps using the new flow", () => {
+  ALL_APPS_ARRAY.forEach((app) => {
+    test(`can add ${app.slug} app and book with it`, async ({ appsPage, page, users }) => {
       const user = await users.create();
       await user.apiLogin();
       const eventTypes = await user.getUserEventsAsOwner();
       const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["campfire"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add demodesk app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["demodesk"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add discord app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["discord"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add eightxeight app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["eightxeight"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add element-call app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["element-call"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add facetime app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["facetime"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add mirotalk app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["mirotalk"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add ping app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["ping"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add riverside app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["riverside"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add roam app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["roam"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add salesroom app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["salesroom"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add sirius_video app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["sirius_video"];
-      await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
-      await appsPage.verifyConferencingAppNew(app, eventTypeIds);
-    });
-
-    test("can add whereby app and book with it", async ({ appsPage, page, users }) => {
-      const user = await users.create();
-      await user.apiLogin();
-      const eventTypes = await user.getUserEventsAsOwner();
-      const eventTypeIds = eventTypes.map((item) => item.id).filter((item, index) => index < 2);
-      const app = ALL_APPS["whereby"];
       await appsPage.installConferencingAppNewFlow(app, eventTypeIds);
       await appsPage.verifyConferencingAppNew(app, eventTypeIds);
     });
