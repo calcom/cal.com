@@ -1,9 +1,11 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-import { CalProvider } from "@calcom/atoms";
+import { CalProvider, BookerEmbed } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
@@ -25,6 +27,8 @@ export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const randomEmail = generateRandomEmail();
@@ -59,6 +63,30 @@ export default function App({ Component, pageProps }: AppProps) {
           </>
         )}
       </CalProvider>{" "}
+      {pathname === "/embed" && (
+        <div>
+          <BookerEmbed
+            // customClassNames={{
+            //   bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+            //   datePickerCustomClassNames: {
+            //     datePickerDatesActive: "!bg-[#D7CEF5]",
+            //   },
+            //   eventMetaCustomClassNames: {
+            //     eventMetaTitle: "text-[#7151DC]",
+            //   },
+            //   availableTimeSlotsCustomClassNames: {
+            //     availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
+            //     availableTimes: "!bg-[#D7CEF5]",
+            //   },
+            // }}
+            username={username}
+            eventSlug="thirty-minutes"
+            onCreateBookingSuccess={(data) => {
+              router.push(`/${data.data.uid}`);
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 }
