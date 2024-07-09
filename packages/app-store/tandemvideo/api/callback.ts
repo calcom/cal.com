@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
@@ -19,6 +20,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   const code = req.query.code as string;
+  const state = decodeOAuthState(req);
 
   const appKeys = await getAppKeysFromSlug("tandem");
   if (typeof appKeys.client_id === "string") client_id = appKeys.client_id;
@@ -27,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!client_id) return res.status(400).json({ message: "Tandem client_id missing." });
   if (!client_secret) return res.status(400).json({ message: "Tandem client_secret missing." });
   if (!base_url) return res.status(400).json({ message: "Tandem base_url missing." });
-  const state = decodeOAuthState(req);
 
   const result = await fetch(`${base_url}/api/v1/oauth/v2/token`, {
     method: "POST",
@@ -68,6 +69,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     await createOAuthAppCredential({ appId: "tandem", type: "tandem_video" }, responseBody, req);
 
-    res.redirect(getInstalledAppPath({ variant: "conferencing", slug: "tandem" }));
+    res.redirect(
+      getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "tandem" })
+    );
   }
 }

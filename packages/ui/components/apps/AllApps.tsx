@@ -4,10 +4,10 @@ import { usePathname, useRouter } from "next/navigation";
 import type { UIEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 
-import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import { classNames } from "@calcom/lib";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
