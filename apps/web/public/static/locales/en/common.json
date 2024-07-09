@@ -2498,5 +2498,6 @@
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
   "rescheduling_not_possible": "Rescheduling is not possible as the event has expired",
   "event_expired": "This event is expired",
+  "attributes":"Attributes",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
