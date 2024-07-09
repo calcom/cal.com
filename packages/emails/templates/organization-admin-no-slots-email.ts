@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import renderEmail from "../src/renderEmail";
 import BaseEmail from "./_base-email";
@@ -27,7 +27,7 @@ export default class OrganizationAdminNoSlotsEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: this.adminNoSlots.to.email,
       subject: this.adminNoSlots.language("org_admin_no_slots|subject", { name: this.adminNoSlots.user }),
       html: await renderEmail("OrganizationAdminNoSlotsEmail", this.adminNoSlots),
