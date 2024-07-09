@@ -149,6 +149,8 @@ const SystemFieldsSchema = z.object({
   defaultLabel: z.string(),
   labe: z.string().optional(),
   editable: z.enum(["system-but-optional", "system"]),
+  minLength: z.number().optional(),
+  maxLength: z.number().optional(),
   sources: z.array(
     z.object({
       id: z.literal("default"),

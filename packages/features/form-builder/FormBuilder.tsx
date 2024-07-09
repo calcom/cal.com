@@ -288,6 +288,17 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+            const fieldType = fieldTypesConfigMap[type];
+            //handling edge-case. when user manually cleared the maxLength and minLength, making sure default values were set
+            if (fieldType?.supportsLengthCheck) {
+              if (!data.maxLength) {
+                data.maxLength = fieldType.supportsLengthCheck.maxLength || 1000;
+              }
+              //if NaN, set it to 0
+              if (!data.minLength) {
+                data.minLength = 0;
+              }
+            }
             if (fieldDialog.data) {
               update(fieldDialog.fieldIndex, data);
             } else {
@@ -493,6 +504,7 @@ function FieldEditDialog({
                       containerClassName="mt-6"
                       label={t("label")}
                     />
+
                     {fieldType?.isTextType ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
@@ -508,6 +520,49 @@ function FieldEditDialog({
                           return <Options onChange={onChange} value={value} className="mt-6" />;
                         }}
                       />
+                    ) : null}
+
+                    {!!fieldType?.supportsLengthCheck ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        {/* Min characters */}
+                        <InputField
+                          {...fieldForm.register("minLength", {
+                            valueAsNumber: true,
+                          })}
+                          defaultValue={0}
+                          containerClassName="mt-6"
+                          label={t("min_characters")}
+                          type="number"
+                          onChange={(e) => {
+                            fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
+                            fieldForm.trigger("maxLength");
+                          }}
+                          min={0}
+                          max={fieldForm.getValues("maxLength") || fieldType.supportsLengthCheck.maxLength}
+                        />
+                        {/* Max characters */}
+                        <InputField
+                          {...fieldForm.register("maxLength", {
+                            valueAsNumber: true,
+                          })}
+                          defaultValue={fieldType.supportsLengthCheck.maxLength}
+                          containerClassName="mt-6"
+                          label={t("max_characters")}
+                          type="number"
+                          onChange={(e) => {
+                            if (!fieldType.supportsLengthCheck) {
+                              return;
+                            }
+                            fieldForm.setValue(
+                              "maxLength",
+                              parseInt(e.target.value ?? fieldType.supportsLengthCheck.maxLength)
+                            );
+                            fieldForm.trigger("minLength");
+                          }}
+                          min={fieldForm.getValues("minLength") || 0}
+                          max={fieldType.supportsLengthCheck.maxLength}
+                        />
+                      </div>
                     ) : null}
                     <Controller
                       name="required"
