@@ -416,10 +416,9 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
 
       const hosts = eventType.hosts;
       if (
-        !leaveWithoutAssigningHosts.current &&
-        !!team &&
-        hosts.length === 0 &&
-        (url === "/event-types" || paths[1] !== "event-types")
+        !leaveWithoutAssigningHosts.current && !!team && isManagedEventType
+          ? assignedUsers.length === 0
+          : hosts.length === 0 && (url === "/event-types" || paths[1] !== "event-types")
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
