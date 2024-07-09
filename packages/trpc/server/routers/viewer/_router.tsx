@@ -11,6 +11,7 @@ import { timezonesRouter } from "../publicViewer/timezones/_router";
 import { adminRouter } from "./admin/_router";
 import { apiKeysRouter } from "./apiKeys/_router";
 import { appsRouter } from "./apps/_router";
+import { attributesRouter } from "./attributes/_router";
 import { authRouter } from "./auth/_router";
 import { availabilityRouter } from "./availability/_router";
 import { bookingsRouter } from "./bookings/_router";
@@ -59,5 +60,6 @@ export const viewerRouter = mergeRouters(
     oAuth: oAuthRouter,
     googleWorkspace: googleWorkspaceRouter,
     admin: adminRouter,
+    attributes: attributesRouter,
   })
 );
