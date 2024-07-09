@@ -3,6 +3,7 @@ import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurri
 import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
+import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -34,6 +35,7 @@ import { NextApiRequest } from "next/types";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
+import { handleMarkNoShow } from "@calcom/platform-libraries-0.0.0";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -47,7 +49,6 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries-0.0.2";
-import { handleMarkNoShow } from "@calcom/platform-libraries-0.0.16";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -248,22 +249,14 @@ export class BookingsController {
   @Post("/no-show")
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
-  async markNoShow(
-    @Req() req: BookingRequest,
-    @Body() body: MarkNoShowInput,
-    @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<Awaited<ReturnType<typeof handleMarkNoShow>>> {
-    const oAuthClientId = clientId?.toString();
-    req.userId = (await this.getOwnerId(req)) ?? -1;
+  async markNoShow(@Body() body: MarkNoShowInput): Promise<MarkNoShowOutput> {
     try {
       const markNoShowResponse = await handleMarkNoShow({
         bookingUid: body.bookingUid,
         attendees: body.attendees,
       });
 
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
-
-      return markNoShowResponse;
+      return { status: SUCCESS_STATUS, data: markNoShowResponse };
     } catch (err) {
       this.handleBookingErrors(err, "no-show");
     }
