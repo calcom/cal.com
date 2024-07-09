@@ -1,5 +1,6 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
+import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
@@ -33,6 +34,7 @@ import { NextApiRequest } from "next/types";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { handleMarkNoShow } from "@calcom/platform-libraries";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -241,6 +243,31 @@ export class BookingsController {
       this.handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
+  }
+
+  @Post("/no-show")
+  async markNoShow(
+    @Req() req: BookingRequest,
+    @Body() _: MarkNoShowInput,
+    @Headers(X_CAL_CLIENT_ID) clientId?: string
+  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleMarkNoShow>>>> {
+    const oAuthClientId = clientId?.toString();
+    req.userId = (await this.getOwnerId(req)) ?? -1;
+    try {
+      const markNoShowResponse = await handleMarkNoShow(
+        await this.createNextApiBookingRequest(req, oAuthClientId)
+      );
+
+      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+
+      return {
+        status: SUCCESS_STATUS,
+        data: markNoShowResponse,
+      };
+    } catch (err) {
+      this.handleBookingErrors(err, "instant");
+    }
+    throw new InternalServerErrorException("Could not mark no show.");
   }
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
