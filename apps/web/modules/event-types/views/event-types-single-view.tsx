@@ -415,6 +415,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       }
 
       const hosts = eventType.hosts;
+      // For managed eventtype check if hosts are empty
+      // For non-managed eventtype check if assigned users are empty
       if (
         !leaveWithoutAssigningHosts.current &&
         !!team &&
