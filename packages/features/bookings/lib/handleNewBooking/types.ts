@@ -55,7 +55,7 @@ export interface IEventTypePaymentCredentialType {
 export type IsFixedAwareUser = User & {
   isFixed: boolean;
   credentials: CredentialPayload[];
-  organization: { slug: string };
+  organization?: { slug: string };
   priority?: number;
 };
 
