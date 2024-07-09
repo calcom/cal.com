@@ -48,7 +48,6 @@ export type WebhookDataType = CalendarEvent &
   TranscriptionGeneratedPayload &
   // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
-    // add object to metadata
     metadata?: { [key: string]: string | number | boolean | null | Record<string, unknown> };
     bookingId?: number;
     status?: string;
