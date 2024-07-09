@@ -19,6 +19,10 @@ export function defaultResponder<T>(f: Handle<T>) {
     } catch (err) {
       console.error(err);
       const error = getServerErrorFromUnknown(err);
+      // dynamic import of Sentry so it's only loaded when something goes wrong.
+      const captureException = (await import("@sentry/nextjs")).captureException;
+      captureException(err);
+      // return API route response
       return res
         .status(error.statusCode)
         .json({ message: error.message, url: error.url, method: error.method });

@@ -38,11 +38,16 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, label: "booking_payment_initiated" },
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.BOOKING_PAID, label: "booking_paid" },
+    { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
     { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
     { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
     { value: WebhookTriggerEvents.OOO_CREATED, label: "ooo_created" },
+    {
+      value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      label: "recording_transcription_generated",
+    },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;

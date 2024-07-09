@@ -77,65 +77,66 @@ model EventType {
   profileId Int?
   profile   Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
-  team                                 Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId                               Int?
-  hashedLink                           HashedLink?
-  bookings                             Booking[]
-  availability                         Availability[]
-  webhooks                             Webhook[]
-  destinationCalendar                  DestinationCalendar?
-  eventName                            String?
-  customInputs                         EventTypeCustomInput[]
-  parentId                             Int?
-  parent                               EventType?                @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
-  children                             EventType[]               @relation("managed_eventtype")
+  team                                    Team?                     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId                                  Int?
+  hashedLink                              HashedLink?
+  bookings                                Booking[]
+  availability                            Availability[]
+  webhooks                                Webhook[]
+  destinationCalendar                     DestinationCalendar?
+  eventName                               String?
+  customInputs                            EventTypeCustomInput[]
+  parentId                                Int?
+  parent                                  EventType?                @relation("managed_eventtype", fields: [parentId], references: [id], onDelete: Cascade)
+  children                                EventType[]               @relation("managed_eventtype")
   /// @zod.custom(imports.eventTypeBookingFields)
-  bookingFields                        Json?
-  timeZone                             String?
-  periodType                           PeriodType                @default(UNLIMITED)
+  bookingFields                           Json?
+  timeZone                                String?
+  periodType                              PeriodType                @default(UNLIMITED)
   /// @zod.custom(imports.coerceToDate)
-  periodStartDate                      DateTime?
+  periodStartDate                         DateTime?
   /// @zod.custom(imports.coerceToDate)
-  periodEndDate                        DateTime?
-  periodDays                           Int?
-  periodCountCalendarDays              Boolean?
-  lockTimeZoneToggleOnBookingPage      Boolean                   @default(false)
-  requiresConfirmation                 Boolean                   @default(false)
-  requiresBookerEmailVerification      Boolean                   @default(false)
+  periodEndDate                           DateTime?
+  periodDays                              Int?
+  periodCountCalendarDays                 Boolean?
+  lockTimeZoneToggleOnBookingPage         Boolean                   @default(false)
+  requiresConfirmation                    Boolean                   @default(false)
+  requiresBookerEmailVerification         Boolean                   @default(false)
   /// @zod.custom(imports.recurringEventType)
-  recurringEvent                       Json?
-  disableGuests                        Boolean                   @default(false)
-  hideCalendarNotes                    Boolean                   @default(false)
+  recurringEvent                          Json?
+  disableGuests                           Boolean                   @default(false)
+  hideCalendarNotes                       Boolean                   @default(false)
   /// @zod.min(0)
-  minimumBookingNotice                 Int                       @default(120)
-  beforeEventBuffer                    Int                       @default(0)
-  afterEventBuffer                     Int                       @default(0)
-  seatsPerTimeSlot                     Int?
-  onlyShowFirstAvailableSlot           Boolean                   @default(false)
-  seatsShowAttendees                   Boolean?                  @default(false)
-  seatsShowAvailabilityCount           Boolean?                  @default(true)
-  schedulingType                       SchedulingType?
-  schedule                             Schedule?                 @relation(fields: [scheduleId], references: [id])
-  scheduleId                           Int?
+  minimumBookingNotice                    Int                       @default(120)
+  beforeEventBuffer                       Int                       @default(0)
+  afterEventBuffer                        Int                       @default(0)
+  seatsPerTimeSlot                        Int?
+  onlyShowFirstAvailableSlot              Boolean                   @default(false)
+  seatsShowAttendees                      Boolean?                  @default(false)
+  seatsShowAvailabilityCount              Boolean?                  @default(true)
+  schedulingType                          SchedulingType?
+  schedule                                Schedule?                 @relation(fields: [scheduleId], references: [id])
+  scheduleId                              Int?
   // price is deprecated. It has now moved to metadata.apps.stripe.price. Plan to drop this column.
-  price                                Int                       @default(0)
+  price                                   Int                       @default(0)
   // currency is deprecated. It has now moved to metadata.apps.stripe.currency. Plan to drop this column.
-  currency                             String                    @default("usd")
-  slotInterval                         Int?
+  currency                                String                    @default("usd")
+  slotInterval                            Int?
   /// @zod.custom(imports.EventTypeMetaDataSchema)
-  metadata                             Json?
+  metadata                                Json?
   /// @zod.custom(imports.successRedirectUrl)
-  successRedirectUrl                   String?
-  forwardParamsSuccessRedirect         Boolean?                  @default(true)
-  workflows                            WorkflowsOnEventTypes[]
+  successRedirectUrl                      String?
+  forwardParamsSuccessRedirect            Boolean?                  @default(true)
+  workflows                               WorkflowsOnEventTypes[]
   /// @zod.custom(imports.intervalLimitsType)
-  bookingLimits                        Json?
+  bookingLimits                           Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits                       Json?
-  isInstantEvent                       Boolean                   @default(false)
-  assignAllTeamMembers                 Boolean                   @default(false)
-  useEventTypeDestinationCalendarEmail Boolean                   @default(false)
-  aiPhoneCallConfig                    AIPhoneCallConfiguration?
+  durationLimits                          Json?
+  isInstantEvent                          Boolean                   @default(false)
+  instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
+  assignAllTeamMembers                    Boolean                   @default(false)
+  useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
+  aiPhoneCallConfig                       AIPhoneCallConfiguration?
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -300,6 +301,7 @@ model User {
   verifiedNumbers      VerifiedNumber[]
   verifiedEmails       VerifiedEmail[]
   hosts                Host[]
+  // organizationId is deprecated. Instead, rely on the Profile to search profiles by organizationId and then get user from the profile.
   organizationId       Int?
   organization         Team?                   @relation("scope", fields: [organizationId], references: [id], onDelete: SetNull)
   accessCodes          AccessCode[]
@@ -402,6 +404,7 @@ model Team {
   platformOAuthClient   PlatformOAuthClient[]
   smsLockState          SMSLockState            @default(UNLOCKED)
   platformBilling       PlatformBilling?
+  activeOrgWorkflows    WorkflowsOnTeams[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -706,11 +709,13 @@ enum WebhookTriggerEvents {
   BOOKING_REQUESTED
   BOOKING_CANCELLED
   BOOKING_REJECTED
+  BOOKING_NO_SHOW_UPDATED
   FORM_SUBMITTED
   MEETING_ENDED
   MEETING_STARTED
   RECORDING_READY
   INSTANT_MEETING
+  RECORDING_TRANSCRIPTION_GENERATED
   OOO_CREATED
 }
 
@@ -923,18 +928,20 @@ model WorkflowStep {
 }
 
 model Workflow {
-  id       Int                     @id @default(autoincrement())
-  position Int                     @default(0)
-  name     String
-  userId   Int?
-  user     User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team     Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  teamId   Int?
-  activeOn WorkflowsOnEventTypes[]
-  trigger  WorkflowTriggerEvents
-  time     Int?
-  timeUnit TimeUnit?
-  steps    WorkflowStep[]
+  id            Int                     @id @default(autoincrement())
+  position      Int                     @default(0)
+  name          String
+  userId        Int?
+  user          User?                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team          Team?                   @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId        Int?
+  activeOn      WorkflowsOnEventTypes[]
+  activeOnTeams WorkflowsOnTeams[]
+  isActiveOnAll Boolean                 @default(false)
+  trigger       WorkflowTriggerEvents
+  time          Int?
+  timeUnit      TimeUnit?
+  steps         WorkflowStep[]
 
   @@index([userId])
   @@index([teamId])
@@ -970,6 +977,18 @@ model WorkflowsOnEventTypes {
   @@index([eventTypeId])
 }
 
+model WorkflowsOnTeams {
+  id         Int      @id @default(autoincrement())
+  workflow   Workflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  workflowId Int
+  team       Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId     Int
+
+  @@unique([workflowId, teamId])
+  @@index([workflowId])
+  @@index([teamId])
+}
+
 model Deployment {
   /// This is a single row table, so we use a fixed id
   id              Int       @id @default(1)
@@ -995,7 +1014,7 @@ model WorkflowReminder {
   referenceId         String?         @unique
   scheduled           Boolean
   workflowStepId      Int?
-  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id])
+  workflowStep        WorkflowStep?   @relation(fields: [workflowStepId], references: [id], onDelete: Cascade)
   cancelled           Boolean?
   seatReferenceId     String?
   isMandatoryReminder Boolean?        @default(false)
