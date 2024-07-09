@@ -56,7 +56,7 @@ Booking created, Booking rescheduled, Booking cancelled, Meeting ended
 
 Create the other triggers (booking rescheduled, booking cancelled and meeting ended) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
 
-### OOO Created
+### Out Of Office Created
 
 1. Settings
    - Key: ooo_created
