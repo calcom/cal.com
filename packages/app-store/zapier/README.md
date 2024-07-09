@@ -60,7 +60,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
 
 1. Settings
    - Key: ooo_created
-   - Name: OOO Created
+   - Name: Out Of Office Created
    - Noun: OOO Entry
    - Description: Triggers when someone in the team creates a new ooo entry.
 2. API Configuration (apiKey is set automatically, leave it like it is):
