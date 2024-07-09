@@ -44,7 +44,7 @@ interface HasId {
   id: number;
 }
 
-const oldestCredentialFirst = <T extends HasId>(a: T, b: T) => {
+const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
   return b.id - a.id;
 };
 
@@ -112,13 +112,13 @@ export default class EventManager {
         (cred) => cred.type.endsWith("_calendar") && !cred.type.includes("other_calendar")
       )
       //see https://github.com/calcom/cal.com/issues/11671#issue-1923600672
-      .sort(oldestCredentialFirst);
+      .sort(latestCredentialFirst);
     this.videoCredentials = appCredentials
       .filter((cred) => cred.type.endsWith("_video") || cred.type.endsWith("_conferencing"))
       // Whenever a new video connection is added, latest credentials are added with the highest ID.
       // Because you can't rely on having them in the highest first order here, ensure this by sorting in DESC order
       // We also don't have updatedAt or createdAt dates on credentials so this is the best we can do
-      .sort(oldestCredentialFirst);
+      .sort(latestCredentialFirst);
     this.crmCredentials = appCredentials.filter(
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
@@ -601,7 +601,7 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
 
-    const fallbackToFirstConnectedCalendar = async () => {
+    const fallbackToFirstInTheList = async () => {
       /**
        *  Not ideal but, if we don't find a destination calendar,
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
@@ -682,7 +682,7 @@ export default class EventManager {
             log.warn(
               "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
             );
-            await fallbackToFirstConnectedCalendar();
+            await fallbackToFirstInTheList();
           } else {
             log.warn(
               "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
@@ -703,7 +703,7 @@ export default class EventManager {
           calendarCredentials: this.calendarCredentials,
         })
       );
-      await fallbackToFirstConnectedCalendar();
+      await fallbackToFirstInTheList();
     }
 
     // Taking care of non-traditional calendar integrations
