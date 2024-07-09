@@ -1,6 +1,7 @@
 import { CalProvider } from "../../atoms/cal-provider/CalProvider";
 import type { BookerPlatformWrapperAtomProps } from "../booker/BookerPlatformWrapper";
-import { BookerEmbed } from "./BookerEmbed";
+import "../globals.min.css";
+import { BookerEmbedPlatform } from "./BookerEmbedPlatform";
 
 export const BookerEmbedPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
   return (
@@ -9,7 +10,7 @@ export const BookerEmbedPlatformWrapper = (props: BookerPlatformWrapperAtomProps
       options={{
         apiUrl: import.meta.env.VITE_BOOKER_EMBED_API_URL,
       }}>
-      <BookerEmbed {...props} />
+      <BookerEmbedPlatform {...props} />
     </CalProvider>
   );
 };
