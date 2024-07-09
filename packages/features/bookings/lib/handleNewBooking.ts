@@ -907,7 +907,7 @@ async function handler(
     userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamId,
+    teamIds: teamId ? [teamId] : [],
     orgId,
   };
 

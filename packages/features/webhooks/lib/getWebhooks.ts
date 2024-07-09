@@ -13,7 +13,7 @@ export type GetSubscriberOptions = {
 const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
   const userId = options.userId ?? 0;
   const eventTypeId = options.eventTypeId ?? 0;
-  const teamIds = options.teamIds ?? [0];
+  const teamIds = options.teamIds?.length ? options.teamIds : [0];
   const orgId = options.orgId ?? 0;
 
   // if we have userId and teamId it is a managed event type and should trigger for team and user

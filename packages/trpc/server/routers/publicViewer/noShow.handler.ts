@@ -90,7 +90,7 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
         teamId: booking?.eventType?.teamId,
       });
       const webhooks = await new WebhookService({
-        teamId: booking?.eventType?.teamId,
+        teamIds: booking?.eventType?.teamId ? [booking?.eventType?.teamId] : [],
         userId: booking?.eventType?.userId,
         eventTypeId: booking?.eventType?.id,
         orgId,
