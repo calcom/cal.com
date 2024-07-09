@@ -142,7 +142,9 @@ async function getUsersBasedOnWeights<
     (user) => user.bookingShortfall === maxShortfall
   );
 
-  return availableUsers.filter((user) => usersWithMaxShortfall.find((luckUser) => luckUser.id === user.id));
+  return availableUsers.filter((user) =>
+    usersWithMaxShortfall.find((userMaxShortfall) => userMaxShortfall.id === user.id)
+  );
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
