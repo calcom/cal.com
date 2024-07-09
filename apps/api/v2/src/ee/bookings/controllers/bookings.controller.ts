@@ -248,24 +248,22 @@ export class BookingsController {
   @Post("/no-show")
   async markNoShow(
     @Req() req: BookingRequest,
-    @Body() _: MarkNoShowInput,
+    @Body() body: MarkNoShowInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse<Awaited<ReturnType<typeof handleMarkNoShow>>>> {
+  ): Promise<Awaited<ReturnType<typeof handleMarkNoShow>>> {
     const oAuthClientId = clientId?.toString();
     req.userId = (await this.getOwnerId(req)) ?? -1;
     try {
-      const markNoShowResponse = await handleMarkNoShow(
-        await this.createNextApiBookingRequest(req, oAuthClientId)
-      );
+      const markNoShowResponse = await handleMarkNoShow({
+        bookingUid: body.bookingUid,
+        attendees: body.attendees,
+      });
 
       void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
 
-      return {
-        status: SUCCESS_STATUS,
-        data: markNoShowResponse,
-      };
+      return markNoShowResponse;
     } catch (err) {
-      this.handleBookingErrors(err, "instant");
+      this.handleBookingErrors(err, "no-show");
     }
     throw new InternalServerErrorException("Could not mark no show.");
   }
@@ -314,7 +312,10 @@ export class BookingsController {
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  private handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
+  private handleBookingErrors(
+    err: Error | HttpError | unknown,
+    type?: "recurring" | `instant` | "no-show"
+  ): void {
     const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
