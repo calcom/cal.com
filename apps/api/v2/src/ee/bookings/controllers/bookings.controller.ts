@@ -33,7 +33,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -246,6 +246,8 @@ export class BookingsController {
   }
 
   @Post("/no-show")
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
   async markNoShow(
     @Req() req: BookingRequest,
     @Body() body: MarkNoShowInput,
