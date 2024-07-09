@@ -3,9 +3,12 @@ import { useEffect, type ReactNode } from "react";
 
 import type { API_VERSIONS_ENUM } from "@calcom/platform-constants";
 import { VERSION_2024_06_14 } from "@calcom/platform-constants";
+import type enTranslations from "@calcom/web/public/static/locales/en/common.json";
 
 import http from "../lib/http";
 import { BaseCalProvider } from "./BaseCalProvider";
+
+type translationKeys = keyof typeof enTranslations;
 
 const queryClient = new QueryClient();
 
@@ -17,6 +20,8 @@ export type CalProviderProps = {
   autoUpdateTimezone?: boolean;
   onTimezoneChange?: () => void;
   version?: API_VERSIONS_ENUM;
+  labels?: Record<translationKeys, string>;
+  language?: "en" | "fr" | "pt-BR" | "de" | "es";
 };
 
 /**
@@ -39,6 +44,8 @@ export function CalProvider({
   options,
   children,
   autoUpdateTimezone = true,
+  labels,
+  language = "en",
   onTimezoneChange,
   version = VERSION_2024_06_14,
 }: CalProviderProps) {
@@ -60,7 +67,9 @@ export function CalProvider({
         clientId={clientId}
         accessToken={accessToken}
         options={options}
-        version={version}>
+        version={version}
+        labels={labels}
+        language={language}>
         {children}
       </BaseCalProvider>
     </QueryClientProvider>

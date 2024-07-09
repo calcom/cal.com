@@ -2,7 +2,11 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { useState } from "react";
 import { useCallback } from "react";
 
+import deTranslations from "@calcom/web/public/static/locales/de/common.json";
 import enTranslations from "@calcom/web/public/static/locales/en/common.json";
+import esTranslations from "@calcom/web/public/static/locales/es/common.json";
+import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
+import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
 import { useOAuthClient } from "../hooks/useOAuthClient";
@@ -13,14 +17,26 @@ import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
 import type { CalProviderProps } from "./CalProvider";
 
-type translationKeys = keyof typeof enTranslations;
+type enTranslationKeys = keyof typeof enTranslations;
+type frTranslationKeys = keyof typeof frTranslations;
+type deTranslationKeys = keyof typeof deTranslations;
+type esTranslationKeys = keyof typeof esTranslations;
+type ptBrTranslationKeys = keyof typeof ptBrTranslations;
+type translationKeys =
+  | enTranslationKeys
+  | frTranslationKeys
+  | deTranslationKeys
+  | esTranslationKeys
+  | ptBrTranslationKeys;
 
 export function BaseCalProvider({
   clientId,
   accessToken,
   options,
   children,
+  labels,
   autoUpdateTimezone,
+  language = "en",
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
@@ -64,7 +80,7 @@ export function BaseCalProvider({
 
   const translations = {
     t: (key: string, values: Record<string, string | number | null | undefined>) => {
-      let translation = String(enTranslations[key as translationKeys] ?? "");
+      let translation = labels?.[key as translationKeys] ?? String(getTranslation(key, language) ?? "");
       if (!translation) {
         return "";
       }
@@ -84,9 +100,9 @@ export function BaseCalProvider({
       return replaceOccurrences(translation, enTranslations) ?? "";
     },
     i18n: {
-      language: "en",
-      defaultLocale: "en",
-      locales: ["en"],
+      language: language,
+      defaultLocale: language,
+      locales: [language],
       exists: (key: translationKeys | string) => Boolean(enTranslations[key as translationKeys]),
     },
   };
@@ -138,4 +154,21 @@ function replaceOccurrences(input: string, replacementMap: { [key: string]: stri
     // If the key is not found in the replacement map, you may choose to return the original match
     return match;
   });
+}
+
+function getTranslation(key: string, language: "en" | "fr" | "pt-BR" | "de" | "es") {
+  switch (language) {
+    case "en":
+      return enTranslations[key as enTranslationKeys];
+    case "fr":
+      return frTranslations;
+    case "pt-BR":
+      return ptBrTranslations[key as ptBrTranslationKeys];
+    case "de":
+      return deTranslations[key as deTranslationKeys];
+    case "es":
+      return esTranslations[key as esTranslationKeys];
+    default:
+      return enTranslations[key as enTranslationKeys];
+  }
 }
