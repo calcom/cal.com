@@ -66,19 +66,19 @@ export default function App({ Component, pageProps }: AppProps) {
       {pathname === "/embed" && (
         <div>
           <BookerEmbed
-            // customClassNames={{
-            //   bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
-            //   datePickerCustomClassNames: {
-            //     datePickerDatesActive: "!bg-[#D7CEF5]",
-            //   },
-            //   eventMetaCustomClassNames: {
-            //     eventMetaTitle: "text-[#7151DC]",
-            //   },
-            //   availableTimeSlotsCustomClassNames: {
-            //     availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
-            //     availableTimes: "!bg-[#D7CEF5]",
-            //   },
-            // }}
+            customClassNames={{
+              bookerContainer: "!bg-[#F5F2FE] [&_button:!rounded-full] border-subtle border",
+              datePickerCustomClassNames: {
+                datePickerDatesActive: "!bg-[#D7CEF5]",
+              },
+              eventMetaCustomClassNames: {
+                eventMetaTitle: "text-[#7151DC]",
+              },
+              availableTimeSlotsCustomClassNames: {
+                availableTimeSlotsHeaderContainer: "!bg-[#F5F2FE]",
+                availableTimes: "!bg-[#D7CEF5]",
+              },
+            }}
             username={username}
             eventSlug="thirty-minutes"
             onCreateBookingSuccess={(data) => {
