@@ -5,6 +5,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
@@ -15,6 +16,35 @@ const verifySchema = z.object({
 });
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
+
+async function moveUserToMatchingOrg({ email }: { email: string }) {
+  const org = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({ email });
+
+  if (!org) {
+    return;
+  }
+
+  await inviteMembersWithNoInviterPermissionCheck({
+    inviterName: null,
+    input: {
+      teamId: org.id,
+      usernameOrEmail: [
+        {
+          email: email,
+          role: MembershipRole.MEMBER,
+        },
+      ],
+      language: "en",
+    },
+    invitations: [
+      {
+        usernameOrEmail: email,
+        role: MembershipRole.MEMBER,
+      },
+    ],
+    orgSlug: org.slug || org.requestedSlug,
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
@@ -143,39 +173,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   const hasCompletedOnboarding = user.completedOnboarding;
 
-  const emailDomain = user.email.split("@").at(-1);
-  const organizationMatchingEmailDomain = await prisma.team.findFirst({
-    where: {
-      organizationSettings: {
-        orgAutoAcceptEmail: emailDomain,
-      },
-    },
-  });
-
-  if (organizationMatchingEmailDomain) {
-    await inviteMembersWithNoInviterPermissionCheck({
-      inviter: {
-        name: null,
-      },
-      input: {
-        teamId: organizationMatchingEmailDomain.id,
-        usernameOrEmail: [
-          {
-            email: user.email,
-            role: MembershipRole.MEMBER,
-          },
-        ],
-        language: "en",
-      },
-      invitations: [
-        {
-          usernameOrEmail: user.email,
-          role: MembershipRole.MEMBER,
-        },
-      ],
-      orgSlug: organizationMatchingEmailDomain.slug || organizationMatchingEmailDomain.metadata.requestedSlug,
-    });
-  }
+  await moveUserToMatchingOrg({ email: user.email });
 
   return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }

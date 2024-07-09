@@ -143,7 +143,6 @@ export const AddNewTeamMembersForm = ({
                   language: i18n.language,
                   role: values.role,
                   usernameOrEmail: values.emailOrUsername,
-                  isOrg: !!isOrg,
                 },
                 {
                   onSuccess: async (data) => {
