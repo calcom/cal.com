@@ -1578,7 +1578,7 @@ async function handler(
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      teamId,
+      teamIds: teamId ? [teamId] : [],
       orgId,
     };
     await handleWebhookTrigger({
