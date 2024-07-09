@@ -27,7 +27,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const response = oooEntries.map((oooEntry) => {
     return {
       payload: {
-        metadata: {
+        oooEntry: {
           ...oooEntry,
         },
       },

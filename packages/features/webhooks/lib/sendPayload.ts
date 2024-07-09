@@ -44,11 +44,41 @@ export type TranscriptionGeneratedPayload = {
   };
 };
 
+export type OOOEntryPayload = {
+  oooEntry?: {
+    id?: number;
+    start?: string;
+    end?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    notes?: string;
+    reason?: {
+      emoji?: string;
+      reason?: string;
+    };
+    reasonId?: number;
+    user?: {
+      id?: number;
+      name?: string;
+      username?: string;
+      timeZone?: string;
+    };
+    toUser?: {
+      id?: number;
+      name?: string;
+      username?: string;
+      timeZone?: string;
+    } | null;
+    uuid?: string;
+  };
+};
+
 export type WebhookDataType = CalendarEvent &
   TranscriptionGeneratedPayload &
   // BookingNoShowUpdatedPayload & // This breaks all other webhooks
+  OOOEntryPayload &
   EventTypeInfo & {
-    metadata?: { [key: string]: string | number | boolean | null | Record<string, unknown> };
+    metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
     status?: string;
     smsReminderNumber?: string;

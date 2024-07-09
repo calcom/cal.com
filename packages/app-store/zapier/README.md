@@ -74,7 +74,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
        - id: {{bundle.subscribeData.id}}
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
 3. Test your API request
-4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { metadata: { ... } } }
+4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { oooEntry: { ... } } }
 
 
 ### Set ZAPIER_INVITE_LINK
