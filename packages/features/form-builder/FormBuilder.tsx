@@ -288,9 +288,16 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
-            //handling edge-case when user clears the min max length values.
-            if (!data?.minLength) {
-              delete data.minLength;
+            const fieldType = fieldTypesConfigMap[type];
+            //handling edge-case. when user manually cleared the maxLength and minLength, making sure default values were set
+            if (fieldType?.supportsLengthCheck) {
+              if (!data.maxLength) {
+                data.maxLength = fieldType.supportsLengthCheck.maxLength || 1000;
+              }
+              //if NaN, set it to 0
+              if (!data.minLength) {
+                data.minLength = 0;
+              }
             }
             if (!data?.maxLength) {
               delete data.maxLength;
@@ -530,7 +537,13 @@ function FieldEditDialog({
                           label={t("min_characters")}
                           type="number"
                           onChange={(e) => {
-                            fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
+                            console.log("e.target.value", e.target.value);
+                            const value = e.target.value;
+                            if (value === "") {
+                              fieldForm.setValue("minLength", undefined);
+                            } else {
+                              fieldForm.setValue("minLength", parseInt(value));
+                            }
                             fieldForm.trigger("maxLength");
                           }}
                           min={0}
@@ -549,10 +562,12 @@ function FieldEditDialog({
                             if (!fieldType.supportsLengthCheck) {
                               return;
                             }
-                            fieldForm.setValue(
-                              "maxLength",
-                              parseInt(e.target.value ?? fieldType.supportsLengthCheck.maxLength)
-                            );
+                            const value = e.target.value;
+                            if (value === "") {
+                              fieldForm.setValue("maxLength", undefined);
+                            } else {
+                              fieldForm.setValue("maxLength", parseInt(value));
+                            }
                             fieldForm.trigger("minLength");
                           }}
                           min={fieldForm.getValues("minLength") || 0}
