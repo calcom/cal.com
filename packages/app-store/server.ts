@@ -21,6 +21,7 @@ export async function getLocationGroupedOptions(
       disabled?: boolean;
       icon?: string;
       slug?: string;
+      credentialId?: number;
     }[]
   > = {};
 
@@ -93,7 +94,9 @@ export async function getLocationGroupedOptions(
           label,
           icon: app.logo,
           slug: app.slug,
-          ...(app.credential ? { credentialId: app.credential.id, teamName: app.credential.team?.name } : {}),
+          ...(app.credential
+            ? { credentialId: app.credential.id, teamName: app.credential.team?.name ?? null }
+            : {}),
         };
         if (apps[groupByCategory]) {
           apps[groupByCategory] = [...apps[groupByCategory], option];

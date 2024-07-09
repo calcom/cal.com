@@ -12,12 +12,13 @@ import { OrganizationsTeamsService } from "@/modules/organizations/services/orga
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, StripeModule, SchedulesModule_2024_06_11, UsersModule],
+  imports: [PrismaModule, StripeModule, SchedulesModule_2024_06_11, UsersModule, RedisModule],
   providers: [
     OrganizationsRepository,
     OrganizationsTeamsRepository,
