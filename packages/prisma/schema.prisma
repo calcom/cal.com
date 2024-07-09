@@ -405,6 +405,7 @@ model Team {
   smsLockState          SMSLockState            @default(UNLOCKED)
   platformBilling       PlatformBilling?
   activeOrgWorkflows    WorkflowsOnTeams[]
+  Attribute             Attribute[]
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -433,14 +434,15 @@ enum MembershipRole {
 }
 
 model Membership {
-  id                   Int            @id @default(autoincrement())
+  id                   Int               @id @default(autoincrement())
   teamId               Int
   userId               Int
-  accepted             Boolean        @default(false)
+  accepted             Boolean           @default(false)
   role                 MembershipRole
-  team                 Team           @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  disableImpersonation Boolean        @default(false)
+  team                 Team              @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user                 User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  disableImpersonation Boolean           @default(false)
+  AttributeToUser      AttributeToUser[]
 
   @@unique([userId, teamId])
   @@index([teamId])
@@ -1410,4 +1412,45 @@ model PlatformBilling {
   overdue           Boolean? @default(false)
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+enum AttributeType {
+  TEXT
+  NUMBER
+  SINGLE_SELECT
+  MULTI_SELECT
+}
+
+model Attribute {
+  id String @id @default(cuid())
+
+  team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  teamId Int
+
+  type AttributeType
+
+  name String
+  slug String
+
+  options String[]
+
+  enabled Boolean @default(true)
+
+  usersCanEditRelation Boolean @default(false)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  AttributeToUser AttributeToUser[]
+}
+
+model AttributeToUser {
+  id String @id @default(cuid())
+
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId String
+
+  member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId Int
+
+  options String[]
 }
