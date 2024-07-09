@@ -15,19 +15,17 @@ import { useTimezone } from "../hooks/useTimezone";
 import { useUpdateUserTimezone } from "../hooks/useUpdateUserTimezone";
 import http from "../lib/http";
 import { Toaster } from "../src/components/ui/toaster";
-import type { CalProviderProps } from "./CalProvider";
-
-type enTranslationKeys = keyof typeof enTranslations;
-type frTranslationKeys = keyof typeof frTranslations;
-type deTranslationKeys = keyof typeof deTranslations;
-type esTranslationKeys = keyof typeof esTranslations;
-type ptBrTranslationKeys = keyof typeof ptBrTranslations;
-type translationKeys =
-  | enTranslationKeys
-  | frTranslationKeys
-  | deTranslationKeys
-  | esTranslationKeys
-  | ptBrTranslationKeys;
+import { EN } from "./CalProvider";
+import type {
+  CalProviderProps,
+  CalProverLanguagesType,
+  translationKeys,
+  enTranslationKeys,
+  frTranslationKeys,
+  ptBrTranslationKeys,
+  deTranslationKeys,
+  esTranslationKeys,
+} from "./CalProvider";
 
 export function BaseCalProvider({
   clientId,
@@ -36,7 +34,7 @@ export function BaseCalProvider({
   children,
   labels,
   autoUpdateTimezone,
-  language = "en",
+  language = EN,
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
@@ -80,7 +78,7 @@ export function BaseCalProvider({
 
   const translations = {
     t: (key: string, values: Record<string, string | number | null | undefined>) => {
-      let translation = labels?.[key as translationKeys] ?? String(getTranslation(key, language) ?? "");
+      let translation = labels?.[key as keyof typeof labels] ?? String(getTranslation(key, language) ?? "");
       if (!translation) {
         return "";
       }
@@ -156,12 +154,12 @@ function replaceOccurrences(input: string, replacementMap: { [key: string]: stri
   });
 }
 
-function getTranslation(key: string, language: "en" | "fr" | "pt-BR" | "de" | "es") {
+function getTranslation(key: string, language: CalProverLanguagesType) {
   switch (language) {
     case "en":
       return enTranslations[key as enTranslationKeys];
     case "fr":
-      return frTranslations;
+      return frTranslations[key as frTranslationKeys];
     case "pt-BR":
       return ptBrTranslations[key as ptBrTranslationKeys];
     case "de":
