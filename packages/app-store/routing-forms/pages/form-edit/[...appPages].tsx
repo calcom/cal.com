@@ -2,6 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useEffect, useState } from "react";
+import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -174,6 +175,16 @@ function Field({
     updateSelectText(newList);
   }
 
+  const handlePaste = (event: ClipboardEvent, index: number) => {
+    const paste = event.clipboardData.getData("text");
+    const formattedValues = paste
+      .split(/[\n,;]+/)
+      .map((value) => ({ placeholder: "", value: value.trim(), id: uuidv4() }))
+      .filter((value) => value);
+    const updatedOptions = [...options.slice(0, index), ...formattedValues];
+    setOptions(updatedOptions);
+  };
+
   return (
     <div
       data-testid="field"
@@ -262,7 +273,10 @@ function Field({
               </Skeleton>
               <ul ref={animationRef}>
                 {options.map((field, index) => (
-                  <li key={`select-option-${field.id}`} className="group mt-2 flex items-center gap-2">
+                  <li
+                    key={`select-option-${field.id}`}
+                    className="group mt-2 flex items-center gap-2"
+                    onPaste={(event: ClipboardEvent) => handlePaste(event, index)}>
                     <div className="flex flex-col gap-2">
                       {options.length && index !== 0 ? (
                         <button
