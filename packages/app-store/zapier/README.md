@@ -56,13 +56,13 @@ Booking created, Booking rescheduled, Booking cancelled, Meeting ended
 
 Create the other triggers (booking rescheduled, booking cancelled and meeting ended) exactly like this one, just use the appropriate naming (e.g. booking_rescheduled instead of booking_created)
 
-### OOO Created
+### Out Of Office Created
 
 1. Settings
    - Key: ooo_created
-   - Name: OOO Created
+   - Name: Out Of Office Created
    - Noun: OOO Entry
-   - Description: Triggers when someone in the team creates a new ooo entry.
+   - Description: Triggers when a new Out Of Office entry is created. 
 2. API Configuration (apiKey is set automatically, leave it like it is):
    - Trigger Type: REST Hook
    - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
