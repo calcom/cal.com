@@ -51,7 +51,7 @@ export type OOOEntryPayload = {
     end?: string;
     createdAt?: string;
     updatedAt?: string;
-    notes?: string;
+    notes?: string | null;
     reason?: {
       emoji?: string;
       reason?: string;
@@ -59,14 +59,14 @@ export type OOOEntryPayload = {
     reasonId?: number;
     user?: {
       id?: number;
-      name?: string;
-      username?: string;
+      name?: string | null;
+      username?: string | null;
       timeZone?: string;
     };
     toUser?: {
       id?: number;
-      name?: string;
-      username?: string;
+      name?: string | null;
+      username?: string | null;
       timeZone?: string;
     } | null;
     uuid?: string;

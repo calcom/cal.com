@@ -246,7 +246,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           payloadTemplate: subscriber.payloadTemplate,
         },
         {
-          metadata: {
+          oooEntry: {
             id: createdRedirect.id,
             start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
             end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
