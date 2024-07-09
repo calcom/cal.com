@@ -160,12 +160,16 @@ describe("inviteMemberHandler", () => {
           },
         };
 
+        const inviter = {
+          name: loggedInUser.name,
+        };
+
         expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
           invitationsForNewUsers: allExpectedInvitations,
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
           input,
-          inviter: loggedInUser,
+          inviter,
           autoAcceptEmailDomain: null,
         });
 
@@ -210,7 +214,6 @@ describe("inviteMemberHandler", () => {
         const input = {
           teamId: 1,
           role: MembershipRole.MEMBER,
-          isOrg: false,
           language: "en",
           usernameOrEmail: usersToBeInvited.map((u) => u.email),
         };
@@ -219,6 +222,7 @@ describe("inviteMemberHandler", () => {
           id: input.teamId,
           name: "Team 1",
           parent: null,
+          isOrganization: false,
         };
 
         const retValueOfGetTeamOrThrowError = inviteMemberUtilsScenarios.getTeamOrThrow.fakeReturnTeam(team, {
@@ -266,14 +270,18 @@ describe("inviteMemberHandler", () => {
             autoAccept: false,
           },
         };
+        const inviter = {
+          name: loggedInUser.name,
+        };
 
         expect(inviteMemberUtilsMock.handleNewUsersInvites).toHaveBeenCalledWith({
           invitationsForNewUsers: allExpectedInvitations.slice(1),
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
           input,
-          inviter: loggedInUser,
+          inviter,
           autoAcceptEmailDomain: null,
+          isOrg: false,
         });
 
         expect(paymentsMock.updateQuantitySubscriptionFromStripe).toHaveBeenCalledWith(input.teamId);
@@ -281,10 +289,11 @@ describe("inviteMemberHandler", () => {
         expect(inviteMemberUtilsMock.handleExistingUsersInvites).toHaveBeenCalledWith({
           invitableExistingUsers: retValueOfFindUsersWithInviteStatus,
           input: input,
-          inviter: loggedInUser,
+          inviter,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
           orgSlug: null,
           team: retValueOfGetTeamOrThrowError,
+          isOrg: false,
         });
 
         // Assert the result
