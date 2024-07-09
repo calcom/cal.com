@@ -180,9 +180,14 @@ function Field({
     const formattedValues = paste
       .split(/[\n,;]+/)
       .map((value) => ({ placeholder: "", value: value.trim(), id: uuidv4() }))
-      .filter((value) => value);
-    const updatedOptions = [...options.slice(0, index), ...formattedValues];
-    setOptions(updatedOptions);
+      .filter((option) => option.value);
+    if (formattedValues.length > 1) {
+      event.preventDefault();
+      const updatedOptions = [...options.slice(0, index), ...formattedValues, ...options.slice(index)].filter(
+        (value) => !value.placeholder
+      );
+      setOptions(updatedOptions);
+    }
   };
 
   return (
