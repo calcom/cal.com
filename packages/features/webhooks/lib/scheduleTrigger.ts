@@ -469,7 +469,7 @@ export async function listOOOEntries(
       where.user = {
         teams: {
           some: {
-            id: teamId,
+           teamId,
           },
         },
       };
