@@ -537,7 +537,6 @@ function FieldEditDialog({
                           label={t("min_characters")}
                           type="number"
                           onChange={(e) => {
-                            console.log("e.target.value", e.target.value);
                             const value = e.target.value;
                             if (value === "") {
                               fieldForm.setValue("minLength", undefined);
