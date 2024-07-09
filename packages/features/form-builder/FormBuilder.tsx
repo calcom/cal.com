@@ -12,6 +12,7 @@ import {
   Badge,
   BooleanToggleGroupField,
   Button,
+  CheckboxField,
   Dialog,
   DialogClose,
   DialogContent,
@@ -482,6 +483,10 @@ function FieldEditDialog({
                         fieldForm.getValues("editable") === "system-but-optional"
                       }
                       label={t("identifier")}
+                    />
+                    <CheckboxField
+                      description={t("pre_fill_check")}
+                      {...fieldForm.register("prefillChecked", { setValueAs: Boolean })}
                     />
                     <InputField
                       {...fieldForm.register("label")}

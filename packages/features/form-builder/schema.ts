@@ -217,6 +217,7 @@ export const fieldSchema = baseFieldSchema.merge(
         })
       )
       .optional(),
+    prefillChecked: z.boolean().default(false).optional(),
   })
 );
 
