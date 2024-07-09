@@ -485,12 +485,8 @@ export async function listOOOEntries(
     const oooEntries = await prisma.outOfOfficeEntry.findMany({
       where: {
         ...where,
-        // only get entries that are active and have not ended
-        // if the end date is in the past, the entry is considered inactive
-        end: {
-          gte: new Date(),
-        },
       },
+      take: 3,
       orderBy: {
         id: "desc",
       },

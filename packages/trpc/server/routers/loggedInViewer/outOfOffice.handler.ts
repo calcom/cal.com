@@ -224,6 +224,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   };
 
   const subscribers = await getWebhooks(subscriberOptions);
+
   await Promise.all(
     subscribers.map(async (subscriber) => {
       sendPayloadNoBooking(
