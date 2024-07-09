@@ -240,7 +240,6 @@ async function moveTeam({
         teamId: org.id,
         language: "en",
         usernameOrEmail: invitableMembers,
-        isOrg: true,
       },
     });
   }

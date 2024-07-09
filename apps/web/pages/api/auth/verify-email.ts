@@ -6,7 +6,9 @@ import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 const verifySchema = z.object({
   token: z.string(),
@@ -140,6 +142,40 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const hasCompletedOnboarding = user.completedOnboarding;
+
+  const emailDomain = user.email.split("@").at(-1);
+  const organizationMatchingEmailDomain = await prisma.team.findFirst({
+    where: {
+      organizationSettings: {
+        orgAutoAcceptEmail: emailDomain,
+      },
+    },
+  });
+
+  if (organizationMatchingEmailDomain) {
+    await inviteMembersWithNoInviterPermissionCheck({
+      inviter: {
+        name: null,
+      },
+      input: {
+        teamId: organizationMatchingEmailDomain.id,
+        usernameOrEmail: [
+          {
+            email: user.email,
+            role: MembershipRole.MEMBER,
+          },
+        ],
+        language: "en",
+      },
+      invitations: [
+        {
+          usernameOrEmail: user.email,
+          role: MembershipRole.MEMBER,
+        },
+      ],
+      orgSlug: organizationMatchingEmailDomain.slug || organizationMatchingEmailDomain.metadata.requestedSlug,
+    });
+  }
 
   return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }
