@@ -193,6 +193,7 @@ const sendPayload = async (
   data = addUTCOffset(data);
 
   let body;
+  /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier" && triggerEvent !== "OOO_CREATED") {
     body = getZapierPayload({ ...data, createdAt });
   } else if (template) {
