@@ -1,6 +1,6 @@
-import type { translationKeys, CalProverLanguagesType } from "cal-provider/CalProvider";
 import { createContext, useContext } from "react";
 
+import type { translationKeys, CalProverLanguagesType } from "../cal-provider/CalProvider.tsx";
 import type http from "../lib/http";
 
 export interface IAtomsContextOptions {
