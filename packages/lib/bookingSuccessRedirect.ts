@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { PaymentPageProps } from "@calcom/ee/payments/pages/payment";
 import type { BookingResponse } from "@calcom/features/bookings/types";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
+import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 
 function getNewSeachParams(args: {
   query: Record<string, string | null | undefined | boolean>;
@@ -58,7 +59,7 @@ export const useBookingSuccessRedirect = () => {
       const url = new URL(successRedirectUrl);
       // Using parent ensures, Embed iframe would redirect outside of the iframe.
       if (!forwardParamsSuccessRedirect) {
-        window.parent.location.href = url.toString();
+        navigateInTopWindow(url.toString());
         return;
       }
       const bookingExtraParams = getBookingRedirectExtraParams(booking);
@@ -69,7 +70,12 @@ export const useBookingSuccessRedirect = () => {
         },
         searchParams: searchParams ?? undefined,
       });
-      window.parent.location.href = `${url.toString()}?${newSearchParams.toString()}`;
+
+      newSearchParams.forEach((value, key) => {
+        url.searchParams.append(key, value);
+      });
+
+      navigateInTopWindow(url.toString());
       return;
     }
     const newSearchParams = getNewSeachParams({ query });
