@@ -2,7 +2,7 @@ import type { BookerPlatformWrapperAtomProps } from "../booker/BookerPlatformWra
 import { BookerPlatformWrapper } from "../booker/BookerPlatformWrapper";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-export const BookerEmbed = (props: BookerPlatformWrapperAtomProps) => {
+export const BookerEmbedPlatform = (props: BookerPlatformWrapperAtomProps) => {
   return (
     <AtomsWrapper>
       <BookerPlatformWrapper {...props} />
