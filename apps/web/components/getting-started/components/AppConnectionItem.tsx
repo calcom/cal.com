@@ -33,7 +33,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
           <Button
             {...buttonProps}
             color="secondary"
-            disabled={installed || dependency}
+            disabled={installed || !!dependency}
             type="button"
             loading={buttonProps?.isPending}
             tooltip={
