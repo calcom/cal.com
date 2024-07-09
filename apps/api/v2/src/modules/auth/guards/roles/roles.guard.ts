@@ -129,7 +129,7 @@ export class RolesGuard implements CanActivate {
         });
       }
     }
-    this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 3600);
+    await this.redisService.redis.set(REDIS_CACHE_KEY, String(canAccess), "EX", 3600);
     return canAccess;
   }
 }
