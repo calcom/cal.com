@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import type { LocationObject } from "@calcom/app-store-types";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -77,16 +78,19 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
             },
           },
           workflows: {
-            include: {
+            select: {
               workflow: {
-                include: {
-                  steps: true,
-                },
+                select: workflowSelect,
               },
             },
           },
           customInputs: true,
           parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
         },
       },
       location: true,

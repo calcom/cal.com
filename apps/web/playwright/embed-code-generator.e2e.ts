@@ -59,8 +59,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        await goToPreviewTab(page);
-
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${pro.username}/30-min`,
@@ -96,7 +97,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        await goToPreviewTab(page);
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${pro.username}/30-min`,
@@ -132,7 +135,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        await goToPreviewTab(page);
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${pro.username}/30-min`,
@@ -170,8 +175,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: null,
         });
 
-        await goToPreviewTab(page);
-
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: decodeURIComponent(embedUrl),
@@ -227,7 +233,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        await goToPreviewTab(page);
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "inline",
           calLink: `${user.username}/30-min`,
@@ -266,7 +274,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        await goToPreviewTab(page);
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "floating-popup",
           calLink: `${user.username}/30-min`,
@@ -304,7 +314,9 @@ test.describe("Embed Code Generator Tests", () => {
           orgSlug: org.slug,
         });
 
-        await goToPreviewTab(page);
+        // To prevent early timeouts
+        // eslint-disable-next-line playwright/no-wait-for-timeout
+        await page.waitForTimeout(1000);
         await expectToContainValidPreviewIframe(page, {
           embedType: "element-click",
           calLink: `${user.username}/30-min`,
@@ -318,13 +330,6 @@ test.describe("Embed Code Generator Tests", () => {
 type EmbedType = "inline" | "floating-popup" | "element-click";
 function chooseEmbedType(page: Page, embedType: EmbedType) {
   page.locator(`[data-testid=${embedType}]`).click();
-}
-
-async function goToPreviewTab(page: Page) {
-  // To prevent early timeouts
-  // eslint-disable-next-line playwright/no-wait-for-timeout
-  await page.waitForTimeout(1000);
-  await page.locator("[data-testid=horizontal-tab-Preview]").click();
 }
 
 async function goToReactCodeTab(page: Page) {
