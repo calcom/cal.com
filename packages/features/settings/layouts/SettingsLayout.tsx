@@ -6,8 +6,6 @@ import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState, useMemo } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
-import { FeatureProvider, useFlagMap } from "@calcom/features/flags/context/provider";
-import { useFlags } from "@calcom/features/flags/hooks";
 import Shell from "@calcom/features/shell/Shell";
 import { classNames } from "@calcom/lib";
 import { HOSTED_CAL_FEATURES, WEBAPP_URL } from "@calcom/lib/constants";
@@ -156,7 +154,8 @@ const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "di
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
-  const hasAttributesFeature = useFlagMap().attributes;
+  // const enabledFlags = useFlags();
+  // console.log("enabledFlags", enabledFlags);
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner =
@@ -179,9 +178,9 @@ const useTabs = () => {
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
 
-        console.log("hasAttributesFeature", hasAttributesFeature);
-        if (hasAttributesFeature) {
-          // Push to the 4th position
+        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
+        // You have to refresh the page to see the changes.
+        if (true) {
           newArray.splice(4, 0, {
             name: "attributes",
             href: "/settings/organizations/attributes",
@@ -657,7 +656,6 @@ export default function SettingsLayout({
   children,
   ...rest
 }: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
-  const flags = useFlags();
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -683,33 +681,31 @@ export default function SettingsLayout({
   }, [pathname]);
 
   return (
-    <FeatureProvider value={flags}>
-      <Shell
-        withoutSeo={true}
-        flexChildrenContainer
-        hideHeadingOnMobile
-        {...rest}
-        SidebarContainer={
-          <SidebarContainerElement
-            sideContainerOpen={sideContainerOpen}
-            setSideContainerOpen={setSideContainerOpen}
-          />
-        }
-        drawerState={state}
-        MobileNavigationContainer={null}
-        TopNavContainer={
-          <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
-        }>
-        <div className="flex flex-1 [&>*]:flex-1">
-          <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
-            <ShellHeader />
-            <ErrorBoundary>
-              <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
-            </ErrorBoundary>
-          </div>
+    <Shell
+      withoutSeo={true}
+      flexChildrenContainer
+      hideHeadingOnMobile
+      {...rest}
+      SidebarContainer={
+        <SidebarContainerElement
+          sideContainerOpen={sideContainerOpen}
+          setSideContainerOpen={setSideContainerOpen}
+        />
+      }
+      drawerState={state}
+      MobileNavigationContainer={null}
+      TopNavContainer={
+        <MobileSettingsContainer onSideContainerOpen={() => setSideContainerOpen(!sideContainerOpen)} />
+      }>
+      <div className="flex flex-1 [&>*]:flex-1">
+        <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
+          <ShellHeader />
+          <ErrorBoundary>
+            <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
+          </ErrorBoundary>
         </div>
-      </Shell>
-    </FeatureProvider>
+      </div>
+    </Shell>
   );
 }
 
