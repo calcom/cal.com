@@ -418,7 +418,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       if (
         !leaveWithoutAssigningHosts.current &&
         !!team &&
-        (hosts.length === 0 || assignedUsers.length === 0) &&
+        hosts.length === 0 &&
         (url === "/event-types" || paths[1] !== "event-types")
       ) {
         setIsOpenAssignmentWarnDialog(true);
@@ -838,13 +838,13 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
           }}
         />
       ) : null}
-      {/*<AssignmentWarningDialog*/}
-      {/*  isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}*/}
-      {/*  setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}*/}
-      {/*  pendingRoute={pendingRoute}*/}
-      {/*  leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}*/}
-      {/*  id={eventType.id}*/}
-      {/*/>*/}
+      <AssignmentWarningDialog
+        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        pendingRoute={pendingRoute}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
+      />
     </>
   );
 };
