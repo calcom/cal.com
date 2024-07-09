@@ -8,7 +8,7 @@ import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { userSelect } from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 
-import type { NewBookingEventType } from "../handleNewBooking";
+import type { NewBookingEventType } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["[loadUsers]:handleNewBooking "] });
 
@@ -85,3 +85,5 @@ export const findUsersByUsername = async ({
     };
   });
 };
+
+export type AwaitedLoadUsers = Awaited<ReturnType<typeof loadUsers>>;
