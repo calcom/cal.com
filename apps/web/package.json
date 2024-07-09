@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.1.9",
+  "version": "4.2.4",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -8,6 +8,7 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
+    "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
@@ -60,7 +61,7 @@
     "@radix-ui/react-switch": "^1.0.0",
     "@radix-ui/react-toggle-group": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
-    "@sentry/nextjs": "^7.73.0",
+    "@sentry/nextjs": "^8.8.0",
     "@stripe/react-stripe-js": "^1.10.0",
     "@stripe/stripe-js": "^1.35.0",
     "@tanstack/react-query": "^5.17.15",
