@@ -13,6 +13,7 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui";
 
+//import setDefaultConferencingApp from "./_utils/setDefaultConferencingApp";
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
 
@@ -20,9 +21,19 @@ export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
     defaultInstall?: boolean;
+    slug?: string;
   } & InstallAppButtonProps
 ) => {
-  const mutation = useAddAppMutation(null);
+  const mutation = useAddAppMutation(null, {
+    onSuccess: () => {
+      if (me && props.defaultInstall && props.slug) {
+        setDefaultConferencingApp.mutate({ slug: props.slug });
+      }
+    },
+  });
+  const utils = trpc.useUtils();
+  const me = utils.viewer.me.getData();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
@@ -32,7 +43,7 @@ export const InstallAppButtonWithoutPlanCheck = (
           useDefaultComponent: true,
           disabled: props.disableInstall,
           onClick: () => {
-            mutation.mutate({ type: props.type, defaultInstall: props.defaultInstall });
+            mutation.mutate({ type: props.type });
           },
           loading: mutation.isPending,
         })}

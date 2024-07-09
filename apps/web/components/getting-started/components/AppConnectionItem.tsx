@@ -11,10 +11,11 @@ interface IAppConnectionItem {
   installed?: boolean;
   isDefault?: boolean;
   defaultInstall?: boolean;
+  slug?: string;
 }
 
 const AppConnectionItem = (props: IAppConnectionItem) => {
-  const { title, logo, type, installed, isDefault, defaultInstall } = props;
+  const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
   return (
     <div className="flex flex-row items-center justify-between p-5">
@@ -26,6 +27,7 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
       <InstallAppButtonWithoutPlanCheck
         type={type}
         defaultInstall={defaultInstall}
+        slug={slug}
         render={(buttonProps) => (
           <Button
             {...buttonProps}

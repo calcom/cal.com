@@ -44,9 +44,10 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                       isDefault={item.slug === metadata?.defaultConferencingApp?.appSlug}
                       description={item.description}
                       logo={item.logo}
+                      slug={item.slug}
                       installed={item.userCredentialIds.length > 0}
                       defaultInstall={
-                        (item.isOAuth || item.slug === "google-meet") && !hasAnyInstalledVideoApps
+                        item.appData?.location?.linkType === "dynamic" && !hasAnyInstalledVideoApps
                       }
                     />
                   )}
