@@ -288,6 +288,7 @@ export const FormBuilder = function FormBuilder({
               showToast(t("form_builder_field_already_exists"), "error");
               return;
             }
+            console.log("data=====>", data);
             const fieldType = fieldTypesConfigMap[type];
             //handling edge-case. when user manually cleared the maxLength and minLength, making sure default values were set
             if (fieldType?.supportsLengthCheck) {
@@ -537,12 +538,7 @@ function FieldEditDialog({
                           label={t("min_characters")}
                           type="number"
                           onChange={(e) => {
-                            const value = e.target.value;
-                            if (value === "") {
-                              fieldForm.setValue("minLength", undefined);
-                            } else {
-                              fieldForm.setValue("minLength", parseInt(value));
-                            }
+                            fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
                             fieldForm.trigger("maxLength");
                           }}
                           min={0}
@@ -561,12 +557,10 @@ function FieldEditDialog({
                             if (!fieldType.supportsLengthCheck) {
                               return;
                             }
-                            const value = e.target.value;
-                            if (value === "") {
-                              fieldForm.setValue("maxLength", undefined);
-                            } else {
-                              fieldForm.setValue("maxLength", parseInt(value));
-                            }
+                            fieldForm.setValue(
+                              "maxLength",
+                              parseInt(e.target.value ?? fieldType.supportsLengthCheck.maxLength)
+                            );
                             fieldForm.trigger("minLength");
                           }}
                           min={fieldForm.getValues("minLength") || 0}
