@@ -65,10 +65,6 @@ function addUTCOffset(
   return data as WithUTCOffsetType<WebhookDataType>;
 }
 
-function getZapierPayloadNonBooking(data: WebhookDataType["metadata"]): string {
-  return JSON.stringify(data?.metadata);
-}
-
 function getZapierPayload(
   data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
 ): string {
@@ -142,7 +138,7 @@ const sendPayload = async (
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ) => {
-  const { appId, payloadTemplate: template } = webhook;
+  const { payloadTemplate: template } = webhook;
 
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
@@ -152,10 +148,7 @@ const sendPayload = async (
 
   let body;
 
-  /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier") {
-    body = getZapierPayload({ ...data, createdAt });
-  } else if (template) {
+  if (template) {
     body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
   } else {
     body = JSON.stringify({
@@ -166,27 +159,6 @@ const sendPayload = async (
   }
 
   return _sendPayload(secretKey, webhook, body, contentType);
-};
-
-export const sendPayloadNoBooking = async (
-  secretKey: string | null,
-  triggerEvent: string,
-  createdAt: string,
-  webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: WebhookDataType["metadata"]
-) => {
-  const { appId } = webhook;
-  let body;
-  if (appId === "zapier") {
-    body = getZapierPayloadNonBooking(data);
-  } else {
-    body = JSON.stringify({
-      triggerEvent: triggerEvent,
-      createdAt: createdAt,
-      payload: data,
-    });
-  }
-  return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
 export const sendGenericWebhookPayload = async ({

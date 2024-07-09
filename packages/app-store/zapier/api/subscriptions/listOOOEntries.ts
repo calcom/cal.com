@@ -10,17 +10,31 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     "READ_PROFILE",
   ]);
   if (!authorizedAccount && !validKey) {
-    return res.status(401).json({ message: "Unauthorized" });
+    res.status(401).json({ message: "Unauthorized" });
+    return;
   }
   const oooEntries = await listOOOEntries(validKey, authorizedAccount);
 
   if (!oooEntries) {
-    return res.status(500).json({ message: "Unable to get out of office entries list." });
+    res.status(500).json({ message: "Unable to get out of office entries list." });
+    return;
   }
   if (oooEntries.length === 0) {
-    return res.status(201).json([]);
+    res.status(204).json([]);
+    return;
   }
-  res.status(201).json(oooEntries);
+  // Wrap entries in metadata object
+  const response = oooEntries.map((oooEntry) => {
+    return {
+      payload: {
+        metadata: {
+          ...oooEntry,
+        },
+      },
+    };
+  });
+  res.status(200).json(response);
+  return;
 }
 
 export default defaultHandler({

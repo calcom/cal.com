@@ -33,7 +33,7 @@ If you run it on localhost, check out the [additional information](https://githu
 
 ## Triggers
 
-Booking created, Booking rescheduled, Booking cancelled, Meeting ended
+Booking created, Booking rescheduled, Booking cancelled, Meeting ended, Out Of Office Created
 
 ### Booking created
 
@@ -74,6 +74,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
        - id: {{bundle.subscribeData.id}}
    - PerformList: GET `<baseUrl>`/api/integrations/zapier/listOOOEntries
 3. Test your API request
+4. Note: When creating the ZAP you need to remember that data is stored in the { payload: { metadata: { ... } } }
 
 
 ### Set ZAPIER_INVITE_LINK

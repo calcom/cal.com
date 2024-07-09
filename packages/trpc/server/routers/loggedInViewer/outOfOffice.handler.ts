@@ -4,7 +4,7 @@ import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { sendPayloadNoBooking } from "@calcom/features/webhooks/lib/sendPayload";
+import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
@@ -216,9 +216,18 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
     }
   }
 
+  const memberships = await prisma.membership.findMany({
+    where: {
+      userId: ctx.user.id,
+    },
+  });
+
+  const teamIds = memberships.map((membership) => membership.teamId);
+
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {
     userId: ctx.user.id,
+    teamIds: teamIds,
     orgId: ctx.user.organizationId,
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };
@@ -227,7 +236,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
 
   await Promise.all(
     subscribers.map(async (subscriber) => {
-      sendPayloadNoBooking(
+      sendPayload(
         subscriber.secret,
         WebhookTriggerEvents.OOO_CREATED,
         dayjs().toISOString(),
@@ -265,6 +274,23 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
               : null,
             uuid: createdRedirect.uuid,
           },
+          // Dummy data
+          attendees: [],
+          title: "",
+          startTime: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+          endTime: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+          organizer: {
+            name: "",
+            username: "",
+            email: "",
+            timeZone: "",
+            locale: "",
+            language: {
+              locale: ctx.user.locale,
+              translate: await getTranslation(ctx.user.locale ?? "en", "common"),
+            },
+          },
+          type: "",
         }
       );
     })
