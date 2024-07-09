@@ -62,7 +62,7 @@ Create the other triggers (booking rescheduled, booking cancelled and meeting en
    - Key: ooo_created
    - Name: Out Of Office Created
    - Noun: OOO Entry
-   - Description: Triggers when someone in the team creates a new ooo entry.
+   - Description: Triggers when a new Out Of Office entry is created. 
 2. API Configuration (apiKey is set automatically, leave it like it is):
    - Trigger Type: REST Hook
    - Subscribe: POST `<baseUrl>`/api/integrations/zapier/addSubscription
