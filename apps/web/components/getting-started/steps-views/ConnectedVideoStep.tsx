@@ -37,6 +37,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                       type={item.type}
                       title={item.name}
                       description={item.description}
+                      dependencyData={item.dependencyData}
                       logo={item.logo}
                       installed={item.userCredentialIds.length > 0}
                     />
