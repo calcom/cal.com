@@ -7,7 +7,6 @@ import prisma from "@calcom/prisma";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
@@ -82,10 +81,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const credentialIdsToDelete = existingCredentialWebexVideo.map((item) => item.id);
   if (credentialIdsToDelete.length > 0) {
     await prisma.credential.deleteMany({ where: { id: { in: credentialIdsToDelete }, userId } });
-  }
-
-  if (state?.defaultInstall) {
-    setDefaultConferencingApp(userId, config.slug);
   }
 
   await createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);

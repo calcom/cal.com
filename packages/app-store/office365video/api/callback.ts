@@ -8,7 +8,6 @@ import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
-import setDefaultConferencingApp from "../../_utils/setDefaultConferencingApp";
 
 const scopes = ["OnlineMeetings.ReadWrite", "offline_access"];
 
@@ -104,10 +103,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   await createOAuthAppCredential({ appId: "msteams", type: "office365_video" }, responseBody, req);
-
-  if (state?.defaultInstall) {
-    setDefaultConferencingApp(userId, "msteams");
-  }
 
   return res.redirect(
     getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: "conferencing", slug: "msteams" })
