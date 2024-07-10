@@ -11,7 +11,7 @@ import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
+import { getVariantsConfig, cpfMask } from "./utils";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -63,11 +63,12 @@ export const FormBuilderField = ({
         // Make it a variable
         name={`responses.${field.name}`}
         render={({ field: { value, onChange }, fieldState: { error } }) => {
+          const maskedCpf = field.name === "CPF" ? cpfMask(value).value : value;
           return (
             <div>
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
-                value={value}
+                value={maskedCpf}
                 readOnly={readOnly}
                 setValue={(val: unknown) => {
                   onChange(val);
