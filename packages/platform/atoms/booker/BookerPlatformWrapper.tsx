@@ -91,28 +91,6 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     return formatUsername(props.username);
   }, [props.username]);
 
-  useEffect(() => {
-    // reset booker whenever it's unmounted
-    return () => {
-      setBookerState("loading");
-      setSelectedDate(null);
-      setSelectedTimeslot(null);
-      setSelectedDuration(null);
-      setOrg(null);
-      setSelectedMonth(null);
-      setSelectedDuration(null);
-      if (props.rescheduleUid) {
-        // clean booking data from cache
-        queryClient.removeQueries({
-          queryKey: [BOOKING_RESCHEDULE_KEY, props.rescheduleUid],
-          exact: true,
-        });
-        setBookingData(null);
-      }
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   setSelectedDuration(props.duration ?? null);
   setOrg(props.entity?.orgSlug ?? null);
 
@@ -303,6 +281,29 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
   });
+
+  useEffect(() => {
+    // reset booker whenever it's unmounted
+    return () => {
+      slots.handleRemoveSlot();
+      setBookerState("loading");
+      setSelectedDate(null);
+      setSelectedTimeslot(null);
+      setSelectedDuration(null);
+      setOrg(null);
+      setSelectedMonth(null);
+      setSelectedDuration(null);
+      if (props.rescheduleUid) {
+        // clean booking data from cache
+        queryClient.removeQueries({
+          queryKey: [BOOKING_RESCHEDULE_KEY, props.rescheduleUid],
+          exact: true,
+        });
+        setBookingData(null);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AtomsWrapper>
