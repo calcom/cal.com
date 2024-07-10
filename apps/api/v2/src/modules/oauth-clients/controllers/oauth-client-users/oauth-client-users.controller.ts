@@ -122,7 +122,11 @@ export class OAuthClientUsersController {
     this.logger.log(`Updating user with ID ${userId}: ${JSON.stringify(body, null, 2)}`);
 
     const user = await this.oAuthClientUsersService.updateOAuthClientUser(clientId, userId, body);
-
+    if (body.locale) {  
+      user.locale = body.locale;
+      await this.userRepository.save(user);
+    }
+    
     return {
       status: SUCCESS_STATUS,
       data: this.getResponseUser(user),

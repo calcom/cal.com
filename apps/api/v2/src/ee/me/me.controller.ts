@@ -44,6 +44,11 @@ export class MeController {
     @Body() bodySchedule: UpdateManagedUserInput
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
+    if (bodySchedule.locale) {  
+      updatedUser.locale = bodySchedule.locale;
+      await this.usersRepository.save(updatedUser);
+    }
+
     if (bodySchedule.timeZone && user.defaultScheduleId) {
       await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
