@@ -7,6 +7,11 @@ import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
 
+export type TDependencyData = {
+  name?: string;
+  installed?: boolean;
+}[];
+
 /**
  * Get App metdata either using dirName or slug
  */
@@ -96,10 +101,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
     app.createdAt = dbapp.createdAt.toISOString();
-    let dependencyData: {
-      name?: string;
-      installed?: boolean;
-    }[] = [];
+    let dependencyData: TDependencyData = [];
     if (app.dependencies) {
       dependencyData = app.dependencies.map((dependency) => {
         const dependencyInstalled = dbApps.some(
