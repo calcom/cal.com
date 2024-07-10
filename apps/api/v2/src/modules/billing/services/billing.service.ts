@@ -100,6 +100,9 @@ export class BillingService {
   }
 
   async increaseUsageForTeam(teamId: number) {
+    if (!this.configService.get("e2e")) {
+      return void 0;
+    }
     try {
       const billingSubscription = await this.billingRepository.getBillingForTeam(teamId);
       if (!billingSubscription || !billingSubscription?.subscriptionId) {
