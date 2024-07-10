@@ -601,7 +601,7 @@ export default class EventManager {
   private async createAllCalendarEvents(event: CalendarEvent) {
     let createdEvents: EventResult<NewCalendarEventType>[] = [];
 
-    const fallbackToFirstInTheList = async () => {
+    const fallbackToFirstCalendarInTheList = async () => {
       /**
        *  Not ideal but, if we don't find a destination calendar,
        *  fallback to the first connected calendar - Shouldn't be a CRM calendar
@@ -682,7 +682,7 @@ export default class EventManager {
             log.warn(
               "No other credentials found of the same type as the destination calendar. Falling back to first connected calendar"
             );
-            await fallbackToFirstInTheList();
+            await fallbackToFirstCalendarInTheList();
           } else {
             log.warn(
               "No credentialId found for destination calendar, falling back to first found calendar of same type as destination calendar",
@@ -703,7 +703,7 @@ export default class EventManager {
           calendarCredentials: this.calendarCredentials,
         })
       );
-      await fallbackToFirstInTheList();
+      await fallbackToFirstCalendarInTheList();
     }
 
     // Taking care of non-traditional calendar integrations
