@@ -16,6 +16,13 @@ class HandleMarkNoShowData {
   @IsString()
   message!: string;
 
+  @IsBoolean()
+  noShowHost!: boolean;
+
+  @IsString()
+  @IsOptional()
+  messageKey?: string;
+
   @ValidateNested()
   @Type(() => Attendee)
   @IsArray()

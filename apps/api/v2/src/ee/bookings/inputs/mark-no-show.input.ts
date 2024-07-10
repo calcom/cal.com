@@ -10,6 +10,10 @@ class Attendee {
 }
 
 export class MarkNoShowInput {
+  @IsBoolean()
+  @IsOptional()
+  noShowHost?: boolean;
+
   @ValidateNested()
   @Type(() => Attendee)
   @IsArray()
