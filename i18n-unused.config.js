@@ -10,7 +10,7 @@ const path = require("path");
  * It also ensure that we don't match any other similar function calls (e.g. `format("dddd")`).
  *
  * ## Explanation of the regex
- * - (?<!\w): negative lookbehind to ensure that there is no word character before "t" or "i18nKey"
+ * - (?<!\w): negative lookbehind to ensure that there is no word character before "t", "language" or "i18nKey"
  * - (?: ... ): non-capturing group
  *   - t: for the use of `t("..")` OR `t("..", {key: ".."})`
  *     - \(("[^"]*"): captures a string enclosed in double quotes followed by an opening parenthesis
