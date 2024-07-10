@@ -197,7 +197,7 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
-  @Post("/:bookingUid/no-show")
+  @Post("/:bookingUid/mark-no-show")
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
@@ -314,7 +314,10 @@ export class BookingsController {
     err: Error | HttpError | unknown,
     type?: "recurring" | `instant` | "no-show"
   ): void {
-    const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+    const errMsg =
+      type === "no-show"
+        ? `Error while marking no-show.`
+        : `Error while creating ${type ? type + " " : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);
