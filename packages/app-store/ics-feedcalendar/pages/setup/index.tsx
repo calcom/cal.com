@@ -103,6 +103,10 @@ export default function ICSFeedSetup() {
                   />
                 </div>
 
+                <div className="mt-3 flex items-center">
+                  <p className="text-default mt-2">{t("skip_writing_to_calendar_note")}</p>
+                </div>
+
                 {errorMessage && (
                   <Alert
                     severity="error"

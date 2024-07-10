@@ -2496,8 +2496,9 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "User is a pending member of the organization",
   "USER_ALREADY_INVITED_OR_MEMBER": "User is already invited or a member",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "User is member of an organization that this team is not a part of.",
-  "skip_writing_to_calendar": "Skip writing to calendar",
+  "skip_writing_to_calendar": "Do not write to the ICS feed",
   "rescheduling_not_possible": "Rescheduling is not possible as the event has expired",
   "event_expired": "This event is expired",
+  "skip_writing_to_calendar_note": "Note: If your ICS link is read-only (e.g., Proton Calendar), check the box above to avoid errors.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
