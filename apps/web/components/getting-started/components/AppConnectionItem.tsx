@@ -1,5 +1,6 @@
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Badge, Button } from "@calcom/ui";
 
@@ -17,6 +18,7 @@ interface IAppConnectionItem {
 const AppConnectionItem = (props: IAppConnectionItem) => {
   const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
@@ -26,8 +28,13 @@ const AppConnectionItem = (props: IAppConnectionItem) => {
       </div>
       <InstallAppButtonWithoutPlanCheck
         type={type}
-        defaultInstall={defaultInstall}
-        slug={slug}
+        options={{
+          onSuccess: () => {
+            if (defaultInstall && slug) {
+              setDefaultConferencingApp.mutate({ slug });
+            }
+          },
+        }}
         render={(buttonProps) => (
           <Button
             {...buttonProps}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef } from "react";
 
+import type { UseAddAppMutationOptions } from "@calcom/app-store/_utils/useAddAppMutation";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import classNames from "@calcom/lib/classNames";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -13,27 +14,16 @@ import type { RouterOutputs } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
 import { Icon } from "@calcom/ui";
 
-//import setDefaultConferencingApp from "./_utils/setDefaultConferencingApp";
 import { InstallAppButtonMap } from "./apps.browser.generated";
 import type { InstallAppButtonProps } from "./types";
 
 export const InstallAppButtonWithoutPlanCheck = (
   props: {
     type: App["type"];
-    defaultInstall?: boolean;
-    slug?: string;
+    options?: UseAddAppMutationOptions;
   } & InstallAppButtonProps
 ) => {
-  const mutation = useAddAppMutation(null, {
-    onSuccess: () => {
-      if (me && props.defaultInstall && props.slug) {
-        setDefaultConferencingApp.mutate({ slug: props.slug });
-      }
-    },
-  });
-  const utils = trpc.useUtils();
-  const me = utils.viewer.me.getData();
-  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
+  const mutation = useAddAppMutation(null, props.options);
   const key = deriveAppDictKeyFromType(props.type, InstallAppButtonMap);
   const InstallAppButtonComponent = InstallAppButtonMap[key as keyof typeof InstallAppButtonMap];
   if (!InstallAppButtonComponent)
