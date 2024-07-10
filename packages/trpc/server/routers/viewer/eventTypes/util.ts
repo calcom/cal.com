@@ -161,13 +161,11 @@ type User = {
 
 export async function addWeightAdjustmentToNewHosts({
   hosts,
-  previousRRHosts,
   isWeightsEnabled,
   eventTypeId,
   prisma,
 }: {
   hosts: Host[];
-  previousRRHosts: { user: User }[];
   isWeightsEnabled: boolean;
   eventTypeId: number;
   prisma: PrismaClient;
@@ -175,39 +173,48 @@ export async function addWeightAdjustmentToNewHosts({
   if (!isWeightsEnabled) return hosts;
 
   // to also have the user email to check for attendees
-  const hostsWithUserData = await prisma.host.findMany({
+  const usersWithHostData = await prisma.user.findMany({
     where: {
-      userId: {
+      id: {
         in: hosts.map((host) => host.userId),
       },
-      eventTypeId,
     },
     select: {
-      user: {
+      email: true,
+      id: true,
+      hosts: {
+        where: {
+          eventTypeId,
+        },
         select: {
-          email: true,
-          id: true,
+          isFixed: true,
+          weightAdjustment: true,
+          priority: true,
+          weight: true,
         },
       },
-      isFixed: true,
-      weightAdjustment: true,
     },
   });
 
-  const ongoingRRHosts = hostsWithUserData.filter(
-    (host) =>
-      !host.isFixed &&
-      previousRRHosts.some((prevHost) => {
-        return prevHost.user.id === host.user.id;
-      })
-  );
+  const hostsWithUserData = usersWithHostData.map((user) => ({
+    isNewHost: !user.hosts.length,
+    isFixed: user.hosts[0]?.isFixed ?? false,
+    weightAdjustment: user.hosts[0]?.weightAdjustment ?? 0,
+    priority: user.hosts[0]?.priority ?? 0,
+    user: {
+      id: user.id,
+      email: user.email,
+    },
+  }));
+
+  const ongoingRRHosts = hostsWithUserData.filter((host) => !host.isFixed && host.isNewHost);
 
   if (ongoingRRHosts.length === hosts.length) {
     //no new RR host was added
     return hosts;
   }
 
-  const allBookingsOngoingHosts = await getAllBookingsOfUsers({
+  const ongoingHostBookings = await getAllBookingsOfUsers({
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
@@ -215,33 +222,33 @@ export async function addWeightAdjustmentToNewHosts({
     prisma,
   });
 
-  const allWeightAdjustments = ongoingRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
+  const ongoingHostsWeightAdjustment = ongoingRRHosts.reduce(
+    (sum, host) => sum + (host.weightAdjustment ?? 0),
+    0
+  );
 
   const hostsWithWeightAdjustments = await Promise.all(
-    hosts.map(async (host) => {
-      const newRRHost = hostsWithUserData.find(
-        (hostUser) =>
-          hostUser.user.id === host.userId &&
-          !ongoingRRHosts.some((ongoingHost) => ongoingHost.user.id === host.userId)
-      );
-
+    hostsWithUserData.map(async (host) => {
       let weightAdjustment = 0;
 
-      if (newRRHost) {
+      if (host.isNewHost) {
         // host can already have bookings, if they ever was assigned before
         const existingBookings = await getAllBookingsOfUsers({
-          users: [{ id: newRRHost.user.id, email: newRRHost.user.email }],
+          users: [{ id: host.user.id, email: host.user.email }],
           eventTypeId,
           prisma,
         });
 
         weightAdjustment =
-          (allBookingsOngoingHosts.length + allWeightAdjustments) / ongoingRRHosts.length -
+          (ongoingHostBookings.length + ongoingHostsWeightAdjustment) / ongoingRRHosts.length -
           existingBookings.length;
       }
 
       return {
-        ...host,
+        userId: host.user.id,
+        isFixed: host.isFixed,
+        priority: host.priority,
+        weight: host.weightAdjustment,
         weightAdjustment: weightAdjustment > 0 ? Math.floor(weightAdjustment) : 0,
       };
     })

@@ -251,31 +251,25 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
+    const isWeightsEnabled =
+      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
+
+    const hostWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
+      hosts,
+      isWeightsEnabled,
+      eventTypeId: id,
+      prisma: ctx.prisma,
+    });
+
     const previousRRHosts = await ctx.prisma.host.findMany({
       where: {
         eventTypeId: id,
         isFixed: false,
       },
       select: {
-        user: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
+        userId: true,
         weightAdjustment: true,
       },
-    });
-
-    const isWeightsEnabled =
-      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
-
-    const hostWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
-      hosts,
-      previousRRHosts,
-      isWeightsEnabled,
-      eventTypeId: id,
-      prisma: ctx.prisma,
     });
 
     data.hosts = {
@@ -284,7 +278,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         const { ...rest } = host;
 
         const previousAdjustedWeight = previousRRHosts.find(
-          (prevHost) => prevHost.user.id === host.userId
+          (prevHost) => prevHost.userId === host.userId
         )?.weightAdjustment;
 
         return {
