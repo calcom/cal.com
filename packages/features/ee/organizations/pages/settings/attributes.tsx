@@ -1,11 +1,15 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
   Meta,
@@ -24,9 +28,10 @@ import {
   DialogClose,
   SelectField,
   Form,
+  showToast,
 } from "@calcom/ui";
 
-type AttributeItemProps = RouterOutputs["viewer"]["attribute"]["get"][number];
+type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["get"][number];
 
 function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
   const { t } = useLocale();
@@ -73,25 +78,55 @@ const AttributeTypeOptions = [
   { value: "MULTI_SELECT", label: "Multi Select" },
 ];
 
+export const createAttributeSchema = z.object({
+  name: z.string().min(1),
+  type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
+});
+
 function AddAttributesModal(props: { onClose: (state: boolean) => void }) {
   const { t } = useLocale();
-  const form = useForm();
+  const form = useForm<typeof createAttributeSchema>({
+    resolver: zodResolver(createAttributeSchema),
+  });
+  const router = useRouter();
+  const mutation = trpc.viewer.attributes.create.useMutation({
+    onSuccess: () => {
+      showToast(t("attribute_created_successfully"), "success");
+    },
+  });
+
   return (
-    <Dialog open={true} onOpenChange={(state) => props.onClose(!state)}>
+    <Dialog open={true} onOpenChange={(state) => props.onClose(state)}>
       <DialogContent>
         <Form
           form={form}
           className="flex flex-col gap-4"
           handleSubmit={(values) => {
-            console.log("form", values);
+            mutation.mutate(values);
           }}>
           <h2 className="text-emphasis leadning-none text-base font-semibold">Add Attribute</h2>
-          <InputField label="Attribute Name" name="name" />
-          <SelectField label="Attribute Type" options={AttributeTypeOptions} />
+          <InputField label="Attribute Name" {...form.register("name")} />
+          <Controller
+            control={form.control}
+            render={({ field: { value, onChange } }) => (
+              <SelectField
+                label="Type"
+                onChange={(option) => {
+                  if (!option) return;
+                  onChange(option.value);
+                }}
+                value={AttributeTypeOptions.find((opt) => opt.value === value)}
+                required
+                options={AttributeTypeOptions}
+              />
+            )}
+          />
         </Form>
         <DialogFooter className="mt-6">
           <DialogClose />
-          <Button type="submit">{t("create")}</Button>
+          <Button type="submit" isLoading={mutation.isPending}>
+            {t("create")}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -101,7 +136,7 @@ function AddAttributesModal(props: { onClose: (state: boolean) => void }) {
 function OrganizationAttributesPage() {
   const { t } = useLocale();
   const [openAddAttributes, setOpenAddAttributes] = useState(false);
-  const { data, isLoading } = trpc.viewer.attributes.get.useQuery();
+  const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;
 

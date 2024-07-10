@@ -1,4 +1,4 @@
-import OrgSettingsAttributesPage from "@calcom/features/ee/organizations/pages/settings/attributes";
+import OrgSettingsAttributesPage from "@calcom/ee/organizations/pages/settings/attributes";
 
 import type { CalPageWrapper } from "@components/PageWrapper";
 import PageWrapper from "@components/PageWrapper";

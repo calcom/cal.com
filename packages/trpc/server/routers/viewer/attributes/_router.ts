@@ -6,8 +6,12 @@ const NAMESPACE = "attributes";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const attributesRouter = router({
-  get: authedProcedure.query(async (opts) => {
-    const handler = await importHandler(namespaced("getAttributes"), () => import("./getAttributes.handler"));
+  list: authedProcedure.query(async (opts) => {
+    const handler = await importHandler(namespaced("list"), () => import("./list.handler"));
     return handler(opts);
+  }),
+  create: authedProcedure.mutation(async ({ ctx, input }) => {
+    const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
+    return handler({ ctx, input });
   }),
 });

@@ -3,15 +3,17 @@ import prisma from "@calcom/prisma";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import type { ZCreateAttributeSchema } from "./create.schema";
 
 type GetOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: ZCreateAttributeSchema;
 };
 
-const getAttributesHandler = async (opts: GetOptions) => {
-  const org = opts.ctx.user.organization;
+const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
+  const org = ctx.user.organization;
 
   if (!org.id) {
     throw new TRPCError({
@@ -30,4 +32,4 @@ const getAttributesHandler = async (opts: GetOptions) => {
   return attributes;
 };
 
-export default getAttributesHandler;
+export default createAttributesHandler;
