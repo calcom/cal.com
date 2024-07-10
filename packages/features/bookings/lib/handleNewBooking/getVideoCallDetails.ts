@@ -9,7 +9,7 @@ type ExtraAdditionalInfo = AdditionalInformation & {
 type VideoResult = EventResult<ExtraAdditionalInfo>;
 
 function extractUpdatedVideoEvent(result: VideoResult | undefined): ExtraAdditionalInfo | undefined {
-  if (!result) return undefined;
+  if (!result || !result.success) return undefined;
   return Array.isArray(result.updatedEvent) ? result.updatedEvent[0] : result.updatedEvent;
 }
 
