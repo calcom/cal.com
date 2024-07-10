@@ -5,7 +5,7 @@ export function updateManyUndefinedGuardExtension() {
     query: {
       $allModels: {
         async updateMany({ model, operation, args, query }) {
-          const where = params.args.where;
+          const where = args.where;
 
           if (where) {
             for (const key in where) {
