@@ -1,6 +1,6 @@
 {
   "name": "@calcom/web",
-  "version": "4.2.3",
+  "version": "4.2.4",
   "private": true,
   "scripts": {
     "analyze": "ANALYZE=true next build",
@@ -8,6 +8,7 @@
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "clean": "rm -rf .turbo && rm -rf node_modules && rm -rf .next",
     "dev": "next dev",
+    "dev-https": "NODE_TLS_REJECT_UNAUTHORIZED=0 next dev --experimental-https",
     "dx": "yarn dev",
     "test-codegen": "yarn playwright codegen http://localhost:3000",
     "type-check": "tsc --pretty --noEmit",
