@@ -28,6 +28,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
     (item) => item.userCredentialIds.length > 0
   );
 
+  const defaultConferencingApp = metadata?.defaultConferencingApp?.appSlug;
   return (
     <>
       {!isPending && (
@@ -41,13 +42,13 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                     <AppConnectionItem
                       type={item.type}
                       title={item.name}
-                      isDefault={item.slug === metadata?.defaultConferencingApp?.appSlug}
+                      isDefault={item.slug === defaultConferencingApp}
                       description={item.description}
                       logo={item.logo}
                       slug={item.slug}
                       installed={item.userCredentialIds.length > 0}
                       defaultInstall={
-                        item.appData?.location?.linkType === "dynamic" && !hasAnyInstalledVideoApps
+                        !defaultConferencingApp && item.appData?.location?.linkType === "dynamic"
                       }
                     />
                   )}
