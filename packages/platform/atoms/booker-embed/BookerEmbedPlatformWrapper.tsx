@@ -1,6 +1,5 @@
 import { CalProvider } from "../../atoms/cal-provider/CalProvider";
 import type { BookerPlatformWrapperAtomProps } from "../booker/BookerPlatformWrapper";
-import "../globals.min.css";
 import { BookerEmbedPlatform } from "./BookerEmbedPlatform";
 
 export const BookerEmbedPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
