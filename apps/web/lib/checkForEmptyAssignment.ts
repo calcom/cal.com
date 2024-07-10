@@ -22,8 +22,8 @@ export function checkForEmptyAssignment({
     return false;
   } else if (
     isTeamEvent &&
-    // For managed eventtype check if hosts are empty
-    // For non-managed eventtype check if assigned users are empty
+    // For managed eventtype check if assigned users are empty.
+    // For non-managed eventtype check if hosts are empty.
     (isManagedEventType ? assignedUsers.length === 0 : hosts.length === 0)
   ) {
     return true;
