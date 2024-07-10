@@ -1,1 +1,1 @@
-export { BookerEmbedPlatformWrapper } from "./BookerEmbedPlatformWrapper";
+export { BookerEmbed } from "./BookerEmbed";
