@@ -17,7 +17,8 @@ class HandleMarkNoShowData {
   message!: string;
 
   @IsBoolean()
-  noShowHost!: boolean;
+  @IsOptional()
+  noShowHost?: boolean;
 
   @IsString()
   @IsOptional()
