@@ -30,7 +30,7 @@ const PT_BR = "pt-BR";
 const DE = "de";
 const ES = "es";
 export const CAL_PROVIDER_LANGUAUES = [FR, EN, PT_BR, DE, ES] as const;
-export type CalProverLanguagesType = (typeof CAL_PROVIDER_LANGUAUES)[number];
+export type CalProviderLanguagesType = (typeof CAL_PROVIDER_LANGUAUES)[number];
 
 const queryClient = new QueryClient();
 

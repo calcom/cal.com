@@ -18,7 +18,7 @@ import { Toaster } from "../src/components/ui/toaster";
 import { EN } from "./CalProvider";
 import type {
   CalProviderProps,
-  CalProverLanguagesType,
+  CalProviderLanguagesType,
   translationKeys,
   enTranslationKeys,
   frTranslationKeys,
@@ -154,7 +154,7 @@ function replaceOccurrences(input: string, replacementMap: { [key: string]: stri
   });
 }
 
-function getTranslation(key: string, language: CalProverLanguagesType) {
+function getTranslation(key: string, language: CalProviderLanguagesType) {
   switch (language) {
     case "en":
       return enTranslations[key as enTranslationKeys];

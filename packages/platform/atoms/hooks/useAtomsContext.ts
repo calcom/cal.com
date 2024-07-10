@@ -1,6 +1,6 @@
 import { createContext, useContext } from "react";
 
-import type { translationKeys, CalProverLanguagesType } from "../cal-provider/CalProvider";
+import type { translationKeys, CalProviderLanguagesType } from "../cal-provider/CalProvider";
 import type http from "../lib/http";
 
 export interface IAtomsContextOptions {
@@ -21,9 +21,9 @@ export interface IAtomsContext {
   isInit: boolean;
   t: (key: string, values: Record<string, string | number | undefined | null>) => string;
   i18n: {
-    language: CalProverLanguagesType;
-    defaultLocale: CalProverLanguagesType;
-    locales: CalProverLanguagesType[];
+    language: CalProviderLanguagesType;
+    defaultLocale: CalProviderLanguagesType;
+    locales: CalProviderLanguagesType[];
     exists: (key: translationKeys | string) => boolean;
   };
 }
