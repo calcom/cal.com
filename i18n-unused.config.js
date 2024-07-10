@@ -18,8 +18,13 @@ const path = require("path");
  *   - i18nKey=".+"[^\w]: for the usage of `<Trans i18nKey="home_hero_subtitle" t={t}>`
  *
  * */
+// const translationKeyRegex =
+//   /(?<!\w)(?:(t|language|goToTab)\s*\(\s*"([^"]*)"(?:,\s*\{[^}]*\})?\)|(i18nKey\s*=\s*"[^"]*"|[\w\.]+language\s*\(\s*"([^"]*)"\s*\)))/gi;
+// const translationKeyRegex =
+//   /(?<!\w)(?:(t|language|goToTab|translate|Error)\s*\(\s*"([^"]*)"(?:,\s*\{[^}]*\})?\)|(i18nKey\s*=\s*"[^"]*"|[\w\.]+language\s*\(\s*"([^"]*)"\s*\)))/gi;
 const translationKeyRegex =
-  /(?<!\w)(?:t\s*\(\s*"([^"]*)"(?:,\s*\{[^}]*\})?\)|(i18nKey\s*=\s*"[^"]*"|[\w\.]+language\s*\(\s*"([^"]*)"\s*\)))/gi;
+  /(?<!\w)(?:(t|language|goToTab|translate|Error)\s*\(\s*"([^"]*)"(?:,\s*\{[^}]*\})?\)|(i18nKey\s*=\s*"[^"]*"|[\w\.]+(?:language|goToTab)\s*\(\s*"([^"]*)"\s*\)|"([^"]*)"))/gis;
+
 /** @type {import("i18n-unused/src/types/index.ts").RunOptions} */
 const config = {
   localesPath: path.join("./apps/web", "/public/static/locales"),
