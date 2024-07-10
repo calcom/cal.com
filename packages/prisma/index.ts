@@ -1,9 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClient as PrismaClientWithoutExtension } from "@prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
 
 import { bookingIdempotencyKeyExtension } from "./extensions/booking-idempotency-key";
 import { excludePendingPaymentsExtension } from "./extensions/exclude-pending-payment-teams";
-import { updateManyUndefinedGuardExtension } from "./extensions/update-many-undefined-guard";
+import { undefinedGuardExtension } from "./extensions/undefined-guard";
 import { bookingReferenceMiddleware } from "./middleware";
 
 const prismaOptions: Prisma.PrismaClientOptions = {};
@@ -23,7 +24,8 @@ export const customPrisma = (options?: Prisma.PrismaClientOptions) =>
   new PrismaClientWithoutExtension({ ...prismaOptions, ...options })
     .$extends(excludePendingPaymentsExtension())
     .$extends(bookingIdempotencyKeyExtension())
-    .$extends(updateManyUndefinedGuardExtension());
+    .$extends(undefinedGuardExtension())
+    .$extends(withAccelerate());
 
 // If any changed on middleware server restart is required
 // TODO: Migrate it to $extends
@@ -34,7 +36,8 @@ bookingReferenceMiddleware(prismaWithoutClientExtensions);
 const prismaWithClientExtensions = prismaWithoutClientExtensions
   .$extends(excludePendingPaymentsExtension())
   .$extends(bookingIdempotencyKeyExtension())
-  .$extends(updateManyUndefinedGuardExtension());
+  .$extends(undefinedGuardExtension())
+  .$extends(withAccelerate());
 
 export const prisma = globalForPrisma.prismaWithClientExtensions || prismaWithClientExtensions;
 
