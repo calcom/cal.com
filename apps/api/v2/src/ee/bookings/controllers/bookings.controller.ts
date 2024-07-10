@@ -208,6 +208,7 @@ export class BookingsController {
       const markNoShowResponse = await handleMarkNoShow({
         bookingUid: bookingUid,
         attendees: body.attendees,
+        noShowHost: body.noShowHost,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
