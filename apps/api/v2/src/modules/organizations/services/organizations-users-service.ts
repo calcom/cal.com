@@ -35,12 +35,7 @@ export class OrganizationsUsersService {
 
     // Check if username is already in use in the org
     if (userCreateBody.username) {
-      const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
-        org.id,
-        userCreateBody.username
-      );
-
-      if (isUsernameTaken) throw new ConflictException("Username is already taken");
+      await this.checkForUsernameConflicts(org.id, userCreateBody.username);
     }
 
     const usernameOrEmail = userCreateBody.username ? userCreateBody.username : userCreateBody.email;
@@ -91,6 +86,10 @@ export class OrganizationsUsersService {
   }
 
   async updateOrganizationUser(orgId: number, userId: number, userUpdateBody: UpdateOrganizationUserInput) {
+    if (userUpdateBody.username) {
+      await this.checkForUsernameConflicts(orgId, userUpdateBody.username);
+    }
+
     const user = await this.organizationsUsersRepository.updateOrganizationUser(
       orgId,
       userId,
@@ -101,5 +100,14 @@ export class OrganizationsUsersService {
 
   async deleteOrganizationUser(orgId: number, userId: number) {
     await this.organizationsUsersRepository.deleteUser(orgId, userId);
+  }
+
+  async checkForUsernameConflicts(orgId: number, username: string) {
+    const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
+      orgId,
+      username
+    );
+
+    if (isUsernameTaken) throw new ConflictException("Username is already taken");
   }
 }
