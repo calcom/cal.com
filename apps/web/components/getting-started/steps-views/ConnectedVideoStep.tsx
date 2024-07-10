@@ -44,6 +44,7 @@ const ConnectedVideoStep = (props: ConnectedAppStepProps) => {
                       title={item.name}
                       isDefault={item.slug === defaultConferencingApp}
                       description={item.description}
+                      dependencyData={item.dependencyData}
                       logo={item.logo}
                       slug={item.slug}
                       installed={item.userCredentialIds.length > 0}
