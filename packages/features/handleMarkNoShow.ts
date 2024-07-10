@@ -10,11 +10,21 @@ const getResultPayload = async (attendees: { email: string; noShow: boolean }[])
   if (attendees.length === 1) {
     const [attendee] = attendees;
     return {
-      message: attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show",
+      messageKey: attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show",
       attendees: [attendee],
     };
   }
-  return { message: "no_show_updated", attendees: attendees };
+  return {
+    messageKey: "no_show_updated",
+    attendees: attendees,
+  };
+};
+
+type ResponsePayload = {
+  attendees: { email: string; noShow: boolean }[];
+  noShowHost: boolean;
+  message: string;
+  messageKey: string | undefined;
 };
 
 const logFailedResults = (results: PromiseSettledResult<any>[]) => {
@@ -24,7 +34,13 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
-const handleMarkNoShow = async ({ bookingUid, attendees }: TNoShowInputSchema) => {
+const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowInputSchema) => {
+  const responsePayload: ResponsePayload = {
+    attendees: [],
+    noShowHost: false,
+    message: "Failed to update no-show status",
+    messageKey: undefined,
+  };
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
     if (attendees && attendeeEmails.length > 0) {
@@ -70,6 +86,7 @@ const handleMarkNoShow = async ({ bookingUid, attendees }: TNoShowInputSchema) =
         .map((x) => ({ email: x.email, noShow: x.noShow }));
 
       const payload = await getResultPayload(_attendees);
+
       const booking = await prisma.booking.findUnique({
         where: { uid: bookingUid },
         select: {
@@ -96,25 +113,37 @@ const handleMarkNoShow = async ({ bookingUid, attendees }: TNoShowInputSchema) =
       });
 
       const t = await getTranslation("en", "common");
+      const message = t(payload.messageKey, { x: payload.attendees[0]?.email || "User" });
+
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
         // @ts-expect-error payload is too booking specific, we need to refactor this
-        message: t(payload.message, { x: payload.attendees[0]?.email || "User" }),
+        message,
         bookingUid,
         bookingId: booking?.id,
       });
-      return payload;
+
+      responsePayload["attendees"] = payload.attendees;
+      responsePayload["message"] = message;
+      responsePayload["messageKey"] = payload.messageKey;
     }
-    await prisma.booking.update({
-      where: {
-        uid: bookingUid,
-      },
-      data: {
-        noShowHost: true,
-      },
-    });
-    return { message: "No-show status updated", noShowHost: true };
+
+    if (noShowHost) {
+      await prisma.booking.update({
+        where: {
+          uid: bookingUid,
+        },
+        data: {
+          noShowHost: true,
+        },
+      });
+
+      responsePayload["noShowHost"] = true;
+      responsePayload["message"] = "No-show status updated";
+    }
+
+    return responsePayload;
   } catch (error) {
     if (error instanceof Error) {
       logger.error(error.message);
