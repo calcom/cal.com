@@ -25,7 +25,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import { isEmail } from "../util";
-import type { InviteMemberOptions, TeamWithParent } from "./types";
+import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
 export type Invitee = Pick<
@@ -364,19 +364,21 @@ export async function createNewUsersConnectToOrgIfExists({
 }
 
 export async function createMemberships({
-  input,
+  teamId,
+  language,
   invitees,
   parentId,
   accepted,
 }: {
-  input: Omit<InviteMemberOptions["input"], "usernameOrEmail">;
+  teamId: number;
+  language: string;
   invitees: (InvitableExistingUser & {
     needToCreateOrgMembership: boolean | null;
   })[];
   parentId: number | null;
   accepted: boolean;
 }) {
-  log.debug("Creating memberships for", safeStringify({ input, invitees, parentId, accepted }));
+  log.debug("Creating memberships for", safeStringify({ teamId, language, invitees, parentId, accepted }));
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
@@ -384,7 +386,7 @@ export async function createMemberships({
         const data = [];
         // membership for the team
         data.push({
-          teamId: input.teamId,
+          teamId,
           userId: invitee.id,
           accepted,
           role:
@@ -407,7 +409,7 @@ export async function createMemberships({
     });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      logger.error("Failed to create memberships", input.teamId);
+      logger.error("Failed to create memberships", teamId);
     } else {
       throw e;
     }
@@ -692,7 +694,8 @@ export async function handleExistingUsersInvites({
   invitableExistingUsers,
   team,
   orgConnectInfoByUsernameOrEmail,
-  input,
+  teamId,
+  language,
   inviter,
   orgSlug,
   isOrg,
@@ -700,14 +703,15 @@ export async function handleExistingUsersInvites({
   invitableExistingUsers: InvitableExistingUser[];
   team: TeamWithParent;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
-  input: inviteMemberHandlerInput;
+  teamId: number;
+  language: string;
   inviter: {
     name: string | null;
   };
   isOrg: boolean;
   orgSlug: string | null;
 }) {
-  const translation = await getTranslation(input.language ?? "en", "common");
+  const translation = await getTranslation(language, "common");
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
       existingUsersWithMemberships: invitableExistingUsers.map((u) => {
@@ -731,7 +735,8 @@ export async function handleExistingUsersInvites({
     // invited users can autojoin, create their memberships in org
     if (autoJoinUsers.length) {
       await createMemberships({
-        input,
+        teamId,
+        language,
         invitees: autoJoinUsers,
         parentId: team.parentId,
         accepted: true,
@@ -759,7 +764,8 @@ export async function handleExistingUsersInvites({
     // invited users cannot autojoin, create provisional memberships and send email
     if (regularUsers.length) {
       await createMemberships({
-        input,
+        teamId,
+        language,
         invitees: regularUsers,
         parentId: team.parentId,
         accepted: false,
@@ -876,13 +882,15 @@ export async function handleNewUsersInvites({
   invitationsForNewUsers,
   team,
   orgConnectInfoByUsernameOrEmail,
-  input,
+  teamId,
+  language,
   isOrg,
   autoAcceptEmailDomain,
   inviter,
 }: {
   invitationsForNewUsers: Invitation[];
-  input: inviteMemberHandlerInput;
+  teamId: number;
+  language: string;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
   autoAcceptEmailDomain: string | null;
   team: TeamWithParent;
@@ -891,12 +899,12 @@ export async function handleNewUsersInvites({
   };
   isOrg: boolean;
 }) {
-  const translation = await getTranslation(input.language ?? "en", "common");
+  const translation = await getTranslation(language, "common");
 
   await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
     isOrg,
-    teamId: input.teamId,
+    teamId: teamId,
     orgConnectInfoByUsernameOrEmail,
     autoAcceptEmailDomain: autoAcceptEmailDomain,
     parentId: team.parentId,
@@ -911,7 +919,7 @@ export async function handleNewUsersInvites({
       },
       translation,
       inviterName: inviter.name ?? "",
-      teamId: input.teamId,
+      teamId,
       isOrg,
     });
   });

@@ -17,7 +17,8 @@ const verifySchema = z.object({
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
 
-async function moveUserToMatchingOrg({ email }: { email: string }) {
+// TODO: To be unit tested
+export async function moveUserToMatchingOrg({ email }: { email: string }) {
   const org = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({ email });
 
   if (!org) {
@@ -26,16 +27,8 @@ async function moveUserToMatchingOrg({ email }: { email: string }) {
 
   await inviteMembersWithNoInviterPermissionCheck({
     inviterName: null,
-    input: {
-      teamId: org.id,
-      usernameOrEmail: [
-        {
-          email: email,
-          role: MembershipRole.MEMBER,
-        },
-      ],
-      language: "en",
-    },
+    teamId: org.id,
+    language: "en",
     invitations: [
       {
         usernameOrEmail: email,

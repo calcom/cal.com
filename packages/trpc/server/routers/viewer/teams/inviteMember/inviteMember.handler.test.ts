@@ -168,7 +168,8 @@ describe("inviteMemberHandler", () => {
           invitationsForNewUsers: allExpectedInvitations,
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
-          input,
+          teamId: input.teamId,
+          language: input.language,
           inviter,
           autoAcceptEmailDomain: null,
         });
@@ -189,7 +190,6 @@ describe("inviteMemberHandler", () => {
         ]);
         // Assert the result
         expect(result).toEqual({
-          ...input,
           numUsersInvited: 2,
         });
       });
@@ -278,7 +278,8 @@ describe("inviteMemberHandler", () => {
           invitationsForNewUsers: allExpectedInvitations.slice(1),
           team: retValueOfGetTeamOrThrowError,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
-          input,
+          teamId: input.teamId,
+          language: input.language,
           inviter,
           autoAcceptEmailDomain: null,
           isOrg: false,
@@ -288,7 +289,8 @@ describe("inviteMemberHandler", () => {
 
         expect(inviteMemberUtilsMock.handleExistingUsersInvites).toHaveBeenCalledWith({
           invitableExistingUsers: retValueOfFindUsersWithInviteStatus,
-          input: input,
+          teamId: input.teamId,
+          language: input.language,
           inviter,
           orgConnectInfoByUsernameOrEmail: expectedConnectionInfoMap,
           orgSlug: null,
@@ -298,7 +300,6 @@ describe("inviteMemberHandler", () => {
 
         // Assert the result
         expect(result).toEqual({
-          ...input,
           numUsersInvited: 2,
         });
       });

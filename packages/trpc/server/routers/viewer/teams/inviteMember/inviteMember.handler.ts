@@ -121,25 +121,30 @@ function buildInvitationsFromInput({
   });
 }
 
-export const inviteMembersWithNoInviterPermissionCheck = async ({
-  inviterName,
-  orgSlug,
-  invitations,
-  input,
-}: {
-  // TODO: Remove `input` and instead pass the required fields directly
-  input: InviteMemberOptions["input"];
-  inviterName: string | null;
-  orgSlug: string | null;
-  invitations: {
-    usernameOrEmail: string;
-    role: MembershipRole;
-  }[];
-}) => {
-  const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
-  const translation = await getTranslation(input.language ?? "en", "common");
+type TargetTeam =
+  | {
+      teamId: number;
+    }
+  | {
+      team: TeamWithParent;
+    };
 
-  const team = await getTeamOrThrow(input.teamId);
+export const inviteMembersWithNoInviterPermissionCheck = async (
+  data: {
+    // TODO: Remove `input` and instead pass the required fields directly
+    language: string;
+    inviterName: string | null;
+    orgSlug: string | null;
+    invitations: {
+      usernameOrEmail: string;
+      role: MembershipRole;
+    }[];
+  } & TargetTeam
+) => {
+  const { inviterName, orgSlug, invitations, language } = data;
+  const myLog = log.getSubLogger({ prefix: ["inviteMembers"] });
+  const translation = await getTranslation(language ?? "en", "common");
+  const team = "team" in data ? data.team : await getTeamOrThrow(data.teamId);
   const isTeamAnOrg = team.isOrganization;
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
@@ -178,7 +183,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async ({
       invitationsForNewUsers,
       team,
       orgConnectInfoByUsernameOrEmail,
-      input,
+      teamId: team.id,
+      language,
       isOrg: isTeamAnOrg,
       inviter,
       autoAcceptEmailDomain: orgState.autoAcceptEmailDomain,
@@ -206,7 +212,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async ({
       invitableExistingUsers,
       team,
       orgConnectInfoByUsernameOrEmail,
-      input,
+      teamId: team.id,
+      language,
       isOrg: isTeamAnOrg,
       inviter,
       orgSlug,
@@ -214,11 +221,10 @@ export const inviteMembersWithNoInviterPermissionCheck = async ({
   }
 
   if (IS_TEAM_BILLING_ENABLED) {
-    await updateQuantitySubscriptionFromStripe(team.parentId ?? input.teamId);
+    await updateQuantitySubscriptionFromStripe(team.parentId ?? team.id);
   }
 
   return {
-    ...input,
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
   };
 };
@@ -227,7 +233,6 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const { user: inviter } = ctx;
 
   const inviterOrg = inviter.organization;
-
   const team = await getTeamOrThrow(input.teamId);
   const isTeamAnOrg = team.isOrganization;
 
@@ -251,7 +256,8 @@ const inviteMembers = async ({ ctx, input }: InviteMemberOptions) => {
   const orgSlug = organization ? organization.slug || organization.requestedSlug : null;
   const result = await inviteMembersWithNoInviterPermissionCheck({
     inviterName: inviter.name,
-    input,
+    team,
+    language: input.language,
     orgSlug,
     invitations,
   });
