@@ -1268,8 +1268,7 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
-    if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
+    if (noEmail !== true && isConfirmedByDefault) {
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
         ...copyEvent,
