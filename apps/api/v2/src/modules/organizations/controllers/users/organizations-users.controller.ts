@@ -45,7 +45,7 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @GetOrg() organization: Team,
+    @GetOrg() org: Team,
     @Body() input: GetOrganizationsUsersInput
   ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
     const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
@@ -64,10 +64,10 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @GetOrg() organization: Team,
+    @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
-    const user = await this.organizationsUsersService.createOrganizationUser(orgId, input);
+    const user = await this.organizationsUsersService.createOrganizationUser(org, input);
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
@@ -79,7 +79,7 @@ export class OrganizationsUsersController {
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() organization: Team,
+    @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
     const user = await this.organizationsUsersService.updateOrganizationUser(orgId, userId, input);
@@ -94,7 +94,7 @@ export class OrganizationsUsersController {
   async deleteOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() organization: Team
+    @GetOrg() org: Team
   ): Promise<ApiResponse<string>> {
     return {
       status: SUCCESS_STATUS,

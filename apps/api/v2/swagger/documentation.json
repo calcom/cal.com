@@ -834,115 +834,6 @@
         "tags": [
           "Organizations Teams"
         ]
-      }
-    },
-    "/v2/organizations/{orgId}/users": {
-      "get": {
-        "operationId": "OrganizationsUsersController_getOrganizationsUsers",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GetOrganizationsUsersInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations Users"
-        ]
-      },
-      "post": {
-        "operationId": "OrganizationsUsersController_createOrganizationUser",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateOrganizationUserInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations Users"
-        ]
-      }
-    },
-    "/v2/schedules": {
-      "post": {
-        "operationId": "SchedulesController_2024_06_11_createSchedule",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
-          }
-        },
-        "tags": [
-          "Organizations Teams"
-        ]
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
@@ -1129,6 +1020,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -1294,6 +1195,168 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/users": {
+      "get": {
+        "operationId": "OrganizationsUsersController_getOrganizationsUsers",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetOrganizationsUsersInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersController_updateOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersController_deleteOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_04_15_createSchedule",
@@ -1406,6 +1469,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -3819,38 +3892,6 @@
           "data"
         ]
       },
-      "GetOrganizationsUsersInput": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "object",
-            "description": "The email address or an array of email addresses to filter by"
-          }
-        }
-      },
-      "CreateOrganizationUserInput": {
-        "type": "object",
-        "properties": {
-          "locale": {
-            "type": "object",
-            "nullable": true,
-            "default": "en"
-          },
-          "organizationRole": {
-            "type": "object",
-            "default": "MEMBER"
-          },
-          "autoAccept": {
-            "type": "object",
-            "default": true
-          },
-          "email": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          },
-          "weekday": {
       "CreateOrgTeamDto": {
         "type": "object",
         "properties": {
@@ -3898,36 +3939,6 @@
           "darkBrandColor": {
             "type": "string"
           },
-          "hideBranding": {
-            "type": "boolean"
-          },
-          "timeZone": {
-            "type": "string"
-          },
-          "theme": {
-            "type": "string",
-            "nullable": true
-          },
-          "appTheme": {
-            "type": "string",
-            "nullable": true
-          },
-          "timeFormat": {
-            "type": "number"
-          },
-          "defaultScheduleId": {
-            "type": "number",
-            "minimum": 0
-          },
-          "avatarUrl": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "locale",
-          "organizationRole",
-          "autoAccept",
-          "email"
           "bannerUrl": {
             "type": "string"
           },
@@ -4090,6 +4101,57 @@
           "data"
         ]
       },
+      "CreateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
+      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -4138,6 +4200,52 @@
           "data"
         ]
       },
+      "UpdateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        }
+      },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -4175,6 +4283,106 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "GetOrganizationsUsersInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "object",
+            "description": "The email address or an array of email addresses to filter by"
+          }
+        }
+      },
+      "CreateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "object",
+            "nullable": true,
+            "default": "en"
+          },
+          "organizationRole": {
+            "type": "object",
+            "default": "MEMBER"
+          },
+          "autoAccept": {
+            "type": "object",
+            "default": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "weekday": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "organizationRole",
+          "autoAccept",
+          "email"
+        ]
+      },
+      "UpdateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "CreateAvailabilityInput_2024_04_15": {
@@ -4764,349 +4972,6 @@
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          }
-        },
-        "required": [
-          "status"
-        ]
-      },
-      "ScheduleAvailabilityInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "days": {
-            "example": [
-              "Monday",
-              "Tuesday"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "startTime": {
-            "type": "string",
-            "example": "09:00"
-          },
-          "endTime": {
-            "type": "string",
-            "example": "10:00"
-          }
-        },
-        "required": [
-          "days",
-          "startTime",
-          "endTime"
-        ]
-      },
-      "ScheduleOverrideInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "date": {
-            "type": "string",
-            "example": "2024-05-20"
-          },
-          "startTime": {
-            "type": "string",
-            "example": "12:00"
-          },
-          "endTime": {
-            "type": "string",
-            "example": "13:00"
-          }
-        },
-        "required": [
-          "date",
-          "startTime",
-          "endTime"
-        ]
-      },
-      "CreateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "name",
-          "timeZone",
-          "isDefault"
-        ]
-      },
-      "ScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number",
-            "example": 254
-          },
-          "ownerId": {
-            "type": "number",
-            "example": 478
-          },
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "13:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "ownerId",
-          "name",
-          "timeZone",
-          "availability",
-          "isDefault",
-          "overrides"
-        ]
-      },
-      "CreateScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetDefaultScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-              }
-            ]
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "GetSchedulesOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-            }
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "UpdateScheduleInput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "One-on-one coaching"
-          },
-          "timeZone": {
-            "type": "string",
-            "example": "Europe/Rome"
-          },
-          "availability": {
-            "example": [
-              {
-                "days": [
-                  "Monday",
-                  "Tuesday"
-                ],
-                "startTime": "09:00",
-                "endTime": "10:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
-            }
-          },
-          "isDefault": {
-            "type": "boolean",
-            "example": true
-          },
-          "overrides": {
-            "example": [
-              {
-                "date": "2024-05-20",
-                "startTime": "12:00",
-                "endTime": "14:00"
-              }
-            ],
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
-            }
-          }
-        }
-      },
-      "UpdateScheduleOutput_2024_06_11": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
-          },
-          "error": {
-            "type": "object"
-          }
-        },
-        "required": [
-          "status",
-          "data"
-        ]
-      },
-      "DeleteScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
           "status": {

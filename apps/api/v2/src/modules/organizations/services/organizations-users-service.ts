@@ -5,11 +5,12 @@ import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
-import { getTranslation } from "@calcom/lib/server/i18n";
 import {
   createNewUsersConnectToOrgIfExists,
   sendSignupToOrganizationEmail,
-} from "@calcom/platform-libraries-0.0.0";
+  getTranslation,
+} from "@calcom/platform-libraries";
+import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
@@ -23,10 +24,10 @@ export class OrganizationsUsersService {
     return users;
   }
 
-  async createOrganizationUser(orgId: number, userCreateBody: CreateOrganizationUserInput) {
+  async createOrganizationUser(org: Team, userCreateBody: CreateOrganizationUserInput) {
     // Check if email exists in the system
     const userEmailCheck = await this.organizationsUsersRepository.getOrganizationUserByEmail(
-      orgId,
+      org.id,
       userCreateBody.email
     );
 
@@ -35,30 +36,30 @@ export class OrganizationsUsersService {
     // Check if username is already in use in the org
     if (userCreateBody.username) {
       const isUsernameTaken = await this.organizationsUsersRepository.getOrganizationUserByUsername(
-        orgId,
+        org.id,
         userCreateBody.username
       );
 
       if (isUsernameTaken) throw new ConflictException("Username is already taken");
     }
 
-    const usernamesOrEmails = userCreateBody.username ? [userCreateBody.username] : [userCreateBody.email];
+    const usernameOrEmail = userCreateBody.username ? userCreateBody.username : userCreateBody.email;
 
     // Create new org user
     const createdUserCall = await createNewUsersConnectToOrgIfExists({
       invitations: [
         {
-          usernameOrEmail: usernamesOrEmails[0],
+          usernameOrEmail: usernameOrEmail,
           role: userCreateBody.organizationRole,
         },
       ],
-      teamId: orgId,
+      teamId: org.id,
       isOrg: true,
       parentId: null,
       autoAcceptEmailDomain: "not-required-for-this-endpoint",
       orgConnectInfoByUsernameOrEmail: {
-        [usernamesOrEmails[0]]: {
-          orgId: orgId,
+        [usernameOrEmail]: {
+          orgId: org.id,
           autoAccept: userCreateBody.autoAccept,
         },
       },
@@ -71,19 +72,20 @@ export class OrganizationsUsersService {
 
     // Update new user with other userCreateBody params
     const user = await this.organizationsUsersRepository.updateOrganizationUser(
-      orgId,
+      org.id,
       createdUser.id,
       updateUserBody
     );
 
     // Need to send email to new user to create password
-    // const newMemberTFunction = await getTranslation(user.locale || "en", "common");
-    // sendExistingUserTeamInviteEmails({
-    //   language: newMemberTFunction,
-    //   isAutoJoin: userCreateBody.autoAccept,
-    //   isOrg: true,
-    //   teamId: orgId
-    // })
+    const newMemberTFunction = await getTranslation(user.locale || "en", "common");
+    await sendSignupToOrganizationEmail({
+      usernameOrEmail: usernameOrEmail,
+      team: { name: org.name },
+      isOrg: true,
+      teamId: org.id,
+      translation: newMemberTFunction,
+    });
 
     return user;
   }

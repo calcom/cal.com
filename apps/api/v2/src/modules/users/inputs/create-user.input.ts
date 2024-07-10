@@ -20,7 +20,9 @@ import { WeekdayValidator } from "../validators/weekdayValidator";
 export class CreateUserInput {
   @IsEmail()
   @Transform(({ value }) => {
-    return value && value.toLowerCase();
+    if (typeof value === "string") {
+      return value.toLowerCase();
+    }
   })
   @Expose()
   email!: string;
@@ -28,7 +30,9 @@ export class CreateUserInput {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => {
-    return value && value.toLowerCase();
+    if (typeof value === "string") {
+      return value.toLowerCase();
+    }
   })
   @Expose()
   // Validate that the username is available within the system or org
