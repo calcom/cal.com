@@ -1,7 +1,8 @@
-import type { EventTypeCustomInput, EventType, Prisma, Workflow } from "@prisma/client";
+import type { EventTypeCustomInput, EventType } from "@prisma/client";
 import type { z } from "zod";
 
 import { SMS_REMINDER_NUMBER_FIELD } from "@calcom/features/bookings/lib/SystemField";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import { fieldsThatSupportLabelAsSafeHtml } from "@calcom/features/form-builder/fieldsThatSupportLabelAsSafeHtml";
 import { getFieldIdentifier } from "@calcom/features/form-builder/utils/getFieldIdentifier";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -67,20 +68,9 @@ export const getBookingFieldsWithSystemFields = ({
   disableBookingTitle?: boolean;
   customInputs: EventTypeCustomInput[] | z.infer<typeof customInputSchema>[];
   metadata: EventType["metadata"] | z.infer<typeof EventTypeMetaDataSchema>;
-  workflows: Prisma.EventTypeGetPayload<{
-    select: {
-      workflows: {
-        select: {
-          workflow: {
-            select: {
-              id: true;
-              steps: true;
-            };
-          };
-        };
-      };
-    };
-  }>["workflows"];
+  workflows: {
+    workflow: Workflow;
+  }[];
 }) => {
   const parsedMetaData = EventTypeMetaDataSchema.parse(metadata || {});
   const parsedBookingFields = eventTypeBookingFields.parse(bookingFields || []);
@@ -109,20 +99,9 @@ export const ensureBookingInputsHaveSystemFields = ({
   disableBookingTitle?: boolean;
   additionalNotesRequired: boolean;
   customInputs: z.infer<typeof customInputSchema>[];
-  workflows: Prisma.EventTypeGetPayload<{
-    select: {
-      workflows: {
-        select: {
-          workflow: {
-            select: {
-              id: true;
-              steps: true;
-            };
-          };
-        };
-      };
-    };
-  }>["workflows"];
+  workflows: {
+    workflow: Workflow;
+  }[];
 }) => {
   // If bookingFields is set already, the migration is done.
   const hideBookingTitle = disableBookingTitle ?? true;
