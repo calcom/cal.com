@@ -18,18 +18,18 @@ const path = require("path");
  *   - i18nKey=".+"[^\w]: for the usage of `<Trans i18nKey="home_hero_subtitle" t={t}>`
  *
  * */
-const translationKeyRegex = /(?<!\w)(?:t\(("[^"]*")(?:,\s*\{[^}]*\})?\)|i18nKey=".+"[^\w])/gi;
-
+const translationKeyRegex =
+  /(?<!\w)(?:t\s*\(\s*"([^"]*)"(?:,\s*\{[^}]*\})?\)|(i18nKey\s*=\s*"[^"]*"|[\w\.]+language\s*\(\s*"([^"]*)"\s*\)))/gi;
 /** @type {import("i18n-unused/src/types/index.ts").RunOptions} */
 const config = {
-  //   localesPath: localePath, //  uncomment to run on all locales (to calculate kb savings)
-  localesPath: path.join("./apps/website", "/public/static/locales", "/en"),
-  srcPath: "./apps/website",
+  localesPath: path.join("./apps/web", "/public/static/locales"),
+  srcPath: ".",
   srcExtensions: ["ts", "tsx"],
   translationContextSeparator: ":",
   translationKeyMatcher: translationKeyRegex,
   missedTranslationParser: translationKeyRegex,
   ignorePaths: ["node_modules", ".next"],
+  localeFileParser: (module) => module,
 };
 
 module.exports = config;
