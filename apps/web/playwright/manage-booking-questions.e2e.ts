@@ -262,6 +262,91 @@ test.describe("Manage Booking Questions", () => {
   });
 });
 
+test("Disable Input on url prefill for booking and verify a few thing in b/w", async ({
+  page,
+  users,
+  context,
+}, testInfo) => {
+  // Considering there are many steps in it, it would need more than default test timeout
+  test.setTimeout(testInfo.timeout * 2);
+  const user = await createAndLoginUserWithEventTypes({ users, page });
+
+  // const webhookReceiver = await addWebhook(user);
+
+  await test.step("Go to EventType Advanced Page ", async () => {
+    const $eventTypes = page.locator("[data-testid=event-types] > li a");
+    const firstEventTypeElement = $eventTypes.first();
+
+    await firstEventTypeElement.click();
+    await page.click('[href$="tabName=advanced"]');
+  });
+  await test.step("Add Question and verify that input is disabled if URL identifier is prefilled", async () => {
+    await addQuestionAndSave({
+      page,
+      question: {
+        name: "testprefill",
+        type: "Long Text",
+        label: "testprefill",
+        required: true,
+        prefillChecked: true,
+      },
+      updateEvent: false,
+    });
+  });
+
+  await test.step("Edit the existing question and make prefill check true for email field", async () => {
+    const emailLocator = await page.locator('[data-testid="field-email"]');
+    await emailLocator.locator('[data-testid="edit-field-action"]').click();
+    await page.getByLabel("Disable input if the URL identifier is prefilled").check();
+    await page.locator('[data-testid="field-add-save"]').click();
+  });
+
+  await test.step("Add Question without disabling input if the URL identifier is dtestprefill", async () => {
+    await addQuestionAndSave({
+      page,
+      question: {
+        name: "dtestprefill",
+        type: "Long Text",
+        label: "dtestprefill",
+        required: true,
+      },
+    });
+  });
+
+  await test.step("Verify prefilled fields", async () => {
+    await doOnFreshPreview(page, context, async (page) => {
+      const url = page.url();
+      const prefillUrl = new URL(url);
+      prefillUrl.searchParams.append("name", "John Johny Janardan");
+      prefillUrl.searchParams.append("email", "john@example.com");
+      prefillUrl.searchParams.append("notes", "This is an additional note");
+      prefillUrl.searchParams.append("testprefill", "test");
+      prefillUrl.searchParams.append("dtestprefill", "dtest");
+      await page.goto(prefillUrl.toString());
+      await bookTimeSlot({ page, skipSubmission: true });
+      await expectCustomFieldsToBeThereOnBookingPage({
+        page,
+        data: {
+          testprefill: {
+            value: "test",
+            disabled: true,
+            visible: true,
+          },
+          dtestprefill: {
+            value: "dtest",
+            visible: true,
+          },
+          email: {
+            value: "john@example.com",
+            visible: true,
+            disabled: true,
+          },
+        },
+      });
+    });
+  });
+});
+
 async function runTestStepsCommonForTeamAndUserEventType(
   page: Page,
   context: PlaywrightTestArgs["context"],
@@ -466,6 +551,42 @@ async function expectSystemFieldsToBeThereOnBookingPage({
   return allFieldsLocator;
 }
 
+async function expectCustomFieldsToBeThereOnBookingPage({
+  page,
+  data,
+}: {
+  page: Page;
+  data?: {
+    [key: string]: {
+      value: string;
+      visible: boolean;
+      disabled?: boolean;
+    };
+  };
+}) {
+  const visibleKeys = data ? Object.keys(data).filter((key) => data[key].visible) : [];
+  const allFieldsLocator = page.locator("[data-fob-field-name]:not(.hidden)");
+  console.log("allFieldsLocator", allFieldsLocator);
+  const promises = [];
+  for (const key of visibleKeys) {
+    const field = data?.[key];
+    console.log("field,", field);
+    const fieldLocator = allFieldsLocator.locator(`[name="${key}"]`);
+    console.log("key", key, fieldLocator);
+
+    // Assert the value
+    await expect(fieldLocator).toHaveValue(field?.value || "");
+
+    // Assert the disabled state
+    if (field?.disabled) {
+      await expect(fieldLocator).toBeDisabled();
+    } else {
+      await expect(fieldLocator).toBeEnabled();
+    }
+  }
+  // await Promise.all(promises);
+}
+
 //TODO: Add one question for each type and see they are rendering labels and only once and are showing appropriate native component
 // Verify webhook is sent with the correct data, DB is correct (including metadata)
 
@@ -519,6 +640,8 @@ async function selectOption({
 async function addQuestionAndSave({
   page,
   question,
+  checkForPreFill,
+  updateEvent = true,
 }: {
   page: Page;
   question: {
@@ -527,10 +650,16 @@ async function addQuestionAndSave({
     label?: string;
     placeholder?: string;
     required?: boolean;
+    prefillChecked?: boolean;
   };
+  checkForPreFill?: boolean;
+  updateEvent?: boolean;
 }) {
   await page.click('[data-testid="add-field"]');
 
+  if (checkForPreFill) {
+    await expect(page.getByLabel("Disable input if the URL identifier is prefilled")).toBeVisible();
+  }
   if (question.type !== undefined) {
     await selectOption({
       page,
@@ -546,6 +675,10 @@ async function addQuestionAndSave({
     await page.fill('[name="name"]', question.name);
   }
 
+  if (question.prefillChecked !== undefined) {
+    await page.click('[name="prefillChecked"]');
+  }
+
   if (question.label !== undefined) {
     await page.fill('[name="label"]', question.label);
   }
@@ -559,7 +692,9 @@ async function addQuestionAndSave({
   }
 
   await page.click('[data-testid="field-add-save"]');
-  await saveEventType(page);
+  if (updateEvent) {
+    await saveEventType(page);
+  }
 }
 
 async function expectErrorToBeThereFor({ page, name }: { page: Page; name: string }) {
