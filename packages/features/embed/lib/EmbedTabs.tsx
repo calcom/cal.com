@@ -44,7 +44,7 @@ export const tabs = [
             data-testid="embed-code"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-code"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default h-[calc(100%-50px)] font-mono"
             style={{ resize: "none", overflow: "auto" }}
             readOnly
             value={`<!-- Cal ${embedType} embed code begins -->\n${
