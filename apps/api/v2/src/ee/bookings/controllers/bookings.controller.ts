@@ -197,6 +197,26 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
+  @Post("/:bookingUid/no-show")
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async markNoShow(
+    @Body() body: MarkNoShowInput,
+    @Param("bookingUid") bookingUid: string
+  ): Promise<MarkNoShowOutput> {
+    try {
+      const markNoShowResponse = await handleMarkNoShow({
+        bookingUid: bookingUid,
+        attendees: body.attendees,
+      });
+
+      return { status: SUCCESS_STATUS, data: markNoShowResponse };
+    } catch (err) {
+      this.handleBookingErrors(err, "no-show");
+    }
+    throw new InternalServerErrorException("Could not mark no show.");
+  }
+
   @Post("/recurring")
   async createRecurringBooking(
     @Req() req: BookingRequest,
@@ -244,23 +264,6 @@ export class BookingsController {
       this.handleBookingErrors(err, "instant");
     }
     throw new InternalServerErrorException("Could not create instant booking.");
-  }
-
-  @Post("/no-show")
-  @Permissions([BOOKING_WRITE])
-  @UseGuards(ApiAuthGuard)
-  async markNoShow(@Body() body: MarkNoShowInput): Promise<MarkNoShowOutput> {
-    try {
-      const markNoShowResponse = await handleMarkNoShow({
-        bookingUid: body.bookingUid,
-        attendees: body.attendees,
-      });
-
-      return { status: SUCCESS_STATUS, data: markNoShowResponse };
-    } catch (err) {
-      this.handleBookingErrors(err, "no-show");
-    }
-    throw new InternalServerErrorException("Could not mark no show.");
   }
 
   private async getOwnerId(req: Request): Promise<number | undefined> {
