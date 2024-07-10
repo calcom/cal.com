@@ -19,7 +19,7 @@ type CustomUseMutationOptions =
   | undefined;
 
 type AddAppMutationData = { setupPending: boolean } | void;
-type UseAddAppMutationOptions = CustomUseMutationOptions & {
+export type UseAddAppMutationOptions = CustomUseMutationOptions & {
   onSuccess?: (data: AddAppMutationData) => void;
   installGoogleVideo?: boolean;
   returnTo?: string;
