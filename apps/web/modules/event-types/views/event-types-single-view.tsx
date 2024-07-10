@@ -34,6 +34,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
+import { checkForEmptyAssignment } from "@lib/checkForEmptyAssignment";
 
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
@@ -401,27 +402,24 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
+  const assignedUsers = formMethods.watch("children");
+  const hosts = formMethods.watch("hosts");
+  const assignAllTeamMembers = formMethods.watch("assignAllTeamMembers");
+
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
 
-      // Check if event is managed event type - skip if there is assigned users
-      const assignedUsers = eventType.children;
-      const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-      if (eventType.assignAllTeamMembers) {
-        return;
-      } else if (isManagedEventType && assignedUsers.length > 0) {
-        return;
-      }
-
-      const hosts = eventType.hosts;
-      // For managed eventtype check if hosts are empty
-      // For non-managed eventtype check if assigned users are empty
       if (
         !leaveWithoutAssigningHosts.current &&
-        !!team &&
-        (isManagedEventType ? assignedUsers.length === 0 : hosts.length === 0) &&
-        (url === "/event-types" || paths[1] !== "event-types")
+        (url === "/event-types" || paths[1] !== "event-types") &&
+        checkForEmptyAssignment({
+          assignedUsers: assignedUsers,
+          hosts: hosts,
+          assignAllTeamMembers: assignAllTeamMembers,
+          isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+          isTeamEvent: !!team,
+        })
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
@@ -436,7 +434,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router]);
+  }, [router, assignedUsers, hosts, assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
