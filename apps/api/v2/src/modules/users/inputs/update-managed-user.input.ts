@@ -34,4 +34,9 @@ export class UpdateManagedUserInput {
   @IsOptional()
   @CapitalizeTimeZone()
   timeZone?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ example: "en", description: "Locale of the user" }) 
+  locale?: string;
 }
