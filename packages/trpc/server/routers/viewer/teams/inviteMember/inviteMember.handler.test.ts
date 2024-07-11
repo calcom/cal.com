@@ -190,6 +190,7 @@ describe("inviteMemberHandler", () => {
         ]);
         // Assert the result
         expect(result).toEqual({
+          usernameOrEmail: input.usernameOrEmail,
           numUsersInvited: 2,
         });
       });
@@ -300,6 +301,7 @@ describe("inviteMemberHandler", () => {
 
         // Assert the result
         expect(result).toEqual({
+          usernameOrEmail: input.usernameOrEmail,
           numUsersInvited: 2,
         });
       });

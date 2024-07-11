@@ -169,6 +169,7 @@ export class OrganizationRepository {
     const emailDomain = email.split("@").at(-1);
     const orgs = await prisma.team.findMany({
       where: {
+        isOrganization: true,
         organizationSettings: {
           orgAutoAcceptEmail: emailDomain,
         },

@@ -225,6 +225,11 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
   }
 
   return {
+    // TODO: Better rename it to invitations only maybe?
+    usernameOrEmail:
+      invitations.length == 1
+        ? invitations[0].usernameOrEmail
+        : invitations.map((invitation) => invitation.usernameOrEmail),
     numUsersInvited: invitableExistingUsers.length + invitationsForNewUsers.length,
   };
 };
