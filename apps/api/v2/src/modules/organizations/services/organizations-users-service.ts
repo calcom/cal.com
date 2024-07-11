@@ -1,3 +1,4 @@
+import { EmailsService } from "@/modules/email/emails.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
@@ -14,7 +15,10 @@ import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
-  constructor(private readonly organizationsUsersRepository: OrganizationsUsersRepository) {}
+  constructor(
+    private readonly organizationsUsersRepository: OrganizationsUsersRepository,
+    private readonly emailsService: EmailsService
+  ) {}
 
   async getOrganizationUsers(orgId: number, emailInput?: string | string[]) {
     const emailArray = !emailInput ? [] : Array.isArray(emailInput) ? emailInput : [emailInput];
@@ -73,13 +77,11 @@ export class OrganizationsUsersService {
     );
 
     // Need to send email to new user to create password
-    const newMemberTFunction = await getTranslation(user.locale || "en", "common");
-    await sendSignupToOrganizationEmail({
-      usernameOrEmail: usernameOrEmail,
-      team: { name: org.name },
-      isOrg: true,
-      teamId: org.id,
-      translation: newMemberTFunction,
+    await this.emailsService.sendSignupToOrganizationEmail({
+      usernameOrEmail,
+      orgName: org.name,
+      orgId: org.id,
+      locale: user?.locale,
     });
 
     return user;
@@ -99,7 +101,8 @@ export class OrganizationsUsersService {
   }
 
   async deleteOrganizationUser(orgId: number, userId: number) {
-    await this.organizationsUsersRepository.deleteUser(orgId, userId);
+    const user = await this.organizationsUsersRepository.deleteUser(orgId, userId);
+    return user;
   }
 
   async checkForUsernameConflicts(orgId: number, username: string) {
