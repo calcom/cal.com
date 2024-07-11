@@ -2,8 +2,8 @@ import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/
 import { EmailModule } from "@/modules/email/email.module";
 import { EmailService } from "@/modules/email/email.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
-import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
+import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/repositories/organizations-schedules.repository";

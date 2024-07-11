@@ -4,6 +4,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import { symmetricEncrypt } from "@calcom/lib/crypto";
@@ -44,6 +45,8 @@ const handleNewBooking = newBookingMethods.default;
 export { handleNewBooking };
 const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
+
+export { handleMarkNoShow };
 
 export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
