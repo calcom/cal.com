@@ -130,10 +130,13 @@ export const bookingResponses = z
     guests: z.array(z.string()).optional(),
     notes: z.string().optional(),
     location: z
-      .object({
-        optionValue: z.string(),
-        value: z.string(),
-      })
+      .union([
+        z.string(),
+        z.object({
+          optionValue: z.string(),
+          value: z.string(),
+        }),
+      ])
       .optional(),
     smsReminderNumber: z.string().optional(),
     rescheduleReason: z.string().optional(),
