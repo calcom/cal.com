@@ -2,32 +2,19 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, Reorder } from "framer-motion";
 import React, { useCallback } from "react";
-import { Controller, useForm, useFieldArray, Control } from "react-hook-form";
+import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { trpc } from "@calcom/trpc/react";
-import {
-  Meta,
-  Button,
-  useMeta,
-  Divider,
-  Form,
-  SelectField,
-  InputField,
-  Label,
-  Input,
-  Icon,
-} from "@calcom/ui";
+import { Meta, Button, useMeta, Divider, Form, SelectField, InputField, Label, Input } from "@calcom/ui";
 
 const CreateAttributeSchema = z.object({
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-  options: z.array(z.object({ value: z.string(), label: z.string() })),
+  options: z.array(z.object({ value: z.string() })),
 });
 
 type FormValues = z.infer<typeof CreateAttributeSchema>;
@@ -50,7 +37,7 @@ function CreateAttributesPage() {
     resolver: zodResolver(CreateAttributeSchema),
     defaultValues: {
       attrName: "",
-      options: [{ value: "", label: "" }],
+      options: [{ value: "" }],
       type: "TEXT",
     },
   });
@@ -61,6 +48,8 @@ function CreateAttributesPage() {
   });
 
   const watchedType = form.watch("type");
+
+  const watchedLastItem = fields.at(-1);
 
   const handleReorder = useCallback(
     (newOrder: typeof fields) => {
@@ -106,9 +95,9 @@ function CreateAttributesPage() {
                 <div>
                   {fields.map((field, index) => (
                     <>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2" key={field.id}>
                         {/* <Icon name="grip-vertical" className="-ml-4 mb-2 hidden h-4 w-4 group-hover:block" /> */}
-                        <Input {...form.register(`options.${index}`)} className="w-full" />
+                        <Input {...form.register(`options.${index}.value`)} className="w-full" />
                         <Button
                           type="button"
                           variant="icon"
@@ -120,7 +109,7 @@ function CreateAttributesPage() {
                         {/* Last option cannot be empty error message */}
                       </div>
                       {index === fields.length - 1 && form.formState.errors?.options?.type === "custom" && (
-                        <p className="text-red-500 mb-4">{form.formState.errors.options.message}</p>
+                        <p className="mb-4 text-red-500">{form.formState.errors.options.message}</p>
                       )}
                     </>
                   ))}
@@ -131,15 +120,7 @@ function CreateAttributesPage() {
                 StartIcon="plus"
                 color="secondary"
                 onClick={() => {
-                  const lastOption = fields[fields.length - 1];
-                  console.log("fields", fields);
-                  console.log("lastOption", lastOption);
-                  if (lastOption.value === "") {
-                    // Throw vanilla js validation error on the last input
-                    form.setError("options", { type: "custom", message: "Last option cannot be empty" });
-                    return;
-                  }
-                  return append({ value: "", label: "" });
+                  return append({ value: "" });
                 }}>
                 {t("new_option")}
               </Button>
