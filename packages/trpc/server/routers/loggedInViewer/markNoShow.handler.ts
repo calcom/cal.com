@@ -12,4 +12,4 @@ export const noShowHandler = async ({ input }: NoShowOptions) => {
   return handleMarkNoShow({ bookingUid, attendees, noShowHost });
 };
 
-export default noShowHandler;
+export default markNoShow;
