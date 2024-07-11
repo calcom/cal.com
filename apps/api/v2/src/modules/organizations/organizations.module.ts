@@ -1,6 +1,6 @@
 import { SchedulesModule_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.module";
 import { EmailModule } from "@/modules/email/email.module";
-import { EmailsService } from "@/modules/email/emails.service";
+import { EmailService } from "@/modules/email/email.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
@@ -31,7 +31,7 @@ import { Module } from "@nestjs/common";
     OrganizationSchedulesRepository,
     OrganizationsUsersRepository,
     OrganizationsUsersService,
-    EmailsService,
+    EmailService,
   ],
   exports: [
     OrganizationsService,

@@ -1,4 +1,4 @@
-import { EmailsService } from "@/modules/email/emails.service";
+import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
@@ -17,7 +17,7 @@ import { Team } from "@calcom/prisma/client";
 export class OrganizationsUsersService {
   constructor(
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
-    private readonly emailsService: EmailsService
+    private readonly emailService: EmailService
   ) {}
 
   async getOrganizationUsers(orgId: number, emailInput?: string | string[]) {
@@ -77,7 +77,7 @@ export class OrganizationsUsersService {
     );
 
     // Need to send email to new user to create password
-    await this.emailsService.sendSignupToOrganizationEmail({
+    await this.emailService.sendSignupToOrganizationEmail({
       usernameOrEmail,
       orgName: org.name,
       orgId: org.id,
