@@ -21,6 +21,8 @@ export const schemaBookingCreateBodyParams = extendedBookingCreateBody.merge(sch
 export const schemaBookingGetParams = z.object({
   dateFrom: iso8601.optional(),
   dateTo: iso8601.optional(),
+  order: z.enum(["asc", "desc"]).default("asc"),
+  sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
 });
 
 const schemaBookingEditParams = z
@@ -55,7 +57,7 @@ export const schemaBookingReadPublic = Booking.extend({
       timeZone: true,
       locale: true,
     })
-    .optional(),
+    .nullish(),
   payment: z
     .array(
       _PaymentModel.pick({

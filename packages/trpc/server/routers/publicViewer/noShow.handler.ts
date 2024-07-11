@@ -1,4 +1,4 @@
-import { prisma } from "@calcom/prisma";
+import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 
 import type { TNoShowInputSchema } from "./noShow.schema";
 
@@ -7,15 +7,9 @@ type NoShowOptions = {
 };
 
 export const noShowHandler = async ({ input }: NoShowOptions) => {
-  const { bookingUid } = input;
-  await prisma.booking.update({
-    where: {
-      uid: bookingUid,
-    },
-    data: {
-      noShowHost: true,
-    },
-  });
+  const { bookingUid, attendees } = input;
+
+  return handleMarkNoShow({ bookingUid, attendees });
 };
 
 export default noShowHandler;

@@ -51,13 +51,25 @@ export function calculatePeriodLimits({
 }): PeriodLimits {
   const currentTime = dayjs().utcOffset(utcOffset);
   periodDays = periodDays || 0;
+  const log = logger.getSubLogger({ prefix: ["calculatePeriodLimits"] });
+  log.debug(
+    safeStringify({
+      periodType,
+      periodDays,
+      periodCountCalendarDays,
+      periodStartDate: periodStartDate,
+      periodEndDate: periodEndDate,
+      currentTime: currentTime.format(),
+    })
+  );
 
   switch (periodType) {
     case PeriodType.ROLLING: {
       const rollingEndDay = periodCountCalendarDays
-        ? currentTime.add(periodDays, "days").endOf("day")
-        : currentTime.businessDaysAdd(periodDays).endOf("day");
-      return { rollingEndDay, rangeStartDay: null, rangeEndDay: null };
+        ? currentTime.add(periodDays, "days")
+        : currentTime.businessDaysAdd(periodDays);
+      // The future limit talks in terms of days so we take the end of the day here to consider the entire day
+      return { rollingEndDay: rollingEndDay.endOf("day"), rangeStartDay: null, rangeEndDay: null };
     }
 
     case PeriodType.ROLLING_WINDOW: {
@@ -80,6 +92,7 @@ export function calculatePeriodLimits({
     }
 
     case PeriodType.RANGE: {
+      // The future limit talks in terms of days so we take the start of the day for starting range and endOf the day for ending range
       const rangeStartDay = dayjs(periodStartDate).utcOffset(utcOffset).startOf("day");
       const rangeEndDay = dayjs(periodEndDate).utcOffset(utcOffset).endOf("day");
 
@@ -159,7 +172,7 @@ export function getRollingWindowEndDate({
   const rollingEndDayOrLastPossibleDayAsPerLimit = rollingEndDay ?? currentDate;
   log.debug("Returning rollingEndDay", rollingEndDayOrLastPossibleDayAsPerLimit.format());
 
-  // Return endOfDay so that any timeslot in the last day is considered within bounds
+  // The future limit talks in terms of days so we take the end of the day here to consider the entire day
   return rollingEndDayOrLastPossibleDayAsPerLimit.endOf("day");
 }
 
@@ -198,34 +211,19 @@ type PeriodLimits = {
  * To be used when we work on just Dates(and not specific timeslots) to check boundaries
  * e.g. It checks for Future Limits which operate on dates and not times.
  */
-export function isDateOutOfBounds({
-  dateString,
+export function isTimeViolatingFutureLimit({
+  time,
   periodLimits,
 }: {
-  dateString: dayjs.ConfigType;
+  time: dayjs.ConfigType;
   periodLimits: PeriodLimits;
-  _skipRollingWindowCheck?: boolean;
 }) {
-  const log = logger.getSubLogger({ prefix: ["isDateOutOfBounds"] });
-  const date = dayjs(dateString);
-
-  log.debug(
-    safeStringify({
-      dateString,
-      endOfDay: date.format(),
-      periodLimits: {
-        rollingEndDay: periodLimits.rollingEndDay?.format(),
-        rangeStartDay: periodLimits.rangeStartDay?.format(),
-        rangeEndDay: periodLimits.rangeEndDay?.format(),
-      },
-    })
-  );
-
+  const log = logger.getSubLogger({ prefix: ["isTimeViolatingFutureLimit"] });
+  const date = dayjs(time);
   if (periodLimits.rollingEndDay) {
     const isAfterRollingEndDay = date.isAfter(periodLimits.rollingEndDay);
     log.debug({
-      dateString,
-      endOfDay: date.format(),
+      formattedDate: date.format(),
       isAfterRollingEndDay,
       rollingEndDay: periodLimits.rollingEndDay.format(),
     });
@@ -257,8 +255,8 @@ export default function isOutOfBounds(
 ) {
   return (
     isTimeOutOfBounds({ time, minimumBookingNotice }) ||
-    isDateOutOfBounds({
-      dateString: time,
+    isTimeViolatingFutureLimit({
+      time,
       periodLimits: calculatePeriodLimits({
         periodType,
         periodDays,

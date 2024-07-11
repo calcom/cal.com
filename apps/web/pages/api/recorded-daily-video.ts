@@ -1,97 +1,55 @@
-import type { WebhookTriggerEvents } from "@prisma/client";
 import { createHmac } from "crypto";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { z } from "zod";
 
-import { getDownloadLinkOfCalVideoByRecordingId } from "@calcom/core/videoClient";
+import { getRoomNameFromRecordingId, getBatchProcessorJobAccessLink } from "@calcom/app-store/dailyvideo/lib";
+import {
+  getDownloadLinkOfCalVideoByRecordingId,
+  submitBatchProcessorTranscriptionJob,
+} from "@calcom/core/videoClient";
+import { getAllTranscriptsAccessLinkFromRoomName } from "@calcom/core/videoClient";
 import { sendDailyVideoRecordingEmails } from "@calcom/emails";
-import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import { sendDailyVideoTranscriptEmails } from "@calcom/emails";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { defaultHandler } from "@calcom/lib/server";
-import { getTranslation } from "@calcom/lib/server/i18n";
-import prisma, { bookingMinimalSelect } from "@calcom/prisma";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import prisma from "@calcom/prisma";
+import { getBooking } from "@calcom/web/lib/daily-webhook/getBooking";
+import { getBookingReference } from "@calcom/web/lib/daily-webhook/getBookingReference";
+import { getCalendarEvent } from "@calcom/web/lib/daily-webhook/getCalendarEvent";
+import {
+  meetingEndedSchema,
+  recordingReadySchema,
+  batchProcessorJobFinishedSchema,
+  downloadLinkSchema,
+  testRequestSchema,
+} from "@calcom/web/lib/daily-webhook/schema";
+import {
+  triggerRecordingReadyWebhook,
+  triggerTranscriptionGeneratedWebhook,
+} from "@calcom/web/lib/daily-webhook/triggerWebhooks";
 
 const log = logger.getSubLogger({ prefix: ["daily-video-webhook-handler"] });
 
-const schema = z
-  .object({
-    version: z.string(),
-    type: z.string(),
-    id: z.string(),
-    payload: z.object({
-      recording_id: z.string(),
-      end_ts: z.number().optional(),
-      room_name: z.string(),
-      start_ts: z.number().optional(),
-      status: z.string(),
-
-      max_participants: z.number().optional(),
-      duration: z.number().optional(),
-      s3_key: z.string().optional(),
-    }),
-    event_ts: z.number().optional(),
-  })
-  .passthrough();
-
-const downloadLinkSchema = z.object({
-  download_link: z.string(),
-});
-
-const triggerWebhook = async ({
-  evt,
-  downloadLink,
-  booking,
-}: {
-  evt: CalendarEvent;
-  downloadLink: string;
-  booking: {
-    userId: number | undefined;
-    eventTypeId: number | null;
-    eventTypeParentId: number | null | undefined;
-    teamId?: number | null;
-  };
-}) => {
-  const eventTrigger: WebhookTriggerEvents = "RECORDING_READY";
-
-  // Send Webhook call if hooked to BOOKING.RECORDING_READY
-  const triggerForUser = !booking.teamId || (booking.teamId && booking.eventTypeParentId);
-
-  const subscriberOptions = {
-    userId: triggerForUser ? booking.userId : null,
-    eventTypeId: booking.eventTypeId,
-    triggerEvent: eventTrigger,
-    teamId: booking.teamId,
-  };
-  const webhooks = await getWebhooks(subscriberOptions);
-
-  log.debug(
-    "Webhooks:",
-    safeStringify({
-      webhooks,
-    })
-  );
-
-  const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      downloadLink,
-    }).catch((e) => {
-      log.error(
-        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
-        safeStringify(e)
-      );
-    })
-  );
-  await Promise.all(promises);
+const computeSignature = (
+  hmacSecret: string,
+  reqBody: NextApiRequest["body"],
+  webhookTimestampHeader: string | string[] | undefined
+) => {
+  const signature = `${webhookTimestampHeader}.${JSON.stringify(reqBody)}`;
+  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
+  const hmac = createHmac("sha256", base64DecodedSecret);
+  const computed_signature = hmac.update(signature).digest("base64");
+  return computed_signature;
 };
 
-const testRequestSchema = z.object({
-  test: z.enum(["test"]),
-});
+const getDownloadLinkOfCalVideo = async (recordingId: string) => {
+  const response = await getDownloadLinkOfCalVideoByRecordingId(recordingId);
+  const downloadLinkResponse = downloadLinkSchema.parse(response);
+  const downloadLink = downloadLinkResponse.download_link;
+  return downloadLink;
+};
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (!process.env.SENDGRID_API_KEY || !process.env.SENDGRID_EMAIL) {
@@ -102,172 +60,169 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(200).json({ message: "Test request successful" });
   }
 
-  const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
-  if (!hmacSecret) {
-    return res.status(405).json({ message: "No Daily Webhook Secret" });
+  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
+
+  if (!testMode) {
+    const hmacSecret = process.env.DAILY_WEBHOOK_SECRET;
+    if (!hmacSecret) {
+      return res.status(405).json({ message: "No Daily Webhook Secret" });
+    }
+
+    const computed_signature = computeSignature(hmacSecret, req.body, req.headers["x-webhook-timestamp"]);
+
+    if (req.headers["x-webhook-signature"] !== computed_signature) {
+      return res.status(403).json({ message: "Signature does not match" });
+    }
   }
-
-  const signature = `${req.headers["x-webhook-timestamp"]}.${JSON.stringify(req.body)}`;
-  const base64DecodedSecret = Buffer.from(hmacSecret, "base64");
-  const hmac = createHmac("sha256", base64DecodedSecret);
-  const computed_signature = hmac.update(signature).digest("base64");
-
-  if (req.headers["x-webhook-signature"] !== computed_signature) {
-    return res.status(403).json({ message: "Signature does not match" });
-  }
-
-  const response = schema.safeParse(req.body);
 
   log.debug(
-    "Daily video recording webhook Request Body:",
+    "Daily video webhook Request Body:",
     safeStringify({
-      response,
+      body: req.body,
     })
   );
 
-  if (!response.success || response.data.type !== "recording.ready-to-download") {
-    return res.status(400).send({
-      message: "Invalid Payload",
-    });
-  }
-
-  const { room_name, recording_id, status } = response.data.payload;
-
-  if (status !== "finished") {
-    return res.status(400).send({
-      message: "Recording not finished",
-    });
-  }
-
   try {
-    const bookingReference = await prisma.bookingReference.findFirst({
-      where: { type: "daily_video", uid: room_name, meetingId: room_name },
-      select: { bookingId: true },
-    });
+    if (req.body?.type === "recording.ready-to-download") {
+      const recordingReadyResponse = recordingReadySchema.safeParse(req.body);
 
-    if (!bookingReference || !bookingReference.bookingId) {
-      log.error(
-        "bookingReference not found error:",
-        safeStringify({
-          bookingReference,
-          room_name,
-          recording_id,
-        })
-      );
-      return res.status(200).send({ message: "Booking reference not found" });
-    }
+      if (!recordingReadyResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
 
-    const booking = await prisma.booking.findUniqueOrThrow({
-      where: {
-        id: bookingReference.bookingId,
-      },
-      select: {
-        ...bookingMinimalSelect,
-        uid: true,
-        location: true,
-        isRecorded: true,
-        eventTypeId: true,
-        eventType: {
-          select: {
-            teamId: true,
-            parentId: true,
-          },
+      const { room_name, recording_id, status } = recordingReadyResponse.data.payload;
+
+      if (status !== "finished") {
+        return res.status(400).send({
+          message: "Recording not finished",
+        });
+      }
+
+      const bookingReference = await getBookingReference(room_name);
+      const booking = await getBooking(bookingReference.bookingId as number);
+
+      const evt = await getCalendarEvent(booking);
+
+      await prisma.booking.update({
+        where: {
+          uid: booking.uid,
         },
-        user: {
-          select: {
-            id: true,
-            timeZone: true,
-            email: true,
-            name: true,
-            locale: true,
-            destinationCalendar: true,
-          },
+        data: {
+          isRecorded: true,
         },
-      },
-    });
-
-    if (!booking) {
-      log.error(
-        "Booking:",
-        safeStringify({
-          booking,
-        })
-      );
-
-      return res.status(404).send({
-        message: `Booking of room_name ${room_name} does not exist or does not contain daily video as location`,
       });
-    }
 
-    const t = await getTranslation(booking?.user?.locale ?? "en", "common");
-    const attendeesListPromises = booking.attendees.map(async (attendee) => {
-      return {
-        id: attendee.id,
-        name: attendee.name,
-        email: attendee.email,
-        timeZone: attendee.timeZone,
-        language: {
-          translate: await getTranslation(attendee.locale ?? "en", "common"),
-          locale: attendee.locale ?? "en",
+      const downloadLink = await getDownloadLinkOfCalVideo(recording_id);
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking?.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
         },
-      };
-    });
+      });
 
-    const attendeesList = await Promise.all(attendeesListPromises);
+      await triggerRecordingReadyWebhook({
+        evt,
+        downloadLink,
+        booking: {
+          userId: booking?.user?.id,
+          eventTypeId: booking.eventTypeId,
+          eventTypeParentId: booking.eventType?.parentId,
+          teamId,
+        },
+      });
 
-    await prisma.booking.update({
-      where: {
-        uid: booking.uid,
-      },
-      data: {
-        isRecorded: true,
-      },
-    });
+      try {
+        // Submit Transcription Batch Processor Job
+        await submitBatchProcessorTranscriptionJob(recording_id);
+      } catch (err) {
+        log.error("Failed to  Submit Transcription Batch Processor Job:", safeStringify(err));
+      }
 
-    const response = await getDownloadLinkOfCalVideoByRecordingId(recording_id);
-    const downloadLinkResponse = downloadLinkSchema.parse(response);
-    const downloadLink = downloadLinkResponse.download_link;
+      // send emails to all attendees only when user has team plan
+      await sendDailyVideoRecordingEmails(evt, downloadLink);
 
-    const evt: CalendarEvent = {
-      type: booking.title,
-      title: booking.title,
-      description: booking.description || undefined,
-      startTime: booking.startTime.toISOString(),
-      endTime: booking.endTime.toISOString(),
-      organizer: {
-        email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
-        name: booking.user?.name || "Nameless",
-        timeZone: booking.user?.timeZone || "Europe/London",
-        language: { translate: t, locale: booking?.user?.locale ?? "en" },
-      },
-      attendees: attendeesList,
-      uid: booking.uid,
-    };
+      return res.status(200).json({ message: "Success" });
+    } else if (req.body.type === "meeting.ended") {
+      const meetingEndedResponse = meetingEndedSchema.safeParse(req.body);
+      if (!meetingEndedResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
 
-    const teamId = await getTeamIdFromEventType({
-      eventType: {
-        team: { id: booking?.eventType?.teamId ?? null },
-        parentId: booking?.eventType?.parentId ?? null,
-      },
-    });
+      const { room } = meetingEndedResponse.data.payload;
 
-    await triggerWebhook({
-      evt,
-      downloadLink,
-      booking: {
-        userId: booking?.user?.id,
-        eventTypeId: booking.eventTypeId,
-        eventTypeParentId: booking.eventType?.parentId,
-        teamId,
-      },
-    });
+      const bookingReference = await getBookingReference(room);
+      const booking = await getBooking(bookingReference.bookingId as number);
 
-    // send emails to all attendees only when user has team plan
-    await sendDailyVideoRecordingEmails(evt, downloadLink);
-    return res.status(200).json({ message: "Success" });
+      const transcripts = await getAllTranscriptsAccessLinkFromRoomName(room);
+
+      if (!transcripts || !transcripts.length)
+        return res.status(200).json({ message: `No Transcripts found for room name ${room}` });
+
+      const evt = await getCalendarEvent(booking);
+      await sendDailyVideoTranscriptEmails(evt, transcripts);
+
+      return res.status(200).json({ message: "Success" });
+    } else if (req.body?.type === "batch-processor.job-finished") {
+      const batchProcessorJobFinishedResponse = batchProcessorJobFinishedSchema.safeParse(req.body);
+
+      if (!batchProcessorJobFinishedResponse.success) {
+        return res.status(400).send({
+          message: "Invalid Payload",
+        });
+      }
+
+      const { id, input } = batchProcessorJobFinishedResponse.data.payload;
+      const roomName = await getRoomNameFromRecordingId(input.recordingId);
+
+      const bookingReference = await getBookingReference(roomName);
+
+      const booking = await getBooking(bookingReference.bookingId as number);
+
+      const teamId = await getTeamIdFromEventType({
+        eventType: {
+          team: { id: booking?.eventType?.teamId ?? null },
+          parentId: booking?.eventType?.parentId ?? null,
+        },
+      });
+
+      const evt = await getCalendarEvent(booking);
+
+      const recording = await getDownloadLinkOfCalVideo(input.recordingId);
+      const batchProcessorJobAccessLink = await getBatchProcessorJobAccessLink(id);
+
+      await triggerTranscriptionGeneratedWebhook({
+        evt,
+        downloadLinks: {
+          transcription: batchProcessorJobAccessLink.transcription,
+          recording,
+        },
+        booking: {
+          userId: booking?.user?.id,
+          eventTypeId: booking.eventTypeId,
+          eventTypeParentId: booking.eventType?.parentId,
+          teamId,
+        },
+      });
+
+      return res.status(200).json({ message: "Success" });
+    } else {
+      log.error("Invalid type in /recorded-daily-video", req.body);
+
+      return res.status(200).json({ message: "Invalid type in /recorded-daily-video" });
+    }
   } catch (err) {
-    console.error("Error in /recorded-daily-video", err);
-    return res.status(500).json({ message: "something went wrong" });
+    log.error("Error in /recorded-daily-video", err);
+
+    if (err instanceof HttpError) {
+      return res.status(err.statusCode).json({ message: err.message });
+    } else {
+      return res.status(500).json({ message: "something went wrong" });
+    }
   }
 }
 

@@ -2,11 +2,10 @@ import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
-import { CreateScheduleInput } from "@/ee/schedules/inputs/create-schedule.input";
-import { SchedulesModule } from "@/ee/schedules/schedules.module";
-import { SchedulesService } from "@/ee/schedules/services/schedules.service";
+import { CreateScheduleInput_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/inputs/create-schedule.input";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { AvailabilitiesModule } from "@/modules/availabilities/availabilities.module";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -17,10 +16,10 @@ import * as request from "supertest";
 import { BookingsRepositoryFixture } from "test/fixtures/repository/bookings.repository.fixture";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import { handleNewBooking } from "@calcom/platform-libraries";
+import { handleNewBooking } from "@calcom/platform-libraries-0.0.2";
 import { ApiSuccessResponse, ApiResponse } from "@calcom/platform-types";
 
 describe("Bookings Endpoints", () => {
@@ -29,7 +28,7 @@ describe("Bookings Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let bookingsRepositoryFixture: BookingsRepositoryFixture;
-    let schedulesService: SchedulesService;
+    let schedulesService: SchedulesService_2024_04_15;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
 
     const userEmail = "bookings-controller-e2e@api.com";
@@ -40,10 +39,10 @@ describe("Bookings Endpoints", () => {
     let createdBooking: Awaited<ReturnType<typeof handleNewBooking>>;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
-          imports: [AppModule, PrismaModule, AvailabilitiesModule, UsersModule, SchedulesModule],
+          imports: [AppModule, PrismaModule, UsersModule, SchedulesModule_2024_04_15],
         })
       )
         .overrideGuard(PermissionsGuard)
@@ -55,13 +54,13 @@ describe("Bookings Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       bookingsRepositoryFixture = new BookingsRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
-      schedulesService = moduleRef.get<SchedulesService>(SchedulesService);
+      schedulesService = moduleRef.get<SchedulesService_2024_04_15>(SchedulesService_2024_04_15);
 
       user = await userRepositoryFixture.create({
         email: userEmail,
       });
 
-      const userSchedule: CreateScheduleInput = {
+      const userSchedule: CreateScheduleInput_2024_04_15 = {
         name: "working time",
         timeZone: "Europe/Rome",
         isDefault: true,

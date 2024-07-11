@@ -1,10 +1,13 @@
+import { CalendarService } from "@calcom/app-store/applecalendar/lib";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import handleCancelBooking from "@calcom/features/bookings/lib/handleCancelBooking";
 import * as newBookingMethods from "@calcom/features/bookings/lib/handleNewBooking";
 import { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
+import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 import * as instantMeetingMethods from "@calcom/features/instant-meeting/handleInstantMeeting";
 import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
+import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { updateHandler as updateScheduleHandler } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.handler";
 import { getAvailableSlots } from "@calcom/trpc/server/routers/viewer/slots/util";
 import { createNewUsersConnectToOrgIfExists } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -39,6 +42,8 @@ export { handleNewBooking };
 const handleInstantMeeting = instantMeetingMethods.default;
 export { handleInstantMeeting };
 
+export { handleMarkNoShow };
+
 export { getAvailableSlots };
 export type AvailableSlotsType = Awaited<ReturnType<typeof getAvailableSlots>>;
 export { handleNewRecurringBooking } from "@calcom/features/bookings/lib/handleNewRecurringBooking";
@@ -48,14 +53,13 @@ export type { ConnectedDestinationCalendars } from "@calcom/lib/getConnectedDest
 export { getBusyCalendarTimes } from "@calcom/core/CalendarManager";
 
 export {
-  transformWorkingHoursForClient,
-  transformAvailabilityForClient,
-  transformDateOverridesForClient,
-} from "@calcom/lib/schedules/client/transformers";
-export type {
-  ScheduleWithAvailabilities,
-  ScheduleWithAvailabilitiesForWeb,
-} from "@calcom/lib/schedules/client/transformers";
+  transformWorkingHoursForAtom,
+  transformAvailabilityForAtom,
+  transformDateOverridesForAtom,
+  transformApiScheduleAvailability,
+  transformApiScheduleOverrides,
+} from "@calcom/lib/schedules/transformers";
+
 export type {
   BookingCreateBody,
   BookingResponse,
@@ -79,3 +83,20 @@ export { getBookingInfo };
 export { handleCancelBooking };
 
 export { eventTypeBookingFields, eventTypeLocations } from "@calcom/prisma/zod-utils";
+
+export { EventTypeMetaDataSchema, userMetadata } from "@calcom/prisma/zod-utils";
+
+export {
+  transformApiEventTypeBookingFields,
+  transformApiEventTypeLocations,
+  getResponseEventTypeLocations,
+  getResponseEventTypeBookingFields,
+  TransformedLocationsSchema,
+  BookingFieldsSchema,
+} from "@calcom/lib/event-types/transformers";
+
+export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
+export { dynamicEvent } from "@calcom/lib/defaultEvents";
+
+export { symmetricEncrypt };
+export { CalendarService };
