@@ -23,7 +23,7 @@ import {
   sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
   sendRescheduledEmailsAndSMS,
-  sendRoundRobinCancelledEmails,
+  sendRoundRobinCancelledEmailsAndSMS,
   sendRoundRobinRescheduledEmailsAndSMS,
   sendRoundRobinScheduledEmailsAndSMS,
   sendScheduledEmailsAndSMS,
@@ -1350,7 +1350,7 @@ async function handler(
 
         sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers);
         sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers);
-        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+        sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
         await sendRescheduledEmailsAndSMS({

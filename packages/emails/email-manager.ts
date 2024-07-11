@@ -163,7 +163,7 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinCancelledEmails = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinCancelledEmailsAndSMS = async (calEvent: CalendarEvent, members: Person[]) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
