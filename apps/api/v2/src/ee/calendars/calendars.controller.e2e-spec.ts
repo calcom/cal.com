@@ -71,8 +71,6 @@ describe("Platform Calendars Endpoints", () => {
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
     await app.init();
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
     jest
       .spyOn(CalendarsService.prototype, "getCalendars")
       .mockImplementation(CalendarsServiceMock.prototype.getCalendars);
