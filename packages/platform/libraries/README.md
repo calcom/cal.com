@@ -31,3 +31,8 @@ then go back to /apps/api/v2 and run
 
 - yarn dev
 
+# Before Merging to main
+- ask someone to publish your version of libraries on NPM
+- once it's published, change back the version in packages/platform/libraries/package.json back to 0.0.0
+- run yarn
+- you should now be using the npm package instead of the locally built version 
