@@ -50,7 +50,7 @@ const handleMarkNoShow = async ({
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
     if (attendees && attendeeEmails.length > 0) {
-      await checkCanAccessBooking(userId, bookingUid);
+      await checkCanAccessBooking(bookingUid, userId);
 
       const allAttendees = await prisma.attendee.findMany({
         where: {
@@ -160,31 +160,60 @@ const handleMarkNoShow = async ({
   }
 };
 
-const checkCanAccessBooking = async (userId?: number, bookingUid: string) => {
+const checkCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
-  // const checkIfUserIsAdminOrOwnerOfTeam = await prisma.booking.findUnique({
-  //   where: {
-  //     AND: [
-  //       {
-  //         eventType: {
-  //           team: {
-  //             members: {
-  //               some: {
-  //                 userId: user.id,
-  //                 role: {
-  //                   in: ["ADMIN", "OWNER"],
-  //                 },
-  //               },
-  //             },
-  //           },
-  //         },
-  //       },
-  //       { uid: bookingUid },
-  //     ],
-  //   },
-  // });
-  // if (checkIfUserIsAdminOrOwnerOfTeam) return true;
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      profiles,
+    },
+  });
+
+  const booking = await await prisma.booking.findFirst({
+    where: {
+      uid: bookingUid,
+      OR: [
+        { userId: userId },
+        {
+          eventType: {
+            hosts: {
+              some: {
+                userId,
+              },
+            },
+          },
+        },
+        {
+          eventType: {
+            users: {
+              some: {
+                id: userId,
+              },
+            },
+          },
+        },
+        {
+          eventType: {
+            team: {
+              members: {
+                some: {
+                  userId,
+                  accepted: true,
+                  role: {
+                    in: ["ADMIN", "OWNER"],
+                  },
+                },
+              },
+            },
+          },
+        },
+      ],
+    },
+  });
+
+  if (!booking)
+    throw new HttpError({ statusCode: 403, message: "You are not allowed to access this booking" });
 };
 
 export default handleMarkNoShow;
