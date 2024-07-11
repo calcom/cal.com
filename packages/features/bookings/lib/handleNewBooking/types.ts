@@ -3,7 +3,7 @@ import type { Prisma } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
-import type { AwaitedGetDefaultEvent } from "@calcom/lib/defaultEvents";
+import type { DefaultEvent } from "@calcom/lib/defaultEvents";
 import type { PaymentAppData } from "@calcom/lib/getPaymentAppData";
 import type { userSelect } from "@calcom/prisma";
 import type { CredentialPayload } from "@calcom/types/Credential";
@@ -61,7 +61,7 @@ export type IsFixedAwareUser = User & {
   weightAdjustment?: number;
 };
 
-export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;
+export type NewBookingEventType = DefaultEvent | getEventTypeResponse;
 
 export type {
   AwaitedBookingData,
