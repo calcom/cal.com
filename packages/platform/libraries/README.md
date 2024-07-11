@@ -1,5 +1,7 @@
 # How to work with platform libraries in Dev
 
+whenever you want to change anything in platform libraries, or if you modify the code of one of the functions imported in libraries you will need to build the code again.
+
 first thing to know is that we version this package using NPM
 
 https://www.npmjs.com/package/@calcom/platform-libraries?activeTab=code
