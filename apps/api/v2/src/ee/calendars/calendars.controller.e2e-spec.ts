@@ -16,6 +16,7 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
 import {
   GOOGLE_CALENDAR,
@@ -26,20 +27,6 @@ import {
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
-
-class CalendarsServiceMock {
-  async getCalendars() {
-    return {
-      connectedCalendars: [
-        {
-          integration: {
-            type: "google_calendar",
-          },
-        },
-      ],
-    };
-  }
-}
 
 describe("Platform Calendars Endpoints", () => {
   let app: INestApplication;
@@ -66,8 +53,7 @@ describe("Platform Calendars Endpoints", () => {
       .useValue({
         canActivate: () => true,
       })
-      .overrideProvider(CalendarsService)
-      .useClass(CalendarsServiceMock)
+
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -85,6 +71,11 @@ describe("Platform Calendars Endpoints", () => {
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
     await app.init();
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    jest
+      .spyOn(CalendarsService.prototype, "getCalendars")
+      .mockImplementation(CalendarsServiceMock.prototype.getCalendars);
   });
 
   async function createOAuthClient(organizationId: number) {
