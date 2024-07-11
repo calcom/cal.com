@@ -48,7 +48,7 @@ export class OrganizationsUsersController {
     @GetOrg() org: Team,
     @Body() input: GetOrganizationsUsersInput
   ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
-    const users = await this.organizationsUsersService.getOrganizationUsers(orgId, input.email);
+    const users = await this.organizationsUsersService.getUsers(orgId, input.email);
 
     return {
       status: SUCCESS_STATUS,
@@ -67,7 +67,7 @@ export class OrganizationsUsersController {
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
-    const user = await this.organizationsUsersService.createOrganizationUser(org, input);
+    const user = await this.organizationsUsersService.createUser(org, input);
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
@@ -82,7 +82,7 @@ export class OrganizationsUsersController {
     @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
-    const user = await this.organizationsUsersService.updateOrganizationUser(orgId, userId, input);
+    const user = await this.organizationsUsersService.updateUser(orgId, userId, input);
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
@@ -96,6 +96,7 @@ export class OrganizationsUsersController {
     @Param("userId", ParseIntPipe) userId: number,
     @GetOrg() org: Team
   ): Promise<ApiResponse<string>> {
+    const user = await this.organizationsUsersService.deleteUser(orgId, userId);
     return {
       status: SUCCESS_STATUS,
       data: `User with id ${userId} successfully deleted`,

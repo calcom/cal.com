@@ -20,7 +20,7 @@ export class OrganizationsUsersService {
     private readonly emailService: EmailService
   ) {}
 
-  async getOrganizationUsers(orgId: number, emailInput?: string | string[]) {
+  async getUsers(orgId: number, emailInput?: string | string[]) {
     const emailArray = !emailInput ? [] : Array.isArray(emailInput) ? emailInput : [emailInput];
 
     const users = await this.organizationsUsersRepository.getOrganizationUsers(orgId, emailArray);
@@ -28,7 +28,7 @@ export class OrganizationsUsersService {
     return users;
   }
 
-  async createOrganizationUser(org: Team, userCreateBody: CreateOrganizationUserInput) {
+  async createUser(org: Team, userCreateBody: CreateOrganizationUserInput) {
     // Check if email exists in the system
     const userEmailCheck = await this.organizationsUsersRepository.getOrganizationUserByEmail(
       org.id,
@@ -87,7 +87,7 @@ export class OrganizationsUsersService {
     return user;
   }
 
-  async updateOrganizationUser(orgId: number, userId: number, userUpdateBody: UpdateOrganizationUserInput) {
+  async updateUser(orgId: number, userId: number, userUpdateBody: UpdateOrganizationUserInput) {
     if (userUpdateBody.username) {
       await this.checkForUsernameConflicts(orgId, userUpdateBody.username);
     }
@@ -100,7 +100,7 @@ export class OrganizationsUsersService {
     return user;
   }
 
-  async deleteOrganizationUser(orgId: number, userId: number) {
+  async deleteUser(orgId: number, userId: number) {
     const user = await this.organizationsUsersRepository.deleteUser(orgId, userId);
     return user;
   }
