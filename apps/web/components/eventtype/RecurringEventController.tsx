@@ -118,7 +118,7 @@ export default function RecurringEventController({
                         disabled={recurringLocked.disabled}
                         type="number"
                         min="1"
-                        max="20"
+                        max="30"
                         defaultValue={recurringEventState.count}
                         className="mb-0"
                         onChange={(event) => {
