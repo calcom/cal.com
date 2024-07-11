@@ -1,7 +1,7 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
@@ -92,22 +92,23 @@ function Field({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const [options, setOptions] = useState<SelectOption[]>([
-    { placeholder: "< 10", value: "", id: uuidv4() },
-    { placeholder: "10-100", value: "", id: uuidv4() },
-    { placeholder: "100-500", value: "", id: uuidv4() },
-    { placeholder: "> 500", value: "", id: uuidv4() },
-  ]);
+  const options = useWatch({
+    control: hookForm.control,
+    name: `${hookFieldNamespace}.options`,
+  });
+
+  const setOptions = (updatedOptions: SelectOption[]) => {
+    hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
+  };
 
   const handleRemoveOptions = (index: number) => {
-    const updatedOptions = options.filter((_, i) => i !== index);
+    const updatedOptions = options.filter((option, i) => i !== index);
     setOptions(updatedOptions);
-    updateSelectText(updatedOptions);
   };
 
   const handleAddOptions = () => {
-    setOptions((prevState) => [
-      ...prevState,
+    setOptions([
+      ...options,
       {
         placeholder: "New Option",
         value: "",
@@ -179,12 +180,12 @@ function Field({
     const paste = event.clipboardData.getData("text");
     const formattedValues = paste
       .split(/[\n,;]+/)
-      .map((value) => ({ placeholder: "", value: value.trim(), id: uuidv4() }))
+      .map((value) => ({ placeholder: "New Option", value: value.trim(), id: uuidv4() }))
       .filter((option) => option.value);
     if (formattedValues.length > 1) {
       event.preventDefault();
       const updatedOptions = [...options.slice(0, index), ...formattedValues, ...options.slice(index)].filter(
-        (value) => !value.placeholder
+        (value) => value.placeholder === "New Option"
       );
       setOptions(updatedOptions);
     }
@@ -394,6 +395,12 @@ const FormEdit = ({
       // This is same type from react-awesome-query-builder
       type: "text",
       label: "",
+      options: [
+        { placeholder: "< 10", value: "", id: uuidv4() },
+        { placeholder: "10-100", value: "", id: uuidv4() },
+        { placeholder: "100-500", value: "", id: uuidv4() },
+        { placeholder: "> 500", value: "", id: uuidv4() },
+      ],
     });
   };
 
