@@ -133,6 +133,10 @@ export class BillingService {
   }
 
   async increaseUsageByClientId(clientId: string) {
+    console.log(this.configService.get("e2e"), "e2e");
+    if (this.configService.get("e2e")) {
+      return void 0;
+    }
     const team = await this.teamsRepository.findTeamIdFromClientId(clientId);
     if (!team.id) return Promise.resolve(); // noop resolution.
 
