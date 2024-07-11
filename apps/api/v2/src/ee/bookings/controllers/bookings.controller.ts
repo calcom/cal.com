@@ -201,6 +201,7 @@ export class BookingsController {
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
+    @GetUser("id") userId: number,
     @Body() body: MarkNoShowInput,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput> {
@@ -209,6 +210,7 @@ export class BookingsController {
         bookingUid: bookingUid,
         attendees: body.attendees,
         noShowHost: body.noShowHost,
+        userId,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
@@ -330,5 +332,11 @@ export class BookingsController {
     }
 
     throw new InternalServerErrorException(errMsg);
+  }
+
+  private async checkCanAccessBooking(req: BookingRequest): Promise<boolean> {
+    const userId = (await this.getOwnerId(req)) ?? -1;
+    console.log(userId, "userId");
+    return false;
   }
 }

@@ -1,10 +1,11 @@
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
+import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
-import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/publicViewer/noShow.schema";
+import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
 const getResultPayload = async (attendees: { email: string; noShow: boolean }[]) => {
   if (attendees.length === 1) {
@@ -34,7 +35,12 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
-const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowInputSchema) => {
+const handleMarkNoShow = async ({
+  bookingUid,
+  attendees,
+  noShowHost,
+  userId,
+}: TNoShowInputSchema & { userId?: number }) => {
   const responsePayload: ResponsePayload = {
     attendees: [],
     noShowHost: false,
@@ -44,6 +50,8 @@ const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowIn
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
     if (attendees && attendeeEmails.length > 0) {
+      await checkCanAccessBooking(userId, bookingUid);
+
       const allAttendees = await prisma.attendee.findMany({
         where: {
           AND: [
@@ -150,6 +158,33 @@ const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowIn
     }
     return { message: "Failed to update no-show status" };
   }
+};
+
+const checkCanAccessBooking = async (userId?: number, bookingUid: string) => {
+  if (!userId) throw new HttpError({ statusCode: 401 });
+
+  // const checkIfUserIsAdminOrOwnerOfTeam = await prisma.booking.findUnique({
+  //   where: {
+  //     AND: [
+  //       {
+  //         eventType: {
+  //           team: {
+  //             members: {
+  //               some: {
+  //                 userId: user.id,
+  //                 role: {
+  //                   in: ["ADMIN", "OWNER"],
+  //                 },
+  //               },
+  //             },
+  //           },
+  //         },
+  //       },
+  //       { uid: bookingUid },
+  //     ],
+  //   },
+  // });
+  // if (checkIfUserIsAdminOrOwnerOfTeam) return true;
 };
 
 export default handleMarkNoShow;

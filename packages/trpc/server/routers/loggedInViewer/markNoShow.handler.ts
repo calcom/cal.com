@@ -1,6 +1,6 @@
 import handleMarkNoShow from "@calcom/features/handleMarkNoShow";
 
-import type { TNoShowInputSchema } from "./noShow.schema";
+import type { TNoShowInputSchema } from "./markNoShow.schema";
 
 type NoShowOptions = {
   input: TNoShowInputSchema;

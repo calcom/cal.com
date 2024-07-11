@@ -175,7 +175,7 @@ export default function Success(props: PageProps) {
     },
   });
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.public.markHostAsNoShow.useMutation({
     onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
     },
