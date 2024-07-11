@@ -1,7 +1,7 @@
 import type { AdditionalInformation, AppsStatus } from "@calcom/types/Calendar";
 import type { EventResult } from "@calcom/types/EventManager";
 
-import type { ReqAppsStatus, Booking } from "../handleNewBooking";
+import type { ReqAppsStatus, Booking } from "./types";
 
 export function handleAppsStatus(
   results: EventResult<AdditionalInformation>[],
