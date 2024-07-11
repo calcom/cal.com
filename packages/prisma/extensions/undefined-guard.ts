@@ -5,7 +5,6 @@ const checkUndefinedInValue = (where: any) => {
     for (const key in where) {
       // INFO: Since this is for $allModels, we don't have a way to get the correct
       // where type
-      // @ts-expect-error Element implicitly has any type
       const whereInput = where[key as any] as any;
       if (
         whereInput.hasOwnProperty("in") &&
