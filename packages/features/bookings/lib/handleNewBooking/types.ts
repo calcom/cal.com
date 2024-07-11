@@ -21,12 +21,11 @@ import type {
 } from "./getBookingData";
 import type { getEventTypeResponse } from "./getEventTypesFromDB";
 import type { BookingType, OriginalRescheduledBooking } from "./getOriginalRescheduledBooking";
-import type { getRequiresConfirmationFlags } from "./getRequiresConfirmationFlags";
-import type { AwaitedLoadUsers } from "./loadUsers";
+import type { LoadedUsers } from "./loadUsers";
 
 type User = Prisma.UserGetPayload<typeof userSelect>;
 
-export type OrganizerUser = AwaitedLoadUsers[number] & {
+export type OrganizerUser = LoadedUsers[number] & {
   isFixed?: boolean;
   metadata?: Prisma.JsonValue;
 };
@@ -64,8 +63,6 @@ export type IsFixedAwareUser = User & {
 
 export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;
 
-export type IsConfirmedByDefault = ReturnType<typeof getRequiresConfirmationFlags>["isConfirmedByDefault"];
-
 export type {
   AwaitedBookingData,
   RescheduleReason,
@@ -79,6 +76,6 @@ export type {
   BookingType,
   Booking,
   OriginalRescheduledBooking,
-  AwaitedLoadUsers,
+  LoadedUsers,
   getEventTypeResponse,
 };

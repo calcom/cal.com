@@ -899,23 +899,29 @@ async function handler(
 
   try {
     booking = await createBooking({
-      originalRescheduledBooking,
-      evt,
-      eventTypeId,
-      eventTypeSlug,
-      reqBodyUser: reqBody.user,
-      reqBodyMetadata: reqBody.metadata,
-      reqBodyRecurringEventId: reqBody.recurringEventId,
       uid,
-      responses,
-      isConfirmedByDefault,
-      smsReminderNumber,
-      organizerUser,
-      rescheduleReason,
-      eventType,
-      bookerEmail,
-      paymentAppData,
-      changedOrganizer,
+      reqBody: {
+        user: reqBody.user,
+        metadata: reqBody.metadata,
+        recurringEventId: reqBody.recurringEventId,
+      },
+      eventType: {
+        eventTypeData: eventType,
+        id: eventTypeId,
+        slug: eventTypeSlug,
+        organizerUser,
+        isConfirmedByDefault,
+        paymentAppData,
+      },
+      input: {
+        bookerEmail,
+        rescheduleReason,
+        changedOrganizer,
+        smsReminderNumber,
+        responses,
+      },
+      evt,
+      originalRescheduledBooking,
     });
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
