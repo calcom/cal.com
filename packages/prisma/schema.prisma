@@ -349,7 +349,11 @@ model Profile {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  // A user can have multiple profiles in different organizations
   @@unique([userId, organizationId])
+  // Allow username reuse only across different organizations
+  @@unique([username, organizationId])
+
   @@index([uid])
   @@index([userId])
   @@index([organizationId])
