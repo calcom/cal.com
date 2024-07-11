@@ -2,16 +2,29 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { useCallback } from "react";
+import React from "react";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Meta, Button, useMeta, Divider, Form, SelectField, InputField, Label, Input } from "@calcom/ui";
+import { trpc } from "@calcom/trpc/react";
+import {
+  Meta,
+  Button,
+  useMeta,
+  Divider,
+  Form,
+  SelectField,
+  InputField,
+  Label,
+  Input,
+  showToast,
+} from "@calcom/ui";
 
 const CreateAttributeSchema = z.object({
+  // Calling this name would make sense but conflicts with rhf "watch" "name" field
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
   options: z.array(z.object({ value: z.string() })),
@@ -27,6 +40,14 @@ const AttributeTypeOptions = [
 ];
 
 function CreateAttributesPage() {
+  const mutation = trpc.viewer.attributes.create.useMutation({
+    onSuccess: () => {
+      showToast("Attribute created successfully", "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
   const { t } = useLocale();
   const [listRef] = useAutoAnimate<HTMLDivElement>({
     duration: 300,
@@ -42,23 +63,12 @@ function CreateAttributesPage() {
     },
   });
 
-  const { fields, append, remove, move, replace } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "options",
   });
 
   const watchedType = form.watch("type");
-
-  const watchedLastItem = fields.at(-1);
-
-  const handleReorder = useCallback(
-    (newOrder: typeof fields) => {
-      if (fields.length > 1) {
-        replace(newOrder);
-      }
-    },
-    [fields.length, replace]
-  );
 
   return (
     <>
@@ -68,10 +78,15 @@ function CreateAttributesPage() {
           form={form}
           className="mt-6 flex flex-col space-y-4 lg:space-y-6"
           handleSubmit={(values) => {
-            console.log("submit", values, form.getValues());
-            console.log("submit", values);
+            // Create set of attributes to get unique values
+            const uniqueAttributes = new Set(values.options.map((option) => option.value));
+            mutation.mutate({
+              name: values.attrName,
+              type: values.type,
+              options: Array.from(uniqueAttributes).map((value) => ({ value })),
+            });
           }}>
-          <CreateAttributeHeader />
+          <CreateAttributeHeader isPending={mutation.isPending} />
           <InputField label={t("name")} required {...form.register("attrName")} />
           <Controller
             name="type"
@@ -92,7 +107,7 @@ function CreateAttributesPage() {
             <div className="bg-muted border-muted mt-6 rounded-lg border p-6">
               <div className="flex flex-col gap-2">
                 <Label>{t("options")}</Label>
-                <div>
+                <div ref={listRef}>
                   {fields.map((field, index) => (
                     <>
                       <div className="flex items-center gap-2" key={field.id}>
@@ -103,14 +118,11 @@ function CreateAttributesPage() {
                           variant="icon"
                           StartIcon="x"
                           color="minimal"
+                          className="mb-2" // input has natural margin bottom already so we need to add to offset
                           disabled={index === 0}
                           onClick={() => remove(index)}
                         />
-                        {/* Last option cannot be empty error message */}
                       </div>
-                      {index === fields.length - 1 && form.formState.errors?.options?.type === "custom" && (
-                        <p className="mb-4 text-red-500">{form.formState.errors.options.message}</p>
-                      )}
                     </>
                   ))}
                 </div>
@@ -132,7 +144,7 @@ function CreateAttributesPage() {
   );
 }
 
-function CreateAttributeHeader() {
+function CreateAttributeHeader(props: { isPending: boolean }) {
   const { meta } = useMeta();
   return (
     <>
@@ -147,7 +159,7 @@ function CreateAttributeHeader() {
           </Button>
           <h1 className="font-cal leadning-none text-subtle text-xl font-semibold">{meta.title}</h1>
         </div>
-        <Button type="submit" data-testid="create-attribute-button">
+        <Button type="submit" data-testid="create-attribute-button" loading={props.isPending}>
           Save
         </Button>
       </div>

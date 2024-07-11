@@ -1,3 +1,4 @@
+import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
 import { TRPCError } from "@trpc/server";
@@ -21,10 +22,15 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
       message: "You need to be apart of an organization to use this feature",
     });
   }
-  // Find all attributes that this organization has
 
-  const attributes = await prisma.attribute.findMany({
-    where: {
+  const slug = slugify(input.name);
+
+  const attributes = await prisma.attribute.create({
+    data: {
+      slug,
+      name: input.name,
+      type: input.type,
+      options: input.options.map((v) => v.value),
       teamId: org.id,
     },
   });
