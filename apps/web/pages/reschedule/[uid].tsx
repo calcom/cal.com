@@ -4,8 +4,10 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
@@ -25,6 +27,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     prisma,
     bookingUid
   );
+
   const booking = await prisma.booking.findUnique({
     where: {
       uid,
@@ -41,6 +44,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           team: {
             select: {
+              parentId: true,
               slug: true,
             },
           },
@@ -49,6 +53,8 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           owner: {
             select: {
               id: true,
+              username: true,
+              organizationId: true,
             },
           },
           hosts: {
@@ -124,21 +130,29 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
+  const eventTypeWithEnrichedOwner = {
+    ...eventType,
+    owner: eventType.owner ? await UserRepository.enrichUserWithItsProfile({ user: eventType.owner }) : null,
+  };
 
-  const eventPage = `${
-    eventType.team
-      ? `team/${eventType.team.slug}`
-      : dynamicEventSlugRef
-      ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick" /* This shouldn't happen */
-  }/${eventType?.slug}`;
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
+
+  const eventPage = await buildEventUrlFromBooking({
+    eventType: eventTypeWithEnrichedOwner,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    dynamicEventSlugRef,
+    user: enrichedBookingUser,
+  });
+
   const destinationUrl = new URLSearchParams();
 
   destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
 
   return {
     redirect: {
-      destination: `/${eventPage}?${destinationUrl.toString()}${
+      destination: `${eventPage}?${destinationUrl.toString()}${
         eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
       }`,
       permanent: false,
