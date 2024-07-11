@@ -4,8 +4,7 @@ import { useCheckTeamBilling } from "@calcom/web/lib/hooks/settings/platform/oau
 export const useGetUserAttributes = () => {
   const { data: user, isLoading: isUserLoading } = useMeQuery();
   const { data: userBillingData, isFetching: isUserBillingDataLoading } = useCheckTeamBilling(
-    user?.organizationId,
-    user?.organization.isPlatform
+    user?.organizationId
   );
   const isPlatformUser = user?.organization.isPlatform;
   const isPaidUser = userBillingData?.valid;

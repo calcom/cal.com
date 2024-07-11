@@ -654,8 +654,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export default function SettingsLayout({
   children,
+  hideHeader,
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+}: {
+  children: React.ReactNode;
+  hideHeader?: boolean;
+} & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -699,7 +703,7 @@ export default function SettingsLayout({
       }>
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
-          <ShellHeader />
+          {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>

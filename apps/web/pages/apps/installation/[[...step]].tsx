@@ -8,22 +8,17 @@ import { Toaster } from "react-hot-toast";
 import { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
-import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
-import { isConferencing as isConferencingApp } from "@calcom/app-store/utils";
-import type { LocationObject } from "@calcom/core/location";
 import { getLocale } from "@calcom/features/auth/lib/getLocale";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
-import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingRedirectUrl } from "@calcom/lib/apps/getAppOnboardingRedirectUrl";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
-import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import prisma from "@calcom/prisma";
-import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import type { AppMeta } from "@calcom/types/App";
@@ -39,13 +34,8 @@ import { EventTypesStepCard } from "@components/apps/installation/EventTypesStep
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
-  Pick<
-    EventTypeModel,
-    "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
-  > & {
+  Pick<EventTypeModel, "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position"> & {
     selected: boolean;
-    locations: LocationFormValues["locations"];
-    bookingFields?: LocationFormValues["bookingFields"];
   };
 
 export type TEventTypesForm = {
@@ -57,6 +47,7 @@ const STEPS = [
   AppOnboardingSteps.EVENT_TYPES_STEP,
   AppOnboardingSteps.CONFIGURE_STEP,
 ] as const;
+const MAX_NUMBER_OF_STEPS = STEPS.length;
 
 type StepType = (typeof STEPS)[number];
 
@@ -72,21 +63,11 @@ type StepObj = Record<
 type OnboardingPageProps = {
   appMetadata: AppMeta;
   step: StepType;
-  teams?: TeamsProp;
+  teams: TeamsProp;
   personalAccount: PersonalAccountProps;
   eventTypes?: TEventType[];
   userName: string;
   credentialId?: number;
-  showEventTypesStep: boolean;
-  isConferencing: boolean;
-  installableOnTeams: boolean;
-};
-
-type TUpdateObject = {
-  id: number;
-  metadata?: z.infer<typeof EventTypeMetaDataSchema>;
-  bookingFields?: z.infer<typeof eventTypeBookingFields>;
-  locations?: LocationObject[];
 };
 
 const OnboardingPage = ({
@@ -97,9 +78,6 @@ const OnboardingPage = ({
   eventTypes,
   userName,
   credentialId,
-  showEventTypesStep,
-  isConferencing,
-  installableOnTeams,
 }: OnboardingPageProps) => {
   const { t } = useLocale();
   const pathname = usePathname();
@@ -114,15 +92,16 @@ const OnboardingPage = ({
     [AppOnboardingSteps.EVENT_TYPES_STEP]: {
       getTitle: () => `${t("select_event_types_header")}`,
       getDescription: (appName) => `${t("select_event_types_description", { appName })}`,
-      stepNumber: installableOnTeams ? 2 : 1,
+      stepNumber: 2,
     },
     [AppOnboardingSteps.CONFIGURE_STEP]: {
       getTitle: (appName) => `${t("configure_app_header", { appName })}`,
       getDescription: () => `${t("configure_app_description")}`,
-      stepNumber: installableOnTeams ? 3 : 2,
+      stepNumber: 3,
     },
   } as const;
   const [configureStep, setConfigureStep] = useState(false);
+  const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
   const currentStep: AppOnboardingSteps = useMemo(() => {
     if (step == AppOnboardingSteps.EVENT_TYPES_STEP && configureStep) {
@@ -131,13 +110,6 @@ const OnboardingPage = ({
     return step;
   }, [step, configureStep]);
   const stepObj = STEPS_MAP[currentStep];
-
-  const maxSteps = useMemo(() => {
-    if (!showEventTypesStep) {
-      return 1;
-    }
-    return installableOnTeams ? STEPS.length : STEPS.length - 1;
-  }, [showEventTypesStep, installableOnTeams]);
 
   const utils = trpc.useContext();
 
@@ -148,19 +120,9 @@ const OnboardingPage = ({
       eventTypes,
     },
   });
-  const mutation = useAddAppMutation(null, {
-    onSuccess: (data) => {
-      if (data?.setupPending) return;
-      showToast(t("app_successfully_installed"), "success");
-    },
-    onError: (error) => {
-      if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
-    },
-  });
 
   useEffect(() => {
     eventTypes && formMethods.setValue("eventTypes", eventTypes);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventTypes]);
 
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -194,22 +156,47 @@ const OnboardingPage = ({
   });
 
   const handleSelectAccount = async (teamId?: number) => {
-    mutation.mutate({
-      type: appMetadata.type,
-      variant: appMetadata.variant,
-      slug: appMetadata.slug,
-      ...(teamId && { teamId }),
-      // for oAuth apps
-      ...(showEventTypesStep && {
-        returnTo:
-          WEBAPP_URL +
+    try {
+      setIsSelectingAccount(true);
+      if (appMetadata.isOAuth) {
+        const state = JSON.stringify({
+          appOnboardingRedirectUrl: getAppOnboardingRedirectUrl(appMetadata.slug, teamId),
+          teamId,
+        });
+
+        const res = await fetch(
+          `/api/integrations/${
+            appMetadata.slug == "stripe" ? "stripepayment" : appMetadata.slug
+          }/add?state=${state}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        const oAuthUrl = (await res.json())?.url;
+        router.push(oAuthUrl);
+        return;
+      } else {
+        await fetch(`/api/integrations/${appMetadata.slug}/add${teamId ? `?teamId=${teamId}` : ""}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        router.push(
           getAppOnboardingUrl({
             slug: appMetadata.slug,
-            teamId,
             step: AppOnboardingSteps.EVENT_TYPES_STEP,
-          }),
-      }),
-    });
+            teamId,
+          })
+        );
+      }
+    } catch (error) {
+      setIsSelectingAccount(false);
+      router.push(`/apps`);
+    }
   };
 
   const handleSetUpLater = () => {
@@ -246,21 +233,10 @@ const OnboardingPage = ({
                     if (value.metadata?.apps?.stripe?.paymentOption === "HOLD" && value.seatsPerTimeSlot) {
                       throw new Error(t("seats_and_no_show_fee_error"));
                     }
-                    let updateObject: TUpdateObject = { id: value.id };
-                    if (isConferencing) {
-                      updateObject = {
-                        ...updateObject,
-                        locations: value.locations,
-                        bookingFields: value.bookingFields ? value.bookingFields : undefined,
-                      };
-                    } else {
-                      updateObject = {
-                        ...updateObject,
-                        metadata: value.metadata,
-                      };
-                    }
-
-                    return updateMutation.mutateAsync(updateObject);
+                    return updateMutation.mutateAsync({
+                      id: value.id,
+                      metadata: value.metadata,
+                    });
                   });
                 try {
                   await Promise.all(mutationPromises);
@@ -272,15 +248,14 @@ const OnboardingPage = ({
               <StepHeader
                 title={stepObj.getTitle(appMetadata.name)}
                 subtitle={stepObj.getDescription(appMetadata.name)}>
-                <Steps maxSteps={maxSteps} currentStep={stepObj.stepNumber} disableNavigation />
+                <Steps maxSteps={MAX_NUMBER_OF_STEPS} currentStep={stepObj.stepNumber} disableNavigation />
               </StepHeader>
               {currentStep === AppOnboardingSteps.ACCOUNTS_STEP && (
                 <AccountsStepCard
                   teams={teams}
                   personalAccount={personalAccount}
                   onSelect={handleSelectAccount}
-                  loading={mutation.isPending}
-                  installableOnTeams={installableOnTeams}
+                  loading={isSelectingAccount}
                 />
               )}
               {currentStep === AppOnboardingSteps.EVENT_TYPES_STEP &&
@@ -303,7 +278,6 @@ const OnboardingPage = ({
                   setConfigureStep={setConfigureStep}
                   eventTypes={eventTypes}
                   handleSetUpLater={handleSetUpLater}
-                  isConferencing={isConferencing}
                 />
               )}
             </Form>
@@ -411,31 +385,19 @@ const getEventTypes = async (userId: number, teamId?: number) => {
         users: { select: { username: true } },
         seatsPerTimeSlot: true,
         slug: true,
-        locations: true,
-        userId: true,
-        destinationCalendar: true,
-        bookingFields: true,
       },
-      /**
-       * filter out managed events for now
-       *  @todo: can install apps to managed event types
-       */
-      where: teamId ? { teamId } : { userId, parent: null, teamId: null },
+      where: teamId ? { teamId } : { userId, teamId: null },
     })
   ).sort((eventTypeA, eventTypeB) => {
     return eventTypeB.position - eventTypeA.position;
   });
-
   if (eventTypes.length === 0) {
     return [];
   }
-
   return eventTypes.map((item) => ({
     ...item,
     URL: `${CAL_URL}/${item.team ? `team/${item.team.slug}` : item?.users?.[0]?.username}/${item.slug}`,
     selected: false,
-    locations: item.locations as unknown as LocationObject[],
-    bookingFields: eventTypeBookingFields.parse(item.bookingFields || []),
   }));
 };
 
@@ -472,13 +434,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     const locale = await getLocale(context.req);
     const app = await getAppBySlug(parsedAppSlug);
     const appMetadata = appStoreMetadata[app.dirName as keyof typeof appStoreMetadata];
-    const extendsEventType = appMetadata?.extendsFeature === "EventType";
-
-    const isConferencing = isConferencingApp(appMetadata.categories);
-    const showEventTypesStep = extendsEventType || isConferencing;
-    console.log("sshowEventTypesStephowEventTypesStep: ", showEventTypesStep);
+    const hasEventTypes = appMetadata?.extendsFeature === "EventType";
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
+    if (!hasEventTypes) {
+      throw new Error(ERROR_MESSAGES.appNotExtendsEventType);
+    }
 
     const user = await getUser(session.user.id);
 
@@ -499,31 +460,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
 
     if (parsedStepParam == AppOnboardingSteps.EVENT_TYPES_STEP) {
-      if (!showEventTypesStep) {
-        return {
-          redirect: {
-            permanent: false,
-            destination: `/apps/installed/${appMetadata.categories[0]}?hl=${appMetadata.slug}`,
-          },
-        };
-      }
       eventTypes = await getEventTypes(user.id, parsedTeamIdParam);
-      if (isConferencing) {
-        const destinationCalendar = await prisma.destinationCalendar.findFirst({
-          where: {
-            userId: user.id,
-            eventTypeId: null,
-          },
-        });
-        for (let index = 0; index < eventTypes.length; index++) {
-          let eventType = eventTypes[index];
-          if (!eventType.destinationCalendar) {
-            eventType = { ...eventType, destinationCalendar };
-          }
-          eventTypes[index] = eventType;
-        }
-      }
-
       if (eventTypes.length === 0) {
         return {
           redirect: {
@@ -561,7 +498,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         ...(await serverSideTranslations(locale, ["common"])),
         app,
         appMetadata,
-        showEventTypesStep,
         step: parsedStepParam,
         teams: teamsWithIsAppInstalled,
         personalAccount,
@@ -569,13 +505,9 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         teamId: parsedTeamIdParam ?? null,
         userName: user.username,
         credentialId,
-        isConferencing,
-        // conferencing apps dont support team install
-        installableOnTeams: !isConferencing,
       } as OnboardingPageProps,
     };
   } catch (err) {
-    console.log("eerrerrerrerrerrerrerrerrrr: ", err);
     if (err instanceof z.ZodError) {
       return { redirect: { permanent: false, destination: "/apps" } };
     }
