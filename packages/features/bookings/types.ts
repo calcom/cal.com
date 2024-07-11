@@ -85,3 +85,7 @@ export type BookingResponse = Awaited<
 export type InstantBookingResponse = Awaited<
   ReturnType<typeof import("@calcom/features/instant-meeting/handleInstantMeeting").default>
 >;
+
+export type MarkNoShowResponse = Awaited<
+  ReturnType<typeof import("@calcom/features/handleMarkNoShow").default>
+>;
