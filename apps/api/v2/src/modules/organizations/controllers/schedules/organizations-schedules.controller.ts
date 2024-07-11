@@ -21,8 +21,6 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsNumber, Min, Max, IsOptional } from "class-validator";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -34,21 +32,7 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-
-class SkipTakePagination {
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(1)
-  @Max(250)
-  @IsOptional()
-  take?: number;
-
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  skip?: number;
-}
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId",
