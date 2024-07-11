@@ -26,6 +26,12 @@ export const verifyCodeHandler = async ({ ctx, input }: VerifyCodeOptions) => {
     logger.warn(`Skipping code verification in dev/E2E environment`);
     return true;
   }
+
+  if (user.role === "ADMIN") {
+    logger.warn(`Skipping code verification for instance admin`);
+    return true;
+  }
+
   await checkRateLimitAndThrowError({
     rateLimitingType: "core",
     identifier: email,

@@ -1,3 +1,5 @@
+"use client";
+
 // This route is reachable by
 // 1. /team/[slug]
 // 2. / (when on org domain e.g. http://calcom.cal.com/. This is through a rewrite from next.config.js)
@@ -5,48 +7,34 @@
 // 1. org/[orgSlug]/team/[slug]
 // 2. org/[orgSlug]/[user]/[type]
 import classNames from "classnames";
-import type { GetServerSidePropsContext } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
-import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
-import { getFeatureFlagMap } from "@calcom/features/flags/server/utils";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
+import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
-import logger from "@calcom/lib/logger";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
-import { getTeamWithMembers } from "@calcom/lib/server/queries/teams";
-import slugify from "@calcom/lib/slugify";
-import { stripMarkdown } from "@calcom/lib/stripMarkdown";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
-import prisma from "@calcom/prisma";
-import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
-import { Avatar, Button, HeadSeo, UnpublishedEntity } from "@calcom/ui";
-import { ArrowRight } from "@calcom/ui/components/icon";
+import { Avatar, Button, HeadSeo, UnpublishedEntity, UserAvatarGroup } from "@calcom/ui";
 
 import { useToggleQuery } from "@lib/hooks/useToggleQuery";
+import { getServerSideProps } from "@lib/team/[slug]/getServerSideProps";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
 
 import PageWrapper from "@components/PageWrapper";
 import Team from "@components/team/screens/Team";
-import { UserAvatarGroup } from "@components/ui/avatar/UserAvatarGroup";
 
-import { ssrInit } from "@server/lib/ssr";
-
-import { getTemporaryOrgRedirect } from "../../lib/getTemporaryOrgRedirect";
+export { getServerSideProps };
 
 export type PageProps = inferSSRProps<typeof getServerSideProps>;
-const log = logger.getSubLogger({ prefix: ["team/[slug]"] });
 function TeamPage({
   team,
-  isUnpublished,
+  considerUnpublished,
   markdownStrippedBio,
   isValidOrgDomain,
   currentOrgDomain,
@@ -62,6 +50,8 @@ function TeamPage({
   const isBioEmpty = !team.bio || !team.bio.replace("<p><br></p>", "").length;
   const metadata = teamMetadataSchema.parse(team.metadata);
 
+  const teamOrOrgIsPrivate = team.isPrivate || (team?.parent?.isOrganization && team.parent?.isPrivate);
+
   useEffect(() => {
     telemetry.event(
       telemetryEventTypes.pageView,
@@ -69,13 +59,17 @@ function TeamPage({
     );
   }, [telemetry, pathname]);
 
-  if (isUnpublished) {
-    const slug = team.slug || metadata?.requestedSlug;
+  if (considerUnpublished) {
+    const teamSlug = team.slug || metadata?.requestedSlug;
+    const parentSlug = team.parent?.slug || team.parent?.requestedSlug;
+    // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
+    const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity
-          {...(metadata?.isOrganization || team.parentId ? { orgSlug: slug } : { teamSlug: slug })}
-          name={teamName}
+          {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
+          logoUrl={team.parent?.logoUrl || team.logoUrl}
+          name={team.parent ? team.parent.name : team.name}
         />
       </div>
     );
@@ -135,7 +129,7 @@ function TeamPage({
             (mem) => mem.subteams?.includes(ch.slug) && mem.accepted
           ).length;
           return (
-            <li key={i} className="hover:bg-muted w-full">
+            <li key={i} className="hover:bg-muted w-full rounded-md">
               <Link href={`/${ch.slug}`} className="flex items-center justify-between">
                 <div className="flex items-center px-5 py-5">
                   <div className="ms-3 inline-block truncate">
@@ -169,31 +163,26 @@ function TeamPage({
       </div>
     );
 
+  const profileImageSrc = getOrgOrTeamAvatar(team);
+
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(currentOrgDomain)}
         title={teamName}
         description={teamName}
         meeting={{
           title: markdownStrippedBio,
           profile: {
             name: `${team.name}`,
-            image: `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`,
+            image: profileImageSrc,
           },
         }}
       />
       <main className="dark:bg-darkgray-50 bg-subtle mx-auto max-w-3xl rounded-md px-4 pb-12 pt-12">
         <div className="mx-auto mb-8 max-w-3xl text-center">
           <div className="relative">
-            <Avatar
-              alt={teamName}
-              imageSrc={
-                isValidOrgDomain
-                  ? `/org/${currentOrgDomain}/avatar.png`
-                  : `${WEBAPP_URL}/${team.metadata?.isOrganization ? "org" : "team"}/${team.slug}/avatar.png`
-              }
-              size="lg"
-            />
+            <Avatar alt={teamName} imageSrc={profileImageSrc} size="lg" />
           </div>
           <p className="font-cal  text-emphasis mb-2 text-2xl tracking-wider" data-testid="team-name">
             {team.parent && `${team.parent.name} `}
@@ -208,12 +197,18 @@ function TeamPage({
             </>
           )}
         </div>
-        {metadata?.isOrganization ? (
-          <SubTeams />
+        {team.isOrganization ? (
+          !teamOrOrgIsPrivate ? (
+            <SubTeams />
+          ) : (
+            <div className="w-full text-center">
+              <h2 className="text-emphasis font-semibold">{t("you_cannot_see_teams_of_org")}</h2>
+            </div>
+          )
         ) : (
           <>
             {(showMembers.isOn || !team.eventTypes?.length) &&
-              (team.isPrivate ? (
+              (teamOrOrgIsPrivate ? (
                 <div className="w-full text-center">
                   <h2 data-testid="you-cannot-see-team-members" className="text-emphasis font-semibold">
                     {t("you_cannot_see_team_members")}
@@ -227,7 +222,7 @@ function TeamPage({
                 <EventTypes eventTypes={team.eventTypes} />
 
                 {/* Hide "Book a team member button when team is private or hideBookATeamMember is true" */}
-                {!team.hideBookATeamMember && !team.isPrivate && (
+                {!team.hideBookATeamMember && !teamOrOrgIsPrivate && (
                   <div>
                     <div className="relative mt-12">
                       <div className="absolute inset-0 flex items-center" aria-hidden="true">
@@ -243,7 +238,7 @@ function TeamPage({
                     <aside className="dark:text-inverted mt-8 flex justify-center text-center">
                       <Button
                         color="minimal"
-                        EndIcon={ArrowRight}
+                        EndIcon="arrow-right"
                         data-testid="book-a-team-member-btn"
                         className="dark:hover:bg-darkgray-200"
                         href={{
@@ -267,124 +262,6 @@ function TeamPage({
     </>
   );
 }
-
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const slug = Array.isArray(context.query?.slug) ? context.query.slug.pop() : context.query.slug;
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const isOrgContext = isValidOrgDomain && currentOrgDomain;
-
-  // Provided by Rewrite from next.config.js
-  const isOrgProfile = context.query?.isOrgProfile === "1";
-  const flags = await getFeatureFlagMap(prisma);
-  const isOrganizationFeatureEnabled = flags["organizations"];
-
-  log.debug("getServerSideProps", {
-    isOrgProfile,
-    isOrganizationFeatureEnabled,
-    isValidOrgDomain,
-    currentOrgDomain,
-  });
-
-  const team = await getTeamWithMembers({
-    slug: slugify(slug ?? ""),
-    orgSlug: currentOrgDomain,
-    isTeamView: true,
-    isOrgView: isValidOrgDomain && isOrgProfile,
-  });
-
-  if (!isOrgContext && slug) {
-    const redirect = await getTemporaryOrgRedirect({
-      slug: slug,
-      redirectType: RedirectType.Team,
-      eventTypeSlug: null,
-      currentQuery: context.query,
-    });
-
-    if (redirect) {
-      return redirect;
-    }
-  }
-
-  const ssr = await ssrInit(context);
-  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-
-  // Taking care of sub-teams and orgs
-  if (
-    (!isValidOrgDomain && team?.parent) ||
-    (!isValidOrgDomain && !!metadata?.isOrganization) ||
-    !isOrganizationFeatureEnabled
-  ) {
-    return { notFound: true } as const;
-  }
-
-  if (!team || (team.parent && !team.parent.slug)) {
-    const unpublishedTeam = await prisma.team.findFirst({
-      where: {
-        ...(team?.parent
-          ? { id: team.parent.id }
-          : {
-              metadata: {
-                path: ["requestedSlug"],
-                equals: slug,
-              },
-            }),
-      },
-    });
-
-    if (!unpublishedTeam) return { notFound: true } as const;
-
-    return {
-      props: {
-        isUnpublished: true,
-        team: { ...unpublishedTeam, createdAt: null },
-        trpcState: ssr.dehydrate(),
-      },
-    } as const;
-  }
-
-  team.eventTypes =
-    team.eventTypes?.map((type) => ({
-      ...type,
-      users: type.users.map((user) => ({
-        ...user,
-        avatar: `/${user.username}/avatar.png`,
-      })),
-      descriptionAsSafeHTML: markdownToSafeHTML(type.description),
-    })) ?? null;
-
-  const safeBio = markdownToSafeHTML(team.bio) || "";
-
-  const members = !team.isPrivate
-    ? team.members.map((member) => {
-        return {
-          name: member.name,
-          id: member.id,
-          bio: member.bio,
-          subteams: member.subteams,
-          username: member.username,
-          accepted: member.accepted,
-          organizationId: member.organizationId,
-          safeBio: markdownToSafeHTML(member.bio || ""),
-          bookerUrl: getBookerBaseUrlSync(member.organization?.slug || ""),
-        };
-      })
-    : [];
-
-  const markdownStrippedBio = stripMarkdown(team?.bio || "");
-
-  const { inviteToken: _inviteToken, ...serializableTeam } = team;
-
-  return {
-    props: {
-      team: { ...serializableTeam, safeBio, members, metadata },
-      themeBasis: serializableTeam.slug,
-      trpcState: ssr.dehydrate(),
-      markdownStrippedBio,
-      isValidOrgDomain,
-      currentOrgDomain,
-    },
-  } as const;
-};
 
 TeamPage.isBookingPage = true;
 TeamPage.PageWrapper = PageWrapper;

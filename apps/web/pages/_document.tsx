@@ -32,7 +32,8 @@ class MyDocument extends Document<Props> {
 
     const newLocale =
       ctx.req && getLocaleModule
-        ? await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await getLocaleModule.getLocale(ctx.req as IncomingMessage & { cookies: Record<string, any> })
         : "en";
 
     const asPath = ctx.asPath || "";
@@ -75,8 +76,8 @@ class MyDocument extends Document<Props> {
           <link rel="manifest" href="/site.webmanifest" />
           <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000" />
           <meta name="msapplication-TileColor" content="#ff0000" />
-          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9fafb" />
-          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1C1C1C" />
+          <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F9FAFC" />
+          <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#1F1F1F" />
           {!IS_PRODUCTION && process.env.VERCEL_ENV === "preview" && (
             // eslint-disable-next-line @next/next/no-sync-scripts
             <script
@@ -87,7 +88,7 @@ class MyDocument extends Document<Props> {
         </Head>
 
         <body
-          className="dark:bg-darkgray-50 desktop-transparent bg-subtle antialiased"
+          className="dark:bg-darkgray-50 bg-subtle antialiased"
           style={
             isEmbed
               ? {

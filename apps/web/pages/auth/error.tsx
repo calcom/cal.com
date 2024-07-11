@@ -1,16 +1,15 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import z from "zod";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button } from "@calcom/ui";
-import { X } from "@calcom/ui/components/icon";
+import { Button, Icon } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 import AuthContainer from "@components/ui/AuthContainer";
 
-import { ssgInit } from "@server/lib/ssg";
+import { getTranslations } from "@server/lib/getTranslations";
 
 const querySchema = z.object({
   error: z.string().optional(),
@@ -18,24 +17,19 @@ const querySchema = z.object({
 
 export default function Error() {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { error } = querySchema.parse(searchParams);
-  const isTokenVerificationError = error?.toLowerCase() === "verification";
-  const errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
-
+  const searchParams = useSearchParams();
+  const { error } = querySchema.parse({ error: searchParams?.get("error") || undefined });
+  const errorMsg = error || t("error_during_login");
   return (
     <AuthContainer title="" description="">
       <div>
         <div className="bg-error mx-auto flex h-12 w-12 items-center justify-center rounded-full">
-          <X className="h-6 w-6 text-red-600" />
+          <Icon name="x" className="h-6 w-6 text-red-600" />
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-            {error}
+            {errorMsg}
           </h3>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{errorMsg}</p>
-          </div>
         </div>
       </div>
       <div className="mt-5 sm:mt-6">
@@ -50,11 +44,11 @@ export default function Error() {
 Error.PageWrapper = PageWrapper;
 
 export const getStaticProps = async (context: GetStaticPropsContext) => {
-  const ssr = await ssgInit(context);
+  const i18n = await getTranslations(context);
 
   return {
     props: {
-      trpcState: ssr.dehydrate(),
+      i18n,
     },
   };
 };

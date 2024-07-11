@@ -1,7 +1,7 @@
 import type { Prisma } from "@prisma/client";
 import type { IncomingMessage } from "http";
 
-import { IS_PRODUCTION } from "@calcom/lib/constants";
+import { IS_PRODUCTION, WEBSITE_URL } from "@calcom/lib/constants";
 import { ALLOWED_HOSTNAMES, RESERVED_SUBDOMAINS, WEBAPP_URL } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
@@ -53,9 +53,16 @@ export function getOrgSlug(hostname: string, forcedSlug?: string) {
 }
 
 export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: string | string[]) {
+  const forPlatform = isPlatformRequest(req);
   const forcedSlugHeader = req?.headers?.["x-cal-force-slug"];
-
   const forcedSlug = forcedSlugHeader instanceof Array ? forcedSlugHeader[0] : forcedSlugHeader;
+
+  if (forPlatform && forcedSlug) {
+    return {
+      isValidOrgDomain: true,
+      currentOrgDomain: forcedSlug,
+    };
+  }
 
   const hostname = req?.headers?.host || "";
   return getOrgDomainConfigFromHostname({
@@ -63,6 +70,10 @@ export function orgDomainConfig(req: IncomingMessage | undefined, fallback?: str
     fallback,
     forcedSlug,
   });
+}
+
+function isPlatformRequest(req: IncomingMessage | undefined) {
+  return !!req?.headers?.["x-cal-client-id"];
 }
 
 export function getOrgDomainConfigFromHostname({
@@ -99,10 +110,12 @@ export function subdomainSuffix() {
   return urlSplit.length === 3 ? urlSplit.slice(1).join(".") : urlSplit.join(".");
 }
 
-export function getOrgFullOrigin(slug: string, options: { protocol: boolean } = { protocol: true }) {
-  if (!slug) return options.protocol ? WEBAPP_URL : WEBAPP_URL.replace("https://", "").replace("http://", "");
+export function getOrgFullOrigin(slug: string | null, options: { protocol: boolean } = { protocol: true }) {
+  if (!slug)
+    return options.protocol ? WEBSITE_URL : WEBSITE_URL.replace("https://", "").replace("http://", "");
+
   const orgFullOrigin = `${
-    options.protocol ? `${new URL(WEBAPP_URL).protocol}//` : ""
+    options.protocol ? `${new URL(WEBSITE_URL).protocol}//` : ""
   }${slug}.${subdomainSuffix()}`;
   return orgFullOrigin;
 }
@@ -138,10 +151,7 @@ export function whereClauseForOrgWithSlugOrRequestedSlug(slug: string) {
         },
       },
     ],
-    metadata: {
-      path: ["isOrganization"],
-      equals: true,
-    },
+    isOrganization: true,
   } satisfies Prisma.TeamWhereInput;
 }
 

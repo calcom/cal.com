@@ -1,13 +1,15 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { Prisma } from "@prisma/client";
-import { LinkIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useLayoutEffect } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
+import OrgAppearanceViewWrapper from "@calcom/features/ee/organizations/pages/settings/appearance";
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,21 +17,23 @@ import { md } from "@calcom/lib/markdownIt";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
+import { Icon } from "@calcom/ui";
 import {
   Avatar,
+  BannerUploader,
   Button,
+  Editor,
   Form,
   ImageUploader,
   Label,
+  LinkIconButton,
   Meta,
   showToast,
-  TextField,
-  Editor,
-  LinkIconButton,
   SkeletonAvatar,
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  TextField,
 } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
@@ -37,15 +41,19 @@ import { useOrgBranding } from "../../../organizations/context/provider";
 
 const orgProfileFormSchema = z.object({
   name: z.string(),
-  logo: z.string().nullable(),
+  logoUrl: z.string().nullable(),
+  banner: z.string().nullable(),
+  calVideoLogo: z.string().nullable(),
   bio: z.string(),
 });
 
 type FormValues = {
   name: string;
-  logo: string | null;
+  logoUrl: string | null;
+  banner: string | null;
   bio: string;
   slug: string;
+  calVideoLogo: string | null;
 };
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
@@ -77,13 +85,22 @@ const OrgProfileView = () => {
     document.body.focus();
   }, []);
 
-  const { data: currentOrganisation, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const {
+    data: currentOrganisation,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
 
-  if (isLoading || !orgBranding || !currentOrganisation) {
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.replace("/enterprise");
+      }
+    },
+    [error]
+  );
+
+  if (isPending || !orgBranding || !currentOrganisation) {
     return <SkeletonLoader title={t("profile")} description={t("profile_org_description")} />;
   }
 
@@ -98,8 +115,10 @@ const OrgProfileView = () => {
 
   const defaultValues: FormValues = {
     name: currentOrganisation?.name || "",
-    logo: currentOrganisation?.logo || "",
+    logoUrl: currentOrganisation?.logoUrl,
+    banner: currentOrganisation?.bannerUrl || "",
     bio: currentOrganisation?.bio || "",
+    calVideoLogo: currentOrganisation?.calVideoLogo || "",
     slug:
       currentOrganisation?.slug ||
       ((currentOrganisation?.metadata as Prisma.JsonObject)?.requestedSlug as string) ||
@@ -111,7 +130,10 @@ const OrgProfileView = () => {
       <Meta title={t("profile")} description={t("profile_org_description")} borderInShellHeader={true} />
       <>
         {isOrgAdminOrOwner ? (
-          <OrgProfileForm defaultValues={defaultValues} />
+          <>
+            <OrgProfileForm defaultValues={defaultValues} />
+            <OrgAppearanceViewWrapper />
+          </>
         ) : (
           <div className="border-subtle flex rounded-b-md border border-t-0 px-4 py-8 sm:px-6">
             <div className="flex-grow">
@@ -131,7 +153,7 @@ const OrgProfileView = () => {
             </div>
             <div className="">
               <LinkIconButton
-                Icon={LinkIcon}
+                Icon="link"
                 onClick={() => {
                   navigator.clipboard.writeText(orgBranding.fullDomain);
                   showToast("Copied to clipboard", "success");
@@ -148,7 +170,7 @@ const OrgProfileView = () => {
 };
 
 const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const { t } = useLocale();
   const [firstRender, setFirstRender] = useState(true);
 
@@ -163,10 +185,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
     },
     onSuccess: async (res) => {
       reset({
-        logo: (res.data?.logo || "") as string,
+        logoUrl: res.data?.logoUrl,
         name: (res.data?.name || "") as string,
         bio: (res.data?.bio || "") as string,
         slug: defaultValues["slug"],
+        banner: (res.data?.bannerUrl || "") as string,
+        calVideoLogo: (res.data?.calVideoLogo || "") as string,
       });
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listCurrent.invalidate();
@@ -186,10 +210,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
       form={form}
       handleSubmit={(values) => {
         const variables = {
-          logo: values.logo,
+          logoUrl: values.logoUrl,
           name: values.name,
           slug: values.slug,
           bio: values.bio,
+          banner: values.banner,
+          calVideoLogo: values.calVideoLogo,
         };
 
         mutation.mutate(variables);
@@ -198,35 +224,108 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <div className="flex items-center">
           <Controller
             control={form.control}
-            name="logo"
-            render={({ field: { value } }) => {
-              const showRemoveLogoButton = !!value;
+            name="logoUrl"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveLogoButton = value !== null;
+              return (
+                <>
+                  <Avatar
+                    data-testid="profile-upload-logo"
+                    alt={form.getValues("name")}
+                    imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <ImageUploader
+                        target="logo"
+                        id="avatar-upload"
+                        buttonMsg={t("upload_logo")}
+                        handleAvatarChange={onChange}
+                        imageSrc={getPlaceholderAvatar(value, form.getValues("name"))}
+                        triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                      />
+                      {showRemoveLogoButton && (
+                        <Button color="secondary" onClick={() => onChange(null)}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
+          />
+        </div>
+
+        <div className="mt-2 flex items-center">
+          <Controller
+            control={form.control}
+            name="banner"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveBannerButton = !!value;
 
               return (
                 <>
                   <Avatar
-                    alt={defaultValues.name || ""}
-                    imageSrc={getPlaceholderAvatar(value, defaultValues.name as string)}
+                    data-testid="profile-upload-banner"
+                    alt={`${defaultValues.name} Banner` || ""}
+                    imageSrc={value}
+                    size="lg"
+                  />
+                  <div className="ms-4">
+                    <div className="flex gap-2">
+                      <BannerUploader
+                        height={500}
+                        width={1500}
+                        target="banner"
+                        uploadInstruction={t("org_banner_instructions", { height: 500, width: 1500 })}
+                        id="banner-upload"
+                        buttonMsg={t("upload_banner")}
+                        handleAvatarChange={onChange}
+                        imageSrc={value || undefined}
+                        triggerButtonColor={showRemoveBannerButton ? "secondary" : "primary"}
+                      />
+                      {showRemoveBannerButton && (
+                        <Button color="destructive" onClick={() => onChange(null)}>
+                          {t("remove")}
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </>
+              );
+            }}
+          />
+        </div>
+        <div className="mt-2 flex items-center">
+          <Controller
+            control={form.control}
+            name="calVideoLogo"
+            render={({ field: { value, onChange } }) => {
+              const showRemoveLogoButton = !!value;
+              return (
+                <>
+                  <Avatar
+                    alt="calVideoLogo"
+                    imageSrc={value}
+                    fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
                     size="lg"
                   />
                   <div className="ms-4">
                     <div className="flex gap-2">
                       <ImageUploader
                         target="avatar"
-                        id="avatar-upload"
-                        buttonMsg={t("upload_logo")}
-                        handleAvatarChange={(newLogo) => {
-                          form.setValue("logo", newLogo, { shouldDirty: true });
-                        }}
+                        id="cal-video-logo-upload"
+                        buttonMsg={t("upload_cal_video_logo")}
+                        handleAvatarChange={onChange}
                         imageSrc={value || undefined}
+                        uploadInstruction={t("cal_video_logo_upload_instruction")}
                         triggerButtonColor={showRemoveLogoButton ? "secondary" : "primary"}
+                        testId="cal-video-logo"
                       />
                       {showRemoveLogoButton && (
-                        <Button
-                          color="secondary"
-                          onClick={() => {
-                            form.setValue("logo", null, { shouldDirty: true });
-                          }}>
+                        <Button color="secondary" onClick={() => onChange(null)}>
                           {t("remove")}
                         </Button>
                       )}
@@ -283,7 +382,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>
       </div>
       <SectionBottomActions align="end">
-        <Button color="primary" type="submit" loading={mutation.isLoading} disabled={isDisabled}>
+        <Button
+          data-testid="update-org-profile-button"
+          color="primary"
+          type="submit"
+          loading={mutation.isPending}
+          disabled={isDisabled}>
           {t("update")}
         </Button>
       </SectionBottomActions>

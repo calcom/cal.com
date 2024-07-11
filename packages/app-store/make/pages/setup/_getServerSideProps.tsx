@@ -7,7 +7,9 @@ export interface IMakeSetupProps {
 }
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
-  if (typeof ctx.params?.slug !== "string") return { notFound: true } as const;
+  const notFound = { notFound: true } as const;
+
+  if (typeof ctx.params?.slug !== "string") return notFound;
   let inviteLink = "";
   const appKeys = await getAppKeysFromSlug("make");
   if (typeof appKeys.invite_link === "string") inviteLink = appKeys.invite_link;

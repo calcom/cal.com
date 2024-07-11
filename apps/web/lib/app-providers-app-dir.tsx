@@ -62,8 +62,12 @@ const CustomI18nextProvider = (props: { children: React.ReactElement; i18n?: SSR
   // @TODO
 
   const session = useSession();
+
+  // window.document.documentElement.lang can be empty in some cases, for instance when we rendering GlobalError (not-found) page.
   const locale =
-    session?.data?.user.locale ?? typeof window !== "undefined" ? window.document.documentElement.lang : "en";
+    session?.data?.user.locale ?? typeof window !== "undefined"
+      ? window.document.documentElement.lang || "en"
+      : "en";
 
   useEffect(() => {
     try {
@@ -109,7 +113,7 @@ const enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
-  App = "systemOnly",
+  App = "userConfigured",
   // Booking Pages(including Routing Forms)
   Booking = "userConfigured",
 }
@@ -191,7 +195,11 @@ function getThemeProviderProps(props: {
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
 
-  if ((isBookingPageThemeSupportRequired || props.isEmbedMode) && !props.themeBasis) {
+  if (
+    !process.env.NEXT_PUBLIC_IS_E2E &&
+    (isBookingPageThemeSupportRequired || props.isEmbedMode) &&
+    !props.themeBasis
+  ) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );

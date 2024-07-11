@@ -1,6 +1,6 @@
+import { keepPreviousData } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { useMemo, useRef, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
@@ -8,11 +8,11 @@ import type { DateRange } from "@calcom/lib/date-ranges";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc";
-import { Button, ButtonGroup, DataTable } from "@calcom/ui";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
+import type { UserProfile } from "@calcom/types/UserProfile";
+import { Button, ButtonGroup, DataTable, UserAvatar } from "@calcom/ui";
 
 import { UpgradeTip } from "../../tips/UpgradeTip";
-import { TBContext, createTimezoneBuddyStore } from "../store";
+import { createTimezoneBuddyStore, TBContext } from "../store";
 import { AvailabilityEditSheet } from "./AvailabilityEditSheet";
 import { TimeDial } from "./TimeDial";
 
@@ -21,11 +21,13 @@ export interface SliderUser {
   username: string | null;
   name: string | null;
   organizationId: number;
+  avatarUrl: string | null;
   email: string;
   timeZone: string;
   role: MembershipRole;
   defaultScheduleId: number | null;
   dateRanges: DateRange[];
+  profile: UserProfile;
 }
 
 function UpgradeTeamTip() {
@@ -55,14 +57,13 @@ function UpgradeTeamTip() {
   );
 }
 
-export function AvailabilitySliderTable() {
-  const { t } = useLocale();
+export function AvailabilitySliderTable(props: { userTimeFormat: number | null }) {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const [browsingDate, setBrowsingDate] = useState(dayjs());
   const [editSheetOpen, setEditSheetOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SliderUser | null>(null);
 
-  const { data, isLoading, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.availability.listTeam.useInfiniteQuery(
     {
       limit: 10,
       loggedInUsersTz: dayjs.tz.guess() || "Europe/London",
@@ -71,7 +72,7 @@ export function AvailabilitySliderTable() {
     },
     {
       getNextPageParam: (lastPage) => lastPage.nextCursor,
-      keepPreviousData: true,
+      placeholderData: keepPreviousData,
     }
   );
 
@@ -82,7 +83,7 @@ export function AvailabilitySliderTable() {
         accessorFn: (data) => data.email,
         header: "Member",
         cell: ({ row }) => {
-          const { username, email, timeZone, name, organizationId } = row.original;
+          const { username, email, timeZone, name, avatarUrl, profile } = row.original;
           return (
             <div className="max-w-64 flex flex-shrink-0 items-center gap-2 overflow-hidden">
               <UserAvatar
@@ -90,7 +91,8 @@ export function AvailabilitySliderTable() {
                 user={{
                   username,
                   name,
-                  organizationId,
+                  avatarUrl,
+                  profile,
                 }}
               />
               <div className="">
@@ -130,22 +132,22 @@ export function AvailabilitySliderTable() {
         id: "slider",
         header: () => {
           return (
-            <div className="flex items-center">
+            <div className="flex items-center space-x-2">
               <ButtonGroup containerProps={{ className: "space-x-0" }}>
                 <Button
                   color="minimal"
                   variant="icon"
-                  StartIcon={ChevronLeftIcon}
+                  StartIcon="chevron-left"
                   onClick={() => setBrowsingDate(browsingDate.subtract(1, "day"))}
                 />
                 <Button
                   onClick={() => setBrowsingDate(browsingDate.add(1, "day"))}
                   color="minimal"
-                  StartIcon={ChevronRightIcon}
+                  StartIcon="chevron-right"
                   variant="icon"
                 />
               </ButtonGroup>
-              <span>{browsingDate.format("DD dddd MMM, YYYY")}</span>
+              <span>{browsingDate.format("LL")}</span>
             </div>
           );
         },
@@ -192,8 +194,9 @@ export function AvailabilitySliderTable() {
         browsingDate: browsingDate.toDate(),
       })}>
       <>
-        <div className="relative">
+        <div className="relative -mx-2 w-[calc(100%+16px)] overflow-x-scroll px-2 lg:-mx-6 lg:w-[calc(100%+48px)] lg:px-6">
           <DataTable
+            variant="compact"
             searchKey="member"
             tableContainerRef={tableContainerRef}
             columns={memorisedColumns}
@@ -202,7 +205,7 @@ export function AvailabilitySliderTable() {
               setSelectedUser(row.original);
             }}
             data={flatData}
-            isLoading={isLoading}
+            isPending={isPending}
             // tableOverlay={<HoverOverview />}
             onScroll={(e) => fetchMoreOnBottomReached(e.target as HTMLDivElement)}
           />

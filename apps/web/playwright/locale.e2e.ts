@@ -282,7 +282,7 @@ test.describe("authorized user sees correct translations (pt-br)", async () => {
   test("should return correct translations and html attributes", async ({ page, users }) => {
     await test.step("should create a pt-br user", async () => {
       const user = await users.create({
-        locale: "pt-br",
+        locale: "pt-BR",
       });
       await user.apiLogin();
     });
@@ -496,11 +496,10 @@ test.describe("authorized user sees changed translations (de->pt-BR) [locale1]",
 
     await test.step("should change the language and show Brazil-Portuguese translations", async () => {
       await page.goto("/settings/my-account/general");
-
       await page.waitForLoadState("domcontentloaded");
 
       await page.locator(".bg-default > div > div:nth-child(2)").first().click();
-      await page.locator("#react-select-2-option-14").click();
+      await page.locator("text=Português (Brasil)").click();
 
       await page.getByRole("button", { name: "Aktualisieren" }).click();
 

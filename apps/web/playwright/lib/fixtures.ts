@@ -4,9 +4,11 @@ import { test as base } from "@playwright/test";
 import prisma from "@calcom/prisma";
 
 import type { ExpectedUrlDetails } from "../../../../playwright.config";
+import { createAppsFixture } from "../fixtures/apps";
 import { createBookingsFixture } from "../fixtures/bookings";
 import { createEmailsFixture } from "../fixtures/emails";
 import { createEmbedsFixture } from "../fixtures/embeds";
+import { createEventTypeFixture } from "../fixtures/eventTypes";
 import { createFeatureFixture } from "../fixtures/features";
 import { createOrgsFixture } from "../fixtures/orgs";
 import { createPaymentsFixture } from "../fixtures/payments";
@@ -14,6 +16,8 @@ import { createBookingPageFixture } from "../fixtures/regularBookings";
 import { createRoutingFormsFixture } from "../fixtures/routingForms";
 import { createServersFixture } from "../fixtures/servers";
 import { createUsersFixture } from "../fixtures/users";
+import { createWebhookPageFixture } from "../fixtures/webhooks";
+import { createWorkflowPageFixture } from "../fixtures/workflows";
 
 export interface Fixtures {
   page: Page;
@@ -27,7 +31,11 @@ export interface Fixtures {
   emails: ReturnType<typeof createEmailsFixture>;
   routingForms: ReturnType<typeof createRoutingFormsFixture>;
   bookingPage: ReturnType<typeof createBookingPageFixture>;
+  workflowPage: ReturnType<typeof createWorkflowPageFixture>;
   features: ReturnType<typeof createFeatureFixture>;
+  eventTypePage: ReturnType<typeof createEventTypeFixture>;
+  appsPage: ReturnType<typeof createAppsFixture>;
+  webhooks: ReturnType<typeof createWebhookPageFixture>;
 }
 
 declare global {
@@ -91,5 +99,21 @@ export const test = base.extend<Fixtures>({
     const features = createFeatureFixture(page);
     await features.init();
     await use(features);
+  },
+  workflowPage: async ({ page }, use) => {
+    const workflowPage = createWorkflowPageFixture(page);
+    await use(workflowPage);
+  },
+  eventTypePage: async ({ page }, use) => {
+    const eventTypePage = createEventTypeFixture(page);
+    await use(eventTypePage);
+  },
+  appsPage: async ({ page }, use) => {
+    const appsPage = createAppsFixture(page);
+    await use(appsPage);
+  },
+  webhooks: async ({ page }, use) => {
+    const webhooks = createWebhookPageFixture(page);
+    await use(webhooks);
   },
 });

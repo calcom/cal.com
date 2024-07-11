@@ -1,4 +1,8 @@
+"use client";
+
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -21,6 +25,9 @@ import {
   SkeletonText,
   TimezoneSelect,
 } from "@calcom/ui";
+
+import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -47,20 +54,30 @@ interface GeneralViewProps {
 const OrgGeneralView = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const session = useSession();
+  const orgRole = session?.data?.user?.org?.role;
 
-  const { data: currentOrg, isLoading } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    onError: () => {
-      router.push("/settings");
-    },
-  });
+  const {
+    data: currentOrg,
+    isPending,
+    error,
+  } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {});
   const { data: user } = trpc.viewer.me.useQuery();
 
-  if (isLoading) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (error) {
+        router.replace("/enterprise");
+      }
+    },
+    [error]
+  );
+
+  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!currentOrg) {
     return null;
   }
-  const isAdminOrOwner =
-    currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN;
+  const isAdminOrOwner = orgRole === MembershipRole.OWNER || orgRole === MembershipRole.ADMIN;
 
   return (
     <LicenseRequired>
@@ -69,6 +86,9 @@ const OrgGeneralView = () => {
         isAdminOrOwner={isAdminOrOwner}
         localeProp={user?.locale ?? "en"}
       />
+
+      <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };

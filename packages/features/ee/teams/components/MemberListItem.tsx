@@ -1,11 +1,9 @@
 import classNames from "classnames";
-import { SendIcon } from "lucide-react";
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -25,9 +23,8 @@ import {
   DropdownMenuTrigger,
   showToast,
   Tooltip,
+  UserAvatar,
 } from "@calcom/ui";
-import { ExternalLink, MoreHorizontal, Edit2, Lock, UserX } from "@calcom/ui/components/icon";
-import { UserAvatar } from "@calcom/web/components/ui/avatar/UserAvatar";
 
 import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
@@ -47,15 +44,13 @@ const useCurrentUserId = () => {
 };
 
 const checkIsOrg = (team: Props["team"]) => {
-  const metadata = teamMetadataSchema.safeParse(team.metadata);
-  if (metadata.success && metadata.data?.isOrganization) return true;
-  return false;
+  return team.isOrganization;
 };
 
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
   const [showImpersonateModal, setShowImpersonateModal] = useState(false);
@@ -100,8 +95,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({
-      teamId: props.team?.id,
-      memberId: props.member.id,
+      teamIds: [props.team?.id],
+      memberIds: [props.member.id],
       isOrg: checkIsOrg(props.team),
     });
 
@@ -138,12 +133,18 @@ export default function MemberListItem(props: Props) {
       )
     ) : null;
   });
+
   return (
     <li className="divide-subtle divide-y px-5">
       <div className="my-4 flex justify-between">
         <div className="flex w-full flex-col justify-between truncate sm:flex-row">
           <div className="flex">
-            <UserAvatar size="sm" user={props.member} className="h-10 w-10 rounded-full" />
+            <UserAvatar
+              noOrganizationIndicator
+              size="sm"
+              user={props.member}
+              className="h-10 w-10 rounded-full"
+            />
             <div className="ms-3 inline-block">
               <div className="mb-1 flex" data-testid={`member-${props.member.username}`}>
                 <span data-testid="member-name" className="text-default mr-2 text-sm font-bold leading-4">
@@ -196,7 +197,7 @@ export default function MemberListItem(props: Props) {
                   onClick={() => (props.member.accepted ? setShowTeamAvailabilityModal(true) : null)}
                   color="secondary"
                   variant="icon"
-                  StartIcon={Clock}
+                  StartIcon="clock"
                 />
               </Tooltip> */}
               {!!props.member.accepted && (
@@ -207,7 +208,7 @@ export default function MemberListItem(props: Props) {
                     color="secondary"
                     className={classNames(!editMode ? "rounded-r-md" : "")}
                     variant="icon"
-                    StartIcon={ExternalLink}
+                    StartIcon="external-link"
                     disabled={!props.member.accepted}
                   />
                 </Tooltip>
@@ -219,7 +220,7 @@ export default function MemberListItem(props: Props) {
                       className="radix-state-open:rounded-r-md"
                       color="secondary"
                       variant="icon"
-                      StartIcon={MoreHorizontal}
+                      StartIcon="ellipsis"
                     />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
@@ -227,7 +228,7 @@ export default function MemberListItem(props: Props) {
                       <DropdownItem
                         type="button"
                         onClick={() => setShowChangeMemberRoleModal(true)}
-                        StartIcon={Edit2}>
+                        StartIcon="pencil">
                         {t("edit")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -237,7 +238,7 @@ export default function MemberListItem(props: Props) {
                           <DropdownItem
                             type="button"
                             onClick={() => setShowImpersonateModal(true)}
-                            StartIcon={Lock}>
+                            StartIcon="lock">
                             {t("impersonate")}
                           </DropdownItem>
                         </DropdownMenuItem>
@@ -255,7 +256,7 @@ export default function MemberListItem(props: Props) {
                               language: i18n.language,
                             });
                           }}
-                          StartIcon={SendIcon}>
+                          StartIcon="send">
                           {t("resend_invitation")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -265,7 +266,7 @@ export default function MemberListItem(props: Props) {
                         type="button"
                         onClick={() => setShowDeleteModal(true)}
                         color="destructive"
-                        StartIcon={UserX}>
+                        StartIcon="user-x">
                         {t("remove")}
                       </DropdownItem>
                     </DropdownMenuItem>
@@ -276,7 +277,7 @@ export default function MemberListItem(props: Props) {
             <div className="flex md:hidden">
               <Dropdown>
                 <DropdownMenuTrigger asChild>
-                  <Button type="button" variant="icon" color="minimal" StartIcon={MoreHorizontal} />
+                  <Button type="button" variant="icon" color="minimal" StartIcon="ellipsis" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                   <DropdownMenuItem className="outline-none">
@@ -285,7 +286,7 @@ export default function MemberListItem(props: Props) {
                       href={!props.member.accepted ? undefined : `/${props.member.username}`}
                       target="_blank"
                       type="button"
-                      StartIcon={ExternalLink}>
+                      StartIcon="external-link">
                       {t("view_public_page")}
                     </DropdownItem>
                   </DropdownMenuItem>
@@ -295,7 +296,7 @@ export default function MemberListItem(props: Props) {
                         <DropdownItem
                           type="button"
                           onClick={() => setShowChangeMemberRoleModal(true)}
-                          StartIcon={Edit2}>
+                          StartIcon="pencil">
                           {t("edit")}
                         </DropdownItem>
                       </DropdownMenuItem>
@@ -304,7 +305,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           color="destructive"
                           onClick={() => setShowDeleteModal(true)}
-                          StartIcon={UserX}>
+                          StartIcon="user-x">
                           {t("remove")}
                         </DropdownItem>
                       </DropdownMenuItem>

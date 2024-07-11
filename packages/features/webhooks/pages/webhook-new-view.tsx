@@ -26,13 +26,14 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const NewWebhookView = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const router = useRouter();
   const session = useSession();
 
   const teamId = searchParams?.get("teamId") ? Number(searchParams.get("teamId")) : undefined;
+  const platform = searchParams?.get("platform") ? Boolean(searchParams.get("platform")) : false;
 
-  const { data: installedApps, isLoading } = trpc.viewer.integrations.useQuery(
+  const { data: installedApps, isPending } = trpc.viewer.integrations.useQuery(
     { variant: "other", onlyInstalled: true },
     {
       suspense: true,
@@ -63,6 +64,7 @@ const NewWebhookView = () => {
         webhooks,
         teamId,
         userId: session.data?.user.id,
+        platform,
       })
     ) {
       showToast(t("webhook_subscriber_url_reserved"), "error");
@@ -80,10 +82,11 @@ const NewWebhookView = () => {
       payloadTemplate: values.payloadTemplate,
       secret: values.secret,
       teamId,
+      platform,
     });
   };
 
-  if (isLoading)
+  if (isPending)
     return (
       <SkeletonLoader
         title={t("add_webhook")}

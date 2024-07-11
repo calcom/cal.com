@@ -1,3 +1,5 @@
+// eslint-disable-next-line no-restricted-imports
+import shuffle from "lodash/shuffle";
 import { useState, memo } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -5,6 +7,14 @@ import { localStorage } from "@calcom/lib/webstorage";
 import { Card } from "@calcom/ui";
 
 export const tips = [
+  {
+    id: 13,
+    thumbnailUrl: "https://img.youtube.com/vi/ihE8OYTdklg/0.jpg",
+    mediaLink: "https://go.cal.com/ooo",
+    title: "ooo.new",
+    description: "Easily go out-of-office",
+    href: "https://ooo.new",
+  },
   {
     id: 12,
     thumbnailUrl: "https://cal.com/og-image-cal-ai.jpg",
@@ -103,7 +113,7 @@ export const tips = [
   },
 ];
 
-const reversedTips = tips.slice(0).reverse();
+const reversedTips = shuffle(tips).slice(0).reverse();
 
 function Tips() {
   const { t } = useLocale();

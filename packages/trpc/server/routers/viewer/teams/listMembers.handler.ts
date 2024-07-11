@@ -1,3 +1,4 @@
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -13,6 +14,13 @@ type ListMembersOptions = {
 
 export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => {
   const { prisma } = ctx;
+  const { isOrgAdmin } = ctx.user.organization;
+  const hasPermsToView = !ctx.user.organization.isPrivate || isOrgAdmin;
+
+  if (!hasPermsToView) {
+    return [];
+  }
+
   const teams = await prisma.team.findMany({
     where: {
       id: {
@@ -35,6 +43,7 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
               id: true,
               name: true,
               username: true,
+              avatarUrl: true,
             },
           },
           accepted: true,
@@ -52,7 +61,9 @@ export const listMembersHandler = async ({ ctx, input }: ListMembersOptions) => 
       {} as UserMap
     );
 
-  return Object.values(users);
+  return await Promise.all(
+    Object.values(users).map(async (u) => UserRepository.enrichUserWithItsProfile({ user: u }))
+  );
 };
 
 export default listMembersHandler;

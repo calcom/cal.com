@@ -2,14 +2,16 @@ import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import type { TGetListSchema } from "./list.schema";
 
 type ListOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
   };
+  input: TGetListSchema;
 };
 
-export const listHandler = async ({ ctx }: ListOptions) => {
+export const listHandler = async ({ ctx, input }: ListOptions) => {
   const memberships = await prisma.membership.findMany({
     where: {
       // Show all the teams this user belongs to regardless of the team being part of the user's org or not
@@ -20,9 +22,16 @@ export const listHandler = async ({ ctx }: ListOptions) => {
     },
     include: {
       team: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          isOrganization: true,
+          metadata: true,
           inviteTokens: true,
           parent: true,
+          parentId: true,
         },
       },
     },
@@ -31,15 +40,16 @@ export const listHandler = async ({ ctx }: ListOptions) => {
 
   return memberships
     .filter((mmship) => {
-      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      if (input?.includeOrgs) return true;
+      return !mmship.team.isOrganization;
     })
-    .map(({ team: { inviteTokens, ..._team }, ...membership }) => ({
+    .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
-      ..._team,
+      ...team,
+      metadata: teamMetadataSchema.parse(team.metadata),
       /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
     }));
 };
 

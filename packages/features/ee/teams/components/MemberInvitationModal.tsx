@@ -1,8 +1,7 @@
-import { BuildingIcon, PaperclipIcon, UserIcon, Users } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { Trans } from "next-i18next";
-import { useMemo, useState, useRef } from "react";
 import type { FormEvent } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import TeamInviteFromOrg from "@calcom/ee/organizations/components/TeamInviteFromOrg";
@@ -19,14 +18,14 @@ import {
   DialogContent,
   DialogFooter,
   Form,
+  Icon,
   Label,
+  Select,
   showToast,
+  TextAreaField,
   TextField,
   ToggleGroup,
-  Select,
-  TextAreaField,
 } from "@calcom/ui";
-import { Link } from "@calcom/ui/components/icon";
 
 import type { PendingMember } from "../lib/types";
 import { GoogleWorkspaceInviteButton } from "./GoogleWorkspaceInviteButton";
@@ -41,7 +40,7 @@ type MemberInvitationModalProps = {
   teamId: number;
   members?: PendingMember[];
   token?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   disableCopyLink?: boolean;
   isOrg?: boolean;
 };
@@ -70,15 +69,26 @@ function toggleElementInArray(value: string[] | string | undefined, element: str
 export default function MemberInvitationModal(props: MemberInvitationModalProps) {
   const { t } = useLocale();
   const { disableCopyLink = false, isOrg = false } = props;
-  const trpcContext = trpc.useContext();
+  const trpcContext = trpc.useUtils();
   const session = useSession();
   const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
     enabled: !!session.data?.user?.org,
   });
-  const isOrgOwner = currentOrg && currentOrg.user.role === MembershipRole.OWNER;
+
+  // Check current org role and not team role
+  const isOrgAdminOrOwner =
+    currentOrg &&
+    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+
+  const canSeeOrganization = !!(
+    props?.orgMembers &&
+    props.orgMembers?.length > 0 &&
+    currentOrg?.isPrivate &&
+    isOrgAdminOrOwner
+  );
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
-    props?.orgMembers && props.orgMembers?.length > 0 ? "ORGANIZATION" : "INDIVIDUAL"
+    canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
   );
 
   const createInviteMutation = trpc.viewer.teams.createInvite.useMutation({
@@ -99,31 +109,31 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     ];
 
     // Adjust options for organizations where the user isn't the owner
-    if (isOrg && !isOrgOwner) {
+    if (isOrg && !isOrgAdminOrOwner) {
       return options.filter((option) => option.value !== MembershipRole.OWNER);
     }
 
     return options;
-  }, [t, isOrgOwner, isOrg]);
+  }, [t, isOrgAdminOrOwner, isOrg]);
 
   const toggleGroupOptions = useMemo(() => {
     const array = [
       {
         value: "INDIVIDUAL",
         label: t("invite_team_individual_segment"),
-        iconLeft: <UserIcon />,
+        iconLeft: <Icon name="user" />,
       },
-      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Users /> },
+      { value: "BULK", label: t("invite_team_bulk_segment"), iconLeft: <Icon name="users" /> },
     ];
-    if (props?.orgMembers && props.orgMembers?.length > 0) {
+    if (canSeeOrganization) {
       array.unshift({
         value: "ORGANIZATION",
         label: t("organization"),
-        iconLeft: <BuildingIcon />,
+        iconLeft: <Icon name="building" />,
       });
     }
     return array;
-  }, [t, props.orgMembers]);
+  }, [t, canSeeOrganization]);
 
   const newMemberFormMethods = useForm<NewMemberForm>();
 
@@ -170,6 +180,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const resetFields = () => {
     newMemberFormMethods.reset();
     newMemberFormMethods.setValue("emailOrUsername", "");
+    newMemberFormMethods.setValue("role", options[0].value);
     setModalInputMode("INDIVIDUAL");
   };
 
@@ -271,7 +282,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                         required
                         value={value}
                         onChange={(e) => {
-                          const targetValues = e.target.value.split(",");
+                          const targetValues = e.target.value.split(/[\n,]/);
                           const emails =
                             targetValues.length === 1
                               ? targetValues[0].trim().toLocaleLowerCase()
@@ -298,7 +309,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                       importRef.current.click();
                     }
                   }}
-                  StartIcon={PaperclipIcon}
+                  StartIcon="paperclip"
                   className="mt-3 justify-center stroke-2">
                   {t("upload_csv_file")}
                 </Button>
@@ -412,7 +423,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                   }}
                   className={classNames("gap-2", props.token && "opacity-50")}
                   data-testid="copy-invite-link-button">
-                  <Link className="text-default h-4 w-4" aria-hidden="true" />
+                  <Icon name="link" className="text-default h-4 w-4" aria-hidden="true" />
                   <span className="hidden sm:inline">{t("copy_invite_link")}</span>
                 </Button>
               </div>
@@ -427,7 +438,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              loading={props.isLoading || createInviteMutation.isLoading}
+              loading={props.isPending || createInviteMutation.isPending}
               type="submit"
               color="primary"
               className="me-2 ms-2"

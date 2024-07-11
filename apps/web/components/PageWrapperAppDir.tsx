@@ -20,7 +20,7 @@ export interface CalPageWrapper {
 
 export type PageWrapperProps = Readonly<{
   getLayout: ((page: React.ReactElement) => ReactNode) | null;
-  children: React.ReactElement;
+  children: React.ReactNode;
   requiresLicense: boolean;
   nonce: string | undefined;
   themeBasis: string | null;
@@ -62,7 +62,7 @@ function PageWrapper(props: PageWrapperProps) {
           dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
         />
         {getLayout(
-          props.requiresLicense ? <LicenseRequired>{props.children}</LicenseRequired> : props.children
+          props.requiresLicense ? <LicenseRequired>{props.children}</LicenseRequired> : <>{props.children}</>
         )}
       </>
     </AppProviders>

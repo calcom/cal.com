@@ -1,12 +1,16 @@
 import client from "@sendgrid/client";
 import type { MailData } from "@sendgrid/helpers/classes/mail";
 import sgMail from "@sendgrid/mail";
+import { JSDOM } from "jsdom";
+import { v4 as uuidv4 } from "uuid";
 
 import { SENDER_NAME } from "@calcom/lib/constants";
 import { setTestEmail } from "@calcom/lib/testEmails";
 
 let sendgridAPIKey: string;
 let senderEmail: string;
+
+const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
 
 function assertSendgrid() {
   if (process.env.SENDGRID_API_KEY && process.env.SENDGRID_EMAIL) {
@@ -20,6 +24,9 @@ function assertSendgrid() {
 }
 
 export async function getBatchId() {
+  if (testMode) {
+    return uuidv4();
+  }
   assertSendgrid();
   if (!process.env.SENDGRID_API_KEY) {
     console.info("No sendgrid API key provided, returning DUMMY_BATCH_ID");
@@ -38,7 +45,6 @@ export function sendSendgridMail(
 ) {
   assertSendgrid();
 
-  const testMode = process.env.NEXT_PUBLIC_IS_E2E || process.env.INTEGRATION_TEST_MODE;
   if (testMode) {
     if (!mailData.sendAt) {
       setTestEmail({
@@ -70,10 +76,61 @@ export function sendSendgridMail(
       name: addData.sender || SENDER_NAME,
     },
     subject: mailData.subject,
-    html: mailData.html || "",
+    html: addHTMLStyles(mailData.html),
     batchId: mailData.batchId,
     replyTo: mailData.replyTo || senderEmail,
     attachments: mailData.attachments,
     sendAt: mailData.sendAt,
   });
+}
+
+export function cancelScheduledEmail(referenceId: string | null) {
+  if (!referenceId) {
+    console.info("No referenceId provided, skip canceling email");
+    return Promise.resolve();
+  }
+
+  assertSendgrid();
+
+  return client.request({
+    url: "/v3/user/scheduled_sends",
+    method: "POST",
+    body: {
+      batch_id: referenceId,
+      status: "cancel",
+    },
+  });
+}
+
+export function deleteScheduledSend(referenceId: string | null) {
+  if (!referenceId) {
+    console.info("No referenceId provided, skip deleting scheduledSend");
+    return Promise.resolve();
+  }
+
+  assertSendgrid();
+
+  return client.request({
+    url: `/v3/user/scheduled_sends/${referenceId}`,
+    method: "DELETE",
+  });
+}
+
+function addHTMLStyles(html?: string) {
+  if (!html) {
+    return "";
+  }
+  const dom = new JSDOM(html);
+  const document = dom.window.document;
+
+  // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
+  const links = document.querySelectorAll("h6 a");
+
+  links.forEach((link) => {
+    const htmlLink = link as HTMLElement;
+    htmlLink.style.fontSize = "20px";
+    htmlLink.style.textDecoration = "none";
+  });
+
+  return dom.serialize();
 }

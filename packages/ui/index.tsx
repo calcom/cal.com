@@ -1,13 +1,20 @@
-export { Avatar, AvatarGroup } from "./components/avatar";
+export {
+  Avatar,
+  AvatarGroup,
+  UserAvatar,
+  UserAvatarGroup,
+  UserAvatarGroupWithOrg,
+} from "./components/avatar";
 export type { AvatarProps, AvatarGroupProps } from "./components/avatar";
 export { ArrowButton } from "./components/arrow-button";
 export type { ArrowButtonProps } from "./components/arrow-button";
-export { Badge, UpgradeTeamsBadge } from "./components/badge";
+export { Badge, UpgradeTeamsBadge, InfoBadge } from "./components/badge";
 export type { BadgeProps } from "./components/badge";
 export { Breadcrumb, BreadcrumbContainer, BreadcrumbItem } from "./components/breadcrumb";
 export { Button, LinkIconButton } from "./components/button";
 export type { ButtonBaseProps, ButtonProps } from "./components/button";
 export { ButtonGroup } from "./components/buttonGroup";
+export { EditableHeading } from "./components/editable-heading";
 export {
   Checkbox,
   CheckboxField,
@@ -30,6 +37,7 @@ export {
   SelectField,
   SelectWithValidation,
   TimezoneSelect,
+  TimezoneSelectComponent,
   BooleanToggleGroup,
   BooleanToggleGroupField,
   DatePicker,
@@ -60,8 +68,14 @@ export {
   Stepper,
   Switch,
   NumberInput,
+  InputError,
 } from "./components/form";
-export type { ITimezone, ITimezoneOption } from "./components/form";
+export type {
+  ITimezone,
+  ITimezoneOption,
+  TimezoneSelectProps,
+  TimezoneSelectComponentProps,
+} from "./components/form";
 export {
   AllApps,
   AppCard,
@@ -77,6 +91,16 @@ export { TopBanner } from "./components/top-banner";
 export type { TopBannerProps } from "./components/top-banner";
 export { AnimatedPopover, MeetingTimeInTimezones } from "./components/popover";
 export { Table } from "./components/table/Table";
+export {
+  Table as TableNew,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./components/table/TableNew";
 export { TableActions, DropdownActions } from "./components/table/TableActions";
 export type { ActionType } from "./components/table/TableActions";
 export { ErrorBoundary } from "./components/errorBoundary";
@@ -96,6 +120,7 @@ export {
   SkeletonButton,
   SkeletonContainer,
   SkeletonText,
+  SelectSkeletonLoader,
   Loader,
 } from "./components/skeleton";
 export { HorizontalTabs, HorizontalTabItem, VerticalTabs, VerticalTabItem } from "./components/navigation";
@@ -112,6 +137,7 @@ export {
   DialogHeader,
   DialogTrigger,
   ConfirmationDialogContent,
+  ConfirmationContent,
 } from "./components/dialog";
 export type { DialogProps, ConfirmationDialogContentProps } from "./components/dialog";
 export { showToast } from "./components/toast"; // We don't export the toast components as they are only used in local storybook file
@@ -134,12 +160,15 @@ export {
 export { default as MultiSelectCheckboxes } from "./components/form/checkbox/MultiSelectCheckboxes";
 export type { Option as MultiSelectCheckboxesOptionType } from "./components/form/checkbox/MultiSelectCheckboxes";
 export { default as ImageUploader } from "./components/image-uploader/ImageUploader";
+export { default as BannerUploader } from "./components/image-uploader/BannerUploader";
+
 export type { ButtonColor } from "./components/button/Button";
 export { CreateButton, CreateButtonWithTeamsList } from "./components/createButton";
 
 export { useCalcomTheme } from "./styles/useCalcomTheme";
 export { ScrollableArea } from "./components/scrollable/ScrollableArea";
 export { WizardLayout } from "./layouts/WizardLayout";
+export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,
@@ -166,3 +195,5 @@ export {
 export { Popover, PopoverContent, PopoverTrigger } from "./components/popover";
 
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
+export { default as Icon } from "./components/icon/Icon";
+export type { IconName } from "./components/icon/dynamicIconImports";

@@ -37,6 +37,7 @@ export type AppProps = Omit<
       WithNonceProps<{
         themeBasis?: string;
         session: Session;
+        i18n?: SSRConfig;
       }>
     >
   >,
@@ -46,7 +47,7 @@ export type AppProps = Omit<
     requiresLicense?: boolean;
     isThemeSupported?: boolean;
     isBookingPage?: boolean | ((arg: { router: NextAppProps["router"] }) => boolean);
-    getLayout?: (page: React.ReactElement, router: NextAppProps["router"]) => ReactNode;
+    getLayout?: (page: React.ReactElement) => ReactNode;
     PageWrapper?: (props: AppProps) => JSX.Element;
   };
 
@@ -108,7 +109,7 @@ const CustomI18nextProvider = (props: AppPropsWithoutNonce) => {
   }, [locale]);
 
   const clientViewerI18n = useViewerI18n(locale);
-  const i18n = clientViewerI18n.data?.i18n;
+  const i18n = clientViewerI18n.data?.i18n ?? props.pageProps.i18n;
 
   const passedProps = {
     ...props,
@@ -126,9 +127,9 @@ const enum ThemeSupport {
   // e.g. Login Page
   None = "none",
   // Entire App except Booking Pages
-  App = "systemOnly",
+  App = "appConfigured",
   // Booking Pages(including Routing Forms)
-  Booking = "userConfigured",
+  Booking = "bookingConfigured",
 }
 
 type CalcomThemeProps = PropsWithChildren<
@@ -143,8 +144,10 @@ const CalcomThemeProvider = (props: CalcomThemeProps) => {
   const embedNamespace = getEmbedNamespace(props.router.query);
   const isEmbedMode = typeof embedNamespace === "string";
 
+  const themeProviderProps = getThemeProviderProps({ props, isEmbedMode, embedNamespace });
+
   return (
-    <ThemeProvider {...getThemeProviderProps({ props, isEmbedMode, embedNamespace })}>
+    <ThemeProvider {...themeProviderProps}>
       {/* Embed Mode can be detected reliably only on client side here as there can be static generated pages as well which can't determine if it's embed mode at backend */}
       {/* color-scheme makes background:transparent not work in iframe which is required by embed. */}
       {typeof window !== "undefined" && !isEmbedMode && (
@@ -212,7 +215,7 @@ function getThemeProviderProps({
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
   const themeBasis = props.themeBasis;
 
-  if ((isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
+  if (!process.env.NEXT_PUBLIC_IS_E2E && (isBookingPageThemeSupportRequired || isEmbedMode) && !themeBasis) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -6,8 +7,7 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Button, Select } from "@calcom/ui";
-import { Plus, Info } from "@calcom/ui/components/icon";
+import { Avatar, Button, Icon, Select } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -27,7 +27,7 @@ export default function Authorize() {
   const [selectedAccount, setSelectedAccount] = useState<{ value: string; label: string } | null>();
   const scopes = scope ? scope.toString().split(",") : [];
 
-  const { data: client, isLoading: isLoadingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
+  const { data: client, isPending: isPendingGetClient } = trpc.viewer.oAuth.getClient.useQuery(
     {
       clientId: client_id as string,
     },
@@ -36,7 +36,7 @@ export default function Authorize() {
     }
   );
 
-  const { data, isLoading: isLoadingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
+  const { data, isPending: isPendingProfiles } = trpc.viewer.teamsAndUserProfilesQuery.useQuery();
 
   const generateAuthCodeMutation = trpc.viewer.oAuth.generateAuthCode.useMutation({
     onSuccess: (data) => {
@@ -57,7 +57,7 @@ export default function Authorize() {
     if (mappedProfiles.length > 0) {
       setSelectedAccount(mappedProfiles[0]);
     }
-  }, [isLoadingProfiles]);
+  }, [isPendingProfiles]);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -68,9 +68,9 @@ export default function Authorize() {
     }
   }, [status]);
 
-  const isLoading = isLoadingGetClient || isLoadingProfiles || status !== "authenticated";
+  const isPending = isPendingGetClient || isPendingProfiles || status !== "authenticated";
 
-  if (isLoading) {
+  if (isPending) {
     return <></>;
   }
 
@@ -80,18 +80,18 @@ export default function Authorize() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="mt-2 max-w-xl rounded-md bg-white px-9 pb-3 pt-2">
+      <div className="bg-default border-subtle mt-2 max-w-xl rounded-md border px-9 pb-3 pt-2">
         <div className="flex items-center justify-center">
           <Avatar
             alt=""
-            fallback={<Plus className="text-subtle h-6 w-6" />}
+            fallback={<Icon name="plus" className="text-subtle h-6 w-6" />}
             className="items-center"
             imageSrc={client.logo}
             size="lg"
           />
           <div className="relative -ml-6 h-24 w-24">
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="flex h-[70px] w-[70px] items-center justify-center  rounded-full bg-white">
+              <div className="bg-default flex h-[70px] w-[70px] items-center  justify-center rounded-full">
                 <img src="/cal-com-icon.svg" alt="Logo" className="h-16 w-16 rounded-full" />
               </div>
             </div>
@@ -138,7 +138,7 @@ export default function Authorize() {
         </ul>
         <div className="bg-subtle mb-8 mt-8 flex rounded-md p-3">
           <div>
-            <Info className="mr-1 mt-0.5 h-4 w-4" />
+            <Icon name="info" className="mr-1 mt-0.5 h-4 w-4" />
           </div>
           <div className="ml-1 ">
             <div className="mb-1 text-sm font-medium">

@@ -1,6 +1,8 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -9,7 +11,6 @@ import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, showToast, TextField } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
@@ -56,7 +57,9 @@ function MembersList(props: MembersListProps) {
         placeholder={`${t("search")}...`}
       />
       {membersList?.length && team ? (
-        <ul className="divide-subtle border-subtle divide-y rounded-md border ">
+        <ul
+          className="divide-subtle border-subtle divide-y rounded-md border "
+          data-testId="team-member-list-container">
           {membersList.map((member) => {
             return (
               <MemberListItem
@@ -79,8 +82,9 @@ const MembersView = () => {
 
   const router = useRouter();
   const session = useSession();
+  const org = session?.data?.user.org;
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);
@@ -88,11 +92,8 @@ const MembersView = () => {
   const showDialog = searchParams?.get("inviteModal") === "true";
   const [showMemberInvitationModal, setShowMemberInvitationModal] = useState(showDialog);
   const [showInviteLinkSettingsModal, setInviteLinkSettingsModal] = useState(false);
-  const { data: currentOrg } = trpc.viewer.organizations.listCurrent.useQuery(undefined, {
-    enabled: !!session.data?.user?.org,
-  });
 
-  const { data: orgMembersNotInThisTeam, isLoading: isOrgListLoading } =
+  const { data: orgMembersNotInThisTeam, isPending: isOrgListLoading } =
     trpc.viewer.organizations.getMembers.useQuery(
       {
         teamIdToExclude: teamId,
@@ -103,17 +104,26 @@ const MembersView = () => {
       }
     );
 
-  const { data: team, isLoading: isTeamsLoading } = trpc.viewer.teams.get.useQuery(
+  const {
+    data: team,
+    isPending: isTeamsLoading,
+    error: teamError,
+  } = trpc.viewer.teams.get.useQuery(
     { teamId },
     {
       enabled: !!teamId,
-      onError: () => {
-        router.push("/settings");
-      },
     }
   );
+  useEffect(
+    function refactorMeWithoutEffect() {
+      if (teamError) {
+        router.replace("/teams");
+      }
+    },
+    [teamError]
+  );
 
-  const isLoading = isOrgListLoading || isTeamsLoading;
+  const isPending = isOrgListLoading || isTeamsLoading;
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -122,9 +132,7 @@ const MembersView = () => {
   const isAdmin =
     team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
-  const isOrgAdminOrOwner =
-    currentOrg &&
-    (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
+  const isOrgAdminOrOwner = org?.role === MembershipRole.OWNER || org?.role === MembershipRole.ADMIN;
 
   return (
     <>
@@ -136,7 +144,7 @@ const MembersView = () => {
             <Button
               type="button"
               color="primary"
-              StartIcon={Plus}
+              StartIcon="plus"
               className="ml-auto"
               onClick={() => setShowMemberInvitationModal(true)}
               data-testid="new-member-button">
@@ -147,7 +155,7 @@ const MembersView = () => {
           )
         }
       />
-      {!isLoading && (
+      {!isPending && (
         <>
           <div>
             {team && (
@@ -183,12 +191,17 @@ const MembersView = () => {
             )}
 
             {team && (isAdmin || isOrgAdminOrOwner) && (
-              <MakeTeamPrivateSwitch teamId={team.id} isPrivate={team.isPrivate} disabled={isInviteOpen} />
+              <MakeTeamPrivateSwitch
+                isOrg={false}
+                teamId={team.id}
+                isPrivate={team.isPrivate}
+                disabled={isInviteOpen}
+              />
             )}
           </div>
           {showMemberInvitationModal && team && (
             <MemberInvitationModal
-              isLoading={inviteMemberMutation.isLoading}
+              isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
@@ -212,7 +225,7 @@ const MembersView = () => {
                       if (Array.isArray(data.usernameOrEmail)) {
                         showToast(
                           t("email_invite_team_bulk", {
-                            userCount: data.usernameOrEmail.length,
+                            userCount: data.numUsersInvited,
                           }),
                           "success"
                         );

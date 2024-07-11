@@ -3,7 +3,8 @@ import mailhog from "mailhog";
 import { IS_MAILHOG_ENABLED } from "@calcom/lib/constants";
 
 const unimplemented = () => {
-  throw new Error("Mailhog is not enabled");
+  // throw new Error("Mailhog is not enabled");
+  return null;
 };
 
 const hasUUID = (query: string) => {
@@ -13,6 +14,7 @@ export const createEmailsFixture = () => {
   if (IS_MAILHOG_ENABLED) {
     const mailhogAPI = mailhog();
     return {
+      messages: mailhogAPI.messages.bind(mailhogAPI),
       search: (query: string, kind?: string, start?: number, limit?: number) => {
         if (kind === "from" || kind === "to") {
           if (!hasUUID(query)) {
@@ -27,6 +29,7 @@ export const createEmailsFixture = () => {
     };
   } else {
     return {
+      messages: unimplemented,
       search: unimplemented,
       deleteMessage: unimplemented,
     };

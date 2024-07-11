@@ -13,9 +13,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 export interface Option {
+  platform?: boolean;
   teamId: number | null | undefined; // if undefined, then it's a profile
   label: string | null;
   image: string | null;
@@ -25,10 +25,10 @@ export interface Option {
 export type CreateBtnProps = {
   options: Option[];
   createDialog?: () => JSX.Element;
-  createFunction?: (teamId?: number) => void;
+  createFunction?: (teamId?: number, platform?: boolean) => void;
   subtitle?: string;
   buttonText?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
   disableMobileButton?: boolean;
   "data-testid"?: string;
   color?: ButtonColor;
@@ -46,7 +46,7 @@ export function CreateButton(props: CreateBtnProps) {
   const {
     createDialog,
     options,
-    isLoading,
+    isPending,
     createFunction,
     buttonText,
     disableMobileButton,
@@ -56,6 +56,7 @@ export function CreateButton(props: CreateBtnProps) {
   const CreateDialog = createDialog ? createDialog() : null;
 
   const hasTeams = !!options.find((option) => option.teamId);
+  const platform = !!options.find((option) => option.platform);
 
   // inject selection data into url for correct router history
   const openModal = (option: Option) => {
@@ -74,7 +75,7 @@ export function CreateButton(props: CreateBtnProps) {
 
   return (
     <>
-      {!hasTeams ? (
+      {!hasTeams && !platform ? (
         <Button
           onClick={() =>
             !!CreateDialog
@@ -84,8 +85,8 @@ export function CreateButton(props: CreateBtnProps) {
               : null
           }
           data-testid="create-button"
-          StartIcon={Plus}
-          loading={isLoading}
+          StartIcon="plus"
+          loading={isPending}
           variant={disableMobileButton ? "button" : "fab"}
           {...restProps}>
           {buttonText ? buttonText : t("new")}
@@ -95,9 +96,9 @@ export function CreateButton(props: CreateBtnProps) {
           <DropdownMenuTrigger asChild>
             <Button
               variant={disableMobileButton ? "button" : "fab"}
-              StartIcon={Plus}
+              StartIcon="plus"
               data-testid="create-button-dropdown"
-              loading={isLoading}
+              loading={isPending}
               {...restProps}>
               {buttonText ? buttonText : t("new")}
             </Button>
@@ -111,14 +112,12 @@ export function CreateButton(props: CreateBtnProps) {
                 <DropdownItem
                   type="button"
                   data-testid={`option${option.teamId ? "-team" : ""}-${idx}`}
-                  StartIcon={(props) => (
-                    <Avatar alt={option.label || ""} imageSrc={option.image} size="sm" {...props} />
-                  )}
+                  CustomStartIcon={<Avatar alt={option.label || ""} imageSrc={option.image} size="sm" />}
                   onClick={() =>
                     !!CreateDialog
                       ? openModal(option)
                       : createFunction
-                      ? createFunction(option.teamId || undefined)
+                      ? createFunction(option.teamId || undefined, option.platform)
                       : null
                   }>
                   {" "}

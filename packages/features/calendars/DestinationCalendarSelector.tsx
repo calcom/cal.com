@@ -6,12 +6,11 @@ import { components } from "react-select";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { DestinationCalendar } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
-import { Select, Badge } from "@calcom/ui";
-import { Check } from "@calcom/ui/components/icon";
+import { Badge, Icon, Select } from "@calcom/ui";
 
 interface Props {
   onChange: (value: { externalId: string; integration: string }) => void;
-  isLoading?: boolean;
+  isPending?: boolean;
   hidePlaceholder?: boolean;
   /** The external Id of the connected calendar */
   destinationCalendar?: DestinationCalendar | null;
@@ -41,7 +40,7 @@ const OptionComponent = ({ ...props }: OptionProps<Option>) => {
     <components.Option {...props}>
       <div className="flex">
         <span className="mr-auto">{label}</span>
-        {props.isSelected && <Check className="ml-2 h-4 w-4" />}
+        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
       </div>
     </components.Option>
   );
@@ -49,12 +48,11 @@ const OptionComponent = ({ ...props }: OptionProps<Option>) => {
 
 const DestinationCalendarSelector = ({
   onChange,
-  isLoading,
+  isPending,
   value,
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-  destinationCalendar,
 }: Props): JSX.Element | null => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery();
@@ -127,7 +125,9 @@ const DestinationCalendarSelector = ({
   const queryDestinationCalendar = query.data.destinationCalendar;
 
   return (
-    <div className="relative" title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
+    <div
+      className="relative table w-full table-fixed"
+      title={`${t("create_events_on")}: ${selectedOption?.label || ""}`}>
       <Select
         name="primarySelectedCalendar"
         placeholder={
@@ -173,7 +173,7 @@ const DestinationCalendarSelector = ({
             externalId,
           });
         }}
-        isLoading={isLoading}
+        isLoading={isPending}
         value={selectedOption}
         components={{ SingleValue: SingleValueComponent, Option: OptionComponent }}
         isMulti={false}

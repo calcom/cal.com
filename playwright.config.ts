@@ -4,6 +4,8 @@ import dotEnv from "dotenv";
 import * as os from "os";
 import * as path from "path";
 
+import { WEBAPP_URL } from "@calcom/lib/constants";
+
 dotEnv.config({ path: ".env" });
 
 const outputDir = path.join(__dirname, "test-results");
@@ -58,6 +60,16 @@ if (IS_EMBED_REACT_TEST) {
 const DEFAULT_CHROMIUM = {
   ...devices["Desktop Chrome"],
   timezoneId: "Europe/London",
+  storageState: {
+    cookies: [
+      {
+        url: WEBAPP_URL,
+        name: "calcom-timezone-dialog",
+        expires: -1,
+        value: "1",
+      },
+    ],
+  },
   locale: "en-US",
   /** If navigation takes more than this, then something's wrong, let's fail fast. */
   navigationTimeout: DEFAULT_NAVIGATION_TIMEOUT,
@@ -74,7 +86,6 @@ const config: PlaywrightTestConfig = {
   fullyParallel: true,
   reporter: [
     [process.env.CI ? "github" : "list"],
-    ["@deploysentinel/playwright"],
     ["html", { outputFolder: "./test-results/reports/playwright-html-report", open: "never" }],
     ["junit", { outputFile: "./test-results/reports/results.xml" }],
   ],
@@ -85,6 +96,10 @@ const config: PlaywrightTestConfig = {
     locale: "en-US",
     trace: "retain-on-failure",
     headless,
+    // chromium-specific permissions - Chromium seems to be the only browser type that requires perms
+    contextOptions: {
+      permissions: ["clipboard-read", "clipboard-write"],
+    },
   },
   projects: [
     {
@@ -94,6 +109,8 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -103,6 +120,8 @@ const config: PlaywrightTestConfig = {
       expect: {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: DEFAULT_CHROMIUM,
     },
     {
@@ -125,6 +144,8 @@ const config: PlaywrightTestConfig = {
         timeout: DEFAULT_EXPECT_TIMEOUT,
       },
       testMatch: /.*\.e2e\.tsx?/,
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore TS definitions for USE are wrong.
       use: {
         ...DEFAULT_CHROMIUM,
         baseURL: "http://localhost:3101/",

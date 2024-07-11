@@ -48,17 +48,21 @@ Here is the full architecture:
 
 ### Email Router
 
-To expose the AI app, run `ngrok http 3005` (or the AI app's port number) in a new terminal. You may need to install [nGrok](https://ngrok.com/).
+To expose the AI app, you can use either [Tunnelmole](https://github.com/robbie-cahill/tunnelmole-client), an open source tunnelling tool; or [nGrok](https://ngrok.com/), a popular closed source tunnelling tool. 
+
+For Tunnelmole, run `tmole 3005` (or the AI app's port number) in a new terminal. Please replace `3005` with the port number if it is different. In the output, you'll see two URLs, one http and a https (we recommend using the https url for privacy and security). To install Tunnelmole, use `curl -O https://install.tunnelmole.com/8dPBw/install && sudo bash install`. (On Windows, download [tmole.exe](https://tunnelmole.com/downloads/tmole.exe))
+
+For nGrok, run `ngrok http 3005` (or the AI app's port number) in a new terminal. You may need to install nGrok first.
 
 To forward incoming emails to the serverless function at `/agent`, we use [SendGrid's Inbound Parse](https://docs.sendgrid.com/for-developers/parsing-email/setting-up-the-inbound-parse-webhook).
 
 1.  Ensure you have a [SendGrid account](https://signup.sendgrid.com/)
 2.  Ensure you have an authenticated domain. Go to Settings > Sender Authentication > Authenticate. For DNS host, select `I'm not sure`. Click Next and add your domain, eg. `example.com`. Choose Manual Setup. You'll be given three CNAME records to add to your DNS settings, eg. in [Vercel Domains](https://vercel.com/dashboard/domains). After adding those records, click Verify. To troubleshoot, see the [full instructions](https://docs.sendgrid.com/ui/account-and-settings/how-to-set-up-domain-authentication).
-3.  Authorize your domain for email with MX records: one with name `[your domain].com` and value `mx.sendgrid.net.`, and another with name `bounces.[your domain].com` and value `feedback-smtp.us-east-1.amazonses.com`, both with priority `10` if prompted.
+3.  Authorize your domain for email with MX records: one with name `[your domain].com` and value `mx.sendgrid.net.`, and another with name `bounces.[your domain].com` and value `feedback-smtp.us-east-1.amazonses.com`. Set the priority to `10` if prompted.
 4.  Go to Settings > [Inbound Parse](https://app.sendgrid.com/settings/parse) > Add Host & URL. Choose your authenticated domain.
-5.  In the Destination URL field, use the nGrok URL from above along with the path, `/api/receive`, and one param, `parseKey`, which lives in [this app's .env](/apps/ai/.env.example) under `PARSE_KEY`. The full URL should look like `https://abc.ngrok.io/api/receive?parseKey=ABC-123`.
+5.  In the Destination URL field, use the Tunnelmole or ngrok URL from above along with the path, `/api/receive`, and one param, `parseKey`, which lives in [this app's .env](/apps/ai/.env.example) under `PARSE_KEY`. The full URL should look like `https://abc.tunnelmole.net/api/receive?parseKey=ABC-123` or `https://abc.ngrok.io/api/receive?parseKey=ABC-123`.
 6.  Activate "POST the raw, full MIME message".
-7.  Send an email to `[anyUsername]@example.com`. You should see a ping on the nGrok listener and server.
+7.  Send an email to `[anyUsername]@example.com`. You should see a ping on the Tunnelmole or ngrok listener and server.
 8.  Adjust the logic in [receive/route.ts](/apps/ai/src/app/api/receive/route.ts), save to hot-reload, and send another email to test the behaviour.
 
 Please feel free to improve any part of this architecture!

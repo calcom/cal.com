@@ -38,10 +38,15 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
     { value: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED, label: "booking_payment_initiated" },
     { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
     { value: WebhookTriggerEvents.BOOKING_PAID, label: "booking_paid" },
+    { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
     { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
     { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
     { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
-    { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting_created" },
+    { value: WebhookTriggerEvents.INSTANT_MEETING, label: "instant_meeting" },
+    {
+      value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+      label: "recording_transcription_generated",
+    },
   ],
   "routing-forms": [{ value: WebhookTriggerEvents.FORM_SUBMITTED, label: "form_submitted" }],
 } as const;
@@ -52,8 +57,9 @@ const WebhookForm = (props: {
   onSubmit: (event: WebhookFormSubmitData) => void;
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
+  selectOnlyInstantMeetingOption?: boolean;
 }) => {
-  const { apps = [] } = props;
+  const { apps = [], selectOnlyInstantMeetingOption = false } = props;
   const { t } = useLocale();
 
   const triggerOptions = [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
@@ -67,15 +73,21 @@ const WebhookForm = (props: {
   }
   const translatedTriggerOptions = triggerOptions.map((option) => ({ ...option, label: t(option.label) }));
 
+  const getEventTriggers = () => {
+    if (props.webhook) return props.webhook.eventTriggers;
+
+    return (
+      selectOnlyInstantMeetingOption
+        ? translatedTriggerOptions.filter((option) => option.value === WebhookTriggerEvents.INSTANT_MEETING)
+        : translatedTriggerOptions.filter((option) => option.value !== WebhookTriggerEvents.INSTANT_MEETING)
+    ).map((option) => option.value);
+  };
+
   const formMethods = useForm({
     defaultValues: {
       subscriberUrl: props.webhook?.subscriberUrl || "",
       active: props.webhook ? props.webhook.active : true,
-      eventTriggers: !props.webhook
-        ? translatedTriggerOptions
-            .filter((option) => option.value !== WebhookTriggerEvents.INSTANT_MEETING)
-            .map((option) => option.value)
-        : props.webhook.eventTriggers,
+      eventTriggers: getEventTriggers(),
       secret: props?.webhook?.secret || "",
       payloadTemplate: props?.webhook?.payloadTemplate || undefined,
     },

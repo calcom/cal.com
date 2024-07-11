@@ -1,21 +1,21 @@
 import { z } from "zod";
 
-import * as trpcNext from "@calcom/trpc/server/adapters/next";
-import { createContext as createTrpcContext } from "@calcom/trpc/server/createContext";
-
 import type { AnyRouter } from "@trpc/server";
+import { createNextApiHandler as _createNextApiHandler } from "@trpc/server/adapters/next";
+
+import { createContext as createTrpcContext } from "./createContext";
 
 /**
  * Creates an API handler executed by Next.js.
  */
 export function createNextApiHandler(router: AnyRouter, isPublic = false, namespace = "") {
-  return trpcNext.createNextApiHandler({
+  return _createNextApiHandler({
     router,
     /**
      * @link https://trpc.io/docs/context
      */
-    createContext: ({ req, res }) => {
-      return createTrpcContext({ req, res });
+    createContext: (opts) => {
+      return createTrpcContext(opts);
     },
     /**
      * @link https://trpc.io/docs/error-handling
@@ -57,21 +57,21 @@ export function createNextApiHandler(router: AnyRouter, isPublic = false, namesp
       defaultHeaders.headers["cache-control"] = `no-cache`;
 
       if (isPublic && paths) {
-        const ONE_DAY_IN_SECONDS = 60 * 60 * 24;
         const FIVE_MINUTES_IN_SECONDS = 5 * 60;
         const ONE_YEAR_IN_SECONDS = 31536000;
+        const SETTING_FOR_CACHED_BY_VERSION =
+          process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`;
 
         const cacheRules = {
           session: "no-cache",
 
-          i18n: process.env.NODE_ENV === "development" ? "no-cache" : `max-age=${ONE_YEAR_IN_SECONDS}`,
+          // i18n and cityTimezones are now being accessed using the CalComVersion, which updates on every release,
+          // letting the clients get the new versions when the version number changes.
+          i18n: SETTING_FOR_CACHED_BY_VERSION,
+          cityTimezones: SETTING_FOR_CACHED_BY_VERSION,
 
           // FIXME: Using `max-age=1, stale-while-revalidate=60` fails some booking tests.
           "slots.getSchedule": `no-cache`,
-
-          // Timezones are hardly updated. No need to burden the servers with requests for this by keeping low max-age.
-          // Keep it cached for a day and then give it 60 seconds more at most to be updated.
-          cityTimezones: `max-age=${ONE_DAY_IN_SECONDS}, stale-while-revalidate=60`,
 
           // Feature Flags change but it might be okay to have a 5 minute cache to avoid burdening the servers with requests for this.
           // Note that feature flags can be used to quickly kill a feature if it's not working as expected. So, we have to keep fresh time lesser than the deployment time atleast

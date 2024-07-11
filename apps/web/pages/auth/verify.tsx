@@ -1,5 +1,6 @@
+"use client";
+
 import { motion } from "framer-motion";
-import type { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import { signIn } from "next-auth/react";
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
@@ -11,11 +12,14 @@ import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { trpc } from "@calcom/trpc/react";
+import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast } from "@calcom/ui";
-import { AlertTriangle, ExternalLink, MailOpen } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import Loader from "@components/Loader";
 import PageWrapper from "@components/PageWrapper";
+
+import { getServerSideProps } from "@server/lib/auth/verify/getServerSideProps";
 
 async function sendVerificationLogin(email: string, username: string) {
   await signIn("email", {
@@ -59,7 +63,7 @@ const querySchema = z.object({
 
 const PaymentFailedIcon = () => (
   <div className="rounded-full bg-orange-900 p-3">
-    <AlertTriangle className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
+    <Icon name="triangle-alert" className="h-6 w-6 flex-shrink-0 p-0.5 font-extralight text-orange-100" />
   </div>
 );
 
@@ -108,11 +112,11 @@ const PaymentSuccess = () => (
 
 const MailOpenIcon = () => (
   <div className="bg-default rounded-full p-3">
-    <MailOpen className="text-emphasis h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
+    <Icon name="mail-open" className="text-emphasis h-12 w-12 flex-shrink-0 p-0.5 font-extralight" />
   </div>
 );
 
-export default function Verify(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
+export default function Verify(props: inferSSRProps<typeof getServerSideProps>) {
   const searchParams = useCompatSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -209,7 +213,7 @@ export default function Verify(props: InferGetServerSidePropsType<typeof getServ
                   : "https://mail.google.com/mail/u/0/"
               }
               target="_blank"
-              EndIcon={ExternalLink}>
+              EndIcon="external-link">
               Open in Gmail
             </Button>
           </div>
@@ -242,13 +246,5 @@ export default function Verify(props: InferGetServerSidePropsType<typeof getServ
   );
 }
 
-export const getServerSideProps = async (context: GetServerSidePropsContext) => {
-  const EMAIL_FROM = process.env.EMAIL_FROM;
-
-  return {
-    props: {
-      EMAIL_FROM,
-    },
-  };
-};
+export { getServerSideProps };
 Verify.PageWrapper = PageWrapper;

@@ -1,12 +1,5 @@
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe } from "vitest";
-
-import { SchedulingType } from "@calcom/prisma/enums";
-import { BookingStatus } from "@calcom/prisma/enums";
-import type { TRequestRescheduleInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.schema";
-import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-import { test } from "@calcom/web/test/fixtures/fixtures";
+import { getSampleUserInSession } from "../utils/bookingScenario/getSampleUserInSession";
+import { setupAndTeardown } from "../utils/bookingScenario/setupAndTeardown";
 import {
   createBookingScenario,
   getGoogleCalendarCredential,
@@ -19,8 +12,15 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { expectBookingRequestRescheduledEmails } from "@calcom/web/test/utils/bookingScenario/expects";
 
-import { getSampleUserInSession } from "../utils/bookingScenario/getSampleUserInSession";
-import { setupAndTeardown } from "../utils/bookingScenario/setupAndTeardown";
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe } from "vitest";
+
+import { SchedulingType } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
+import type { TRequestRescheduleInputSchema } from "@calcom/trpc/server/routers/viewer/bookings/requestReschedule.schema";
+import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -95,6 +95,7 @@ describe("Handler: requestReschedule", () => {
                   locale: "hi",
                   // Booker's timezone when the fresh booking happened earlier
                   timeZone: "Asia/Kolkata",
+                  noShow: false,
                 }),
               ],
             },
@@ -214,6 +215,7 @@ describe("Handler: requestReschedule", () => {
                   locale: "hi",
                   // Booker's timezone when the fresh booking happened earlier
                   timeZone: "Asia/Kolkata",
+                  noShow: false,
                 }),
               ],
             },
@@ -269,7 +271,20 @@ function getTrpcHandlerData({
         ...getSampleUserInSession(),
         ...user,
         avatarUrl: user.avatarUrl || null,
-      } satisfies TrpcSessionUser,
+        profile: {
+          upId: "",
+          id: 1,
+          name: "",
+          avatarUrl: "",
+          startTime: 0,
+          endTime: 0,
+          username: user.username || "",
+          organizationId: null,
+          organization: null,
+          bufferTime: 5,
+          avatar: null,
+        },
+      } as unknown as NonNullable<TrpcSessionUser>,
     },
     input: input,
   };

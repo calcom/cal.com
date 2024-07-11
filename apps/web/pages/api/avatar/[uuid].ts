@@ -55,6 +55,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   res.writeHead(200, {
     "Content-Type": "image/png",
     "Content-Length": imageResp.length,
+    "Cache-Control": "max-age=86400",
   });
 
   res.end(imageResp);

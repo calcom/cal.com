@@ -5,6 +5,7 @@ import classNames from "@calcom/lib/classNames";
 import { APP_NAME, WEBAPP_URL } from "@calcom/lib/constants";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { WebhooksByViewer } from "@calcom/trpc/server/routers/viewer/webhook/getByViewer.handler";
 import {
@@ -15,7 +16,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Link as LinkIcon } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../settings/layouts/SettingsLayout";
 import { WebhookListItem } from "../components";
@@ -44,12 +44,20 @@ const WebhooksView = () => {
   const { t } = useLocale();
   const router = useRouter();
   const session = useSession();
+  const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
 
-  const { data, isLoading } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
+  const { data, isPending } = trpc.viewer.webhook.getByViewer.useQuery(undefined, {
     enabled: session.status === "authenticated",
   });
 
-  if (isLoading || !data) {
+  const createFunction = (teamId?: number, platform?: boolean) => {
+    if (platform) {
+      router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
+    } else {
+      router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
+    }
+  };
+  if (isPending || !data) {
     return (
       <SkeletonLoader
         title={t("webhooks")}
@@ -69,25 +77,33 @@ const WebhooksView = () => {
             <CreateButtonWithTeamsList
               color="secondary"
               subtitle={t("create_for").toUpperCase()}
-              createFunction={(teamId?: number) => {
-                router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-              }}
+              isAdmin={isAdmin}
+              createFunction={createFunction}
               data-testid="new_webhook"
+              includeOrg={true}
             />
           ) : (
             <></>
           )
         }
-        borderInShellHeader={data && data.profiles.length === 1}
+        borderInShellHeader={(data && data.profiles.length === 1) || !data?.webhookGroups?.length}
       />
       <div>
-        <WebhooksList webhooksByViewer={data} />
+        <WebhooksList webhooksByViewer={data} isAdmin={isAdmin} createFunction={createFunction} />
       </div>
     </>
   );
 };
 
-const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer }) => {
+const WebhooksList = ({
+  webhooksByViewer,
+  isAdmin,
+  createFunction,
+}: {
+  webhooksByViewer: WebhooksByViewer;
+  isAdmin: boolean;
+  createFunction: (teamId?: number, platform?: boolean) => void;
+}) => {
   const { t } = useLocale();
   const router = useRouter();
 
@@ -142,17 +158,17 @@ const WebhooksList = ({ webhooksByViewer }: { webhooksByViewer: WebhooksByViewer
           )}
           {!webhookGroups.length && (
             <EmptyScreen
-              Icon={LinkIcon}
+              Icon="link"
               headline={t("create_your_first_webhook")}
               description={t("create_your_first_webhook_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"
               buttonRaw={
                 <CreateButtonWithTeamsList
                   subtitle={t("create_for").toUpperCase()}
-                  createFunction={(teamId?: number) => {
-                    router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-                  }}
+                  isAdmin={isAdmin}
+                  createFunction={createFunction}
                   data-testid="new_webhook"
+                  includeOrg={true}
                 />
               }
             />

@@ -1,36 +1,37 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useState, useEffect } from "react";
-import { Controller, useFieldArray, useFormContext, useForm } from "react-hook-form";
-import type { UseFormReturn, SubmitHandler } from "react-hook-form";
+import { useEffect, useState } from "react";
+import type { SubmitHandler, UseFormReturn } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
+import { getAndUpdateNormalizedValues } from "@calcom/features/form-builder/FormBuilderField";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import {
-  Label,
   Badge,
+  BooleanToggleGroupField,
   Button,
   Dialog,
   DialogClose,
   DialogContent,
-  DialogHeader,
   DialogFooter,
+  DialogHeader,
   Form,
-  BooleanToggleGroupField,
-  SelectField,
-  InputField,
+  Icon,
   Input,
-  Switch,
+  InputField,
+  Label,
+  SelectField,
   showToast,
+  Switch,
 } from "@calcom/ui";
-import { ArrowDown, ArrowUp, X, Plus, Trash2 } from "@calcom/ui/components/icon";
 
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
-import { getVariantsConfig } from "./utils";
 import { getFieldIdentifier } from "./utils/getFieldIdentifier";
+import { getConfig as getVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
   fields: z.infer<typeof fieldsSchema>;
@@ -119,12 +120,24 @@ export const FormBuilder = function FormBuilder({
               : field.getOptionsAt
               ? dataStore.options[field.getOptionsAt as keyof typeof dataStore]
               : [];
-            const numOptions = options?.length ?? 0;
-            if (field.hideWhenJustOneOption && numOptions <= 1) {
+
+            // Note: We recently started calling getAndUpdateNormalizedValues in the FormBuilder. It was supposed to be called only on booking pages earlier.
+            // Due to this we have to meet some strict requirements like of labelAsSafeHtml.
+            if (fieldsThatSupportLabelAsSafeHtml.includes(field.type)) {
+              field = { ...field, labelAsSafeHtml: markdownToSafeHTML(field.label ?? "") };
+            }
+
+            const { hidden } = getAndUpdateNormalizedValues({ ...field, options }, t);
+            if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
             }
-            const fieldType = fieldTypesConfigMap[field.type];
-            const isRequired = field.required;
+            let fieldType = fieldTypesConfigMap[field.type];
+            let isRequired = field.required;
+            // For radioInput type, when there's only one option, the type and required takes the first options values
+            if (field.type === "radioInput" && options.length === 1) {
+              fieldType = fieldTypesConfigMap[field.optionsInputs?.[options[0].value].type || field.type];
+              isRequired = field.optionsInputs?.[options[0].value].required || field.required;
+            }
             const isFieldEditableSystemButOptional = field.editable === "system-but-optional";
             const isFieldEditableSystemButHidden = field.editable === "system-but-hidden";
             const isFieldEditableSystem = field.editable === "system";
@@ -157,7 +170,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:text-emphasis disabled:hover:text-muted border-subtle hover:border-emphasis invisible absolute -left-[12px] -ml-4 -mt-4 mb-4 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index - 1)}>
-                        <ArrowUp className="h-5 w-5" />
+                        <Icon name="arrow-up" className="h-5 w-5" />
                       </button>
                     )}
                     {index < fields.length - 1 && (
@@ -165,7 +178,7 @@ export const FormBuilder = function FormBuilder({
                         type="button"
                         className="bg-default text-muted hover:border-emphasis border-subtle hover:text-emphasis disabled:hover:text-muted invisible absolute -left-[12px] -ml-4 mt-8 hidden h-6 w-6 scale-0 items-center justify-center rounded-md border p-1 transition-all hover:shadow disabled:hover:border-inherit disabled:hover:shadow-none group-hover:visible group-hover:scale-100 sm:ml-0 sm:flex"
                         onClick={() => swap(index, index + 1)}>
-                        <ArrowDown className="h-5 w-5" />
+                        <Icon name="arrow-down" className="h-5 w-5" />
                       </button>
                     )}
                   </>
@@ -181,7 +194,9 @@ export const FormBuilder = function FormBuilder({
                         // Hidden field can't be required, so we don't need to show the Optional badge
                         <Badge variant="grayWithoutHover">{t("hidden")}</Badge>
                       ) : (
-                        <Badge variant="grayWithoutHover">{isRequired ? t("required") : t("optional")}</Badge>
+                        <Badge variant="grayWithoutHover" data-testid={isRequired ? "required" : "optional"}>
+                          {isRequired ? t("required") : t("optional")}
+                        </Badge>
                       )}
                       {Object.entries(groupedBySourceLabel).map(([sourceLabel, sources], key) => (
                         // We don't know how to pluralize `sourceLabel` because it can be anything
@@ -211,20 +226,30 @@ export const FormBuilder = function FormBuilder({
                     )}
                     {isUserField && (
                       <Button
+                        data-testid="delete-field-action"
                         color="destructive"
                         disabled={!isUserField}
                         variant="icon"
                         onClick={() => {
                           removeField(index);
                         }}
-                        StartIcon={Trash2}
+                        StartIcon="trash-2"
                       />
                     )}
                     <Button
                       data-testid="edit-field-action"
                       color="secondary"
                       onClick={() => {
-                        editField(index, field);
+                        const fieldToEdit = field;
+                        // For radioInput type, when there's only one option, the type and required takes the only first options values
+                        if (fieldToEdit.type === "radioInput" && options.length === 1) {
+                          fieldToEdit.type =
+                            fieldToEdit.optionsInputs?.[options[0].value].type || fieldToEdit.type;
+                          fieldToEdit.required =
+                            fieldToEdit.optionsInputs?.[options[0].value].required || fieldToEdit.required;
+                        }
+
+                        editField(index, fieldToEdit);
                       }}>
                       {t("edit")}
                     </Button>
@@ -240,7 +265,7 @@ export const FormBuilder = function FormBuilder({
             data-testid="add-field"
             onClick={addField}
             className="mt-4"
-            StartIcon={Plus}>
+            StartIcon="plus">
             {addFieldLabel}
           </Button>
         )}
@@ -349,7 +374,7 @@ function Options({
                     className="-ml-8 mb-2 hover:!bg-transparent focus:!bg-transparent focus:!outline-none focus:!ring-0"
                     size="sm"
                     color="minimal"
-                    StartIcon={X}
+                    StartIcon="x"
                     onClick={() => {
                       if (!value) {
                         return;
@@ -371,7 +396,7 @@ function Options({
               value.push({ label: "", value: "" });
               onChange(value);
             }}
-            StartIcon={Plus}>
+            StartIcon="plus">
             Add an Option
           </Button>
         )}
@@ -433,7 +458,7 @@ function FieldEditDialog({
                 if (!value) {
                   return;
                 }
-                fieldForm.setValue("type", value);
+                fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
@@ -448,7 +473,9 @@ function FieldEditDialog({
                       {...fieldForm.register("name")}
                       containerClassName="mt-6"
                       onChange={(e) => {
-                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""));
+                        fieldForm.setValue("name", getFieldIdentifier(e.target.value || ""), {
+                          shouldDirty: true,
+                        });
                       }}
                       disabled={
                         fieldForm.getValues("editable") === "system" ||

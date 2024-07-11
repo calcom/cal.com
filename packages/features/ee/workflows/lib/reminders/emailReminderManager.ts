@@ -5,6 +5,7 @@ import type { DateArray } from "ics";
 import { RRule } from "rrule";
 import { v4 as uuidv4 } from "uuid";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { preprocessNameFieldDataWithVariant } from "@calcom/features/form-builder/utils";
 import logger from "@calcom/lib/logger";
@@ -22,6 +23,7 @@ import { getBatchId, sendSendgridMail } from "./providers/sendgridProvider";
 import type { AttendeeInBookingInfo, BookingInfo, timeUnitLowerCase } from "./smsReminderManager";
 import type { VariablesType } from "./templates/customTemplate";
 import customTemplate from "./templates/customTemplate";
+import emailRatingTemplate from "./templates/emailRatingTemplate";
 import emailReminderTemplate from "./templates/emailReminderTemplate";
 
 const log = logger.getSubLogger({ prefix: ["[emailReminderManager]"] });
@@ -31,6 +33,12 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
   let recurrenceRule: string | undefined = undefined;
   if (evt.eventType.recurringEvent?.count) {
     recurrenceRule = new RRule(evt.eventType.recurringEvent).toString().replace("RRULE:", "");
+  }
+
+  let location = bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl;
+
+  if (!location) {
+    location = guessEventLocationType(location)?.label || evt.location || "";
   }
 
   const icsEvent = createEvent({
@@ -44,7 +52,7 @@ function getiCalEventAsString(evt: BookingInfo, status?: ParticipationStatus) {
     duration: { minutes: dayjs(evt.endTime).diff(dayjs(evt.startTime), "minute") },
     title: evt.title,
     description: evt.additionalNotes || "",
-    location: evt.location || "",
+    location,
     organizer: { email: evt.organizer.email || "", name: evt.organizer.name },
     attendees: [
       {
@@ -79,7 +87,7 @@ export interface ScheduleReminderArgs {
     time: number | null;
     timeUnit: TimeUnit | null;
   };
-  template: WorkflowTemplates;
+  template?: WorkflowTemplates;
   sender?: string | null;
   workflowStepId?: number;
   seatReferenceUid?: string;
@@ -112,7 +120,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     isMandatoryReminder,
     action,
   } = args;
-  if (action === WorkflowActions.EMAIL_ADDRESS) return;
   const { startTime, endTime } = evt;
   const uid = evt.uid as string;
   const currentDate = dayjs();
@@ -133,6 +140,12 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
   let timeZone = "";
 
   switch (action) {
+    case WorkflowActions.EMAIL_ADDRESS:
+      name = "";
+      attendeeToBeUsedInMail = evt.attendees[0];
+      attendeeName = evt.attendees[0].name;
+      timeZone = evt.organizer.timeZone;
+      break;
     case WorkflowActions.EMAIL_HOST:
       attendeeToBeUsedInMail = evt.attendees[0];
       name = evt.organizer.name;
@@ -191,8 +204,10 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       additionalNotes: evt.additionalNotes,
       responses: evt.responses,
       meetingUrl: bookingMetadataSchema.parse(evt.metadata || {})?.videoCallUrl,
-      cancelLink: `/booking/${evt.uid}?cancel=true`,
-      rescheduleLink: `/${evt.organizer.username}/${evt.eventType.slug}?rescheduleUid=${evt.uid}`,
+      cancelLink: `${evt.bookerUrl}/booking/${evt.uid}?cancel=true`,
+      rescheduleLink: `${evt.bookerUrl}/reschedule/${evt.uid}`,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
     };
 
     const locale =
@@ -221,6 +236,20 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       attendeeName,
       name
     );
+  } else if (template === WorkflowTemplates.RATING) {
+    emailContent = emailRatingTemplate({
+      isEditingMode: true,
+      action,
+      timeFormat: evt.organizer.timeFormat,
+      startTime,
+      endTime,
+      eventName: evt.title,
+      timeZone,
+      organizer: evt.organizer.name,
+      name,
+      ratingUrl: `${evt.bookerUrl}/booking/${evt.uid}?rating`,
+      noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
+    });
   }
 
   // Allows debugging generated email content without waiting for sendgrid to send emails

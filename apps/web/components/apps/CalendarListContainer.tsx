@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Fragment } from "react";
+import { Fragment, useEffect } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
@@ -11,14 +11,15 @@ import {
   Alert,
   Button,
   EmptyScreen,
-  List,
-  AppSkeletonLoader as SkeletonLoader,
-  ShellSubHeading,
   Label,
+  List,
+  ShellSubHeading,
+  AppSkeletonLoader as SkeletonLoader,
+  showToast,
 } from "@calcom/ui";
-import { Calendar } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
+import useRouterQuery from "@lib/hooks/useRouterQuery";
 
 import AppListCard from "@components/AppListCard";
 import AdditionalCalendarSelector from "@components/apps/AdditionalCalendarSelector";
@@ -28,7 +29,7 @@ type Props = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
-  isLoading?: boolean;
+  isPending?: boolean;
 };
 
 function CalendarList(props: Props) {
@@ -74,7 +75,7 @@ function ConnectedCalendarsList(props: Props) {
     suspense: true,
     refetchOnWindowFocus: false,
   });
-  const { fromOnboarding, isLoading } = props;
+  const { fromOnboarding, isPending } = props;
   return (
     <QueryCell
       query={query}
@@ -97,7 +98,7 @@ function ConnectedCalendarsList(props: Props) {
                 <div className="flex flex-col xl:flex-row xl:space-x-5">
                   {!!data.connectedCalendars.length && (
                     <div className="flex items-center">
-                      <AdditionalCalendarSelector isLoading={isLoading} />
+                      <AdditionalCalendarSelector isPending={isPending} />
                     </div>
                   )}
                 </div>
@@ -182,7 +183,16 @@ function ConnectedCalendarsList(props: Props) {
 export function CalendarListContainer(props: { heading?: boolean; fromOnboarding?: boolean }) {
   const { t } = useLocale();
   const { heading = true, fromOnboarding } = props;
-  const utils = trpc.useContext();
+  const { error, setQuery: setError } = useRouterQuery("error");
+
+  useEffect(() => {
+    if (error === "account_already_linked") {
+      showToast(t(error), "error", { id: error });
+      setError(undefined);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const utils = trpc.useUtils();
   const onChanged = () =>
     Promise.allSettled([
       utils.viewer.integrations.invalidate(
@@ -229,7 +239,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                               hidePlaceholder
                               value={data.destinationCalendar?.externalId}
                               onChange={mutation.mutate}
-                              isLoading={mutation.isLoading}
+                              isPending={mutation.isPending}
                             />
                           </div>
                         </div>
@@ -239,7 +249,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                       onChanged={onChanged}
                       fromOnboarding={fromOnboarding}
                       destinationCalendarId={data.destinationCalendar?.externalId}
-                      isLoading={mutation.isLoading}
+                      isPending={mutation.isPending}
                     />
                   </>
                 )}
@@ -256,7 +266,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               </>
             ) : (
               <EmptyScreen
-                Icon={Calendar}
+                Icon="calendar"
                 headline={t("no_category_apps", {
                   category: t("calendar").toLowerCase(),
                 })}

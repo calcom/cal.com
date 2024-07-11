@@ -1,26 +1,29 @@
-import type { Prisma, Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
+import type { Prisma } from "@prisma/client";
 
 import type { EventManagerUser } from "@calcom/core/EventManager";
 import EventManager from "@calcom/core/EventManager";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import { sendScheduledEmails } from "@calcom/emails";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import type { PrismaClient } from "@calcom/prisma";
 import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import { getAllWorkflowsFromEventType } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { AdditionalInformation, CalendarEvent } from "@calcom/types/Calendar";
-
-import {
-  allowDisablingAttendeeConfirmationEmails,
-  allowDisablingHostConfirmationEmails,
-} from "../../ee/workflows/lib/allowDisablingStandardEmails";
 
 const log = logger.getSubLogger({ prefix: ["[handleConfirmation] book:user"] });
 
@@ -40,12 +43,16 @@ export async function handleConfirmation(args: {
       requiresConfirmation: boolean;
       metadata?: Prisma.JsonValue;
       title: string;
+      team?: {
+        parentId: number | null;
+      } | null;
       teamId?: number | null;
       parentId?: number | null;
+      parent?: {
+        teamId: number | null;
+      } | null;
       workflows?: {
-        workflow: Workflow & {
-          steps: WorkflowStep[];
-        };
+        workflow: Workflow;
       }[];
     } | null;
     metadata?: Prisma.JsonValue;
@@ -60,6 +67,9 @@ export async function handleConfirmation(args: {
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
+
+  const eventType = booking.eventType;
+  const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
     const error = {
@@ -80,8 +90,6 @@ export async function handleConfirmation(args: {
       const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
-
-      const workflows = eventType?.workflows?.map((workflow) => workflow.workflow);
 
       if (workflows) {
         isHostConfirmationEmailsDisabled =
@@ -109,7 +117,6 @@ export async function handleConfirmation(args: {
     }
   }
   let updatedBookings: {
-    scheduledJobs: string[];
     id: number;
     description: string | null;
     location: string | null;
@@ -129,15 +136,11 @@ export async function handleConfirmation(args: {
       owner: {
         hideBranding?: boolean | null;
       } | null;
-      workflows: (WorkflowsOnEventTypes & {
-        workflow: Workflow & {
-          steps: WorkflowStep[];
-        };
-      })[];
     } | null;
   }[] = [];
 
   const videoCallUrl = metadata.hangoutLink ? metadata.hangoutLink : evt.videoCallData?.url || "";
+  const meetingUrl = getVideoCallUrlFromCalEvent(evt) || videoCallUrl;
 
   if (recurringEventId) {
     // The booking to confirm is a recurring event and comes from /booking/recurring, proceeding to mark all related
@@ -162,7 +165,7 @@ export async function handleConfirmation(args: {
           paid,
           metadata: {
             ...(typeof recurringBooking.metadata === "object" ? recurringBooking.metadata : {}),
-            videoCallUrl,
+            videoCallUrl: meetingUrl,
           },
         },
         select: {
@@ -173,15 +176,6 @@ export async function handleConfirmation(args: {
               owner: {
                 select: {
                   hideBranding: true,
-                },
-              },
-              workflows: {
-                include: {
-                  workflow: {
-                    include: {
-                      steps: true,
-                    },
-                  },
                 },
               },
             },
@@ -196,7 +190,6 @@ export async function handleConfirmation(args: {
           smsReminderNumber: true,
           customInputs: true,
           id: true,
-          scheduledJobs: true,
         },
       })
     );
@@ -215,7 +208,10 @@ export async function handleConfirmation(args: {
         references: {
           create: scheduleResult.referencesToCreate,
         },
-        metadata: { ...(typeof booking.metadata === "object" ? booking.metadata : {}), videoCallUrl },
+        metadata: {
+          ...(typeof booking.metadata === "object" ? booking.metadata : {}),
+          videoCallUrl: meetingUrl,
+        },
       },
       select: {
         eventType: {
@@ -225,15 +221,6 @@ export async function handleConfirmation(args: {
             owner: {
               select: {
                 hideBranding: true,
-              },
-            },
-            workflows: {
-              include: {
-                workflow: {
-                  include: {
-                    steps: true,
-                  },
-                },
               },
             },
           },
@@ -248,7 +235,6 @@ export async function handleConfirmation(args: {
         location: true,
         customInputs: true,
         id: true,
-        scheduledJobs: true,
       },
     });
     updatedBookings.push(updatedBooking);
@@ -258,25 +244,30 @@ export async function handleConfirmation(args: {
   try {
     for (let index = 0; index < updatedBookings.length; index++) {
       const eventTypeSlug = updatedBookings[index].eventType?.slug || "";
-      const evtOfBooking = { ...evt, metadata: { videoCallUrl }, eventType: { slug: eventTypeSlug } };
+      const evtOfBooking = {
+        ...evt,
+        metadata: { videoCallUrl: meetingUrl },
+        eventType: { slug: eventTypeSlug },
+      };
       evtOfBooking.startTime = updatedBookings[index].startTime.toISOString();
       evtOfBooking.endTime = updatedBookings[index].endTime.toISOString();
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
+
       await scheduleMandatoryReminder(
         evtOfBooking,
-        updatedBookings[index]?.eventType?.workflows || [],
+        workflows,
         false,
         !!updatedBookings[index].eventType?.owner?.hideBranding,
         evt.attendeeSeatId
       );
+
       await scheduleWorkflowReminders({
-        workflows: updatedBookings[index]?.eventType?.workflows || [],
+        workflows,
         smsReminderNumber: updatedBookings[index].smsReminderNumber,
         calendarEvent: evtOfBooking,
         isFirstRecurringEvent: isFirstBooking,
         hideBranding: !!updatedBookings[index].eventType?.owner?.hideBranding,
-        eventTypeRequiresConfirmation: true,
       });
     }
   } catch (error) {
@@ -287,50 +278,75 @@ export async function handleConfirmation(args: {
   try {
     const teamId = await getTeamIdFromEventType({
       eventType: {
-        team: { id: booking.eventType?.teamId ?? null },
-        parentId: booking?.eventType?.parentId ?? null,
+        team: { id: eventType?.teamId ?? null },
+        parentId: eventType?.parentId ?? null,
       },
     });
 
-    const triggerForUser = !teamId || (teamId && booking.eventType?.parentId);
+    const triggerForUser = !teamId || (teamId && eventType?.parentId);
+
+    const userId = triggerForUser ? booking.userId : null;
+
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
     const subscribersBookingCreated = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
       teamId,
+      orgId,
     });
     const subscribersMeetingStarted = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamId: booking.eventType?.teamId,
+      teamId: eventType?.teamId,
+      orgId,
     });
     const subscribersMeetingEnded = await getWebhooks({
-      userId: triggerForUser ? booking.userId : null,
+      userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamId: booking.eventType?.teamId,
+      teamId: eventType?.teamId,
+      orgId,
     });
+
+    const scheduleTriggerPromises: Promise<unknown>[] = [];
 
     subscribersMeetingStarted.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_STARTED);
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
+          })
+        );
       });
     });
     subscribersMeetingEnded.forEach((subscriber) => {
       updatedBookings.forEach((booking) => {
-        scheduleTrigger(booking, subscriber.subscriberUrl, subscriber, WebhookTriggerEvents.MEETING_ENDED);
+        scheduleTriggerPromises.push(
+          scheduleTrigger({
+            booking,
+            subscriberUrl: subscriber.subscriberUrl,
+            subscriber,
+            triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
+          })
+        );
       });
     });
 
+    await Promise.all(scheduleTriggerPromises);
+
     const eventTypeInfo: EventTypeInfo = {
-      eventTitle: booking.eventType?.title,
-      eventDescription: booking.eventType?.description,
-      requiresConfirmation: booking.eventType?.requiresConfirmation || null,
-      price: booking.eventType?.price,
-      currency: booking.eventType?.currency,
-      length: booking.eventType?.length,
+      eventTitle: eventType?.title,
+      eventDescription: eventType?.description,
+      requiresConfirmation: eventType?.requiresConfirmation || null,
+      price: eventType?.price,
+      currency: eventType?.currency,
+      length: eventType?.length,
     };
 
     const promises = subscribersBookingCreated.map((sub) =>
@@ -338,14 +354,14 @@ export async function handleConfirmation(args: {
         ...evt,
         ...eventTypeInfo,
         bookingId,
-        eventTypeId: booking.eventType?.id,
+        eventTypeId: eventType?.id,
         status: "ACCEPTED",
         smsReminderNumber: booking.smsReminderNumber || undefined,
-        metadata: evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined,
+        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
       }).catch((e) => {
-        console.error(
-          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}`,
-          e
+        log.error(
+          `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+          safeStringify(e)
         );
       })
     );
@@ -355,10 +371,11 @@ export async function handleConfirmation(args: {
     if (paid) {
       let paymentExternalId: string | undefined;
       const subscriberMeetingPaid = await getWebhooks({
-        userId: triggerForUser ? booking.userId : null,
+        userId,
         eventTypeId: booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamId: booking.eventType?.teamId,
+        teamId: eventType?.teamId,
+        orgId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({
         where: {
@@ -382,9 +399,9 @@ export async function handleConfirmation(args: {
       const paymentMetadata = {
         identifier: "cal.com",
         bookingId,
-        eventTypeId: booking.eventType?.id,
+        eventTypeId: eventType?.id,
         bookerEmail: evt.attendees[0].email,
-        eventTitle: booking.eventType?.title,
+        eventTitle: eventType?.title,
         externalId: paymentExternalId,
       };
       const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
@@ -392,7 +409,7 @@ export async function handleConfirmation(args: {
           ...evt,
           ...eventTypeInfo,
           bookingId,
-          eventTypeId: booking.eventType?.id,
+          eventTypeId: eventType?.id,
           status: "ACCEPTED",
           smsReminderNumber: booking.smsReminderNumber || undefined,
           paymentId: bookingWithPayment?.payment?.[0].id,
@@ -400,9 +417,9 @@ export async function handleConfirmation(args: {
             ...(paid ? paymentMetadata : {}),
           },
         }).catch((e) => {
-          console.error(
-            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}`,
-            e
+          log.error(
+            `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+            safeStringify(e)
           );
         })
       );

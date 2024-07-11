@@ -1,18 +1,12 @@
 import { expect } from "@playwright/test";
 
 import { test } from "./lib/fixtures";
+import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 
 test.describe.configure({ mode: "parallel" });
 
-test.describe("Settings/admin A/B tests", () => {
-  test("should point to the /future/settings/admin page", async ({ page, users, context }) => {
-    await context.addCookies([
-      {
-        name: "x-calcom-future-routes-override",
-        value: "1",
-        url: "http://localhost:3000",
-      },
-    ]);
+testBothFutureAndLegacyRoutes.describe("Settings/admin tests", () => {
+  test("should render /settings/admin page", async ({ page, users, context }) => {
     const user = await users.create({
       role: "ADMIN",
     });
@@ -21,12 +15,6 @@ test.describe("Settings/admin A/B tests", () => {
     await page.goto("/settings/admin");
 
     await page.waitForLoadState();
-
-    const dataNextJsRouter = await page.evaluate(() =>
-      window.document.documentElement.getAttribute("data-nextjs-router")
-    );
-
-    expect(dataNextJsRouter).toEqual("app");
 
     const locator = page.getByRole("heading", { name: "Feature Flags" });
 

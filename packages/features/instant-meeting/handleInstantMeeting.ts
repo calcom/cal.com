@@ -6,16 +6,16 @@ import { v5 as uuidv5 } from "uuid";
 
 import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
+import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import {
-  getEventTypesFromDB,
-  getBookingData,
-  getCustomInputsResponses,
-} from "@calcom/features/bookings/lib/handleNewBooking";
+import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking";
+import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -24,18 +24,32 @@ import { BookingStatus, WebhookTriggerEvents } from "@calcom/prisma/enums";
 const handleInstantMeetingWebhookTrigger = async (args: {
   eventTypeId: number;
   webhookData: Record<string, unknown>;
+  teamId: number;
 }) => {
+  const orgId = (await getOrgIdFromMemberOrTeamId({ teamId: args.teamId })) ?? 0;
+
   try {
     const eventTrigger = WebhookTriggerEvents.INSTANT_MEETING;
 
     const subscribers = await prisma.webhook.findMany({
       where: {
+        OR: [
+          {
+            teamId: {
+              in: [orgId, args.teamId],
+            },
+          },
+          {
+            eventTypeId: args.eventTypeId,
+          },
+        ],
         AND: {
-          eventTypeId: args.eventTypeId,
           eventTriggers: {
             has: eventTrigger,
           },
-          active: true,
+          active: {
+            equals: true,
+          },
         },
       },
       select: {
@@ -83,10 +97,14 @@ async function handler(req: NextApiRequest) {
     throw new Error("Only Team Event Types are supported for Instant Meeting");
   }
 
+  const schema = getBookingDataSchema({
+    view: req.body?.rescheduleUid ? "reschedule" : "booking",
+    bookingFields: eventType.bookingFields,
+  });
   const reqBody = await getBookingData({
     req,
-    isNotAnApiCall: true,
     eventType,
+    schema,
   });
   const { email: bookerEmail, name: bookerName } = reqBody;
 
@@ -127,7 +145,6 @@ async function handler(req: NextApiRequest) {
     throw new Error("Cal Video Meeting Creation Failed");
   }
 
-  eventType.team.id;
   const bookingReferenceToCreate = [
     {
       type: calVideoMeeting.type,
@@ -175,11 +192,26 @@ async function handler(req: NextApiRequest) {
   const newBooking = await prisma.booking.create(createBookingObj);
 
   // Create Instant Meeting Token
+
   const token = randomBytes(32).toString("hex");
+
+  const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
+    where: {
+      id: req.body.eventTypeId,
+    },
+    select: {
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+    },
+  });
+
+  const instantMeetingExpiryTimeOffsetInSeconds =
+    eventTypeWithExpiryTimeOffset?.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {
       token,
-      expires: new Date(new Date().getTime() + 1000 * 60 * 5),
+      // current time + offset Seconds
+      expires: new Date(new Date().getTime() + 1000 * instantMeetingExpiryTimeOffsetInSeconds),
       team: {
         connect: {
           id: eventType.team.id,
@@ -195,7 +227,6 @@ async function handler(req: NextApiRequest) {
   });
 
   // Trigger Webhook
-
   const webhookData = {
     triggerEvent: WebhookTriggerEvents.INSTANT_MEETING,
     uid: newBooking.uid,
@@ -209,6 +240,7 @@ async function handler(req: NextApiRequest) {
   await handleInstantMeetingWebhookTrigger({
     eventTypeId: eventType.id,
     webhookData,
+    teamId: eventType.team?.id,
   });
 
   return {

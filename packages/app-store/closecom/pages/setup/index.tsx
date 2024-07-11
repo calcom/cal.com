@@ -6,8 +6,8 @@ import { Toaster } from "react-hot-toast";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Button, Form, showToast, TextField } from "@calcom/ui";
-import { Check, X } from "@calcom/ui/components/icon";
 
 const formSchema = z.object({
   api_key: z.string(),
@@ -16,6 +16,7 @@ const formSchema = z.object({
 export default function CloseComSetup() {
   const { t } = useLocale();
   const router = useRouter();
+  const query = useRouterQuery();
   const [testPassed, setTestPassed] = useState<boolean | undefined>(undefined);
   const [testLoading, setTestLoading] = useState<boolean>(false);
 
@@ -64,13 +65,17 @@ export default function CloseComSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  const res = await fetch("/api/integrations/closecom/add", {
-                    method: "POST",
-                    body: JSON.stringify(values),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
+                  const { returnTo } = query;
+                  const res = await fetch(
+                    `/api/integrations/closecom/add${returnTo ? `?returnTo=${returnTo}` : ""}`,
+                    {
+                      method: "POST",
+                      body: JSON.stringify(values),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    }
+                  );
                   const json = await res.json();
 
                   if (res.ok) {
@@ -107,7 +112,7 @@ export default function CloseComSetup() {
                     type="submit"
                     loading={testLoading}
                     disabled={testPassed === true}
-                    StartIcon={testPassed !== undefined ? (testPassed ? Check : X) : undefined}
+                    StartIcon={testPassed === undefined ? undefined : testPassed ? "check" : "x"}
                     className={
                       testPassed !== undefined
                         ? testPassed

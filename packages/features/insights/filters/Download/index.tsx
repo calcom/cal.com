@@ -1,17 +1,15 @@
-import { FileDownIcon } from "lucide-react";
-
 import { useFilterContext } from "@calcom/features/insights/context/provider";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc";
 import { trpc } from "@calcom/trpc";
-import { Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger, Button } from "@calcom/ui";
+import { Button, Dropdown, DropdownItem, DropdownMenuContent, DropdownMenuTrigger } from "@calcom/ui";
 
 const Download = () => {
   const { filter } = useFilterContext();
 
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.insights.rawData.useQuery(
+  const { data, isPending } = trpc.viewer.insights.rawData.useQuery(
     {
       startDate: filter.dateRange[0].toISOString(),
       endDate: filter.dateRange[1].toISOString(),
@@ -58,9 +56,9 @@ const Download = () => {
     <Dropdown modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
-          EndIcon={FileDownIcon}
+          EndIcon="file-down"
           color="secondary"
-          {...(isLoading && { loading: isLoading })}
+          {...(isPending && { loading: isPending })}
           className="self-end sm:self-baseline">
           {t("download")}
         </Button>

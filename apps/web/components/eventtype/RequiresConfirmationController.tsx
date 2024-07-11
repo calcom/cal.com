@@ -1,13 +1,14 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
 import { Trans } from "next-i18next";
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -37,16 +38,12 @@ export default function RequiresConfirmationController({
 
   useEffect(() => {
     if (!requiresConfirmation) {
-      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined);
+      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, { shouldDirty: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
 
   const options = [
@@ -75,13 +72,14 @@ export default function RequiresConfirmationController({
               )}
               childrenClassName="lg:ml-0"
               title={t("requires_confirmation")}
+              data-testid="requires-confirmation"
               disabled={seatsEnabled || requiresConfirmationLockedProps.disabled}
               tooltip={seatsEnabled ? t("seat_options_doesnt_support_confirmation") : undefined}
               description={t("requires_confirmation_description")}
               checked={requiresConfirmation}
               LockedIcon={requiresConfirmationLockedProps.LockedIcon}
               onCheckedChange={(val) => {
-                formMethods.setValue("requiresConfirmation", val);
+                formMethods.setValue("requiresConfirmation", val, { shouldDirty: true });
                 onRequiresConfirmation(val);
               }}>
               <div className="border-subtle rounded-b-lg border border-t-0 p-6">
@@ -95,16 +93,19 @@ export default function RequiresConfirmationController({
                   }
                   onValueChange={(val) => {
                     if (val === "always") {
-                      formMethods.setValue("requiresConfirmation", true);
+                      formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
-                      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined);
+                      formMethods.setValue("metadata.requiresConfirmationThreshold", undefined, {
+                        shouldDirty: true,
+                      });
                       setRequiresConfirmationSetup(undefined);
                     } else if (val === "notice") {
-                      formMethods.setValue("requiresConfirmation", true);
+                      formMethods.setValue("requiresConfirmation", true, { shouldDirty: true });
                       onRequiresConfirmation(true);
                       formMethods.setValue(
                         "metadata.requiresConfirmationThreshold",
-                        requiresConfirmationSetup || defaultRequiresConfirmationSetup
+                        requiresConfirmationSetup || defaultRequiresConfirmationSetup,
+                        { shouldDirty: true }
                       );
                     }
                   }}>
@@ -145,7 +146,8 @@ export default function RequiresConfirmationController({
                                         });
                                         formMethods.setValue(
                                           "metadata.requiresConfirmationThreshold.time",
-                                          val
+                                          val,
+                                          { shouldDirty: true }
                                         );
                                       }}
                                       className="border-default !m-0 block w-16 rounded-r-none border-r-0 text-sm [appearance:textfield] focus:z-10 focus:border-r"
@@ -170,7 +172,8 @@ export default function RequiresConfirmationController({
                                           });
                                           formMethods.setValue(
                                             "metadata.requiresConfirmationThreshold.unit",
-                                            opt?.value as UnitTypeLongPlural
+                                            opt?.value as UnitTypeLongPlural,
+                                            { shouldDirty: true }
                                           );
                                         }}
                                         defaultValue={defaultValue}

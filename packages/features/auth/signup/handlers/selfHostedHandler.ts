@@ -6,15 +6,16 @@ import { sendEmailVerification } from "@calcom/features/auth/lib/verifyEmail";
 import { createOrUpdateMemberships } from "@calcom/features/auth/signup/utils/createOrUpdateMemberships";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
+import { isUsernameReservedDueToMigration } from "@calcom/lib/server/username";
 import slugify from "@calcom/lib/slugify";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { validateAndGetCorrectedUsernameAndEmail } from "@calcom/lib/validateUsername";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
 import { signupSchema } from "@calcom/prisma/zod-utils";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { joinAnyChildTeamOnOrgInvite } from "../utils/organization";
+import { prefillAvatar } from "../utils/prefillAvatar";
 import {
   findTokenByToken,
   throwIfTokenExpired,
@@ -67,28 +68,52 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: {
         id: foundToken.teamId,
       },
+      include: {
+        parent: {
+          select: {
+            id: true,
+            slug: true,
+            organizationSettings: true,
+          },
+        },
+        organizationSettings: true,
+      },
     });
+
     if (team) {
-      const teamMetadata = teamMetadataSchema.parse(team?.metadata);
+      const isInviteForATeamInOrganization = !!team.parent;
+      const isCheckingUsernameInGlobalNamespace = !team.isOrganization && !isInviteForATeamInOrganization;
+
+      if (isCheckingUsernameInGlobalNamespace) {
+        const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+        if (!isUsernameAvailable) {
+          res.status(409).json({ message: "A user exists with that username" });
+          return;
+        }
+      }
 
       const user = await prisma.user.upsert({
         where: { email: userEmail },
         update: {
           username: correctedUsername,
-          password: hashedPassword,
+          password: {
+            upsert: {
+              create: { hash: hashedPassword },
+              update: { hash: hashedPassword },
+            },
+          },
           emailVerified: new Date(Date.now()),
           identityProvider: IdentityProvider.CAL,
         },
         create: {
           username: correctedUsername,
           email: userEmail,
-          password: hashedPassword,
+          password: { create: { hash: hashedPassword } },
           identityProvider: IdentityProvider.CAL,
         },
       });
 
       const { membership } = await createOrUpdateMemberships({
-        teamMetadata,
         user,
         team,
       });
@@ -96,10 +121,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       closeComUpsertTeamUser(team, user, membership.role);
 
       // Accept any child team invites for orgs.
-      if (team.parentId) {
+      if (team.parent) {
         await joinAnyChildTeamOnOrgInvite({
           userId: user.id,
-          orgId: team.parentId,
+          org: team.parent,
         });
       }
     }
@@ -111,6 +136,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       },
     });
   } else {
+    const isUsernameAvailable = !(await isUsernameReservedDueToMigration(correctedUsername));
+    if (!isUsernameAvailable) {
+      res.status(409).json({ message: "A user exists with that username" });
+      return;
+    }
     if (IS_PREMIUM_USERNAME_ENABLED) {
       const checkUsername = await checkPremiumUsername(correctedUsername);
       if (checkUsername.premium) {
@@ -124,17 +154,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       where: { email: userEmail },
       update: {
         username: correctedUsername,
-        password: hashedPassword,
+        password: {
+          upsert: {
+            create: { hash: hashedPassword },
+            update: { hash: hashedPassword },
+          },
+        },
         emailVerified: new Date(Date.now()),
         identityProvider: IdentityProvider.CAL,
       },
       create: {
         username: correctedUsername,
         email: userEmail,
-        password: hashedPassword,
+        password: { create: { hash: hashedPassword } },
         identityProvider: IdentityProvider.CAL,
       },
     });
+
+    if (process.env.AVATARAPI_USERNAME && process.env.AVATARAPI_PASSWORD) {
+      await prefillAvatar({ email: userEmail });
+    }
+
     await sendEmailVerification({
       email: userEmail,
       username: correctedUsername,

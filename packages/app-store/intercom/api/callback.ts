@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
-import { CAL_URL } from "@calcom/lib/constants";
+import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
@@ -8,6 +8,7 @@ import prisma from "@calcom/prisma";
 import getAppKeysFromSlug from "../../_utils/getAppKeysFromSlug";
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 
 const log = logger.getSubLogger({ prefix: [`[[intercom/api/callback]`] });
 
@@ -85,8 +86,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     req
   );
 
+  const state = decodeOAuthState(req);
+
   res.redirect(
-    getSafeRedirectUrl(`${CAL_URL}/apps/installed/automation?hl=intercom`) ??
+    getSafeRedirectUrl(`${WEBAPP_URL}/apps/installed/automation?hl=intercom`) ??
       getInstalledAppPath({ variant: "automation", slug: "intercom" })
   );
 }

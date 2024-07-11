@@ -24,6 +24,7 @@ const calFont = localFont({
   variable: "--font-cal",
   preload: true,
   display: "swap",
+  weight: "600",
 });
 
 function PageWrapper(props: AppProps) {
@@ -75,6 +76,7 @@ function PageWrapper(props: AppProps) {
         id="page-status"
         dangerouslySetInnerHTML={{ __html: `window.CalComPageStatus = '${pageStatus}'` }}
       />
+
       <style jsx global>{`
         :root {
           --font-inter: ${interFont.style.fontFamily};
@@ -89,8 +91,7 @@ function PageWrapper(props: AppProps) {
           </LicenseRequired>
         ) : (
           <Component {...pageProps} err={err} />
-        ),
-        router
+        )
       )}
     </AppProviders>
   );

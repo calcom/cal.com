@@ -1,5 +1,8 @@
 import { generateTeamCheckoutSession } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { uploadLogo } from "@calcom/lib/server/avatar";
+import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { resizeBase64Image } from "@calcom/lib/server/resizeBase64Image";
 import { closeComUpsertTeamUser } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -46,11 +49,11 @@ const generateCheckoutSession = async ({
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const { user } = ctx;
-  const { slug, name, logo } = input;
-  const isOrgChildTeam = !!user.organizationId;
+  const { slug, name } = input;
+  const isOrgChildTeam = !!user.profile?.organizationId;
 
   // For orgs we want to create teams under the org
-  if (user.organizationId && !user.organization.isOrgAdmin) {
+  if (user.profile?.organizationId && !user.organization.isOrgAdmin) {
     throw new TRPCError({ code: "FORBIDDEN", message: "org_admins_can_create_new_teams" });
   }
 
@@ -58,18 +61,16 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     where: {
       slug: slug,
       // If this is under an org, check that the team doesn't already exist
-      parentId: isOrgChildTeam ? user.organizationId : null,
+      parentId: isOrgChildTeam ? user.profile?.organizationId : null,
     },
   });
 
   if (slugCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_url_taken" });
 
-  if (user.organizationId) {
-    const nameCollisions = await prisma.user.findFirst({
-      where: {
-        organizationId: user.organization.id,
-        username: slug,
-      },
+  if (user.profile?.organizationId) {
+    const nameCollisions = await isSlugTakenBySomeUserInTheOrganization({
+      organizationId: user.profile?.organizationId,
+      slug: slug,
     });
 
     if (nameCollisions) throw new TRPCError({ code: "BAD_REQUEST", message: "team_slug_exists_as_user" });
@@ -96,7 +97,6 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     data: {
       slug,
       name,
-      logo,
       members: {
         create: {
           userId: ctx.user.id,
@@ -104,10 +104,24 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
           accepted: true,
         },
       },
-      ...(isOrgChildTeam && { parentId: user.organizationId }),
+      ...(isOrgChildTeam && { parentId: user.profile?.organizationId }),
     },
   });
-
+  // Upload logo, create doesn't allow logo removal
+  if (input.logo && input.logo.startsWith("data:image/png;base64,")) {
+    const logoUrl = await uploadLogo({
+      logo: await resizeBase64Image(input.logo),
+      teamId: createdTeam.id,
+    });
+    await prisma.team.update({
+      where: {
+        id: createdTeam.id,
+      },
+      data: {
+        logoUrl,
+      },
+    });
+  }
   // Sync Services: Close.com
   closeComUpsertTeamUser(createdTeam, ctx.user, MembershipRole.OWNER);
 
@@ -117,5 +131,18 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     team: createdTeam,
   };
 };
+
+async function isSlugTakenBySomeUserInTheOrganization({
+  organizationId,
+  slug,
+}: {
+  organizationId: number;
+  slug: string;
+}) {
+  return await ProfileRepository.findByOrgIdAndUsername({
+    organizationId: organizationId,
+    username: slug,
+  });
+}
 
 export default createHandler;

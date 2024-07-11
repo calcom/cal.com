@@ -17,7 +17,6 @@ import {
   SkeletonContainer,
   SkeletonText,
 } from "@calcom/ui";
-import { Link as LinkIcon, Plus } from "@calcom/ui/components/icon";
 
 import PageWrapper from "@components/PageWrapper";
 
@@ -36,7 +35,7 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 const ApiKeysView = () => {
   const { t } = useLocale();
 
-  const { data, isLoading } = trpc.viewer.apiKeys.list.useQuery();
+  const { data, isPending } = trpc.viewer.apiKeys.list.useQuery();
 
   const [apiKeyModal, setApiKeyModal] = useState(false);
   const [apiKeyToEdit, setApiKeyToEdit] = useState<(TApiKeys & { neverExpires?: boolean }) | undefined>(
@@ -47,7 +46,7 @@ const ApiKeysView = () => {
     return (
       <Button
         color="secondary"
-        StartIcon={Plus}
+        StartIcon="plus"
         onClick={() => {
           setApiKeyToEdit(undefined);
           setApiKeyModal(true);
@@ -57,7 +56,7 @@ const ApiKeysView = () => {
     );
   };
 
-  if (isLoading || !data) {
+  if (isPending || !data) {
     return (
       <SkeletonLoader
         title={t("api_keys")}
@@ -95,7 +94,7 @@ const ApiKeysView = () => {
             </>
           ) : (
             <EmptyScreen
-              Icon={LinkIcon}
+              Icon="link"
               headline={t("create_first_api_key")}
               description={t("create_first_api_key_description", { appName: APP_NAME })}
               className="rounded-b-lg rounded-t-none border-t-0"

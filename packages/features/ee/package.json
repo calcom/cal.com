@@ -14,7 +14,7 @@
     "@sendgrid/mail": "^7.6.2",
     "libphonenumber-js": "^1.10.51",
     "twilio": "^3.80.1",
-    "zod": "^3.22.2"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@calcom/tsconfig": "*"

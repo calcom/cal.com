@@ -15,7 +15,7 @@ const DisableTeamImpersonation = ({
 }) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const query = trpc.viewer.teams.getMembershipbyUser.useQuery({ teamId, memberId });
 
@@ -26,14 +26,14 @@ const DisableTeamImpersonation = ({
     },
   });
   const [allowImpersonation, setAllowImpersonation] = useState(!query.data?.disableImpersonation ?? true);
-  if (query.isLoading) return <></>;
+  if (query.isPending) return <></>;
 
   return (
     <>
       <SettingsToggle
         toggleSwitchAtTheEnd={true}
         title={t("user_impersonation_heading")}
-        disabled={disabled || mutation?.isLoading}
+        disabled={disabled || mutation?.isPending}
         description={t("team_impersonation_description")}
         checked={allowImpersonation}
         onCheckedChange={(_allowImpersonation) => {
