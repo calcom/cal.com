@@ -1,6 +1,6 @@
 import * as cache from "memory-cache";
 
-import { IS_SELF_HOSTED } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 
 import { prisma } from "../../../../prisma";
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
@@ -24,7 +24,7 @@ class LicenseKeyService {
 
   // Static async factory method
   public static async create(): Promise<LicenseKeyService> {
-    const baseUrl = process.env.CALCOM_PRIVATE_API_ROUTE;
+    const baseUrl = CALCOM_PRIVATE_API_ROUTE;
     if (!baseUrl && !IS_SELF_HOSTED) {
       throw new Error("CALCOM_PRIVATE_API_ROUTE is not set");
     }

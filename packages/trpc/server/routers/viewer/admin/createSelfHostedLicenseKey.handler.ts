@@ -1,6 +1,8 @@
 import * as crypto from "crypto";
 import { z } from "zod";
 
+import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 
@@ -49,7 +51,7 @@ const fetchWithSignature = async (
 };
 
 const createSelfHostedInstance = async ({ input, ctx }: GetOptions) => {
-  const privateApiUrl = process.env.CALCOM_PRIVATE_API_ROUTE;
+  const privateApiUrl = CALCOM_PRIVATE_API_ROUTE;
   const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
 
   if (!privateApiUrl || !signatureToken) {
