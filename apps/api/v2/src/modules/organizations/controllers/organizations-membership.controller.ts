@@ -6,7 +6,12 @@ import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membersh
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
-import { OrgMembershipOutputDto } from "@/modules/organizations/outputs/organization-membership.output";
+import { CreateOrgMembershipOutput } from "@/modules/organizations/outputs/organization-membership/create-membership.output";
+import { DeleteOrgMembership } from "@/modules/organizations/outputs/organization-membership/delete-membership.output";
+import { GetAllOrgMemberships } from "@/modules/organizations/outputs/organization-membership/get-all-memberships.output";
+import { GetOrgMembership } from "@/modules/organizations/outputs/organization-membership/get-membership.output";
+import { OrgMembershipOutputDto } from "@/modules/organizations/outputs/organization-membership/membership.output";
+import { UpdateOrgMembership } from "@/modules/organizations/outputs/organization-membership/update-membership.output";
 import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
 import {
   Controller,
@@ -19,12 +24,14 @@ import {
   Patch,
   Post,
   Body,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse, SkipTakePagination } from "@calcom/platform-types";
+import { SkipTakePagination } from "@calcom/platform-types";
 import { Membership } from "@calcom/prisma/client";
 
 @Controller({
@@ -36,13 +43,12 @@ import { Membership } from "@calcom/prisma/client";
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
-  @Get()
-  @UseGuards()
   @Roles("ORG_ADMIN")
+  @Get("/")
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
-  ): Promise<ApiResponse<OrgMembershipOutputDto[]>> {
+  ): Promise<GetAllOrgMemberships> {
     const { skip, take } = queryParams;
     const memberships = await this.organizationsMembershipService.getPaginatedOrgMemberships(
       orgId,
@@ -57,13 +63,12 @@ export class OrganizationsMembershipsController {
     };
   }
 
-  @Post()
-  @UseGuards()
   @Roles("ORG_ADMIN")
+  @Post("/")
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgMembershipDto
-  ): Promise<ApiResponse<OrgMembershipOutputDto>> {
+  ): Promise<CreateOrgMembershipOutput> {
     const membership = await this.organizationsMembershipService.createOrgMembership(orgId, body);
     return {
       status: SUCCESS_STATUS,
@@ -71,28 +76,27 @@ export class OrganizationsMembershipsController {
     };
   }
 
-  @Get()
-  @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
-  @Get("/:membershipId")
-  async getMembership(@GetMembership() membership: Membership): Promise<ApiResponse<OrgMembershipOutputDto>> {
+  @UseGuards(IsMembershipInOrg)
+  @Get(":membershipId")
+  async getMembership(@GetMembership() membership: Membership): Promise<GetOrgMembership> {
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
     };
   }
 
-  @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
+  @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
+  @HttpCode(HttpStatus.OK)
   async deleteMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
-  ): Promise<ApiResponse<OrgMembershipOutputDto>> {
-    const membership = await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
+  ): Promise<DeleteOrgMembership> {
+    await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -103,7 +107,7 @@ export class OrganizationsMembershipsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
     @Body() body: CreateOrgMembershipDto
-  ): Promise<ApiResponse<OrgMembershipOutputDto>> {
+  ): Promise<UpdateOrgMembership> {
     const membership = await this.organizationsMembershipService.updateOrgMembership(
       orgId,
       membershipId,

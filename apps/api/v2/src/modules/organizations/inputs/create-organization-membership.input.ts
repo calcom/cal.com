@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsString, IsInt } from "class-validator";
+import { IsBoolean, IsOptional, IsEnum, IsInt } from "class-validator";
 
 import { MembershipRole } from "@calcom/prisma/enums";
 
@@ -13,7 +13,7 @@ export class CreateOrgMembershipDto {
   @IsBoolean()
   readonly accepted?: boolean = false;
 
-  @IsString()
+  @IsEnum(MembershipRole)
   readonly role: MembershipRole = MembershipRole.MEMBER;
 
   @IsOptional()
