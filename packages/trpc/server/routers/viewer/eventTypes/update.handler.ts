@@ -251,6 +251,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       });
     }
 
+    // weights were already enabled or are enabled now
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
@@ -261,32 +262,17 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       prisma: ctx.prisma,
     });
 
-    const previousRRHosts = await ctx.prisma.host.findMany({
-      where: {
-        eventTypeId: id,
-        isFixed: false,
-      },
-      select: {
-        userId: true,
-        weightAdjustment: true,
-      },
-    });
-
     data.hosts = {
       deleteMany: {},
       create: hostWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
-
-        const previousAdjustedWeight = previousRRHosts.find(
-          (prevHost) => prevHost.userId === host.userId
-        )?.weightAdjustment;
 
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
           weight: host.weight ?? 100,
-          weightAdjustment: previousAdjustedWeight ?? host.weightAdjustment,
+          weightAdjustment: host.weightAdjustment,
         };
       }),
     };

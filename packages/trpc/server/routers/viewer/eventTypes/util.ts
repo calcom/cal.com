@@ -215,7 +215,13 @@ export async function addWeightAdjustmentToNewHosts({
 
   if (ongoingRRHosts.length === hosts.length) {
     //no new RR host was added
-    return hosts;
+    return hostsWithUserData.map((host) => ({
+      userId: host.user.id,
+      isFixed: host.isFixed,
+      priority: host.priority,
+      weight: host.weight,
+      weightAdjustment: host.weightAdjustment,
+    }));
   }
 
   const ongoingHostBookings = await getAllBookingsOfUsers({
@@ -235,7 +241,7 @@ export async function addWeightAdjustmentToNewHosts({
 
   const hostsWithWeightAdjustments = await Promise.all(
     hostsWithUserData.map(async (host) => {
-      let weightAdjustment = 0;
+      let weightAdjustment = host.weightAdjustment;
       if (host.isNewHost) {
         // host can already have bookings, if they ever was assigned before
         const existingBookings = await getAllBookingsOfUsers({
@@ -253,7 +259,7 @@ export async function addWeightAdjustmentToNewHosts({
         userId: host.user.id,
         isFixed: host.isFixed,
         priority: host.priority,
-        weight: host.weightAdjustment,
+        weight: host.weight,
         weightAdjustment: weightAdjustment > 0 ? Math.floor(weightAdjustment) : 0,
       };
     })
