@@ -9,13 +9,15 @@ export const zodNonRouterField = z.object({
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
-  options: z.array(
-    z.object({
-      placeholder: z.string(),
-      value: z.string(),
-      id: z.string(),
-    })
-  ),
+  options: z
+    .array(
+      z.object({
+        placeholder: z.string(),
+        value: z.string(),
+        id: z.string(),
+      })
+    )
+    .optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({
