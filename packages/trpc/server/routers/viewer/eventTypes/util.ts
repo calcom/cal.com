@@ -196,18 +196,22 @@ export async function addWeightAdjustmentToNewHosts({
     },
   });
 
-  const hostsWithUserData = usersWithHostData.map((user) => ({
-    isNewHost: !user.hosts.length,
-    isFixed: user.hosts[0]?.isFixed ?? false,
-    weightAdjustment: user.hosts[0]?.weightAdjustment ?? 0,
-    priority: user.hosts[0]?.priority ?? 0,
-    user: {
-      id: user.id,
-      email: user.email,
-    },
-  }));
+  const hostsWithUserData = usersWithHostData.map((user) => {
+    const hostData = user.hosts[0] ?? hosts.find((host) => host.userId === user.id);
+    return {
+      isNewHost: !user.hosts.length,
+      isFixed: hostData?.isFixed ?? false,
+      weightAdjustment: hostData?.weightAdjustment ?? 0,
+      priority: hostData?.priority ?? 2,
+      weight: hostData?.weight ?? 100,
+      user: {
+        id: user.id,
+        email: user.email,
+      },
+    };
+  });
 
-  const ongoingRRHosts = hostsWithUserData.filter((host) => !host.isFixed && host.isNewHost);
+  const ongoingRRHosts = hostsWithUserData.filter((host) => !host.isFixed && !host.isNewHost);
 
   if (ongoingRRHosts.length === hosts.length) {
     //no new RR host was added
@@ -227,10 +231,11 @@ export async function addWeightAdjustmentToNewHosts({
     0
   );
 
+  const ongoingHostsWeights = ongoingRRHosts.reduce((sum, host) => sum + (host.weight ?? 0), 0);
+
   const hostsWithWeightAdjustments = await Promise.all(
     hostsWithUserData.map(async (host) => {
       let weightAdjustment = 0;
-
       if (host.isNewHost) {
         // host can already have bookings, if they ever was assigned before
         const existingBookings = await getAllBookingsOfUsers({
@@ -239,9 +244,9 @@ export async function addWeightAdjustmentToNewHosts({
           prisma,
         });
 
-        weightAdjustment =
-          (ongoingHostBookings.length + ongoingHostsWeightAdjustment) / ongoingRRHosts.length -
-          existingBookings.length;
+        const proporationalNrOfBookings =
+          ((ongoingHostBookings.length + ongoingHostsWeightAdjustment) / ongoingHostsWeights) * host.weight;
+        weightAdjustment = proporationalNrOfBookings - existingBookings.length;
       }
 
       return {

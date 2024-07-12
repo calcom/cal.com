@@ -479,19 +479,28 @@ describe("maximize availability and weights", () => {
 
 function convertHostsToUsers(
   hosts: {
-    user: { id: number; email: string };
+    userId: number;
     isFixed: boolean;
     priority: number;
     weight: number;
     weightAdjustment?: number;
+    newHost?: boolean;
   }[]
 ) {
   return hosts.map((host) => {
     return {
-      userId: host.user.id,
-      isFixed: host.isFixed,
-      priority: host.priority,
-      weight: host.weight,
+      id: host.userId,
+      email: `test${host.userId}@example.com`,
+      hosts: host.newHost
+        ? []
+        : [
+            {
+              isFixed: host.isFixed,
+              priority: host.priority,
+              weightAdjustment: host.weightAdjustment,
+              weight: host.weight,
+            },
+          ],
     };
   });
 }
@@ -500,32 +509,23 @@ describe("addWeightAdjustmentToNewHosts", () => {
   it("weight adjustment is correctly added to host with two hosts that have the same weight", async () => {
     const hosts = [
       {
-        user: {
-          id: 1,
-          email: "test1@example.com",
-        },
+        userId: 1,
         isFixed: false,
         priority: 2,
         weight: 100,
       },
       {
-        user: {
-          id: 2,
-          email: "test2@example.com",
-        },
+        userId: 2,
         isFixed: false,
         priority: 2,
         weight: 100,
+        newHost: true,
       },
     ];
 
     const users = convertHostsToUsers(hosts);
 
-    //test2 is a new host
-    const previousRRHosts = [hosts[0]];
-
-    // mock for hostsWithUserData
-    prismaMock.host.findMany.mockResolvedValue(hosts);
+    prismaMock.user.findMany.mockResolvedValue(users);
 
     // mock for allBookings (for ongoing RR hosts)
     prismaMock.booking.findMany
@@ -556,75 +556,58 @@ describe("addWeightAdjustmentToNewHosts", () => {
       ]);
 
     const hostsWithAdjustedWeight = await addWeightAdjustmentToNewHosts({
-      hosts: users,
-      previousRRHosts,
+      hosts,
       isWeightsEnabled: true,
       eventTypeId: 1,
       prisma: prismaMock,
     });
-
     /*
     both users have weight 100, user1 has 4 bookings user 2 has 1 bookings already
     */
+    console.log(`hostsWithAdjustedWeight ${JSON.stringify(hostsWithAdjustedWeight)}`);
     expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
   });
 
   it("weight adjustment is correctly added to host with several hosts that have different weights", async () => {
+    // make different weights
     const hosts = [
       {
-        user: {
-          id: 1,
-          email: "test1@example.com",
-        },
+        userId: 1,
         isFixed: false,
         priority: 2,
         weight: 100,
       },
       {
-        user: {
-          id: 2,
-          email: "test2@example.com",
-        },
+        userId: 2,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        newHost: true,
+      },
+      {
+        userId: 3,
         isFixed: false,
         priority: 2,
         weight: 100,
       },
       {
-        user: {
-          id: 3,
-          email: "test3@example.com",
-        },
+        userId: 4,
         isFixed: false,
         priority: 2,
         weight: 100,
       },
       {
-        user: {
-          id: 4,
-          email: "test4@example.com",
-        },
+        userId: 5,
         isFixed: false,
         priority: 2,
         weight: 100,
-      },
-      {
-        user: {
-          id: 5,
-          email: "test5@example.com",
-        },
-        isFixed: false,
-        priority: 2,
-        weight: 100,
+        newHost: true,
       },
     ];
 
     const users = convertHostsToUsers(hosts);
 
-    //test2 and test 5 are new hosts
-    const previousRRHosts = [hosts[0], hosts[2], hosts[3]];
-
-    // mock for hostsWithUserData
-    prismaMock.host.findMany.mockResolvedValue(hosts);
+    prismaMock.user.findMany.mockResolvedValue(users);
 
     // mock for allBookings (for ongoing RR hosts)
     prismaMock.booking.findMany
@@ -668,8 +651,7 @@ describe("addWeightAdjustmentToNewHosts", () => {
       .mockResolvedValue([]);
 
     const hostsWithAdjustedWeight = await addWeightAdjustmentToNewHosts({
-      hosts: users,
-      previousRRHosts,
+      hosts,
       isWeightsEnabled: true,
       eventTypeId: 1,
       prisma: prismaMock,
