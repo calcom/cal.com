@@ -1838,6 +1838,29 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/credentials": {
+      "post": {
+        "operationId": "CalendarsController_syncCredentials",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/calendars/{calendar}/check": {
       "get": {
         "operationId": "CalendarsController_check",

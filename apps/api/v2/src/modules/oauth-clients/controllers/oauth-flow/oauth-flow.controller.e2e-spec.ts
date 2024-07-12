@@ -113,7 +113,7 @@ describe("OAuthFlow Endpoints", () => {
         const REDIRECT_STATUS = 302;
 
         const response = await request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/authorize`)
+          .post(`/v2/oauth/${oAuthClient.id}/authorize`)
           .send(body)
           .expect(REDIRECT_STATUS);
 
@@ -133,7 +133,7 @@ describe("OAuthFlow Endpoints", () => {
         };
 
         const response = await request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/exchange`)
+          .post(`/v2/oauth/${oAuthClient.id}/exchange`)
           .set("Authorization", authorizationToken)
           .send(body)
           .expect(200);
@@ -153,7 +153,7 @@ describe("OAuthFlow Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/refresh`)
+          .post(`/v2/oauth/${oAuthClient.id}/refresh`)
           .set("x-cal-secret-key", secretKey)
           .send(body)
           .expect(200)
