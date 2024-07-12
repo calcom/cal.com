@@ -6,7 +6,7 @@ const checkUndefinedInValue = (where: any) => {
       // INFO: Since this is for $allModels, we don't have a way to get the correct
       // where type
       const whereInput = where[key as unknown] as unknown;
-      if (whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
+      if (!!whereInput && whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
         throw new Error(`The "in" value for the field "${key}" is undefined.`);
       }
     }
