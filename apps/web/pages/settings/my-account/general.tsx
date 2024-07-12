@@ -148,7 +148,22 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
       },
       weekStart: {
         value: user.weekStart,
-        label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
+        label: nameOfDay(
+          localeProp,
+          user.weekStart === "Sunday"
+            ? 0
+            : user.weekStart === "Monday"
+            ? 1
+            : user.weekStart === "Tuesday"
+            ? 2
+            : user.weekStart === "Wednesday"
+            ? 3
+            : user.weekStart === "Thursday"
+            ? 4
+            : user.weekStart === "Friday"
+            ? 5
+            : 6
+        ),
       },
       travelSchedules:
         travelSchedules.map((schedule) => {
@@ -177,7 +192,7 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
   );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
-
+  console.log(formMethods.getValues("weekStart"), "helloindia");
   return (
     <div>
       <Form
