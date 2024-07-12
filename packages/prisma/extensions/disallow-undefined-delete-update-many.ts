@@ -13,7 +13,7 @@ const checkUndefinedInValue = (where: any) => {
   }
 };
 
-export function undefinedGuardExtension() {
+export function disallowUndefinedDeleteUpdateManyExtension() {
   return Prisma.defineExtension({
     query: {
       $allModels: {
