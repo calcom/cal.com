@@ -13,6 +13,8 @@ type GetOptions = {
   input: ZCreateAttributeSchema;
 };
 
+const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
+
 const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
@@ -24,16 +26,30 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   }
 
   const slug = slugify(input.name);
+  const options = input.options.map((v) => v.value);
+  const optionsWithoutDuplicates = Array.from(new Set(options));
+  const typeHasOptions = typesWithOptions.includes(input.type);
 
   const attributes = await prisma.attribute.create({
     data: {
       slug,
       name: input.name,
       type: input.type,
-      options: input.options.map((v) => v.value),
       teamId: org.id,
     },
   });
+
+  // Only assign options for the types that have options
+  // TEXT/NUMBER don't have options
+  if (typeHasOptions) {
+    await prisma.attributeOption.createMany({
+      data: optionsWithoutDuplicates.map((value) => ({
+        attributeId: attributes.id,
+        value,
+        slug: slugify(value),
+      })),
+    });
+  }
 
   return attributes;
 };

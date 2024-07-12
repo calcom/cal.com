@@ -1421,6 +1421,16 @@ enum AttributeType {
   MULTI_SELECT
 }
 
+model AttributeOption {
+  id          String    @id @default(cuid())
+  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId String
+  value       String
+  slug        String
+
+  @@unique([attributeId, value])
+}
+
 model Attribute {
   id String @id @default(cuid())
 
@@ -1430,17 +1440,16 @@ model Attribute {
   type AttributeType
 
   name String
-  slug String
-
-  options String[]
+  slug String @unique
 
   enabled Boolean @default(true)
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  AttributeToUser AttributeToUser[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  assignedUsers AttributeToUser[]
+  options       AttributeOption[]
 }
 
 model AttributeToUser {

@@ -19,11 +19,13 @@ const listHandler = async (opts: GetOptions) => {
       message: "You need to be apart of an organization to use this feature",
     });
   }
-  // Find all attributes that this organization has
 
   return await prisma.attribute.findMany({
     where: {
       teamId: org.id,
+    },
+    include: {
+      options: true,
     },
   });
 };
