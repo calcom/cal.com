@@ -921,7 +921,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
               onClick={(e) => {
                 e.preventDefault();
-                setSelectedEmail(guest.email);
+                setSelectedEmail(guest?.email ?? "");
               }}>
               <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
             </DropdownItem>
