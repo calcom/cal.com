@@ -19,7 +19,10 @@ import { getLayout } from "./_OrgMigrationLayout";
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
     <div>
-      <Meta title="Organization Migration: Move a team" description="Migrates a team to an organization" />
+      <Meta
+        title="Organization Migration: Revert a user"
+        description="Reverts a migration of a user to an organization"
+      />
       {children}
     </div>
   );
