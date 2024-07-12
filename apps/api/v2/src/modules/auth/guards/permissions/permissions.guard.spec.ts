@@ -1,6 +1,7 @@
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { createMock } from "@golevelup/ts-jest";
 import { ExecutionContext } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 
 import { APPS_WRITE, SCHEDULE_READ, SCHEDULE_WRITE } from "@calcom/platform-constants";
@@ -13,7 +14,20 @@ describe("PermissionsGuard", () => {
 
   beforeEach(async () => {
     reflector = new Reflector();
-    guard = new PermissionsGuard(reflector, createMock<TokensRepository>());
+    guard = new PermissionsGuard(
+      reflector,
+      createMock<TokensRepository>(),
+      createMock<ConfigService>({
+        get: jest.fn().mockImplementation((key: string) => {
+          switch (key) {
+            case "api.apiKeyPrefix":
+              return "cal_";
+            default:
+              return null;
+          }
+        }),
+      })
+    );
   });
 
   it("should be defined", () => {

@@ -155,7 +155,7 @@ test.describe("Organization Logo", async () => {
 
       await page.getByTestId("upload-avatar").click();
 
-      await page.getByText("Update").click();
+      await page.getByTestId("update-org-profile-button").click();
       await page.waitForSelector("text=Your organization updated successfully");
 
       const response = await prisma.avatar.findUniqueOrThrow({

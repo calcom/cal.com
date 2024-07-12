@@ -3,6 +3,7 @@ import { v5 as uuidv5 } from "uuid";
 
 import appStore from "@calcom/app-store";
 import { getDailyAppKeys } from "@calcom/app-store/dailyvideo/lib/getDailyAppKeys";
+import { DailyLocationType } from "@calcom/app-store/locations";
 import { sendBrokenIntegrationEmail } from "@calcom/emails";
 import { getUid } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
@@ -114,14 +115,13 @@ const createMeeting = async (credential: CredentialPayload, calEvent: CalendarEv
       safeStringify(err),
       safeStringify({ calEvent: getPiiFreeCalendarEvent(calEvent) })
     );
-
     // Default to calVideo
     const defaultMeeting = await createMeetingWithCalVideo(calEvent);
     if (defaultMeeting) {
-      calEvent.location = "integrations:dailyvideo";
+      calEvent.location = DailyLocationType;
     }
 
-    returnObject = { ...returnObject, createdEvent: defaultMeeting };
+    returnObject = { ...returnObject, originalEvent: calEvent, createdEvent: defaultMeeting };
   }
 
   return returnObject;
@@ -301,6 +301,89 @@ const getAllTranscriptsAccessLinkFromRoomName = async (roomName: string) => {
   return videoAdapter?.getAllTranscriptsAccessLinkFromRoomName?.(roomName);
 };
 
+const submitBatchProcessorTranscriptionJob = async (recordingId: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+
+  return videoAdapter?.submitBatchProcessorJob?.({
+    preset: "transcript",
+    inParams: {
+      sourceType: "recordingId",
+      recordingId: recordingId,
+    },
+    outParams: {
+      s3Config: {
+        s3KeyTemplate: "transcript",
+      },
+    },
+  });
+};
+
+const getTranscriptsAccessLinkFromRecordingId = async (recordingId: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+
+  return videoAdapter?.getTranscriptsAccessLinkFromRecordingId?.(recordingId);
+};
+
+const checkIfRoomNameMatchesInRecording = async (roomName: string, recordingId: string) => {
+  let dailyAppKeys: Awaited<ReturnType<typeof getDailyAppKeys>>;
+  try {
+    dailyAppKeys = await getDailyAppKeys();
+  } catch (e) {
+    console.error("Error: Cal video provider is not installed.");
+    return;
+  }
+  const [videoAdapter] = await getVideoAdapters([
+    {
+      id: 0,
+      appId: "daily-video",
+      type: "daily_video",
+      userId: null,
+      user: { email: "" },
+      teamId: null,
+      key: dailyAppKeys,
+      invalid: false,
+    },
+  ]);
+
+  return videoAdapter?.checkIfRoomNameMatchesInRecording?.(roomName, recordingId);
+};
+
 export {
   getBusyVideoTimes,
   createMeeting,
@@ -309,4 +392,7 @@ export {
   getRecordingsOfCalVideoByRoomName,
   getDownloadLinkOfCalVideoByRecordingId,
   getAllTranscriptsAccessLinkFromRoomName,
+  submitBatchProcessorTranscriptionJob,
+  getTranscriptsAccessLinkFromRecordingId,
+  checkIfRoomNameMatchesInRecording,
 };
