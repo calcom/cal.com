@@ -89,7 +89,7 @@ export default function ICSFeedSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <Icon name="plus" size={16} />
+                  {t("add")} <Icon className="inline" name="plus" size={16} />
                 </button>
 
                 <div className="mt-3 flex items-center">
@@ -103,9 +103,12 @@ export default function ICSFeedSetup() {
                   />
                 </div>
 
-                <div className="mt-3 flex items-center">
-                  <p className="text-default mt-2">{t("skip_writing_to_calendar_note")}</p>
-                </div>
+                <Alert
+                  className="mt-3"
+                  severity="info"
+                  title={t("notes")}
+                  message={t("skip_writing_to_calendar_note")}
+                />
 
                 {errorMessage && (
                   <Alert
