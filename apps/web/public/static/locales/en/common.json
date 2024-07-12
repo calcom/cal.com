@@ -2503,5 +2503,6 @@
   "add_attributes": "Add attributes",
   "add_attributes_description": "Add attributes to your team members",
   "new_option": "New option",
+  "attribute_updated_successfully": "Attribute updated successfully",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

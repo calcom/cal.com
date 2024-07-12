@@ -25,6 +25,13 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
+  if (!org.isOrgAdmin) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be an admin of the organization to modify attributes",
+    });
+  }
+
   const slug = slugify(input.name);
   const options = input.options.map((v) => v.value);
   const optionsWithoutDuplicates = Array.from(new Set(options));

@@ -2,6 +2,7 @@
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import React from "react";
 import { Controller, useForm, useFieldArray, useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -40,9 +41,11 @@ const AttributeTypeOptions = [
 ];
 
 function CreateAttributesPage() {
+  const router = useRouter();
   const mutation = trpc.viewer.attributes.create.useMutation({
     onSuccess: () => {
       showToast("Attribute created successfully", "success");
+      router.push("/settings/organizations/attributes");
     },
     onError: (err) => {
       showToast(err.message, "error");

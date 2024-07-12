@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -15,11 +17,36 @@ import {
   DropdownItem,
   DropdownMenuItem,
   Icon,
+  showToast,
 } from "@calcom/ui";
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 
 function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
+  const [isEnabled, setIsEnabled] = useState(attribute.enabled);
+  const mutation = trpc.viewer.attributes.toggleActive.useMutation({
+    onSuccess: () => {
+      showToast(t("attribute_updated_successfully"), "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const handleToggle = (checked: boolean) => {
+    // Optimistically update the local state
+    setIsEnabled(checked);
+    mutation.mutate(
+      { attributeId: attribute.id },
+      {
+        onError: (err) => {
+          setIsEnabled(!checked);
+          showToast(err.message, "error");
+        },
+      }
+    );
+  };
+
   const { t } = useLocale();
   return (
     <ul className="focus-within:border-emphasis flex justify-between p-4" key={attribute.id}>
@@ -28,7 +55,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
         <p className="text-default leadning-none text-sm font-normal">{attribute.type}</p>
       </div>
       <div className="flex gap-4">
-        <Switch checked={attribute.enabled} />
+        <Switch checked={isEnabled} onCheckedChange={handleToggle} />
         <Dropdown modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
@@ -39,7 +66,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
               className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
             />
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent className="min-w-[200px]">
             <DropdownMenuItem>
               <DropdownItem type="button" StartIcon="pencil">
                 {t("edit")}
