@@ -22,6 +22,13 @@ import {
 
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 
+const TypeToLabelMap = {
+  TEXT: "Text",
+  NUMBER: "Number",
+  SINGLE_SELECT: "Single-select",
+  MULTI_SELECT: "Multi-select",
+};
+
 function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
   const [isEnabled, setIsEnabled] = useState(attribute.enabled);
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
@@ -52,7 +59,15 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
     <ul className="focus-within:border-emphasis flex justify-between p-4" key={attribute.id}>
       <div>
         <h3 className="leadning-none text-sm font-semibold">{attribute.name}</h3>
-        <p className="text-default leadning-none text-sm font-normal">{attribute.type}</p>
+        <p className="text-default leadning-none inline-flex items-center gap-1 text-sm font-normal">
+          {TypeToLabelMap[attribute.type]}
+          {attribute.options?.length > 0 && (
+            <>
+              <span className="text-muted">•</span>
+              <span>{attribute.options.length} options</span>
+            </>
+          )}
+        </p>
       </div>
       <div className="flex gap-4">
         <Switch checked={isEnabled} onCheckedChange={handleToggle} />
