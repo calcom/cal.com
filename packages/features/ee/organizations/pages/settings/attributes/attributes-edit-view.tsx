@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -24,7 +24,12 @@ type FormValues = z.infer<typeof CreateAttributeSchema>;
 
 function CreateAttributesPage() {
   const router = useRouter();
-  const mutation = trpc.viewer.attributes.create.useMutation({
+  // Get the attribute id from the url
+  const { id } = useParams();
+  // ensure string with zod
+  const attribute = trpc.viewer.attributes.get.useQuery({ id });
+
+  const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
       showToast("Attribute created successfully", "success");
       router.push("/settings/organizations/attributes");
@@ -38,25 +43,35 @@ function CreateAttributesPage() {
   return (
     <>
       <LicenseRequired>
-        <Meta title="Attribute" description="Create an attribute for your team members" />
-        <AttributeForm
-          header={<CreateAttributeHeader isPending={mutation.isPending} />}
-          onSubmit={(values) => {
-            // Create set of attributes to get unique values
-            const uniqueAttributes = new Set(values.options.map((option) => option.value));
-            mutation.mutate({
-              name: values.attrName,
-              type: values.type,
-              options: Array.from(uniqueAttributes).map((value) => ({ value })),
-            });
-          }}
-        />
+        <Meta title="Attribute" description="Edit an attribute for your team members" />
+        {attribute.isLoading ? (
+          <>Loading </>
+        ) : (
+          <AttributeForm
+            initialValues={{
+              attrName: attribute.data?.name,
+              type: attribute.data?.type,
+              options: attribute.data?.options,
+            }}
+            header={<EditAttributeHeader isPending={mutation.isPending} />}
+            onSubmit={(values) => {
+              // Create set of attributes to get unique values
+              const uniqueAttributes = new Set(values.options.map((option) => option.value));
+              mutation.mutate({
+                attributeId: id as string,
+                name: values.attrName,
+                type: values.type,
+                options: Array.from(uniqueAttributes).map((value) => ({ value })),
+              });
+            }}
+          />
+        )}
       </LicenseRequired>
     </>
   );
 }
 
-function CreateAttributeHeader(props: { isPending: boolean }) {
+function EditAttributeHeader(props: { isPending: boolean }) {
   const { meta } = useMeta();
   const formContext = useFormContext<FormValues>();
 

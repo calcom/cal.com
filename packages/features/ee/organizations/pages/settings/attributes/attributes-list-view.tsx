@@ -83,7 +83,10 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent className="min-w-[200px]">
             <DropdownMenuItem>
-              <DropdownItem type="button" StartIcon="pencil">
+              <DropdownItem
+                type="button"
+                StartIcon="pencil"
+                href={`/settings/organizations/attributes/${attribute.id}/edit`}>
                 {t("edit")}
               </DropdownItem>
             </DropdownMenuItem>
