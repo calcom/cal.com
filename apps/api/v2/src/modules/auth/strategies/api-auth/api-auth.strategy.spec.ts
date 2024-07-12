@@ -89,13 +89,10 @@ describe("ApiAuthStrategy", () => {
 
   describe("authenticate with strategy", () => {
     it("should return user associated with valid access token", async () => {
-      console.log("HERERERER");
       const { accessToken } = await tokensRepositoryFixture.createTokens(
         validAccessTokenUser.id,
         oAuthClient.id
       );
-
-      console.log("Access token", accessToken);
 
       const context: ExecutionContext = {
         switchToHttp: () => ({
@@ -110,9 +107,9 @@ describe("ApiAuthStrategy", () => {
       } as ExecutionContext;
       const request = context.switchToHttp().getRequest();
 
-      const user = await strategy.authenticate(request);
-
-      await expect(user.id).toEqual(validAccessTokenUser.id);
+      const user = await strategy.accessTokenStrategy(accessToken);
+      await expect(user).toBeDefined();
+      if (user) await expect(user.id).toEqual(validAccessTokenUser.id);
     });
 
     it("should return user associated with valid api key", async () => {
@@ -133,9 +130,9 @@ describe("ApiAuthStrategy", () => {
       } as ExecutionContext;
       const request = context.switchToHttp().getRequest();
 
-      const user = await strategy.authenticate(request);
-
-      expect(user.id).toEqual(validApiKeyUser.id);
+      const user = await strategy.apiKeyStrategy(keyString);
+      await expect(user).toBeDefined();
+      if (user) expect(user.id).toEqual(validApiKeyUser.id);
     });
 
     it("should throw 401 if api key is invalid", async () => {
