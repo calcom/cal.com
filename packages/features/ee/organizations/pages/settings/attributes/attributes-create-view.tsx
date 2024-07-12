@@ -3,7 +3,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { Controller, useForm, useFieldArray, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -146,6 +146,10 @@ function CreateAttributesPage() {
 
 function CreateAttributeHeader(props: { isPending: boolean }) {
   const { meta } = useMeta();
+  const formContext = useFormContext<FormValues>();
+
+  const watchedTitle = formContext.watch("attrName");
+
   return (
     <>
       <div className="mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
@@ -157,7 +161,14 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             href="/settings/organizations/attributes">
             <span className="sr-only">Back to Attributes</span>
           </Button>
-          <h1 className="font-cal leadning-none text-subtle text-xl font-semibold">{meta.title}</h1>
+          <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
+            <h1 className="text-subtle">{meta.title}</h1>
+            {watchedTitle && (
+              <>
+                <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
+              </>
+            )}
+          </div>
         </div>
         <Button type="submit" data-testid="create-attribute-button" loading={props.isPending}>
           Save
