@@ -55,7 +55,6 @@ describe("Organizations Users Endpoints", () => {
       });
 
       membership = await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
-
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -83,6 +82,10 @@ describe("Organizations Users Endpoints", () => {
 
     it("should not be able to delete an org user", async () => {
       return request(app.getHttpServer()).delete(`/v2/organizations/${org.id}/users/${user.id}`).expect(403);
+    });
+
+    afterAll(async () => {
+      await app.close();
     });
   });
   describe("Admin role", () => {
@@ -152,7 +155,6 @@ describe("Organizations Users Endpoints", () => {
       });
 
       membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
-
       await Promise.all(
         orgMembers.map((member) => membershipFixtures.addUserToOrg(member, org, "MEMBER", true))
       );
@@ -161,18 +163,6 @@ describe("Organizations Users Endpoints", () => {
       bootstrap(app as NestExpressApplication);
 
       await app.init();
-    });
-
-    afterAll(async () => {
-      // await membershipFixtures.delete(membership.id);
-      await Promise.all([
-        userRepositoryFixture.deleteByEmail(user.email),
-        userRepositoryFixture.deleteByEmail(nonMemberEmail),
-        ...orgMembersData.map((member) => userRepositoryFixture.deleteByEmail(member.email)),
-      ]);
-      await userRepositoryFixture.deleteByEmail(user.email);
-      await organizationsRepositoryFixture.delete(org.id);
-      await app.close();
     });
 
     it("should be defined", () => {
@@ -231,44 +221,62 @@ describe("Organizations Users Endpoints", () => {
     });
 
     it("should update an org user", async () => {
-      console.log("🚀 ~ it ~ userData:", user);
-
       const { body } = await request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/users/${user.id}`)
-        .send({})
+        .patch(`/v2/organizations/${org.id}/users/${user.id}`)
+        .send({
+          theme: "light",
+        })
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
       const userData = body.data;
-      console.log("🚀 ~ it ~ userData:", userData);
     });
 
-    // it("should create a new org user", async () => {
-    //   const newOrgUser = {
-    //     email: "new-member@org.com",
-    //     organizationRole: "MEMBER",
-    //     autoAccept: true,
-    //   }
+    it("should create a new org user", async () => {
+      const newOrgUser = {
+        email: "new-member@org.com",
+        organizationRole: "MEMBER",
+        autoAccept: true,
+      };
 
-    //   // const emailSpy = jest.spyOn(EmailService, "sendSignupToOrganizationEmail")
+      const emailSpy = jest
+        .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
+        .mockImplementation(() => Promise.resolve());
+      try {
+        const { body } = await request(app.getHttpServer())
+          .post(`/v2/organizations/${org.id}/users`)
+          .send({
+            email: newOrgUser.email,
+          })
+          .set("Content-Type", "application/json")
+          .set("Accept", "application/json");
 
-    //   const { body } = await request(app.getHttpServer())
-    //     .post(`/v2/organizations/${org.id}/users`)
-    //     .send({
-    //       email: newOrgUser.email,
-    //       // username: newOrgUser.username,
-    //       // organizationRole: "MEMBER",
-    //     })
-    //     .set("Content-Type", "application/json")
-    //     .set("Accept", "application/json");
+        const userData = body.data;
+        expect(body.status).toBe(SUCCESS_STATUS);
+        console.log("1");
+        expect(userData.email).toBe(newOrgUser.email);
+        console.log("2");
+        expect(emailSpy).toHaveBeenCalledWith({
+          usernameOrEmail: newOrgUser.email,
+          orgName: org.name,
+          orgId: org.id,
+          locale: undefined,
+        });
+        console.log("3");
+        expect(false).toBe(true);
+        console.log("4");
+      } catch (error) {}
+    });
 
-    //   const userData = body.data;
-    //   console.log("🚀 ~ it ~ userData:", userData)
-
-    //   expect(body.status).toBe(SUCCESS_STATUS);
-    //   expect(userData.email).toBe(newOrgUser.email);
-    //   // expect(emailSpy).toHaveBeenCalledWith({ usernameOrEmail: newOrgUser.email, orgName: org.name, orgId: org.id, locale: undefined });
-
-    // });
+    afterAll(async () => {
+      // await membershipFixtures.delete(membership.id);
+      await Promise.all([
+        userRepositoryFixture.deleteByEmail(user.email),
+        userRepositoryFixture.deleteByEmail(nonMemberEmail),
+        ...orgMembersData.map((member) => userRepositoryFixture.deleteByEmail(member.email)),
+      ]);
+      await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+    });
   });
 });
