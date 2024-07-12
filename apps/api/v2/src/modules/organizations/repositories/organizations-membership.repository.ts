@@ -7,32 +7,11 @@ import { Injectable } from "@nestjs/common";
 export class OrganizationsMembershipRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  private async findAllTeamsInOrg(organizationId: number) {
-    const teams = await this.dbRead.prisma.team.findMany({
-      where: {
-        OR: [
-          {
-            parentId: organizationId,
-          },
-          {
-            id: organizationId,
-          },
-        ],
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    return teams.map((team) => team.id);
-  }
-
   async findOrgMembership(organizationId: number, membershipId: number) {
-    const teams = await this.findAllTeamsInOrg(organizationId);
     return this.dbRead.prisma.membership.findUnique({
       where: {
         id: membershipId,
-        teamId: { in: teams },
+        teamId: organizationId,
       },
     });
   }
@@ -59,11 +38,10 @@ export class OrganizationsMembershipRepository {
     });
   }
 
-  async findOrgMembershipsPaginated(organizationId: number, skip: number, take: number) {
-    const teams = await this.findAllTeamsInOrg(organizationId);
+  async findOrgMembershipsPaginated(organizationTeamsIds: number[], skip: number, take: number) {
     return this.dbRead.prisma.membership.findMany({
       where: {
-        teamId: { in: teams },
+        teamId: { in: organizationTeamsIds },
       },
       skip,
       take,

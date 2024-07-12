@@ -55,4 +55,24 @@ export class OrganizationsTeamsRepository {
       take,
     });
   }
+
+  async findOrgTeams(organizationId: number) {
+    const teams = await this.dbRead.prisma.team.findMany({
+      where: {
+        OR: [
+          {
+            parentId: organizationId,
+          },
+          {
+            id: organizationId,
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    return teams.map((team) => team.id);
+  }
 }
