@@ -573,7 +573,7 @@ model Booking {
   instantMeetingToken   InstantMeetingToken?
   rating                Int?
   ratingFeedback        String?
-  noShowHost            Boolean?
+  noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
 
   @@index([eventTypeId])
