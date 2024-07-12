@@ -92,10 +92,17 @@ function Field({
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
-  const options = useWatch({
-    control: hookForm.control,
-    name: `${hookFieldNamespace}.options`,
-  });
+  const options =
+    useWatch({
+      control: hookForm.control,
+      name: `${hookFieldNamespace}.options`,
+      defaultValue: [
+        { placeholder: "< 10", value: "", id: uuidv4() },
+        { placeholder: "10-100", value: "", id: uuidv4() },
+        { placeholder: "100-500", value: "", id: uuidv4() },
+        { placeholder: "> 500", value: "", id: uuidv4() },
+      ],
+    }) || [];
 
   const setOptions = (updatedOptions: SelectOption[]) => {
     hookForm.setValue(`${hookFieldNamespace}.options`, updatedOptions);
@@ -395,12 +402,6 @@ const FormEdit = ({
       // This is same type from react-awesome-query-builder
       type: "text",
       label: "",
-      options: [
-        { placeholder: "< 10", value: "", id: uuidv4() },
-        { placeholder: "10-100", value: "", id: uuidv4() },
-        { placeholder: "100-500", value: "", id: uuidv4() },
-        { placeholder: "> 500", value: "", id: uuidv4() },
-      ],
     });
   };
 
