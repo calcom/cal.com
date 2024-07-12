@@ -16,6 +16,10 @@ export const attributesRouter = router({
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler({ ctx, input });
   }),
+  edit: authedProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
+    const handler = await importHandler(namespaced("edit"), () => import("./edit.handler"));
+    return handler({ ctx, input });
+  }),
   toggleActive: authedProcedure.input(toggleActiveSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("toggleActive"), () => import("./toggleActive.handler"));
     return handler({ ctx, input });
