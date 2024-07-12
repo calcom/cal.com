@@ -581,14 +581,14 @@ describe("addWeightAdjustmentToNewHosts", () => {
         userId: 2,
         isFixed: false,
         priority: 2,
-        weight: 100,
+        weight: 200,
         newHost: true,
       },
       {
         userId: 3,
         isFixed: false,
         priority: 2,
-        weight: 100,
+        weight: 200,
       },
       {
         userId: 4,
@@ -600,7 +600,7 @@ describe("addWeightAdjustmentToNewHosts", () => {
         userId: 5,
         isFixed: false,
         priority: 2,
-        weight: 100,
+        weight: 50,
         newHost: true,
       },
     ];
@@ -612,6 +612,7 @@ describe("addWeightAdjustmentToNewHosts", () => {
     // mock for allBookings (for ongoing RR hosts)
     prismaMock.booking.findMany
       .mockResolvedValueOnce([
+        // 8 bookings for ongoing hosts (hosts that already existed before)
         buildBooking({
           id: 1,
           userId: 1,
@@ -622,14 +623,6 @@ describe("addWeightAdjustmentToNewHosts", () => {
         }),
         buildBooking({
           id: 3,
-          userId: 2,
-        }),
-        buildBooking({
-          id: 4,
-          userId: 2,
-        }),
-        buildBooking({
-          id: 4,
           userId: 3,
         }),
         buildBooking({
@@ -637,7 +630,19 @@ describe("addWeightAdjustmentToNewHosts", () => {
           userId: 3,
         }),
         buildBooking({
-          id: 4,
+          id: 5,
+          userId: 4,
+        }),
+        buildBooking({
+          id: 6,
+          userId: 4,
+        }),
+        buildBooking({
+          id: 7,
+          userId: 4,
+        }),
+        buildBooking({
+          id: 8,
           userId: 4,
         }),
       ])
@@ -657,10 +662,10 @@ describe("addWeightAdjustmentToNewHosts", () => {
       prisma: prismaMock,
     });
 
-    // 7 bookings overall, 3 previous hosts --> average 2.33 bookings, user 2 already has 1 bookings --> 1 weight adjustment
-    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(1);
+    // 8 bookings from ongoing hosts, 400 total weight --> average 0.02 bookings per weight unit --> 0.02 * 200 = 4 - 1 prev bookings = 3
+    expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
 
-    // 7 bookings overall, 3 previous hosts --> average 2.33 bookings, user 5 has no bookings yet --> 2 weight adjustment
-    expect(hostsWithAdjustedWeight.find((host) => host.userId === 5)?.weightAdjustment).toBe(2);
+    // 8 bookings from ongoing hosts, 400 total weight --> average 0.02 bookings per weight unit --> 0.02 * 50 = 1 (no prev bookings)
+    expect(hostsWithAdjustedWeight.find((host) => host.userId === 5)?.weightAdjustment).toBe(1);
   });
 });
