@@ -192,7 +192,6 @@ const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) =>
   );
 
   const watchedTzSchedules = formMethods.watch("travelSchedules");
-  console.log(formMethods.getValues("weekStart"), "helloindia");
   return (
     <div>
       <Form
