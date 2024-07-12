@@ -79,7 +79,7 @@ export class OrganizationsMembershipsController {
   @Get("/:membershipId")
   async getUserSchedule(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("membershipId") membershipId: number
+    @Param("membershipId", ParseIntPipe) membershipId: number
   ): Promise<GetOrgMembership> {
     const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
 
