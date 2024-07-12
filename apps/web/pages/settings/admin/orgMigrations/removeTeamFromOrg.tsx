@@ -1,20 +1,22 @@
+"use client";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { GetServerSidePropsContext } from "next";
-import { getSession } from "next-auth/react";
 import type { TFunction } from "next-i18next";
-import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { UserPermissionRole } from "@calcom/prisma/enums";
 import { getStringAsNumberRequiredSchema } from "@calcom/prisma/zod-utils";
 import { Button, Form, Meta, TextField, showToast } from "@calcom/ui";
+
+import { getServerSideProps } from "@lib/settings/admin/orgMigrations/removeTeamFromOrg/getServerSideProps";
 
 import PageWrapper from "@components/PageWrapper";
 
 import { getLayout } from "./_OrgMigrationLayout";
+
+export { getServerSideProps };
 
 function Wrapper({ children }: { children: React.ReactNode }) {
   return (
@@ -109,33 +111,6 @@ export default function RemoveTeamFromOrg() {
       </Form>
     </Wrapper>
   );
-}
-
-export async function getServerSideProps(ctx: GetServerSidePropsContext) {
-  const session = await getSession(ctx);
-  if (!session || !session.user) {
-    return {
-      redirect: {
-        destination: "/login",
-        permanent: false,
-      },
-    };
-  }
-
-  const isAdmin = session.user.role === UserPermissionRole.ADMIN;
-  if (!isAdmin) {
-    return {
-      redirect: {
-        destination: "/",
-        permanent: false,
-      },
-    };
-  }
-  return {
-    props: {
-      ...(await serverSideTranslations(ctx.locale || "en", ["common"])),
-    },
-  };
 }
 
 RemoveTeamFromOrg.PageWrapper = PageWrapper;
