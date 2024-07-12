@@ -253,7 +253,7 @@ export const fieldTypesSchemaMap: Partial<
        */
       preprocess: (data: {
         field: z.infer<typeof fieldSchema>;
-        response: any;
+        response: string;
         isPartialSchema: boolean;
       }) => unknown;
       /**
@@ -263,7 +263,7 @@ export const fieldTypesSchemaMap: Partial<
        */
       superRefine: (data: {
         field: z.infer<typeof fieldSchema>;
-        response: any;
+        response: string;
         isPartialSchema: boolean;
         ctx: z.RefinementCtx;
         m: (key: string) => string;
@@ -346,24 +346,26 @@ export const fieldTypesSchemaMap: Partial<
       const fieldTypeConfig = fieldTypesConfigMap[field.type];
       const value = response ?? "";
       const maxLength = field.maxLength ?? fieldTypeConfig.supportsLengthCheck?.maxLength;
+      const minLength = field.minLength ?? 0;
       if (!maxLength) {
         throw new Error("maxLength must be there for textarea field");
       }
       const hasExceededMaxLength = value.length > maxLength;
-      const hasNotReachedMinLength = value.length < (field.minLength ?? 0);
+      const hasNotReachedMinLength = value.length < minLength;
       if (hasExceededMaxLength) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Max. ${field.maxLength} characters allowed`),
+          message: m(`Max. ${maxLength} characters allowed`),
         });
+        return;
       }
       if (hasNotReachedMinLength) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: m(`Min. ${field.minLength} characters required`),
+          message: m(`Min. ${minLength} characters required`),
         });
+        return;
       }
-      if (hasExceededMaxLength || hasNotReachedMinLength) return;
     },
   },
 };
