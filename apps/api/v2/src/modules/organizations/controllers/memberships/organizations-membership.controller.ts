@@ -81,11 +81,11 @@ export class OrganizationsMembershipsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId") membershipId: number
   ): Promise<GetOrgMembership> {
-    const schedule = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
+    const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
 
     return {
       status: SUCCESS_STATUS,
-      data: schedule,
+      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
     };
   }
 
