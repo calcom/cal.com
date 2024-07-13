@@ -3,7 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { weekdayNames } from "@calcom/lib/weekday";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -67,22 +67,7 @@ export function ScheduleListItem({
                   })
                 )
                 // sort the availability strings as per user's weekstart (settings)
-                .sort((a, b) => {
-                  const weekNames = weekdayNames(
-                    i18n.language,
-                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                      displayOptions?.weekStart || "Sunday"
-                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
-                    "short"
-                  );
-                  const weekIndex = (day: string) => {
-                    for (let i = 0; i < weekNames.length; i++) {
-                      if (day.includes(weekNames[i])) return i;
-                    }
-                    return -1;
-                  };
-                  return weekIndex(a) - weekIndex(b);
-                })
+                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
                 .map((availabilityString, index) => (
                   <Fragment key={index}>
                     {availabilityString}

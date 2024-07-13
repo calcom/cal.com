@@ -10,6 +10,7 @@ import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -87,9 +88,7 @@ const EventTypeScheduleDetails = memo(
       { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
     );
 
-    const weekStart = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-      loggedInUser?.weekStart || "Sunday"
-    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6;
+    const weekStart = weekStartNum(loggedInUser?.weekStart);
 
     const filterDays = (dayNum: number) =>
       schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];

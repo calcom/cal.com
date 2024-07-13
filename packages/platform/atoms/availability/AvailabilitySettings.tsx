@@ -10,7 +10,7 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { weekdayNames } from "@calcom/lib/weekday";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
@@ -299,22 +299,7 @@ export function AvailabilitySettings({
               })
             )
             // sort the availability strings as per user's weekstart (settings)
-            .sort((a, b) => {
-              const weekNames = weekdayNames(
-                i18n.language,
-                ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                  weekStart || "Sunday"
-                ) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
-                "short"
-              );
-              const weekIndex = (day: string) => {
-                for (let i = 0; i < weekNames.length; i++) {
-                  if (day.includes(weekNames[i])) return i;
-                }
-                return -1;
-              };
-              return weekIndex(a) - weekIndex(b);
-            })
+            .sort(sortAvailabilityStrings(i18n.language, weekStart))
             .map((availabilityString, index) => (
               <span key={index} className={cn(customClassNames?.subtitlesClassName)}>
                 {availabilityString}
