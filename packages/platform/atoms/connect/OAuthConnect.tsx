@@ -3,7 +3,7 @@ import type { FC } from "react";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { Button } from "@calcom/ui";
 
-import type { OnCheckErrorType } from "../hooks/connect/useCheck";
+import type { OnCheckErrorType, UseCheckProps } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
 import { useConnect } from "../hooks/connect/useConnect";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
@@ -16,9 +16,14 @@ export type OAuthConnectProps = {
   loadingLabel: string;
   onCheckError?: OnCheckErrorType;
   redir?: string;
+  initialData?: NonNullable<UseCheckProps["config"]>["initialData"];
 };
 
-export const OAuthConnect: FC<OAuthConnectProps & { calendar: (typeof CALENDARS)[number] }> = ({
+export const OAuthConnect: FC<
+  OAuthConnectProps & {
+    calendar: (typeof CALENDARS)[number];
+  }
+> = ({
   label,
   alreadyConnectedLabel,
   loadingLabel,
@@ -26,12 +31,16 @@ export const OAuthConnect: FC<OAuthConnectProps & { calendar: (typeof CALENDARS)
   onCheckError,
   calendar,
   redir,
+  initialData,
 }) => {
   const { connect } = useConnect(calendar, redir);
 
   const { allowConnect, checked } = useCheck({
     onCheckError,
     calendar: calendar,
+    config: {
+      initialData,
+    },
   });
 
   const isChecking = !checked;

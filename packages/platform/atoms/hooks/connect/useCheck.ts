@@ -1,8 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
-import type { ApiResponse, ApiErrorResponse } from "@calcom/platform-types";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 import { useAtomsContext } from "../useAtomsContext";
@@ -10,11 +10,21 @@ import { useAtomsContext } from "../useAtomsContext";
 export interface UseCheckProps {
   onCheckError?: OnCheckErrorType;
   calendar: (typeof CALENDARS)[number];
+  config?: Partial<{
+    initialData: {
+      status: string;
+      data: {
+        allowConnect: boolean;
+        checked: boolean;
+      };
+    };
+  }>;
 }
+
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
-export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
+export const useCheck = ({ onCheckError, calendar, config = {} }: UseCheckProps) => {
   const { isInit, accessToken } = useAtomsContext();
   const queryClient = useQueryClient();
 
@@ -37,6 +47,7 @@ export const useCheck = ({ onCheckError, calendar }: UseCheckProps) => {
           return { status: ERROR_STATUS, data: { allowConnect: true, checked: true } };
         });
     },
+    ...config,
   });
   return {
     allowConnect: check?.data?.allowConnect ?? false,
