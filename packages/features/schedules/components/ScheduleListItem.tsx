@@ -3,6 +3,7 @@ import { Fragment } from "react";
 
 import { availabilityAsString } from "@calcom/lib/availability";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { weekdayNames } from "@calcom/lib/weekday";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -30,6 +31,7 @@ export function ScheduleListItem({
   displayOptions?: {
     timeZone?: string;
     hour12?: boolean;
+    weekStart?: string;
   };
   isDeletable: boolean;
   updateDefault: ({ scheduleId, isDefault }: { scheduleId: number; isDefault: boolean }) => void;
@@ -58,12 +60,30 @@ export function ScheduleListItem({
             <p className="text-subtle mt-1">
               {schedule.availability
                 .filter((availability) => !!availability.days.length)
-                .map((availability) => (
-                  <Fragment key={availability.id}>
-                    {availabilityAsString(availability, {
-                      locale: i18n.language,
-                      hour12: displayOptions?.hour12,
-                    })}
+                .map((availability) =>
+                  availabilityAsString(availability, {
+                    locale: i18n.language,
+                    hour12: displayOptions?.hour12,
+                  })
+                )
+                // sort the availability strings as per user's weekstart (settings)
+                .sort((a, b) => {
+                  const weekNames = weekdayNames(
+                    i18n.language,
+                    displayOptions?.weekStart === "Sunday" ? 0 : 1,
+                    "short"
+                  );
+                  const weekIndex = (day: string) => {
+                    for (let i = 0; i < weekNames.length; i++) {
+                      if (day.includes(weekNames[i])) return i;
+                    }
+                    return -1;
+                  };
+                  return weekIndex(a) - weekIndex(b);
+                })
+                .map((availabilityString, index) => (
+                  <Fragment key={index}>
+                    {availabilityString}
                     <br />
                   </Fragment>
                 ))}

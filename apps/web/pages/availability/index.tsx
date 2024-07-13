@@ -125,6 +125,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                   displayOptions={{
                     hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
                     timeZone: meQuery.data?.timeZone,
+                    weekStart: meQuery.data?.weekStart || "Sunday",
                   }}
                   key={schedule.id}
                   schedule={schedule}
