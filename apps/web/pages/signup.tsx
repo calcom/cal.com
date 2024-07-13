@@ -123,15 +123,8 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [
-    debouncedUsername,
-    setPremium,
-    disabled,
-    orgSlug,
-    setUsernameTaken,
-    formState.isSubmitting,
-    formState.isSubmitSuccessful,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
     <div>

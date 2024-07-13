@@ -1,7 +1,7 @@
 import { getEnv } from "@/env";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -64,7 +64,7 @@ export class OAuthClientsController {
 
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   @DocsCreatedResponse({
     description: "Create an OAuth client",
@@ -96,7 +96,7 @@ export class OAuthClientsController {
 
   @Get("/")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClients(@GetUser() user: UserWithProfile): Promise<GetOAuthClientsResponseDto> {
     const organizationId = (user.movedToProfile?.organizationId ?? user.organizationId) as number;
@@ -107,7 +107,7 @@ export class OAuthClientsController {
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
@@ -119,7 +119,7 @@ export class OAuthClientsController {
 
   @Get("/:clientId/managed-users")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async getOAuthClientManagedUsersById(
     @Param("clientId") clientId: string,
@@ -137,7 +137,7 @@ export class OAuthClientsController {
 
   @Patch("/:clientId")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async updateOAuthClient(
     @Param("clientId") clientId: string,
@@ -150,7 +150,7 @@ export class OAuthClientsController {
 
   @Delete("/:clientId")
   @HttpCode(HttpStatus.OK)
-  @Roles([MembershipRole.ADMIN, MembershipRole.OWNER])
+  @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);

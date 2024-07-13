@@ -28,6 +28,9 @@ export function Navbar({ username }: { username?: string }) {
           <li>
             <Link href="/bookings">My Bookings</Link>
           </li>
+          <li>
+            <Link href="/embed">Embed</Link>
+          </li>
         </ul>
       </div>
     </nav>

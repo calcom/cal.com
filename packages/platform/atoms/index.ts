@@ -1,7 +1,7 @@
 export { CalProvider } from "./cal-provider";
 export { GcalConnect } from "./connect/google/GcalConnect";
 export { AvailabilitySettingsPlatformWrapper as AvailabilitySettings } from "./availability";
-export { BookerPlatformWrapper as Booker } from "./booker";
+export { BookerPlatformWrapper as Booker } from "./booker/BookerPlatformWrapper";
 export { useIsPlatform } from "./hooks/useIsPlatform";
 export { useAtomsContext } from "./hooks/useAtomsContext";
 export { useConnectedCalendars } from "./hooks/useConnectedCalendars";
@@ -14,3 +14,4 @@ export { useGetBookings } from "./hooks/useGetBookings";
 export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";
+export { BookerEmbed } from "./booker-embed";
