@@ -70,7 +70,9 @@ export function ScheduleListItem({
                 .sort((a, b) => {
                   const weekNames = weekdayNames(
                     i18n.language,
-                    displayOptions?.weekStart === "Sunday" ? 0 : 1,
+                    ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                      displayOptions?.weekStart || "Sunday"
+                    ) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
                     "short"
                   );
                   const weekIndex = (day: string) => {

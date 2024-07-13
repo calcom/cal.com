@@ -300,7 +300,13 @@ export function AvailabilitySettings({
             )
             // sort the availability strings as per user's weekstart (settings)
             .sort((a, b) => {
-              const weekNames = weekdayNames(i18n.language, weekStart === "Sunday" ? 0 : 1, "short");
+              const weekNames = weekdayNames(
+                i18n.language,
+                ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                  weekStart || "Sunday"
+                ) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+                "short"
+              );
               const weekIndex = (day: string) => {
                 for (let i = 0; i < weekNames.length; i++) {
                   if (day.includes(weekNames[i])) return i;

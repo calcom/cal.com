@@ -94,39 +94,43 @@ const EventTypeScheduleDetails = memo(
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
           <ol className="table border-collapse text-sm">
-            {weekdayNames(i18n.language, loggedInUser?.weekStart === "Sunday" ? 0 : 1, "long").map(
-              (day, index) => {
-                const isAvailable = !!filterDays(index).length;
-                return (
-                  <li key={day} className="my-6 flex border-transparent last:mb-2">
-                    <span
-                      className={classNames(
-                        "w-20 font-medium sm:w-32 ",
-                        !isAvailable ? "text-subtle line-through" : "text-default"
-                      )}>
-                      {day}
-                    </span>
-                    {isPending ? (
-                      <SkeletonText className="block h-5 w-60" />
-                    ) : isAvailable ? (
-                      <div className="space-y-3 text-right">
-                        {filterDays(index).map((dayRange, i) => (
-                          <div key={i} className="text-default flex items-center leading-4">
-                            <span className="w-16 sm:w-28 sm:text-left">
-                              {format(dayRange.startTime, timeFormat === 12)}
-                            </span>
-                            <span className="ms-4">-</span>
-                            <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
-                    )}
-                  </li>
-                );
-              }
-            )}
+            {weekdayNames(
+              i18n.language,
+              ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                loggedInUser?.weekStart || "Sunday"
+              ) as 0 | 1 | 2 | 3 | 4 | 5 | 6,
+              "long"
+            ).map((day, index) => {
+              const isAvailable = !!filterDays(index).length;
+              return (
+                <li key={day} className="my-6 flex border-transparent last:mb-2">
+                  <span
+                    className={classNames(
+                      "w-20 font-medium sm:w-32 ",
+                      !isAvailable ? "text-subtle line-through" : "text-default"
+                    )}>
+                    {day}
+                  </span>
+                  {isPending ? (
+                    <SkeletonText className="block h-5 w-60" />
+                  ) : isAvailable ? (
+                    <div className="space-y-3 text-right">
+                      {filterDays(index).map((dayRange, i) => (
+                        <div key={i} className="text-default flex items-center leading-4">
+                          <span className="w-16 sm:w-28 sm:text-left">
+                            {format(dayRange.startTime, timeFormat === 12)}
+                          </span>
+                          <span className="ms-4">-</span>
+                          <div className="ml-6 sm:w-28">{format(dayRange.endTime, timeFormat === 12)}</div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="text-subtle ml-6 sm:ml-0">{t("unavailable")}</span>
+                  )}
+                </li>
+              );
+            })}
           </ol>
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
