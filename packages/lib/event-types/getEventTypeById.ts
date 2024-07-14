@@ -105,6 +105,8 @@ export const getEventTypeById = async ({
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      minimumRescheduleNotice: true,
+      minimumCancelNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,

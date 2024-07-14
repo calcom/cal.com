@@ -1,17 +1,23 @@
+import utc from "dayjs/plugin/utc";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useMemo, useEffect } from "react";
 
+import dayjs from "@calcom/dayjs";
 import { sdkActionManager } from "@calcom/embed-core/embed-iframe";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { collectPageParameters, telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import type { RecurringEvent } from "@calcom/types/Calendar";
 import { Button, Icon, TextArea } from "@calcom/ui";
 
+dayjs.extend(utc);
+
 type Props = {
   booking: {
     title?: string;
     uid?: string;
     id?: number;
+    minimumCancelNotice?: number;
+    startTime?: string;
   };
   profile: {
     name: string | null;
@@ -50,6 +56,24 @@ export default function CancelBooking(props: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const canCancel = useMemo(() => {
+    if (!!booking.minimumCancelNotice && !!booking.startTime) {
+      const cancelDate = dayjs().utc(true);
+      const reschduleEndDate = dayjs(booking.startTime).subtract(booking.minimumCancelNotice, "minute");
+      return cancelDate.isBefore(reschduleEndDate);
+    }
+    return true;
+  }, [booking]);
+
+  useEffect(() => {
+    console.log("canCancel: ", canCancel);
+
+    if (!canCancel) {
+      setError(t("booking_cant_cancelled"));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canCancel]);
 
   return (
     <>

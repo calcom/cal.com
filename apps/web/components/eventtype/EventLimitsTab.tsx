@@ -435,6 +435,28 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
         </div>
+        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
+          <div className="w-full">
+            <Label htmlFor="minimumRescheduleNotice">
+              {t("minimum_rescheduling_notice")}
+              {shouldLockIndicator("minimumRescheduleNotice")}
+            </Label>
+            <MinimumBookingNoticeInput
+              disabled={shouldLockDisableProps("minimumRescheduleNotice").disabled}
+              {...formMethods.register("minimumRescheduleNotice")}
+            />
+          </div>
+          <div className="w-full">
+            <Label htmlFor="minimumCancelNotice">
+              {t("minimum_cancelation_notice")}
+              {shouldLockIndicator("minimumCancelNotice")}
+            </Label>
+            <MinimumBookingNoticeInput
+              disabled={shouldLockDisableProps("minimumCancelNotice").disabled}
+              {...formMethods.register("minimumCancelNotice")}
+            />
+          </div>
+        </div>
       </div>
       <Controller
         name="bookingLimits"

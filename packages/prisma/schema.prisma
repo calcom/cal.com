@@ -108,6 +108,8 @@ model EventType {
   hideCalendarNotes                       Boolean                   @default(false)
   /// @zod.min(0)
   minimumBookingNotice                    Int                       @default(120)
+  minimumRescheduleNotice                 Int                       @default(120)
+  minimumCancelNotice                     Int                       @default(120)
   beforeEventBuffer                       Int                       @default(0)
   afterEventBuffer                        Int                       @default(0)
   seatsPerTimeSlot                        Int?

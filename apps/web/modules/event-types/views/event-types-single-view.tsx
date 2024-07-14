@@ -337,6 +337,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       requiresConfirmation: eventType.requiresConfirmation,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
+      minimumRescheduleNotice: eventType.minimumRescheduleNotice,
+      minimumCancelNotice: eventType.minimumCancelNotice,
       metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
