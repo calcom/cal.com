@@ -82,7 +82,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const rescheduleDate = dayjs().utc(true);
-  const reschduleEndDate = dayjs(booking.startTime).subtract(booking.minimumRescheduleNotice, "minute");
+  const reschduleEndDate = dayjs(booking.startTime).subtract(
+    booking.eventType?.minimumRescheduleNotice || 0,
+    "minute"
+  );
   const canReschdule = rescheduleDate.isBefore(reschduleEndDate);
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.

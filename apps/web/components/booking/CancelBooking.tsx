@@ -17,7 +17,7 @@ type Props = {
     uid?: string;
     id?: number;
     minimumCancelNotice?: number;
-    startTime?: string;
+    startTime?: Date;
   };
   profile: {
     name: string | null;
