@@ -265,7 +265,7 @@ import ensureOnlyMembersAsHosts from "./_utils/ensureOnlyMembersAsHosts";
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin, body } = req;
+  const { userId, isSystemWideAdmin, body } = req;
 
   const {
     hosts = [],
@@ -276,29 +276,57 @@ async function postHandler(req: NextApiRequest) {
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
   if (parsedBody.teamId && parsedBody.parentId) {
-    //parentId and teamId can't be used together , parentId is used for child event types which belong to user
+    //parentId and teamId can't be used together as parentId is present only for child event types of a managed event
     //teamId is used for event types belonging to a team
-    //set teamId to null to avoid unexpected logical error
-    req.body.teamId = null;
-    parsedBody.teamId = null;
+    //child events of a team event do not have teamId , they are identified via parentId
+    //throw error to avoid unexpected behaviour
+    throw new HttpError({
+      statusCode: 400,
+      message: "`parentId` and `teamId` both cannot be present in the request",
+    });
   }
+  if (parsedBody.teamId && parsedBody.userId) {
+    //team event is not associated with an owner or user
+    throw new HttpError({
+      statusCode: 400,
+      message: "`teamId` and `userId` both cannot be present in the request",
+    });
+  }
+  if (!parsedBody.teamId && parsedBody.schedulingType) {
+    //schedulingType is applicable only for team events
+    throw new HttpError({
+      statusCode: 400,
+      message: "schedulingType is applicable only for team events",
+    });
+  }
+
   let data: Prisma.EventTypeCreateArgs["data"] = {
-    userId,
-    users: { connect: { id: userId } },
     ...parsedBody,
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
+  if (!parsedBody.teamId) {
+    //connect user if eventtype doesn't belong to a team
+    data = {
+      ...data,
+      userId,
+      users: { connect: { id: userId } },
+    };
+  }
+
   await checkPermissions(req);
 
+  //user with admin or owner role on team can create child event types
+  let isChildEventTypeForTeamWithAccess = false;
   if (parsedBody.parentId) {
     await checkParentEventOwnership(req);
     await checkUserMembership(req);
+    isChildEventTypeForTeamWithAccess = true;
   }
 
-  if (isSystemWideAdmin && parsedBody.userId) {
-    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
+  if ((isSystemWideAdmin || isChildEventTypeForTeamWithAccess) && parsedBody.userId) {
+    data = { ...parsedBody, userId: parsedBody.userId, users: { connect: { id: parsedBody.userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
@@ -307,19 +335,7 @@ async function postHandler(req: NextApiRequest) {
   if (hosts) {
     data.hosts = { createMany: { data: hosts } };
   }
-  //team event is not associated with an owner or user
-  if (data.teamId) {
-    data = {
-      ...data,
-      userId: null,
-      users: {},
-      //parentId is only required for managed event types when its created for a user
-      parentId: null,
-    };
-  } else {
-    //schedulingType is applicable for team events only
-    data.schedulingType = null;
-  }
+
   const eventType = await prisma.eventType.create({ data, include: { hosts: true } });
 
   return {
