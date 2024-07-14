@@ -51,6 +51,18 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *                type: string
  *                format: email
  *              example: [john.doe@example.com, jane.doe@example.com]
+ *        - in: query
+ *          name: order
+ *          required: false
+ *          schema:
+ *          type: string
+ *          enum: [asc, desc]
+ *       - in: query
+ *         name: sortBy
+ *         required: false
+ *         schema:
+ *          type: string
+ *          enum: [createdAt, updatedAt]
  *     operationId: listBookings
  *     tags:
  *     - bookings
@@ -177,7 +189,7 @@ export async function handler(req: NextApiRequest) {
     isOrganizationOwnerOrAdmin,
     pagination: { take, skip },
   } = req;
-  const { dateFrom, dateTo } = schemaBookingGetParams.parse(req.query);
+  const { dateFrom, dateTo, order, sortBy } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
   if (req.query.take && req.query.page) {
@@ -248,6 +260,18 @@ export async function handler(req: NextApiRequest) {
     args.where = {
       ...args.where,
       endTime: { lte: dateTo },
+    };
+  }
+
+  if (sortBy === "updatedAt") {
+    args.orderBy = {
+      updatedAt: order,
+    };
+  }
+
+  if (sortBy === "createdAt") {
+    args.orderBy = {
+      createdAt: order,
     };
   }
 

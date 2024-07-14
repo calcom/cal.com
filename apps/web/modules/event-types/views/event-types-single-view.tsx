@@ -4,6 +4,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import type { TFunction } from "next-i18next";
 import dynamic from "next/dynamic";
 // eslint-disable-next-line @calcom/eslint/deprecated-imports-next-router
 import { useRouter } from "next/router";
@@ -14,6 +15,7 @@ import { z } from "zod";
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
@@ -24,7 +26,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -144,7 +145,70 @@ const querySchema = z.object({
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
-const EventTypePage = (props: EventTypeSetupProps) => {
+export const locationsResolver = (t: TFunction) => {
+  return z
+    .array(
+      z
+        .object({
+          type: z.string(),
+          address: z.string().optional(),
+          link: z.string().url().optional(),
+          phone: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          hostPhoneNumber: z
+            .string()
+            .refine((val) => isValidPhoneNumber(val))
+            .optional(),
+          displayLocationPublicly: z.boolean().optional(),
+          credentialId: z.number().optional(),
+          teamName: z.string().optional(),
+        })
+        .passthrough()
+        .superRefine((val, ctx) => {
+          if (val?.link) {
+            const link = val.link;
+            const eventLocationType = getEventLocationType(val.type);
+            if (
+              eventLocationType &&
+              !eventLocationType.default &&
+              eventLocationType.linkType === "static" &&
+              eventLocationType.urlRegExp
+            ) {
+              const valid = z.string().regex(new RegExp(eventLocationType.urlRegExp)).safeParse(link).success;
+
+              if (!valid) {
+                const sampleUrl = eventLocationType.organizerInputPlaceholder;
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  path: [eventLocationType?.defaultValueVariable ?? "link"],
+                  message: t("invalid_url_error_message", {
+                    label: eventLocationType.label,
+                    sampleUrl: sampleUrl ?? "https://cal.com",
+                  }),
+                });
+              }
+              return;
+            }
+
+            const valid = z.string().url().optional().safeParse(link).success;
+
+            if (!valid) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                path: [eventLocationType?.defaultValueVariable ?? "link"],
+                message: `Invalid URL`,
+              });
+            }
+          }
+          return;
+        })
+    )
+    .optional();
+};
+
+const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workflow[] }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const telemetry = useTelemetry();
@@ -326,69 +390,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           bookingFields: eventTypeBookingFields,
-          locations: z
-            .array(
-              z
-                .object({
-                  type: z.string(),
-                  address: z.string().optional(),
-                  link: z.string().url().optional(),
-                  phone: z
-                    .string()
-                    .refine((val) => isValidPhoneNumber(val))
-                    .optional(),
-                  hostPhoneNumber: z
-                    .string()
-                    .refine((val) => isValidPhoneNumber(val))
-                    .optional(),
-                  displayLocationPublicly: z.boolean().optional(),
-                  credentialId: z.number().optional(),
-                  teamName: z.string().optional(),
-                })
-                .passthrough()
-                .superRefine((val, ctx) => {
-                  if (val?.link) {
-                    const link = val.link;
-                    const eventLocationType = getEventLocationType(val.type);
-                    if (
-                      eventLocationType &&
-                      !eventLocationType.default &&
-                      eventLocationType.linkType === "static" &&
-                      eventLocationType.urlRegExp
-                    ) {
-                      const valid = z
-                        .string()
-                        .regex(new RegExp(eventLocationType.urlRegExp))
-                        .safeParse(link).success;
-
-                      if (!valid) {
-                        const sampleUrl = eventLocationType.organizerInputPlaceholder;
-                        ctx.addIssue({
-                          code: z.ZodIssueCode.custom,
-                          path: [eventLocationType?.defaultValueVariable ?? "link"],
-                          message: t("invalid_url_error_message", {
-                            label: eventLocationType.label,
-                            sampleUrl: sampleUrl ?? "https://cal.com",
-                          }),
-                        });
-                      }
-                      return;
-                    }
-
-                    const valid = z.string().url().optional().safeParse(link).success;
-
-                    if (!valid) {
-                      ctx.addIssue({
-                        code: z.ZodIssueCode.custom,
-                        path: [eventLocationType?.defaultValueVariable ?? "link"],
-                        message: `Invalid URL`,
-                      });
-                    }
-                  }
-                  return;
-                })
-            )
-            .optional(),
+          locations: locationsResolver(t),
         })
         // TODO: Add schema for other fields later.
         .passthrough()
@@ -398,40 +400,40 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
-  useEffect(() => {
-    const handleRouteChange = (url: string) => {
-      const paths = url.split("/");
-
-      // Check if event is managed event type - skip if there is assigned users
-      const assignedUsers = eventType.children;
-      const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-      if (eventType.assignAllTeamMembers) {
-        return;
-      } else if (isManagedEventType && assignedUsers.length > 0) {
-        return;
-      }
-
-      const hosts = eventType.hosts;
-      if (
-        !leaveWithoutAssigningHosts.current &&
-        !!team &&
-        (hosts.length === 0 || assignedUsers.length === 0) &&
-        (url === "/event-types" || paths[1] !== "event-types")
-      ) {
-        setIsOpenAssignmentWarnDialog(true);
-        setPendingRoute(url);
-        router.events.emit(
-          "routeChangeError",
-          new Error(`Aborted route change to ${url} because none was assigned to team event`)
-        );
-        throw "Aborted";
-      }
-    };
-    router.events.on("routeChangeStart", handleRouteChange);
-    return () => {
-      router.events.off("routeChangeStart", handleRouteChange);
-    };
-  }, [router]);
+  // useEffect(() => {
+  //   const handleRouteChange = (url: string) => {
+  //     const paths = url.split("/");
+  //
+  //     // Check if event is managed event type - skip if there is assigned users
+  //     const assignedUsers = eventType.children;
+  //     const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
+  //     if (eventType.assignAllTeamMembers) {
+  //       return;
+  //     } else if (isManagedEventType && assignedUsers.length > 0) {
+  //       return;
+  //     }
+  //
+  //     const hosts = eventType.hosts;
+  //     if (
+  //       !leaveWithoutAssigningHosts.current &&
+  //       !!team &&
+  //       (hosts.length === 0 || assignedUsers.length === 0) &&
+  //       (url === "/event-types" || paths[1] !== "event-types")
+  //     ) {
+  //       setIsOpenAssignmentWarnDialog(true);
+  //       setPendingRoute(url);
+  //       router.events.emit(
+  //         "routeChangeError",
+  //         new Error(`Aborted route change to ${url} because none was assigned to team event`)
+  //       );
+  //       throw "Aborted";
+  //     }
+  //   };
+  //   router.events.on("routeChangeStart", handleRouteChange);
+  //   return () => {
+  //     router.events.off("routeChangeStart", handleRouteChange);
+  //   };
+  // }, [router]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
@@ -464,11 +466,10 @@ const EventTypePage = (props: EventTypeSetupProps) => {
     instant: <EventInstantTab eventType={eventType} isTeamEvent={!!team} />,
     recurring: <EventRecurringTab eventType={eventType} />,
     apps: <EventAppsTab eventType={{ ...eventType, URL: permalink }} />,
-    workflows: (
-      <EventWorkflowsTab
-        eventType={eventType}
-        workflows={eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow)}
-      />
+    workflows: props.allActiveWorkflows ? (
+      <EventWorkflowsTab eventType={eventType} workflows={props.allActiveWorkflows} />
+    ) : (
+      <></>
     ),
     webhooks: <EventWebhooksTab eventType={eventType} />,
     ai: <EventAITab eventType={eventType} isTeamEvent={!!team} />,
@@ -705,7 +706,7 @@ const EventTypePage = (props: EventTypeSetupProps) => {
       <EventTypeSingleLayout
         enabledAppsNumber={numberOfActiveApps}
         installedAppsNumber={eventTypeApps?.items.length || 0}
-        enabledWorkflowsNumber={eventType.workflows.length}
+        enabledWorkflowsNumber={props.allActiveWorkflows ? props.allActiveWorkflows.length : 0}
         eventType={eventType}
         activeWebhooksNumber={eventType.webhooks.filter((webhook) => webhook.active).length}
         team={team}
@@ -836,13 +837,13 @@ const EventTypePage = (props: EventTypeSetupProps) => {
           }}
         />
       ) : null}
-      <AssignmentWarningDialog
-        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
-        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
-        pendingRoute={pendingRoute}
-        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
-        id={eventType.id}
-      />
+      {/*<AssignmentWarningDialog*/}
+      {/*  isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}*/}
+      {/*  setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}*/}
+      {/*  pendingRoute={pendingRoute}*/}
+      {/*  leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}*/}
+      {/*  id={eventType.id}*/}
+      {/*/>*/}
     </>
   );
 };
@@ -853,7 +854,25 @@ const EventTypePageWrapper: React.FC<PageProps> & {
   const { data } = trpc.viewer.eventTypes.get.useQuery({ id: props.type });
 
   if (!data) return null;
-  return <EventTypePage {...(data as EventTypeSetupProps)} />;
+
+  const eventType = data.eventType;
+
+  const { data: workflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
+    eventType: {
+      workflows: eventType.workflows,
+      teamId: eventType.teamId,
+      userId: eventType.userId,
+      parent: eventType.parent,
+      metadata: eventType.metadata,
+    },
+  });
+
+  const propsData = {
+    ...(data as EventTypeSetupProps),
+    allActiveWorkflows: workflows,
+  };
+
+  return <EventTypePage {...propsData} />;
 };
 
 export default EventTypePageWrapper;
