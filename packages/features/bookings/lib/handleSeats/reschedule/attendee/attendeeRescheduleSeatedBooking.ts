@@ -7,7 +7,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 
-import { findBookingQuery } from "../../../handleNewBooking";
+import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
 import type { RescheduleSeatedBookingObject, SeatAttendee, NewTimeSlotBooking } from "../../types";
 
