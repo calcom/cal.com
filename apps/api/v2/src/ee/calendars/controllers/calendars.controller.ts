@@ -195,7 +195,6 @@ export class CalendarsController {
     @Body() body: { id: number },
     @GetUser() user: UserWithProfile
   ): Promise<ApiResponse<{ status: string }>> {
-    // inside of calendars service add a method to delete calendar credentials and then use that one below
     const { id: credentialId } = body;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
