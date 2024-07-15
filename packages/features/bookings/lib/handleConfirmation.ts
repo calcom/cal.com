@@ -63,7 +63,7 @@ export async function handleConfirmation(args: {
   paid?: boolean;
 }) {
   const { user, evt, recurringEventId, prisma, bookingId, booking, paid } = args;
-  const eventManager = new EventManager(user);
+  const eventManager = new EventManager(user, eventType.metadata.apps);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
