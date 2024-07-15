@@ -402,24 +402,35 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
+  const initialCheck = useRef(
+    checkForEmptyAssignment({
+      assignedUsers: formMethods.getValues("children"),
+      hosts: formMethods.getValues("hosts"),
+      assignAllTeamMembers: eventType.assignAllTeamMembers,
+      isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+      isTeamEvent: !!team,
+    })
+  );
+
   const assignedUsers = formMethods.watch("children");
   const hosts = formMethods.watch("hosts");
   const assignAllTeamMembers = formMethods.watch("assignAllTeamMembers");
 
   useEffect(() => {
+    const currentCheck = checkForEmptyAssignment({
+      assignedUsers: assignedUsers,
+      hosts: hosts,
+      assignAllTeamMembers: assignAllTeamMembers,
+      isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+      isTeamEvent: !!team,
+    });
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
 
       if (
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types") &&
-        checkForEmptyAssignment({
-          assignedUsers: assignedUsers,
-          hosts: hosts,
-          assignAllTeamMembers: assignAllTeamMembers,
-          isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
-          isTeamEvent: !!team,
-        })
+        (currentCheck || (initialCheck.current && formMethods.formState.isDirty))
       ) {
         setIsOpenAssignmentWarnDialog(true);
         setPendingRoute(url);
@@ -434,7 +445,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router, assignedUsers, hosts, assignAllTeamMembers]);
+  }, [router, hosts, assignedUsers, assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
