@@ -1,3 +1,4 @@
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -80,8 +81,7 @@ export type { CityTimezones } from "@calcom/lib/cityTimezonesHandler";
 export { TRPCError } from "@trpc/server";
 export type { TUpdateInputSchema } from "@calcom/trpc/server/routers/viewer/availability/schedule/update.schema";
 
-export { createNewUsersConnectToOrgIfExists };
-export { sendSignupToOrganizationEmail };
+export { createNewUsersConnectToOrgIfExists, sendSignupToOrganizationEmail };
 
 export { getAllUserBookings };
 export { getBookingInfo };
@@ -105,4 +105,7 @@ export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
 export { symmetricEncrypt };
 export { CalendarService };
+
+export { getCalendar };
+
 export { getTranslation };
