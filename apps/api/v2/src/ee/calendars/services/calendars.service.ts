@@ -1,3 +1,4 @@
+import { IntegrationCalendar } from "@/ee/calendars/calendars.interface";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
@@ -121,21 +122,18 @@ export class CalendarsService {
     return composedSelectedCalendars;
   }
 
-  async deleteCalendarCredentials(userId: number, credential: Credential): Promise<{ status: string }> {
-    try {
-      const calendar = await getCalendar(credential);
-      const calendars = await calendar?.listCalendars();
+  async deleteCalendarCredentials(userId: number, credential: Credential) {
+    const calendar = await getCalendar(credential);
+    const calendars = await calendar?.listCalendars();
 
-      const calendarIds = calendars?.map((cal) => cal.externalId);
+    const calendarIds = calendars?.map((cal: IntegrationCalendar) => cal.externalId);
 
-      await this.calendarsRepository.deleteCredentials(credential.type, userId, calendarIds);
+    if (!calendarIds)
+      throw new NotFoundException(
+        `No connected calendars found for calendar type: ${credential.type} and id: ${credential.id}`
+      );
 
-      return { status: "success" };
-    } catch (err) {
-      console.warn(`Error deleting selected calendars for userId: ${userId} integration`, err);
-
-      return { status: "error" };
-    }
+    return await this.calendarsRepository.deleteCredentials(credential.type, userId, calendarIds);
   }
 
   async getAppKeys(appName: string) {
