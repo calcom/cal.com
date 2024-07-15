@@ -59,7 +59,7 @@ export const FormBuilderField = ({
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
   const isPreFilledInUrl = (): boolean => {
-    return field.disableOnPrefill && searchParams && searchParams[field.name];
+    return !!(field.disableOnPrefill && searchParams && searchParams[field.name]);
   };
 
   return (
