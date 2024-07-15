@@ -56,6 +56,7 @@ export class EventTypesService_2024_04_15 {
     const profileId = user.movedToProfile?.id || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
