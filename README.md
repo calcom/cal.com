@@ -416,7 +416,6 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 | Organizations | ❌  | ✅ |
 | Payments | ❌  | ✅ |
 | Platform | ❌  | ✅ |
-| SSO | ❌  | ✅ |
 | Teams | ❌  | ✅ |
 | Users | ❌  | ✅ |
 | Video | ❌  | ✅ |
