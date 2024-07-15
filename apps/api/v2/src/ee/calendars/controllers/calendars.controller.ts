@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
@@ -24,9 +25,10 @@ import {
   BadRequestException,
   Post,
   Body,
+  NotFoundException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { User } from "@prisma/client";
+import { User, Credential } from "@prisma/client";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -50,7 +52,8 @@ export class CalendarsController {
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
     private readonly googleCalendarService: GoogleCalendarService,
-    private readonly appleCalendarService: AppleCalendarService
+    private readonly appleCalendarService: AppleCalendarService,
+    private readonly calendarsRepository: CalendarsRepository
   ) {}
 
   @UseGuards(ApiAuthGuard)
@@ -182,5 +185,26 @@ export class CalendarsController {
           CALENDARS.join(", ")
         );
     }
+  }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/disconnect")
+  @HttpCode(HttpStatus.OK)
+  async deleteCalendarCredentials(
+    @Param("calendar") calendar: string,
+    @Body() body: { id: number },
+    @GetUser() user: UserWithProfile
+  ): Promise<ApiResponse<{ status: string }>> {
+    // inside of calendars service add a method to delete calendar credentials and then use that one below
+    const { id: credentialId } = body;
+    const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
+    if (!credential) {
+      throw new NotFoundException(`Credentials for ${calendar} not found`);
+    }
+
+    return await this.calendarsService.deleteCalendarCredentials(
+      user.id,
+      credential as unknown as Credential
+    );
   }
 }
