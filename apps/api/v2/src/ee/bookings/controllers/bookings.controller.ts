@@ -1,7 +1,9 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
+import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
+import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -32,7 +34,7 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
   getAllUserBookings,
   getBookingInfo,
@@ -46,6 +48,7 @@ import {
   handleNewRecurringBooking,
   handleInstantMeeting,
 } from "@calcom/platform-libraries-0.0.2";
+import { handleMarkNoShow } from "@calcom/platform-libraries-0.0.17";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -194,6 +197,27 @@ export class BookingsController {
     throw new InternalServerErrorException("Could not cancel booking.");
   }
 
+  @Post("/:bookingUid/mark-no-show")
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async markNoShow(
+    @Body() body: MarkNoShowInput,
+    @Param("bookingUid") bookingUid: string
+  ): Promise<MarkNoShowOutput> {
+    try {
+      const markNoShowResponse = await handleMarkNoShow({
+        bookingUid: bookingUid,
+        attendees: body.attendees,
+        noShowHost: body.noShowHost,
+      });
+
+      return { status: SUCCESS_STATUS, data: markNoShowResponse };
+    } catch (err) {
+      this.handleBookingErrors(err, "no-show");
+    }
+    throw new InternalServerErrorException("Could not mark no show.");
+  }
+
   @Post("/recurring")
   async createRecurringBooking(
     @Req() req: BookingRequest,
@@ -287,8 +311,14 @@ export class BookingsController {
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  private handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
-    const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+  private handleBookingErrors(
+    err: Error | HttpError | unknown,
+    type?: "recurring" | `instant` | "no-show"
+  ): void {
+    const errMsg =
+      type === "no-show"
+        ? `Error while marking no-show.`
+        : `Error while creating ${type ? type + " " : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);

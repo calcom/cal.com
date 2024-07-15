@@ -1,16 +1,19 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 
 import { WEBAPP_URL } from "@calcom/lib/constants";
+import { getSafeRedirectUrl } from "@calcom/lib/getSafeRedirectUrl";
 import prisma from "@calcom/prisma";
 
 import getInstalledAppPath from "../../_utils/getInstalledAppPath";
 import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredential";
+import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import config from "../config.json";
 import { getWebexAppKeys } from "../lib/getWebexAppKeys";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code } = req.query;
   const { client_id, client_secret } = await getWebexAppKeys();
+  const state = decodeOAuthState(req);
 
   /** @link https://developer.webex.com/docs/integrations#getting-an-access-token **/
 
@@ -82,5 +85,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: config.slug, type: config.type }, responseBody, req);
 
-  res.redirect(getInstalledAppPath({ variant: config.variant, slug: config.slug }));
+  res.redirect(
+    getSafeRedirectUrl(state?.returnTo) ?? getInstalledAppPath({ variant: config.variant, slug: config.slug })
+  );
 }

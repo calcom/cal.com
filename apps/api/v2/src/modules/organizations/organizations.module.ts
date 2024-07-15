@@ -4,6 +4,7 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/organizations-teams.controller";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
+import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/repositories/organizations-schedules.repository";
@@ -15,12 +16,13 @@ import { OrganizationsSchedulesService } from "@/modules/organizations/services/
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
+import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { Module } from "@nestjs/common";
 
 @Module({
-  imports: [PrismaModule, StripeModule, SchedulesModule_2024_06_11, UsersModule, EventTypesModule_2024_06_14],
+  imports: [PrismaModule, StripeModule, SchedulesModule_2024_06_11, UsersModule, RedisModule, EventTypesModule_2024_06_14],
   providers: [
     OrganizationsRepository,
     OrganizationsTeamsRepository,
