@@ -30,7 +30,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User, Credential } from "@prisma/client";
 import { Request } from "express";
-import { z } from "zod";
+import { string, z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
 import {
@@ -198,12 +198,14 @@ export class CalendarsController {
     const { id: credentialId } = body;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
-      throw new NotFoundException(`Credentials for ${calendar} not found`);
+      throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
     }
 
-    return await this.calendarsService.deleteCalendarCredentials(
+    const deletedCredentials = await this.calendarsService.deleteCalendarCredentials(
       user.id,
       credential as unknown as Credential
     );
+
+    return { status: string, data: { deletedCredentials } };
   }
 }
