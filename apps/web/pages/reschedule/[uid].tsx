@@ -135,19 +135,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
-  const eventPage = await buildEventUrlFromBooking({
+  const eventUrl = await buildEventUrlFromBooking({
     eventType,
     dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
     profileEnrichedBookingUser: enrichedBookingUser,
   });
 
-  const destinationUrl = new URLSearchParams();
+  const destinationUrlSearchParams = new URLSearchParams();
 
-  destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
+  destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
 
   return {
     redirect: {
-      destination: `${eventPage}?${destinationUrl.toString()}${
+      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
         eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
       }`,
       permanent: false,

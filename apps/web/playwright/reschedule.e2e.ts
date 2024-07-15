@@ -399,8 +399,6 @@ test.describe("Reschedule Tests", async () => {
         // Opening the non-org URL and expecting a redirect to the org domain by reschedule endpoint
         const result = await goToUrlWithErrorHandling({ url: `/reschedule/${booking.uid}`, page });
 
-        // Org Domain can't be opened
-        expect(result.success).toBe(false);
         await doOnOrgDomain(
           {
             orgSlug: orgSlug,

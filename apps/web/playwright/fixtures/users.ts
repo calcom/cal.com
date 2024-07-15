@@ -822,7 +822,7 @@ const createUser = (
       profiles: {
         create: {
           uid: ProfileRepository.generateProfileUid(),
-          username: `${profileUsername}${suffixToMakeUsernameUnique}` ?? uname,
+          username: profileUsername ? `${profileUsername}${suffixToMakeUsernameUnique}` : uname,
           organization: {
             connect: {
               id: organizationId,
