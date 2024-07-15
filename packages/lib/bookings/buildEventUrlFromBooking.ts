@@ -39,9 +39,8 @@ export async function buildEventUrlFromBooking(booking: {
   eventType: BookingEventType;
   user: BookingUser;
   dynamicGroupSlugRef: string | null;
-  dynamicEventSlugRef: string | null;
 }) {
-  const { eventType, dynamicEventSlugRef, dynamicGroupSlugRef, user } = booking;
+  const { eventType, dynamicGroupSlugRef, user } = booking;
   const eventSlug = eventType.slug;
   const eventOwner = eventType.owner;
   const eventTeam = eventType.team;
@@ -49,7 +48,7 @@ export async function buildEventUrlFromBooking(booking: {
 
   const bookerUrl = await getBookerBaseUrl(bookingOrganizationId);
 
-  if (dynamicEventSlugRef) {
+  if (dynamicGroupSlugRef) {
     return `${bookerUrl}/${dynamicGroupSlugRef}/${eventSlug}`;
   }
 

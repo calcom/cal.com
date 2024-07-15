@@ -142,7 +142,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const eventPage = await buildEventUrlFromBooking({
     eventType: eventTypeWithEnrichedOwner,
     dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    dynamicEventSlugRef,
     user: enrichedBookingUser,
   });
 
