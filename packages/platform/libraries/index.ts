@@ -1,3 +1,4 @@
+import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { CalendarService } from "@calcom/app-store/applecalendar/lib";
 import { getBookingForReschedule } from "@calcom/features/bookings/lib/get-booking";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
@@ -100,3 +101,4 @@ export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
 export { symmetricEncrypt };
 export { CalendarService };
+export { getCalendar };
