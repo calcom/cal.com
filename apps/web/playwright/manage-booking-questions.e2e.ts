@@ -288,7 +288,7 @@ test("Disable Input on url prefill for booking and verify a few thing in b/w", a
         type: "Long Text",
         label: "testprefill",
         required: true,
-        prefillChecked: true,
+        disableOnPrefill: true,
       },
       updateEvent: false,
     });
@@ -650,7 +650,7 @@ async function addQuestionAndSave({
     label?: string;
     placeholder?: string;
     required?: boolean;
-    prefillChecked?: boolean;
+    disableOnPrefill?: boolean;
   };
   checkForPreFill?: boolean;
   updateEvent?: boolean;
@@ -675,8 +675,8 @@ async function addQuestionAndSave({
     await page.fill('[name="name"]', question.name);
   }
 
-  if (question.prefillChecked !== undefined) {
-    await page.click('[name="prefillChecked"]');
+  if (question.disableOnPrefill !== undefined) {
+    await page.click('[name="disableOnPrefill"]');
   }
 
   if (question.label !== undefined) {

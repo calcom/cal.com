@@ -90,7 +90,7 @@ class BookingField {
 
   @IsOptional()
   @IsBoolean()
-  prefillChecked?: boolean;
+  disableOnPrefill?: boolean;
 }
 
 class Organization {

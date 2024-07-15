@@ -7,7 +7,6 @@ import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import getLocationOptionsForSelect from "@calcom/features/bookings/lib/getLocationOptionsForSelect";
 import { FormBuilderField } from "@calcom/features/form-builder/FormBuilderField";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import type { RouterOutputs } from "@calcom/trpc/react";
 
 import { SystemField } from "../../../lib/SystemField";
@@ -30,8 +29,6 @@ export const BookingFields = ({
   const locationResponse = watch("responses.location");
   const currentView = rescheduleUid ? "reschedule" : "";
   const isInstantMeeting = useBookerStore((state) => state.isInstantMeeting);
-  const searchParams = useRouterQuery();
-
   return (
     // TODO: It might make sense to extract this logic into BookingFields config, that would allow to quickly configure system fields and their editability in fresh booking and reschedule booking view
     // The logic here intends to make modifications to booking fields based on the way we want to specifically show Booking Form
@@ -133,10 +130,6 @@ export const BookingFields = ({
                   : field.value,
             };
           });
-        }
-
-        if (field.prefillChecked && searchParams && searchParams[field.name]) {
-          readOnly = true;
         }
 
         return (

@@ -485,8 +485,8 @@ function FieldEditDialog({
                       label={t("identifier")}
                     />
                     <CheckboxField
-                      description={t("pre_fill_check")}
-                      {...fieldForm.register("prefillChecked", { setValueAs: Boolean })}
+                      description={t("disable_input_if_prefilled")}
+                      {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
                     />
                     <InputField
                       {...fieldForm.register("label")}

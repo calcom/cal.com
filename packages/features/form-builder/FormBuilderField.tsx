@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
@@ -53,8 +54,13 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
+  const searchParams = useRouterQuery();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
+
+  const isPreFilledInUrl = (): boolean => {
+    return field.disableOnPrefill && searchParams && searchParams[field.name];
+  };
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
@@ -68,7 +74,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly}
+                readOnly={readOnly || isPreFilledInUrl()}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}

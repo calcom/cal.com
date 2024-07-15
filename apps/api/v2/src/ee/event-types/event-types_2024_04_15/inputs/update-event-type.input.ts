@@ -180,7 +180,7 @@ export class BookingField_2024_04_15 {
 
   @IsOptional()
   @IsBoolean()
-  prefillChecked?: boolean;
+  disableOnPrefill?: boolean;
 }
 
 export class RecurringEvent_2024_04_15 {
