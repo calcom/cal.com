@@ -4,7 +4,6 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 
 import dayjs from "@calcom/dayjs";
-import { BulkEditDefaultModal } from "@calcom/features/eventtypes/components/BulkEditDefaultModal";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Dialog, DialogClose, DialogContent, DialogFooter, showToast } from "@calcom/ui";
@@ -17,6 +16,7 @@ const TimezoneChangeDialogContent = ({
   onAction: (action?: "update" | "cancel") => void;
 }) => {
   const { t } = useLocale();
+  const utils = trpc.useUtils();
   const formattedCurrentTz = browserTimezone.replace("_", " ");
 
   // save cookie to not show again
@@ -26,6 +26,28 @@ const TimezoneChangeDialogContent = ({
       dayjs().add(hideFor[0], hideFor[1]).unix() - dayjs().unix()
     }`;
     toast && showToast(t("we_wont_show_again"), "success");
+  }
+
+  const onSuccessMutation = async () => {
+    showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
+    await utils.viewer.me.invalidate();
+  };
+
+  const onErrorMutation = () => {
+    showToast(t("couldnt_update_timezone"), "error");
+  };
+
+  // update timezone in db
+  const mutation = trpc.viewer.updateProfile.useMutation({
+    onSuccess: onSuccessMutation,
+    onError: onErrorMutation,
+  });
+
+  function updateTimezone() {
+    onAction("update");
+    mutation.mutate({
+      timeZone: browserTimezone,
+    });
   }
 
   return (
@@ -42,7 +64,7 @@ const TimezoneChangeDialogContent = ({
         <DialogClose onClick={() => onCancel([3, "months"], true)} color="secondary">
           {t("dont_update")}
         </DialogClose>
-        <DialogClose onClick={() => onAction("update")} color="primary">
+        <DialogClose onClick={() => updateTimezone()} color="primary">
           {t("update_timezone")}
         </DialogClose>
       </DialogFooter>
@@ -82,56 +104,9 @@ export function useOpenTimezoneDialog() {
 
 export default function TimezoneChangeDialog() {
   const { open, setOpen, browserTimezone } = useOpenTimezoneDialog();
-  const { t } = useLocale();
-  const utils = trpc.useUtils();
-
-  const [selectAvailability, setSelectAvailability] = useState(false);
-  const [ids, setIds] = useState<number[]>([]);
-  const { data: availability, isPending } = trpc.viewer.availability.list.useQuery();
-  const formattedCurrentTz = browserTimezone.replace("_", " ");
-
-  const data = availability?.schedules?.map((a) => ({
-    id: a.id,
-    title: a.name,
-    default: a.isDefault,
-  }));
-
-  const mutation = trpc.viewer.updateProfile.useMutation({
-    onSuccess: async () => {
-      showToast(t("updated_timezone_to", { formattedCurrentTz }), "success");
-      await utils.viewer.me.invalidate();
-      setSelectAvailability(false);
-    },
-    onError: () => {
-      showToast(t("couldnt_update_timezone"), "error");
-    },
-  });
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <TimezoneChangeDialogContent
-        browserTimezone={browserTimezone}
-        onAction={() => {
-          setOpen(false);
-          setSelectAvailability(true);
-        }}
-      />
-      <BulkEditDefaultModal
-        title={t("default_timezone_bulk_title")}
-        description={t("default_timezone_bulk_description")}
-        ids={ids}
-        isPending={isPending}
-        open={selectAvailability}
-        setOpen={setSelectAvailability}
-        setIds={setIds}
-        data={data}
-        handleSubmit={() => {
-          mutation.mutate({
-            timeZone: browserTimezone,
-            availabilityIds: ids,
-          });
-        }}
-      />
+      <TimezoneChangeDialogContent browserTimezone={browserTimezone} onAction={() => setOpen(false)} />
     </Dialog>
   );
 }
