@@ -3544,6 +3544,7 @@ __metadata:
     "@calcom/platform-libraries-0.0.13": "npm:@calcom/platform-libraries@0.0.13"
     "@calcom/platform-libraries-0.0.14": "npm:@calcom/platform-libraries@0.0.14"
     "@calcom/platform-libraries-0.0.15": "npm:@calcom/platform-libraries@0.0.15"
+    "@calcom/platform-libraries-0.0.17": "npm:@calcom/platform-libraries@0.0.17"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
     "@calcom/platform-libraries-0.0.4": "npm:@calcom/platform-libraries@0.0.4"
     "@calcom/platform-types": "*"
@@ -3817,6 +3818,15 @@ __metadata:
 "@calcom/campfire@workspace:packages/app-store/campfire":
   version: 0.0.0-use.local
   resolution: "@calcom/campfire@workspace:packages/app-store/campfire"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
+"@calcom/campsite@workspace:packages/app-store/campsite":
+  version: 0.0.0-use.local
+  resolution: "@calcom/campsite@workspace:packages/app-store/campsite"
   dependencies:
     "@calcom/lib": "*"
     "@calcom/types": "*"
@@ -4320,8 +4330,8 @@ __metadata:
     "@calcom/tsconfig": "*"
     "@calcom/types": "*"
     "@faker-js/faker": ^7.3.0
-    "@formbricks/api": "^1.7.0"
-    "@formbricks/js": "^2.1.0"
+    "@formbricks/api": ^1.7.0
+    "@formbricks/js": ^2.1.0
     "@sendgrid/client": ^7.7.0
     "@vercel/og": ^0.5.0
     bcryptjs: ^2.4.3
@@ -4498,6 +4508,17 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 64c81a4e8b7f1058962293b12ff956b764b826d127d499718deea3acf4992315eb941b792f736bd296264107eddd580d3445258265090c01fb4a1aedb9646c3b
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries-0.0.17@npm:@calcom/platform-libraries@0.0.17":
+  version: 0.0.17
+  resolution: "@calcom/platform-libraries@npm:0.0.17"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 06480d1356d58a804567408a8ba1815eef3e052131760f35efe33957c0ae13ca829703fbe4e53742d055ccf5ae4f6091f7ed8204876f53270c168f106f3007c0
   languageName: node
   linkType: hard
 

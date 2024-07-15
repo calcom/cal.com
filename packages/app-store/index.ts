@@ -5,6 +5,7 @@ const appStore = {
   aroundvideo: () => import("./around"),
   bigbluebuttonvideo: () => import("./bigbluebutton"),
   caldavcalendar: () => import("./caldavcalendar"),
+  campsiteconferencing: () => import("./campsite"),
   closecom: () => import("./closecom"),
   dailyvideo: () => import("./dailyvideo"),
   googlecalendar: () => import("./googlecalendar"),

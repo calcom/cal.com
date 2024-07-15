@@ -5,6 +5,7 @@
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
 import { appDataSchema as bigbluebutton_zod_ts } from "./bigbluebutton/zod";
+import { appDataSchema as campsite_zod_ts } from "./campsite/zod";
 import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
@@ -52,6 +53,7 @@ export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
   bigbluebutton: bigbluebutton_zod_ts,
+  campsite: campsite_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
