@@ -12,7 +12,7 @@ export const useCompatSearchParams = () => {
     const param = params[key];
     const paramArr = typeof param === "string" ? param.split("/") : param;
 
-    paramArr.forEach((p) => {
+    paramArr?.forEach((p) => {
       searchParams.append(key, p);
     });
   });
