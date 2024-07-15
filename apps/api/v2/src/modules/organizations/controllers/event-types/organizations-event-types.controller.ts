@@ -52,11 +52,13 @@ export class OrganizationsEventTypesController {
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
     @Param("teamId", ParseIntPipe) teamId: number,
+    @Param("orgId", ParseIntPipe) orgId: number,
     @Body() bodyEventType: CreateTeamEventTypeInput_2024_06_14
   ): Promise<CreateTeamEventTypeOutput> {
     const eventType = await this.organizationsEventTypesService.createTeamEventType(
       user,
       teamId,
+      orgId,
       bodyEventType
     );
 

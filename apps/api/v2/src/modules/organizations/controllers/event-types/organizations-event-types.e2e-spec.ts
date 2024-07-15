@@ -1,6 +1,5 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
-import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -10,12 +9,17 @@ import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiSuccessResponse, CreateTeamEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import {
+  ApiSuccessResponse,
+  CreateTeamEventTypeInput_2024_06_14,
+  TeamEventTypeOutput_2024_06_14,
+} from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
@@ -26,14 +30,20 @@ describe("Organizations Event Types Endpoints", () => {
     let organizationsRepositoryFixture: TeamRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     let org: Team;
     let team: Team;
-    let team2: Team;
-    let teamCreatedViaApi: Team;
 
     const userEmail = "org-admin-event-types-controller-e2e@api.com";
-    let userAdming: User;
+    let userAdmin: User;
+
+    const teammate1Email = "teammate1@team.com";
+    const teammate2Email = "teammate2@team.com";
+    let teammate1: User;
+    let teammate2: User;
+
+    let teamEventType: TeamEventTypeOutput_2024_06_14;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -47,10 +57,22 @@ describe("Organizations Event Types Endpoints", () => {
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
-      userAdming = await userRepositoryFixture.create({
+      userAdmin = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
+        role: "ADMIN",
+      });
+
+      teammate1 = await userRepositoryFixture.create({
+        email: teammate1Email,
+        username: teammate1Email,
+      });
+
+      teammate2 = await userRepositoryFixture.create({
+        email: teammate2Email,
+        username: teammate2Email,
       });
 
       org = await organizationsRepositoryFixture.create({
@@ -58,9 +80,37 @@ describe("Organizations Event Types Endpoints", () => {
         isOrganization: true,
       });
 
+      await profileRepositoryFixture.create({
+        uid: `usr-${userAdmin.id}`,
+        username: userEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: userAdmin.id,
+          },
+        },
+      });
+
       await membershipsRepositoryFixture.create({
         role: "ADMIN",
-        user: { connect: { id: userAdming.id } },
+        user: { connect: { id: userAdmin.id } },
+        team: { connect: { id: org.id } },
+        accepted: true,
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: teammate1.id } },
+        team: { connect: { id: org.id } },
+      });
+
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: teammate2.id } },
         team: { connect: { id: org.id } },
       });
 
@@ -79,7 +129,7 @@ describe("Organizations Event Types Endpoints", () => {
     it("should be defined", () => {
       expect(userRepositoryFixture).toBeDefined();
       expect(organizationsRepositoryFixture).toBeDefined();
-      expect(userAdming).toBeDefined();
+      expect(userAdmin).toBeDefined();
       expect(org).toBeDefined();
     });
 
@@ -106,193 +156,37 @@ describe("Organizations Event Types Endpoints", () => {
           },
         ],
         schedulingType: "COLLECTIVE",
-        hosts: [],
+        hosts: [
+          {
+            userId: teammate1.id,
+            mandatory: true,
+            priority: "high",
+          },
+          {
+            userId: teammate2.id,
+            mandatory: false,
+            priority: "low",
+          },
+        ],
       };
 
       return request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/teams`)
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Team[]> = response.body;
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data[0].id).toEqual(team.id);
+
+          teamEventType = responseBody.data;
+          console.log("teamEventType", JSON.stringify(teamEventType, null, 2));
         });
-    });
-
-    it("should fail if org does not exist", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/120494059/teams`).expect(403);
-    });
-
-    it("should get the team of the org", async () => {
-      return request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/teams/${team.id}`)
-        .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<Team> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(team.id);
-          expect(responseBody.data.parentId).toEqual(team.parentId);
-        });
-    });
-
-    it("should create the team of the org", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/teams`)
-        .send({
-          name: "Team created via API",
-        } satisfies CreateOrgTeamDto)
-        .expect(201)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<Team> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          teamCreatedViaApi = responseBody.data;
-          expect(teamCreatedViaApi.name).toEqual("Team created via API");
-          expect(teamCreatedViaApi.parentId).toEqual(org.id);
-        });
-    });
-
-    it("should update the team of the org", async () => {
-      return request(app.getHttpServer())
-        .patch(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
-        .send({
-          name: "Team created via API Updated",
-        } satisfies CreateOrgTeamDto)
-        .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<Team> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          teamCreatedViaApi = responseBody.data;
-          expect(teamCreatedViaApi.name).toEqual("Team created via API Updated");
-          expect(teamCreatedViaApi.parentId).toEqual(org.id);
-        });
-    });
-
-    it("should delete the team of the org we created via api", async () => {
-      return request(app.getHttpServer())
-        .delete(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
-        .expect(200)
-        .then((response) => {
-          const responseBody: ApiSuccessResponse<Team> = response.body;
-          expect(responseBody.status).toEqual(SUCCESS_STATUS);
-          expect(responseBody.data.id).toEqual(teamCreatedViaApi.id);
-          expect(responseBody.data.parentId).toEqual(teamCreatedViaApi.parentId);
-        });
-    });
-
-    it("should fail to get the team of the org we just deleted", async () => {
-      return request(app.getHttpServer())
-        .get(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)
-        .expect(404);
-    });
-
-    it("should fail if the team does not exist", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/123132145`).expect(404);
     });
 
     afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(userAdming.email);
-      await teamsRepositoryFixture.delete(team.id);
-      await organizationsRepositoryFixture.delete(org.id);
-      await app.close();
-    });
-  });
-});
-
-describe("Organizations Team Endpoints", () => {
-  describe("User Authentication - User is Org Member", () => {
-    let app: INestApplication;
-
-    let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
-    let teamsRepositoryFixture: TeamRepositoryFixture;
-    let membershipsRepositoryFixture: MembershipRepositoryFixture;
-
-    let org: Team;
-    let team: Team;
-
-    const userEmail = "org-member-teams-controller-e2e@api.com";
-    let user: User;
-
-    beforeAll(async () => {
-      const moduleRef = await withApiAuth(
-        userEmail,
-        Test.createTestingModule({
-          imports: [AppModule, PrismaModule, UsersModule, TokensModule],
-        })
-      ).compile();
-
-      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
-      membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
-
-      user = await userRepositoryFixture.create({
-        email: userEmail,
-        username: userEmail,
-      });
-
-      org = await organizationsRepositoryFixture.create({
-        name: "Test Organization",
-        isOrganization: true,
-      });
-
-      await membershipsRepositoryFixture.create({
-        role: "MEMBER",
-        user: { connect: { id: user.id } },
-        team: { connect: { id: org.id } },
-      });
-
-      team = await teamsRepositoryFixture.create({
-        name: "Test org team",
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
-      });
-
-      app = moduleRef.createNestApplication();
-      bootstrap(app as NestExpressApplication);
-
-      await app.init();
-    });
-
-    it("should be defined", () => {
-      expect(userRepositoryFixture).toBeDefined();
-      expect(organizationsRepositoryFixture).toBeDefined();
-      expect(user).toBeDefined();
-      expect(org).toBeDefined();
-    });
-
-    it("should deny get all the teams of the org", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams`).expect(403);
-    });
-
-    it("should deny get all the teams of the org paginated", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams?skip=1&take=1`).expect(403);
-    });
-
-    it("should deny get the team of the org", async () => {
-      return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/${team.id}`).expect(403);
-    });
-
-    it("should deny create the team of the org", async () => {
-      return request(app.getHttpServer())
-        .post(`/v2/organizations/${org.id}/teams`)
-        .send({
-          name: "Team created via API",
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
-
-    it("should deny update the team of the org", async () => {
-      return request(app.getHttpServer())
-        .patch(`/v2/organizations/${org.id}/teams/${team.id}`)
-        .send({
-          name: "Team created via API Updated",
-        } satisfies CreateOrgTeamDto)
-        .expect(403);
-    });
-
-    afterAll(async () => {
-      await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(userAdmin.email);
+      await userRepositoryFixture.deleteByEmail(teammate1.email);
+      await userRepositoryFixture.deleteByEmail(teammate2.email);
       await teamsRepositoryFixture.delete(team.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();

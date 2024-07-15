@@ -1,5 +1,6 @@
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
+import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
@@ -21,15 +22,17 @@ export class OrganizationsEventTypesService {
     private readonly dbWrite: PrismaWriteService,
     private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
-    private readonly outputService: OutputOrganizationsEventTypesService
+    private readonly outputService: OutputOrganizationsEventTypesService,
+    private readonly membershipsRepository: MembershipsRepository
   ) {}
 
   async createTeamEventType(
     user: UserWithProfile,
     teamId: number,
+    orgId: number,
     body: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const eventTypeUser = await this.eventTypesService.getUserToCreateEvent(user);
+    const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hosts, assignAllTeamMembers, ...rest } =
       await this.inputService.transformInputCreateTeamEventType(teamId, body);
@@ -57,6 +60,18 @@ export class OrganizationsEventTypesService {
     }
 
     return this.outputService.getResponseTeamEventType(teamId, eventType);
+  }
+
+  async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
+    const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
+    const profileId = user.movedToProfileId || null;
+    return {
+      id: user.id,
+      organizationId: user.organizationId,
+      organization: { isOrgAdmin },
+      profile: { id: profileId },
+      metadata: user.metadata,
+    };
   }
 
   async getTeamEventType(teamId: number, eventTypeId: number) {

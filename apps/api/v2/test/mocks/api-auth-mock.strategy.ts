@@ -11,7 +11,7 @@ export class ApiAuthMockStrategy extends PassportStrategy(BaseStrategy, "api-aut
 
   async authenticate() {
     try {
-      const user = await this.usersRepository.findByEmail(this.email);
+      const user = await this.usersRepository.findByEmailWithProfile(this.email);
       if (!user) {
         throw new Error("User with the provided ID not found");
       }
