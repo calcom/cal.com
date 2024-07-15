@@ -4,7 +4,7 @@ import { sortAvailabilityStrings } from "./weekstart";
 
 describe("Weekstart tests", () => {
   describe("fn: sortAvailabilityStrings", () => {
-    it("should sort the availability strings as per the weekstart (sunday to monday)", () => {
+    it("should sort the availability strings when changing weekstart from Sunday to Monday", () => {
       const input = [
         "Sun, 11:45 AM - 5:00 PM",
         "Mon, 7:45 AM - 4:15 PM",
@@ -30,7 +30,7 @@ describe("Weekstart tests", () => {
       expect(result).toEqual(expected);
     });
 
-    it("should sort the availability strings as per the weekstart (monday to sunday)", () => {
+    it("should sort the availability strings when changing weekstart from Monday to Sunday", () => {
       const input = [
         "Mon - Tue, Thu 7:45 AM - 4:15 PM",
         "Tue, 5:00 PM - 8:00 PM",
