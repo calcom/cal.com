@@ -59,6 +59,12 @@ export const FormBuilderField = ({
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
   const isPreFilledInUrl = (): boolean => {
+    const message = (formState?.errors?.responses?.message || "") as string;
+    const name = message.replace(/\{([^}]+)\}.*/, "$1");
+    //if the field is already prefilled in url and it has error then we don't want to disable it
+    if (name === field.name) {
+      return false;
+    }
     return !!(field.disableOnPrefill && searchParams && searchParams[field.name]);
   };
 
