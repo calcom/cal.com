@@ -339,8 +339,12 @@ test.describe("Reschedule Tests", async () => {
     }
   });
 
-  test("Should be able to a dynamic group booking", async ({ page, users, bookings }) => {
-    // Seems to be tested in dynamic-booking-pages.e2e.ts
+  test("Should be able to a dynamic group booking", async () => {
+    // It is tested in dynamic-booking-pages.e2e.ts
+  });
+
+  test("Team Event Booking", () => {
+    // It is tested in teams.e2e.ts
   });
 
   test.describe("Organization", () => {
@@ -417,6 +421,7 @@ test.describe("Reschedule Tests", async () => {
     });
   });
 });
+
 function expectUrlToBeABookingPageOnOrgForUsername({
   url,
   orgSlug,
