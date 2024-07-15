@@ -135,12 +135,19 @@ export async function bookFirstEvent(page: Page) {
   await bookEventOnThisPage(page);
 }
 
-export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: string; title?: string }) => {
+export const bookTimeSlot = async (
+  page: Page,
+  opts?: { name?: string; email?: string; title?: string; attendeePhoneNumber?: string }
+) => {
   // --- fill form
   await page.fill('[name="name"]', opts?.name ?? testName);
   await page.fill('[name="email"]', opts?.email ?? testEmail);
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
+  }
+  console.log("opts", opts?.attendeePhoneNumber);
+  if (opts?.attendeePhoneNumber) {
+    await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
   await page.press('[name="email"]', "Enter");
 };
