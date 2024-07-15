@@ -33,6 +33,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -416,6 +426,16 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -809,11 +829,32 @@
     "/v2/organizations/{orgId}/teams": {
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
+        "summary": "Get all the teams of an organization.",
         "parameters": [
           {
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -825,7 +866,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamsOutputResponseDto"
                 }
               }
             }
@@ -837,6 +878,7 @@
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
+        "summary": "Create a team for an organization.",
         "parameters": [
           {
             "name": "orgId",
@@ -863,7 +905,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -877,6 +919,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}": {
       "get": {
         "operationId": "OrganizationsTeamsController_getTeam",
+        "summary": "Get a team of the organization by ID.",
         "parameters": [],
         "responses": {
           "200": {
@@ -884,7 +927,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -896,6 +939,7 @@
       },
       "delete": {
         "operationId": "OrganizationsTeamsController_deleteTeam",
+        "summary": "Delete a team of the organization by ID.",
         "parameters": [
           {
             "name": "orgId",
@@ -920,7 +964,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -932,6 +976,7 @@
       },
       "patch": {
         "operationId": "OrganizationsTeamsController_updateTeam",
+        "summary": "Update a team of the organization by ID.",
         "parameters": [
           {
             "name": "orgId",
@@ -966,7 +1011,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -985,6 +1030,26 @@
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -1892,6 +1957,46 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/mark-no-show": {
+      "post": {
+        "operationId": "BookingsController_markNoShow",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkNoShowInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkNoShowOutput"
                 }
               }
             }
@@ -3700,6 +3805,125 @@
           "data"
         ]
       },
+      "OrgTeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean",
+            "default": false
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "OrgTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgTeamOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgTeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateOrgTeamDto": {
         "type": "object",
         "properties": {
@@ -5459,6 +5683,63 @@
           "allRemainingBookings",
           "cancellationReason",
           "seatReferenceUid"
+        ]
+      },
+      "MarkNoShowInput": {
+        "type": "object",
+        "properties": {
+          "noShowHost": {
+            "type": "boolean"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        }
+      },
+      "HandleMarkNoShowData": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "noShowHost": {
+            "type": "boolean"
+          },
+          "messageKey": {
+            "type": "string"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "MarkNoShowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/HandleMarkNoShowData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "ReserveSlotInput": {

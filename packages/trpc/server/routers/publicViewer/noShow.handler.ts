@@ -7,9 +7,9 @@ type NoShowOptions = {
 };
 
 export const noShowHandler = async ({ input }: NoShowOptions) => {
-  const { bookingUid, attendees } = input;
+  const { bookingUid, attendees, noShowHost } = input;
 
-  return handleMarkNoShow({ bookingUid, attendees });
+  return handleMarkNoShow({ bookingUid, attendees, noShowHost });
 };
 
 export default noShowHandler;
