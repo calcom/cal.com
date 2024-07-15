@@ -333,10 +333,4 @@ export class BookingsController {
 
     throw new InternalServerErrorException(errMsg);
   }
-
-  private async checkCanAccessBooking(req: BookingRequest): Promise<boolean> {
-    const userId = (await this.getOwnerId(req)) ?? -1;
-    console.log(userId, "userId");
-    return false;
-  }
 }
