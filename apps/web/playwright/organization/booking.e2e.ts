@@ -187,7 +187,7 @@ test.describe("Bookings", () => {
       // TODO: Assert whether the user received an email
     });
 
-    test("Can create a booking for Round Robin EventType with only phone number", async ({
+    test("Can create a booking for Round Robin EventType with both phone number and email required", async ({
       page,
       users,
       orgs,
@@ -219,7 +219,7 @@ test.describe("Bookings", () => {
       const teamEvent = await owner.getFirstTeamEvent(team.id);
       await owner.apiLogin();
 
-      await markPhoneNumberAsRequiredAndEmailAsOptional(page, teamEvent.id);
+      await markPhoneNumberAsRequiredField(page, teamEvent.id);
 
       await expectPageToBeNotFound({ page, url: `/team/${team.slug}/${teamEvent.slug}` });
 
@@ -229,7 +229,13 @@ test.describe("Bookings", () => {
           page,
         },
         async () => {
-          await bookTeamEvent({ page, team, event: teamEvent, teamMatesObj });
+          await bookTeamEvent({
+            page,
+            team,
+            event: teamEvent,
+            teamMatesObj,
+            opts: { attendeePhoneNumber: "+918888888888" },
+          });
 
           // Since all the users have the same leastRecentlyBooked value
           // Anyone of the teammates could be the Host of the booking.
@@ -644,7 +650,8 @@ async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }
 }
 
 const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: string) => {
-  await page.goto(`/event-types/${eventId}?tabName=advanced`);
+  // Make phone as required
+  await markPhoneNumberAsRequiredField(page, eventId);
 
   // Make email as not required
   await page.locator('[data-testid="field-email"] [data-testid="edit-field-action"]').click();
@@ -652,7 +659,14 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   await emailRequiredFiled.locator("> :nth-child(2)").click();
   await page.getByTestId("field-add-save").click();
 
-  // Make phone as required
+  await page.locator("[data-testid=update-eventtype]").click();
+  const toast = await page.waitForSelector('[data-testid="toast-success"]');
+  expect(toast).toBeTruthy();
+};
+
+const markPhoneNumberAsRequiredField = async (page: Page, eventId: string) => {
+  await page.goto(`/event-types/${eventId}?tabName=advanced`);
+
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="edit-field-action"]').click();
   const phoneRequiredFiled = await page.locator('[data-testid="field-required"]');

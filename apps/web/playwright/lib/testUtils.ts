@@ -145,7 +145,6 @@ export const bookTimeSlot = async (
   if (opts?.title) {
     await page.fill('[name="title"]', opts.title);
   }
-  console.log("opts", opts?.attendeePhoneNumber);
   if (opts?.attendeePhoneNumber) {
     await page.fill('[name="attendeePhoneNumber"]', opts.attendeePhoneNumber ?? "+918888888888");
   }
