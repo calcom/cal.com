@@ -1,18 +1,18 @@
 import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Tooltip } from "@calcom/ui";
 
-import type { PublicEvent } from "../../types";
 import { EventMetaBlock } from "./Details";
 
-export const EventLocations = ({ event }: { event: PublicEvent }) => {
+export const EventLocations = ({ event }: { event: BookerEvent }) => {
   const { t } = useLocale();
   const locations = event.locations;
 
   if (!locations?.length) return null;
 
-  const getLocationToDisplay = (location: PublicEvent["locations"][number]) => {
+  const getLocationToDisplay = (location: BookerEvent["locations"][number]) => {
     const eventLocationType = getEventLocationType(location.type);
     const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
 

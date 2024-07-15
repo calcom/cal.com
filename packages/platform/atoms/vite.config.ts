@@ -1,8 +1,9 @@
-import react from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { resolve } from "path";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import Inspect from "vite-plugin-inspect";
 
 export default defineConfig({
   optimizeDeps: {
@@ -16,7 +17,7 @@ export default defineConfig({
       "@calcom/platform-utils",
     ],
   },
-  plugins: [react(), dts({ insertTypesEntry: true })],
+  plugins: [Inspect(), react(), dts({ insertTypesEntry: true })],
   build: {
     commonjsOptions: {
       include: [/@calcom\/lib/, /@calcom\/features/, /node_modules/],

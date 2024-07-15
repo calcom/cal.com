@@ -22,7 +22,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  BadRequestException,
   Delete,
   Query,
   NotFoundException,
@@ -92,6 +91,7 @@ export class OAuthClientUsersController {
       data: {
         user: this.getResponseUser(user),
         accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
       },
     };
@@ -156,7 +156,7 @@ export class OAuthClientUsersController {
 
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       id,
       true
@@ -167,6 +167,7 @@ export class OAuthClientUsersController {
       data: {
         accessToken,
         refreshToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
       },
     };
   }

@@ -6,7 +6,14 @@ import { randomString } from "@calcom/lib/random";
 
 import { test } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
-import { bookTimeSlot, createNewEventType, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import {
+  bookTimeSlot,
+  createNewEventType,
+  gotoBookingPage,
+  gotoFirstEventType,
+  saveEventType,
+  selectFirstAvailableTimeSlotNextMonth,
+} from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 
@@ -90,6 +97,8 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
       const firstTitle = await page.locator(`[data-testid=event-type-title-${eventTypeId}]`).innerText();
       const firstFullSlug = await page.locator(`[data-testid=event-type-slug-${eventTypeId}]`).innerText();
       const firstSlug = firstFullSlug.split("/")[2];
+
+      await expect(page.locator("[data-testid=readonly-badge]")).toBeHidden();
 
       await page.click(`[data-testid=event-type-options-${eventTypeId}]`);
       await page.click(`[data-testid=event-type-duplicate-${eventTypeId}]`);
@@ -333,11 +342,11 @@ testBothFutureAndLegacyRoutes.describe("Event Types tests", () => {
 
         // Remove Both of the locations
         const removeButtomId = "delete-locations.0.type";
-        await page.getByTestId(removeButtomId).click();
-        await page.getByTestId(removeButtomId).click();
+        await page.getByTestId(removeButtomId).nth(0).click();
+        await page.getByTestId(removeButtomId).nth(0).click();
 
         // Add Multiple Organizer Phone Number options
-        await page.getByTestId("location-select").click();
+        await page.getByTestId("location-select").last().click();
         await page.locator(`text="Organizer Phone Number"`).click();
 
         const organizerPhoneNumberInputName = (idx: number) => `locations[${idx}].hostPhoneNumber`;
@@ -366,25 +375,6 @@ const selectAttendeePhoneNumber = async (page: Page) => {
   await page.getByTestId("location-select").click();
   await page.locator(`text=${locationOptionText}`).click();
 };
-
-async function gotoFirstEventType(page: Page) {
-  const $eventTypes = page.locator("[data-testid=event-types] > li a");
-  const firstEventTypeElement = $eventTypes.first();
-  await firstEventTypeElement.click();
-  await page.waitForURL((url) => {
-    return !!url.pathname.match(/\/event-types\/.+/);
-  });
-}
-
-async function saveEventType(page: Page) {
-  await page.locator("[data-testid=update-eventtype]").click();
-}
-
-async function gotoBookingPage(page: Page) {
-  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
-
-  await page.goto(previewLink ?? "");
-}
 
 /**
  * Adds n+1 location to the event type

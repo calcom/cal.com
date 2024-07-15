@@ -55,3 +55,18 @@ export class Pagination {
   @IsOptional()
   offset?: number | null;
 }
+
+export class SkipTakePagination {
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(1)
+  @Max(250)
+  @IsOptional()
+  take?: number;
+
+  @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  skip?: number;
+}
