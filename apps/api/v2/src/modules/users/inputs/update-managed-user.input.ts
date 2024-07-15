@@ -2,7 +2,7 @@ import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
 import { ApiProperty } from "@nestjs/swagger";
 import { User } from "@prisma/client";
-import { IsIn, IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
+import { IsIn, IsLocale, IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
 
 export class UpdateManagedUserInput implements Partial<User> {
   @IsString()
@@ -37,6 +37,6 @@ export class UpdateManagedUserInput implements Partial<User> {
   timeZone?: string;
 
   @IsOptional()
-  @IsString()
+  @IsLocale()
   locale?: string;
 }
