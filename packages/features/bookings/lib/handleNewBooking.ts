@@ -1115,7 +1115,7 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType.metadata.apps);
+  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
 
   let videoCallUrl;
 

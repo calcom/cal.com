@@ -47,8 +47,8 @@ interface HasId {
 
 // The options should have the slug of the apps the option is enabled for
 interface AppOptions {
-  crm?: {
-    skipContactCreation?: string[];
+  crm: {
+    skipContactCreation: string[];
   };
 }
 
@@ -100,7 +100,7 @@ export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
-  appOptions?: AppOptions;
+  appOptions: AppOptions;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
@@ -962,7 +962,7 @@ export default class EventManager {
       const crm = new CrmManager(credential);
 
       let success = true;
-      const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId);
+      const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId || "");
       const createdEvent = await crm.createEvent(event, skipContactCreation).catch((error) => {
         success = false;
         log.warn(`Error creating crm event for ${credential.type}`, error);
@@ -1021,19 +1021,21 @@ export default class EventManager {
     }
   }
 
-  private generateAppOptions(eventTypeAppMetadata: z.infer<typeof EventTypeAppMetadataSchema>) {
-    const appOptions = {
+  private generateAppOptions(eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+    const appOptions: AppOptions = {
       crm: {
         skipContactCreation: [],
       },
     };
 
-    for (const key in eventTypeAppMetadata) {
-      const app = eventTypeAppMetadata[key];
+    if (eventTypeAppMetadata) {
+      for (const key in eventTypeAppMetadata) {
+        const app = eventTypeAppMetadata[key as keyof typeof eventTypeAppMetadata];
 
-      if (app.appCategories && app.appCategories.includes("crm")) {
-        if (app?.skipContactCreation) {
-          appOptions.crm.skipContactCreation.push(key);
+        if (app.appCategories && app.appCategories.includes("crm")) {
+          if (app?.skipContactCreation) {
+            appOptions.crm.skipContactCreation.push(key);
+          }
         }
       }
     }
