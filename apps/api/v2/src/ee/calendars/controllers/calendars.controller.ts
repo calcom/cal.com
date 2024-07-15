@@ -30,7 +30,7 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User, Credential } from "@prisma/client";
 import { Request } from "express";
-import { string, z } from "zod";
+import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
 import {
@@ -194,18 +194,23 @@ export class CalendarsController {
     @Param("calendar") calendar: string,
     @Body() body: { id: number },
     @GetUser() user: UserWithProfile
-  ): Promise<{ status: string }> {
+  ): Promise<{ status: string; data: { message: string } }> {
     const { id: credentialId } = body;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
       throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
     }
 
+    // since the prisma call for deleting a users calendars credentials uses deleteMany
+    // only a payload get returned which contains a count of the items deleted
     const deletedCredentials = await this.calendarsService.deleteCalendarCredentials(
       user.id,
       credential as unknown as Credential
     );
 
-    return { status: string, data: { deletedCredentials } };
+    return {
+      status: "success",
+      data: { message: `${deletedCredentials.count} calendar credentials deleted.` },
+    };
   }
 }
