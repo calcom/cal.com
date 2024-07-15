@@ -17,6 +17,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
+  const isSkipContactCreationEnabled = getAppData("skipContactCreation");
   const { t } = useLocale();
 
   return (
@@ -47,6 +48,14 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
             <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
           </div>
         ) : null}
+        <Switch
+          label={t("skip_contact_creation", { appName: "Salesforce" })}
+          labelOnLeading
+          checked={isSkipContactCreationEnabled}
+          onCheckedChange={(checked) => {
+            setAppData("skipContactCreation", checked);
+          }}
+        />
       </>
     </AppCard>
   );
