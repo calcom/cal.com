@@ -16,7 +16,7 @@ export type OAuthConnectProps = {
   loadingLabel: string;
   onCheckError?: OnCheckErrorType;
   redir?: string;
-  initialData?: NonNullable<UseCheckProps["config"]>["initialData"];
+  initialData: UseCheckProps["initialData"];
 };
 
 export const OAuthConnect: FC<
@@ -38,9 +38,7 @@ export const OAuthConnect: FC<
   const { allowConnect, checked } = useCheck({
     onCheckError,
     calendar: calendar,
-    config: {
-      initialData,
-    },
+    initialData,
   });
 
   const isChecking = !checked;

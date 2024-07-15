@@ -36,9 +36,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   const { toast } = useToast();
   const { allowConnect, checked, refetch } = useCheck({
     calendar: "apple",
-    config: {
-      initialData,
-    },
+    initialData,
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);

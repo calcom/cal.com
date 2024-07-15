@@ -10,21 +10,19 @@ import { useAtomsContext } from "../useAtomsContext";
 export interface UseCheckProps {
   onCheckError?: OnCheckErrorType;
   calendar: (typeof CALENDARS)[number];
-  config?: Partial<{
-    initialData: {
-      status: string;
-      data: {
-        allowConnect: boolean;
-        checked: boolean;
-      };
+  initialData?: {
+    status: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+    data: {
+      allowConnect: boolean;
+      checked: boolean;
     };
-  }>;
+  };
 }
 
 export type OnCheckErrorType = (err: ApiErrorResponse) => void;
 export const getQueryKey = (calendar: (typeof CALENDARS)[number]) => [`get-${calendar}-check`];
 
-export const useCheck = ({ onCheckError, calendar, config = {} }: UseCheckProps) => {
+export const useCheck = ({ onCheckError, calendar, initialData }: UseCheckProps) => {
   const { isInit, accessToken } = useAtomsContext();
   const queryClient = useQueryClient();
 
@@ -47,7 +45,7 @@ export const useCheck = ({ onCheckError, calendar, config = {} }: UseCheckProps)
           return { status: ERROR_STATUS, data: { allowConnect: true, checked: true } };
         });
     },
-    ...config,
+    initialData,
   });
   return {
     allowConnect: check?.data?.allowConnect ?? false,
