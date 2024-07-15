@@ -194,7 +194,7 @@ export class CalendarsController {
     @Param("calendar") calendar: string,
     @Body() body: { id: number },
     @GetUser() user: UserWithProfile
-  ): Promise<ApiResponse<{ status: string }>> {
+  ): Promise<{ status: string }> {
     const { id: credentialId } = body;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
