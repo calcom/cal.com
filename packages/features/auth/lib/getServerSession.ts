@@ -1,4 +1,4 @@
-import { LRUCache } from "lru-cache";
+import * as lruCache from "lru-cache";
 import type { GetServerSidePropsContext, NextApiRequest, NextApiResponse } from "next";
 import type { AuthOptions, Session } from "next-auth";
 import { getToken } from "next-auth/jwt";
@@ -15,7 +15,7 @@ const log = logger.getSubLogger({ prefix: ["getServerSession"] });
  * Stores the session in memory using the stringified token as the key.
  *
  */
-const CACHE = new LRUCache<string, Session>({ max: 1000 });
+const CACHE = new lruCache.LRUCache<string, Session>({ max: 1000 });
 
 /**
  * This is a slimmed down version of the `getServerSession` function from
