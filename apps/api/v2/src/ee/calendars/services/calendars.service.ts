@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
@@ -13,13 +14,14 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { User } from "@prisma/client";
+import { User, Credential } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
+import { getCalendar } from "@calcom/platform-libraries";
 import { getConnectedDestinationCalendars } from "@calcom/platform-libraries-0.0.2";
 import { getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.2";
-import { Calendar } from "@calcom/platform-types";
+import { Calendar, ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
@@ -30,6 +32,7 @@ export class CalendarsService {
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
+    private readonly calendarsRepository: CalendarsRepository,
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly config: ConfigService
@@ -116,6 +119,23 @@ export class CalendarsService {
       };
     });
     return composedSelectedCalendars;
+  }
+
+  async deleteCalendarCredentials(userId: number, credential: Credential): Promise<{ status: string }> {
+    try {
+      const calendar = await getCalendar(credential);
+      const calendars = await calendar?.listCalendars();
+
+      const calendarIds = calendars?.map((cal) => cal.externalId);
+
+      await this.calendarsRepository.deleteCredentials(credential.type, userId, calendarIds);
+
+      return { status: "success" };
+    } catch (err) {
+      console.warn(`Error deleting selected calendars for userId: ${userId} integration`, err);
+
+      return { status: "error" };
+    }
   }
 
   async getAppKeys(appName: string) {
