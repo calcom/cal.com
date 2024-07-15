@@ -1,53 +1,44 @@
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import { safeStringify } from "@calcom/lib/safeStringify";
+
+import logger from "../logger";
 
 type BookingEventType = {
   slug: string;
-  owner: {
-    id: number;
-    profile: { organizationId: number | null; username: string | null };
-    username: string | null;
-  } | null;
   team: {
     slug: string | null;
     parentId: number | null;
   } | null;
 };
 
-type BookingUser = {
-  profile: { organizationId: number | null };
+/**
+ * It has its profile always set and if organizationId is null, then username would be regular(non-org) username.
+ */
+type ProfileEnrichedBookingUser = {
+  profile: { organizationId: number | null; username: string | null };
 } | null;
 
 export function getOrganizationIdOfBooking(booking: {
   eventType: BookingEventType;
-  user: BookingUser;
-  eventOwner: BookingUser;
-  dynamicEventSlugRef?: string;
+  profileEnrichedBookingUser: ProfileEnrichedBookingUser;
 }) {
-  const { eventType, user, eventOwner, dynamicEventSlugRef } = booking;
-  const isDynamicGroupEvent = !!dynamicEventSlugRef;
-  return (
-    (eventType.team
-      ? eventType.team.parentId
-      : isDynamicGroupEvent
-      ? // Dynamic Group Event is a special case where there is no team and no owner of the event. So, we get the organizationId from the booking.user which would be the first user in the group.
-        user?.profile.organizationId
-      : eventOwner?.profile?.organizationId) ?? null
-  );
+  const { eventType, profileEnrichedBookingUser } = booking;
+  return eventType.team
+    ? eventType.team.parentId
+    : profileEnrichedBookingUser?.profile.organizationId ?? null;
 }
 
 export async function buildEventUrlFromBooking(booking: {
   eventType: BookingEventType;
-  user: BookingUser;
+  profileEnrichedBookingUser: ProfileEnrichedBookingUser;
   dynamicGroupSlugRef: string | null;
 }) {
-  const { eventType, dynamicGroupSlugRef, user } = booking;
+  const { eventType, dynamicGroupSlugRef, profileEnrichedBookingUser } = booking;
   const eventSlug = eventType.slug;
-  const eventOwner = eventType.owner;
   const eventTeam = eventType.team;
-  const bookingOrganizationId = getOrganizationIdOfBooking({ eventType, user, eventOwner });
+  const bookingOrganizationId = getOrganizationIdOfBooking({ eventType, profileEnrichedBookingUser });
 
   const bookerUrl = await getBookerBaseUrl(bookingOrganizationId);
-
   if (dynamicGroupSlugRef) {
     return `${bookerUrl}/${dynamicGroupSlugRef}/${eventSlug}`;
   }
@@ -56,6 +47,10 @@ export async function buildEventUrlFromBooking(booking: {
     return `${bookerUrl}/team/${eventTeam.slug}/${eventSlug}`;
   }
 
-  const username = eventOwner?.profile?.username;
+  const username = profileEnrichedBookingUser?.profile?.username;
+  if (!username) {
+    logger.error("No username found for booking user.", safeStringify({ profileEnrichedBookingUser }));
+    throw new Error("No username found for booking user.");
+  }
   return `${bookerUrl}/${username}/${eventSlug}`;
 }

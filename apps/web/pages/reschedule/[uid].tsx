@@ -130,19 +130,15 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   }
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
-  const eventTypeWithEnrichedOwner = {
-    ...eventType,
-    owner: eventType.owner ? await UserRepository.enrichUserWithItsProfile({ user: eventType.owner }) : null,
-  };
 
   const enrichedBookingUser = booking.user
     ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
     : null;
 
   const eventPage = await buildEventUrlFromBooking({
-    eventType: eventTypeWithEnrichedOwner,
+    eventType,
     dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
-    user: enrichedBookingUser,
+    profileEnrichedBookingUser: enrichedBookingUser,
   });
 
   const destinationUrl = new URLSearchParams();
