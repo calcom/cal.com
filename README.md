@@ -410,6 +410,7 @@ Cal.com, Inc. is a commercial open source company, which means some parts of thi
 | Official Support| ❌ | ✅ |
 | Derivative work privately | ❌  | ✅ |
 | SSO | ❌  | ✅ |
+| Admin Panel | ❌  | ✅ |
 | Impersonation | ❌  | ✅ |
 | Managed Event Types | ❌  | ✅ |
 | Organizations | ❌  | ✅ |
