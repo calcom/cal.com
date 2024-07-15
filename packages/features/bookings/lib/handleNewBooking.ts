@@ -215,9 +215,6 @@ async function handler(
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
-
-  console.log("🚀 ~ eventType:", eventType.metadata);
-
   eventType = {
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -1155,8 +1152,6 @@ async function handler(
       changedOrganizer,
       previousHostDestinationCalendar
     );
-    console.log("🚀 ~ updateManager:", updateManager);
-
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -1343,11 +1338,8 @@ async function handler(
     // If it's not a reschedule, doesn't require confirmation and there's no price,
     // Create a booking
   } else if (isConfirmedByDefault) {
-    console.log("🚀 ~ isConfirmedByDefault:", isConfirmedByDefault);
     // Use EventManager to conditionally use all needed integrations.
-    console.log("🚀 ~ eventType.metadata.apps:", eventType.metadata.apps);
     const createManager = await eventManager.create(evt);
-    console.log("🚀 ~ createManager:", createManager);
     if (evt.location) {
       booking.location = evt.location;
     }
