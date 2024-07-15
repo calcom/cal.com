@@ -22,7 +22,6 @@ import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/vi
 
 import { expect } from "./getSchedule/expects";
 import { setupAndTeardown } from "./getSchedule/setupAndTeardown";
-import { timeTravelToTheBeginningOfToday } from "./getSchedule/utils";
 
 vi.mock("@calcom/lib/constants", () => ({
   IS_PRODUCTION: true,
@@ -625,19 +624,18 @@ describe("getSchedule", () => {
           },
         ],
       });
+      // set system time with UTC offset 5.5 to the beginning of today.
+      vi.setSystemTime(dayjs.utc().utcOffset(5.5).startOf("day").toISOString());
 
-      const { dateString: todayDateString } = getDate();
-      const { dateString: minus1DateString } = getDate({ dateIncrement: -1 });
-
-      // Time Travel to the beginning of today after getting all the dates correctly.
-      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 5.5 });
+      const tomorrowDateString = dayjs().add(1, "day").format("YYYY-MM-DD");
+      const todayDateString = dayjs().format("YYYY-MM-DD");
 
       const scheduleForEventWithBookingNotice13Hrs = await getSchedule({
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${tomorrowDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -651,7 +649,7 @@ describe("getSchedule", () => {
           `12:00:00.000Z`,
         ],
         {
-          dateString: todayDateString,
+          dateString: tomorrowDateString,
         }
       );
 
@@ -659,8 +657,8 @@ describe("getSchedule", () => {
         input: {
           eventTypeId: 2,
           eventTypeSlug: "",
-          startTime: `${minus1DateString}T18:30:00.000Z`,
-          endTime: `${todayDateString}T18:29:59.999Z`,
+          startTime: `${todayDateString}T18:30:00.000Z`,
+          endTime: `${tomorrowDateString}T18:29:59.999Z`,
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -673,11 +671,11 @@ describe("getSchedule", () => {
           `09:00:00.000Z`,
         ],
         {
-          dateString: todayDateString,
+          dateString: tomorrowDateString,
         }
       );
     });
-
+    // TEST FAIL
     test("afterBuffer and beforeBuffer tests - Non Cal Busy Time", async () => {
       const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
       const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
