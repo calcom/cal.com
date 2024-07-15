@@ -186,7 +186,7 @@ export default function Success(props: PageProps) {
 
   useEffect(() => {
     if (noShow) {
-      noShowMutation.mutate({ bookingUid: bookingInfo.uid });
+      noShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
