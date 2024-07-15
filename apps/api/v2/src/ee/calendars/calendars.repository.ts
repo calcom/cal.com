@@ -42,7 +42,7 @@ export class CalendarsRepository {
   }
 
   async deleteCredentials(credentialType: string, userId: number, calendarIds: string[] | undefined) {
-    await this.dbWrite.prisma.selectedCalendar.deleteMany({
+    return await this.dbWrite.prisma.selectedCalendar.deleteMany({
       where: {
         userId,
         integration: credentialType,
