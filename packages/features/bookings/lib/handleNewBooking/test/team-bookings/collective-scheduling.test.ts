@@ -940,8 +940,8 @@ describe("handleNewBooking", () => {
             const mockBookingData = getMockRequestDataForBooking({
               data: {
                 // Try booking the first available free timeslot in both the users' schedules
-                start: `${getDate({ dateIncrement: 1 }).dateString}T11:30:00.000Z`,
-                end: `${getDate({ dateIncrement: 1 }).dateString}T11:45:00.000Z`,
+                start: `${getDate({ dateIncrement: 1 }).dateString}T09:00:00.000Z`,
+                end: `${getDate({ dateIncrement: 1 }).dateString}T09:15:00.000Z`,
                 eventTypeId: 1,
                 responses: {
                   email: booker.email,

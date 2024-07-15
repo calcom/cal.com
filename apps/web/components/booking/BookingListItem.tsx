@@ -745,12 +745,14 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
           <DropdownItem
             StartIcon={isCopied ? "clipboard-check" : "clipboard"}
             onClick={(e) => {
-              if (email) {
-                e.preventDefault();
-                copyToClipboard(email);
-                setOpenDropdown(false);
-                showToast(t("email_copied"), "success");
+              e.preventDefault();
+              if (!email) {
+                console.warn("Disabled due to missing email");
+                return;
               }
+              copyToClipboard(email);
+              setOpenDropdown(false);
+              showToast(t("email_copied"), "success");
             }}>
             {!isCopied ? t("copy") : t("copied")}
           </DropdownItem>
@@ -761,11 +763,13 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               <DropdownItem
                 data-testid="unmark-no-show"
                 onClick={(e) => {
-                  if (email) {
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                    e.preventDefault();
+                  e.preventDefault();
+                  if (!email) {
+                    console.warn("Disabled due to missing email");
+                    return;
                   }
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
                 }}
                 StartIcon="eye">
                 {t("unmark_as_no_show")}
@@ -774,11 +778,13 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               <DropdownItem
                 data-testid="mark-no-show"
                 onClick={(e) => {
-                  if (email) {
-                    setOpenDropdown(false);
-                    toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                    e.preventDefault();
+                  e.preventDefault();
+                  if (!email) {
+                    console.warn("Disabled due to missing email");
+                    return;
                   }
+                  setOpenDropdown(false);
+                  toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
                 }}
                 StartIcon="eye-off">
                 {t("mark_as_no_show")}
