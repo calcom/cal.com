@@ -649,7 +649,7 @@ async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }
   await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
 
-const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: string) => {
+const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: number) => {
   // Make phone as required
   await markPhoneNumberAsRequiredField(page, eventId);
 
@@ -664,7 +664,7 @@ const markPhoneNumberAsRequiredAndEmailAsOptional = async (page: Page, eventId: 
   expect(toast).toBeTruthy();
 };
 
-const markPhoneNumberAsRequiredField = async (page: Page, eventId: string) => {
+const markPhoneNumberAsRequiredField = async (page: Page, eventId: number) => {
   await page.goto(`/event-types/${eventId}?tabName=advanced`);
 
   await page.locator('[data-testid="field-attendeePhoneNumber"] [data-testid="toggle-field"]').click();
