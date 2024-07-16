@@ -1,5 +1,3 @@
-import { IntegrationCalendar } from "@/ee/calendars/calendars.interface";
-import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
@@ -15,14 +13,12 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { User, Credential } from "@prisma/client";
+import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getCalendar } from "@calcom/platform-libraries";
-import { getConnectedDestinationCalendars } from "@calcom/platform-libraries-0.0.2";
-import { getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.2";
-import { Calendar, ApiResponse } from "@calcom/platform-types";
+import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.18";
+import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
 @Injectable()
@@ -33,7 +29,6 @@ export class CalendarsService {
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
-    private readonly calendarsRepository: CalendarsRepository,
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly config: ConfigService
@@ -120,20 +115,6 @@ export class CalendarsService {
       };
     });
     return composedSelectedCalendars;
-  }
-
-  async deleteCalendarCredentials(userId: number, credential: Credential) {
-    const calendar = await getCalendar(credential);
-    const calendars = await calendar?.listCalendars();
-
-    const calendarIds = calendars?.map((cal: IntegrationCalendar) => cal.externalId);
-
-    if (!calendarIds)
-      throw new NotFoundException(
-        `No connected calendars found for calendar type: ${credential.type} and id: ${credential.id}`
-      );
-
-    return await this.calendarsRepository.deleteCredentials(credential.type, userId, calendarIds);
   }
 
   async getAppKeys(appName: string) {
