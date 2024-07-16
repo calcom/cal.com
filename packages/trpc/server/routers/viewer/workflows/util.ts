@@ -1,4 +1,5 @@
 import type { Workflow } from "@prisma/client";
+import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
@@ -886,5 +887,5 @@ export const getEventTypeWorkflows = async (
     },
   });
 
-  return rawEventType.workflows;
+  return rawEventType?.workflows;
 };
