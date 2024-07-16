@@ -26,6 +26,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
@@ -812,80 +813,6 @@ export const getEventTypeWorkflows = async (
   userId: number,
   eventTypeId: number
 ): Promise<z.infer<typeof ZWorkflows>> => {
-  const rawEventType = await prisma.eventType.findFirst({
-    where: {
-      AND: [
-        {
-          OR: [
-            {
-              users: {
-                some: {
-                  id: userId,
-                },
-              },
-            },
-            {
-              team: {
-                members: {
-                  some: {
-                    userId: userId,
-                  },
-                },
-              },
-            },
-            {
-              userId: userId,
-            },
-          ],
-        },
-        {
-          id: eventTypeId,
-        },
-      ],
-    },
-    select: {
-      workflows: {
-        include: {
-          workflow: {
-            select: {
-              name: true,
-              id: true,
-              trigger: true,
-              time: true,
-              timeUnit: true,
-              userId: true,
-              teamId: true,
-              team: {
-                select: {
-                  id: true,
-                  slug: true,
-                  name: true,
-                  members: true,
-                },
-              },
-              activeOn: {
-                select: {
-                  eventType: {
-                    select: {
-                      id: true,
-                      title: true,
-                      parentId: true,
-                      _count: {
-                        select: {
-                          children: true,
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              steps: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
   return rawEventType?.workflows;
 };
