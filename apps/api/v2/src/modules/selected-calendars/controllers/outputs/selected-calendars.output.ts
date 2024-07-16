@@ -4,7 +4,7 @@ import { IsInt, IsString, ValidateNested, IsEnum } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
-class SelectedCalendarsOutputDto {
+class SelectedCalendarOutputDto {
   @IsInt()
   @Expose()
   readonly userId!: number;
@@ -22,13 +22,13 @@ class SelectedCalendarsOutputDto {
   readonly credentialId!: number | null;
 }
 
-export class SelectedCalendarsOutputResponseDto {
+export class SelectedCalendarOutputResponseDto {
   @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
   @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
   status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
   @Expose()
   @ValidateNested()
-  @Type(() => SelectedCalendarsOutputDto)
-  data!: SelectedCalendarsOutputDto;
+  @Type(() => SelectedCalendarOutputDto)
+  data!: SelectedCalendarOutputDto;
 }

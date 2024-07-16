@@ -3,7 +3,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { SelectedCalendarsInputDto } from "@/modules/selected-calendars/controllers/inputs/selected-calendars.input";
-import { SelectedCalendarsOutputResponseDto } from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
+import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, NotFoundException } from "@nestjs/common";
@@ -27,7 +27,7 @@ export class selectedCalendarsController {
   async addSelectedCalendar(
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
-  ): Promise<SelectedCalendarsOutputResponseDto> {
+  ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId } = input;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
@@ -52,7 +52,7 @@ export class selectedCalendarsController {
   async removeSelectedCalendar(
     @Body() input: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
-  ): Promise<SelectedCalendarsOutputResponseDto> {
+  ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId } = input;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
