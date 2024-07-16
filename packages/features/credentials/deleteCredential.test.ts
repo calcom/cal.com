@@ -11,9 +11,6 @@ import { DestinationCalendarRepository } from "@calcom/lib/server/repository/des
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 
-// import { createContextInner } from "../server/createContext";
-// import { createCaller } from "../server/routers/_app";
-
 const testUser = {
   email: "test@test.com",
   username: "test-user",
@@ -36,10 +33,6 @@ describe("deleteCredential", () => {
   beforeEach(async () => {
     mockNoTranslations();
   });
-
-  // describe("expected errors", () => {
-  //   test("credential not found", async () => {});
-  // });
 
   describe("individual credentials", () => {
     test("Delete video credential", async () => {

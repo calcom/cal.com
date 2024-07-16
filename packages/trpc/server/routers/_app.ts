@@ -1,7 +1,7 @@
 /**
  * This file contains the root router of your tRPC-backend
  */
-import { router, tRPCContext } from "../trpc";
+import { router } from "../trpc";
 import { viewerRouter } from "./viewer/_router";
 
 /**
@@ -13,7 +13,5 @@ import { viewerRouter } from "./viewer/_router";
 export const appRouter = router({
   viewer: viewerRouter,
 });
-
-export const createCaller = tRPCContext.createCallerFactory(appRouter);
 
 export type AppRouter = typeof appRouter;
