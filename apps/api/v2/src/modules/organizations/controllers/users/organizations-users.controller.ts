@@ -25,6 +25,7 @@ import {
   ParseIntPipe,
   Body,
   UseInterceptors,
+  Query,
 } from "@nestjs/common";
 import { ClassSerializerInterceptor } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -48,9 +49,14 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Body() input: GetOrganizationsUsersInput
+    @Query() query: GetOrganizationsUsersInput
   ): Promise<GetOrganizationUsersOutput> {
-    const users = await this.organizationsUsersService.getUsers(orgId, input.email);
+    const users = await this.organizationsUsersService.getUsers(
+      orgId,
+      query.emails,
+      query.skip ?? 0,
+      query.take ?? 250
+    );
 
     return {
       status: SUCCESS_STATUS,

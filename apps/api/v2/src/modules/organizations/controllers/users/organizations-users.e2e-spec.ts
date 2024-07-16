@@ -243,8 +243,8 @@ describe("Organizations Users Endpoints", () => {
     it("should only get users with the specified email", async () => {
       const { body } = await request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/users`)
-        .send({
-          email: userEmail,
+        .query({
+          emails: userEmail,
         })
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
@@ -262,8 +262,8 @@ describe("Organizations Users Endpoints", () => {
 
       const { body } = await request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/users`)
-        .send({
-          email: [userEmail, orgMemberEmail],
+        .query({
+          emails: [userEmail, orgMemberEmail],
         })
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
@@ -293,7 +293,7 @@ describe("Organizations Users Endpoints", () => {
 
     it("should create a new org user", async () => {
       const newOrgUser = {
-        email: "new-org-member-a@org.com",
+        email: "new-org-member-b@org.com",
         organizationRole: "MEMBER",
         autoAccept: true,
       };

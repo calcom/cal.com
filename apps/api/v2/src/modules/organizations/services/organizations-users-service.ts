@@ -16,10 +16,15 @@ export class OrganizationsUsersService {
     private readonly emailService: EmailService
   ) {}
 
-  async getUsers(orgId: number, emailInput?: string[]) {
+  async getUsers(orgId: number, emailInput?: string[], skip?: number, take?: number) {
     const emailArray = !emailInput ? [] : emailInput;
 
-    const users = await this.organizationsUsersRepository.getOrganizationUsersByEmails(orgId, emailArray);
+    const users = await this.organizationsUsersRepository.getOrganizationUsersByEmails(
+      orgId,
+      emailArray,
+      skip,
+      take
+    );
 
     return users;
   }

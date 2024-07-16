@@ -18,12 +18,14 @@ export class OrganizationsUsersRepository {
     };
   }
 
-  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[]) {
+  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[], skip?: number, take?: number) {
     return await this.dbRead.prisma.user.findMany({
       where: {
         ...this.filterOnOrgMembership(orgId),
-        ...(emailArray && emailArray.length && { email: { in: emailArray } }),
+        ...(emailArray && emailArray.length ? { email: { in: emailArray } } : {}),
       },
+      skip,
+      take,
     });
   }
 
