@@ -58,7 +58,6 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
       { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: hide this if they have an organisation
       { name: "admin_api", href: "/settings/organizations/admin-api" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -185,6 +184,9 @@ const useTabs = () => {
         const filtered = tab?.children?.filter(
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
         );
+        return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/developer" && !!orgBranding) {
+        const filtered = tab?.children?.filter((childTab) => childTab.name !== "admin_api");
         return { ...tab, children: filtered };
       }
       return tab;
