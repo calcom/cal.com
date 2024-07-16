@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
@@ -12,6 +13,7 @@ import {
   OrgTeamsOutputResponseDto,
 } from "@/modules/organizations/outputs/organization-team.output";
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -99,14 +101,14 @@ export class OrganizationsTeamsController {
   }
 
   @Post()
-  @UseGuards()
   @Roles("ORG_ADMIN")
   @ApiOperation({ summary: "Create a team for an organization." })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Body() body: CreateOrgTeamDto
+    @Body() body: CreateOrgTeamDto,
+    @GetUser() user: UserWithProfile
   ): Promise<OrgTeamOutputResponseDto> {
-    const team = await this.organizationsTeamsService.createOrgTeam(orgId, body);
+    const team = await this.organizationsTeamsService.createOrgTeam(orgId, body, user);
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" }),
