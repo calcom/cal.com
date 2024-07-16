@@ -23,7 +23,7 @@ since the versions are matching in both package.json yarn will try to use the lo
 
 now go to packages/platform/libraries and do
 
-- yarn build
+- yarn build:dev
 
 then go back to /apps/api/v2 and run
 
