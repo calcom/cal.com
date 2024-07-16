@@ -234,8 +234,7 @@ export class TeamEventTypeOutput_2024_06_14 {
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
-  @IsOptional()
-  hosts?: Host[];
+  hosts!: Host[];
 
   @IsBoolean()
   @IsOptional()
