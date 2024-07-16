@@ -8,7 +8,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.19";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -67,6 +67,7 @@ export class OrganizationsEventTypesService {
     const profileId = user.movedToProfileId || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
