@@ -33,6 +33,7 @@ export { getServerSideProps };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 type SelectOption = { placeholder: string; value: string; id: string };
 
+const PASTE_SPLIT_REGEX = /\n+/;
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -192,7 +193,7 @@ function Field({
   const handlePaste = (event: ClipboardEvent, index: number) => {
     const paste = event.clipboardData.getData("text");
     const formattedValues = paste
-      .split(/[\n,;]+/)
+      .split(PASTE_SPLIT_REGEX)
       .map((value) => ({ placeholder: "New Option", value: value.trim(), id: uuidv4() }))
       .filter((option) => option.value);
     if (formattedValues.length > 1) {
