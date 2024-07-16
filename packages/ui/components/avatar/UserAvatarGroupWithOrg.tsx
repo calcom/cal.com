@@ -3,13 +3,11 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import type { Team, User } from "@calcom/prisma/client";
-import type { UserProfile } from "@calcom/types/UserProfile";
 import { AvatarGroup } from "@calcom/ui";
 
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
   users: (Pick<User, "name" | "username" | "avatarUrl"> & {
     bookerUrl: string;
-    profile: UserProfile;
   })[];
   organization: Pick<Team, "slug" | "name">;
 };

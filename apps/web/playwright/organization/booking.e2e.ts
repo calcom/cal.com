@@ -1,6 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { JSDOM } from "jsdom";
+import { uuid } from "short-uuid";
 
 import { getOrgUsernameFromEmail } from "@calcom/features/auth/signup/utils/getOrgUsernameFromEmail";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -10,7 +11,6 @@ import { test } from "../lib/fixtures";
 import {
   bookTimeSlot,
   doOnOrgDomain,
-  NotFoundPageTextAppDir,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
 } from "../lib/testUtils";
@@ -29,9 +29,9 @@ function getOrgOrigin(orgSlug: string | null) {
 }
 
 test.describe("Bookings", () => {
-  test.afterEach(({ orgs, users }) => {
-    orgs.deleteAll();
-    users.deleteAll();
+  test.afterEach(async ({ orgs, users, page }) => {
+    await users.deleteAll();
+    await orgs.deleteAll();
   });
 
   test.describe("Team Event", () => {
@@ -184,10 +184,7 @@ test.describe("Bookings", () => {
       });
 
       const event = await user.getFirstEventAsOwner();
-      await page.goto(`/${user.username}/${event.slug}`);
-
-      // Shouldn't be servable on the non-org domain
-      await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+      await expectPageToBeNotFound({ page, url: `/${user.username}/${event.slug}` });
 
       await doOnOrgDomain(
         {
@@ -328,6 +325,8 @@ test.describe("Bookings", () => {
       const username = "john";
       const userInsideOrganization = await users.create({
         username,
+        useExactUsername: true,
+        email: `john-inside-${uuid()}@example.com`,
         name: "John Inside Organization",
         organizationId: org.id,
         roleInOrganization: MembershipRole.MEMBER,
@@ -343,6 +342,8 @@ test.describe("Bookings", () => {
       const userOutsideOrganization = await users.create({
         username,
         name: "John Outside Organization",
+        email: `john-outside-${uuid()}@example.com`,
+        useExactUsername: true,
         eventTypes: [
           {
             title: "John Outside Org's Meeting",
@@ -523,5 +524,5 @@ async function bookTeamEvent({
 
 async function expectPageToBeNotFound({ page, url }: { page: Page; url: string }) {
   await page.goto(`${url}`);
-  await expect(page.locator(`text=${NotFoundPageTextAppDir}`)).toBeVisible();
+  await expect(page.getByTestId(`404-page`)).toBeVisible();
 }
