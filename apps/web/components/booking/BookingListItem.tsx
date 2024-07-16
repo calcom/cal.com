@@ -692,7 +692,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message, { x: name || email }), "success");
+      showToast(
+        t("messageKey" in data && data.messageKey ? data.messageKey : data.message, { x: name || email }),
+        "success"
+      );
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -800,7 +803,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message), "success");
+      showToast(t("messageKey" in data && data.messageKey ? data.messageKey : data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");

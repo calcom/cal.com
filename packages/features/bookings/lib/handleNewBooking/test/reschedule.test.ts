@@ -660,8 +660,11 @@ describe("handleNewBooking", () => {
 
           expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
-          // FIXME: We should send Broken Integration emails on calendar event updation failure
-          // expectBrokenIntegrationEmails({ booker, organizer, emails });
+          expectSuccessfulBookingRescheduledEmails({
+            booker,
+            organizer,
+            emails,
+          });
 
           expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
