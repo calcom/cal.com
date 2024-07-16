@@ -47,4 +47,8 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   afterEventBuffer?: number;
+
+  @IsInt()
+  @IsOptional()
+  scheduleId?: number;
 }

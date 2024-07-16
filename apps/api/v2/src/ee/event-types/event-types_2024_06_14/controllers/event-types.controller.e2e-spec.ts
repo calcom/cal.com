@@ -9,10 +9,11 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Schedule } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -63,12 +64,15 @@ describe("Event types Endpoints", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let schedulesRepostoryFixture: SchedulesRepositoryFixture;
 
     const userEmail = "event-types-test-e2e@api.com";
     const name = "bob-the-builder";
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
+    let firstSchedule: Schedule;
+    let secondSchedule: Schedule;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -91,6 +95,7 @@ describe("Event types Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      schedulesRepostoryFixture = new SchedulesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
@@ -98,6 +103,18 @@ describe("Event types Endpoints", () => {
         email: userEmail,
         name,
         username,
+      });
+
+      firstSchedule = await schedulesRepostoryFixture.create({
+        userId: user.id,
+        name: "work",
+        timeZone: "Europe/Rome",
+      });
+
+      secondSchedule = await schedulesRepostoryFixture.create({
+        userId: user.id,
+        name: "chill",
+        timeZone: "Europe/Rome",
       });
 
       await app.init();
@@ -145,6 +162,7 @@ describe("Event types Endpoints", () => {
             options: ["javascript", "python", "cobol"],
           },
         ],
+        scheduleId: firstSchedule.id,
       };
 
       return request(app.getHttpServer())
@@ -162,6 +180,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.locations).toEqual(body.locations);
           expect(createdEventType.bookingFields).toEqual(body.bookingFields);
           expect(createdEventType.ownerId).toEqual(user.id);
+          expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
 
           eventType = responseBody.data;
         });
@@ -172,6 +191,7 @@ describe("Event types Endpoints", () => {
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
+        scheduleId: secondSchedule.id,
       };
 
       return request(app.getHttpServer())
@@ -191,8 +211,10 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.locations).toEqual(eventType.locations);
           expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
           expect(updatedEventType.ownerId).toEqual(user.id);
+          expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
 
           eventType.title = newTitle;
+          eventType.scheduleId = secondSchedule.id;
         });
     });
 
@@ -272,7 +294,7 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
-    it("should delete schedule", async () => {
+    it("should delete event type", async () => {
       return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
     });
 
