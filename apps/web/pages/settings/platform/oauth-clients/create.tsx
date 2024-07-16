@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
+import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
 import { showToast } from "@calcom/ui";
@@ -8,6 +9,7 @@ import { showToast } from "@calcom/ui";
 import { useCreateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
@@ -25,7 +27,7 @@ export default function CreateOAuthClient() {
       router.push("/settings/platform/");
     },
     onError: () => {
-      showToast("Internal server error, please try again later", "error");
+      showToast(ErrorCode.CreatingOauthClientError, "error");
     },
   });
 
@@ -81,7 +83,7 @@ export default function CreateOAuthClient() {
   return (
     <div>
       <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
-        You are not subscribed to a Platform plan.
+        <NoPlatformPlan />
       </Shell>
     </div>
   );

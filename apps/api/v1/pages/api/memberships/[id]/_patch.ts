@@ -52,11 +52,11 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { userId: queryUserId, teamId } = membershipIdSchema.parse(req.query);
   const data = membershipEditBodySchema.parse(req.body);
   // Admins can just skip this check
-  if (isAdmin) return;
+  if (isSystemWideAdmin) return;
   // Only the invited user can accept the invite
   if ("accepted" in data && queryUserId !== userId)
     throw new HttpError({

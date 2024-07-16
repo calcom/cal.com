@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import { countBy } from "lodash";
 import { v4 as uuid } from "uuid";
+import type z from "zod";
 
+import CrmManager from "@calcom/core/crmManager/crmManager";
 import { getAggregatedAvailability } from "@calcom/core/getAggregatedAvailability";
 import { getBusyTimesForLimitChecks } from "@calcom/core/getBusyTimes";
 import type { CurrentSeats, IFromUser, IToUser } from "@calcom/core/getUserAvailability";
@@ -12,18 +14,25 @@ import { getSlugOrRequestedSlug, orgDomainConfig } from "@calcom/ee/organization
 import { isEventTypeLoggingEnabled } from "@calcom/features/bookings/lib/isEventTypeLoggingEnabled";
 import { parseBookingLimit, parseDurationLimit } from "@calcom/lib";
 import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
+import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
-import isTimeOutOfBounds from "@calcom/lib/isOutOfBounds";
+import {
+  isTimeOutOfBounds,
+  calculatePeriodLimits,
+  isTimeViolatingFutureLimit,
+} from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import { performance } from "@calcom/lib/server/perfObserver";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import getSlots from "@calcom/lib/slots";
 import prisma, { availabilityUserSelect } from "@calcom/prisma";
-import { Prisma } from "@calcom/prisma/client";
+import { PeriodType, Prisma } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventBusyDate } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -312,6 +321,57 @@ export interface IGetAvailableSlots {
       emoji?: string | undefined;
     }[]
   >;
+  teamMember?: string | undefined;
+}
+
+async function getCRMContactOwnerForRRLeadSkip(
+  bookerEmail: string,
+  apps?: z.infer<typeof EventTypeAppMetadataSchema>
+) {
+  if (!apps) return;
+  const crm = await getCRMManagerWithRRLeadSkip(apps);
+
+  if (!crm) return;
+
+  const contact = await crm.getContacts(bookerEmail, true);
+  if (contact?.length) {
+    return contact[0].ownerEmail;
+  }
+}
+
+async function getCRMManagerWithRRLeadSkip(apps: z.infer<typeof EventTypeAppMetadataSchema>) {
+  let crmRoundRobinLeadSkip;
+  for (const appKey in apps) {
+    const app = apps[appKey as keyof typeof apps];
+    if (
+      app.enabled &&
+      typeof app.appCategories === "object" &&
+      app.appCategories.some((category: string) => category === "crm") &&
+      app.roundRobinLeadSkip
+    ) {
+      crmRoundRobinLeadSkip = app;
+      break;
+    }
+  }
+
+  if (crmRoundRobinLeadSkip) {
+    const crmCredential = await prisma.credential.findUnique({
+      where: {
+        id: crmRoundRobinLeadSkip.credentialId,
+      },
+      include: {
+        user: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+    if (crmCredential) {
+      return new CrmManager(crmCredential);
+    }
+  }
+  return;
 }
 
 export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Promise<IGetAvailableSlots> {
@@ -337,6 +397,18 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     logger.settings.minLevel = 2;
   }
 
+  const isRollingWindowPeriodType = eventType.periodType === PeriodType.ROLLING_WINDOW;
+  const startTimeAsIsoString = input.startTime;
+  const isStartTimeInPast = dayjs(startTimeAsIsoString).isBefore(dayjs().subtract(1, "day").startOf("day"));
+
+  // If startTime is already sent in the past, we don't need to adjust it.
+  // We assume that the client is already sending startTime as per their requirement.
+  // Note: We could optimize it further to go back 1 month in past only for the 2nd month because that is what we are putting a hard limit at.
+  const startTimeAdjustedForRollingWindowComputation =
+    isStartTimeInPast || !isRollingWindowPeriodType
+      ? startTimeAsIsoString
+      : dayjs(startTimeAsIsoString).subtract(1, "month").toISOString();
+
   const loggerWithEventDetails = logger.getSubLogger({
     prefix: ["getAvailableSlots", `${eventType.id}:${input.usernameList}/${input.eventTypeSlug}`],
   });
@@ -353,7 +425,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
   };
 
-  const startTime = getStartTime(input.startTime, input.timeZone);
+  const startTime = getStartTime(startTimeAdjustedForRollingWindowComputation, input.timeZone);
   const endTime =
     input.timeZone === "Etc/GMT" ? dayjs.utc(input.endTime) : dayjs(input.endTime).utc().tz(input.timeZone);
 
@@ -362,13 +434,36 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
   let currentSeats: CurrentSeats | undefined;
 
-  let usersWithCredentials = eventType.users.map((user) => ({
-    isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
-    ...user,
-  }));
-  // overwrite if it is a team event & hosts is set, otherwise keep using users.
-  if (eventType.schedulingType && !!eventType.hosts?.length) {
-    usersWithCredentials = eventType.hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+  let teamMember: string | undefined;
+
+  const hosts =
+    eventType.hosts?.length && eventType.schedulingType
+      ? eventType.hosts
+      : eventType.users.map((user) => {
+          return {
+            isFixed: !eventType.schedulingType || eventType.schedulingType === SchedulingType.COLLECTIVE,
+            user: user,
+          };
+        });
+
+  let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
+
+  if (eventType.schedulingType === SchedulingType.ROUND_ROBIN && input.bookerEmail) {
+    const crmContactOwner = await getCRMContactOwnerForRRLeadSkip(
+      input.bookerEmail,
+      eventType?.metadata?.apps
+    );
+    const contactOwnerHost = hosts.find((host) => host.user.email === crmContactOwner);
+
+    if (contactOwnerHost) {
+      teamMember = contactOwnerHost.user.email;
+      const contactOwnerIsRRHost = !contactOwnerHost.isFixed;
+
+      usersWithCredentials = usersWithCredentials.filter(
+        (user) => user.email !== contactOwnerHost.user.email && (!contactOwnerIsRRHost || user.isFixed)
+      );
+      usersWithCredentials.push({ ...contactOwnerHost.user, isFixed: true });
+    }
   }
 
   const durationToUse = input.duration || 0;
@@ -512,15 +607,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     currentSeats,
   };
 
-  const isTimeWithinBounds = (_time: Parameters<typeof isTimeOutOfBounds>[0]) =>
-    !isTimeOutOfBounds(_time, {
-      periodType: eventType.periodType,
-      periodStartDate: eventType.periodStartDate,
-      periodEndDate: eventType.periodEndDate,
-      periodCountCalendarDays: eventType.periodCountCalendarDays,
-      periodDays: eventType.periodDays,
-    });
-
   const getSlotsTime = 0;
   const checkForAvailabilityTime = 0;
   const getSlotsCount = 0;
@@ -630,7 +716,6 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       );
   }
 
-  availableTimeSlots = availableTimeSlots.filter((slot) => isTimeWithinBounds(slot.time));
   // fr-CA uses YYYY-MM-DD
   const formatter = new Intl.DateTimeFormat("fr-CA", {
     year: "numeric",
@@ -639,7 +724,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     timeZone: input.timeZone,
   });
 
-  const computedAvailableSlots = availableTimeSlots.reduce(
+  const slotsMappedToDate = availableTimeSlots.reduce(
     (
       r: Record<string, { time: string; attendees?: number; bookingUid?: string }[]>,
       { time, ...passThroughProps }
@@ -674,15 +759,65 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     Object.create(null)
   );
 
+  loggerWithEventDetails.debug(safeStringify({ slotsMappedToDate }));
+
+  const availableDates = Object.keys(slotsMappedToDate);
+  const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
+  loggerWithEventDetails.debug(safeStringify({ availableDates }));
+
+  const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+  const periodLimits = calculatePeriodLimits({
+    periodType: eventType.periodType,
+    periodDays: eventType.periodDays,
+    periodCountCalendarDays: eventType.periodCountCalendarDays,
+    periodStartDate: eventType.periodStartDate,
+    periodEndDate: eventType.periodEndDate,
+    allDatesWithBookabilityStatus,
+    utcOffset,
+  });
+  let foundAFutureLimitViolation = false;
+  const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(
+    (withinBoundsSlotsMappedToDate, [date, slots]) => {
+      // Computation Optimization: If a future limit violation has been found, we just consider all slots to be out of bounds beyond that slot.
+      // We can't do the same for periodType=RANGE because it can start from a day other than today and today will hit the violation then.
+      if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
+        return withinBoundsSlotsMappedToDate;
+      }
+      const filteredSlots = slots.filter((slot) => {
+        const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
+          time: slot.time,
+          periodLimits,
+        });
+        if (isFutureLimitViolationForTheSlot) {
+          foundAFutureLimitViolation = true;
+        }
+        return (
+          !isFutureLimitViolationForTheSlot &&
+          // TODO: Perf Optmization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
+          !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
+        );
+      });
+
+      if (!filteredSlots.length) {
+        // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
+        return withinBoundsSlotsMappedToDate;
+      }
+
+      withinBoundsSlotsMappedToDate[date] = filteredSlots;
+      return withinBoundsSlotsMappedToDate;
+    },
+    {} as typeof slotsMappedToDate
+  );
+
   loggerWithEventDetails.debug(`getSlots took ${getSlotsTime}ms and executed ${getSlotsCount} times`);
 
   loggerWithEventDetails.debug(
     `checkForAvailability took ${checkForAvailabilityTime}ms and executed ${checkForAvailabilityCount} times`
   );
-  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(computedAvailableSlots)}`);
+  loggerWithEventDetails.debug(`Available slots: ${JSON.stringify(withinBoundsSlotsMappedToDate)}`);
 
   // We only want to run this on single targeted events and not dynamic
-  if (!Object.keys(computedAvailableSlots).length && input.usernameList?.length === 1) {
+  if (!Object.keys(withinBoundsSlotsMappedToDate).length && input.usernameList?.length === 1) {
     try {
       await handleNotificationWhenNoSlots({
         eventDetails: {
@@ -701,8 +836,13 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   }
 
   return {
-    slots: computedAvailableSlots,
+    slots: withinBoundsSlotsMappedToDate,
+    teamMember,
   };
+}
+
+function doesRangeStartFromToday(periodType: PeriodType) {
+  return periodType === PeriodType.ROLLING_WINDOW || periodType === PeriodType.ROLLING;
 }
 
 async function getUserIdFromUsername(
@@ -733,4 +873,21 @@ async function getTeamIdFromSlug(
     },
   });
   return team?.id;
+}
+
+export function getAllDatesWithBookabilityStatus(availableDates: string[]) {
+  const availableDatesSet = new Set(availableDates);
+  const firstDate = dayjs(availableDates[0]);
+  const lastDate = dayjs(availableDates[availableDates.length - 1]);
+  const allDates: Record<string, { isBookable: boolean }> = {};
+
+  let currentDate = firstDate;
+  while (currentDate <= lastDate) {
+    allDates[currentDate.format("YYYY-MM-DD")] = {
+      isBookable: availableDatesSet.has(currentDate.format("YYYY-MM-DD")),
+    };
+
+    currentDate = currentDate.add(1, "day");
+  }
+  return allDates;
 }

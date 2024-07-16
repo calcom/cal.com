@@ -194,6 +194,7 @@ export function AvailabilityEditSheetForm(props: Props & { data: Data; isPending
                 id="timezone"
                 isDisabled={!hasEditPermission || !data.hasDefaultSchedule}
                 value={watchTimezone ?? "Europe/London"}
+                data-testid="timezone-select"
                 onChange={(event) => {
                   if (event) form.setValue("timeZone", event.value, { shouldDirty: true });
                 }}

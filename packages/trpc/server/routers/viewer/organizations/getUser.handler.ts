@@ -31,6 +31,7 @@ export async function getUserHandler({ input, ctx }: AdminVerifyOptions) {
         email: true,
         username: true,
         name: true,
+        avatarUrl: true,
         bio: true,
         timeZone: true,
         schedules: {

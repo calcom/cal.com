@@ -50,13 +50,14 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const { userId: bodyUserId, ...body } = schemaSelectedCalendarBodyParams.parse(req.body);
   const args: Prisma.SelectedCalendarCreateArgs = { data: { ...body, userId } };
 
-  if (!isAdmin && bodyUserId) throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
+  if (!isSystemWideAdmin && bodyUserId)
+    throw new HttpError({ statusCode: 403, message: `ADMIN required for userId` });
 
-  if (isAdmin && bodyUserId) {
+  if (isSystemWideAdmin && bodyUserId) {
     const where: Prisma.UserWhereInput = { id: bodyUserId };
     await prisma.user.findFirstOrThrow({ where });
     args.data.userId = bodyUserId;

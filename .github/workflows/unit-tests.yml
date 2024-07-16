@@ -1,4 +1,4 @@
-name: Unit tests
+name: Unit
 on:
   workflow_call:
   workflow_run:
@@ -6,10 +6,11 @@ on:
     types: [completed]
 jobs:
   test:
+    name: Unit
     timeout-minutes: 20
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       # Should be an 8GB machine as per https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners

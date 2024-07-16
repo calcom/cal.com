@@ -6,5 +6,8 @@ import { checkInstalled } from "../../_utils/installation";
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = checkSession(req);
   await checkInstalled("closecom", session.user?.id);
-  return res.status(200).json({ url: "/apps/closecom/setup" });
+
+  const returnTo = req.query.returnTo;
+
+  return res.status(200).json({ url: `/apps/closecom/setup${returnTo ? `?returnTo=${returnTo}` : ""}` });
 }

@@ -1,5 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { InputEventType, getOrganizer } from "./bookingScenario";
+
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
@@ -16,7 +18,6 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.
@@ -290,12 +291,16 @@ export function expectWebhookToHaveBeenCalledWith(
 
   if (parsedBody.payload) {
     if (data.payload) {
-      if (data.payload.metadata !== undefined) {
+      if (!!data.payload.metadata) {
         expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
       }
-      if (data.payload.responses !== undefined)
+      if (!!data.payload.responses)
         expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-      const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
+
+      if (!!data.payload.organizer)
+        expect(parsedBody.payload.organizer).toEqual(expect.objectContaining(data.payload.organizer));
+
+      const { responses: _1, metadata: _2, organizer: _3, ...remainingPayload } = data.payload;
       expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
   }
@@ -345,33 +350,54 @@ export function expectWorkflowToBeNotTriggered({
 export function expectSMSWorkflowToBeTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
+  const allSMS = sms.get();
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    expect(messageWithIncludedString?.to).toBe(toNumber);
+  } else {
+    expect(allSMS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export function expectSMSWorkflowToBeNotTriggered({
   sms,
   toNumber,
+  includedString,
 }: {
   sms: Fixtures["sms"];
   toNumber: string;
+  includedString?: string;
 }) {
-  expect(sms.get()).not.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        to: toNumber,
-      }),
-    ])
-  );
+  const allSMS = sms.get();
+
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    if (messageWithIncludedString) {
+      expect(messageWithIncludedString?.to).not.toBe(toNumber);
+    }
+  } else {
+    expect(allSMS).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export async function expectBookingToBeInDatabase(
@@ -989,20 +1015,17 @@ export function expectBookingCancelledWebhookToHaveBeenFired({
       ...payload,
       metadata: null,
       responses: {
-        booker: {
-          label: "your_name",
+        name: {
+          label: "name",
           value: booker.name,
-          isHidden: false,
         },
         email: {
-          label: "email_address",
+          label: "email",
           value: booker.email,
-          isHidden: false,
         },
         location: {
           label: "location",
           value: { optionValue: "", value: location },
-          isHidden: false,
         },
       },
     },

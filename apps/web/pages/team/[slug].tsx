@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 import { sdkActionManager, useIsEmbed } from "@calcom/embed-core/embed-iframe";
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import EventTypeDescription from "@calcom/features/eventtypes/components/EventTypeDescription";
 import { getOrgOrTeamAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -64,7 +65,7 @@ function TeamPage({
     // Show unpublished state for parent Organization itself, if the team is a subteam(team.parent is NOT NULL)
     const slugPropertyName = team.parent || team.isOrganization ? "orgSlug" : "teamSlug";
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity
           {...{ [slugPropertyName]: team.parent ? parentSlug : teamSlug }}
           logoUrl={team.parent?.logoUrl || team.logoUrl}
@@ -167,6 +168,7 @@ function TeamPage({
   return (
     <>
       <HeadSeo
+        origin={getOrgFullOrigin(currentOrgDomain)}
         title={teamName}
         description={teamName}
         meeting={{

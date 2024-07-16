@@ -107,7 +107,7 @@ export async function patchHandler(req: NextApiRequest) {
     if (IS_TEAM_BILLING_ENABLED) {
       const checkoutSession = await purchaseTeamOrOrgSubscription({
         teamId: _team.id,
-        seats: _team.members.length,
+        seatsUsed: _team.members.length,
         userId,
         pricePerSeat: null,
       });

@@ -20,6 +20,7 @@ import { UserPermissionRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 
 type CreateOptions = {
@@ -39,7 +40,16 @@ const getIPAddress = async (url: string): Promise<string> => {
 };
 
 export const createHandler = async ({ input, ctx }: CreateOptions) => {
-  const { slug, name, orgOwnerEmail, seats, pricePerSeat, isPlatform } = input;
+  const {
+    slug,
+    name,
+    orgOwnerEmail,
+    seats,
+    pricePerSeat,
+    isPlatform,
+    billingPeriod: billingPeriodRaw,
+  } = input;
+
   const loggedInUser = await prisma.user.findUnique({
     where: {
       id: ctx.user.id,
@@ -62,6 +72,9 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
+
+  // We only allow creating an annual billing period if you are a system admin
+  const billingPeriod = (IS_USER_ADMIN ? billingPeriodRaw : BillingPeriod.MONTHLY) ?? BillingPeriod.MONTHLY;
 
   if (!ORG_SELF_SERVE_ENABLED && !IS_USER_ADMIN && !isPlatform) {
     throw new TRPCError({ code: "FORBIDDEN", message: "Only admins can create organizations" });
@@ -140,6 +153,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     seats: seats ?? null,
     pricePerSeat: pricePerSeat ?? null,
     isPlatform,
+    billingPeriod,
   };
 
   // Create a new user and invite them as the owner of the organization
@@ -161,19 +175,22 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       email: orgOwnerEmail,
       language: ctx.user.locale,
       username: ownerProfile.username || "",
+      isPlatform: isPlatform,
     });
 
-    await sendOrganizationCreationEmail({
-      language: translation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: null,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: null,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
+        language: translation,
+        from: ctx.user.name ?? `${organization.name}'s admin`,
+        to: orgOwnerEmail,
+        ownerNewUsername: ownerProfile.username,
+        ownerOldUsername: null,
+        orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+        orgName: organization.name,
+        prevLink: null,
+        newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+      });
+    }
 
     const user = await UserRepository.enrichUserWithItsProfile({
       user: { ...orgOwner, organizationId: organization.id },
@@ -202,17 +219,19 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     });
 
-    await sendOrganizationCreationEmail({
-      language: inputLanguageTranslation,
-      from: ctx.user.name ?? `${organization.name}'s admin`,
-      to: orgOwnerEmail,
-      ownerNewUsername: ownerProfile.username,
-      ownerOldUsername: nonOrgUsernameForOwner,
-      orgDomain: getOrgFullOrigin(slug, { protocol: false }),
-      orgName: organization.name,
-      prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
-      newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
-    });
+    if (!isPlatform) {
+      await sendOrganizationCreationEmail({
+        language: inputLanguageTranslation,
+        from: ctx.user.name ?? `${organization.name}'s admin`,
+        to: orgOwnerEmail,
+        ownerNewUsername: ownerProfile.username,
+        ownerOldUsername: nonOrgUsernameForOwner,
+        orgDomain: getOrgFullOrigin(slug, { protocol: false }),
+        orgName: organization.name,
+        prevLink: `${getOrgFullOrigin("", { protocol: true })}/${nonOrgUsernameForOwner}`,
+        newLink: `${getOrgFullOrigin(slug, { protocol: true })}/${ownerProfile.username}`,
+      });
+    }
 
     if (!organization.id) throw Error("User not created");
     const user = await UserRepository.enrichUserWithItsProfile({

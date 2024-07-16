@@ -75,6 +75,7 @@ export class BillingService {
             plan: plan.toString(),
           },
         },
+        allow_promotion_codes: true,
       });
 
       if (!url) throw new InternalServerErrorException("Failed to create Stripe session.");
@@ -132,6 +133,9 @@ export class BillingService {
   }
 
   async increaseUsageByClientId(clientId: string) {
+    if (this.configService.get("e2e")) {
+      return void 0;
+    }
     const team = await this.teamsRepository.findTeamIdFromClientId(clientId);
     if (!team.id) return Promise.resolve(); // noop resolution.
 
