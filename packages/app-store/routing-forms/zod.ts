@@ -12,7 +12,7 @@ export const zodNonRouterField = z.object({
   options: z
     .array(
       z.object({
-        placeholder: z.string(),
+        placeholder: z.string().optional(),
         value: z.string(),
         id: z.string(),
       })
