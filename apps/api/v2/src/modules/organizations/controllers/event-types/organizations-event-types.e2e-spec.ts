@@ -18,7 +18,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   ApiSuccessResponse,
   CreateTeamEventTypeInput_2024_06_14,
+  Host,
   TeamEventTypeOutput_2024_06_14,
+  UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -133,7 +135,7 @@ describe("Organizations Event Types Endpoints", () => {
       expect(org).toBeDefined();
     });
 
-    it("should create a team event-type", async () => {
+    it("should create a collective team event-type", async () => {
       const body: CreateTeamEventTypeInput_2024_06_14 = {
         title: "Coding consultation",
         slug: "coding-consultation",
@@ -173,15 +175,96 @@ describe("Organizations Event Types Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
         .send(body)
+        .expect(201)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.title).toEqual(body.title);
+          expect(data.hosts.length).toEqual(2);
+          evaluateHost(body.hosts[0], data.hosts[0]);
+          evaluateHost(body.hosts[1], data.hosts[1]);
+
+          teamEventType = responseBody.data;
+        });
+    });
+
+    it("should get a team event-type", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${teamEventType.id}`)
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
+          const data = responseBody.data;
+          expect(data.title).toEqual(teamEventType.title);
+          expect(data.hosts.length).toEqual(2);
+          evaluateHost(teamEventType.hosts[0], data.hosts[0]);
+          evaluateHost(teamEventType.hosts[1], data.hosts[1]);
+
           teamEventType = responseBody.data;
-          console.log("teamEventType", JSON.stringify(teamEventType, null, 2));
         });
     });
+
+    it("should get team event-types", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(1);
+          const eventType = data[0];
+          expect(eventType.title).toEqual(teamEventType.title);
+          expect(eventType.hosts.length).toEqual(2);
+          evaluateHost(teamEventType.hosts[0], eventType.hosts[0]);
+          evaluateHost(teamEventType.hosts[1], eventType.hosts[1]);
+        });
+    });
+
+    it("should update collective team event-types", async () => {
+      const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
+        {
+          userId: teammate1.id,
+          mandatory: true,
+          priority: "medium",
+        },
+      ];
+
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        hosts: newHosts,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${teamEventType.id}`)
+        .send(body)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const eventType = responseBody.data;
+          expect(eventType.title).toEqual(teamEventType.title);
+          expect(eventType.hosts.length).toEqual(1);
+          evaluateHost(eventType.hosts[0], newHosts[0]);
+        });
+    });
+
+    it("should delete team event-type", async () => {
+      return request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${teamEventType.id}`)
+        .expect(200);
+    });
+
+    function evaluateHost(expected: Host, received: Host) {
+      expect(expected.userId).toEqual(received.userId);
+      expect(expected.mandatory).toEqual(received.mandatory);
+      expect(expected.priority).toEqual(received.priority);
+    }
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(userAdmin.email);

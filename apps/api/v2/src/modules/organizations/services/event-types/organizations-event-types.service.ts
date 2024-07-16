@@ -132,7 +132,7 @@ export class OrganizationsEventTypesService {
     return this.outputService.getResponseTeamEventType(teamId, eventType);
   }
 
-  async deleteTeamEventType(eventTypeId: number, teamId: number) {
+  async deleteTeamEventType(teamId: number, eventTypeId: number) {
     const existingEventType = await this.organizationEventTypesRepository.getTeamEventType(
       teamId,
       eventTypeId
