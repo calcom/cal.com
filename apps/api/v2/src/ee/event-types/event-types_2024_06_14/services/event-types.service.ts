@@ -11,7 +11,7 @@ import { BadRequestException, ForbiddenException, Injectable, NotFoundException 
 
 import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
-import { dynamicEvent } from "@calcom/platform-libraries-0.0.13";
+import { dynamicEvent } from "@calcom/platform-libraries-0.0.18";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -94,6 +94,7 @@ export class EventTypesService_2024_06_14 {
     const profileId = user.movedToProfile?.id || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
