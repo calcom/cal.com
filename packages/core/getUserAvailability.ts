@@ -339,12 +339,13 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   )[0];
 
   const useHostSchedulesForTeamEvent = eventType?.metadata?.config?.useHostSchedulesForTeamEvent;
-  let schedule = !useHostSchedulesForTeamEvent && eventType?.schedule ? eventType.schedule : userSchedule;
-
   const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
-  schedule = useHostSchedulesForTeamEvent && hostSchedule ? hostSchedule : schedule;
 
-  const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
+  const schedule = useHostSchedulesForTeamEvent
+    ? hostSchedule ?? userSchedule
+    : eventType?.schedule ?? userSchedule;
+
+  const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
   log.debug(
     "Using schedule:",

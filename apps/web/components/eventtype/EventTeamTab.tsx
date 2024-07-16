@@ -337,6 +337,19 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
+  const updatedHosts = (changedHosts: Host[]) => {
+    return changedHosts.map((newValue) => {
+      const existingHost = getValues("hosts").find((host: Host) => host.userId === newValue.userId);
+      return existingHost
+        ? {
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+            availability: existingHost.availability,
+          }
+        : newValue;
+    });
+  };
+
   return (
     <Controller<FormValues>
       name="hosts"
@@ -357,7 +370,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);
+                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -368,7 +381,7 @@ const Hosts = ({
                 value={value}
                 onChange={(changeValue) => {
                   onChange(
-                    [...value.filter((host: Host) => host.isFixed), ...changeValue].sort(
+                    [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)].sort(
                       (a, b) => b.priority - a.priority
                     )
                   );

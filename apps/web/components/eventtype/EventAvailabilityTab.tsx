@@ -15,6 +15,7 @@ import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import { Avatar, Badge, Button, Icon, Label, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
+import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -279,68 +280,55 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   );
 };
 
-const TeamMemberSchedule = ({ host }: { host: Host }) => {
+const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
   const { watch, setValue, getValues } = formMethods;
   const hosts = getValues("hosts");
 
-  const getIdx = () =>
-    Math.max(
-      hosts.findIndex((_host) => _host.userId === host.userId),
-      0
-    );
-
-  const [options, setOptions] = useState<AvailabilityOption[]>([]);
   const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
     userId: host.userId,
   });
 
-  useEffect(() => {
-    if (!data || isPending) {
-      return;
-    }
+  if (isPending) {
+    return <Spinner className="mt-3 h-6 w-6" />;
+  }
 
-    const schedules = data.schedules;
-    const scheduleOptions = schedules.map((schedule) => ({
-      value: schedule.id,
-      label: schedule.name,
-      isDefault: schedule.isDefault,
-      isManaged: false,
-    }));
+  const schedules = data?.schedules;
+  const options = schedules?.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+    isDefault: schedule.isDefault,
+    isManaged: false,
+  }));
 
-    setOptions(scheduleOptions);
+  //Set to defaultSchedule if Host Schedule is not previously selected
+  const scheduleId = getValues(`hosts.${index}.scheduleId`);
+  const availability = getValues(`hosts.${index}.availability`);
+  const value = options?.find((option) =>
+    scheduleId
+      ? option.value === scheduleId
+      : availability
+      ? option.value === availability?.value
+      : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
+  );
 
-    const idx = getIdx();
-    //Set to defaultSchedule if Host Schedule is not previously selected
-    const scheduleId = getValues(`hosts.${idx}.scheduleId`);
-    const availability = getValues(`hosts.${idx}.availability`);
-    const value = scheduleOptions.find((option) =>
-      scheduleId
-        ? option.value === scheduleId
-        : availability
-        ? option.value === availability?.value
-        : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-    );
+  if (!scheduleId) {
+    setValue(`hosts.${index}.scheduleId`, value?.value || null, { shouldDirty: true });
+    setValue(`hosts.${index}.availability`, value || null, { shouldDirty: true });
+  }
 
-    if (!scheduleId) {
-      setValue(`hosts.${idx}.scheduleId`, value?.value || null, { shouldDirty: true });
-      setValue(`hosts.${idx}.availability`, value || null, { shouldDirty: true });
-    }
+  if (!availability) {
+    setValue(`hosts.${index}.availability`, value || null, { shouldDirty: false });
+  }
 
-    if (!availability) {
-      setValue(`hosts.${idx}.availability`, value || null, { shouldDirty: false });
-    }
-  }, [data]);
-
-  const idx = getIdx();
-  const availabilityValue = watch(`hosts.${idx}.availability`);
+  const availabilityValue = watch(`hosts.${index}.availability`);
 
   return (
     <div className="flex w-full flex-col pt-2 ">
       <Controller
-        name={`hosts.${idx}.scheduleId`}
+        name={`hosts.${index}.scheduleId`}
         render={({ field }) => {
           return (
             <Select
@@ -350,7 +338,7 @@ const TeamMemberSchedule = ({ host }: { host: Host }) => {
               onChange={(selected) => {
                 field.onChange(selected?.value || null);
                 if (selected?.value) {
-                  setValue(`hosts.${idx}.availability`, selected, { shouldDirty: true });
+                  setValue(`hosts.${index}.availability`, selected, { shouldDirty: true });
                 }
               }}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
@@ -395,7 +383,7 @@ export const TeamAvailability = ({ hosts = [] }: { hosts: Host[] }) => {
                       <Avatar size="sm" imageSrc={host.avatar} alt={host.label || ""} />
                       <p className="text-emphasis my-auto ms-3 text-sm">{host.label}</p>
                     </div>
-                    <TeamMemberSchedule host={host} />
+                    <TeamMemberSchedule host={host} index={index} />
                   </li>
                 </>
               ))}
