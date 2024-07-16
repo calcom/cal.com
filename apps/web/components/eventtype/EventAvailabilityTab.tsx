@@ -284,8 +284,7 @@ const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
-  const { watch, setValue, getValues } = formMethods;
-  const hosts = getValues("hosts");
+  const { setValue, getValues } = formMethods;
 
   const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
     userId: host.userId,
@@ -323,8 +322,6 @@ const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
     setValue(`hosts.${index}.availability`, value || null, { shouldDirty: false });
   }
 
-  const availabilityValue = watch(`hosts.${index}.availability`);
-
   return (
     <div className="flex w-full flex-col pt-2 ">
       <Controller
@@ -342,7 +339,7 @@ const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
                 }
               }}
               className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              value={availabilityValue}
+              value={host.availability}
               components={{ Option, SingleValue }}
               isMulti={false}
               isDisabled={isPending}
