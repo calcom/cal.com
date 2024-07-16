@@ -1,6 +1,7 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
@@ -194,22 +195,22 @@ export class CalendarsController {
     @Param("calendar") calendar: string,
     @Body() body: { id: number },
     @GetUser() user: UserWithProfile
-  ): Promise<{ status: string; data: { message: string } }> {
+  ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
     const { id: credentialId } = body;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
       throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
     }
 
-    // since the prisma call for deleting a users calendars credentials uses deleteMany
-    // only a payload get returned which contains a count of the items deleted
+    // since the prisma call for deleting a users calendar credentials uses deleteMany
+    // only a payload gets returned which contains a count of the deleted items
     const deletedCredentials = await this.calendarsService.deleteCalendarCredentials(
       user.id,
       credential as unknown as Credential
     );
 
     return {
-      status: "success",
+      status: SUCCESS_STATUS,
       data: { message: `${deletedCredentials.count} calendar credentials deleted.` },
     };
   }
