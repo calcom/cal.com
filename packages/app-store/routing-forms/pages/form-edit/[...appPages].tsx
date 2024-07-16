@@ -31,7 +31,7 @@ import SingleForm, {
 
 export { getServerSideProps };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
-type SelectOption = { placeholder: string; value: string; id: string };
+type SelectOption = { placeholder?: string; value: string; id: string };
 
 const PASTE_SPLIT_REGEX = /\n+/;
 export const FieldTypes = [
@@ -320,7 +320,7 @@ function Field({
                         containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
                         className="border-0 focus:ring-0 focus:ring-offset-0"
                         labelSrOnly
-                        placeholder={field?.placeholder.toString() || ""}
+                        placeholder={field?.placeholder?.toString() || ""}
                         value={field.value}
                         type="text"
                         addOnClassname="bg-transparent border-0"
