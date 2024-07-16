@@ -135,12 +135,17 @@ describe("Organizations Team Endpoints", () => {
           name: "Team created via API",
         } satisfies CreateOrgTeamDto)
         .expect(201)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
           expect(teamCreatedViaApi.name).toEqual("Team created via API");
           expect(teamCreatedViaApi.parentId).toEqual(org.id);
+          const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+            user.id,
+            teamCreatedViaApi.id
+          );
+          expect(membership?.role ?? "").toEqual("OWNER");
         });
     });
 
