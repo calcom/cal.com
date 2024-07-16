@@ -125,14 +125,20 @@ function Field({
   };
 
   useEffect(() => {
-    const originalValues = hookForm.getValues(`${hookFieldNamespace}.selectText`);
-    if (originalValues) {
-      const values: SelectOption[] = originalValues.split("\n").map((fieldValue) => ({
+    const optionsValues = hookForm.getValues(`${hookFieldNamespace}.options`);
+    const selectTextValues = hookForm.getValues(`${hookFieldNamespace}.selectText`);
+
+    if (optionsValues && optionsValues.length > 0) {
+      setOptions(optionsValues);
+    } else if (selectTextValues) {
+      const values: SelectOption[] = selectTextValues.split("\n").map((fieldValue) => ({
         value: fieldValue,
         placeholder: "",
         id: uuidv4(),
       }));
       setOptions(values);
+
+      hookForm.setValue(`${hookFieldNamespace}.options`, values);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
