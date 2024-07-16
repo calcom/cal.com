@@ -25,6 +25,7 @@
     "publish-embed": "yarn withEmbedPublishEnv workspace @calcom/embed-core build && yarn withEmbedPublishEnv workspace @calcom/embed-snippet build && yarn workspaces foreach --from=\"@calcom/embed*\" npm publish --access=public",
     "delete-app": "yarn app-store delete",
     "delete-unused-strings": "yarn i18n-unused remove-unused",
+    "display-unused-strings": "yarn i18n-unused display-unused",
     "create-app-template": "yarn app-store create-template",
     "edit-app-template": "yarn app-store edit-template",
     "delete-app-template": "yarn app-store delete-template",
