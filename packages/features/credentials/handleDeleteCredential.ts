@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import z from "zod";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
@@ -38,7 +39,7 @@ const handleDeleteCredential = async ({
   teamId,
 }: {
   userId: number;
-  userMetadata: JsonValue;
+  userMetadata: Prisma.JsonValue;
   credentialId: number;
   teamId?: number;
 }) => {
