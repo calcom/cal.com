@@ -131,7 +131,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.Phone,
-    label: "attendee_phone_number",
+    label: "phone_call_organizer_calls_attendee",
     variable: "phone",
     organizerInputType: null,
     attendeeInputType: "phone",
@@ -146,7 +146,7 @@ export const defaultLocations: DefaultEventLocationType[] = [
   {
     default: true,
     type: DefaultEventLocationTypeEnum.UserPhone,
-    label: "organizer_phone_number",
+    label: "phone_call_attendee_calls_organizer",
     messageForOrganizer: "Provide your phone number",
     organizerInputType: "phone",
     variable: "locationPhoneNumber",
@@ -159,9 +159,9 @@ export const defaultLocations: DefaultEventLocationType[] = [
 const translateAbleKeys = [
   "in_person_attendee_address",
   "in_person",
-  "attendee_phone_number",
+  "phone_call_organizer_calls_attendee",
   "link_meeting",
-  "organizer_phone_number",
+  "phone_call_attendee_calls_organizer",
   "organizer_default_conferencing_app",
 ];
 
