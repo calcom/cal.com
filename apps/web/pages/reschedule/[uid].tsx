@@ -53,8 +53,6 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           owner: {
             select: {
               id: true,
-              username: true,
-              organizationId: true,
             },
           },
           hosts: {
