@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 
-export const credentialForCalendarRepositorySelect = Prisma.validator<Prisma.CredentialSelect>()({
+const credentialForCalendarRepositorySelect = Prisma.validator<Prisma.CredentialSelect>()({
   id: true,
   appId: true,
   type: true,

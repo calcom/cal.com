@@ -34,7 +34,7 @@ export class selectedCalendarsController {
       throw new NotFoundException(`Credentials not found`);
     }
 
-    const newlyAddedCalendar = await this.selectedCalendarsRepository.addUserSelectedCalendar(
+    const newlyAddedCalendarEntry = await this.selectedCalendarsRepository.addUserSelectedCalendar(
       user.id,
       integration,
       externalId,
@@ -43,7 +43,7 @@ export class selectedCalendarsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: { ...newlyAddedCalendar },
+      data: newlyAddedCalendarEntry,
     };
   }
 
@@ -67,7 +67,7 @@ export class selectedCalendarsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: { ...removedCalendarEntry },
+      data: removedCalendarEntry,
     };
   }
 }
