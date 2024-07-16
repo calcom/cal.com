@@ -7,15 +7,14 @@ import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendCancelledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
-import { deleteScheduledEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { workflowSelect } from "@calcom/features/ee/workflows/lib/getAllWorkflows";
 import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
-import { deleteScheduledSMSReminder } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/features/ee/workflows/lib/reminders/whatsappReminderManager";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
@@ -24,9 +23,13 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema, schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
+import {
+  deleteAllWorkflowReminders,
+  getAllWorkflowsFromEventType,
+} from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
@@ -81,8 +84,16 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
             select: {
               id: true,
               name: true,
+              parentId: true,
             },
           },
+          parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
+          userId: true,
           recurringEvent: true,
           title: true,
           eventName: true,
@@ -94,21 +105,19 @@ async function getBookingToDelete(id: number | undefined, uid: string | undefine
           seatsPerTimeSlot: true,
           bookingFields: true,
           seatsShowAttendees: true,
+          metadata: true,
           hosts: {
             select: {
               user: true,
             },
           },
           workflows: {
-            include: {
+            select: {
               workflow: {
-                include: {
-                  steps: true,
-                },
+                select: workflowSelect,
               },
             },
           },
-          parentId: true,
         },
       },
       uid: true,
@@ -180,12 +189,16 @@ async function handler(req: CustomRequest) {
     },
   });
   const triggerForUser = !teamId || (teamId && bookingToDelete.eventType?.parentId);
+  const organizerUserId = triggerForUser ? bookingToDelete.userId : null;
+
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: organizerUserId, teamId });
 
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToDelete.userId : null,
+    userId: organizerUserId,
     eventTypeId: bookingToDelete.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
   const eventTypeInfo: EventTypeInfo = {
     eventTitle: bookingToDelete?.eventType?.title || null,
@@ -316,18 +329,17 @@ async function handler(req: CustomRequest) {
   );
   await Promise.all(promises);
 
-  //Workflows - schedule reminders
-  if (bookingToDelete.eventType?.workflows) {
-    await sendCancelledReminders({
-      workflows: bookingToDelete.eventType?.workflows,
-      smsReminderNumber: bookingToDelete.smsReminderNumber,
-      evt: {
-        ...evt,
-        ...{ eventType: { slug: bookingToDelete.eventType.slug } },
-      },
-      hideBranding: !!bookingToDelete.eventType.owner?.hideBranding,
-    });
-  }
+  const workflows = await getAllWorkflowsFromEventType(bookingToDelete.eventType, bookingToDelete.userId);
+
+  await sendCancelledReminders({
+    workflows,
+    smsReminderNumber: bookingToDelete.smsReminderNumber,
+    evt: {
+      ...evt,
+      ...{ eventType: { slug: bookingToDelete.eventType?.slug } },
+    },
+    hideBranding: !!bookingToDelete.eventType?.owner?.hideBranding,
+  });
 
   let updatedBookings: {
     id: number;
@@ -435,7 +447,15 @@ async function handler(req: CustomRequest) {
     bookingToDelete.recurringEventId &&
     allRemainingBookings
   );
-  const credentials = await getAllCredentials(bookingToDelete.user, bookingToDelete.eventType);
+
+  const bookingToDeleteEventTypeMetadata = EventTypeMetaDataSchema.parse(
+    bookingToDelete.eventType?.metadata || null
+  );
+
+  const credentials = await getAllCredentials(bookingToDelete.user, {
+    ...bookingToDelete.eventType,
+    metadata: bookingToDeleteEventTypeMetadata,
+  });
 
   const eventManager = new EventManager({ ...bookingToDelete.user, credentials });
 
@@ -455,15 +475,7 @@ async function handler(req: CustomRequest) {
     webhookTriggerPromises.push(deleteWebhookScheduledTriggers({ booking }));
 
     //Workflows - cancel all reminders for cancelled bookings
-    for (const reminder of booking.workflowReminders) {
-      if (reminder.method === WorkflowMethods.EMAIL) {
-        workflowReminderPromises.push(deleteScheduledEmailReminder(reminder.id, reminder.referenceId));
-      } else if (reminder.method === WorkflowMethods.SMS) {
-        workflowReminderPromises.push(deleteScheduledSMSReminder(reminder.id, reminder.referenceId));
-      } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-        workflowReminderPromises.push(deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId));
-      }
-    }
+    workflowReminderPromises.push(deleteAllWorkflowReminders(booking.workflowReminders));
   }
 
   await Promise.all([...webhookTriggerPromises, ...workflowReminderPromises]).catch((error) => {

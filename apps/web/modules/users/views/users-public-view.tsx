@@ -14,7 +14,6 @@ import {
 import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { EventTypeDescriptionLazy as EventTypeDescription } from "@calcom/features/eventtypes/components";
 import EmptyPage from "@calcom/features/eventtypes/components/EmptyPage";
-import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import useTheme from "@calcom/lib/hooks/useTheme";
 import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
@@ -26,7 +25,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
-  const { t } = useLocale();
 
   const isBioEmpty = !user.bio || !user.bio.replace("<p><br></p>", "").length;
 
@@ -52,7 +50,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   }, [telemetry, router.asPath]); */
   if (entity.considerUnpublished) {
     return (
-      <div className="flex h-full min-h-[100dvh] items-center justify-center">
+      <div className="flex h-full min-h-[calc(100dvh)] items-center justify-center">
         <UnpublishedEntity {...entity} />
       </div>
     );
@@ -81,7 +79,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
         <main
           className={classNames(
             shouldAlignCentrally ? "mx-auto" : "",
-            isEmbed ? "border-booker border-booker-width  bg-default rounded-md border" : "",
+            isEmbed ? "border-booker border-booker-width  bg-default rounded-md" : "",
             "max-w-3xl px-4 py-24"
           )}>
           <div className="mb-8 text-center">
@@ -126,7 +124,7 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
               <div
                 key={type.id}
                 style={{ display: "flex", ...eventTypeListItemEmbedStyles }}
-                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b first:rounded-t-md last:rounded-b-md last:border-b-0">
+                className="bg-default border-subtle dark:bg-muted dark:hover:bg-emphasis hover:bg-muted group relative border-b transition first:rounded-t-md last:rounded-b-md last:border-b-0">
                 <Icon
                   name="arrow-right"
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
