@@ -554,7 +554,6 @@
   "default_duration": "Standard varighed",
   "default_duration_no_options": "Vælg venligst tilgængelige varigheder først",
   "multiple_duration_mins": "{{count}} $t(minute_timeUnit)",
-  "multiple_duration_timeUnit": "{{count}} $t({{unit}}_timeUnit)",
   "minutes": "Minutter",
   "round_robin": "Round Robin",
   "round_robin_description": "Cyklusmøder mellem flere teammedlemmer.",
@@ -1231,6 +1230,8 @@
   "copy_link_to_form": "Kopiér link til formular",
   "theme": "Tema",
   "theme_applies_note": "Dette gælder kun for dine offentlige bookingsider",
+  "app_theme": "Dashboard-tema",
+  "app_theme_applies_note": "Dette gælder kun for din loggede dashboard",
   "theme_system": "System standard",
   "add_a_team": "Tilføj et team",
   "add_webhook_description": "Modtag mødedata i realtid, når der sker noget i {{appName}}",
@@ -1536,5 +1537,6 @@
   "confirm_your_details": "Bekræft dine oplysninger",
   "overlay_my_calendar": "Vis min kalender",
   "need_help": "Brug for hjælp?",
+  "send_email": "Send e-mail",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterede dig til at deltage i teamet {{team}} på {{appName}}"
 }

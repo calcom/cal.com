@@ -4,9 +4,10 @@ import { getEventTypeAppData } from "@calcom/app-store/_utils/getEventTypeAppDat
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import type { appDataSchema, paymentOptionEnum } from "@calcom/app-store/stripepayment/zod";
 import type { EventTypeAppsList } from "@calcom/app-store/utils";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 
 export default function getPaymentAppData(
-  eventType: Parameters<typeof getEventTypeAppData>[0],
+  eventType: Pick<BookerEvent, "price" | "currency" | "metadata">,
   forcedGet?: boolean
 ) {
   const metadataApps = eventType?.metadata?.apps as unknown as EventTypeAppsList;
@@ -52,3 +53,5 @@ export default function getPaymentAppData(
     }
   );
 }
+
+export type PaymentAppData = ReturnType<typeof getPaymentAppData>;
