@@ -859,6 +859,7 @@ const EventTypePageWrapper: React.FC<PageProps> & {
 
   const { data: workflows } = trpc.viewer.workflows.getAllActiveWorkflows.useQuery({
     eventType: {
+      id: props.type,
       workflows: eventType.workflows,
       teamId: eventType.teamId,
       userId: eventType.userId,

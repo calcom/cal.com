@@ -40,6 +40,8 @@ import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
+import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
+
 const log = logger.getSubLogger({ prefix: ["workflow"] });
 
 export const bookingSelect = {
@@ -804,3 +806,85 @@ export async function getAllWorkflowsFromEventType(
 
   return allWorkflows;
 }
+
+export const getEventTypeWorkflows = async (
+  userId: number,
+  eventTypeId: number
+): Promise<z.infer<typeof ZWorkflows>> => {
+  const rawEventType = await prisma.eventType.findFirst({
+    where: {
+      AND: [
+        {
+          OR: [
+            {
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+            {
+              team: {
+                members: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+            },
+            {
+              userId: userId,
+            },
+          ],
+        },
+        {
+          id: eventTypeId,
+        },
+      ],
+    },
+    select: {
+      workflows: {
+        include: {
+          workflow: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              teamId: true,
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  return rawEventType.workflows;
+};
