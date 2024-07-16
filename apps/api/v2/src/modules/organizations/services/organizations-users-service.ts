@@ -3,14 +3,11 @@ import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/crea
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
-import {
-  createNewUsersConnectToOrgIfExists,
-  sendSignupToOrganizationEmail,
-  getTranslation,
-} from "@calcom/platform-libraries";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries-0.0.18";
 import { Team } from "@calcom/prisma/client";
 
 @Injectable()
@@ -20,15 +17,15 @@ export class OrganizationsUsersService {
     private readonly emailService: EmailService
   ) {}
 
-  async getUsers(orgId: number, emailInput?: string | string[]) {
-    const emailArray = !emailInput ? [] : Array.isArray(emailInput) ? emailInput : [emailInput];
+  async getUsers(orgId: number, emailInput?: string[]) {
+    const emailArray = !emailInput ? [] : emailInput;
 
-    const users = await this.organizationsUsersRepository.getOrganizationUsers(orgId, emailArray);
+    const users = await this.organizationsUsersRepository.getOrganizationUsersByEmails(orgId, emailArray);
 
     return users;
   }
 
-  async createUser(org: Team, userCreateBody: CreateOrganizationUserInput) {
+  async createUser(org: Team, userCreateBody: CreateOrganizationUserInput, inviterName: string) {
     // Check if email exists in the system
     const userEmailCheck = await this.organizationsUsersRepository.getOrganizationUserByEmail(
       org.id,
@@ -82,6 +79,7 @@ export class OrganizationsUsersService {
       orgName: org.name,
       orgId: org.id,
       locale: user?.locale,
+      inviterName,
     });
 
     return user;

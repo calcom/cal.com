@@ -25,7 +25,7 @@ export class OrganizationsUsersRepository {
     };
   }
 
-  async getOrganizationUsers(orgId: number, emailArray?: string[]) {
+  async getOrganizationUsersByEmails(orgId: number, emailArray?: string[]) {
     return await this.dbRead.prisma.user.findMany({
       where: {
         ...this.filterOnOrgMembership(orgId),

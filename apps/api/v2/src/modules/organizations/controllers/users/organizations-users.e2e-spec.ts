@@ -229,7 +229,9 @@ describe("Organizations Users Endpoints", () => {
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
-      const userData = body.data;
+      const userData = body.data as User;
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.theme).toBe("light");
     });
 
     it("should create a new org user", async () => {
@@ -253,18 +255,13 @@ describe("Organizations Users Endpoints", () => {
 
         const userData = body.data;
         expect(body.status).toBe(SUCCESS_STATUS);
-        console.log("1");
         expect(userData.email).toBe(newOrgUser.email);
-        console.log("2");
         expect(emailSpy).toHaveBeenCalledWith({
           usernameOrEmail: newOrgUser.email,
           orgName: org.name,
           orgId: org.id,
           locale: undefined,
         });
-        console.log("3");
-        expect(false).toBe(true);
-        console.log("4");
       } catch (error) {}
     });
 

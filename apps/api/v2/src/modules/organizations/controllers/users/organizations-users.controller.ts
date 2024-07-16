@@ -1,5 +1,6 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetOrg } from "@/modules/auth/decorators/get-org/get-org.decorator";
+import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
@@ -10,6 +11,7 @@ import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/upda
 import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
+import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
   UseGuards,
@@ -65,9 +67,14 @@ export class OrganizationsUsersController {
   async createOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @GetOrg() org: Team,
-    @Body() input: CreateOrganizationUserInput
+    @Body() input: CreateOrganizationUserInput,
+    @GetUser() inviter: UserWithProfile
   ): Promise<ApiResponse<GetOrganizationUserOutput>> {
-    const user = await this.organizationsUsersService.createUser(org, input);
+    const user = await this.organizationsUsersService.createUser(
+      org,
+      input,
+      inviter.name ?? inviter.username ?? inviter.email
+    );
     return {
       status: SUCCESS_STATUS,
       data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
