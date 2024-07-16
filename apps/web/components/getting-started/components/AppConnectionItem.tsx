@@ -4,9 +4,9 @@ import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import { InstallAppButtonWithoutPlanCheck } from "@calcom/app-store/components";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { trpc } from "@calcom/trpc/react";
 import type { App } from "@calcom/types/App";
-import { Icon } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Badge, Button, Icon } from "@calcom/ui";
 
 interface IAppConnectionItem {
   title: string;
@@ -14,21 +14,33 @@ interface IAppConnectionItem {
   logo: string;
   type: App["type"];
   installed?: boolean;
+  isDefault?: boolean;
+  defaultInstall?: boolean;
+  slug?: string;
   dependencyData?: TDependencyData;
 }
 
 const AppConnectionItem = (props: IAppConnectionItem) => {
-  const { title, logo, type, installed } = props;
+  const { title, logo, type, installed, isDefault, defaultInstall, slug } = props;
   const { t } = useLocale();
+  const setDefaultConferencingApp = trpc.viewer.appsRouter.setDefaultConferencingApp.useMutation();
   const dependency = props.dependencyData?.find((data) => !data.installed);
   return (
     <div className="flex flex-row items-center justify-between p-5">
       <div className="flex items-center space-x-3">
         <img src={logo} alt={title} className="h-8 w-8" />
         <p className="text-sm font-bold">{title}</p>
+        {isDefault && <Badge variant="green">{t("default")}</Badge>}
       </div>
       <InstallAppButtonWithoutPlanCheck
         type={type}
+        options={{
+          onSuccess: () => {
+            if (defaultInstall && slug) {
+              setDefaultConferencingApp.mutate({ slug });
+            }
+          },
+        }}
         render={(buttonProps) => (
           <Button
             {...buttonProps}
