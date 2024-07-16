@@ -585,21 +585,8 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
-                        {rescheduledToUid && (
-                          <>
-                            <div className="mt-3 font-medium">{t("rescheduled_to")}</div>
-                            <div className="col-span-2 mb-2 mt-3">
-                              <span className="underline">
-                                <Link href={`/booking/${rescheduledToUid}`}>
-                                  <div className="flex items-center gap-1">
-                                    {t("Link")}
-                                    <Icon name="external-link" className="h-4 w-4" />
-                                  </div>
-                                </Link>
-                              </span>
-                            </div>
-                          </>
-                        )}
+
+                        {rescheduledToUid ? <RescheduledToLink rescheduledToUid={rescheduledToUid} /> : null}
 
                         {bookingInfo?.description && (
                           <>
@@ -1010,6 +997,25 @@ export default function Success(props: PageProps) {
     </div>
   );
 }
+
+const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <div className="mt-3 font-medium">{t("rescheduled_to")}</div>
+      <div className="col-span-2 mb-2 mt-3">
+        <span className="underline">
+          <Link href={`/booking/${rescheduledToUid}`}>
+            <div className="flex items-center gap-1">
+              {t("Link")}
+              <Icon name="external-link" className="h-4 w-4" />
+            </div>
+          </Link>
+        </span>
+      </div>
+    </>
+  );
+};
 
 const DisplayLocation = ({
   locationToDisplay,

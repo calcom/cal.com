@@ -4,10 +4,10 @@ import { z } from "zod";
 import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
-import { getRescheduledToBooking } from "@calcom/features/bookings/lib/getRescheduledToBooking";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -75,7 +75,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   let rescheduledToUid: string | null = null;
   if (bookingInfo.rescheduled) {
-    const rescheduledTo = await getRescheduledToBooking(bookingInfo.uid);
+    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+      originalBookingUid: bookingInfo.uid,
+    });
     rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
