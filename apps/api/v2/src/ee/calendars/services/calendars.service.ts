@@ -124,8 +124,9 @@ export class CalendarsService {
     return composedSelectedCalendars;
   }
 
-  async deleteCalendarCredentials(userId: number, credential: Credential) {
-    const calendar = await getCalendar(credential);
+  async deleteCalendarCredentials(userId: number, userEmail: string, credential: Credential) {
+    const calendarCredentials = { ...credential, user: { email: userEmail } };
+    const calendar = await getCalendar(calendarCredentials);
     const calendars = await calendar?.listCalendars();
 
     const calendarIds = calendars?.map((cal: IntegrationCalendar) => cal.externalId);

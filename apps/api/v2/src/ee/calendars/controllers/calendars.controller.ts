@@ -206,6 +206,7 @@ export class CalendarsController {
     // only a payload gets returned which contains a count of the deleted items
     const deletedCredentials = await this.calendarsService.deleteCalendarCredentials(
       user.id,
+      user.email,
       credential as unknown as Credential
     );
 
