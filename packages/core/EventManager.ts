@@ -336,10 +336,11 @@ export default class EventManager {
     newDestinationCalendar?: DestinationCalendar[] | null,
     locationSuppliedByUser?: string
   ): Promise<CreateUpdateResult> {
+    console.log('Reschedule method called');
     const originalEvt = processLocation(event);
     const evt = cloneDeep(originalEvt);
     if (!rescheduleUid) {
-      throw new Error("You called eventManager.update without an `rescheduleUid`. This should never happen.");
+      throw new Error("You called eventManager.update without a `rescheduleUid`. This should never happen.");
     }
 
     // Get details of existing booking.
@@ -405,6 +406,16 @@ export default class EventManager {
           : evt.location
           ? isDedicatedIntegration(evt.location)
           : null;
+
+        if (locationSuppliedByUser && !locationSuppliedByUser.includes("zoom")) {
+          const zoomBookingRef = booking
+            ? booking.references.filter((ref) => ref.type === "zoom_video")[0]
+            : null;
+
+          if (zoomBookingRef) await this.deleteVideoEventForBookingReference({ bookingVideoReference: zoomBookingRef });
+          booking.references = booking.references.filter((ref) => ref.type !== "zoom_video");
+        }
+        
         // If and only if event type is a dedicated meeting, update the dedicated video meeting.
         if (isDedicated) {
           let result;
@@ -440,7 +451,7 @@ export default class EventManager {
         const bookingCalendarReference = booking.references.find((reference) =>
           reference.type.includes("_calendar")
         );
-        // There was a case that booking didn't had any reference and we don't want to throw error on function
+        // There was a case that booking didn't have any reference and we don't want to throw error on function
         if (bookingCalendarReference) {
           // Update all calendar events.
           results.push(...(await this.updateAllCalendarEvents(evt, booking, newBookingId)));
