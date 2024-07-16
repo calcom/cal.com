@@ -5,12 +5,14 @@ import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
+import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { GetOrganizationsUsersInput } from "@/modules/organizations/inputs/get-organization-users.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { GetOrganizationUserOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
+import { GetUserOutput } from "@/modules/users/outputs/get-users.output";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import {
   Controller,
@@ -29,7 +31,6 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToInstance } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { ApiResponse } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
 @Controller({
@@ -47,18 +48,13 @@ export class OrganizationsUsersController {
   @Roles("ORG_ADMIN")
   async getOrganizationsUsers(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @GetOrg() org: Team,
     @Body() input: GetOrganizationsUsersInput
-  ): Promise<ApiResponse<GetOrganizationUsersOutput>> {
+  ): Promise<GetOrganizationUsersOutput> {
     const users = await this.organizationsUsersService.getUsers(orgId, input.email);
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        users: users.map((user) =>
-          plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" })
-        ),
-      },
+      data: users.map((user) => plainToInstance(GetUserOutput, user, { strategy: "excludeAll" })),
     };
   }
 
@@ -69,7 +65,7 @@ export class OrganizationsUsersController {
     @GetOrg() org: Team,
     @Body() input: CreateOrganizationUserInput,
     @GetUser() inviter: UserWithProfile
-  ): Promise<ApiResponse<GetOrganizationUserOutput>> {
+  ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.createUser(
       org,
       input,
@@ -77,36 +73,37 @@ export class OrganizationsUsersController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
+      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
     };
   }
 
   @Patch("/:userId")
   @Roles("ORG_ADMIN")
+  @UseGuards(IsUserInOrg)
   async updateOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("userId", ParseIntPipe) userId: number,
     @GetOrg() org: Team,
     @Body() input: UpdateOrganizationUserInput
-  ): Promise<ApiResponse<GetOrganizationUserOutput>> {
+  ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.updateUser(orgId, userId, input);
     return {
       status: SUCCESS_STATUS,
-      data: plainToInstance(GetOrganizationUserOutput, user, { strategy: "excludeAll" }),
+      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
     };
   }
 
   @Delete("/:userId")
   @Roles("ORG_ADMIN")
+  @UseGuards(IsUserInOrg)
   async deleteOrganizationUser(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("userId", ParseIntPipe) userId: number,
-    @GetOrg() org: Team
-  ): Promise<ApiResponse<string>> {
+    @Param("userId", ParseIntPipe) userId: number
+  ): Promise<GetOrganizationUserOutput> {
     const user = await this.organizationsUsersService.deleteUser(orgId, userId);
     return {
       status: SUCCESS_STATUS,
-      data: `User with id ${userId} successfully deleted`,
+      data: plainToInstance(GetUserOutput, user, { strategy: "excludeAll" }),
     };
   }
 }

@@ -3,7 +3,6 @@ import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/crea
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 

@@ -4,24 +4,17 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
-// import { UpdateOrganizationUserInput_2024_06_18 } from "@calcom/platform-types";
-
 @Injectable()
 export class OrganizationsUsersRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
   private filterOnOrgMembership(orgId: number) {
     return {
-      OR: [
-        { organizationId: orgId },
-        {
-          teams: {
-            some: {
-              teamId: orgId,
-            },
-          },
+      profiles: {
+        some: {
+          organizationId: orgId,
         },
-      ],
+      },
     };
   }
 

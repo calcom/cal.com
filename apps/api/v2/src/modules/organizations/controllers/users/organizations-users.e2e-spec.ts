@@ -1,7 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { EmailService } from "@/modules/email/email.service";
-import type { GetOrganizationUsersOutput } from "@/modules/organizations/outputs/get-organization-users.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -16,7 +15,7 @@ import { UserRepositoryFixture } from "test/fixtures/repository/users.repository
 import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { User, Team, Membership, Profile } from "@calcom/prisma/client";
+import { User, Team, Membership } from "@calcom/prisma/client";
 
 describe("Organizations Users Endpoints", () => {
   describe("Member role", () => {
@@ -25,8 +24,9 @@ describe("Organizations Users Endpoints", () => {
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: TeamRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
-    const userEmail = "member@org.com";
+    const userEmail = "member1@org.com";
     let user: User;
     let org: Team;
     let membership: Membership;
@@ -42,9 +42,10 @@ describe("Organizations Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org",
+        name: "Test org 3",
         isOrganization: true,
       });
 
@@ -52,6 +53,21 @@ describe("Organizations Users Endpoints", () => {
         email: userEmail,
         username: userEmail,
         organization: { connect: { id: org.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: userEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
       });
 
       membership = await membershipFixtures.addUserToOrg(user, org, "MEMBER", true);
@@ -85,21 +101,26 @@ describe("Organizations Users Endpoints", () => {
     });
 
     afterAll(async () => {
+      // await membershipFixtures.delete(membership.id);
+      await Promise.all([userRepositoryFixture.deleteByEmail(user.email)]);
+      await organizationsRepositoryFixture.delete(org.id);
+      await app.close();
+
       await app.close();
     });
   });
   describe("Admin role", () => {
     let app: INestApplication;
-
+    let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
     let organizationsRepositoryFixture: TeamRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
-    const userEmail = "admin@org.com";
+    const userEmail = "admin1@org.com";
     const nonMemberEmail = "non-member@test.com";
     let user: User;
     let org: Team;
-    let membership: Membership;
+    let createdUser: User;
 
     const orgMembersData = [
       {
@@ -125,11 +146,13 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
       organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
 
       org = await organizationsRepositoryFixture.create({
-        name: "Test org",
+        name: "Test org 2",
         isOrganization: true,
       });
 
@@ -147,6 +170,25 @@ describe("Organizations Users Endpoints", () => {
           })
         )
       );
+      // create profiles of orgMember like they would be when being invied to the org
+      await Promise.all(
+        orgMembers.map((member) =>
+          profileRepositoryFixture.create({
+            uid: `usr-${member.id}`,
+            username: member.username ?? `usr-${member.id}`,
+            organization: {
+              connect: {
+                id: org.id,
+              },
+            },
+            user: {
+              connect: {
+                id: member.id,
+              },
+            },
+          })
+        )
+      );
 
       user = await userRepositoryFixture.create({
         email: userEmail,
@@ -154,7 +196,22 @@ describe("Organizations Users Endpoints", () => {
         organization: { connect: { id: org.id } },
       });
 
-      membership = await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+      await profileRepositoryFixture.create({
+        uid: `usr-${user.id}`,
+        username: userEmail,
+        organization: {
+          connect: {
+            id: org.id,
+          },
+        },
+        user: {
+          connect: {
+            id: user.id,
+          },
+        },
+      });
+
+      await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
       await Promise.all(
         orgMembers.map((member) => membershipFixtures.addUserToOrg(member, org, "MEMBER", true))
       );
@@ -175,7 +232,7 @@ describe("Organizations Users Endpoints", () => {
     it("should get all org users", async () => {
       const { body } = await request(app.getHttpServer()).get(`/v2/organizations/${org.id}/users`);
 
-      const userData = body.data.users;
+      const userData = body.data;
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(4);
@@ -192,7 +249,7 @@ describe("Organizations Users Endpoints", () => {
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
-      const userData = body.data.users;
+      const userData = body.data;
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(1);
@@ -211,7 +268,7 @@ describe("Organizations Users Endpoints", () => {
         .set("Content-Type", "application/json")
         .set("Accept", "application/json");
 
-      const userData = body.data.users;
+      const userData = body.data;
 
       expect(body.status).toBe(SUCCESS_STATUS);
       expect(userData.length).toBe(2);
@@ -236,7 +293,7 @@ describe("Organizations Users Endpoints", () => {
 
     it("should create a new org user", async () => {
       const newOrgUser = {
-        email: "new-member@org.com",
+        email: "new-org-member-a@org.com",
         organizationRole: "MEMBER",
         autoAccept: true,
       };
@@ -244,25 +301,36 @@ describe("Organizations Users Endpoints", () => {
       const emailSpy = jest
         .spyOn(EmailService.prototype, "sendSignupToOrganizationEmail")
         .mockImplementation(() => Promise.resolve());
-      try {
-        const { body } = await request(app.getHttpServer())
-          .post(`/v2/organizations/${org.id}/users`)
-          .send({
-            email: newOrgUser.email,
-          })
-          .set("Content-Type", "application/json")
-          .set("Accept", "application/json");
+      const { body } = await request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/users`)
+        .send({
+          email: newOrgUser.email,
+        })
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
 
-        const userData = body.data;
-        expect(body.status).toBe(SUCCESS_STATUS);
-        expect(userData.email).toBe(newOrgUser.email);
-        expect(emailSpy).toHaveBeenCalledWith({
-          usernameOrEmail: newOrgUser.email,
-          orgName: org.name,
-          orgId: org.id,
-          locale: undefined,
-        });
-      } catch (error) {}
+      const userData = body.data;
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.email).toBe(newOrgUser.email);
+      expect(emailSpy).toHaveBeenCalledWith({
+        usernameOrEmail: newOrgUser.email,
+        orgName: org.name,
+        orgId: org.id,
+        inviterName: "admin1@org.com",
+        locale: null,
+      });
+      createdUser = userData;
+    });
+
+    it("should delete an org user", async () => {
+      const { body } = await request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/users/${createdUser.id}`)
+        .set("Content-Type", "application/json")
+        .set("Accept", "application/json");
+
+      const userData = body.data as User;
+      expect(body.status).toBe(SUCCESS_STATUS);
+      expect(userData.id).toBe(createdUser.id);
     });
 
     afterAll(async () => {
