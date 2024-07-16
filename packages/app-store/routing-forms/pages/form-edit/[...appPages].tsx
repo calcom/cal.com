@@ -194,13 +194,12 @@ function Field({
     const paste = event.clipboardData.getData("text");
     const formattedValues = paste
       .split(PASTE_SPLIT_REGEX)
-      .map((value) => ({ placeholder: "New Option", value: value.trim(), id: uuidv4() }))
+      .map((value) => ({ placeholder: "", value: value.trim(), id: uuidv4() }))
       .filter((option) => option.value);
+
     if (formattedValues.length > 1) {
       event.preventDefault();
-      const updatedOptions = [...options.slice(0, index), ...formattedValues, ...options.slice(index)].filter(
-        (value) => value.placeholder === "New Option"
-      );
+      const updatedOptions = [...options.slice(0, index), ...formattedValues, ...options.slice(index)];
       setOptions(updatedOptions);
     }
   };
@@ -321,7 +320,7 @@ function Field({
                         containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
                         className="border-0 focus:ring-0 focus:ring-offset-0"
                         labelSrOnly
-                        placeholder={field.placeholder.toString()}
+                        placeholder={field?.placeholder.toString() || ""}
                         value={field.value}
                         type="text"
                         addOnClassname="bg-transparent border-0"
