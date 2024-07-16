@@ -16,7 +16,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Selected-Calendars")
-export class selectedCalendarsController {
+export class SelectedCalendarsController {
   constructor(
     private readonly calendarsRepository: CalendarsRepository,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository
