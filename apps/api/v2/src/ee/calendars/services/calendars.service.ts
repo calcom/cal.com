@@ -1,4 +1,3 @@
-import { IntegrationCalendar } from "@/ee/calendars/calendars.interface";
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
@@ -15,15 +14,11 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { User, Credential } from "@prisma/client";
+import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import {
-  getConnectedDestinationCalendars,
-  getBusyCalendarTimes,
-  getCalendar,
-} from "@calcom/platform-libraries-0.0.18";
+import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.18";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -122,21 +117,6 @@ export class CalendarsService {
       };
     });
     return composedSelectedCalendars;
-  }
-
-  async deleteCalendarCredentials(userId: number, userEmail: string, credential: Credential) {
-    const calendarCredentials = { ...credential, user: { email: userEmail } };
-    const calendar = await getCalendar(calendarCredentials);
-    const calendars = await calendar?.listCalendars();
-
-    const calendarIds = calendars?.map((cal: IntegrationCalendar) => cal.externalId);
-
-    if (!calendarIds)
-      throw new NotFoundException(
-        `No connected calendars found for calendar type: ${credential.type} and id: ${credential.id}`
-      );
-
-    return await this.calendarsRepository.deleteCredentials(credential.type, userId, calendarIds);
   }
 
   async getAppKeys(appName: string) {
