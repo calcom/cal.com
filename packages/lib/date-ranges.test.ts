@@ -70,7 +70,7 @@ describe("processWorkingHours", () => {
     const dateFrom = dayjs.utc("2024-10-26T23:00:00.000Z").tz(timeZone); // 2024-10-27T00:00 in Europe/London
     const dateTo = dayjs.utc("2024-10-27T23:59:00.000Z").tz(timeZone); // 2024-10-27T23:59 in Europe/London
 
-    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo });
+    const results = processWorkingHours({ item, timeZone, dateFrom, dateTo, travelSchedules: [] });
 
     //UTC 2024-10-26T23:00:00.000Z - 2024-10-27T00:00:00+01:00 BST
     //UTC 2024-10-27T00:00:00.000Z - 2024-10-27T01:00:00+01:00 BST
@@ -253,17 +253,17 @@ describe("processWorkingHours", () => {
 
     const timeZone = "Europe/Berlin";
 
-    const dateFrom = dayjs().startOf("day");
-    const dateTo = dayjs().add(1, "week").startOf("day");
+    const dateFrom = dayjs().startOf("day").tz(timeZone);
+    const dateTo = dayjs().add(1, "week").startOf("day").tz(timeZone);
 
     const travelSchedules = [
       {
-        startDate: dayjs().add(2, "day").startOf("day"),
-        endDate: dayjs().add(3, "day").endOf("day"),
+        startDate: dayjs().add(2, "day").tz(timeZone).startOf("day"), // Day 3 Start
+        endDate: dayjs().add(3, "day").tz(timeZone).endOf("day"), // Day 4 End
         timeZone: "America/New_York",
       },
       {
-        startDate: dayjs().add(5, "day").startOf("day"),
+        startDate: dayjs().add(5, "day").tz(timeZone).startOf("day"), // Day 6 Start
         timeZone: "Asia/Kolkata",
       },
     ];
@@ -289,6 +289,7 @@ describe("processWorkingHours", () => {
         !result.start.isBefore(travelSchedules[0].startDate) &&
         !result.start.isAfter(travelSchedules[0].endDate)
     );
+
     const resultsWithKolkataTz = resultsWithTravelSchedule.filter(
       (result) => !result.start.isBefore(travelSchedules[1].startDate)
     );
