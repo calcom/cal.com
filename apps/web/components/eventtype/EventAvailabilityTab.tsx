@@ -294,7 +294,7 @@ const TeamMemberSchedule = ({
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
-  const { setValue, getValues } = formMethods;
+  const { setValue, getValues, getFieldState } = formMethods;
 
   const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
     userId: host.userId,
@@ -320,7 +320,7 @@ const TeamMemberSchedule = ({
       : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
-  if (!scheduleId) {
+  if (!scheduleId && !getFieldState(`hosts.${index}.scheduleId`).isDirty) {
     setValue(`hosts.${index}.scheduleId`, value?.value || null, { shouldDirty: true });
   }
 
