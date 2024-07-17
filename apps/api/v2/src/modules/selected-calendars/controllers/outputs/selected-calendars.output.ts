@@ -4,7 +4,7 @@ import { IsInt, IsString, ValidateNested, IsEnum } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
-class SelectedCalendarOutputDto {
+export class SelectedCalendarOutputDto {
   @IsInt()
   @Expose()
   readonly userId!: number;

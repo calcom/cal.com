@@ -1,7 +1,10 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
-import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
+import {
+  DeletedCalendarCredentialsOutputResponseDto,
+  DeletedCalendarCredentialsOutputDto,
+} from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
@@ -30,6 +33,7 @@ import {
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
+import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -202,11 +206,11 @@ export class CalendarsController {
       throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
     }
 
-    const deletedCredentials = await this.calendarsRepository.deleteCredentials(credential.id);
+    const { key, ...deletedCredentials } = await this.calendarsRepository.deleteCredentials(credential.id);
 
     return {
       status: SUCCESS_STATUS,
-      data: deletedCredentials,
+      data: plainToClass(DeletedCalendarCredentialsOutputDto, deletedCredentials, { strategy: "excludeAll" }),
     };
   }
 }

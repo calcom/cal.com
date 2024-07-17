@@ -1,11 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { Prisma } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
-import { IsString, ValidateNested, IsEnum, IsInt, IsBoolean, IsJSON } from "class-validator";
+import { IsString, ValidateNested, IsEnum, IsInt, IsBoolean } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
-class DeletedCalendarCredentialsOutputDto {
+export class DeletedCalendarCredentialsOutputDto {
   @IsInt()
   @Expose()
   readonly id!: number;
@@ -13,10 +12,6 @@ class DeletedCalendarCredentialsOutputDto {
   @IsString()
   @Expose()
   readonly type!: string;
-
-  @IsJSON()
-  @Expose()
-  readonly key!: Prisma.JsonValue;
 
   @IsInt()
   @Expose()

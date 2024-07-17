@@ -6,11 +6,15 @@ import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
 } from "@/modules/selected-calendars/controllers/inputs/selected-calendars.input";
-import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
+import {
+  SelectedCalendarOutputResponseDto,
+  SelectedCalendarOutputDto,
+} from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, NotFoundException, Query } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -46,7 +50,7 @@ export class SelectedCalendarsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: newlyAddedCalendarEntry,
+      data: plainToClass(SelectedCalendarOutputDto, newlyAddedCalendarEntry, { strategy: "excludeAll" }),
     };
   }
 
@@ -70,7 +74,7 @@ export class SelectedCalendarsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: removedCalendarEntry,
+      data: plainToClass(SelectedCalendarOutputDto, removedCalendarEntry, { strategy: "excludeAll" }),
     };
   }
 }
