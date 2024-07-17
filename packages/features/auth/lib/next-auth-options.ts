@@ -11,7 +11,7 @@ import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
+import { clientSecretVerifier, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
@@ -25,7 +25,8 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
-import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
+import type { MembershipRole } from "@calcom/prisma/enums";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
@@ -654,22 +655,6 @@ export const AUTH_OPTIONS: AuthOptions = {
       } = params;
 
       log.debug("callbacks:signin", safeStringify(params));
-
-      if (account?.provider === "email") {
-        return true;
-      }
-      // In this case we've already verified the credentials in the authorize
-      // callback so we can sign the user in.
-      // Only if provider is not saml-idp
-      if (account?.provider !== "saml-idp") {
-        if (account?.type === "credentials") {
-          return true;
-        }
-
-        if (account?.type !== "oauth") {
-          return false;
-        }
-      }
       if (!user.email) {
         return false;
       }
@@ -677,7 +662,7 @@ export const AUTH_OPTIONS: AuthOptions = {
       if (!user.name) {
         return false;
       }
-      if (account?.provider) {
+      if (account?.provider == "google") {
         const idP: IdentityProvider = mapIdentityProvider(account.provider);
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore-error TODO validate email_verified key on profile
@@ -772,139 +757,8 @@ export const AUTH_OPTIONS: AuthOptions = {
             return "/auth/error?error=new-email-conflict";
           }
         }
-
-        // If there's no existing user for this identity provider and id, create
-        // a new account. If an account already exists with the incoming email
-        // address return an error for now.
-
-        const existingUserWithEmail = await prisma.user.findFirst({
-          where: {
-            email: {
-              equals: user.email,
-              mode: "insensitive",
-            },
-          },
-          include: {
-            password: true,
-          },
-        });
-
-        if (existingUserWithEmail) {
-          // if self-hosted then we can allow auto-merge of identity providers if email is verified
-          if (
-            !hostedCal &&
-            existingUserWithEmail.emailVerified &&
-            existingUserWithEmail.identityProvider !== IdentityProvider.CAL
-          ) {
-            if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
-            } else {
-              return true;
-            }
-          }
-
-          // check if user was invited
-          if (
-            !existingUserWithEmail.password?.hash &&
-            !existingUserWithEmail.emailVerified &&
-            !existingUserWithEmail.username
-          ) {
-            await prisma.user.update({
-              where: {
-                email: existingUserWithEmail.email,
-              },
-              data: {
-                // update the email to the IdP email
-                email: user.email,
-                // Slugify the incoming name and append a few random characters to
-                // prevent conflicts for users with the same name.
-                username: usernameSlug(user.name),
-                emailVerified: new Date(Date.now()),
-                name: user.name,
-                identityProvider: idP,
-                identityProviderId: account.providerAccountId,
-              },
-            });
-
-            if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
-            } else {
-              return true;
-            }
-          }
-
-          // User signs up with email/password and then tries to login with Google/SAML using the same email
-          if (
-            existingUserWithEmail.identityProvider === IdentityProvider.CAL &&
-            (idP === IdentityProvider.GOOGLE || idP === IdentityProvider.SAML)
-          ) {
-            await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
-              // also update email to the IdP email
-              data: {
-                email: user.email.toLowerCase(),
-                identityProvider: idP,
-                identityProviderId: account.providerAccountId,
-              },
-            });
-
-            if (existingUserWithEmail.twoFactorEnabled) {
-              return loginWithTotp(existingUserWithEmail.email);
-            } else {
-              return true;
-            }
-          } else if (existingUserWithEmail.identityProvider === IdentityProvider.CAL) {
-            return "/auth/error?error=use-password-login";
-          } else if (
-            existingUserWithEmail.identityProvider === IdentityProvider.GOOGLE &&
-            idP === IdentityProvider.SAML
-          ) {
-            await prisma.user.update({
-              where: { email: existingUserWithEmail.email },
-              // also update email to the IdP email
-              data: {
-                email: user.email.toLowerCase(),
-                identityProvider: idP,
-                identityProviderId: account.providerAccountId,
-              },
-            });
-          }
-
-          return "/auth/error?error=use-identity-login";
-        }
-
-        // Associate with organization if enabled by flag and idP is Google (for now)
-        const { orgUsername, orgId } = await checkIfUserShouldBelongToOrg(idP, user.email);
-
-        const newUser = await prisma.user.create({
-          data: {
-            // Slugify the incoming name and append a few random characters to
-            // prevent conflicts for users with the same name.
-            username: orgId ? slugify(orgUsername) : usernameSlug(user.name),
-            emailVerified: new Date(Date.now()),
-            name: user.name,
-            ...(user.image && { avatarUrl: user.image }),
-            email: user.email,
-            identityProvider: idP,
-            identityProviderId: account.providerAccountId,
-            ...(orgId && {
-              verified: true,
-              organization: { connect: { id: orgId } },
-              teams: {
-                create: { role: MembershipRole.MEMBER, accepted: true, team: { connect: { id: orgId } } },
-              },
-            }),
-          },
-        });
-
-        const linkAccountNewUserData = { ...account, userId: newUser.id, providerEmail: user.email };
-        await calcomAdapter.linkAccount(linkAccountNewUserData);
-
-        if (account.twoFactorEnabled) {
-          return loginWithTotp(newUser.email);
-        } else {
-          return true;
-        }
+      } else {
+        return "/auth/error?error=account-does-not-exist";
       }
 
       return false;
