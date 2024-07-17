@@ -308,6 +308,8 @@ test.describe("Reschedule for booking with seats", () => {
     await expect(foundSecondAttendeeAsOwner).toHaveCount(1);
 
     await page.goto("auth/logout");
+    await page.getByTestId("logout-btn").click();
+    await expect(page).toHaveURL(/login/);
 
     // Now we cancel the booking as the first attendee
     // booking/${bookingUid}?cancel=true&allRemainingBookings=false&seatReferenceUid={bookingSeat.referenceUid}

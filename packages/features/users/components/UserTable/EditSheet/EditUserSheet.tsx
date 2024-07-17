@@ -5,9 +5,9 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Sheet, SheetContent, SheetFooter, Avatar, Skeleton, Loader, Label } from "@calcom/ui";
+import { Avatar, Label, Loader, Sheet, SheetContent, SheetFooter, Skeleton } from "@calcom/ui";
 
-import type { State, Action } from "../UserListTable";
+import type { Action, State } from "../UserListTable";
 import { DisplayInfo } from "./DisplayInfo";
 import { EditForm } from "./EditUserForm";
 import { SheetFooterControls } from "./SheetFooterControls";
@@ -45,7 +45,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     asChild
                     className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
-                    imageSrc={avatarURL}
+                    imageSrc={loadedUser.avatarUrl}
                   />
                   <div className="space-between flex flex-col leading-none">
                     <Skeleton loading={isPending} as="p" waitForTranslation={false}>
@@ -100,7 +100,7 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
               <div className="mb-4 flex-grow">
                 <EditForm
                   selectedUser={loadedUser}
-                  avatarUrl={avatarURL}
+                  avatarUrl={loadedUser.avatarUrl ?? avatarURL}
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
                 />

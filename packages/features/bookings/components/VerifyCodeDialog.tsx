@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import useDigitInput from "react-digit-input";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -10,10 +10,10 @@ import {
   DialogContent,
   DialogFooter,
   DialogHeader,
-  Label,
+  Icon,
   Input,
+  Label,
 } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
 
 export const VerifyCodeDialog = ({
   isOpenDialog,
@@ -88,10 +88,9 @@ export const VerifyCodeDialog = ({
   return (
     <Dialog
       open={isOpenDialog}
-      onOpenChange={(open) => {
+      onOpenChange={() => {
         setValue("");
         resetErrors();
-        setIsOpenDialog(open);
       }}>
       <DialogContent className="sm:max-w-md">
         <div className="flex flex-row">
@@ -116,13 +115,13 @@ export const VerifyCodeDialog = ({
             {error && (
               <div className="mt-2 flex items-center gap-x-2 text-sm text-red-700">
                 <div>
-                  <Info className="h-3 w-3" />
+                  <Icon name="info" className="h-3 w-3" />
                 </div>
                 <p>{error}</p>
               </div>
             )}
             <DialogFooter>
-              <DialogClose />
+              <DialogClose onClick={() => setIsOpenDialog(false)} />
               <Button type="submit" onClick={verifyCode} loading={isPending}>
                 {t("submit")}
               </Button>

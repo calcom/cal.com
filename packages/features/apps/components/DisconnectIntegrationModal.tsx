@@ -16,7 +16,7 @@ export default function DisconnectIntegrationModal({
   teamId,
 }: DisconnectIntegrationModalProps) {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.deleteCredential.useMutation({
     onSuccess: () => {

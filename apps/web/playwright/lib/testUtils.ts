@@ -347,6 +347,8 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=cardExpiry]", "12/30");
   await page.fill("[name=cardCvc]", "111");
   await page.fill("[name=billingName]", "Stripe Stripeson");
+  await page.selectOption("[name=billingCountry]", "US");
+  await page.fill("[name=billingPostalCode]", "12345");
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
@@ -369,3 +371,22 @@ export async function doOnOrgDomain(
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
+
+export async function gotoFirstEventType(page: Page) {
+  const $eventTypes = page.locator("[data-testid=event-types] > li a");
+  const firstEventTypeElement = $eventTypes.first();
+  await firstEventTypeElement.click();
+  await page.waitForURL((url) => {
+    return !!url.pathname.match(/\/event-types\/.+/);
+  });
+}
+
+export async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
+}
+
+export async function saveEventType(page: Page) {
+  await page.locator("[data-testid=update-eventtype]").click();
+}

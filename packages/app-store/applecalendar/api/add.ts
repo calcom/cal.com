@@ -44,8 +44,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (reason) {
-      logger.error("Could not add this caldav account", reason);
-      return res.status(500).json({ message: "Could not add this caldav account" });
+      logger.error("Could not add this apple calendar account", reason);
+      return res.status(500).json({ message: "unable_to_add_apple_calendar" });
     }
 
     return res

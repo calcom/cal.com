@@ -1,13 +1,14 @@
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import type { UnitTypeLongPlural } from "dayjs";
 import { Trans } from "next-i18next";
-import type { EventTypeSetup, FormValues } from "pages/event-types/[type]";
+import type { EventTypeSetup } from "pages/event-types/[type]";
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type z from "zod";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -42,11 +43,7 @@ export default function RequiresConfirmationController({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [requiresConfirmation]);
 
-  const { shouldLockDisableProps } = useLockedFieldsManager(
-    eventType,
-    t("locked_fields_admin_description"),
-    t("locked_fields_member_description")
-  );
+  const { shouldLockDisableProps } = useLockedFieldsManager({ eventType, translate: t, formMethods });
   const requiresConfirmationLockedProps = shouldLockDisableProps("requiresConfirmation");
 
   const options = [

@@ -7,8 +7,7 @@ import type { SyntheticEvent } from "react";
 import { useEffect, useState } from "react";
 
 import getStripe from "@calcom/app-store/stripepayment/lib/client";
-import { getBookingRedirectExtraParams, useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
-import { WEBAPP_URL } from "@calcom/lib/constants";
+import { useBookingSuccessRedirect } from "@calcom/lib/bookingSuccessRedirect";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, CheckboxField } from "@calcom/ui";
@@ -22,6 +21,7 @@ type Props = {
   eventType: {
     id: number;
     successRedirectUrl: EventType["successRedirectUrl"];
+    forwardParamsSuccessRedirect: EventType["forwardParamsSuccessRedirect"];
   };
   user: {
     username: string | null;
@@ -45,24 +45,6 @@ type States =
   | {
       status: "ok";
     };
-
-const getReturnUrl = (props: Props) => {
-  if (!props.eventType.successRedirectUrl) {
-    return `${WEBAPP_URL}/booking/${props.booking.uid}`;
-  }
-
-  const returnUrl = new URL(props.eventType.successRedirectUrl);
-  const queryParams = getBookingRedirectExtraParams(props.booking);
-
-  Object.entries(queryParams).forEach(([key, value]) => {
-    if (value === null || value === undefined) {
-      return;
-    }
-    returnUrl.searchParams.append(key, String(value));
-  });
-
-  return returnUrl.toString();
-};
 
 const PaymentForm = (props: Props) => {
   const {
@@ -96,6 +78,9 @@ const PaymentForm = (props: Props) => {
       uid: string;
       email: string | null;
       location?: string;
+      payment_intent?: string;
+      payment_intent_client_secret?: string;
+      redirect_status?: string;
     } = {
       uid: props.booking.uid,
       email: searchParams?.get("email"),
@@ -103,17 +88,23 @@ const PaymentForm = (props: Props) => {
     if (paymentOption === "HOLD" && "setupIntent" in props.payment.data) {
       payload = await stripe.confirmSetup({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
+      if (payload.setupIntent) {
+        params.payment_intent = payload.setupIntent.id;
+        params.payment_intent_client_secret = payload.setupIntent.client_secret || undefined;
+        params.redirect_status = payload.setupIntent.status;
+      }
     } else if (paymentOption === "ON_BOOKING") {
       payload = await stripe.confirmPayment({
         elements,
-        confirmParams: {
-          return_url: getReturnUrl(props),
-        },
+        redirect: "if_required",
       });
+      if (payload.paymentIntent) {
+        params.payment_intent = payload.paymentIntent.id;
+        params.payment_intent_client_secret = payload.paymentIntent.client_secret || undefined;
+        params.redirect_status = payload.paymentIntent.status;
+      }
     }
 
     if (payload?.error) {
@@ -134,6 +125,7 @@ const PaymentForm = (props: Props) => {
         successRedirectUrl: props.eventType.successRedirectUrl,
         query: params,
         booking: props.booking,
+        forwardParamsSuccessRedirect: props.eventType.forwardParamsSuccessRedirect,
       });
     }
   };

@@ -195,7 +195,11 @@ function getThemeProviderProps(props: {
 
   const isBookingPageThemeSupportRequired = themeSupport === ThemeSupport.Booking;
 
-  if ((isBookingPageThemeSupportRequired || props.isEmbedMode) && !props.themeBasis) {
+  if (
+    !process.env.NEXT_PUBLIC_IS_E2E &&
+    (isBookingPageThemeSupportRequired || props.isEmbedMode) &&
+    !props.themeBasis
+  ) {
     console.warn(
       "`themeBasis` is required for booking page theme support. Not providing it will cause theme flicker."
     );

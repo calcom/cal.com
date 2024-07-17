@@ -13,6 +13,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
@@ -23,7 +24,7 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import transformResponse from "../../lib/transformResponse";
-import type { Response, Route } from "../../types/types";
+import type { NonRouterRoute, Response } from "../../types/types";
 import { getServerSideProps } from "./getServerSideProps";
 
 type Props = inferSSRProps<typeof getServerSideProps>;
@@ -42,7 +43,7 @@ const useBrandColors = ({
 };
 
 function RoutingForm({ form, profile, ...restProps }: Props) {
-  const [customPageMessage, setCustomPageMessage] = useState<Route["action"]["value"]>("");
+  const [customPageMessage, setCustomPageMessage] = useState<NonRouterRoute["action"]["value"]>("");
   const formFillerIdRef = useRef(uuidv4());
   const isEmbed = useIsEmbed(restProps.isEmbed);
   useTheme(profile.theme);
@@ -58,7 +59,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
   // - like a network error
   // - or he abandoned booking flow in between
   const formFillerId = formFillerIdRef.current;
-  const decidedActionWithFormResponseRef = useRef<{ action: Route["action"]; response: Response }>();
+  const decidedActionWithFormResponseRef = useRef<{ action: NonRouterRoute["action"]; response: Response }>();
   const router = useRouter();
 
   const onSubmit = (response: Response) => {
@@ -98,7 +99,10 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
       }
       const allURLSearchParams = getUrlSearchParamsToForward(decidedActionWithFormResponse.response, fields);
       const decidedAction = decidedActionWithFormResponse.action;
-
+      sdkActionManager?.fire("routed", {
+        actionType: decidedAction.type,
+        actionValue: decidedAction.value,
+      });
       //TODO: Maybe take action after successful mutation
       if (decidedAction.type === "customPageMessage") {
         setCustomPageMessage(decidedAction.value);
@@ -112,7 +116,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
+        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");
@@ -151,7 +155,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
 
                   <form onSubmit={handleOnSubmit}>
                     <div className="mb-8">
-                      <h1 className="font-cal text-emphasis mb-1 text-xl font-bold tracking-wide">
+                      <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold tracking-wide">
                         {form.name}
                       </h1>
                       {form.description ? (

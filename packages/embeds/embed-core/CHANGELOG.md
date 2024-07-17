@@ -1,5 +1,17 @@
 # @calcom/embed-core
 
+## 1.5.0
+
+### Minor Changes
+
+- Added namespacing support throughout
+
+## 1.4.0
+
+### Minor Changes
+
+- Added a few more events
+
 ## 1.3.2
 
 ### Patch Changes

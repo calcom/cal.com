@@ -4,7 +4,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 type InputOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: NonNullable<TrpcSessionUser>["id"] };
   };
   input: {
     memberId: number;

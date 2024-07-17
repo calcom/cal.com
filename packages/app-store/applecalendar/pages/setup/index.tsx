@@ -51,19 +51,23 @@ export default function AppleCalendarSetup() {
               <Form
                 form={form}
                 handleSubmit={async (values) => {
-                  setErrorMessage("");
-                  const res = await fetch("/api/integrations/applecalendar/add", {
-                    method: "POST",
-                    body: JSON.stringify(values),
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                  });
-                  const json = await res.json();
-                  if (!res.ok) {
-                    setErrorMessage(json?.message || t("something_went_wrong"));
-                  } else {
-                    router.push(json.url);
+                  try {
+                    setErrorMessage("");
+                    const res = await fetch("/api/integrations/applecalendar/add", {
+                      method: "POST",
+                      body: JSON.stringify(values),
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    const json = await res.json();
+                    if (!res.ok) {
+                      setErrorMessage(t(json?.message) || t("something_went_wrong"));
+                    } else {
+                      router.push(json.url);
+                    }
+                  } catch (err) {
+                    setErrorMessage(t("unable_to_add_apple_calendar"));
                   }
                 }}>
                 <fieldset

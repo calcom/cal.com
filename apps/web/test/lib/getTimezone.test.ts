@@ -1,4 +1,4 @@
-import { expect, it } from "vitest";
+import { expect, beforeEach, afterEach, it, vi, describe } from "vitest";
 
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
 
@@ -33,12 +33,22 @@ const option = {
   altName: "Pacific Standard Time",
 };
 
-it("should return empty array for an empty string", () => {
-  expect(filterByCities("", cityData)).toMatchInlineSnapshot(`[]`);
-});
+describe("getTimezone", () => {
+  beforeEach(() => {
+    vi.useFakeTimers().setSystemTime(new Date("2020-01-01"));
+  });
 
-it("should filter cities for a valid city name", () => {
-  expect(filterByCities("San Francisco", cityData)).toMatchInlineSnapshot(`
+  afterEach(() => {
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+  });
+
+  it("should return empty array for an empty string", () => {
+    expect(filterByCities("", cityData)).toMatchInlineSnapshot(`[]`);
+  });
+
+  it("should filter cities for a valid city name", () => {
+    expect(filterByCities("San Francisco", cityData)).toMatchInlineSnapshot(`
     [
       {
         "city": "San Francisco",
@@ -58,10 +68,10 @@ it("should filter cities for a valid city name", () => {
       },
     ]
   `);
-});
+  });
 
-it("should return appropriate timezone(s) for a given city name array", () => {
-  expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
+  it("should return appropriate timezone(s) for a given city name array", () => {
+    expect(addCitiesToDropdown(cityData)).toMatchInlineSnapshot(`
     {
       "America/Argentina/Cordoba": "San Francisco",
       "America/El_Salvador": "San Francisco Gotera",
@@ -70,12 +80,17 @@ it("should return appropriate timezone(s) for a given city name array", () => {
       "America/Sao_Paulo": "Sao Francisco do Sul",
     }
   `);
-});
+  });
 
-it("should render city name as option label if cityData is not empty", () => {
-  expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -8:00"`);
-});
+  it("should render city name as option label if cityData is not empty", () => {
+    expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -8:00"`);
+    vi.setSystemTime(new Date("2020-06-01"));
+    expect(handleOptionLabel(option, cityData)).toMatchInlineSnapshot(`"San Francisco GMT -7:00"`);
+  });
 
-it("should return timezone as option label if cityData is empty", () => {
-  expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los Angeles GMT -8:00"`);
+  it("should return timezone as option label if cityData is empty", () => {
+    expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los Angeles GMT -8:00"`);
+    vi.setSystemTime(new Date("2020-06-01"));
+    expect(handleOptionLabel(option, [])).toMatchInlineSnapshot(`"America/Los Angeles GMT -7:00"`);
+  });
 });

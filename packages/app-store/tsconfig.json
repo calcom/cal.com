@@ -10,7 +10,8 @@
       "@lib/*": ["../../apps/web/lib/*"],
       "@prisma/client/*": ["@calcom/prisma/client/*"]
     },
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "experimentalDecorators": true
   },
   "include": [
     "next-env.d.ts",

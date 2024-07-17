@@ -11,7 +11,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, TextField } from "@calcom/ui";
-import { Check, ExternalLink, Loader } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 type EnterpriseLicenseFormValues = {
   licenseKey: string;
@@ -92,7 +92,7 @@ const EnterpriseLicense = (
         <div>
           <Button
             className="w-full justify-center text-lg"
-            EndIcon={ExternalLink}
+            EndIcon="external-link"
             href="https://console.cal.com"
             target="_blank">
             {t("purchase_license")}
@@ -122,9 +122,9 @@ const EnterpriseLicense = (
                 )}
                 addOnSuffix={
                   checkLicenseLoading ? (
-                    <Loader className="h-5 w-5 animate-spin" />
+                    <Icon name="loader" className="h-5 w-5 animate-spin" />
                   ) : errors.licenseKey === undefined && isDirty ? (
-                    <Check className="h-5 w-5 text-green-700" />
+                    <Icon name="check" className="h-5 w-5 text-green-700" />
                   ) : undefined
                 }
                 color={errors.licenseKey ? "warn" : ""}

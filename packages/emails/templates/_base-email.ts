@@ -9,6 +9,8 @@ import { serverConfig } from "@calcom/lib/serverConfig";
 import { setTestEmail } from "@calcom/lib/testEmails";
 import prisma from "@calcom/prisma";
 
+import { sanitizeDisplayName } from "../lib/sanitizeDisplayName";
+
 export default class BaseEmail {
   name = "";
 
@@ -46,10 +48,21 @@ export default class BaseEmail {
     }
 
     const payload = await this.getNodeMailerPayload();
+
+    const from = "from" in payload ? (payload.from as string) : "";
+    const to = "to" in payload ? (payload.to as string) : "";
+
+    const sanitizedFrom = sanitizeDisplayName(from);
+    const sanitizedTo = sanitizeDisplayName(to);
+
     const parseSubject = z.string().safeParse(payload?.subject);
     const payloadWithUnEscapedSubject = {
       headers: this.getMailerOptions().headers,
       ...payload,
+      ...{
+        from: sanitizedFrom,
+        to: sanitizedTo,
+      },
       ...(parseSubject.success && { subject: decodeHTML(parseSubject.data) }),
     };
     await new Promise((resolve, reject) =>

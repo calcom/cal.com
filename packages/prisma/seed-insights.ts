@@ -6,6 +6,18 @@ import dayjs from "@calcom/dayjs";
 import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
 import { BookingStatus } from "@calcom/prisma/enums";
 
+function getRandomRatingFeedback() {
+  const feedbacks = [
+    "Great chat!",
+    "Okay-ish",
+    "Quite Poor",
+    "Excellent chat!",
+    "Could be better",
+    "Wonderful!",
+  ];
+  return feedbacks[Math.floor(Math.random() * feedbacks.length)];
+}
+
 const shuffle = (
   booking: any,
   year: number,
@@ -61,6 +73,10 @@ const shuffle = (
     console.log({ randomEvent, usersIdsToPick });
     console.log("This should not happen");
   }
+
+  booking.rating = Math.floor(Math.random() * 5) + 1; // Generates a random rating from 1 to 5
+  booking.ratingFeedback = getRandomRatingFeedback(); // Random feedback from a predefined list
+  booking.noShowHost = Math.random() < 0.5;
 
   return booking;
 };

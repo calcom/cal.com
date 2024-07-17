@@ -8,7 +8,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Badge, Button, showToast } from "@calcom/ui";
-import { Info } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { albyCredentialKeysSchema } from "../../lib/albyCredentialKeysSchema";
 
@@ -169,9 +169,9 @@ function AlbySetupPage(props: IAlbySetupProps) {
 
             {/* TODO: remove when invoices are generated using user identifier */}
             <div className="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-              <Info className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be used to
-              generate invoices. If you update your lightning address, please disconnect and setup the Alby
-              app again.
+              <Icon name="info" className="mb-0.5 inline-flex h-4 w-4" /> Your Alby lightning address will be
+              used to generate invoices. If you update your lightning address, please disconnect and setup the
+              Alby app again.
             </div>
             <Link href="/apps/alby">
               <Button color="secondary">Go to App Store Listing</Button>

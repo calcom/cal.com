@@ -4,6 +4,7 @@ import type {
   Row,
   SortingState,
   VisibilityState,
+  Table as TableType,
 } from "@tanstack/react-table";
 import {
   flexRender,
@@ -30,8 +31,10 @@ export interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   searchKey?: string;
+  onSearch?: (value: string) => void;
   filterableItems?: FilterableItems;
   selectionOptions?: ActionItem<TData>[];
+  renderAboveSelection?: (table: TableType<TData>) => React.ReactNode;
   tableCTA?: React.ReactNode;
   isPending?: boolean;
   onRowMouseclick?: (row: Row<TData>) => void;
@@ -39,6 +42,7 @@ export interface DataTableProps<TData, TValue> {
   CTA?: React.ReactNode;
   tableOverlay?: React.ReactNode;
   variant?: "default" | "compact";
+  "data-testId"?: string;
 }
 
 export function DataTable<TData, TValue>({
@@ -52,9 +56,12 @@ export function DataTable<TData, TValue>({
   isPending,
   tableOverlay,
   variant,
+  renderAboveSelection,
   /** This should only really be used if you dont have actions in a row. */
+  onSearch,
   onRowMouseclick,
   onScroll,
+  ...rest
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -97,15 +104,16 @@ export function DataTable<TData, TValue>({
     virtualRows.length > 0 ? totalSize - (virtualRows?.[virtualRows.length - 1]?.end || 0) : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="relative space-y-4">
       <DataTableToolbar
         table={table}
         filterableItems={filterableItems}
         searchKey={searchKey}
+        onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div ref={tableContainerRef} onScroll={onScroll}>
-        <Table>
+      <div ref={tableContainerRef} onScroll={onScroll} data-testId={rest["data-testId"] ?? "data-table"}>
+        <Table data-testId="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -166,7 +174,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       {/* <DataTablePagination table={table} /> */}
-      <DataTableSelectionBar table={table} actions={selectionOptions} />
+      <DataTableSelectionBar
+        table={table}
+        actions={selectionOptions}
+        renderAboveSelection={renderAboveSelection}
+      />
     </div>
   );
 }

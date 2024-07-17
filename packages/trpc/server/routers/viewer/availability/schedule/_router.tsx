@@ -1,5 +1,6 @@
 import authedProcedure from "../../../../procedures/authedProcedure";
 import { router } from "../../../../trpc";
+import { ZBulkUpdateToDefaultAvailabilityInputSchema } from "./bulkUpdateDefaultAvailability.schema";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZScheduleDuplicateSchema } from "./duplicate.schema";
@@ -16,6 +17,7 @@ type ScheduleRouterHandlerCache = {
   duplicate?: typeof import("./duplicate.handler").duplicateHandler;
   getScheduleByUserId?: typeof import("./getScheduleByUserId.handler").getScheduleByUserIdHandler;
   getScheduleByEventSlug?: typeof import("./getScheduleByEventTypeSlug.handler").getScheduleByEventSlugHandler;
+  bulkUpdateToDefaultAvailability?: typeof import("./bulkUpdateDefaultAvailability.handler").bulkUpdateToDefaultAvailabilityHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: ScheduleRouterHandlerCache = {};
@@ -137,4 +139,22 @@ export const scheduleRouter = router({
       input,
     });
   }),
+  bulkUpdateToDefaultAvailability: authedProcedure
+    .input(ZBulkUpdateToDefaultAvailabilityInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
+        UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability = await import(
+          "./bulkUpdateDefaultAvailability.handler"
+        ).then((mod) => mod.bulkUpdateToDefaultAvailabilityHandler);
+      }
+
+      if (!UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.bulkUpdateToDefaultAvailability({
+        ctx,
+        input,
+      });
+    }),
 });

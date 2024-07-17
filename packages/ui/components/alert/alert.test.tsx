@@ -14,28 +14,28 @@ describe("Tests for Alert component", () => {
     expect(screen.getByText("Click Me")).toBeInTheDocument();
   });
 
-  test("Should render corresponding icon: error", () => {
+  test("Should render corresponding icon: error", async () => {
     render(<Alert severity="error" />);
-    expect(screen.getByTestId("x-circle")).toBeInTheDocument();
+    expect(await screen.findByTestId("circle-x")).toBeInTheDocument();
   });
 
-  test("Should render corresponding icon: warning", () => {
+  test("Should render corresponding icon: warning", async () => {
     render(<Alert severity="warning" />);
-    expect(screen.getByTestId("alert-triangle")).toBeInTheDocument();
+    expect(await screen.findByTestId("alert-triangle")).toBeInTheDocument();
   });
 
-  test("Should render corresponding icon: info", () => {
+  test("Should render corresponding icon: info", async () => {
     render(<Alert severity="info" />);
-    expect(screen.getByTestId("info")).toBeInTheDocument();
+    expect(await screen.findByTestId("info")).toBeInTheDocument();
   });
 
-  test("Should render corresponding icon: neutral", () => {
+  test("Should render corresponding icon: neutral", async () => {
     render(<Alert severity="neutral" />);
-    expect(screen.getByTestId("neutral")).toBeInTheDocument();
+    expect(await screen.findByTestId("neutral")).toBeInTheDocument();
   });
 
-  test("Should render corresponding icon: success", () => {
+  test("Should render corresponding icon: success", async () => {
     render(<Alert severity="success" />);
-    expect(screen.getByTestId("check-circle-2")).toBeInTheDocument();
+    expect(await screen.findByTestId("circle-check")).toBeInTheDocument();
   });
 });

@@ -19,12 +19,13 @@ test.describe("Workflow Tab - Event Type", () => {
         await assertListCount(3);
       });
 
-      test("Editing an existing workflow", async ({ workflowPage }) => {
+      test("Editing an existing workflow", async ({ workflowPage, page }) => {
         const { saveWorkflow, fillNameInput, editSelectedWorkflow, hasWorkflowInList } = workflowPage;
 
         await editSelectedWorkflow("Test Workflow");
         await fillNameInput("Edited Workflow");
         await saveWorkflow();
+        await page.getByTestId("go-back-button").click();
         await hasWorkflowInList("Edited Workflow");
       });
 
@@ -47,6 +48,7 @@ test.describe("Workflow Tab - Event Type", () => {
 
         await createWorkflow({ name: "A New Workflow", trigger: WorkflowTriggerEvents.NEW_EVENT });
         await page.goto(`/${user.username}/${eventType.slug}`);
+        await page.click('[data-testid="incrementMonth"]');
         await bookEventOnThisPage(page);
         await assertWorkflowReminders(eventType.id, 1);
       });

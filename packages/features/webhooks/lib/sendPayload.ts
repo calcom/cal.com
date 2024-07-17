@@ -2,6 +2,7 @@ import type { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
+import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -29,7 +30,23 @@ export type WithUTCOffsetType<T> = T & {
   attendees?: (Person & UTCOffset)[];
 };
 
+export type BookingNoShowUpdatedPayload = {
+  message: string;
+  bookingUid: string;
+  bookingId: number;
+  attendees: { email: string; noShow: boolean }[];
+};
+
+export type TranscriptionGeneratedPayload = {
+  downloadLinks?: {
+    transcription: TGetTranscriptAccessLink["transcription"];
+    recording: string;
+  };
+};
+
 export type WebhookDataType = CalendarEvent &
+  TranscriptionGeneratedPayload &
+  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
@@ -189,6 +206,11 @@ export const sendGenericWebhookPayload = async ({
   return _sendPayload(secretKey, webhook, body, "application/json");
 };
 
+export const createWebhookSignature = (params: { secret?: string | null; body: string }) =>
+  params.secret
+    ? createHmac("sha256", params.secret).update(`${params.body}`).digest("hex")
+    : "no-secret-provided";
+
 const _sendPayload = async (
   secretKey: string | null,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
@@ -200,15 +222,11 @@ const _sendPayload = async (
     throw new Error("Missing required elements to send webhook payload.");
   }
 
-  const secretSignature = secretKey
-    ? createHmac("sha256", secretKey).update(`${body}`).digest("hex")
-    : "no-secret-provided";
-
   const response = await fetch(subscriberUrl, {
     method: "POST",
     headers: {
       "Content-Type": contentType,
-      "X-Cal-Signature-256": secretSignature,
+      "X-Cal-Signature-256": createWebhookSignature({ secret: secretKey, body }),
     },
     redirect: "manual",
     body,

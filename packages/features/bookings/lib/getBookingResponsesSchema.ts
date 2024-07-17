@@ -90,6 +90,10 @@ function preprocess<T extends z.ZodType>({
             parsedValue = JSON.parse(value);
           } catch (e) {}
           newResponses[field.name] = parsedValue;
+        } else if (field.type === "phone") {
+          // + in URL could be replaced with space, so we need to replace it back
+          // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
+          newResponses[field.name] = value.replace(/^ +/, "+");
         } else {
           newResponses[field.name] = value;
         }
@@ -170,6 +174,12 @@ function preprocess<T extends z.ZodType>({
           }
 
           if (!emailsParsed.success) {
+            // If additional guests are shown but all inputs are empty then don't show any errors
+            if (bookingField.name === "guests" && value.every((email: string) => email === "")) {
+              // reset guests to empty array, otherwise it adds "" for every input
+              responses[bookingField.name] = [];
+              continue;
+            }
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               message: m("email_validation_error"),

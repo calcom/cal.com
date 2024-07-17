@@ -16,3 +16,12 @@ export type WorkingHours = {
   startTime: number;
   endTime: number;
 };
+
+export type TravelSchedule = {
+  id: number;
+  timeZone: string;
+  userId: number;
+  startDate: Date;
+  endDate: Date | null;
+  prevTimeZone: string | null;
+};

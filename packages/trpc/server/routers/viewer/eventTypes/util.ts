@@ -56,8 +56,7 @@ export const eventOwnerProcedure = authedProcedure
     })();
 
     if (!isAuthorized) {
-      console.warn(`User ${ctx.user.id} attempted to an access an event ${event.id} they do not own.`);
-      throw new TRPCError({ code: "UNAUTHORIZED" });
+      throw new TRPCError({ code: "FORBIDDEN" });
     }
 
     const isAllowed = (function () {

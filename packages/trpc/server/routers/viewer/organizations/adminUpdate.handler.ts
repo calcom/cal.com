@@ -17,10 +17,13 @@ type AdminUpdateOptions = {
 };
 
 export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
-  const { id, ...restInput } = input;
+  const { id, organizationSettings, ...restInput } = input;
   const existingOrg = await prisma.team.findUnique({
     where: {
       id: id,
+    },
+    include: {
+      organizationSettings: true,
     },
   });
 
@@ -32,10 +35,8 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
   }
 
   const { mergeMetadata } = getMetadataHelpers(teamMetadataSchema.unwrap(), existingOrg.metadata);
-  const data: Prisma.TeamUpdateArgs["data"] = {
-    ...restInput,
-    metadata: mergeMetadata({ ...restInput.metadata }),
-  };
+
+  const data: Prisma.TeamUpdateArgs["data"] = restInput;
 
   if (restInput.slug) {
     await throwIfSlugConflicts({ id, slug: restInput.slug });
@@ -49,16 +50,37 @@ export const adminUpdateHandler = async ({ input }: AdminUpdateOptions) => {
     data.metadata = mergeMetadata({
       // If we save slug, we don't need the requestedSlug anymore
       requestedSlug: undefined,
-      ...input.metadata,
     });
   }
 
-  const updatedOrganisation = await prisma.team.update({
-    where: { id },
-    data,
+  const updatedOrganization = await prisma.$transaction(async (tx) => {
+    const updatedOrganization = await tx.team.update({
+      where: { id },
+      data,
+    });
+
+    if (organizationSettings || existingOrg.organizationSettings) {
+      await tx.organizationSettings.update({
+        where: {
+          organizationId: updatedOrganization.id,
+        },
+        data: {
+          isOrganizationConfigured:
+            organizationSettings?.isOrganizationConfigured ||
+            existingOrg.organizationSettings?.isOrganizationConfigured,
+          isOrganizationVerified:
+            organizationSettings?.isOrganizationVerified ||
+            existingOrg.organizationSettings?.isOrganizationVerified,
+          isAdminReviewed: organizationSettings?.isAdminReviewed,
+          orgAutoAcceptEmail:
+            organizationSettings?.orgAutoAcceptEmail || existingOrg.organizationSettings?.orgAutoAcceptEmail,
+        },
+      });
+    }
+    return updatedOrganization;
   });
 
-  return updatedOrganisation;
+  return updatedOrganization;
 };
 
 export default adminUpdateHandler;
@@ -87,7 +109,7 @@ async function throwIfSlugConflicts({ id, slug }: { id: number; slug: string }) 
   // If foundOrg isn't same as the org being edited
   if (foundOrg.id !== id) {
     throw new HttpError({
-      message: "Organization with same slug already exists",
+      message: "Organization or a Team with same slug already exists",
       statusCode: 400,
     });
   }

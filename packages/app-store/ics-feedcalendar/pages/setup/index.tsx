@@ -4,8 +4,8 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, TextField } from "@calcom/ui";
-import { Plus, Trash } from "@calcom/ui/components/icon";
+import { Alert, Button, Form, TextField, CheckboxField } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
 export default function ICSFeedSetup() {
   const { t } = useLocale();
@@ -17,6 +17,7 @@ export default function ICSFeedSetup() {
   const [urls, setUrls] = useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
+  const [skipWriting, setSkipWriting] = useState(false); // track if user opts out of writing to any calendar
 
   return (
     <div className="bg-emphasis flex h-screen">
@@ -24,7 +25,11 @@ export default function ICSFeedSetup() {
         <div className="flex flex-col space-y-5 md:flex-row md:space-x-5 md:space-y-0">
           <div>
             {/* eslint-disable @next/next/no-img-element */}
-            <img src="/api/app-store/ics-feed/icon.svg" alt="ICS Feed" className="h-12 w-12 max-w-2xl" />
+            <img
+              src="/api/app-store/ics-feedcalendar/icon.svg"
+              alt="ICS Feed"
+              className="h-12 w-12 max-w-2xl"
+            />
           </div>
           <div className="flex w-10/12 flex-col">
             <h1 className="text-default">{t("connect_ics_feed")}</h1>
@@ -34,9 +39,9 @@ export default function ICSFeedSetup() {
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/ics-feed/add", {
+                  const res = await fetch("/api/integrations/ics-feedcalendar/add", {
                     method: "POST",
-                    body: JSON.stringify({ urls }),
+                    body: JSON.stringify({ urls, skipWriting }),
                     headers: {
                       "Content-Type": "application/json",
                     },
@@ -71,7 +76,7 @@ export default function ICSFeedSetup() {
                           type="button"
                           className="mb-2 h-min text-sm"
                           onClick={() => setUrls((urls) => urls.filter((_, ii) => i !== ii))}>
-                          <Trash size={16} />
+                          <Icon name="trash" size={16} />
                         </button>
                       ) : null}
                     </div>
@@ -84,8 +89,26 @@ export default function ICSFeedSetup() {
                   onClick={() => {
                     setUrls((urls) => urls.concat(""));
                   }}>
-                  {t("add")} <Plus size={16} />
+                  {t("add")} <Icon className="inline" name="plus" size={16} />
                 </button>
+
+                <div className="mt-3 flex items-center">
+                  <CheckboxField
+                    type="checkbox"
+                    id="skipWriting"
+                    checked={skipWriting}
+                    onChange={(e) => setSkipWriting(e.target.checked)}
+                    className="mr-2"
+                    description={t("skip_writing_to_calendar")}
+                  />
+                </div>
+
+                <Alert
+                  className="mt-3"
+                  severity="info"
+                  title={t("notes")}
+                  message={t("skip_writing_to_calendar_note")}
+                />
 
                 {errorMessage && (
                   <Alert

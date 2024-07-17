@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/clic",
+  "version": "0.1.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Create, List and Interact with Your Cal.com links and connections easily."
+}

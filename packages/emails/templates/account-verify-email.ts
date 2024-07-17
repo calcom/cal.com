@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME, COMPANY_NAME } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -12,6 +12,7 @@ export type EmailVerifyLink = {
     email: string;
   };
   verificationEmailLink: string;
+  isSecondaryEmailVerification?: boolean;
 };
 
 export default class AccountVerifyEmail extends BaseEmail {
@@ -24,10 +25,13 @@ export default class AccountVerifyEmail extends BaseEmail {
   }
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
+    const emailSubjectKey = this.verifyAccountInput.isSecondaryEmailVerification
+      ? "verify_email_email_header"
+      : "verify_email_subject";
     return {
       to: `${this.verifyAccountInput.user.name} <${this.verifyAccountInput.user.email}>`,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.verifyAccountInput.language("verify_email_subject", {
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
+      subject: this.verifyAccountInput.language(emailSubjectKey, {
         appName: APP_NAME,
       }),
       html: await renderEmail("VerifyAccountEmail", this.verifyAccountInput),

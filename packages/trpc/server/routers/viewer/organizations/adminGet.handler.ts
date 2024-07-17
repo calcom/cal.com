@@ -23,6 +23,7 @@ export const adminGetHandler = async ({ input }: AdminGetOptions) => {
       name: true,
       slug: true,
       metadata: true,
+      isOrganization: true,
       members: {
         where: {
           role: "OWNER",
@@ -37,6 +38,13 @@ export const adminGetHandler = async ({ input }: AdminGetOptions) => {
           },
         },
       },
+      organizationSettings: {
+        select: {
+          isOrganizationConfigured: true,
+          isOrganizationVerified: true,
+          orgAutoAcceptEmail: true,
+        },
+      },
     },
   });
 
@@ -47,7 +55,7 @@ export const adminGetHandler = async ({ input }: AdminGetOptions) => {
     });
   }
   const parsedMetadata = teamMetadataSchema.parse(org.metadata);
-  if (!parsedMetadata?.isOrganization) {
+  if (!org?.isOrganization) {
     throw new TRPCError({
       code: "NOT_FOUND",
       message: "Organization not found",

@@ -22,9 +22,16 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
     },
     include: {
       team: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          logoUrl: true,
+          isOrganization: true,
+          metadata: true,
           inviteTokens: true,
           parent: true,
+          parentId: true,
         },
       },
     },
@@ -34,17 +41,15 @@ export const listHandler = async ({ ctx, input }: ListOptions) => {
   return memberships
     .filter((mmship) => {
       if (input?.includeOrgs) return true;
-      const metadata = teamMetadataSchema.parse(mmship.team.metadata);
-      return !metadata?.isOrganization;
+      return !mmship.team.isOrganization;
     })
-    .map(({ team: { inviteTokens, logo, logoUrl, ..._team }, ...membership }) => ({
+    .map(({ team: { inviteTokens, ...team }, ...membership }) => ({
       role: membership.role,
       accepted: membership.accepted,
-      ..._team,
-      logo: logoUrl || logo,
-      metadata: teamMetadataSchema.parse(_team.metadata),
+      ...team,
+      metadata: teamMetadataSchema.parse(team.metadata),
       /** To prevent breaking we only return non-email attached token here, if we have one */
-      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${_team.id}`),
+      inviteToken: inviteTokens.find((token) => token.identifier === `invite-link-for-teamId-${team.id}`),
     }));
 };
 

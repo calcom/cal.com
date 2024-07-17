@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 import type { PrismaClient } from "@calcom/prisma";
+import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
 
 import { getSerializableForm } from "../lib/getSerializableForm";
@@ -93,7 +94,31 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
       data: input,
     });
 
-    await onFormSubmission(serializableFormWithFields, dbFormResponse.response as Response);
+    const settings = RoutingFormSettings.parse(form.settings);
+    let userWithEmails: string[] = [];
+    if (form.teamId && settings?.sendUpdatesTo?.length) {
+      const userEmails = await prisma.membership.findMany({
+        where: {
+          teamId: form.teamId,
+          userId: {
+            in: settings.sendUpdatesTo,
+          },
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+      userWithEmails = userEmails.map((userEmail) => userEmail.user.email);
+    }
+
+    await onFormSubmission(
+      { ...serializableFormWithFields, userWithEmails },
+      dbFormResponse.response as Response
+    );
     return dbFormResponse;
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {

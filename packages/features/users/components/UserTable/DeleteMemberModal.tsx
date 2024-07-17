@@ -10,7 +10,7 @@ import type { State, Action } from "./UserListTable";
 export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch: Dispatch<Action> }) {
   const { t } = useLocale();
   const { data: session } = useSession();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
     onSuccess() {
       // We don't need to wait for invalidate to finish
@@ -43,8 +43,8 @@ export function DeleteMemberModal({ state, dispatch }: { state: State; dispatch:
           if (!session?.user.org?.id || !state?.deleteMember?.user?.id) return;
 
           removeMemberMutation.mutate({
-            teamId: session?.user.org.id,
-            memberId: state?.deleteMember?.user.id,
+            teamIds: [session?.user.org.id],
+            memberIds: [state?.deleteMember?.user.id],
             isOrg: true,
           });
         }}>

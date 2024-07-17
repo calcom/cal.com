@@ -1,6 +1,4 @@
-import * as SliderPrimitive from "@radix-ui/react-slider";
-import type { FormEvent } from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import Cropper from "react-easy-crop";
 
 import checkIfItFallbackImage from "@calcom/lib/checkIfItFallbackImage";
@@ -9,57 +7,10 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonColor } from "../..";
 import { Button, Dialog, DialogClose, DialogContent, DialogTrigger, DialogFooter } from "../..";
 import { showToast } from "../toast";
-
-type ReadAsMethod = "readAsText" | "readAsDataURL" | "readAsArrayBuffer" | "readAsBinaryString";
-
-type UseFileReaderProps = {
-  method: ReadAsMethod;
-  onLoad?: (result: unknown) => void;
-};
-
-type Area = {
-  width: number;
-  height: number;
-  x: number;
-  y: number;
-};
+import { useFileReader, createImage, Slider } from "./Common";
+import type { FileEvent, Area } from "./Common";
 
 const MAX_IMAGE_SIZE = 512;
-
-const useFileReader = (options: UseFileReaderProps) => {
-  const { method = "readAsText", onLoad } = options;
-  const [file, setFile] = useState<File | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<DOMException | null>(null);
-  const [result, setResult] = useState<string | ArrayBuffer | null>(null);
-
-  useEffect(() => {
-    if (!file && result) {
-      setResult(null);
-    }
-  }, [file, result]);
-
-  useEffect(() => {
-    if (!file) {
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadstart = () => setLoading(true);
-    reader.onloadend = () => setLoading(false);
-    reader.onerror = () => setError(reader.error);
-
-    reader.onload = (e: ProgressEvent<FileReader>) => {
-      setResult(e.target?.result ?? null);
-      if (onLoad) {
-        onLoad(e.target?.result ?? null);
-      }
-    };
-    reader[method](file);
-  }, [file, method, onLoad]);
-
-  return [{ result, error, file, loading }, setFile] as const;
-};
 
 type ImageUploaderProps = {
   id: string;
@@ -70,11 +21,8 @@ type ImageUploaderProps = {
   triggerButtonColor?: ButtonColor;
   uploadInstruction?: string;
   disabled?: boolean;
+  testId?: string;
 };
-
-interface FileEvent<T = Element> extends FormEvent<T> {
-  target: EventTarget & T;
-}
 
 // This is separate to prevent loading the component until file upload
 function CropContainer({
@@ -126,6 +74,7 @@ export default function ImageUploader({
   imageSrc,
   uploadInstruction,
   disabled = false,
+  testId,
 }: ImageUploaderProps) {
   const { t } = useLocale();
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -178,7 +127,7 @@ export default function ImageUploader({
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
-          data-testid="open-upload-avatar-dialog"
+          data-testid={testId ? `open-upload-${testId}-dialog` : "open-upload-avatar-dialog"}
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
         </Button>
@@ -200,7 +149,7 @@ export default function ImageUploader({
             )}
             {result && <CropContainer imageSrc={result as string} onCropComplete={setCroppedAreaPixels} />}
             <label
-              data-testid="open-upload-image-filechooser"
+              data-testid={testId ? `open-upload-${testId}-filechooser` : "open-upload-image-filechooser"}
               className="bg-subtle hover:bg-muted hover:text-emphasis border-subtle text-default mt-8 cursor-pointer rounded-sm border px-3 py-1 text-xs font-medium leading-4 focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:ring-offset-1">
               <input
                 onInput={onInputFile}
@@ -220,7 +169,7 @@ export default function ImageUploader({
         <DialogFooter className="relative">
           <DialogClose color="minimal">{t("cancel")}</DialogClose>
           <DialogClose
-            data-testid="upload-avatar"
+            data-testid={testId ? `upload-${testId}` : "upload-avatar"}
             color="primary"
             onClick={() => showCroppedImage(croppedAreaPixels)}>
             {t("save")}
@@ -231,15 +180,6 @@ export default function ImageUploader({
   );
 }
 
-const createImage = (url: string) =>
-  new Promise<HTMLImageElement>((resolve, reject) => {
-    const image = new Image();
-    image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", (error) => reject(error));
-    image.setAttribute("crossOrigin", "anonymous"); // needed to avoid cross-origin issues on CodeSandbox
-    image.src = url;
-  });
-
 async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
@@ -248,6 +188,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
 
   const maxSize = Math.max(image.naturalWidth, image.naturalHeight);
   const resizeRatio = MAX_IMAGE_SIZE / maxSize < 1 ? Math.max(MAX_IMAGE_SIZE / maxSize, 0.75) : 1;
+
   // huh, what? - Having this turned off actually improves image quality as otherwise anti-aliasing is applied
   // this reduces the quality of the image overall because it anti-aliases the existing, copied image; blur results
   ctx.imageSmoothingEnabled = false;
@@ -279,26 +220,3 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<string>
 
   return canvas.toDataURL("image/png");
 }
-
-const Slider = ({
-  value,
-  label,
-  changeHandler,
-  ...props
-}: Omit<SliderPrimitive.SliderProps, "value"> & {
-  value: number;
-  label: string;
-  changeHandler: (value: number) => void;
-}) => (
-  <SliderPrimitive.Root
-    className="slider mt-2"
-    value={[value]}
-    aria-label={label}
-    onValueChange={(value: number[]) => changeHandler(value[0] ?? value)}
-    {...props}>
-    <SliderPrimitive.Track className="slider-track">
-      <SliderPrimitive.Range className="slider-range" />
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="slider-thumb" />
-  </SliderPrimitive.Root>
-);

@@ -6,12 +6,11 @@ import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dropdown,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuItem,
   DropdownItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@calcom/ui";
-import { Plus } from "@calcom/ui/components/icon";
 
 import { QueryCell } from "@lib/QueryCell";
 
@@ -42,7 +41,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
         return (
           <Dropdown modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button StartIcon={Plus} color="secondary" {...(isPending && { loading: isPending })}>
+              <Button StartIcon="plus" color="secondary" {...(isPending && { loading: isPending })}>
                 {t("add")}
               </Button>
             </DropdownMenuTrigger>
@@ -50,7 +49,7 @@ const AdditionalCalendarSelector = ({ isPending }: AdditionalCalendarSelectorPro
               {options.map((data) => (
                 <DropdownMenuItem key={data.slug} className="focus:outline-none">
                   {data.slug === "add-new" ? (
-                    <DropdownItem StartIcon={Plus} color="minimal" href="/apps/categories/calendar">
+                    <DropdownItem StartIcon="plus" color="minimal" href="/apps/categories/calendar">
                       {t("install_new_calendar_app")}
                     </DropdownItem>
                   ) : (

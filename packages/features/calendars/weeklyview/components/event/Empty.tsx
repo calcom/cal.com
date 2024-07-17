@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { classNames } from "@calcom/lib";
 
+import { OutOfOfficeInSlots } from "../../../../bookings/Booker/components/OutOfOfficeInSlots";
 import { useCalendarStore } from "../../state/store";
 import type { CalendarAvailableTimeslots } from "../../types/state";
 import type { GridCellToDateProps } from "../../utils";
@@ -26,9 +27,9 @@ export function EmptyCell(props: EmptyCellProps) {
     timezone: props.timezone,
   });
 
-  const minuesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
+  const minutesFromStart = (cellToDate.hour() - props.startHour) * 60 + cellToDate.minute();
 
-  return <Cell topOffsetMinutes={minuesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
+  return <Cell topOffsetMinutes={minutesFromStart} timeSlot={dayjs(cellToDate).tz(props.timezone)} />;
 }
 
 type AvailableCellProps = {
@@ -39,32 +40,91 @@ type AvailableCellProps = {
 
 export function AvailableCellsForDay({ availableSlots, day, startHour }: AvailableCellProps) {
   const { timezone } = useTimePreferences();
+  const date = dayjs(day);
+  const dateFormatted = date.format("YYYY-MM-DD");
+  const slotsForToday = availableSlots && availableSlots[dateFormatted];
 
-  const slotsForToday = availableSlots && availableSlots[dayjs(day).format("YYYY-MM-DD")];
+  const slots = useMemo(() => {
+    const calculatedSlots: {
+      slot: CalendarAvailableTimeslots[string][number];
+      topOffsetMinutes: number;
+      firstSlot?: CalendarAvailableTimeslots[string][number];
+      timezone?: string;
+    }[] = [];
 
-  const slots = useMemo(
-    () =>
-      slotsForToday?.map((slot) => ({
-        slot,
-        topOffsetMinutes:
-          (dayjs(slot.start).tz(timezone).hour() - startHour) * 60 + dayjs(slot.start).tz(timezone).minute(),
-      })),
-    [slotsForToday, startHour, timezone]
-  );
+    // first and last slot for ooo to display range correctly in week view
+    let firstSlotIndex = -1;
+    let lastSlotIndex = -1;
+    let areAllSlotsAway = true;
+    let startEndTimeDuration = 0;
 
-  if (!availableSlots) return null;
+    slotsForToday?.forEach((slot, index) => {
+      const startTime = dayjs(slot.start).tz(timezone);
+      const topOffsetMinutes = (startTime.hour() - startHour) * 60 + startTime.minute();
+      calculatedSlots.push({ slot, topOffsetMinutes });
+
+      if (!slot.away) {
+        areAllSlotsAway = false;
+      } else {
+        if (firstSlotIndex === -1) {
+          firstSlotIndex = index;
+        }
+        lastSlotIndex = index;
+      }
+    });
+
+    if (areAllSlotsAway && firstSlotIndex !== -1) {
+      const firstSlot = slotsForToday[firstSlotIndex];
+      const lastSlot = slotsForToday[lastSlotIndex];
+      startEndTimeDuration = dayjs(lastSlot.end).diff(dayjs(firstSlot.start), "minutes");
+
+      if (firstSlot.toUser == null) {
+        return null;
+      }
+
+      // This will return null if all slots are away and the first slot has no user
+      return {
+        slots: calculatedSlots,
+        startEndTimeDuration,
+        firstSlot,
+        timezone,
+      };
+    }
+
+    return { slots: calculatedSlots, startEndTimeDuration };
+  }, [slotsForToday, startHour, timezone]);
+
+  if (slots === null) return null;
+
+  if (slots.startEndTimeDuration) {
+    const { firstSlot, startEndTimeDuration } = slots;
+    return (
+      <CustomCell
+        timeSlot={dayjs(firstSlot?.start).tz(slots.timezone)}
+        topOffsetMinutes={slots.slots[0]?.topOffsetMinutes}
+        startEndTimeDuration={startEndTimeDuration}>
+        <OutOfOfficeInSlots
+          fromUser={firstSlot?.fromUser}
+          toUser={firstSlot?.toUser}
+          reason={firstSlot?.reason}
+          emoji={firstSlot?.emoji}
+          borderDashed={false}
+          date={dateFormatted}
+          className="pb-0"
+        />
+      </CustomCell>
+    );
+  }
 
   return (
     <>
-      {slots?.map((slot, index) => {
-        return (
-          <Cell
-            key={index}
-            timeSlot={dayjs(slot.slot.start).tz(timezone)}
-            topOffsetMinutes={slot.topOffsetMinutes}
-          />
-        );
-      })}
+      {slots.slots.map((slot, index) => (
+        <Cell
+          key={index}
+          timeSlot={dayjs(slot.slot.start).tz(timezone)}
+          topOffsetMinutes={slot.topOffsetMinutes}
+        />
+      ))}
     </>
   );
 }
@@ -122,6 +182,36 @@ function Cell({ isDisabled, topOffsetMinutes, timeSlot }: CellProps) {
           <div className="overflow-ellipsis leading-[0]">{timeSlot.format(timeFormat)}</div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CustomCell({
+  timeSlot,
+  children,
+  topOffsetMinutes,
+  startEndTimeDuration,
+}: CellProps & { children: React.ReactNode; startEndTimeDuration?: number }) {
+  return (
+    <div
+      className={classNames(
+        "bg-default dark:bg-muted group absolute z-[65] flex w-[calc(100%-1px)] items-center justify-center"
+      )}
+      data-slot={timeSlot.toISOString()}
+      style={{
+        top: topOffsetMinutes ? `calc(${topOffsetMinutes}*var(--one-minute-height))` : undefined,
+        overflow: "visible",
+      }}>
+      <div
+        className={classNames(
+          "dark:border-emphasis bg-default dark:bg-muted cursor-pointer rounded-[4px] p-[6px] text-xs font-semibold dark:text-white"
+        )}
+        style={{
+          height: `calc(${startEndTimeDuration}*var(--one-minute-height) - 2px)`,
+          width: "calc(100% - 2px)",
+        }}>
+        {children}
+      </div>
     </div>
   );
 }

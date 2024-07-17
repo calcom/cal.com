@@ -4,8 +4,10 @@ import calcomSignupHandler from "@calcom/feature-auth/signup/handlers/calcomHand
 import selfHostedSignupHandler from "@calcom/feature-auth/signup/handlers/selfHostedHandler";
 import { type RequestWithUsernameStatus } from "@calcom/features/auth/signup/username";
 import { IS_PREMIUM_USERNAME_ENABLED } from "@calcom/lib/constants";
+import getIP from "@calcom/lib/getIP";
 import { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
+import { checkCfTurnstileToken } from "@calcom/lib/server/checkCfTurnstileToken";
 import { signupSchema } from "@calcom/prisma/zod-utils";
 
 function ensureSignupIsEnabled(req: RequestWithUsernameStatus) {
@@ -36,8 +38,14 @@ function ensureReqIsPost(req: RequestWithUsernameStatus) {
 }
 
 export default async function handler(req: RequestWithUsernameStatus, res: NextApiResponse) {
+  const remoteIp = getIP(req);
   // Use a try catch instead of returning res every time
   try {
+    await checkCfTurnstileToken({
+      token: req.headers["cf-access-token"] as string,
+      remoteIp,
+    });
+
     ensureReqIsPost(req);
     ensureSignupIsEnabled(req);
 

@@ -6,6 +6,8 @@ import { Controller, useForm } from "react-hook-form";
 
 import SectionBottomActions from "@calcom/features/settings/SectionBottomActions";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import { classNames } from "@calcom/lib";
+import { formatLocalizedDateTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { localeOptions } from "@calcom/lib/i18n";
 import { nameOfDay } from "@calcom/lib/weekday";
@@ -26,6 +28,29 @@ import {
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+import TravelScheduleModal from "@components/settings/TravelScheduleModal";
+
+export type FormValues = {
+  locale: {
+    value: string;
+    label: string;
+  };
+  timeZone: string;
+  timeFormat: {
+    value: number;
+    label: string | number;
+  };
+  weekStart: {
+    value: string;
+    label: string;
+  };
+  travelSchedules: {
+    id?: number;
+    startDate: Date;
+    endDate?: Date;
+    timeZone: string;
+  }[];
+};
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -46,24 +71,34 @@ const SkeletonLoader = ({ title, description }: { title: string; description: st
 interface GeneralViewProps {
   localeProp: string;
   user: RouterOutputs["viewer"]["me"];
+  travelSchedules: RouterOutputs["viewer"]["getTravelSchedules"];
 }
 
 const GeneralQueryView = () => {
   const { t } = useLocale();
 
   const { data: user, isPending } = trpc.viewer.me.useQuery();
-  if (isPending) return <SkeletonLoader title={t("general")} description={t("general_description")} />;
+
+  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
+    trpc.viewer.getTravelSchedules.useQuery();
+
+  if (isPending || isPendingTravelSchedules)
+    return <SkeletonLoader title={t("general")} description={t("general_description")} />;
   if (!user) {
     throw new Error(t("something_went_wrong"));
   }
-  return <GeneralView user={user} localeProp={user.locale} />;
+  return <GeneralView user={user} travelSchedules={travelSchedules || []} localeProp={user.locale} />;
 };
 
-const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
+const GeneralView = ({ localeProp, user, travelSchedules }: GeneralViewProps) => {
   const utils = trpc.useContext();
-  const { t } = useLocale();
+  const {
+    t,
+    i18n: { language },
+  } = useLocale();
   const { update } = useSession();
   const [isUpdateBtnLoading, setIsUpdateBtnLoading] = useState<boolean>(false);
+  const [isTZScheduleOpen, setIsTZScheduleOpen] = useState<boolean>(false);
 
   const mutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async (res) => {
@@ -100,7 +135,7 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
     { value: "Saturday", label: nameOfDay(localeProp, 6) },
   ];
 
-  const formMethods = useForm({
+  const formMethods = useForm<FormValues>({
     defaultValues: {
       locale: {
         value: localeProp || "",
@@ -115,6 +150,15 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
         value: user.weekStart,
         label: nameOfDay(localeProp, user.weekStart === "Sunday" ? 0 : 1),
       },
+      travelSchedules:
+        travelSchedules.map((schedule) => {
+          return {
+            id: schedule.id,
+            startDate: schedule.startDate,
+            endDate: schedule.endDate ?? undefined,
+            timeZone: schedule.timeZone,
+          };
+        }) || [],
     },
   });
   const {
@@ -131,6 +175,8 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
   const [isReceiveMonthlyDigestEmailChecked, setIsReceiveMonthlyDigestEmailChecked] = useState(
     !!user.receiveMonthlyDigestEmail
   );
+
+  const watchedTzSchedules = formMethods.watch("travelSchedules");
 
   return (
     <div>
@@ -181,6 +227,64 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
               </>
             )}
           />
+          {!watchedTzSchedules.length ? (
+            <Button color="minimal" className="mt-2" onClick={() => setIsTZScheduleOpen(true)}>
+              {t("schedule_timezone_change")}
+            </Button>
+          ) : (
+            <div className="bg-muted border-subtle mt-2 rounded-md border p-4">
+              <Label>{t("travel_schedule")}</Label>
+              <div className="dark:bg-darkgray-100 border-subtle mt-4 rounded-md border bg-white text-sm">
+                {watchedTzSchedules.map((schedule, index) => {
+                  return (
+                    <div
+                      className={classNames(
+                        "flex items-center p-4",
+                        index !== 0 ? "border-subtle border-t" : ""
+                      )}
+                      key={index}>
+                      <div>
+                        <div className="text-emphasis font-semibold">{`${formatLocalizedDateTime(
+                          schedule.startDate,
+                          { day: "numeric", month: "long" },
+                          language
+                        )} ${
+                          schedule.endDate
+                            ? `- ${formatLocalizedDateTime(
+                                schedule.endDate,
+                                { day: "numeric", month: "long" },
+                                language
+                              )}`
+                            : ``
+                        }`}</div>
+                        <div className="text-subtle">{schedule.timeZone.replace(/_/g, " ")}</div>
+                      </div>
+                      <Button
+                        color="secondary"
+                        className="ml-auto"
+                        variant="icon"
+                        StartIcon="trash-2"
+                        onClick={() => {
+                          const updatedSchedules = watchedTzSchedules.filter(
+                            (s, filterIndex) => filterIndex !== index
+                          );
+                          formMethods.setValue("travelSchedules", updatedSchedules, { shouldDirty: true });
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <Button
+                StartIcon="plus"
+                color="secondary"
+                className="mt-4"
+                onClick={() => setIsTZScheduleOpen(true)}>
+                {t("add")}
+              </Button>
+            </div>
+          )}
+
           <Controller
             name="timeFormat"
             control={formMethods.control}
@@ -266,6 +370,12 @@ const GeneralView = ({ localeProp, user }: GeneralViewProps) => {
           mutation.mutate({ receiveMonthlyDigestEmail: checked });
         }}
         switchContainerClassName="mt-6"
+      />
+      <TravelScheduleModal
+        open={isTZScheduleOpen}
+        onOpenChange={() => setIsTZScheduleOpen(false)}
+        setValue={formMethods.setValue}
+        existingSchedules={formMethods.getValues("travelSchedules") ?? []}
       />
     </div>
   );

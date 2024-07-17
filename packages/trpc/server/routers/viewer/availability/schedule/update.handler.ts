@@ -1,4 +1,4 @@
-import { transformScheduleToAvailabilityForClient } from "@calcom/lib";
+import { transformScheduleToAvailabilityForAtom } from "@calcom/lib";
 import { getAvailabilityFromSchedule } from "@calcom/lib/availability";
 import { hasEditPermissionForUserID } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
@@ -9,9 +9,10 @@ import type { TrpcSessionUser } from "../../../../trpc";
 import { setupDefaultSchedule } from "../util";
 import type { TUpdateInputSchema } from "./update.schema";
 
+type User = NonNullable<TrpcSessionUser>;
 type UpdateOptions = {
   ctx: {
-    user: NonNullable<TrpcSessionUser>;
+    user: { id: User["id"]; defaultScheduleId: User["defaultScheduleId"]; timeZone: User["timeZone"] };
   };
   input: TUpdateInputSchema;
 };
@@ -117,7 +118,7 @@ export const updateHandler = async ({ input, ctx }: UpdateOptions) => {
     },
   });
 
-  const userAvailability = transformScheduleToAvailabilityForClient(schedule);
+  const userAvailability = transformScheduleToAvailabilityForAtom(schedule);
 
   return {
     schedule,

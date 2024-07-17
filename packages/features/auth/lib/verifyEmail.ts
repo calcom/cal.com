@@ -19,15 +19,29 @@ interface VerifyEmailType {
   username?: string;
   email: string;
   language?: string;
+  secondaryEmailId?: number;
+  isVerifyingEmail?: boolean;
+  isPlatform?: boolean;
 }
 
-export const sendEmailVerification = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerification = async ({
+  email,
+  language,
+  username,
+  secondaryEmailId,
+  isPlatform = false,
+}: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
   const emailVerification = await getFeatureFlag(prisma, "email-verification");
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
+    return { ok: true, skipped: true };
+  }
+
+  if (isPlatform) {
+    log.warn("Skipping Email verification");
     return { ok: true, skipped: true };
   }
 
@@ -41,6 +55,7 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       identifier: email,
       token,
       expires: new Date(Date.now() + 24 * 3600 * 1000), // +1 day
+      secondaryEmailId: secondaryEmailId || null,
     },
   });
 
@@ -55,12 +70,18 @@ export const sendEmailVerification = async ({ email, language, username }: Verif
       email,
       name: username,
     },
+    isSecondaryEmailVerification: !!secondaryEmailId,
   });
 
   return { ok: true, skipped: false };
 };
 
-export const sendEmailVerificationByCode = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerificationByCode = async ({
+  email,
+  language,
+  username,
+  isVerifyingEmail,
+}: VerifyEmailType) => {
   const translation = await getTranslation(language ?? "en", "common");
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -76,6 +97,7 @@ export const sendEmailVerificationByCode = async ({ email, language, username }:
       email,
       name: username,
     },
+    isVerifyingEmail,
   });
 
   return { ok: true, skipped: false };

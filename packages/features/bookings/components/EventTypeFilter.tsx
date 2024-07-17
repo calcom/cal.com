@@ -2,15 +2,13 @@ import { useSession } from "next-auth/react";
 import { Fragment, useMemo } from "react";
 
 import {
-  FilterCheckboxFieldsContainer,
   FilterCheckboxField,
+  FilterCheckboxFieldsContainer,
 } from "@calcom/features/filters/components/TeamsFilter";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { AnimatedPopover } from "@calcom/ui";
-import { Divider } from "@calcom/ui";
-import { Link } from "@calcom/ui/components/icon";
+import { AnimatedPopover, Divider, Icon } from "@calcom/ui";
 
 import { groupBy } from "../groupBy";
 import { useFilterQuery } from "../lib/useFilterQuery";
@@ -72,7 +70,7 @@ export const EventTypeFilter = () => {
         <FilterCheckboxFieldsContainer>
           <FilterCheckboxField
             id="all"
-            icon={<Link className="h-4 w-4" />}
+            icon={<Icon name="link" className="h-4 w-4" />}
             checked={!query.eventTypeIds?.length}
             onChange={removeAllQueryParams}
             label={t("all_event_types_filter_label")}
