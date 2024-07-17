@@ -137,7 +137,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
 
   const verifyCode = useVerifyCode({
     onSuccess: () => {
-      if (bookerForm.formEmail) return;
+      if (!bookerForm.formEmail) return;
 
       verifyEmail.setVerifiedEmail(bookerForm?.formEmail ?? null);
       verifyEmail.setEmailVerificationModalVisible(false);
