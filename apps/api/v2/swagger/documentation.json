@@ -33,6 +33,16 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -416,6 +426,16 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -809,11 +829,32 @@
     "/v2/organizations/{orgId}/teams": {
       "get": {
         "operationId": "OrganizationsTeamsController_getAllTeams",
+        "summary": "Get all the teams of an organization.",
         "parameters": [
           {
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -825,7 +866,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamsOutputResponseDto"
                 }
               }
             }
@@ -837,6 +878,7 @@
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
+        "summary": "Create a team for an organization.",
         "parameters": [
           {
             "name": "orgId",
@@ -863,7 +905,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -877,6 +919,7 @@
     "/v2/organizations/{orgId}/teams/{teamId}": {
       "get": {
         "operationId": "OrganizationsTeamsController_getTeam",
+        "summary": "Get a team of the organization by ID.",
         "parameters": [],
         "responses": {
           "200": {
@@ -884,7 +927,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -896,6 +939,7 @@
       },
       "delete": {
         "operationId": "OrganizationsTeamsController_deleteTeam",
+        "summary": "Delete a team of the organization by ID.",
         "parameters": [
           {
             "name": "orgId",
@@ -920,7 +964,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -932,6 +976,7 @@
       },
       "patch": {
         "operationId": "OrganizationsTeamsController_updateTeam",
+        "summary": "Update a team of the organization by ID.",
         "parameters": [
           {
             "name": "orgId",
@@ -966,7 +1011,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
                 }
               }
             }
@@ -985,6 +1030,26 @@
             "name": "orgId",
             "required": true,
             "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
             "schema": {
               "type": "number"
             }
@@ -1020,6 +1085,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -1122,6 +1197,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1172,6 +1257,168 @@
         },
         "tags": [
           "Organizations Schedules"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users": {
+      "get": {
+        "operationId": "OrganizationsUsersController_getOrganizationsUsers",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetOrganizationsUsersInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersController_updateOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersController_deleteOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
         ]
       }
     },
@@ -1287,6 +1534,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -1892,6 +2149,46 @@
               "application/json": {
                 "schema": {
                   "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Bookings"
+        ]
+      }
+    },
+    "/v2/bookings/{bookingUid}/mark-no-show": {
+      "post": {
+        "operationId": "BookingsController_markNoShow",
+        "parameters": [
+          {
+            "name": "bookingUid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkNoShowInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkNoShowOutput"
                 }
               }
             }
@@ -3700,6 +3997,125 @@
           "data"
         ]
       },
+      "OrgTeamOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "parentId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "isOrganization": {
+            "type": "boolean"
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean",
+            "default": false
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      },
+      "OrgTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OrgTeamOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OrgTeamOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateOrgTeamDto": {
         "type": "object",
         "properties": {
@@ -3909,6 +4325,57 @@
           "data"
         ]
       },
+      "CreateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
+      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -3957,6 +4424,52 @@
           "data"
         ]
       },
+      "UpdateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        }
+      },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -3994,6 +4507,106 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "GetOrganizationsUsersInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "object",
+            "description": "The email address or an array of email addresses to filter by"
+          }
+        }
+      },
+      "CreateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "object",
+            "nullable": true,
+            "default": "en"
+          },
+          "organizationRole": {
+            "type": "object",
+            "default": "MEMBER"
+          },
+          "autoAccept": {
+            "type": "object",
+            "default": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "weekday": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "organizationRole",
+          "autoAccept",
+          "email"
+        ]
+      },
+      "UpdateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
+      },
+      "GetDefaultScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "CreateAvailabilityInput_2024_04_15": {
@@ -4291,6 +4904,66 @@
         "required": [
           "status",
           "data"
+        ]
+      },
+      "UpdateScheduleInput_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dateOverrides": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule"
         ]
       },
       "EventTypeModel_2024_04_15": {
@@ -5459,6 +6132,63 @@
           "allRemainingBookings",
           "cancellationReason",
           "seatReferenceUid"
+        ]
+      },
+      "MarkNoShowInput": {
+        "type": "object",
+        "properties": {
+          "noShowHost": {
+            "type": "boolean"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        }
+      },
+      "HandleMarkNoShowData": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "noShowHost": {
+            "type": "boolean"
+          },
+          "messageKey": {
+            "type": "string"
+          },
+          "attendees": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
+      "MarkNoShowOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/HandleMarkNoShowData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
         ]
       },
       "ReserveSlotInput": {
