@@ -307,6 +307,7 @@ export class EventTypeRepository {
           isFixed: true,
           userId: true,
           priority: true,
+          scheduleId: true,
         },
       },
       userId: true,
