@@ -206,9 +206,7 @@ export class CalendarsController {
 
     return {
       status: SUCCESS_STATUS,
-      data: {
-        ...deletedCredentials,
-      },
+      data: deletedCredentials,
     };
   }
 }

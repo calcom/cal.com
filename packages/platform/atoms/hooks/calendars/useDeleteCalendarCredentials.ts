@@ -7,13 +7,13 @@ import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
 
-interface IUseCancelBooking {
+interface IUseDeleteCalendarCredentials {
   onSuccess?: (res: ApiResponse) => void;
   onError?: (err: ApiErrorResponse | Error) => void;
 }
 
 export const useDeleteCalendarCredentials = (
-  { onSuccess, onError }: IUseCancelBooking = {
+  { onSuccess, onError }: IUseDeleteCalendarCredentials = {
     onSuccess: () => {
       return;
     },
