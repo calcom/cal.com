@@ -21,8 +21,6 @@ import { SetupAvailability } from "@components/getting-started/steps-views/Setup
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
 
-ge;
-
 export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
 const INITIAL_STEP = "user-settings";
