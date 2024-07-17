@@ -3,6 +3,7 @@ import { AppModule } from "@/app.module";
 import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_04_15/constants/constants";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
+import { Locales } from "@/lib/enums/locales";
 import {
   CreateUserResponse,
   UserReturned,
@@ -141,6 +142,7 @@ describe("OAuth Client Users Endpoints", () => {
         timeZone: userTimeZone,
         weekStart: "Monday",
         timeFormat: 24,
+        locale: Locales.FR,
       };
 
       const response = await request(app.getHttpServer())
@@ -163,6 +165,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data.user.timeZone).toEqual(requestBody.timeZone);
       expect(responseBody.data.user.weekStart).toEqual(requestBody.weekStart);
       expect(responseBody.data.user.timeFormat).toEqual(requestBody.timeFormat);
+      expect(responseBody.data.user.locale).toEqual(requestBody.locale);
       expect(responseBody.data.accessToken).toBeDefined();
       expect(responseBody.data.refreshToken).toBeDefined();
 
@@ -234,7 +237,7 @@ describe("OAuth Client Users Endpoints", () => {
 
     it(`/PUT/:id`, async () => {
       const userUpdatedEmail = "pineapple-pizza@gmail.com";
-      const body: UpdateManagedUserInput = { email: userUpdatedEmail };
+      const body: UpdateManagedUserInput = { email: userUpdatedEmail, locale: Locales.PT_BR };
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v2/oauth-clients/${oAuthClient.id}/users/${postResponseData.user.id}`)
@@ -248,6 +251,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.status).toEqual(SUCCESS_STATUS);
       expect(responseBody.data).toBeDefined();
       expect(responseBody.data.email).toEqual(getOAuthUserEmail(oAuthClient.id, userUpdatedEmail));
+      expect(responseBody.data.locale).toEqual(Locales.PT_BR);
     });
 
     it(`/DELETE/:id`, () => {
