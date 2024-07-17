@@ -37,7 +37,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...bookingMinimalSelect,
       eventType: {
         select: {
-          minimumRescheduleNotice: true,
+          minimumUpdateNotice: true,
           users: {
             select: {
               username: true,
@@ -83,7 +83,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const rescheduleDate = dayjs().utc(true);
   const reschduleEndDate = dayjs(booking.startTime).subtract(
-    booking.eventType?.minimumRescheduleNotice || 0,
+    booking.eventType?.minimumUpdateNotice || 0,
     "minute"
   );
   const canReschdule = rescheduleDate.isBefore(reschduleEndDate);

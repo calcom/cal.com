@@ -699,7 +699,7 @@ export default function Success(props: PageProps) {
                               uid: bookingInfo?.uid,
                               title: bookingInfo?.title,
                               id: bookingInfo?.id,
-                              minimumCancelNotice: bookingInfo?.eventType?.minimumCancelNotice,
+                              minimumUpdateNotice: bookingInfo?.eventType?.minimumUpdateNotice,
                               startTime: bookingInfo?.startTime,
                             }}
                             profile={{ name: props.profile.name, slug: props.profile.slug }}

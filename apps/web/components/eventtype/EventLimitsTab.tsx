@@ -200,8 +200,7 @@ function RollingLimitRadioItem({
 
 type MinimumNoticeInputProps =
   | UseFormRegisterReturn<"minimumBookingNotice">
-  | UseFormRegisterReturn<"minimumRescheduleNotice">
-  | UseFormRegisterReturn<"minimumCancelNotice">;
+  | UseFormRegisterReturn<"minimumUpdateNotice">;
 
 const MinimumNoticeInput = React.forwardRef<HTMLInputElement, Omit<MinimumNoticeInputProps, "ref">>(
   function MinimumNoticeInput({ ...passThroughProps }, ref) {
@@ -303,12 +302,16 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
+  const minimumUpdateNoticeLocked = shouldLockDisableProps("minimumUpdateNotice");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [minimumUpdateNoticeToggle, setMinimumUpdateNoticeToggle] = useState(
+    formMethods.getValues("minimumUpdateNotice") > 0
+  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -439,29 +442,34 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             />
           </div>
         </div>
-        <div className="flex flex-col space-y-4 lg:flex-row lg:space-x-4 lg:space-y-0">
-          <div className="w-full">
-            <Label htmlFor="minimumRescheduleNotice">
-              {t("minimum_rescheduling_notice")}
-              {shouldLockIndicator("minimumRescheduleNotice")}
-            </Label>
+      </div>
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+          minimumUpdateNoticeToggle && "rounded-b-none"
+        )}
+        childrenClassName="lg:ml-0"
+        title={t("minimum_update_notice")}
+        description={t("minimum_update_notice_description")}
+        {...minimumUpdateNoticeLocked}
+        checked={minimumUpdateNoticeToggle}
+        onCheckedChange={(active) => {
+          setMinimumUpdateNoticeToggle(active);
+          if (!active) {
+            formMethods.setValue("minimumUpdateNotice", 0, { shouldDirty: true });
+          }
+        }}>
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+          <div className="max-w-80">
             <MinimumNoticeInput
-              disabled={shouldLockDisableProps("minimumRescheduleNotice").disabled}
-              {...formMethods.register("minimumRescheduleNotice")}
-            />
-          </div>
-          <div className="w-full">
-            <Label htmlFor="minimumCancelNotice">
-              {t("minimum_cancelation_notice")}
-              {shouldLockIndicator("minimumCancelNotice")}
-            </Label>
-            <MinimumNoticeInput
-              disabled={shouldLockDisableProps("minimumCancelNotice").disabled}
-              {...formMethods.register("minimumCancelNotice")}
+              disabled={shouldLockDisableProps("minimumUpdateNotice").disabled}
+              {...formMethods.register("minimumUpdateNotice", { setValueAs: (value) => Number(value) })}
             />
           </div>
         </div>
-      </div>
+      </SettingsToggle>
       <Controller
         name="bookingLimits"
         render={({ field: { value } }) => {

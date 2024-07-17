@@ -16,7 +16,7 @@ type Props = {
     title?: string;
     uid?: string;
     id?: number;
-    minimumCancelNotice?: number;
+    minimumUpdateNotice?: number;
     startTime?: Date;
   };
   profile: {
@@ -58,9 +58,9 @@ export default function CancelBooking(props: Props) {
   }, []);
 
   const canCancel = useMemo(() => {
-    if (!!booking.minimumCancelNotice && !!booking.startTime) {
+    if (!!booking.minimumUpdateNotice && !!booking.startTime) {
       const cancelDate = dayjs().utc(true);
-      const reschduleEndDate = dayjs(booking.startTime).subtract(booking.minimumCancelNotice, "minute");
+      const reschduleEndDate = dayjs(booking.startTime).subtract(booking.minimumUpdateNotice, "minute");
       return cancelDate.isBefore(reschduleEndDate);
     }
     return true;
