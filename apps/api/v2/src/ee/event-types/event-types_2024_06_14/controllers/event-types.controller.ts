@@ -77,7 +77,6 @@ export class EventTypesController_2024_06_14 {
   }
 
   @Get("/")
-  @Permissions([EVENT_TYPE_READ])
   async getEventTypes(
     @Query() queryParams: GetEventTypesQuery_2024_06_14
   ): Promise<GetEventTypesOutput_2024_06_14> {
