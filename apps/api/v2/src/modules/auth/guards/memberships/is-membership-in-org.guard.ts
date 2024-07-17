@@ -32,15 +32,11 @@ export class IsMembershipInOrg implements CanActivate {
       Number(membershipId)
     );
 
-    if (membership) {
-      request.membership = membership;
-      return true;
-    }
-
     if (!membership) {
       throw new NotFoundException(`Membership (${membershipId}) not found.`);
     }
 
-    return false;
+    request.membership = membership;
+    return true;
   }
 }

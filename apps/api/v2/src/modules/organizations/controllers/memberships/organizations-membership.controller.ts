@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { GetMembership } from "@/modules/auth/decorators/get-membership/get-membership.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
@@ -31,6 +32,7 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
+import { Membership } from "@calcom/prisma/client";
 
 @Controller({
   path: "/v2/organizations/:orgId/memberships",
@@ -79,10 +81,9 @@ export class OrganizationsMembershipsController {
   @Get("/:membershipId")
   async getUserSchedule(
     @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("membershipId", ParseIntPipe) membershipId: number
+    @Param("membershipId", ParseIntPipe) membershipId: number,
+    @GetMembership() membership: Membership
   ): Promise<GetOrgMembership> {
-    const membership = await this.organizationsMembershipService.getOrgMembership(orgId, membershipId);
-
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
@@ -97,9 +98,10 @@ export class OrganizationsMembershipsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number
   ): Promise<DeleteOrgMembership> {
-    await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
+    const membership = await this.organizationsMembershipService.deleteOrgMembership(orgId, membershipId);
     return {
       status: SUCCESS_STATUS,
+      data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
     };
   }
 
@@ -109,7 +111,7 @@ export class OrganizationsMembershipsController {
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
-    @Body() body: CreateOrgMembershipDto
+    @Body() body: Partial<CreateOrgMembershipDto>
   ): Promise<UpdateOrgMembership> {
     const membership = await this.organizationsMembershipService.updateOrgMembership(
       orgId,

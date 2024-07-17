@@ -31,17 +31,21 @@ export class OrganizationsMembershipRepository {
     });
   }
 
-  async updateOrgMembership(organizationId: number, membershipId: number, data: CreateOrgMembershipDto) {
+  async updateOrgMembership(
+    organizationId: number,
+    membershipId: number,
+    data: Partial<CreateOrgMembershipDto>
+  ) {
     return this.dbWrite.prisma.membership.update({
       data: { ...data },
       where: { id: membershipId, teamId: organizationId },
     });
   }
 
-  async findOrgMembershipsPaginated(organizationTeamsIds: number[], skip: number, take: number) {
+  async findOrgMembershipsPaginated(organizationId: number, skip: number, take: number) {
     return this.dbRead.prisma.membership.findMany({
       where: {
-        teamId: { in: organizationTeamsIds },
+        teamId: organizationId,
       },
       skip,
       take,

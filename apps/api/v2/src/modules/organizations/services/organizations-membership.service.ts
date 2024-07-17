@@ -19,9 +19,8 @@ export class OrganizationsMembershipService {
   }
 
   async getPaginatedOrgMemberships(organizationId: number, skip = 0, take = 250) {
-    const organizationTeamsIds = await this.organizationsTeamsRepository.findOrgTeams(organizationId);
     const memberships = await this.organizationsMembershipRepository.findOrgMembershipsPaginated(
-      organizationTeamsIds,
+      organizationId,
       skip,
       take
     );
@@ -36,7 +35,11 @@ export class OrganizationsMembershipService {
     return memberships;
   }
 
-  async updateOrgMembership(organizationId: number, membershipId: number, data: CreateOrgMembershipDto) {
+  async updateOrgMembership(
+    organizationId: number,
+    membershipId: number,
+    data: Partial<CreateOrgMembershipDto>
+  ) {
     const membership = await this.organizationsMembershipRepository.updateOrgMembership(
       organizationId,
       membershipId,
