@@ -6,7 +6,7 @@ import { SelectedCalendarsInputDto } from "@/modules/selected-calendars/controll
 import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Body, Controller, Post, UseGuards, Delete, NotFoundException } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Delete, NotFoundException, Query } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -50,10 +50,10 @@ export class SelectedCalendarsController {
   @Delete("/")
   @UseGuards(ApiAuthGuard)
   async removeSelectedCalendar(
-    @Body() input: SelectedCalendarsInputDto,
+    @Query() queryParams: SelectedCalendarsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
-    const { integration, externalId, credentialId } = input;
+    const { integration, externalId, credentialId } = queryParams;
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
     if (!credential) {
       throw new NotFoundException(`Credentials not found`);
