@@ -4,7 +4,7 @@ import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
@@ -18,7 +18,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
   path: "/v2/me",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(AccessTokenGuard, PermissionsGuard)
+@UseGuards(ApiAuthGuard, PermissionsGuard)
 @DocsTags("Me")
 export class MeController {
   constructor(

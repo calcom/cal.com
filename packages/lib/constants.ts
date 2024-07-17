@@ -28,6 +28,7 @@ export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
 
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)
@@ -165,3 +166,11 @@ export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
 export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
   : `https://app.cal.com/sparkles.svg`;
+
+export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/start-recording.svg`
+  : `https://app.cal.com/start-recording.svg`;
+
+export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/stop-recording.svg`
+  : `https://app.cal.com/stop-recording.svg`;

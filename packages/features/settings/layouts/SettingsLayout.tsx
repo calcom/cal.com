@@ -59,7 +59,6 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
       { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: hide this if they have an organisation
       { name: "admin_api", href: "/settings/organizations/admin-api" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -84,10 +83,6 @@ const tabs: VerticalTabItemProps[] = [
       {
         name: "privacy",
         href: "/settings/organizations/privacy",
-      },
-      {
-        name: "appearance",
-        href: "/settings/organizations/appearance",
       },
       {
         name: "billing",
@@ -149,7 +144,7 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
+const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
@@ -162,6 +157,9 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
+        if (!!session.data?.user?.org?.id) {
+          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
+        }
         return {
           ...tab,
           name: user?.name || "my_account",
@@ -187,6 +185,9 @@ const useTabs = () => {
         const filtered = tab?.children?.filter(
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
         );
+        return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/developer" && !!orgBranding) {
+        const filtered = tab?.children?.filter((childTab) => childTab.name !== "admin_api");
         return { ...tab, children: filtered };
       }
       return tab;

@@ -8,11 +8,9 @@ import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import {
-  getBookingData,
-  getCustomInputsResponses,
-  getEventTypesFromDB,
-} from "@calcom/features/bookings/lib/handleNewBooking";
+import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking";
+import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
@@ -194,12 +192,26 @@ async function handler(req: NextApiRequest) {
   const newBooking = await prisma.booking.create(createBookingObj);
 
   // Create Instant Meeting Token
+
   const token = randomBytes(32).toString("hex");
+
+  const eventTypeWithExpiryTimeOffset = await prisma.eventType.findUniqueOrThrow({
+    where: {
+      id: req.body.eventTypeId,
+    },
+    select: {
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+    },
+  });
+
+  const instantMeetingExpiryTimeOffsetInSeconds =
+    eventTypeWithExpiryTimeOffset?.instantMeetingExpiryTimeOffsetInSeconds ?? 90;
+
   const instantMeetingToken = await prisma.instantMeetingToken.create({
     data: {
       token,
-      // 90 Seconds
-      expires: new Date(new Date().getTime() + 1000 * 90),
+      // current time + offset Seconds
+      expires: new Date(new Date().getTime() + 1000 * instantMeetingExpiryTimeOffsetInSeconds),
       team: {
         connect: {
           id: eventType.team.id,

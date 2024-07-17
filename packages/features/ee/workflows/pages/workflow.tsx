@@ -2,8 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -21,6 +20,7 @@ import {
   WorkflowTriggerEvents,
 } from "@calcom/prisma/enums";
 import { stringOrNumber } from "@calcom/prisma/zod-utils";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
 import type { MultiSelectCheckboxesOptionType as Option } from "@calcom/ui";
@@ -39,6 +39,7 @@ export type FormValues = {
   trigger: WorkflowTriggerEvents;
   time?: number;
   timeUnit?: TimeUnit;
+  selectAll: boolean;
 };
 
 export function onlyLettersNumbersSpaces(str: string) {
@@ -78,6 +79,7 @@ const formSchema = z.object({
       senderName: z.string().optional().nullable(),
     })
     .array(),
+  selectAll: z.boolean(),
 });
 
 const querySchema = z.object({
@@ -87,10 +89,9 @@ const querySchema = z.object({
 function WorkflowPage() {
   const { t, i18n } = useLocale();
   const session = useSession();
-  const router = useRouter();
   const params = useParamsWithFallback();
 
-  const [selectedEventTypes, setSelectedEventTypes] = useState<Option[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<Option[]>([]);
   const [isAllDataLoaded, setIsAllDataLoaded] = useState(false);
   const [isMixedEventType, setIsMixedEventType] = useState(false); //for old event types before team workflows existed
 
@@ -109,7 +110,7 @@ function WorkflowPage() {
     data: workflow,
     isError,
     error,
-    isPending,
+    isPending: isPendingWorkflow,
   } = trpc.viewer.workflows.get.useQuery(
     { id: +workflowId },
     {
@@ -128,33 +129,126 @@ function WorkflowPage() {
     teamId: workflow?.team?.id,
   });
 
+  const { data: eventTypeGroups, isPending: isPendingEventTypes } =
+    trpc.viewer.eventTypes.getByViewer.useQuery();
+
+  const { data: otherTeams, isPending: isPendingTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
+  const isOrg = workflow?.team?.isOrganization ?? false;
+
+  const teamId = workflow?.teamId ?? undefined;
+
+  const profileTeamsOptions =
+    isOrg && eventTypeGroups
+      ? eventTypeGroups?.profiles
+          .filter((profile) => !!profile.teamId)
+          .map((profile) => {
+            return {
+              value: String(profile.teamId) || "",
+              label: profile.name || profile.slug || "",
+            };
+          })
+      : [];
+
+  const otherTeamsOptions = otherTeams
+    ? otherTeams.map((team) => {
+        return {
+          value: String(team.id) || "",
+          label: team.name || team.slug || "",
+        };
+      })
+    : [];
+
+  const teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
+
+  const eventTypeOptions = useMemo(
+    () =>
+      eventTypeGroups?.eventTypeGroups.reduce((options, group) => {
+        /** don't show team event types for user workflow */
+        if (!teamId && group.teamId) return options;
+        /** only show correct team event types for team workflows */
+        if (teamId && teamId !== group.teamId) return options;
+        return [
+          ...options,
+          ...group.eventTypes
+            .filter(
+              (evType) =>
+                !evType.metadata?.managedEventConfig ||
+                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+                !!teamId
+            )
+            .map((eventType) => ({
+              value: String(eventType.id),
+              label: `${eventType.title} ${
+                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+              }`,
+            })),
+        ];
+      }, [] as Option[]) || [],
+    [eventTypeGroups]
+  );
+
+  let allEventTypeOptions = eventTypeOptions;
+  const distinctEventTypes = new Set();
+
+  if (!teamId && isMixedEventType) {
+    allEventTypeOptions = [...eventTypeOptions, ...selectedOptions];
+    allEventTypeOptions = allEventTypeOptions.filter((option) => {
+      const duplicate = distinctEventTypes.has(option.value);
+      distinctEventTypes.add(option.value);
+      return !duplicate;
+    });
+  }
+
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
 
+  const isPending = isPendingWorkflow || isPendingEventTypes || isPendingTeams;
+
   useEffect(() => {
-    if (workflow && !isPending) {
-      if (workflow.userId && workflow.activeOn.find((active) => !!active.eventType.teamId)) {
+    if (!isPending) {
+      setFormData(workflow);
+    }
+  }, [isPending]);
+
+  function setFormData(workflowData: RouterOutputs["viewer"]["workflows"]["get"] | undefined) {
+    if (workflowData) {
+      if (workflowData.userId && workflowData.activeOn.find((active) => !!active.eventType.teamId)) {
         setIsMixedEventType(true);
       }
-      setSelectedEventTypes(
-        workflow.activeOn.flatMap((active) => {
-          if (workflow.teamId && active.eventType.parentId) return [];
-          return {
-            value: String(active.eventType.id),
-            label: active.eventType.title,
-          };
-        }) || []
-      );
-      const activeOn = workflow.activeOn
-        ? workflow.activeOn.map((active) => ({
-            value: active.eventType.id.toString(),
-            label: active.eventType.slug,
-          }))
-        : undefined;
+      let activeOn;
 
+      if (workflowData.isActiveOnAll) {
+        activeOn = isOrg ? teamOptions : allEventTypeOptions;
+      } else {
+        if (isOrg) {
+          activeOn = workflowData.activeOnTeams.flatMap((active) => {
+            return {
+              value: String(active.team.id) || "",
+              label: active.team.slug || "",
+            };
+          });
+          setSelectedOptions(activeOn || []);
+        } else {
+          setSelectedOptions(
+            workflowData.activeOn.flatMap((active) => {
+              if (workflowData.teamId && active.eventType.parentId) return [];
+              return {
+                value: String(active.eventType.id),
+                label: active.eventType.title,
+              };
+            }) || []
+          );
+          activeOn = workflowData.activeOn
+            ? workflowData.activeOn.map((active) => ({
+                value: active.eventType.id.toString(),
+                label: active.eventType.slug,
+              }))
+            : undefined;
+        }
+      }
       //translate dynamic variables into local language
-      const steps = workflow.steps.map((step) => {
+      const steps = workflowData.steps.map((step) => {
         const updatedStep = {
           ...step,
           senderName: step.sender,
@@ -175,21 +269,22 @@ function WorkflowPage() {
         return updatedStep;
       });
 
-      form.setValue("name", workflow.name);
+      form.setValue("name", workflowData.name);
       form.setValue("steps", steps);
-      form.setValue("trigger", workflow.trigger);
-      form.setValue("time", workflow.time || undefined);
-      form.setValue("timeUnit", workflow.timeUnit || undefined);
+      form.setValue("trigger", workflowData.trigger);
+      form.setValue("time", workflowData.time || undefined);
+      form.setValue("timeUnit", workflowData.timeUnit || undefined);
       form.setValue("activeOn", activeOn || []);
+      form.setValue("selectAll", workflowData.isActiveOnAll ?? false);
       setIsAllDataLoaded(true);
     }
-  }, [isPending]);
+  }
 
   const updateMutation = trpc.viewer.workflows.update.useMutation({
     onSuccess: async ({ workflow }) => {
       if (workflow) {
         utils.viewer.workflows.get.setData({ id: +workflow.id }, workflow);
-
+        setFormData(workflow);
         showToast(
           t("workflow_updated_successfully", {
             workflowName: workflow.name,
@@ -197,7 +292,6 @@ function WorkflowPage() {
           "success"
         );
       }
-      router.push("/workflows");
     },
     onError: (err) => {
       if (err instanceof HttpError) {
@@ -213,7 +307,7 @@ function WorkflowPage() {
         <Form
           form={form}
           handleSubmit={async (values) => {
-            let activeOnEventTypeIds: number[] = [];
+            let activeOnIds: number[] = [];
             let isEmpty = false;
             let isVerified = true;
 
@@ -272,18 +366,21 @@ function WorkflowPage() {
 
             if (!isEmpty && isVerified) {
               if (values.activeOn) {
-                activeOnEventTypeIds = values.activeOn.map((option) => {
-                  return parseInt(option.value, 10);
-                });
+                activeOnIds = values.activeOn
+                  .filter((option) => option.value !== "all")
+                  .map((option) => {
+                    return parseInt(option.value, 10);
+                  });
               }
               updateMutation.mutate({
                 id: workflowId,
                 name: values.name,
-                activeOn: activeOnEventTypeIds,
+                activeOn: activeOnIds,
                 steps: values.steps,
                 trigger: values.trigger,
                 time: values.time || null,
                 timeUnit: values.timeUnit || null,
+                isActiveOnAll: values.selectAll || false,
               });
               utils.viewer.workflows.getVerifiedNumbers.invalidate();
             }
@@ -328,11 +425,12 @@ function WorkflowPage() {
                       form={form}
                       workflowId={+workflowId}
                       user={user}
-                      selectedEventTypes={selectedEventTypes}
-                      setSelectedEventTypes={setSelectedEventTypes}
+                      selectedOptions={selectedOptions}
+                      setSelectedOptions={setSelectedOptions}
                       teamId={workflow ? workflow.teamId || undefined : undefined}
-                      isMixedEventType={isMixedEventType}
                       readOnly={readOnly}
+                      isOrg={isOrg}
+                      allOptions={isOrg ? teamOptions : allEventTypeOptions}
                     />
                   </>
                 ) : (

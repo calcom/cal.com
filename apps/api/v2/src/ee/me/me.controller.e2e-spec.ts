@@ -13,7 +13,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { withAccessTokenAuth } from "test/utils/withAccessTokenAuth";
+import { withApiAuth } from "test/utils/withApiAuth";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { UserResponse } from "@calcom/platform-types";
@@ -30,7 +30,7 @@ describe("Me Endpoints", () => {
     let user: User;
 
     beforeAll(async () => {
-      const moduleRef = await withAccessTokenAuth(
+      const moduleRef = await withApiAuth(
         userEmail,
         Test.createTestingModule({
           imports: [AppModule, PrismaModule, UsersModule, TokensModule, SchedulesModule_2024_04_15],
