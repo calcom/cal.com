@@ -463,6 +463,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
         }}>
         <div className="border-subtle rounded-b-lg border border-t-0 p-6">
           <div className="max-w-80">
+            <Label htmlFor="minimumUpdateNotice">{t("minimum_booking_notice")}</Label>
             <MinimumNoticeInput
               disabled={shouldLockDisableProps("minimumUpdateNotice").disabled}
               {...formMethods.register("minimumUpdateNotice", { setValueAs: (value) => Number(value) })}

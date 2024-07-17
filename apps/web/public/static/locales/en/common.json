@@ -882,7 +882,7 @@
   "add_new_event_type": "Add a new event type",
   "new_event_type_to_book_description": "Create a new event type for people to book times with.",
   "length": "Length",
-  "minimum_booking_notice": "Minimum Booking Notice",
+  "minimum_booking_notice": "Minimum Notice",
   "minimum_update_notice": "Minimum cancellation/rescheduling notice time",
   "minimum_update_notice_description": "Prevent people from cancelling or rescheduling too close to the event time",
   "offset_toggle": "Offset start times",
