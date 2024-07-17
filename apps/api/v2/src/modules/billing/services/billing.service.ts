@@ -144,6 +144,9 @@ export class BillingService {
    * Removing an attendee from a booking does not cancel the usage increment job.
    */
   async cancelUsageByBookingUid(bookingUid: string) {
+    if (this.configService.get("e2e")) {
+      return void 0;
+    }
     const job = await this.billingQueue.getJob(`increment-${bookingUid}`);
     if (job) {
       await job.remove();

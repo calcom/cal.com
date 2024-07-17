@@ -1,5 +1,5 @@
-import { EventTypesModule } from "@/ee/event-types/event-types.module";
-import { SchedulesModule } from "@/ee/schedules/schedules.module";
+import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
+import { SchedulesModule_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/schedules.module";
 import { AuthModule } from "@/modules/auth/auth.module";
 import { BillingModule } from "@/modules/billing/billing.module";
 import { MembershipsModule } from "@/modules/memberships/memberships.module";
@@ -28,11 +28,11 @@ import { Global, Module } from "@nestjs/common";
     UsersModule,
     TokensModule,
     MembershipsModule,
-    EventTypesModule,
+    EventTypesModule_2024_04_15,
     OrganizationsModule,
     StripeModule,
     BillingModule,
-    SchedulesModule,
+    SchedulesModule_2024_04_15,
   ],
   providers: [
     OAuthClientRepository,

@@ -13,8 +13,8 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
 import { Membership, PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
+import { PlatformBillingRepositoryFixture } from "test/fixtures/repository/billing.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
-import { BillingRepositoryFixture } from "test/fixtures/repository/platform-billing.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { NextAuthMockStrategy } from "test/mocks/next-auth-mock.strategy";
@@ -63,6 +63,8 @@ describe("OAuth Clients Endpoints", () => {
     let usersFixtures: UserRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamFixtures: TeamRepositoryFixture;
+    let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
+
     let user: User;
     let org: Team;
     let app: INestApplication;
@@ -81,11 +83,14 @@ describe("OAuth Clients Endpoints", () => {
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
+      platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
+
       user = await usersFixtures.create({
         email: userEmail,
       });
       org = await teamFixtures.create({
         name: "apiOrg",
+        isOrganization: true,
         metadata: {
           isOrganization: true,
           orgAutoAcceptEmail: "api.com",
@@ -95,6 +100,7 @@ describe("OAuth Clients Endpoints", () => {
         isPlatform: false,
       });
       await membershipFixtures.addUserToOrg(user, org, "ADMIN", true);
+      await platformBillingRepositoryFixture.create(org.id);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
@@ -115,7 +121,8 @@ describe("OAuth Clients Endpoints", () => {
     let usersFixtures: UserRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let teamFixtures: TeamRepositoryFixture;
-    let billingFixtures: BillingRepositoryFixture;
+    let platformBillingRepositoryFixture: PlatformBillingRepositoryFixture;
+
     let user: User;
     let org: Team;
     let app: INestApplication;
@@ -134,12 +141,14 @@ describe("OAuth Clients Endpoints", () => {
       usersFixtures = new UserRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       teamFixtures = new TeamRepositoryFixture(moduleRef);
-      billingFixtures = new BillingRepositoryFixture(moduleRef);
+      platformBillingRepositoryFixture = new PlatformBillingRepositoryFixture(moduleRef);
+
       user = await usersFixtures.create({
         email: userEmail,
       });
       org = await teamFixtures.create({
         name: "apiOrg",
+        isOrganization: true,
         metadata: {
           isOrganization: true,
           orgAutoAcceptEmail: "api.com",
@@ -148,8 +157,7 @@ describe("OAuth Clients Endpoints", () => {
         },
         isPlatform: true,
       });
-      // subscribe the team
-      await billingFixtures.createSubscriptionForTeam(org.id, "STARTER");
+      await platformBillingRepositoryFixture.create(org.id);
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
       await app.init();
@@ -363,7 +371,7 @@ describe("OAuth Clients Endpoints", () => {
     afterAll(async () => {
       await teamFixtures.delete(org.id);
       await usersFixtures.delete(user.id);
-      await billingFixtures.deleteSubscriptionForTeam(org.id);
+      await platformBillingRepositoryFixture.deleteSubscriptionForTeam(org.id);
       await app.close();
     });
   });

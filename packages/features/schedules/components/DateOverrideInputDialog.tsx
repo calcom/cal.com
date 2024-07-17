@@ -108,11 +108,18 @@ const DateOverrideForm = ({
     <Form
       form={form}
       handleSubmit={(values) => {
-        if (selectedDates.length === 0) return;
-
         const datesInRanges: TimeRange[] = [];
 
-        if (!datesUnavailable) {
+        if (selectedDates.length === 0) return;
+
+        if (datesUnavailable) {
+          selectedDates.map((date) => {
+            datesInRanges.push({
+              start: date.utc(true).startOf("day").toDate(),
+              end: date.utc(true).startOf("day").toDate(),
+            });
+          });
+        } else {
           selectedDates.map((date) => {
             values.range.map((item) => {
               datesInRanges.push({
@@ -127,16 +134,7 @@ const DateOverrideForm = ({
           });
         }
 
-        onChange(
-          datesUnavailable
-            ? selectedDates.map((date) => {
-                return {
-                  start: date.utc(true).startOf("day").toDate(),
-                  end: date.utc(true).startOf("day").toDate(),
-                };
-              })
-            : datesInRanges
-        );
+        onChange(datesInRanges);
         setSelectedDates([]);
       }}
       className="p-6 sm:flex sm:p-0 xl:flex-row">

@@ -1,6 +1,6 @@
 import { AppConfig } from "@/config/type";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
+import { MembershipRoles } from "@/modules/auth/decorators/roles/membership-roles.decorator";
 import { NextAuthGuard } from "@/modules/auth/guards/next-auth/next-auth.guard";
 import { OrganizationRolesGuard } from "@/modules/auth/guards/organization-roles/organization-roles.guard";
 import { SubscribeToPlanInput } from "@/modules/billing/controllers/inputs/subscribe-to-plan.input";
@@ -47,7 +47,7 @@ export class BillingController {
 
   @Get("/:teamId/check")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-  @Roles(["OWNER", "ADMIN", "MEMBER"])
+  @MembershipRoles(["OWNER", "ADMIN", "MEMBER"])
   async checkTeamBilling(
     @Param("teamId") teamId: number
   ): Promise<ApiResponse<CheckPlatformBillingResponseDto>> {
@@ -64,7 +64,7 @@ export class BillingController {
 
   @Post("/:teamId/subscribe")
   @UseGuards(NextAuthGuard, OrganizationRolesGuard)
-  @Roles(["OWNER", "ADMIN"])
+  @MembershipRoles(["OWNER", "ADMIN"])
   async subscribeTeamToStripe(
     @Param("teamId") teamId: number,
     @Body() input: SubscribeToPlanInput
