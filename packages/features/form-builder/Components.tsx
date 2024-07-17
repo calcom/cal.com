@@ -391,7 +391,7 @@ export const Components: Record<FieldType, Component> = {
         if (!value) {
           setValue({
             value: options[0]?.value,
-            optionValue: "",
+            optionValue: options[0]?.optionValue || "",
           });
         }
       }, [options, setValue, value]);
@@ -429,7 +429,7 @@ export const Components: Record<FieldType, Component> = {
                         onChange={(e) => {
                           setValue({
                             value: e.target.value,
-                            optionValue: "",
+                            optionValue: option?.optionValue || "",
                           });
                         }}
                         checked={value?.value === option.value}

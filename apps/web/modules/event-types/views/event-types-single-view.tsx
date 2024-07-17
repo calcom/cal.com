@@ -227,6 +227,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
+
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
       const currentValues = formMethods.getValues();
