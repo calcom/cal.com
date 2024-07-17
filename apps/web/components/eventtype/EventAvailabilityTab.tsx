@@ -19,6 +19,8 @@ import { Spinner } from "@calcom/ui/components/icon/Spinner";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
+import type { TeamMembers } from "~/event-types/views/event-types-single-view";
+
 const Option = ({ ...props }: OptionProps<AvailabilityOption>) => {
   const { label, isDefault, isManaged = false } = props.data;
   const { t } = useLocale();
@@ -280,7 +282,15 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   );
 };
 
-const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
+const TeamMemberSchedule = ({
+  host,
+  index,
+  teamMembers,
+}: {
+  host: Host;
+  index: number;
+  teamMembers: TeamMembers;
+}) => {
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
@@ -304,54 +314,59 @@ const TeamMemberSchedule = ({ host, index }: { host: Host; index: number }) => {
 
   //Set to defaultSchedule if Host Schedule is not previously selected
   const scheduleId = getValues(`hosts.${index}.scheduleId`);
-  const availability = getValues(`hosts.${index}.availability`);
   const value = options?.find((option) =>
     scheduleId
       ? option.value === scheduleId
-      : availability
-      ? option.value === availability?.value
       : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
   if (!scheduleId) {
     setValue(`hosts.${index}.scheduleId`, value?.value || null, { shouldDirty: true });
-    setValue(`hosts.${index}.availability`, value || null, { shouldDirty: true });
   }
 
-  if (!availability) {
-    setValue(`hosts.${index}.availability`, value || null, { shouldDirty: false });
-  }
+  const member = teamMembers.find((mem) => mem.id === host.userId);
+  const avatar = member?.avatar;
+  const label = member?.name;
 
   return (
-    <div className="flex w-full flex-col pt-2 ">
-      <Controller
-        name={`hosts.${index}.scheduleId`}
-        render={({ field }) => {
-          return (
-            <Select
-              placeholder={t("select")}
-              options={options}
-              isSearchable={false}
-              onChange={(selected) => {
-                field.onChange(selected?.value || null);
-                if (selected?.value) {
-                  setValue(`hosts.${index}.availability`, selected, { shouldDirty: true });
-                }
-              }}
-              className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-              value={host.availability}
-              components={{ Option, SingleValue }}
-              isMulti={false}
-              isDisabled={isPending}
-            />
-          );
-        }}
-      />
-    </div>
+    <>
+      <div className="flex w-full items-center">
+        <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
+        <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
+      </div>
+      <div className="flex w-full flex-col pt-2 ">
+        <Controller
+          name={`hosts.${index}.scheduleId`}
+          render={({ field }) => {
+            return (
+              <Select
+                placeholder={t("select")}
+                options={options}
+                isSearchable={false}
+                onChange={(selected) => {
+                  field.onChange(selected?.value || null);
+                }}
+                className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                value={value as AvailabilityOption}
+                components={{ Option, SingleValue }}
+                isMulti={false}
+                isDisabled={isPending}
+              />
+            );
+          }}
+        />
+      </div>
+    </>
   );
 };
 
-export const TeamAvailability = ({ hosts = [] }: { hosts: Host[] }) => {
+export const TeamAvailability = ({
+  hosts = [],
+  teamMembers = [],
+}: {
+  hosts: Host[];
+  teamMembers: TeamMembers;
+}) => {
   const { t } = useLocale();
   const [animationRef] = useAutoAnimate<HTMLUListElement>();
 
@@ -376,11 +391,7 @@ export const TeamAvailability = ({ hosts = [] }: { hosts: Host[] }) => {
                     className={`flex flex-col px-3 py-2 ${
                       index === hosts.length - 1 ? "" : "border-subtle border-b"
                     }`}>
-                    <div className="flex w-full items-center">
-                      <Avatar size="sm" imageSrc={host.avatar} alt={host.label || ""} />
-                      <p className="text-emphasis my-auto ms-3 text-sm">{host.label}</p>
-                    </div>
-                    <TeamMemberSchedule host={host} index={index} />
+                    <TeamMemberSchedule host={host} index={index} teamMembers={teamMembers} />
                   </li>
                 </>
               ))}
@@ -396,7 +407,13 @@ export const TeamAvailability = ({ hosts = [] }: { hosts: Host[] }) => {
   );
 };
 
-const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
+const UseCommonScheduleSettingsToggle = ({
+  eventType,
+  teamMembers,
+}: {
+  eventType: EventTypeSetup;
+  teamMembers: TeamMembers;
+}) => {
   const { t } = useLocale();
   const { setValue, getValues, watch } = useFormContext<FormValues>();
 
@@ -424,7 +441,7 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
             description={t("choose_common_schedule_team_event_description")}>
             <EventTypeSchedule eventType={eventType} />
           </SettingsToggle>
-          {watchScheduleConfig && <TeamAvailability hosts={watchHosts} />}
+          {watchScheduleConfig && <TeamAvailability hosts={watchHosts} teamMembers={teamMembers} />}
         </>
       )}
     />
@@ -434,12 +451,14 @@ const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSe
 export const EventAvailabilityTab = ({
   eventType,
   isTeamEvent,
+  teamMembers,
 }: {
   eventType: EventTypeSetup;
   isTeamEvent: boolean;
+  teamMembers: TeamMembers;
 }) => {
   return isTeamEvent && eventType.schedulingType !== SchedulingType.MANAGED ? (
-    <UseCommonScheduleSettingsToggle eventType={eventType} />
+    <UseCommonScheduleSettingsToggle eventType={eventType} teamMembers={teamMembers} />
   ) : (
     <EventTypeSchedule eventType={eventType} />
   );

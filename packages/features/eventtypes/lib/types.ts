@@ -23,10 +23,7 @@ export type Host = {
   isFixed: boolean;
   userId: number;
   priority: number;
-  scheduleId: number | null;
-  availability?: AvailabilityOption | null;
-  avatar?: string;
-  label?: string;
+  scheduleId?: number | null;
 };
 export type TeamMember = {
   value: string;

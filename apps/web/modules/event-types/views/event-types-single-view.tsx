@@ -17,7 +17,7 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import { validateCustomEventName } from "@calcom/core/event";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -123,10 +123,7 @@ export type Host = {
   isFixed: boolean;
   userId: number;
   priority: number;
-  scheduleId: number | null;
-  availability?: AvailabilityOption | null;
-  avatar?: string;
-  label?: string;
+  scheduleId?: number | null;
 };
 
 export type CustomInputParsed = typeof customInputSchema._output;
@@ -152,6 +149,7 @@ const querySchema = z.object({
 
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export const locationsResolver = (t: TFunction) => {
   return z
@@ -346,15 +344,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata,
-      hosts: eventType.hosts.map((host) => {
-        const member = eventType.team?.members.find((mem) => mem.user.id === host.userId) || null;
-        return {
-          ...host,
-          avatar: member?.user?.avatarUrl,
-          label: member?.user?.name,
-          availability: null,
-        };
-      }),
+      hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -475,7 +465,9 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    availability: (
+      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} teamMembers={teamMembers} />
+    ),
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
@@ -652,14 +644,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { availability, users, scheduleName, ...rest } = input;
-    // remove availability,avatar,label from host before sending payload
-    rest.hosts =
-      rest.hosts?.map((host) => ({
-        isFixed: host.isFixed,
-        userId: host.userId,
-        priority: host.priority,
-        scheduleId: host.scheduleId,
-      })) ?? rest.hosts;
     const payload = {
       ...rest,
       length,
@@ -808,14 +792,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
 
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { availability, users, scheduleName, ...rest } = input;
-            // remove availability,avatar,label from host before sending payload
-            rest.hosts =
-              rest.hosts?.map((host) => ({
-                isFixed: host.isFixed,
-                userId: host.userId,
-                priority: host.priority,
-                scheduleId: host.scheduleId,
-              })) ?? rest.hosts;
             const payload = {
               ...rest,
               children,

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useFormContext } from "react-hook-form";
 import type { Props } from "react-select";
 
-import type { FormValues, Host, AvailabilityOption } from "@calcom/features/eventtypes/lib/types";
+import type { FormValues, Host } from "@calcom/features/eventtypes/lib/types";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import {
@@ -27,7 +27,6 @@ export type CheckedSelectOption = {
   priority?: number;
   isFixed?: boolean;
   disabled?: boolean;
-  availabilityOption?: AvailabilityOption | null;
 };
 
 export const CheckedTeamSelect = ({
@@ -144,9 +143,6 @@ const PriorityDialog = (props: IPriiorityDialog) => {
             priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
             isFixed: false,
             scheduleId: host.scheduleId,
-            availabilityOption: host.availability || null,
-            avatar: host.avatar ?? "",
-            label: host.label ?? "",
           };
         })
         .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);

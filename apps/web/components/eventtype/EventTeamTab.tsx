@@ -137,11 +137,8 @@ const FixedHosts = ({
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
-                      // if host was already added, retain scheduleId and availability
+                      // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || null,
-                      availability: host?.availability || null,
-                      avatar: teamMember.avatar,
-                      label: teamMember.label,
                     };
                   }),
                   { shouldDirty: true }
@@ -187,11 +184,8 @@ const FixedHosts = ({
                       isFixed: true,
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
-                      // if host was already added, retain scheduleId and availability
+                      // if host was already added, retain scheduleId
                       scheduleId: host?.scheduleId || null,
-                      availability: host?.availability || null,
-                      avatar: teamMember.avatar,
-                      label: teamMember.label,
                     };
                   }),
                   { shouldDirty: true }
@@ -248,11 +242,8 @@ const RoundRobinHosts = ({
                     isFixed: false,
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
-                    // if host was already added, retain scheduleId and availability
+                    // if host was already added, retain scheduleId
                     scheduleId: host?.scheduleId || null,
-                    availability: host?.availability || null,
-                    avatar: teamMember.avatar,
-                    label: teamMember.label,
                   };
                 })
                 .sort((a, b) => b.priority - a.priority),
@@ -344,7 +335,6 @@ const Hosts = ({
         ? {
             ...newValue,
             scheduleId: existingHost.scheduleId,
-            availability: existingHost.availability,
           }
         : newValue;
     });
@@ -359,7 +349,9 @@ const Hosts = ({
             <FixedHosts
               teamMembers={teamMembers}
               value={value}
-              onChange={onChange}
+              onChange={(changeValue) => {
+                onChange([...updatedHosts(changeValue)]);
+              }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
             />

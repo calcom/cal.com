@@ -69,10 +69,6 @@ const CheckedHostField = ({
                   isFixed,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
-                  scheduleId: option.availabilityOption?.value || null,
-                  availability: option.availabilityOption || null,
-                  avatar: option.avatar,
-                  label: option.label,
                 }))
               );
           }}
