@@ -11,6 +11,7 @@ import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -91,14 +92,16 @@ const EventTypeScheduleDetails = memo(
       { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
     );
 
+    const weekStart = weekStartNum(loggedInUser?.weekStart);
+
     const filterDays = (dayNum: number) =>
-      schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+      schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
 
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
           <ol className="table border-collapse text-sm">
-            {weekdayNames(i18n.language, 1, "long").map((day, index) => {
+            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
               return (
                 <li key={day} className="my-6 flex border-transparent last:mb-2">
