@@ -3,7 +3,6 @@ import { usePathname } from "next/navigation";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Meta } from "@calcom/ui";
-import { ExternalLink } from "@calcom/ui/components/icon";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 
@@ -21,7 +20,7 @@ const BillingView = () => {
           <p>{t("view_and_edit_billing_details")}</p>
         </div>
         <div className="flex-shrink-0 pt-3 sm:ml-auto sm:pl-3 sm:pt-0">
-          <Button color="primary" href={billingHref} target="_blank" EndIcon={ExternalLink}>
+          <Button color="primary" href={billingHref} target="_blank" EndIcon="external-link">
             {t("billing_portal")}
           </Button>
         </div>

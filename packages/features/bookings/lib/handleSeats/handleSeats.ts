@@ -29,6 +29,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     subscriberOptions,
     eventTrigger,
     evt,
+    workflows,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -60,7 +61,6 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       status: true,
       smsReminderNumber: true,
       endTime: true,
-      scheduledJobs: true,
     },
   });
 
@@ -96,19 +96,19 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
 
   // If the resultBooking is defined we should trigger workflows else, trigger in handleNewBooking
   if (resultBooking) {
-    // Obtain event metadata that includes videoCallUrl
-    const metadata = evt.videoCallData?.url ? { videoCallUrl: evt.videoCallData.url } : undefined;
+    const metadata = {
+      ...(typeof resultBooking.metadata === "object" && resultBooking.metadata),
+      ...reqBodyMetadata,
+    };
     try {
       await scheduleWorkflowReminders({
-        workflows: eventType.workflows,
+        workflows,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
-        eventTypeRequiresConfirmation: eventType.requiresConfirmation,
       });
     } catch (error) {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
@@ -119,6 +119,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,
       bookingId: seatedBooking?.id,
+      attendeeSeatId: resultBooking?.seatReferenceUid,
       rescheduleUid,
       rescheduleStartTime: originalRescheduledBooking?.startTime
         ? dayjs(originalRescheduledBooking?.startTime).utc().format()
@@ -126,7 +127,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       rescheduleEndTime: originalRescheduledBooking?.endTime
         ? dayjs(originalRescheduledBooking?.endTime).utc().format()
         : undefined,
-      metadata: { ...metadata, ...reqBodyMetadata },
+      metadata,
       eventTypeId,
       status: "ACCEPTED",
       smsReminderNumber: seatedBooking?.smsReminderNumber || undefined,

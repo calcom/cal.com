@@ -18,10 +18,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   let isValid: boolean | TextComponent = true;
   if (component_id || input_values?.submit_booking_url) {
-    const url = component_id || input_values?.submit_booking_url;
+    const url = component_id === "submit_booking_url" ? input_values?.submit_booking_url : component_id;
     isValid = await isValidCalURL(url);
 
-    if (isValid) return res.status(200).json({ results: { submit_booking_url: url } });
+    if (isValid === true) return res.status(200).json({ results: { submit_booking_url: url } });
   }
 
   const input: InputComponent = {
@@ -127,7 +127,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     canvas: {
       content: {
         components:
-          isValid === true ? [components, spacer, text, input] : [isValid, components, spacer, text, input],
+          isValid === true ? [components, spacer, text, input] : [components, spacer, text, input, isValid],
       },
     },
   };

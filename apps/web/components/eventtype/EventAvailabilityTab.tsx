@@ -10,11 +10,11 @@ import type { AvailabilityOption, FormValues } from "@calcom/features/eventtypes
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
+import { weekStartNum } from "@calcom/lib/weekstart";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
-import { Badge, Button, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
-import { ExternalLink, Globe } from "@calcom/ui/components/icon";
+import { Badge, Button, Icon, Select, SettingsToggle, SkeletonText } from "@calcom/ui";
 
 import { SelectSkeletonLoader } from "@components/availability/SkeletonLoader";
 
@@ -88,14 +88,16 @@ const EventTypeScheduleDetails = memo(
       { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
     );
 
+    const weekStart = weekStartNum(loggedInUser?.weekStart);
+
     const filterDays = (dayNum: number) =>
-      schedule?.schedule.filter((item) => item.days.includes((dayNum + 1) % 7)) || [];
+      schedule?.schedule.filter((item) => item.days.includes((dayNum + weekStart) % 7)) || [];
 
     return (
       <div>
         <div className="border-subtle space-y-4 border-x p-6">
           <ol className="table border-collapse text-sm">
-            {weekdayNames(i18n.language, 1, "long").map((day, index) => {
+            {weekdayNames(i18n.language, weekStart, "long").map((day, index) => {
               const isAvailable = !!filterDays(index).length;
               return (
                 <li key={day} className="my-6 flex border-transparent last:mb-2">
@@ -130,7 +132,7 @@ const EventTypeScheduleDetails = memo(
         </div>
         <div className="bg-muted border-subtle flex flex-col justify-center gap-2 rounded-b-md border p-6 sm:flex-row sm:justify-between">
           <span className="text-default flex items-center justify-center text-sm sm:justify-start">
-            <Globe className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
+            <Icon name="globe" className="h-3.5 w-3.5 ltr:mr-2 rtl:ml-2" />
             {schedule?.timeZone || <SkeletonText className="block h-5 w-32" />}
           </span>
           {!!schedule?.id && !schedule.isManaged && !schedule.readOnly && (
@@ -138,7 +140,7 @@ const EventTypeScheduleDetails = memo(
               href={`/availability/${schedule.id}`}
               disabled={isPending}
               color="minimal"
-              EndIcon={ExternalLink}
+              EndIcon="external-link"
               target="_blank"
               rel="noopener noreferrer">
               {t("edit_availability")}

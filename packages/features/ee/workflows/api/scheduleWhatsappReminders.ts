@@ -8,6 +8,8 @@ import prisma from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods } from "@calcom/prisma/enums";
 
 import { getWhatsappTemplateFunction } from "../lib/actionHelperFunctions";
+import type { PartialWorkflowReminder } from "../lib/getWorkflowReminders";
+import { select } from "../lib/getWorkflowReminders";
 import * as twilio from "../lib/reminders/providers/twilioProvider";
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -28,7 +30,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   });
 
   //find all unscheduled WHATSAPP reminders
-  const unscheduledReminders = await prisma.workflowReminder.findMany({
+  const unscheduledReminders = (await prisma.workflowReminder.findMany({
     where: {
       method: WorkflowMethods.WHATSAPP,
       scheduled: false,
@@ -36,17 +38,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         lte: dayjs().add(7, "day").toISOString(),
       },
     },
-    include: {
-      workflowStep: true,
-      booking: {
-        include: {
-          eventType: true,
-          user: true,
-          attendees: true,
-        },
-      },
-    },
-  });
+    select,
+  })) as PartialWorkflowReminder[];
 
   if (!unscheduledReminders.length) {
     res.json({ ok: true });
@@ -57,6 +50,9 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!reminder.workflowStep || !reminder.booking) {
       continue;
     }
+    const userId = reminder.workflowStep.workflow.userId;
+    const teamId = reminder.workflowStep.workflow.teamId;
+
     try {
       const sendTo =
         reminder.workflowStep.action === WorkflowActions.WHATSAPP_NUMBER
@@ -91,17 +87,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       );
 
       if (message?.length && message?.length > 0 && sendTo) {
-        const scheduledSMS = await twilio.scheduleSMS(sendTo, message, reminder.scheduledDate, "", true);
+        const scheduledSMS = await twilio.scheduleSMS(
+          sendTo,
+          message,
+          reminder.scheduledDate,
+          "",
+          userId,
+          teamId,
+          true
+        );
 
-        await prisma.workflowReminder.update({
-          where: {
-            id: reminder.id,
-          },
-          data: {
-            scheduled: true,
-            referenceId: scheduledSMS.sid,
-          },
-        });
+        if (scheduledSMS) {
+          await prisma.workflowReminder.update({
+            where: {
+              id: reminder.id,
+            },
+            data: {
+              scheduled: true,
+              referenceId: scheduledSMS.sid,
+            },
+          });
+        }
       }
     } catch (error) {
       console.log(`Error scheduling WHATSAPP with error ${error}`);

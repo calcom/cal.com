@@ -184,7 +184,7 @@ async function updateProfilePhoto(oAuth2Client: Auth.OAuth2Client, userId: numbe
     if (userDetails.data?.picture) {
       // Using updateMany here since if the user already has a profile it would throw an error because no records were found to update the profile picture
       await prisma.user.updateMany({
-        where: { id: userId, avatarUrl: null, avatar: null },
+        where: { id: userId, avatarUrl: null },
         data: {
           avatarUrl: userDetails.data.picture,
         },

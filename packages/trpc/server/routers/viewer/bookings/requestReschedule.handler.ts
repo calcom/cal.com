@@ -6,16 +6,14 @@ import { CalendarEventBuilder } from "@calcom/core/builders/CalendarEvent/builde
 import { CalendarEventDirector } from "@calcom/core/builders/CalendarEvent/director";
 import { deleteMeeting } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
-import { deleteScheduledEmailReminder } from "@calcom/ee/workflows/lib/reminders/emailReminderManager";
-import { deleteScheduledSMSReminder } from "@calcom/ee/workflows/lib/reminders/smsReminderManager";
-import { deleteScheduledWhatsappReminder } from "@calcom/ee/workflows/lib/reminders/whatsappReminderManager";
 import { sendRequestRescheduleEmail } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
-import { cancelScheduledJobs } from "@calcom/features/webhooks/lib/scheduleTrigger";
-import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
+import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
+import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -23,12 +21,13 @@ import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
-import { BookingStatus, WorkflowMethods } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { deleteAllWorkflowReminders } from "../workflows/util";
 import type { TRequestRescheduleInputSchema } from "./requestReschedule.schema";
 import type { PersonAttendeeCommonFields } from "./types";
 
@@ -71,7 +70,6 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       dynamicGroupSlugRef: true,
       destinationCalendar: true,
       smsReminderNumber: true,
-      scheduledJobs: true,
       workflowReminders: true,
       responses: true,
       iCalUID: true,
@@ -149,20 +147,15 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   // delete scheduled jobs of previous booking
-  // FIXME: async fn off into the ether
-  cancelScheduledJobs(bookingToReschedule);
+  const webhookPromises = [];
+  webhookPromises.push(deleteWebhookScheduledTriggers({ booking: bookingToReschedule }));
+
+  await Promise.all(webhookPromises).catch((error) => {
+    log.error("Error while deleting scheduled webhook triggers", JSON.stringify({ error }));
+  });
 
   //cancel workflow reminders of previous booking
-  // FIXME: more async fns off into the ether
-  bookingToReschedule.workflowReminders.forEach((reminder) => {
-    if (reminder.method === WorkflowMethods.EMAIL) {
-      deleteScheduledEmailReminder(reminder.id, reminder.referenceId);
-    } else if (reminder.method === WorkflowMethods.SMS) {
-      deleteScheduledSMSReminder(reminder.id, reminder.referenceId);
-    } else if (reminder.method === WorkflowMethods.WHATSAPP) {
-      deleteScheduledWhatsappReminder(reminder.id, reminder.referenceId);
-    }
-  });
+  await deleteAllWorkflowReminders(bookingToReschedule.workflowReminders);
 
   const [mainAttendee] = bookingToReschedule.attendees;
   // @NOTE: Should we assume attendees language?
@@ -288,13 +281,16 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   });
 
   const triggerForUser = !teamId || (teamId && bookingToReschedule.eventType?.parentId);
+  const userId = triggerForUser ? bookingToReschedule.userId : null;
+  const orgId = await getOrgIdFromMemberOrTeamId({ memberId: userId, teamId });
 
   // Send Webhook call if hooked to BOOKING.CANCELLED
   const subscriberOptions = {
-    userId: triggerForUser ? bookingToReschedule.userId : null,
+    userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
     teamId,
+    orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
   const promises = webhooks.map((webhook) =>
@@ -302,7 +298,10 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       ...evt,
       smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
     }).catch((e) => {
-      console.error(`Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}`, e);
+      log.error(
+        `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
+        safeStringify(e)
+      );
     })
   );
   await Promise.all(promises);

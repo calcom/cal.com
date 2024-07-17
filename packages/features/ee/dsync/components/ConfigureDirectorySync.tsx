@@ -14,7 +14,6 @@ import {
   showToast,
   EmptyScreen,
 } from "@calcom/ui";
-import { AlertTriangle, Trash2 } from "@calcom/ui/components/icon";
 
 import CreateDirectory from "./CreateDirectory";
 import DirectoryInfo from "./DirectoryInfo";
@@ -22,7 +21,7 @@ import GroupTeamMappingTable from "./GroupTeamMappingTable";
 
 const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | null }) => {
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const [deleteDirectoryOpen, setDeleteDirectoryOpen] = useState(false);
 
   const { data, isLoading, isError, error } = trpc.viewer.dsync.get.useQuery({ organizationId });
@@ -39,7 +38,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
     return <SkeletonLoader />;
   }
 
-  const directory = data ? data[0] : null;
+  const directory = data ?? null;
 
   const onDeleteConfirmation = (e: Event | React.MouseEvent<HTMLElement, MouseEvent>) => {
     e.preventDefault();
@@ -57,7 +56,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
         <EmptyScreen
           headline="Error"
           description={error.message || "Error getting dsync data"}
-          Icon={AlertTriangle}
+          Icon="triangle-alert"
         />
       </div>
     );
@@ -79,7 +78,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
           {/* Delete directory sync connection */}
           <Dialog open={deleteDirectoryOpen} onOpenChange={setDeleteDirectoryOpen}>
             <DialogTrigger asChild>
-              <Button color="destructive" className="mt-1" StartIcon={Trash2}>
+              <Button color="destructive" className="mt-1" StartIcon="trash">
                 {t("directory_sync_delete_connection")}
               </Button>
             </DialogTrigger>
@@ -87,7 +86,7 @@ const ConfigureDirectorySync = ({ organizationId }: { organizationId: number | n
               title={t("directory_sync_delete_title")}
               description={t("directory_sync_delete_description")}
               type="creation"
-              Icon={AlertTriangle}>
+              Icon="triangle-alert">
               <>
                 <div className="mb-10">
                   <p className="text-default mb-4">{t("directory_sync_delete_confirmation")}</p>

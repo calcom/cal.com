@@ -45,6 +45,7 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await user.apiLogin();
 
     page.goto(`/settings/teams/${team.id}/onboard-members`);
+    await page.waitForLoadState("networkidle");
 
     await test.step("Can add members", async () => {
       // Click [data-testid="new-member-button"]
@@ -147,8 +148,13 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
     await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
 
     // The title of the booking
-    const BookingTitle = `${teamEventTitle} between ${team.name} and ${testName}`;
-    await expect(page.locator("[data-testid=booking-title]")).toHaveText(BookingTitle);
+    const bookingTitle = await page.getByTestId("booking-title").textContent();
+    expect(
+      teamMatesObj.concat([{ name: owner.name! }]).some((teamMate) => {
+        const BookingTitle = `${teamEventTitle} between ${teamMate.name} and ${testName}`;
+        return BookingTitle === bookingTitle;
+      })
+    ).toBe(true);
 
     // Since all the users have the same leastRecentlyBooked value
     // Anyone of the teammates could be the Host of the booking.

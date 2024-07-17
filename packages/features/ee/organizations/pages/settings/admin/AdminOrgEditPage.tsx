@@ -55,7 +55,7 @@ const OrgForm = ({
 }) => {
   const { t } = useLocale();
   const router = useRouter();
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
   const mutation = trpc.viewer.organizations.adminUpdate.useMutation({
     onSuccess: async () => {
       await Promise.all([
@@ -68,8 +68,7 @@ const OrgForm = ({
       router.replace(`/settings/admin/organizations`);
     },
     onError: (err) => {
-      console.error(err.message);
-      showToast(t("org_error_processing"), "error");
+      showToast(err.message, "error");
     },
   });
 

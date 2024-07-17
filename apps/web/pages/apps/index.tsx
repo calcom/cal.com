@@ -16,7 +16,7 @@ import {
   PopularAppsSlider,
   RecentAppsSlider,
 } from "@calcom/ui";
-import { Search } from "@calcom/ui/components/icon";
+import { Icon } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/apps/getServerSideProps";
 
@@ -45,7 +45,7 @@ function AppsSearch({
   return (
     <TextField
       className="bg-subtle !border-muted !pl-0 focus:!ring-offset-0"
-      addOnLeading={<Search className="text-subtle h-4 w-4" />}
+      addOnLeading={<Icon name="search" className="text-subtle h-4 w-4" />}
       addOnClassname="!border-muted"
       containerClassName={classNames("focus:!ring-offset-0 m-1", className)}
       type="search"

@@ -5,7 +5,6 @@
  */
 import { createTeamAndAddUsers, createUserAndEventType } from "./seed-utils";
 
-const avatar = "";
 const getEventTypes = (numberOfEventTypes: number) => {
   const eventTypes = Array<{
     title: string;
@@ -46,7 +45,6 @@ async function createTeamsWithEventTypes({
           password: `enterprise-member-${i + 1}`,
           username: `enterprise-member-${i + 1}`,
           theme: "light",
-          avatar,
         },
       })
     );
@@ -86,7 +84,6 @@ export default async function main() {
       password: "enterprise",
       username: `enterprise`,
       theme: "light",
-      avatar,
     },
     eventTypes: getEventTypes(100),
   });

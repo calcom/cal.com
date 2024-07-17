@@ -1,3 +1,6 @@
+/**
+ * @fileoverview This file is an example file and tells how to use the Cal component in a React application. This is also used by playwright e2e
+ */
 import * as React from "react";
 import { useEffect } from "react";
 import { useState } from "react";
@@ -7,7 +10,9 @@ import ReactDom from "react-dom";
 // There are tests in test/built which verifiy that the types from built package are correctly generated and exported correctly.
 import Cal, { getCalApi } from "./src/index";
 
-const api = getCalApi();
+const api = getCalApi({
+  namespace: "inline",
+});
 
 function App() {
   const [, setLoaded] = useState(false);
@@ -37,6 +42,7 @@ function App() {
         },
       });
     });
+
     return () => {
       api.then((api) => {
         api("off", {
@@ -54,6 +60,7 @@ function App() {
       <Cal
         calOrigin="http://localhost:3000"
         embedJsUrl="//localhost:3000/embed/embed.js"
+        namespace="inline"
         style={{ width: "100%", height: "100%", overflow: "scroll" }}
         calLink="pro"
         config={{

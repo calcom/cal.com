@@ -14,6 +14,11 @@ export const createEventTypeInput = z.object({
   schedulingType: z.nativeEnum(SchedulingType).nullish(),
   locations: imports.eventTypeLocations,
   metadata: imports.EventTypeMetaDataSchema.optional(),
+  disableGuests: z.boolean().optional(),
+  slotInterval: z.number().min(0).nullish(),
+  minimumBookingNotice: z.number().int().min(0).optional(),
+  beforeEventBuffer: z.number().int().min(0).optional(),
+  afterEventBuffer: z.number().int().min(0).optional(),
 })
   .partial({ hidden: true, locations: true })
   .refine((data) => (data.teamId ? data.teamId && data.schedulingType : true), {
@@ -28,3 +33,5 @@ export const createEventTypeInput = z.object({
     description: z.string(),
     length: z.number(),
   }).strict();
+
+export type EventTypeLocation = (z.infer<typeof imports.eventTypeLocations>)[number];

@@ -2,9 +2,12 @@ import { z } from "zod";
 
 import { authedAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
+import { ZCreateSelfHostedLicenseSchema } from "./createSelfHostedLicenseKey.schema";
 import { ZListMembersSchema } from "./listPaginated.schema";
 import { ZAdminLockUserAccountSchema } from "./lockUserAccount.schema";
+import { ZAdminRemoveTwoFactor } from "./removeTwoFactor.schema";
 import { ZAdminPasswordResetSchema } from "./sendPasswordReset.schema";
+import { ZSetSMSLockState } from "./setSMSLockState.schema";
 
 const NAMESPACE = "admin";
 
@@ -38,5 +41,35 @@ export const adminRouter = router({
         where: { slug },
         data: { enabled, updatedBy: user.id },
       });
+    }),
+  removeTwoFactor: authedAdminProcedure.input(ZAdminRemoveTwoFactor).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("removeTwoFactor"),
+      () => import("./removeTwoFactor.handler")
+    );
+    return handler(opts);
+  }),
+  getSMSLockStateTeamsUsers: authedAdminProcedure.query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getSMSLockStateTeamsUsers"),
+      () => import("./getSMSLockStateTeamsUsers.handler")
+    );
+    return handler(opts);
+  }),
+  setSMSLockState: authedAdminProcedure.input(ZSetSMSLockState).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("setSMSLockState"),
+      () => import("./setSMSLockState.handler")
+    );
+    return handler(opts);
+  }),
+  createSelfHostedLicense: authedAdminProcedure
+    .input(ZCreateSelfHostedLicenseSchema)
+    .mutation(async (opts) => {
+      const handler = await importHandler(
+        namespaced("createSelfHostedLicense"),
+        () => import("./createSelfHostedLicenseKey.handler")
+      );
+      return handler(opts);
     }),
 });

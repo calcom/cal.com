@@ -1,13 +1,22 @@
+import { createHash } from "crypto";
+
 import { whereClauseForOrgWithSlugOrRequestedSlug } from "@calcom/ee/organizations/lib/orgDomains";
+import { hashPassword } from "@calcom/features/auth/lib/hashPassword";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
+import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { Prisma } from "@calcom/prisma/client";
 import type { User as UserType } from "@calcom/prisma/client";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { UpId, UserProfile } from "@calcom/types/UserProfile";
 
-import logger from "../../logger";
-import { safeStringify } from "../../safeStringify";
+import { DEFAULT_SCHEDULE, getAvailabilityFromSchedule } from "../../availability";
+import slugify from "../../slugify";
 import { ProfileRepository } from "./profile";
 import { getParsedTeam } from "./teamUtils";
+
+export type UserAdminTeams = number[];
 
 const log = logger.getSubLogger({ prefix: ["[repository/user]"] });
 
@@ -30,7 +39,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   email: true,
   emailVerified: true,
   bio: true,
-  avatar: true,
   avatarUrl: true,
   timeZone: true,
   startTime: true,
@@ -51,7 +59,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   invitedTo: true,
   brandColor: true,
   darkBrandColor: true,
-  away: true,
   allowDynamicBooking: true,
   allowSEOIndexing: true,
   receiveMonthlyDigestEmail: true,
@@ -338,6 +345,22 @@ export class UserRepository {
     };
   }
 
+  static enrichUserWithItsProfileBuiltFromUser<T extends { id: number; username: string | null }>({
+    user,
+  }: {
+    user: T;
+  }): T & {
+    nonProfileUsername: string | null;
+    profile: UserProfile;
+  } {
+    // If no organization profile exists, use the personal profile so that the returned user is normalized to have a profile always
+    return {
+      ...user,
+      nonProfileUsername: user.username,
+      profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+    };
+  }
+
   static async enrichEntityWithProfile<
     T extends
       | {
@@ -349,6 +372,7 @@ export class UserRepository {
               id: number;
               name: string;
               calVideoLogo: string | null;
+              bannerUrl: string | null;
               slug: string | null;
               metadata: Prisma.JsonValue;
             };
@@ -419,5 +443,76 @@ export class UserRepository {
           : undefined,
       },
     });
+  }
+
+  static async create({
+    email,
+    username,
+    organizationId,
+  }: {
+    email: string;
+    username: string;
+    organizationId: number | null;
+  }) {
+    const password = createHash("md5").update(`${email}${process.env.CALENDSO_ENCRYPTION_KEY}`).digest("hex");
+    const hashedPassword = await hashPassword(password);
+    const t = await getTranslation("en", "common");
+    const availability = getAvailabilityFromSchedule(DEFAULT_SCHEDULE);
+
+    return await prisma.user.create({
+      data: {
+        username: slugify(username),
+        email: email,
+        password: { create: { hash: hashedPassword } },
+        // Default schedule
+        schedules: {
+          create: {
+            name: t("default_schedule_name"),
+            availability: {
+              createMany: {
+                data: availability.map((schedule) => ({
+                  days: schedule.days,
+                  startTime: schedule.startTime,
+                  endTime: schedule.endTime,
+                })),
+              },
+            },
+          },
+        },
+        organizationId: organizationId,
+        profiles: organizationId
+          ? {
+              create: {
+                username: slugify(username),
+                organizationId: organizationId,
+                uid: ProfileRepository.generateProfileUid(),
+              },
+            }
+          : undefined,
+      },
+    });
+  }
+
+  static async getUserAdminTeams(userId: number): Promise<number[]> {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        teams: {
+          where: {
+            accepted: true,
+            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+          },
+          select: { teamId: true },
+        },
+      },
+    });
+
+    const teamIds = [];
+    for (const team of user?.teams || []) {
+      teamIds.push(team.teamId);
+    }
+    return teamIds;
   }
 }

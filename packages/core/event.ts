@@ -57,10 +57,22 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{Event type title}", eventNameObj.eventType)
     .replaceAll("{Scheduler}", attendeeName)
     .replaceAll("{Organiser}", eventNameObj.host)
+    .replaceAll("{Organiser first name}", eventNameObj.host.split(" ")[0])
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
+
+  const { bookingFields } = eventNameObj || {};
+  const { name } = bookingFields || {};
+
+  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.firstName === "string") {
+    dynamicEventName = dynamicEventName.replaceAll("{Scheduler first name}", name.firstName.toString());
+  }
+
+  if (name && typeof name === "object" && !Array.isArray(name) && typeof name.lastName === "string") {
+    dynamicEventName = dynamicEventName.replaceAll("{Scheduler last name}", name.lastName.toString());
+  }
 
   const customInputvariables = dynamicEventName.match(/\{(.+?)}/g)?.map((variable) => {
     return variable.replace("{", "").replace("}", "");
@@ -105,6 +117,9 @@ export const validateCustomEventName = (
     "{Organiser}",
     "{Scheduler}",
     "{Location}",
+    "{Organiser first name}",
+    "{Scheduler first name}",
+    "{Scheduler last name}",
     //allowed for fallback reasons
     "{LOCATION}",
     "{HOST/ATTENDEE}",

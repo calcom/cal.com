@@ -1,4 +1,3 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useMemo } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -7,8 +6,7 @@ import { useIsEmbed } from "@calcom/embed-core/embed-iframe";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
-import { Button, ButtonGroup, ToggleGroup, Tooltip } from "@calcom/ui";
-import { Calendar, Columns, Grid } from "@calcom/ui/components/icon";
+import { Button, ButtonGroup, Icon, ToggleGroup, Tooltip } from "@calcom/ui";
 
 import { TimeFormatToggle } from "../../components/TimeFormatToggle";
 import { useBookerStore } from "../store";
@@ -111,7 +109,7 @@ export function Header({
             className="group rtl:ml-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={ChevronLeft}
+            StartIcon="chevron-left"
             aria-label="Previous Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? -nextSlots : -extraDays)}
           />
@@ -119,7 +117,7 @@ export function Header({
             className="group rtl:mr-1 rtl:rotate-180"
             variant="icon"
             color="minimal"
-            StartIcon={ChevronRight}
+            StartIcon="chevron-right"
             aria-label="Next Day"
             onClick={() => addToSelectedDate(layout === BookerLayouts.COLUMN_VIEW ? nextSlots : extraDays)}
           />
@@ -179,17 +177,17 @@ const LayoutToggle = ({
     return [
       {
         value: BookerLayouts.MONTH_VIEW,
-        label: <Calendar width="16" height="16" />,
+        label: <Icon name="calendar" width="16" height="16" />,
         tooltip: t("switch_monthly"),
       },
       {
         value: BookerLayouts.WEEK_VIEW,
-        label: <Grid width="16" height="16" />,
+        label: <Icon name="grid-3x3" width="16" height="16" />,
         tooltip: t("switch_weekly"),
       },
       {
         value: BookerLayouts.COLUMN_VIEW,
-        label: <Columns width="16" height="16" />,
+        label: <Icon name="columns-3" width="16" height="16" />,
         tooltip: t("switch_columnview"),
       },
     ].filter((layout) => enabledLayouts?.includes(layout.value as BookerLayouts));

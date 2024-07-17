@@ -28,6 +28,7 @@ export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
 
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)
@@ -91,8 +92,11 @@ export const IS_STRIPE_ENABLED = !!(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY &&
   process.env.STRIPE_PRIVATE_KEY
 );
-/** Self hosted shouldn't checkout when creating teams unless required */
+/** This has correct value only server side. When you want to use client side, go for IS_TEAM_BILLING_ENABLED_CLIENT. I think we should use the _CLIENT one only everywhere so that it works reliably everywhere on client as well as server  */
 export const IS_TEAM_BILLING_ENABLED = IS_STRIPE_ENABLED && HOSTED_CAL_FEATURES;
+export const IS_TEAM_BILLING_ENABLED_CLIENT =
+  !!process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY && HOSTED_CAL_FEATURES;
+
 export const FULL_NAME_LENGTH_MAX_LIMIT = 50;
 export const MINUTES_TO_BOOK = process.env.NEXT_PUBLIC_MINUTES_TO_BOOK || "5";
 export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SWITCHER === "1";
@@ -106,10 +110,13 @@ export const ORGANIZATION_MIN_SEATS = 30;
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
 export const CALCOM_VERSION = process.env.NEXT_PUBLIC_CALCOM_VERSION as string;
 
+export const APP_CREDENTIAL_SHARING_ENABLED =
+  !!process.env.CALCOM_CREDENTIAL_SYNC_SECRET && !!process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY;
 export const CREDENTIAL_SYNC_SECRET = process.env.CALCOM_CREDENTIAL_SYNC_SECRET;
 export const CREDENTIAL_SYNC_SECRET_HEADER_NAME =
-  process.env.CALCOM_CREDENTIAL_SYNC_SECRET_HEADER_NAME || "calcom-credential-sync-secret";
-export const APP_CREDENTIAL_SHARING_ENABLED = CREDENTIAL_SYNC_SECRET && CREDENTIAL_SYNC_SECRET_HEADER_NAME;
+  process.env.CALCOM_CREDENTIAL_SYNC_HEADER_NAME || "calcom-credential-sync-secret";
+
+export const CREDENTIAL_SYNC_ENDPOINT = process.env.CALCOM_CREDENTIAL_SYNC_ENDPOINT;
 
 export const DEFAULT_LIGHT_BRAND_COLOR = "#292929";
 export const DEFAULT_DARK_BRAND_COLOR = "#fafafa";
@@ -141,3 +148,29 @@ export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
   process.env.NEXT_PUBLIC_BOOKER_NUMBER_OF_DAYS_TO_LOAD ?? "0",
   0
 );
+
+export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
+export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
+export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
+/**
+ * The maximum number of days we should check for if we don't find all required bookable days
+ * Counter start from current day and we would like to not go beyond 2 months(max days possible) from current day.
+ */
+export const ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK = 30 + 31;
+
+export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/sparkles-red.svg`
+  : `https://app.cal.com/sparkles-red.svg`;
+
+export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/sparkles.svg`
+  : `https://app.cal.com/sparkles.svg`;
+
+export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/start-recording.svg`
+  : `https://app.cal.com/start-recording.svg`;
+
+export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/stop-recording.svg`
+  : `https://app.cal.com/stop-recording.svg`;

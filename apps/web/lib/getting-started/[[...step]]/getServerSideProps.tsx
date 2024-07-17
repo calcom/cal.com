@@ -33,7 +33,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             select: {
               id: true,
               name: true,
-              logo: true,
+              logoUrl: true,
             },
           },
         },

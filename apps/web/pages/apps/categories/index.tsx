@@ -5,8 +5,7 @@ import Link from "next/link";
 import Shell from "@calcom/features/shell/Shell";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
-import { SkeletonText } from "@calcom/ui";
-import { ArrowLeft, ArrowRight } from "@calcom/ui/components/icon";
+import { Icon, SkeletonText } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/apps/categories/getServerSideProps";
 
@@ -26,7 +25,7 @@ export default function Apps({ categories }: Omit<inferSSRProps<typeof getServer
         <Link
           href="/apps"
           className="text-emphasis inline-flex items-center justify-start gap-1 rounded-sm py-2">
-          <ArrowLeft className="h-4 w-4" />
+          <Icon name="arrow-left" className="h-4 w-4" />
           {isLocaleReady ? t("app_store") : <SkeletonText className="h-6 w-24" />}{" "}
         </Link>
       </div>
@@ -42,7 +41,7 @@ export default function Apps({ categories }: Omit<inferSSRProps<typeof getServer
                 <h3 className="font-medium capitalize">{category.name}</h3>
                 <p className="text-subtle text-sm">
                   {t("number_apps", { count: category.count })}{" "}
-                  <ArrowRight className="inline-block h-4 w-4" />
+                  <Icon name="arrow-right" className="inline-block h-4 w-4" />
                 </p>
               </div>
             </Link>

@@ -9,7 +9,6 @@ import {
   VariantsTable,
 } from "@calcom/storybook/components";
 
-import { Plus } from "../../icon";
 import { SelectField } from "./Select";
 
 <Meta title="UI/Form/Select Field" component={SelectField} />
@@ -80,7 +79,7 @@ const BadSelect = (props) => (
 );
 
 // Good: Custom component declared outside of the Select scope
-const Control = <IconLeading icon={Plus} />;
+const Control = <IconLeading icon="plus" />;
 
 const GoodSelect = (props) => <Select {...props} components={{ Control }} />;
 ```

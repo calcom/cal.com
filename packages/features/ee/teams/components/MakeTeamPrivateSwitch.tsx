@@ -17,7 +17,7 @@ const MakeTeamPrivateSwitch = ({
 }) => {
   const { t } = useLocale();
 
-  const utils = trpc.useContext();
+  const utils = trpc.useUtils();
 
   const mutation = trpc.viewer.teams.update.useMutation({
     onError: (err) => {

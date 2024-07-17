@@ -299,6 +299,54 @@ describe("Tests the slot logic", () => {
     expect(slots).toHaveLength(1);
     expect(slots[0].time.format()).toBe("2023-07-13T08:00:00+05:30");
   });
+
+  it("tests slots for 5 minute events", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
+      frequency: 5,
+      minimumBookingNotice: 0,
+      eventLength: 5,
+      organizerTimeZone: "Europe/London",
+      dateRanges: [
+        // fits 1 slot
+        {
+          start: dayjs.tz("2023-07-13T07:00:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:05:00.000", "Europe/London"),
+        },
+        // fits 4 slots
+        {
+          start: dayjs.tz("2023-07-13T07:10:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T07:30:00.000", "Europe/London"),
+        },
+      ],
+    });
+
+    expect(slots).toHaveLength(5);
+  });
+
+  it("tests slots for events with an event length that is not divisible by 5", async () => {
+    const slots = getSlots({
+      inviteeDate: dayjs.tz("2023-07-13T00:00:00.000+05:30", "Europe/London"),
+      frequency: 8,
+      minimumBookingNotice: 0,
+      eventLength: 8,
+      organizerTimeZone: "Europe/London",
+      dateRanges: [
+        {
+          start: dayjs.tz("2023-07-13T07:22:00.000", "Europe/London"),
+          end: dayjs.tz("2023-07-13T08:00:00.000", "Europe/London"),
+        },
+      ],
+    });
+
+    /*
+      2023-07-13T06:22:00.000Z
+      2023-07-13T06:30:00.000Z
+      2023-07-13T06:38:00.000Z
+      2023-07-13T06:46:00.000Z
+   */
+    expect(slots).toHaveLength(4);
+  });
 });
 
 describe("Tests the date-range slot logic with custom env variable", () => {

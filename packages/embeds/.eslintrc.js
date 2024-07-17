@@ -10,4 +10,12 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["embed-core/playwright/**/*"],
+      rules: {
+        "no-restricted-imports": "off",
+      },
+    },
+  ],
 };

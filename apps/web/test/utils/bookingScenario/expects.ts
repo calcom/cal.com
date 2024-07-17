@@ -1,5 +1,7 @@
 import prismaMock from "../../../../../tests/libs/__mocks__/prisma";
 
+import type { InputEventType, getOrganizer } from "./bookingScenario";
+
 import type { WebhookTriggerEvents, Booking, BookingReference, DestinationCalendar } from "@prisma/client";
 import { parse } from "node-html-parser";
 import type { VEvent } from "node-ical";
@@ -16,7 +18,6 @@ import type { AppsStatus } from "@calcom/types/Calendar";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { Fixtures } from "@calcom/web/test/fixtures/fixtures";
 
-import type { InputEventType, getOrganizer } from "./bookingScenario";
 import { DEFAULT_TIMEZONE_BOOKER } from "./getMockRequestDataForBooking";
 
 // This is too complex at the moment, I really need to simplify this.
@@ -288,59 +289,115 @@ export function expectWebhookToHaveBeenCalledWith(
 
   expect(parsedBody.triggerEvent).toBe(data.triggerEvent);
 
-  if (parsedBody.payload.metadata?.videoCallUrl) {
-    parsedBody.payload.metadata.videoCallUrl = parsedBody.payload.metadata.videoCallUrl
-      ? parsedBody.payload.metadata.videoCallUrl
-      : parsedBody.payload.metadata.videoCallUrl;
-  }
-  if (data.payload) {
-    if (data.payload.metadata !== undefined) {
-      expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+  if (parsedBody.payload) {
+    if (data.payload) {
+      if (!!data.payload.metadata) {
+        expect(parsedBody.payload.metadata).toEqual(expect.objectContaining(data.payload.metadata));
+      }
+      if (!!data.payload.responses)
+        expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
+
+      if (!!data.payload.organizer)
+        expect(parsedBody.payload.organizer).toEqual(expect.objectContaining(data.payload.organizer));
+
+      const { responses: _1, metadata: _2, organizer: _3, ...remainingPayload } = data.payload;
+      expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
     }
-    if (data.payload.responses !== undefined)
-      expect(parsedBody.payload.responses).toEqual(expect.objectContaining(data.payload.responses));
-    const { responses: _1, metadata: _2, ...remainingPayload } = data.payload;
-    expect(parsedBody.payload).toEqual(expect.objectContaining(remainingPayload));
   }
 }
 
 export function expectWorkflowToBeTriggered({
   emails,
-  organizer,
-  destinationEmail,
+  emailsToReceive,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
-  destinationEmail?: string;
+  emailsToReceive: string[];
 }) {
   const subjectPattern = /^Reminder: /i;
-  expect(emails.get()).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: destinationEmail ?? organizer.email,
-      }),
-    ])
-  );
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
 }
 
 export function expectWorkflowToBeNotTriggered({
   emails,
-  organizer,
+  emailsToReceive,
 }: {
   emails: Fixtures["emails"];
-  organizer: { email: string; name: string; timeZone: string };
+  emailsToReceive: string[];
 }) {
   const subjectPattern = /^Reminder: /i;
 
-  expect(emails.get()).not.toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        subject: expect.stringMatching(subjectPattern),
-        to: organizer.email,
-      }),
-    ])
-  );
+  emailsToReceive.forEach((email) => {
+    expect(emails.get()).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          subject: expect.stringMatching(subjectPattern),
+          to: email,
+        }),
+      ])
+    );
+  });
+}
+
+export function expectSMSWorkflowToBeTriggered({
+  sms,
+  toNumber,
+  includedString,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+  includedString?: string;
+}) {
+  const allSMS = sms.get();
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    expect(messageWithIncludedString?.to).toBe(toNumber);
+  } else {
+    expect(allSMS).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
+}
+
+export function expectSMSWorkflowToBeNotTriggered({
+  sms,
+  toNumber,
+  includedString,
+}: {
+  sms: Fixtures["sms"];
+  toNumber: string;
+  includedString?: string;
+}) {
+  const allSMS = sms.get();
+
+  if (includedString) {
+    const messageWithIncludedString = allSMS.find((sms) => sms.message.includes(includedString));
+
+    if (messageWithIncludedString) {
+      expect(messageWithIncludedString?.to).not.toBe(toNumber);
+    }
+  } else {
+    expect(allSMS).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          to: toNumber,
+        }),
+      ])
+    );
+  }
 }
 
 export async function expectBookingToBeInDatabase(
@@ -808,11 +865,20 @@ export function expectBookingRequestedWebhookToHaveBeenFired({
           // In a Pending Booking Request, we don't send the video call url
         },
         responses: {
-          name: { label: "your_name", value: booker.name },
-          email: { label: "email_address", value: booker.email },
+          name: {
+            label: "your_name",
+            value: booker.name,
+            isHidden: false,
+          },
+          email: {
+            label: "email_address",
+            value: booker.email,
+            isHidden: false,
+          },
           location: {
             label: "location",
             value: { optionValue: "", value: location },
+            isHidden: false,
           },
         },
       },
@@ -861,11 +927,12 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
           ...(videoCallUrl ? { videoCallUrl } : null),
         },
         responses: {
-          name: { label: "your_name", value: booker.name },
-          email: { label: "email_address", value: booker.email },
+          name: { label: "your_name", value: booker.name, isHidden: false },
+          email: { label: "email_address", value: booker.email, isHidden: false },
           location: {
             label: "location",
             value: { optionValue: "", value: location },
+            isHidden: false,
           },
         },
       },
@@ -877,8 +944,14 @@ export function expectBookingCreatedWebhookToHaveBeenFired({
         // FIXME: File this bug and link ticket here. This is a bug in the code. metadata must be sent here like other BOOKING_CREATED webhook
         metadata: null,
         responses: {
-          name: { label: "name", value: booker.name },
-          email: { label: "email", value: booker.email },
+          name: {
+            label: "name",
+            value: booker.name,
+          },
+          email: {
+            label: "email",
+            value: booker.email,
+          },
           location: {
             label: "location",
             value: { optionValue: "", value: location },
@@ -912,8 +985,44 @@ export function expectBookingRescheduledWebhookToHaveBeenFired({
         ...(videoCallUrl ? { videoCallUrl } : null),
       },
       responses: {
-        name: { label: "your_name", value: booker.name },
-        email: { label: "email_address", value: booker.email },
+        name: { label: "your_name", value: booker.name, isHidden: false },
+        email: { label: "email_address", value: booker.email, isHidden: false },
+        location: {
+          label: "location",
+          value: { optionValue: "", value: location },
+          isHidden: false,
+        },
+      },
+    },
+  });
+}
+
+export function expectBookingCancelledWebhookToHaveBeenFired({
+  booker,
+  location,
+  subscriberUrl,
+  payload,
+}: {
+  organizer: { email: string; name: string };
+  booker: { email: string; name: string };
+  subscriberUrl: string;
+  location: string;
+  payload?: Record<string, unknown>;
+}) {
+  expectWebhookToHaveBeenCalledWith(subscriberUrl, {
+    triggerEvent: "BOOKING_CANCELLED",
+    payload: {
+      ...payload,
+      metadata: null,
+      responses: {
+        name: {
+          label: "name",
+          value: booker.name,
+        },
+        email: {
+          label: "email",
+          value: booker.email,
+        },
         location: {
           label: "location",
           value: { optionValue: "", value: location },
@@ -943,11 +1052,12 @@ export function expectBookingPaymentIntiatedWebhookToHaveBeenFired({
         // In a Pending Booking Request, we don't send the video call url
       },
       responses: {
-        name: { label: "your_name", value: booker.name },
-        email: { label: "email_address", value: booker.email },
+        name: { label: "your_name", value: booker.name, isHidden: false },
+        email: { label: "email_address", value: booker.email, isHidden: false },
         location: {
           label: "location",
           value: { optionValue: "", value: location },
+          isHidden: false,
         },
       },
     },

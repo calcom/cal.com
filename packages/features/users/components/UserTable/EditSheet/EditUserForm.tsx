@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
 import { useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -55,7 +56,9 @@ export function EditForm({
 }) {
   const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const { t } = useLocale();
-  const utils = trpc.useContext();
+  const session = useSession();
+  const org = session?.data?.user?.org;
+  const utils = trpc.useUtils();
   const form = useForm({
     resolver: zodResolver(editSchema),
     defaultValues: {
@@ -69,8 +72,7 @@ export function EditForm({
     },
   });
 
-  const { data: currentMembership } = trpc.viewer.organizations.listCurrent.useQuery();
-  const isOwner = currentMembership?.user.role === MembershipRole.OWNER;
+  const isOwner = org?.role === MembershipRole.OWNER;
 
   const membershipOptions = useMemo<MembershipOption[]>(() => {
     const options: MembershipOption[] = [

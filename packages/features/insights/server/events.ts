@@ -13,103 +13,70 @@ interface ITimeRange {
 type TimeViewType = "week" | "month" | "year" | "day";
 
 class EventsInsights {
-  static getBookingsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const { start, end } = timeRange;
+  static countGroupedByStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
+    const data = await prisma.bookingTimeStatus.groupBy({
+      where,
+      by: ["timeStatus"],
+      _count: {
+        _all: true,
+      },
+    });
+    return data.reduce(
+      (aggregate: { [x: string]: number }, item) => {
+        if (typeof item.timeStatus === "string") {
+          aggregate[item.timeStatus] = item._count._all;
+          aggregate["_all"] += item._count._all;
+        }
+        return aggregate;
+      },
+      {
+        completed: 0,
+        rescheduled: 0,
+        cancelled: 0,
+        _all: 0,
+      }
+    );
+  };
 
-    const events = await prisma.bookingTimeStatus.count({
+  static getAverageRating = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    return await prisma.bookingTimeStatus.aggregate({
+      _avg: {
+        rating: true,
+      },
       where: {
-        ...where,
-        createdAt: {
-          gte: start.toISOString(),
-          lte: end.toISOString(),
+        ...whereConditional,
+        rating: {
+          not: null, // Exclude null ratings
         },
       },
     });
-
-    return events;
   };
 
-  static getCreatedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, where);
-
-    return result;
-  };
-
-  static getCancelledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "cancelled",
-    });
-
-    return result;
-  };
-
-  static getCompletedEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "completed",
-    });
-
-    return result;
-  };
-
-  static getRescheduledEventsInTimeRange = async (
-    timeRange: ITimeRange,
-    where: Prisma.BookingTimeStatusWhereInput
-  ) => {
-    const result = await this.getBookingsInTimeRange(timeRange, {
-      ...where,
-      timeStatus: "rescheduled",
-    });
-
-    return result;
-  };
-
-  static getBaseBookingCountForEventStatus = async (where: Prisma.BookingTimeStatusWhereInput) => {
-    const baseBookings = await prisma.bookingTimeStatus.count({
-      where,
-    });
-
-    return baseBookings;
-  };
-
-  static getTotalCompletedEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+  static getTotalNoShows = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
     return await prisma.bookingTimeStatus.count({
       where: {
         ...whereConditional,
-        timeStatus: "completed",
+        noShowHost: true,
       },
     });
   };
 
-  static getTotalRescheduledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
+  static getTotalCSAT = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
+    const result = await prisma.bookingTimeStatus.findMany({
       where: {
         ...whereConditional,
-        timeStatus: "rescheduled",
+        rating: {
+          not: null,
+        },
       },
+      select: { rating: true },
     });
-  };
 
-  static getTotalCancelledEvents = async (whereConditional: Prisma.BookingTimeStatusWhereInput) => {
-    return await prisma.bookingTimeStatus.count({
-      where: {
-        ...whereConditional,
-        timeStatus: "cancelled",
-      },
-    });
+    const totalResponses = result.length;
+    const satisfactoryResponses = result.filter((item) => item.rating && item.rating > 3).length;
+    const csat = totalResponses > 0 ? (satisfactoryResponses / totalResponses) * 100 : 0;
+
+    return csat;
   };
 
   static getTimeLine = async (timeView: TimeViewType, startDate: Dayjs, endDate: Dayjs) => {
@@ -239,6 +206,9 @@ class EventsInsights {
         paid: true,
         userEmail: true,
         username: true,
+        rating: true,
+        ratingFeedback: true,
+        noShowHost: true,
       },
       where: whereConditional,
     });

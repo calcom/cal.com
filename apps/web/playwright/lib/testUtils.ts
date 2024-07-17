@@ -1,5 +1,4 @@
 import type { Frame, Page } from "@playwright/test";
-import type { APIResponse } from "@playwright/test";
 import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
@@ -348,6 +347,8 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.fill("[name=cardExpiry]", "12/30");
   await page.fill("[name=cardCvc]", "111");
   await page.fill("[name=billingName]", "Stripe Stripeson");
+  await page.selectOption("[name=billingCountry]", "US");
+  await page.fill("[name=billingPostalCode]", "12345");
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
@@ -371,52 +372,21 @@ export async function doOnOrgDomain(
 export const NotFoundPageTextAppDir = "This page does not exist.";
 // export const NotFoundPageText = "ERROR 404";
 
-export type Team = {
-  id: number;
-  slug: string | null;
-  name: string;
-};
-
-export type EventType = {
-  id: number;
-  title: string;
-  slug: string;
-};
-export type User = {
-  id: number;
-  name: string | null;
-  username: string | null;
-};
-
-export async function bookTeamEvent(page: Page, team: Team, eventType: EventType) {
-  await page.goto(`/team/${team.slug}/${eventType.slug}/`);
-  await bookEventOnThisPage(page);
-  const bookingTitle = `${eventType.title} between ${team.name} and ${testName}`;
-  await assertBookingIsCorrect(page, bookingTitle);
-}
-export async function bookUserEvent(page: Page, user: User, eventType: EventType) {
-  await page.goto(`/${user.username}/${eventType.slug}/`);
-  await bookEventOnThisPage(page);
-  const bookingTitle = `${eventType.title} between ${user.name} and ${testName}`;
-  await assertBookingIsCorrect(page, bookingTitle);
+export async function gotoFirstEventType(page: Page) {
+  const $eventTypes = page.locator("[data-testid=event-types] > li a");
+  const firstEventTypeElement = $eventTypes.first();
+  await firstEventTypeElement.click();
+  await page.waitForURL((url) => {
+    return !!url.pathname.match(/\/event-types\/.+/);
+  });
 }
 
-export async function assertBookingIsCorrect(page: Page, bookingTitle: string) {
-  await expect(page.locator("[data-testid=booking-title]")).toHaveText(bookingTitle);
-  // The booker should be in the attendee list
-  await expect(page.locator(`[data-testid="attendee-name-${testName}"]`)).toHaveText(testName);
+export async function gotoBookingPage(page: Page) {
+  const previewLink = await page.locator("[data-testid=preview-button]").getAttribute("href");
+
+  await page.goto(previewLink ?? "");
 }
 
-export const assertBookingVisibleFor = async (
-  user: { apiLogin: () => Promise<APIResponse> },
-  pageFixture: Fixtures["page"],
-  eventType: EventType,
-  shouldBeVisible: boolean
-) => {
-  await user.apiLogin();
-  await pageFixture.goto(`/bookings/upcoming`);
-  const upcomingBookingList = pageFixture.locator('[data-testid="booking-item"]');
-  shouldBeVisible
-    ? await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeVisible()
-    : await expect(upcomingBookingList.locator(`text=${eventType.title}`)).toBeHidden();
-};
+export async function saveEventType(page: Page) {
+  await page.locator("[data-testid=update-eventtype]").click();
+}

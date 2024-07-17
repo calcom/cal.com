@@ -7,6 +7,7 @@ interface Params {
   teamId?: number;
   userId?: number;
   eventTypeId?: number;
+  platform?: boolean;
 }
 
 export const subscriberUrlReserved = ({
@@ -16,9 +17,10 @@ export const subscriberUrlReserved = ({
   teamId,
   userId,
   eventTypeId,
+  platform,
 }: Params): boolean => {
-  if (!teamId && !userId && !eventTypeId) {
-    throw new Error("Either teamId, userId, or eventTypeId must be provided.");
+  if (!teamId && !userId && !eventTypeId && !platform) {
+    throw new Error("Either teamId, userId, eventTypeId or platform must be provided.");
   }
 
   const findMatchingWebhook = (condition: (webhook: Webhook) => void) => {
@@ -32,6 +34,9 @@ export const subscriberUrlReserved = ({
   }
   if (eventTypeId) {
     return findMatchingWebhook((webhook: Webhook) => webhook.eventTypeId === eventTypeId);
+  }
+  if (platform) {
+    return findMatchingWebhook((webhook: Webhook) => webhook.platform === true);
   }
   return findMatchingWebhook((webhook: Webhook) => webhook.userId === userId);
 };

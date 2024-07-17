@@ -5,10 +5,13 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZFilteredListInputSchema } from "./filteredList.schema";
 import { ZGetInputSchema } from "./get.schema";
+import { ZGetAllActiveWorkflowsInputSchema } from "./getAllActiveWorkflows.schema";
+import { ZGetVerifiedEmailsInputSchema } from "./getVerifiedEmails.schema";
 import { ZGetVerifiedNumbersInputSchema } from "./getVerifiedNumbers.schema";
 import { ZListInputSchema } from "./list.schema";
 import { ZSendVerificationCodeInputSchema } from "./sendVerificationCode.schema";
 import { ZUpdateInputSchema } from "./update.schema";
+import { ZVerifyEmailCodeInputSchema } from "./verifyEmailCode.schema";
 import { ZVerifyPhoneNumberInputSchema } from "./verifyPhoneNumber.schema";
 
 type WorkflowsRouterHandlerCache = {
@@ -23,6 +26,9 @@ type WorkflowsRouterHandlerCache = {
   getVerifiedNumbers?: typeof import("./getVerifiedNumbers.handler").getVerifiedNumbersHandler;
   getWorkflowActionOptions?: typeof import("./getWorkflowActionOptions.handler").getWorkflowActionOptionsHandler;
   filteredList?: typeof import("./filteredList.handler").filteredListHandler;
+  getVerifiedEmails?: typeof import("./getVerifiedEmails.handler").getVerifiedEmailsHandler;
+  verifyEmailCode?: typeof import("./verifyEmailCode.handler").verifyEmailCodeHandler;
+  getAllActiveWorkflows?: typeof import("./getAllActiveWorkflows.handler").getAllActiveWorkflowsHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: WorkflowsRouterHandlerCache = {};
@@ -182,6 +188,42 @@ export const workflowsRouter = router({
     });
   }),
 
+  getVerifiedEmails: authedProcedure.input(ZGetVerifiedEmailsInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getVerifiedEmails) {
+      UNSTABLE_HANDLER_CACHE.getVerifiedEmails = await import("./getVerifiedEmails.handler").then(
+        (mod) => mod.getVerifiedEmailsHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getVerifiedEmails) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.getVerifiedEmails({
+      ctx,
+      input,
+    });
+  }),
+
+  verifyEmailCode: authedProcedure.input(ZVerifyEmailCodeInputSchema).mutation(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.verifyPhoneNumber) {
+      UNSTABLE_HANDLER_CACHE.verifyEmailCode = await import("./verifyEmailCode.handler").then(
+        (mod) => mod.verifyEmailCodeHandler
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.verifyEmailCode) {
+      throw new Error("Failed to load handler");
+    }
+
+    return UNSTABLE_HANDLER_CACHE.verifyEmailCode({
+      ctx,
+      input,
+    });
+  }),
+
   getWorkflowActionOptions: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions) {
       UNSTABLE_HANDLER_CACHE.getWorkflowActionOptions = await import(
@@ -215,4 +257,23 @@ export const workflowsRouter = router({
       input,
     });
   }),
+  getAllActiveWorkflows: authedProcedure
+    .input(ZGetAllActiveWorkflowsInputSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
+        UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows = await import("./getAllActiveWorkflows.handler").then(
+          (mod) => mod.getAllActiveWorkflowsHandler
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.getAllActiveWorkflows({
+        ctx,
+        input,
+      });
+    }),
 });

@@ -56,7 +56,7 @@ test.describe("Org", () => {
       ];
       const response = await page.goto(`http://i.cal.com/${users[0].username}+${users[1].username}`);
       expect(response?.status()).toBe(200);
-      expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Dynamic");
+      expect(await page.locator('[data-testid="event-title"]').textContent()).toBe("Group Meeting");
 
       expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[0].name);
       expect(await page.locator('[data-testid="event-meta"]').textContent()).toContain(users[1].name);

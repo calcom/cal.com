@@ -3,6 +3,7 @@ import type { DirectorySyncEvent, User } from "@boxyhq/saml-jackson";
 import removeUserFromOrg from "@calcom/features/ee/dsync/lib/removeUserFromOrg";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
+import { IdentityProvider } from "@calcom/prisma/enums";
 import { getTeamOrThrow } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import type { UserWithMembership } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
 import { sendExistingUserTeamInviteEmails } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/utils";
@@ -48,12 +49,18 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       await sendExistingUserTeamInviteEmails({
         currentUserName: user.username,
         currentUserTeamName: org.name,
-        existingUsersWithMembersips: [addedUser],
+        existingUsersWithMemberships: [
+          {
+            ...addedUser,
+            profile: null,
+          },
+        ],
         language: translation,
         isOrg: true,
         teamId: org.id,
         isAutoJoin: true,
         currentUserParentTeamName: org?.parent?.name,
+        orgSlug: org.slug,
       });
     } else {
       // If data.active is false then remove the user from the org
@@ -64,10 +71,13 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
     }
     // If user is not in DB, create user and add to the org
   } else {
-    await createUsersAndConnectToOrg({
+    const createUsersAndConnectToOrgProps = {
       emailsToCreate: [userEmail],
-      org,
-    });
+      organizationId: org.id,
+      identityProvider: IdentityProvider.CAL,
+      identityProviderId: null,
+    };
+    await createUsersAndConnectToOrg(createUsersAndConnectToOrgProps);
 
     await sendSignupToOrganizationEmail({
       usernameOrEmail: userEmail,

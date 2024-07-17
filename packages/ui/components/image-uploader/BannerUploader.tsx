@@ -142,7 +142,7 @@ export default function BannerUploader({
           color={triggerButtonColor ?? "secondary"}
           type="button"
           disabled={disabled}
-          data-testid="open-upload-avatar-dialog"
+          data-testid={`open-upload-${target}-dialog`}
           className="cursor-pointer py-1 text-sm">
           {buttonMsg}
         </Button>

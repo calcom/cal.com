@@ -1,11 +1,13 @@
 import { ZVerifyCodeInputSchema } from "@calcom/prisma/zod-utils";
+import { AIPhoneSettingSchema } from "@calcom/prisma/zod-utils";
 
 import authedProcedure, {
   authedAdminProcedure,
   authedOrgAdminProcedure,
 } from "../../../procedures/authedProcedure";
 import { importHandler, router } from "../../../trpc";
-import { ZAddBulkTeams } from "./addBulkTeams.schema";
+import { ZAddMembersToEventTypes } from "./addMembersToEventTypes.schema";
+import { ZAddMembersToTeams } from "./addMembersToTeams.schema";
 import { ZAdminDeleteInput } from "./adminDelete.schema";
 import { ZAdminGet } from "./adminGet.schema";
 import { ZAdminUpdate } from "./adminUpdate.schema";
@@ -19,6 +21,7 @@ import { ZGetOtherTeamInputSchema } from "./getOtherTeam.handler";
 import { ZGetUserInput } from "./getUser.schema";
 import { ZListMembersSchema } from "./listMembers.schema";
 import { ZListOtherTeamMembersSchema } from "./listOtherTeamMembers.handler";
+import { ZRemoveHostsFromEventTypes } from "./removeHostsFromEventTypes.schema";
 import { ZSetPasswordSchema } from "./setPassword.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateUserInputSchema } from "./updateUser.schema";
@@ -28,7 +31,7 @@ const NAMESPACE = "organizations";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
 
 export const viewerOrganizationsRouter = router({
-  create: authedAdminProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
+  create: authedProcedure.input(ZCreateInputSchema).mutation(async (opts) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler(opts);
   }),
@@ -87,8 +90,25 @@ export const viewerOrganizationsRouter = router({
     const handler = await importHandler(namespaced("getTeams"), () => import("./getTeams.handler"));
     return handler(opts);
   }),
-  bulkAddToTeams: authedProcedure.input(ZAddBulkTeams).mutation(async (opts) => {
-    const handler = await importHandler(namespaced("addBulkTeams"), () => import("./addBulkTeams.handler"));
+  addMembersToTeams: authedProcedure.input(ZAddMembersToTeams).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("addMembersToTeams"),
+      () => import("./addMembersToTeams.handler")
+    );
+    return handler(opts);
+  }),
+  addMembersToEventTypes: authedProcedure.input(ZAddMembersToEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("addMembersToEventTypes"),
+      () => import("./addMembersToEventTypes.handler")
+    );
+    return handler(opts);
+  }),
+  removeHostsFromEventTypes: authedProcedure.input(ZRemoveHostsFromEventTypes).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("removeHostsFromEventTypes"),
+      () => import("./removeHostsFromEventTypes.handler")
+    );
     return handler(opts);
   }),
   bulkDeleteUsers: authedProcedure.input(ZBulkUsersDelete).mutation(async (opts) => {
@@ -139,6 +159,13 @@ export const viewerOrganizationsRouter = router({
   }),
   adminDelete: authedAdminProcedure.input(ZAdminDeleteInput).mutation(async (opts) => {
     const handler = await importHandler(namespaced("adminDelete"), () => import("./adminDelete.handler"));
+    return handler(opts);
+  }),
+  createPhoneCall: authedProcedure.input(AIPhoneSettingSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("createPhoneCall"),
+      () => import("./createPhoneCall.handler")
+    );
     return handler(opts);
   }),
 });

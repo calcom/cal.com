@@ -5,9 +5,9 @@ import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-export function UserFieldsResponses(props: { calEvent: CalendarEvent; t: TFunction }) {
-  const { t } = props;
-  const labelValueMap = getLabelValueMapFromResponses(props.calEvent);
+export function UserFieldsResponses(props: { calEvent: CalendarEvent; t: TFunction; isOrganizer?: boolean }) {
+  const { t, isOrganizer = false } = props;
+  const labelValueMap = getLabelValueMapFromResponses(props.calEvent, isOrganizer);
 
   if (!labelValueMap) return null;
   return (

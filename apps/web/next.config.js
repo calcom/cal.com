@@ -50,6 +50,24 @@ if (!process.env.EMAIL_FROM) {
 
 if (!process.env.NEXTAUTH_URL) throw new Error("Please set NEXTAUTH_URL");
 
+if (!process.env.NEXT_PUBLIC_API_V2_URL) {
+  console.error("Please set NEXT_PUBLIC_API_V2_URL");
+}
+
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -154,9 +172,12 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
+  output: "standalone",
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
+    optimizePackageImports: ["@calcom/ui"],
+    instrumentationHook: true,
   },
   i18n: {
     ...i18n,
@@ -187,10 +208,6 @@ const nextConfig = {
     "lucide-react",
   ],
   modularizeImports: {
-    "@calcom/ui/components/icon": {
-      transform: "lucide-react/dist/esm/icons/{{ kebabCase member }}",
-      preventFullImport: true,
-    },
     "@calcom/features/insights/components": {
       transform: "@calcom/features/insights/components/{{member}}",
       skipDefaultConversion: true,
@@ -217,6 +234,13 @@ const nextConfig = {
         })
       );
     }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+      })
+    );
 
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -264,6 +288,29 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        source: "/forms/:formQuery*",
+        destination: "/apps/routing-forms/routing-link/:formQuery*",
+      },
+      {
+        source: "/router",
+        destination: "/apps/routing-forms/router",
+      },
+      {
+        source: "/success/:path*",
+        has: [
+          {
+            type: "query",
+            key: "uid",
+            value: "(?<uid>.*)",
+          },
+        ],
+        destination: "/booking/:uid/:path*",
+      },
+      {
+        source: "/cancel/:path*",
+        destination: "/booking/:path*",
+      },
+      {
         /**
          * Needed due to the introduction of dotted usernames
          * @see https://github.com/calcom/cal.com/pull/11706
@@ -304,6 +351,10 @@ const nextConfig = {
 
     let afterFiles = [
       {
+        source: "/api/v2/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_V2_URL}/:path*`,
+      },
+      {
         source: "/org/:slug",
         destination: "/team/:slug",
       },
@@ -321,29 +372,6 @@ const nextConfig = {
         {
           source: "/:user/avatar.png",
           destination: "/api/user/avatar?username=:user",
-        },
-        {
-          source: "/forms/:formQuery*",
-          destination: "/apps/routing-forms/routing-link/:formQuery*",
-        },
-        {
-          source: "/router",
-          destination: "/apps/routing-forms/router",
-        },
-        {
-          source: "/success/:path*",
-          has: [
-            {
-              type: "query",
-              key: "uid",
-              value: "(?<uid>.*)",
-            },
-          ],
-          destination: "/booking/:uid/:path*",
-        },
-        {
-          source: "/cancel/:path*",
-          destination: "/booking/:path*",
         },
       ],
 
@@ -532,6 +560,11 @@ const nextConfig = {
         destination: "/apps/installed/calendar",
         permanent: true,
       },
+      {
+        source: "/settings/organizations/platform/:path*",
+        destination: "/settings/platform",
+        permanent: true,
+      },
       // OAuth callbacks when sent to localhost:3000(w would be expected) should be redirected to corresponding to WEBAPP_URL
       ...(process.env.NODE_ENV === "development" &&
       // Safer to enable the redirect only when the user is opting to test out organizations
@@ -580,14 +613,14 @@ const nextConfig = {
 };
 
 if (!!process.env.NEXT_PUBLIC_SENTRY_DSN) {
-  nextConfig["sentry"] = {
-    autoInstrumentServerFunctions: true,
-    hideSourceMaps: true,
-    // disable source map generation for the server code
-    disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
-  };
-
-  plugins.push(withSentryConfig);
+  plugins.push((nextConfig) =>
+    withSentryConfig(nextConfig, {
+      autoInstrumentServerFunctions: true,
+      hideSourceMaps: true,
+      // disable source map generation for the server code
+      disableServerWebpackPlugin: !!process.env.SENTRY_DISABLE_SERVER_WEBPACK_PLUGIN,
+    })
+  );
 }
 
 module.exports = () => plugins.reduce((acc, next) => next(acc), nextConfig);

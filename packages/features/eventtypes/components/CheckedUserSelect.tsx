@@ -2,8 +2,7 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import type { Props } from "react-select";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Avatar, EmptyScreen, Label, Select } from "@calcom/ui";
-import { UserPlus, X } from "@calcom/ui/components/icon";
+import { Avatar, EmptyScreen, Icon, Label, Select } from "@calcom/ui";
 
 export type CheckedUserSelectOption = {
   avatar: string;
@@ -47,7 +46,8 @@ export const CheckedUserSelect = ({
                     className={`flex px-3 py-2 ${index === value.length - 1 ? "" : "border-b"}`}>
                     <Avatar size="sm" imageSrc={option.avatar} alt={option.label} />
                     <p className="my-auto ml-3 text-sm text-gray-900">{option.label}</p>
-                    <X
+                    <Icon
+                      name="x"
                       onClick={() => props.onChange(value.filter((item) => item.value !== option.value))}
                       className="my-auto ml-auto"
                     />
@@ -60,7 +60,7 @@ export const CheckedUserSelect = ({
       ) : (
         <div className="mt-6">
           <EmptyScreen
-            Icon={UserPlus}
+            Icon="user-plus"
             headline={t("no_assigned_members")}
             description={t("start_assigning_members_above")}
           />

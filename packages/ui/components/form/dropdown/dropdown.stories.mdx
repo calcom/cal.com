@@ -1,5 +1,4 @@
 import { Canvas, Story, Meta } from "@storybook/addon-docs";
-import { Button } from "@calcom/ui";
 
 import {
   Examples,
@@ -9,8 +8,9 @@ import {
   VariantRow,
   VariantsTable,
 } from "@calcom/storybook/components";
+import { Button } from "@calcom/ui";
+import { Icon } from "@calcom/ui";
 
-import { Plus, Trash, Copy } from "@calcom/ui/components/icon";
 import {
   Dropdown,
   DropdownMenuTrigger,
@@ -115,7 +115,7 @@ The `Dropdown` component can be used to display a menu to the user.
   <Example title="Button Icon">
     <Dropdown>
       <DropdownMenuTrigger asChild>
-        <Button StartIcon={Plus} />
+        <Button StartIcon="plus" />
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>
@@ -266,14 +266,14 @@ The `Dropdown` component can be used to display a menu to the user.
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Trash}>First</DropdownItem>
+          <DropdownItem StartIcon="trash">First</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+          <DropdownItem StartIcon="plus">Second</DropdownItem>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-          <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+          <DropdownItem StartIcon="copy">Third</DropdownItem>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </Dropdown>
@@ -310,7 +310,7 @@ The `Dropdown` component can be used to display a menu to the user.
       asChild: false,
       align: "start",
       disabled: false,
-      sideOffset: 0
+      sideOffset: 0,
     }}
     argTypes={{
       sideOffset: {
@@ -320,8 +320,8 @@ The `Dropdown` component can be used to display a menu to the user.
       },
       asChild: {
         control: {
-          type: "boolean"
-        }
+          type: "boolean",
+        },
       },
       align: {
         control: {
@@ -331,9 +331,9 @@ The `Dropdown` component can be used to display a menu to the user.
       },
       disabled: {
         control: {
-          type: "boolean"
-        }
-      }
+          type: "boolean",
+        },
+      },
     }}>
     {({ dir, asChild, sideOffset, align, disabled }) => (
       <VariantsTable titles={["Default"]} columnMinWidth={150}>
@@ -344,13 +344,13 @@ The `Dropdown` component can be used to display a menu to the user.
             </DropdownMenuTrigger>
             <DropdownMenuContent align={align} sideOffset={sideOffset}>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Trash}>First</DropdownItem>
+                <DropdownItem StartIcon="trash">First</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Plus}>Second</DropdownItem>
+                <DropdownItem StartIcon="plus">Second</DropdownItem>
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <DropdownItem StartIcon={Copy}>Third</DropdownItem>
+                <DropdownItem StartIcon="copy">Third</DropdownItem>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </Dropdown>

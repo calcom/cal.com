@@ -30,13 +30,14 @@ export const Codes = {
       const width = getDimension(previewState.inline.width);
       const height = getDimension(previewState.inline.height);
       const namespaceProp = `${namespace ? `namespace="${namespace}"` : ""}`;
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import Cal, { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi();
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -58,13 +59,14 @@ export const Codes = {
       uiInstructionCode: string;
       namespace: string;
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
@@ -84,13 +86,14 @@ export const Codes = {
       embedCalOrigin: string;
       namespace: string;
     }) => {
+      const argumentForGetCalApi = getArgumentForGetCalApi(namespace);
       return code`
   import { getCalApi } from "@calcom/embed-react";
   import { useEffect } from "react";
   export default function MyApp() {
 	useEffect(()=>{
 	  (async function () {
-		const cal = await getCalApi(${IS_SELF_HOSTED ? `"${embedLibUrl}"` : ""});
+		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -196,3 +199,9 @@ const code = (partsWithoutBlock: TemplateStringsArray, ...blocksOrVariables: str
   }
   return constructedCode.join("");
 };
+
+function getArgumentForGetCalApi(namespace: string) {
+  const libUrl = IS_SELF_HOSTED ? embedLibUrl : undefined;
+  const argumentForGetCalApi = namespace ? { namespace, embedLibUrl: libUrl } : { embedLibUrl: libUrl };
+  return argumentForGetCalApi;
+}
