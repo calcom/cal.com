@@ -1,7 +1,6 @@
+import { MembershipRole } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
-
-import { MembershipRole } from "@calcom/prisma/enums";
 
 export class OrgMembershipOutputDto {
   @IsInt()
