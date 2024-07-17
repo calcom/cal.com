@@ -34,10 +34,12 @@ export const useRemoveSelectedCalendar = (
     { credentialId: number; integration: string; externalId: string }
   >({
     mutationFn: (data) => {
+      const { credentialId, externalId, integration } = data;
+
       return http
-        .delete(`/selected-calendars`, {
-          params: { data },
-        })
+        .delete(
+          `/selected-calendars?credentialId=${credentialId}&integration=${integration}&externalId=${externalId}`
+        )
         .then((res) => {
           return res.data;
         });
