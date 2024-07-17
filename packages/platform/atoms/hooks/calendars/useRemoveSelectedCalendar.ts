@@ -20,7 +20,7 @@ export const useRemoveSelectedCalendar = (
     },
   }
 ) => {
-  const deleteCalendarCredentials = useMutation<
+  const deleteCalendarEntry = useMutation<
     ApiResponse<{
       status: string;
       data: {
@@ -54,5 +54,5 @@ export const useRemoveSelectedCalendar = (
     },
   });
 
-  return deleteCalendarCredentials;
+  return deleteCalendarEntry;
 };
