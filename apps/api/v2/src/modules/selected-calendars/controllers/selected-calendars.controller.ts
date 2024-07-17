@@ -2,7 +2,10 @@ import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { SelectedCalendarsInputDto } from "@/modules/selected-calendars/controllers/inputs/selected-calendars.input";
+import {
+  SelectedCalendarsInputDto,
+  SelectedCalendarsQueryParamsInputDto,
+} from "@/modules/selected-calendars/controllers/inputs/selected-calendars.input";
 import { SelectedCalendarOutputResponseDto } from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
@@ -50,11 +53,11 @@ export class SelectedCalendarsController {
   @Delete("/")
   @UseGuards(ApiAuthGuard)
   async removeSelectedCalendar(
-    @Query() queryParams: SelectedCalendarsInputDto,
+    @Query() queryParams: SelectedCalendarsQueryParamsInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId } = queryParams;
-    const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
+    const credential = await this.calendarsRepository.getCalendarCredentials(Number(credentialId), user.id);
     if (!credential) {
       throw new NotFoundException(`Credentials not found`);
     }
