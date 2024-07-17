@@ -45,6 +45,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @Get("/")
+  @HttpCode(HttpStatus.OK)
   async getAllMemberships(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -65,6 +66,7 @@ export class OrganizationsMembershipsController {
 
   @Roles("ORG_ADMIN")
   @Post("/")
+  @HttpCode(HttpStatus.CREATED)
   async createMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgMembershipDto
@@ -79,6 +81,7 @@ export class OrganizationsMembershipsController {
   @Roles("ORG_ADMIN")
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
+  @HttpCode(HttpStatus.OK)
   async getUserSchedule(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
@@ -108,6 +111,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
   @Patch("/:membershipId")
+  @HttpCode(HttpStatus.OK)
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
