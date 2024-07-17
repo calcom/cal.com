@@ -318,14 +318,13 @@ async function postHandler(req: NextApiRequest) {
   await checkPermissions(req);
 
   //user with admin or owner role on team can create child event types
-  let isChildEventTypeForTeamWithAccess = false;
-  if (parsedBody.parentId) {
+  if (parsedBody.parentId && !isSystemWideAdmin) {
     await checkParentEventOwnership(req);
     await checkUserMembership(req);
-    isChildEventTypeForTeamWithAccess = true;
   }
 
-  if ((isSystemWideAdmin || isChildEventTypeForTeamWithAccess) && parsedBody.userId) {
+  //checks for owner/admin role on team have been verified above if parentId is present
+  if ((isSystemWideAdmin || parsedBody.parentId) && parsedBody.userId) {
     data = { ...parsedBody, userId: parsedBody.userId, users: { connect: { id: parsedBody.userId } } };
   }
 
