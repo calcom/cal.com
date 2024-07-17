@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { SelectedCalendarsController } from "@/modules/selected-calendars/controllers/selected-calendars.controller";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -5,7 +6,7 @@ import { Module } from "@nestjs/common";
 
 @Module({
   imports: [PrismaModule],
-  providers: [SelectedCalendarsRepository],
+  providers: [SelectedCalendarsRepository, CalendarsRepository],
   controllers: [SelectedCalendarsController],
   exports: [SelectedCalendarsRepository],
 })
