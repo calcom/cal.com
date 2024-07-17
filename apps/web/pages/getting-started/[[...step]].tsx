@@ -1,7 +1,7 @@
 "use client";
 
+import { signOut } from "next-auth/react";
 import Head from "next/head";
-import {signOut} from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -20,6 +20,8 @@ import { ConnectedVideoStep } from "@components/getting-started/steps-views/Conn
 import { SetupAvailability } from "@components/getting-started/steps-views/SetupAvailability";
 import UserProfile from "@components/getting-started/steps-views/UserProfile";
 import { UserSettings } from "@components/getting-started/steps-views/UserSettings";
+
+ge;
 
 export { getServerSideProps } from "@lib/getting-started/[[...step]]/getServerSideProps";
 
@@ -174,13 +176,13 @@ const OnboardingPage = () => {
             )}
           </div>
           <div className="flex w-full flex-row justify-center">
-              <Button
-                color="minimal"
-                data-testid="sign-out"
-                onClick={() => signOut({ callbackUrl: "/auth/login" })}
-                className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
-                  {t("sign_out")}
-              </Button>
+            <Button
+              color="minimal"
+              data-testid="sign-out"
+              onClick={() => signOut({ callbackUrl: "/auth/logout" })}
+              className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+              {t("sign_out")}
+            </Button>
           </div>
         </div>
       </div>
