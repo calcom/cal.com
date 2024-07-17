@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { BulkEditDefaultModal } from "@calcom/features/eventtypes/components/BulkEditDefaultModal";
+import { BulkEditDefaultForEventsModal } from "@calcom/features/eventtypes/components/BulkEditDefaultForEventsModal";
 import { NewScheduleButton, ScheduleListItem } from "@calcom/features/schedules";
 import Shell from "@calcom/features/shell/Shell";
 import { AvailabilitySliderTable } from "@calcom/features/timezone-buddy/components/AvailabilitySliderTable";
@@ -24,14 +24,12 @@ import SkeletonLoader from "@components/availability/SkeletonLoader";
 export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availability"]["list"]) {
   const { t } = useLocale();
   const [bulkUpdateModal, setBulkUpdateModal] = useState(false);
-  const [eventTypeIds, setEventTypeIds] = useState<number[]>([]);
   const utils = trpc.useUtils();
 
   const meQuery = trpc.viewer.me.useQuery();
 
   const router = useRouter();
 
-  const { data } = trpc.viewer.eventTypes.bulkEventFetch.useQuery();
   const deleteMutation = trpc.viewer.availability.schedule.delete.useMutation({
     onMutate: async ({ scheduleId }) => {
       await utils.viewer.availability.list.cancel();
@@ -127,6 +125,7 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
                   displayOptions={{
                     hour12: meQuery.data?.timeFormat ? meQuery.data.timeFormat === 12 : undefined,
                     timeZone: meQuery.data?.timeZone,
+                    weekStart: meQuery.data?.weekStart || "Sunday",
                   }}
                   key={schedule.id}
                   schedule={schedule}
@@ -145,20 +144,11 @@ export function AvailabilityList({ schedules }: RouterOutputs["viewer"]["availab
             </Link>
           </div>
           {bulkUpdateModal && (
-            <BulkEditDefaultModal
+            <BulkEditDefaultForEventsModal
               isPending={bulkUpdateDefaultAvailabilityMutation.isPending}
               open={bulkUpdateModal}
               setOpen={setBulkUpdateModal}
-              title={t("default_conferencing_bulk_title")}
-              description={t("default_conferencing_bulk_description")}
-              ids={eventTypeIds}
-              setIds={setEventTypeIds}
-              data={data?.eventTypes}
-              handleSubmit={() => {
-                bulkUpdateDefaultAvailabilityMutation.mutate({
-                  eventTypeIds,
-                });
-              }}
+              bulkUpdateFunction={bulkUpdateDefaultAvailabilityMutation.mutate}
             />
           )}
         </>

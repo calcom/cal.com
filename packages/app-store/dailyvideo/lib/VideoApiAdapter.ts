@@ -74,6 +74,16 @@ function postToDailyAPI(endpoint: string, body: Record<string, unknown>) {
   });
 }
 
+export const getBatchProcessorJobAccessLink = (id: string) => {
+  return fetcher(`/batch-processor/${id}/access-link`).then(ZGetTranscriptAccessLink.parse);
+};
+
+export const getRoomNameFromRecordingId = (recordingId: string) => {
+  return fetcher(`/recordings/${recordingId}`)
+    .then(recordingItemSchema.parse)
+    .then((res) => res.room_name);
+};
+
 async function processTranscriptsInBatches(transcriptIds: Array<string>) {
   const batchSize = 5; // Batch size
   const batches = []; // Array to hold batches of transcript IDs
@@ -332,9 +342,7 @@ const DailyVideoApiAdapter = (): VideoApiAdapter => {
 
         if (!transcriptJobId) return [];
 
-        const accessLinkRes = await fetcher(`/batch-processor/${transcriptJobId}/access-link`).then(
-          ZGetTranscriptAccessLink.parse
-        );
+        const accessLinkRes = await getBatchProcessorJobAccessLink(transcriptJobId);
 
         return accessLinkRes.transcription;
       } catch (err) {

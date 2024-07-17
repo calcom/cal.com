@@ -129,6 +129,14 @@ export async function getTeamWithMembers(args: {
             not: SchedulingType.MANAGED,
           },
         },
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ] as Prisma.EventTypeOrderByWithRelationInput[],
         select: {
           hosts: {
             select: {
