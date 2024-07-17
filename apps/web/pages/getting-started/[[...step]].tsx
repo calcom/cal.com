@@ -1,6 +1,7 @@
 "use client";
 
 import Head from "next/head";
+import {signOut} from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -171,6 +172,15 @@ const OnboardingPage = () => {
                 </Button>
               </div>
             )}
+          </div>
+          <div className="flex w-full flex-row justify-center">
+              <Button
+                color="minimal"
+                data-testid="sign-out"
+                onClick={() => signOut({ callbackUrl: "/auth/login" })}
+                className="mt-8 cursor-pointer px-4 py-2 font-sans text-sm font-medium">
+                  {t("sign_out")}
+              </Button>
           </div>
         </div>
       </div>
