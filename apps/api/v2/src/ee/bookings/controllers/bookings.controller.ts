@@ -36,19 +36,17 @@ import { NextApiRequest } from "next/types";
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
-  getAllUserBookings,
-  getBookingInfo,
-  handleCancelBooking,
-  getBookingForReschedule,
-} from "@calcom/platform-libraries-0.0.2";
-import {
   handleNewBooking,
   BookingResponse,
   HttpError,
   handleNewRecurringBooking,
   handleInstantMeeting,
-} from "@calcom/platform-libraries-0.0.2";
-import { handleMarkNoShow } from "@calcom/platform-libraries-0.0.17";
+  handleMarkNoShow,
+  getAllUserBookings,
+  getBookingInfo,
+  handleCancelBooking,
+  getBookingForReschedule,
+} from "@calcom/platform-libraries-0.0.18";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
