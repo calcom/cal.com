@@ -29,7 +29,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { User, Credential } from "@prisma/client";
+import { User } from "@prisma/client";
 import { Request } from "express";
 import { z } from "zod";
 
@@ -202,17 +202,13 @@ export class CalendarsController {
       throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
     }
 
-    // since the prisma call for deleting a users calendar credentials uses deleteMany
-    // only a payload gets returned which contains a count of the deleted items
-    const deletedCredentials = await this.calendarsService.deleteCalendarCredentials(
-      user.id,
-      user.email,
-      credential as unknown as Credential
-    );
+    const deletedCredentials = await this.calendarsRepository.deleteCredentials(credential.id);
 
     return {
       status: SUCCESS_STATUS,
-      data: { message: `${deletedCredentials.count} calendar credentials deleted.` },
+      data: {
+        ...deletedCredentials,
+      },
     };
   }
 }
