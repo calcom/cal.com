@@ -1260,6 +1260,168 @@
         ]
       }
     },
+    "/v2/organizations/{orgId}/users": {
+      "get": {
+        "operationId": "OrganizationsUsersController_getOrganizationsUsers",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetOrganizationsUsersInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "post": {
+        "operationId": "OrganizationsUsersController_createOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/users/{userId}": {
+      "patch": {
+        "operationId": "OrganizationsUsersController_updateOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrganizationUserInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      },
+      "delete": {
+        "operationId": "OrganizationsUsersController_deleteOrganizationUser",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Users"
+        ]
+      }
+    },
     "/v2/schedules": {
       "post": {
         "operationId": "SchedulesController_2024_04_15_createSchedule",
@@ -2331,6 +2493,54 @@
             "type": "string",
             "example": "America/New_York"
           },
+          "locale": {
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW"
+            ],
+            "type": "string",
+            "example": "en"
+          },
           "name": {
             "type": "string"
           }
@@ -2426,6 +2636,54 @@
               "Sunday"
             ],
             "example": "Monday"
+          },
+          "locale": {
+            "enum": [
+              "ar",
+              "ca",
+              "de",
+              "es",
+              "eu",
+              "he",
+              "id",
+              "ja",
+              "lv",
+              "pl",
+              "ro",
+              "sr",
+              "th",
+              "vi",
+              "az",
+              "cs",
+              "el",
+              "es-419",
+              "fi",
+              "hr",
+              "it",
+              "km",
+              "nl",
+              "pt",
+              "ru",
+              "sv",
+              "tr",
+              "zh-CN",
+              "bg",
+              "da",
+              "en",
+              "et",
+              "fr",
+              "hu",
+              "iw",
+              "ko",
+              "no",
+              "pt-BR",
+              "sk",
+              "ta",
+              "uk",
+              "zh-TW"
+            ],
+            "type": "string",
+            "example": "en"
           },
           "email": {
             "type": "string"
@@ -4346,6 +4604,86 @@
         "required": [
           "status"
         ]
+      },
+      "GetOrganizationsUsersInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "object",
+            "description": "The email address or an array of email addresses to filter by"
+          }
+        }
+      },
+      "CreateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "object",
+            "nullable": true,
+            "default": "en"
+          },
+          "organizationRole": {
+            "type": "object",
+            "default": "MEMBER"
+          },
+          "autoAccept": {
+            "type": "object",
+            "default": true
+          },
+          "email": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "weekday": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean"
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string",
+            "nullable": true
+          },
+          "appTheme": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "defaultScheduleId": {
+            "type": "number",
+            "minimum": 0
+          },
+          "avatarUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "locale",
+          "organizationRole",
+          "autoAccept",
+          "email"
+        ]
+      },
+      "UpdateOrganizationUserInput": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        }
       },
       "GetDefaultScheduleOutput_2024_06_11": {
         "type": "object",
