@@ -2461,7 +2461,6 @@
   "leave_without_assigning_anyone": "Verlassen, ohne jemanden zuzuordnen?",
   "leave_without_adding_attendees": "Sind Sie sicher, dass Sie diesen Termin verlassen möchten, ohne Teilnehmer hinzuzufügen?",
   "no_availability_shown_to_bookers": "Wenn Sie niemanden für diesen Termin zuweisen, wird den Buchenden keine Verfügbarkeit angezeigt.",
-  "go_back_and_assign": "Zurück und zuweisen",
   "leave_without_assigning": "Ohne Zuordnung verlassen",
   "always_show_x_days": "Immer für {{x}} Tage verfügbar",
   "unable_to_subscribe_to_the_platform": "Beim Abonnieren des Platform-Plans ist ein Fehler aufgetreten. Bitte versuchen Sie es später erneut",
@@ -2475,5 +2474,6 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "Benutzer ist ein ausstehendes Mitglied der Organisation",
   "USER_ALREADY_INVITED_OR_MEMBER": "Benutzer ist bereits ein Mitglied oder eingeladen",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "Benutzer ist Mitglied einer Organisation, zu der dieses Team nicht angehört.",
+  "go_back_assign_and_save": "Zurückgehen, zuweisen und speichern",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Fügen Sie Ihre neuen Code-Zeilen über dieser hinzu ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
