@@ -28,10 +28,12 @@ const fieldTypeEnum = z.enum([
 export type FieldType = z.infer<typeof fieldTypeEnum>;
 
 export const EditableSchema = z.enum([
-  "system", // Can't be deleted, can't be hidden, name can't be edited, can't be marked optional
-  "system-but-optional", // Can't be deleted. Name can't be edited. But can be hidden or be marked optional
-  "system-but-hidden", // Can't be deleted, name can't be edited, will be shown
-  "user", // Fully editable
+  "system", // Deletable-No, CanChangeIdentifier-No, Toggleable-No, CanMarkOptional-No.
+  "system-but-optional", // Deletable-No, CanChangeIdentifier-No, Toggleable-Yes, CanMarkOptional-Yes
+  // TODO: Seems to be unused and could probably be deleted
+  "system-but-hidden", // Deletable-No, CanChangeIdentifier-No, Always Hidden and thus Optional
+  "user", // Fully editable. Deletable-Yes, CanChangeIdentifier-Yes, Toggleable-Yes, CanMarkOptional-Yes
+  // TODO: Seems to be unused and could probably be deleted
   "user-readonly", // All fields are readOnly.
 ]);
 
