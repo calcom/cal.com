@@ -1,5 +1,6 @@
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
+import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -118,6 +119,7 @@ const BookerComponent = ({
     setEmailVerificationModalVisible,
     handleVerifyEmail,
     renderConfirmNotVerifyEmailButtonCond,
+    isVerificationCodeSending,
   } = verifyEmail;
 
   const {
@@ -166,6 +168,7 @@ const BookerComponent = ({
         eventQuery={event}
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
+        isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
           {verifyCode ? (
@@ -271,7 +274,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle`,
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
@@ -464,6 +467,7 @@ const BookerComponent = ({
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
+      <Toaster position="bottom-right" />
     </>
   );
 };

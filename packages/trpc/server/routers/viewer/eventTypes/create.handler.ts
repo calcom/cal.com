@@ -15,6 +15,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
+  role: SessionUser["role"];
   organizationId: SessionUser["organizationId"];
   organization: {
     isOrgAdmin: SessionUser["organization"]["isOrgAdmin"];
@@ -61,7 +62,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
+    const isSystemAdmin = ctx.user.role === "ADMIN";
+
+    if (
+      !isSystemAdmin &&
+      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+    ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
