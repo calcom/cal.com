@@ -28,10 +28,11 @@ export const useVerifyEmail = ({
 
   const { t } = useLocale();
   const sendEmailVerificationByCodeMutation = trpc.viewer.auth.sendVerifyEmailCode.useMutation({
-    onSuccess() {
+    onSuccess: () => {
+      setEmailVerificationModalVisible(true);
       showToast(t("email_sent"), "success");
     },
-    onError() {
+    onError: () => {
       showToast(t("email_not_sent"), "error");
     },
   });
@@ -54,8 +55,9 @@ export const useVerifyEmail = ({
       email,
       username: typeof name === "string" ? name : name?.firstName,
     });
-    setEmailVerificationModalVisible(true);
   };
+
+  const isVerificationCodeSending = sendEmailVerificationByCodeMutation.isPending;
 
   const renderConfirmNotVerifyEmailButtonCond =
     (!requiresBookerEmailVerification && !isEmailVerificationRequired) ||
@@ -67,5 +69,6 @@ export const useVerifyEmail = ({
     setEmailVerificationModalVisible,
     setVerifiedEmail,
     renderConfirmNotVerifyEmailButtonCond: Boolean(renderConfirmNotVerifyEmailButtonCond),
+    isVerificationCodeSending,
   };
 };

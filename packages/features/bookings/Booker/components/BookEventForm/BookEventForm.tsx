@@ -27,6 +27,7 @@ type BookEventFormProps = {
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
+  isVerificationCodeSending: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,6 +42,7 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isVerificationCodeSending,
   isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
   eventQuery: {
@@ -154,7 +156,11 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                loading={loadingStates.creatingBooking || loadingStates.creatingRecurringBooking}
+                loading={
+                  loadingStates.creatingBooking ||
+                  loadingStates.creatingRecurringBooking ||
+                  isVerificationCodeSending
+                }
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>
