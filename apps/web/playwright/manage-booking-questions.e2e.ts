@@ -466,42 +466,6 @@ async function expectSystemFieldsToBeThereOnBookingPage({
   return allFieldsLocator;
 }
 
-async function expectCustomFieldsToBeThereOnBookingPage({
-  page,
-  data,
-}: {
-  page: Page;
-  data?: {
-    [key: string]: {
-      value: string;
-      visible: boolean;
-      disabled?: boolean;
-    };
-  };
-}) {
-  const visibleKeys = data ? Object.keys(data).filter((key) => data[key].visible) : [];
-  const allFieldsLocator = page.locator("[data-fob-field-name]:not(.hidden)");
-  console.log("allFieldsLocator", allFieldsLocator);
-  const promises = [];
-  for (const key of visibleKeys) {
-    const field = data?.[key];
-    console.log("field,", field);
-    const fieldLocator = allFieldsLocator.locator(`[name="${key}"]`);
-    console.log("key", key, fieldLocator);
-
-    // Assert the value
-    await expect(fieldLocator).toHaveValue(field?.value || "");
-
-    // Assert the disabled state
-    if (field?.disabled) {
-      await expect(fieldLocator).toBeDisabled();
-    } else {
-      await expect(fieldLocator).toBeEnabled();
-    }
-  }
-  // await Promise.all(promises);
-}
-
 //TODO: Add one question for each type and see they are rendering labels and only once and are showing appropriate native component
 // Verify webhook is sent with the correct data, DB is correct (including metadata)
 
@@ -555,8 +519,6 @@ async function selectOption({
 async function addQuestionAndSave({
   page,
   question,
-  checkForPreFill,
-  updateEvent = true,
 }: {
   page: Page;
   question: {
@@ -567,14 +529,8 @@ async function addQuestionAndSave({
     required?: boolean;
     disableOnPrefill?: boolean;
   };
-  checkForPreFill?: boolean;
-  updateEvent?: boolean;
 }) {
   await page.click('[data-testid="add-field"]');
-
-  if (checkForPreFill) {
-    await expect(page.getByLabel("Disable input if the URL identifier is prefilled")).toBeVisible();
-  }
   if (question.type !== undefined) {
     await selectOption({
       page,
@@ -607,9 +563,7 @@ async function addQuestionAndSave({
   }
 
   await page.click('[data-testid="field-add-save"]');
-  if (updateEvent) {
-    await saveEventType(page);
-  }
+  await saveEventType(page);
 }
 
 async function expectErrorToBeThereFor({ page, name }: { page: Page; name: string }) {
