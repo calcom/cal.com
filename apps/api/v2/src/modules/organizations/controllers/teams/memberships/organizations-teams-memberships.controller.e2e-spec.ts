@@ -203,6 +203,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership.id);
           expect(responseBody.data[1].id).toEqual(membership2.id);
+          expect(responseBody.data.length).toEqual(2);
         });
     });
 
@@ -221,6 +222,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           expect(responseBody.data[0].id).toEqual(membership2.id);
           expect(responseBody.data[0].userId).toEqual(user2.id);
+          expect(responseBody.data.length).toEqual(1);
         });
     });
 

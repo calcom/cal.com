@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
+import { IsArray, IsBoolean, IsEnum, IsInt, IsOptional, IsString, ValidateNested } from "class-validator";
 
 import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
 
@@ -41,6 +41,7 @@ export class OrgTeamMembershipsOutputResponseDto {
   @Expose()
   @ValidateNested()
   @Type(() => OrgTeamMembershipOutputDto)
+  @IsArray()
   data!: OrgTeamMembershipOutputDto[];
 }
 

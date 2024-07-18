@@ -9,6 +9,14 @@ export class OrganizationsTeamsMembershipsService {
     private readonly organizationsTeamsMembershipsRepository: OrganizationsTeamsMembershipsRepository
   ) {}
 
+  async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
+    const teamMembership = await this.organizationsTeamsMembershipsRepository.createOrgTeamMembership(
+      teamId,
+      data
+    );
+    return teamMembership;
+  }
+
   async getPaginatedOrgTeamMemberships(organizationId: number, teamId: number, skip = 0, take = 250) {
     const teamMemberships =
       await this.organizationsTeamsMembershipsRepository.findOrgTeamMembershipsPaginated(
@@ -34,15 +42,6 @@ export class OrganizationsTeamsMembershipsService {
     return teamMemberships;
   }
 
-  async deleteOrgTeamMembership(organizationId: number, teamId: number, membershipId: number) {
-    const teamMembership = await this.organizationsTeamsMembershipsRepository.deleteOrgTeamMembershipById(
-      organizationId,
-      teamId,
-      membershipId
-    );
-    return teamMembership;
-  }
-
   async updateOrgTeamMembership(
     organizationId: number,
     teamId: number,
@@ -58,10 +57,11 @@ export class OrganizationsTeamsMembershipsService {
     return teamMembership;
   }
 
-  async createOrgTeamMembership(teamId: number, data: CreateOrgTeamMembershipDto) {
-    const teamMembership = await this.organizationsTeamsMembershipsRepository.createOrgTeamMembership(
+  async deleteOrgTeamMembership(organizationId: number, teamId: number, membershipId: number) {
+    const teamMembership = await this.organizationsTeamsMembershipsRepository.deleteOrgTeamMembershipById(
+      organizationId,
       teamId,
-      data
+      membershipId
     );
     return teamMembership;
   }
