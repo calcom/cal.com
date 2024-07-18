@@ -10,7 +10,7 @@ import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
 import type { createLoggerWithEventDetails } from "../../../handleNewBooking";
-import { addVideoCallDataToEvent } from "../../../handleNewBooking";
+import { addVideoCallDataToEvent } from "../../../handleNewBooking/addVideoCallDataToEvent";
 import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import type { SeatedBooking, RescheduleSeatedBookingObject, NewTimeSlotBooking } from "../../types";
 

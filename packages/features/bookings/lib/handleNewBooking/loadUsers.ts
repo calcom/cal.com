@@ -86,4 +86,4 @@ export const findUsersByUsername = async ({
   });
 };
 
-export type AwaitedLoadUsers = Awaited<ReturnType<typeof loadUsers>>;
+export type LoadedUsers = Awaited<ReturnType<typeof loadUsers>>;
