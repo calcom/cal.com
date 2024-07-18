@@ -24,6 +24,7 @@ export const AttendeeRequestEmail = (props: React.ComponentProps<typeof Attendee
         title: props.calEvent.title,
         date,
       })}
+      callToAction={null}
       {...props}
     />
   );

@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from "react";
 import dayjs from "@calcom/dayjs";
 import classNames from "@calcom/lib/classNames";
 import { APP_NAME, SEO_IMG_OGIMG_VIDEO, WEBSITE_URL } from "@calcom/lib/constants";
-import { TRANSCRIPTION_STOPPED_ICON } from "@calcom/lib/constants";
+import { TRANSCRIPTION_STOPPED_ICON, RECORDING_DEFAULT_ICON } from "@calcom/lib/constants";
 import { formatToLocalizedDate, formatToLocalizedTime } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
@@ -50,6 +50,12 @@ export default function JoinCall(props: PageProps) {
       ...(typeof meetingPassword === "string" && { token: meetingPassword }),
       ...(hasTeamPlan && {
         customTrayButtons: {
+          recording: {
+            label: "Record",
+            tooltip: "Start or stop recording",
+            iconPath: RECORDING_DEFAULT_ICON,
+            iconPathDarkMode: RECORDING_DEFAULT_ICON,
+          },
           transcription: {
             label: "Cal.ai",
             tooltip: "Transcription powered by AI",
