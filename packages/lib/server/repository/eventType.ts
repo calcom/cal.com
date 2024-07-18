@@ -194,6 +194,231 @@ export class EventTypeRepository {
     });
   }
 
+  static async findById({ id, userId }: { id: number; userId: number }) {
+    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+      name: true,
+      avatarUrl: true,
+      username: true,
+      id: true,
+      email: true,
+      locale: true,
+      defaultScheduleId: true,
+    });
+
+    const CompleteEventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
+      id: true,
+      title: true,
+      slug: true,
+      description: true,
+      length: true,
+      isInstantEvent: true,
+      instantMeetingExpiryTimeOffsetInSeconds: true,
+      aiPhoneCallConfig: true,
+      offsetStart: true,
+      hidden: true,
+      locations: true,
+      eventName: true,
+      customInputs: true,
+      timeZone: true,
+      periodType: true,
+      metadata: true,
+      periodDays: true,
+      periodStartDate: true,
+      periodEndDate: true,
+      periodCountCalendarDays: true,
+      lockTimeZoneToggleOnBookingPage: true,
+      requiresConfirmation: true,
+      requiresBookerEmailVerification: true,
+      recurringEvent: true,
+      hideCalendarNotes: true,
+      disableGuests: true,
+      minimumBookingNotice: true,
+      beforeEventBuffer: true,
+      afterEventBuffer: true,
+      slotInterval: true,
+      hashedLink: true,
+      bookingLimits: true,
+      onlyShowFirstAvailableSlot: true,
+      durationLimits: true,
+      assignAllTeamMembers: true,
+      successRedirectUrl: true,
+      forwardParamsSuccessRedirect: true,
+      currency: true,
+      bookingFields: true,
+      useEventTypeDestinationCalendarEmail: true,
+      owner: {
+        select: {
+          id: true,
+        },
+      },
+      parent: {
+        select: {
+          id: true,
+          teamId: true,
+        },
+      },
+      teamId: true,
+      team: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          parentId: true,
+          parent: {
+            select: {
+              slug: true,
+              organizationSettings: {
+                select: {
+                  lockEventTypeCreationForUsers: true,
+                },
+              },
+            },
+          },
+          members: {
+            select: {
+              role: true,
+              accepted: true,
+              user: {
+                select: {
+                  ...userSelect,
+                  eventTypes: {
+                    select: {
+                      slug: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      users: {
+        select: userSelect,
+      },
+      schedulingType: true,
+      schedule: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      hosts: {
+        select: {
+          isFixed: true,
+          userId: true,
+          priority: true,
+        },
+      },
+      userId: true,
+      price: true,
+      children: {
+        select: {
+          owner: {
+            select: {
+              avatarUrl: true,
+              name: true,
+              username: true,
+              email: true,
+              id: true,
+            },
+          },
+          hidden: true,
+          slug: true,
+        },
+      },
+      destinationCalendar: true,
+      seatsPerTimeSlot: true,
+      seatsShowAttendees: true,
+      seatsShowAvailabilityCount: true,
+      webhooks: {
+        select: {
+          id: true,
+          subscriberUrl: true,
+          payloadTemplate: true,
+          active: true,
+          eventTriggers: true,
+          secret: true,
+          eventTypeId: true,
+        },
+      },
+      workflows: {
+        include: {
+          workflow: {
+            select: {
+              name: true,
+              id: true,
+              trigger: true,
+              time: true,
+              timeUnit: true,
+              userId: true,
+              teamId: true,
+              team: {
+                select: {
+                  id: true,
+                  slug: true,
+                  name: true,
+                  members: true,
+                },
+              },
+              activeOn: {
+                select: {
+                  eventType: {
+                    select: {
+                      id: true,
+                      title: true,
+                      parentId: true,
+                      _count: {
+                        select: {
+                          children: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              steps: true,
+            },
+          },
+        },
+      },
+      secondaryEmailId: true,
+    });
+
+    return await prisma.eventType.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [
+              {
+                users: {
+                  some: {
+                    id: userId,
+                  },
+                },
+              },
+              {
+                team: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              {
+                userId: userId,
+              },
+            ],
+          },
+          {
+            id,
+          },
+        ],
+      },
+      select: CompleteEventTypeSelect,
+    });
+  }
+
   static async findAllByTeamIdIncludeManagedEventTypes({ teamId }: { teamId?: number }) {
     return await prisma.eventType.findMany({
       where: {
