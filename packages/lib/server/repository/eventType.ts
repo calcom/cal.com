@@ -233,6 +233,7 @@ export class EventTypeRepository {
       hideCalendarNotes: true,
       disableGuests: true,
       minimumBookingNotice: true,
+      minimumUpdateNotice: true,
       beforeEventBuffer: true,
       afterEventBuffer: true,
       slotInterval: true,
