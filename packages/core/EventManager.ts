@@ -1031,12 +1031,7 @@ export default class EventManager {
     if (eventTypeAppMetadata) {
       for (const key in eventTypeAppMetadata) {
         const app = eventTypeAppMetadata[key as keyof typeof eventTypeAppMetadata];
-
-        if (app.appCategories && app.appCategories.includes("crm")) {
-          if (app?.skipContactCreation) {
-            appOptions.crm.skipContactCreation.push(key);
-          }
-        }
+        if (app?.skipContactCreation) appOptions.crm.skipContactCreation.push(key);
       }
     }
 

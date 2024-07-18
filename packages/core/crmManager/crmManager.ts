@@ -34,15 +34,14 @@ export default class CrmManager {
       return await crmService?.createEvent(event, contacts);
     }
 
-    if (!skipContactCreation) {
-      // Figure out which contacts to create
-      const contactsToCreate = event.attendees.filter(
-        (attendee) => !contacts.some((contact) => contact.email === attendee.email)
-      );
-      const createdContacts = await this.createContacts(contactsToCreate);
-      contacts = contacts.concat(createdContacts);
-      return await crmService?.createEvent(event, contacts);
-    }
+    if (skipContactCreation) return;
+    // Figure out which contacts to create
+    const contactsToCreate = event.attendees.filter(
+      (attendee) => !contacts.some((contact) => contact.email === attendee.email)
+    );
+    const createdContacts = await this.createContacts(contactsToCreate);
+    contacts = contacts.concat(createdContacts);
+    return await crmService?.createEvent(event, contacts);
   }
 
   public async updateEvent(uid: string, event: CalendarEvent) {
