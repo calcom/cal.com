@@ -1,13 +1,17 @@
 import { Prisma } from "@prisma/client";
 
-const checkUndefinedInValue = (where: any) => {
+export const checkUndefinedInValue = (where: any) => {
   if (where) {
     for (const key in where) {
       // INFO: Since this is for $allModels, we don't have a way to get the correct
       // where type
       const whereInput = where[key as any] as unknown;
-      if (!!whereInput && whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
-        throw new Error(`The "in" value for the field "${key}" is undefined.`);
+      if (!whereInput) {
+        throw new Error(`The value for the field "${key}" cannot be undefined.`);
+      }
+
+      if (whereInput.hasOwnProperty("in") && typeof whereInput.in === "undefined") {
+        throw new Error(`The "in" value for the field "${key}" cannot be undefined.`);
       }
     }
   }
