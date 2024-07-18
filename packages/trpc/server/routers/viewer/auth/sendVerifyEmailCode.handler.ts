@@ -24,6 +24,7 @@ export const sendVerifyEmailCodeHandler = async ({ input, req }: SendVerifyEmail
     email: input.email,
     username: input.username,
     language: input.language,
+    isVerifyingEmail: input.isVerifyingEmail,
   });
 
   return email;

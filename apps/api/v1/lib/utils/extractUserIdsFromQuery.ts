@@ -4,9 +4,9 @@ import { HttpError } from "@calcom/lib/http-error";
 
 import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/queryUserId";
 
-export function extractUserIdsFromQuery({ isAdmin, query }: NextApiRequest) {
+export function extractUserIdsFromQuery({ isSystemWideAdmin, query }: NextApiRequest) {
   /** Guard: Only admins can query other users */
-  if (!isAdmin) {
+  if (!isSystemWideAdmin) {
     throw new HttpError({ statusCode: 401, message: "ADMIN required" });
   }
   const { userId: userIdOrUserIds } = schemaQuerySingleOrMultipleUserIds.parse(query);

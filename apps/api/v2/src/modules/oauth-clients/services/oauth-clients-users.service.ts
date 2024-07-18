@@ -1,4 +1,5 @@
-import { EventTypesService } from "@/ee/event-types/services/event-types.service";
+import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
+import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -6,15 +7,15 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries";
-import { slugify } from "@calcom/platform-libraries";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.18";
 
 @Injectable()
 export class OAuthClientUsersService {
   constructor(
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
-    private readonly eventTypesService: EventTypesService
+    private readonly eventTypesService: EventTypesService_2024_04_15,
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
   async createOauthClientUser(
@@ -35,39 +36,53 @@ export class OAuthClientUsersService {
       const email = this.getOAuthUserEmail(oAuthClientId, body.email);
       user = (
         await createNewUsersConnectToOrgIfExists({
-          usernamesOrEmails: [email],
-          input: {
-            teamId: organizationId,
-            role: "MEMBER",
-            usernameOrEmail: [email],
-            isOrg: true,
-            language: "en",
-          },
+          invitations: [
+            {
+              usernameOrEmail: email,
+              role: "MEMBER",
+            },
+          ],
+          teamId: organizationId,
+          isOrg: true,
           parentId: null,
           autoAcceptEmailDomain: "never-auto-accept-email-domain-for-managed-users",
-          connectionInfoMap: {
+          orgConnectInfoByUsernameOrEmail: {
             [email]: {
               orgId: organizationId,
               autoAccept: true,
             },
           },
           isPlatformManaged,
+          timeFormat: body.timeFormat,
+          weekStart: body.weekStart,
+          timeZone: body.timeZone,
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
+      const updatedUser = await this.userRepository.update(user.id, {
+        name: body.name ?? user.username ?? undefined,
+        locale: body.locale,
+      });
+      user.locale = updatedUser.locale;
     }
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       user.id
     );
+
     await this.eventTypesService.createUserDefaultEventTypes(user.id);
+
+    if (body.timeZone) {
+      const defaultSchedule = await this.schedulesService.createUserDefaultSchedule(user.id, body.timeZone);
+      user.defaultScheduleId = defaultSchedule.id;
+    }
 
     return {
       user,
       tokens: {
         accessToken,
+        accessTokenExpiresAt,
         refreshToken,
       },
     };
@@ -92,8 +107,6 @@ export class OAuthClientUsersService {
 
   getOAuthUserEmail(oAuthClientId: string, userEmail: string) {
     const [username, emailDomain] = userEmail.split("@");
-    const email = `${username}+${oAuthClientId}@${emailDomain}`;
-
-    return email;
+    return `${username}+${oAuthClientId}@${emailDomain}`;
   }
 }

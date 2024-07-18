@@ -68,13 +68,15 @@ export type BookerLayoutSettings = z.infer<typeof bookerLayouts>;
 
 export const RequiresConfirmationThresholdUnits: z.ZodType<UnitTypeLongPlural> = z.enum(["hours", "minutes"]);
 
+export const EventTypeAppMetadataSchema = z.object(appDataSchemas).partial();
+
 export const EventTypeMetaDataSchema = z
   .object({
     smartContractAddress: z.string().optional(),
     blockchainId: z.number().optional(),
     multipleDuration: z.number().array().optional(),
     giphyThankYouPage: z.string().optional(),
-    apps: z.object(appDataSchemas).partial().optional(),
+    apps: EventTypeAppMetadataSchema.optional(),
     additionalNotesRequired: z.boolean().optional(),
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
@@ -228,6 +230,8 @@ export const bookingCreateBodySchema = z.object({
   hasHashedBookingLink: z.boolean().optional(),
   hashedLink: z.string().nullish(),
   seatReferenceUid: z.string().optional(),
+  orgSlug: z.string().optional(),
+  teamMemberEmail: z.string().optional(),
 });
 
 export const requiredCustomInputSchema = z.union([
@@ -274,6 +278,7 @@ export const extendedBookingCreateBody = bookingCreateBodySchema.merge(
       .optional(),
     luckyUsers: z.array(z.number()).optional(),
     customInputs: z.undefined().optional(),
+    teamMemberEmail: z.string().optional(),
   })
 );
 
@@ -359,6 +364,11 @@ export const orgSettingsSchema = z
   .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
 
+export enum BillingPeriod {
+  MONTHLY = "MONTHLY",
+  ANNUALLY = "ANNUALLY",
+}
+
 export const teamMetadataSchema = z
   .object({
     requestedSlug: z.string().or(z.null()),
@@ -375,6 +385,7 @@ export const teamMetadataSchema = z
         lastRevertTime: z.string().optional(),
       })
       .optional(),
+    billingPeriod: z.nativeEnum(BillingPeriod).optional(),
   })
   .partial()
   .nullable();
@@ -597,6 +608,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   title: true,
   description: true,
   isInstantEvent: true,
+  instantMeetingExpiryTimeOffsetInSeconds: true,
   aiPhoneCallConfig: true,
   currency: true,
   periodDays: true,
@@ -623,6 +635,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   seatsPerTimeSlot: true,
   seatsShowAttendees: true,
   seatsShowAvailabilityCount: true,
+  forwardParamsSuccessRedirect: true,
   periodType: true,
   hashedLink: true,
   webhooks: true,
@@ -662,7 +675,7 @@ export const signupSchema = z.object({
   // Username is marked optional here because it's requirement depends on if it's the Organization invite or a team invite which isn't easily done in zod
   // It's better handled beyond zod in `validateAndGetCorrectedUsernameAndEmail`
   username: z.string().optional(),
-  email: z.string().email(),
+  email: z.string().email({ message: "Invalid email" }),
   password: z.string().superRefine((data, ctx) => {
     const isStrict = false;
     const result = isPasswordValid(data, true, isStrict);

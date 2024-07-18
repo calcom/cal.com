@@ -9,12 +9,12 @@ import { EventDetails, EventMembers, EventMetaSkeleton, EventTitle } from "@calc
 import { SeatsAvailabilityText } from "@calcom/features/bookings/components/SeatsAvailabilityText";
 import { EventMetaBlock } from "@calcom/features/bookings/components/event-meta/Details";
 import { useTimePreferences } from "@calcom/features/bookings/lib";
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { fadeInUp } from "../config";
 import { useBookerStore } from "../store";
 import { FromToTime } from "../utils/dates";
-import type { useEventReturnType } from "../utils/event";
 
 const WebTimezoneSelect = dynamic(
   () => import("@calcom/ui/components/form/timezone-select/TimezoneSelect").then((mod) => mod.TimezoneSelect),
@@ -29,8 +29,27 @@ export const EventMeta = ({
   isPlatform = true,
   classNames,
 }: {
-  event: useEventReturnType["data"];
-  isPending: useEventReturnType["isPending"];
+  event?: Pick<
+    BookerEvent,
+    | "lockTimeZoneToggleOnBookingPage"
+    | "schedule"
+    | "seatsPerTimeSlot"
+    | "users"
+    | "length"
+    | "schedulingType"
+    | "profile"
+    | "entity"
+    | "description"
+    | "title"
+    | "metadata"
+    | "locations"
+    | "currency"
+    | "requiresConfirmation"
+    | "recurringEvent"
+    | "price"
+    | "isDynamic"
+  > | null;
+  isPending: boolean;
   isPlatform?: boolean;
   classNames?: {
     eventMetaContainer?: string;
@@ -84,7 +103,7 @@ export const EventMeta = ({
     : "text-bookinghighlight";
 
   return (
-    <div className={`${classNames?.eventMetaContainer} relative z-10 p-6`} data-testid="event-meta">
+    <div className={`${classNames?.eventMetaContainer || ""} relative z-10 p-6`} data-testid="event-meta">
       {isPending && (
         <m.div {...fadeInUp} initial="visible" layout>
           <EventMetaSkeleton />
@@ -92,12 +111,14 @@ export const EventMeta = ({
       )}
       {!isPending && !!event && (
         <m.div {...fadeInUp} layout transition={{ ...fadeInUp.transition, delay: 0.3 }}>
-          <EventMembers
-            schedulingType={event.schedulingType}
-            users={event.users}
-            profile={event.profile}
-            entity={event.entity}
-          />
+          {!isPlatform && (
+            <EventMembers
+              schedulingType={event.schedulingType}
+              users={event.users}
+              profile={event.profile}
+              entity={event.entity}
+            />
+          )}
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {event.description && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
@@ -140,7 +161,7 @@ export const EventMeta = ({
                 <>{timezone}</>
               ) : (
                 <span
-                  className={`min-w-32 current-timezone before:bg-subtle -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
+                  className={`current-timezone before:bg-subtle min-w-32 -mt-[2px] flex h-6 max-w-full items-center justify-start before:absolute before:inset-0 before:bottom-[-3px] before:left-[-30px] before:top-[-3px] before:w-[calc(100%_+_35px)] before:rounded-md before:py-3 before:opacity-0 before:transition-opacity ${
                     event.lockTimeZoneToggleOnBookingPage ? "cursor-not-allowed" : ""
                   }`}>
                   <TimezoneSelect

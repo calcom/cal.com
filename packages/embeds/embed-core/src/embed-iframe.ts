@@ -508,7 +508,10 @@ function keepParentInformedAboutDimensionChanges() {
   });
 }
 
-if (isBrowser) {
+function main() {
+  if (!isBrowser) {
+    return;
+  }
   log("Embed SDK loaded", { isEmbed: window?.isEmbed?.() || false });
   const url = new URL(document.URL);
   embedStore.theme = window?.getEmbedTheme?.();
@@ -523,6 +526,9 @@ if (isBrowser) {
   // If embed link is opened in top, and not in iframe. Let the page be visible.
   if (top === window) {
     unhideBody();
+    // We would want to avoid a situation where Cal.com embeds cal.com and then embed-iframe is in the top as well. In such case, we would want to avoid infinite loop of events being passed.
+    log("Embed SDK Skipped as we are in top");
+    return;
   }
 
   window.addEventListener("message", (e) => {
@@ -618,3 +624,5 @@ function connectPreloadedEmbed({ url }: { url: URL }) {
 const isPrerendering = () => {
   return new URL(document.URL).searchParams.get("prerender") === "true";
 };
+
+main();

@@ -157,7 +157,7 @@ export class UsersRepository {
 
   formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
     if (userInput.weekStart) {
-      userInput.weekStart = capitalize(userInput.weekStart);
+      userInput.weekStart = userInput.weekStart;
     }
 
     if (userInput.timeZone) {
@@ -172,6 +172,26 @@ export class UsersRepository {
         defaultScheduleId: scheduleId,
       },
     });
+  }
+
+  async getUserScheduleDefaultId(userId: number) {
+    const user = await this.findById(userId);
+
+    if (!user?.defaultScheduleId) return null;
+
+    return user?.defaultScheduleId;
+  }
+
+  async getOrganizationUsers(organizationId: number) {
+    const profiles = await this.dbRead.prisma.profile.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profiles.map((profile) => profile.user);
   }
 }
 

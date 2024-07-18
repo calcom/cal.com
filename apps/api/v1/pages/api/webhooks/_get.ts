@@ -34,14 +34,15 @@ import { schemaWebhookReadPublic } from "~/lib/validations/webhook";
  *         description: No webhooks were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  const args: Prisma.WebhookFindManyArgs = isAdmin
+  const { userId, isSystemWideAdmin } = req;
+  const args: Prisma.WebhookFindManyArgs = isSystemWideAdmin
     ? {}
     : { where: { OR: [{ eventType: { userId } }, { userId }] } };
 
   /** Only admins can query other users */
-  if (!isAdmin && req.query.userId) throw new HttpError({ statusCode: 403, message: "ADMIN required" });
-  if (isAdmin && req.query.userId) {
+  if (!isSystemWideAdmin && req.query.userId)
+    throw new HttpError({ statusCode: 403, message: "ADMIN required" });
+  if (isSystemWideAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     args.where = { OR: [{ eventType: { userId: { in: userIds } } }, { userId: { in: userIds } }] };

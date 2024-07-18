@@ -111,37 +111,29 @@ export const getByViewerHandler = async ({ ctx }: GetByViewerOptions) => {
     membershipRole: membership.role,
   }));
 
-  const teamWebhookGroups: WebhookGroup[] = user.teams
-    .filter((mmship) => {
-      return !mmship.team.isOrganization;
-    })
-    .map((membership) => {
-      const orgMembership = teamMemberships.find(
-        (teamM) => teamM.teamId === membership.team.parentId
-      )?.membershipRole;
-      return {
-        teamId: membership.team.id,
-        profile: {
-          name: membership.team.name,
-          slug: membership.team.slug
-            ? !membership.team.parentId
-              ? `/team`
-              : `${membership.team.slug}`
-            : null,
-          image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
-        },
-        metadata: {
-          readOnly:
-            membership.role ===
-            (membership.team.parentId
-              ? orgMembership && compareMembership(orgMembership, membership.role)
-                ? orgMembership
-                : MembershipRole.MEMBER
-              : MembershipRole.MEMBER),
-        },
-        webhooks: membership.team.webhooks.filter(filterWebhooks),
-      };
-    });
+  const teamWebhookGroups: WebhookGroup[] = user.teams.map((membership) => {
+    const orgMembership = teamMemberships.find(
+      (teamM) => teamM.teamId === membership.team.parentId
+    )?.membershipRole;
+    return {
+      teamId: membership.team.id,
+      profile: {
+        name: membership.team.name,
+        slug: membership.team.slug ? (!membership.team.parentId ? `/team` : `${membership.team.slug}`) : null,
+        image: `${bookerUrl}/team/${membership.team.slug}/avatar.png`,
+      },
+      metadata: {
+        readOnly:
+          membership.role ===
+          (membership.team.parentId
+            ? orgMembership && compareMembership(orgMembership, membership.role)
+              ? orgMembership
+              : MembershipRole.MEMBER
+            : MembershipRole.MEMBER),
+      },
+      webhooks: membership.team.webhooks.filter(filterWebhooks),
+    };
+  });
 
   webhookGroups = webhookGroups.concat(teamWebhookGroups);
 

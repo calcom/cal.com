@@ -1,6 +1,8 @@
 import type { GetServerSidePropsContext } from "next";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 
 import { asStringOrThrow } from "@lib/asStringOrNull";
 import type { inferSSRProps } from "@lib/types/inferSSRProps";
@@ -40,6 +42,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       const { eventType } = await ssr.viewer.eventTypes.get.fetch({ id: eventTypeId });
       return eventType;
     } catch (e: unknown) {
+      logger.error(safeStringify(e));
       // reject, user has no access to this event type.
       return null;
     }

@@ -1,8 +1,10 @@
-import { IsTimeFormat } from "@/modules/users/inputs/validators/is-time-format";
-import { IsWeekStart } from "@/modules/users/inputs/validators/is-week-start";
+import { Locales } from "@/lib/enums/locales";
+import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsTimeZone, IsString, Validate } from "class-validator";
+import { IsOptional, IsTimeZone, IsString, IsEnum } from "class-validator";
 
+export type WeekDay = "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday" | "Sunday";
+export type TimeFormat = 12 | 24;
 export class CreateManagedUserInput {
   @IsString()
   @ApiProperty({ example: "alice@example.com" })
@@ -12,20 +14,26 @@ export class CreateManagedUserInput {
   @IsOptional()
   name?: string;
 
-  @IsNumber()
   @IsOptional()
-  @Validate(IsTimeFormat)
-  @ApiProperty({ example: 12 })
-  timeFormat?: number;
+  @ApiProperty({ example: 12, enum: [12, 24], description: "Must be 12 or 24" })
+  timeFormat?: TimeFormat;
 
-  @IsString()
   @IsOptional()
-  @Validate(IsWeekStart)
-  @ApiProperty({ example: "Sunday" })
-  weekStart?: string;
+  @IsString()
+  @ApiProperty({
+    example: "Monday",
+    enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+  })
+  weekStart?: WeekDay;
 
   @IsTimeZone()
   @IsOptional()
+  @CapitalizeTimeZone()
   @ApiProperty({ example: "America/New_York" })
   timeZone?: string;
+
+  @IsEnum(Locales)
+  @IsOptional()
+  @ApiProperty({ example: Locales.EN, enum: Locales })
+  locale?: Locales;
 }

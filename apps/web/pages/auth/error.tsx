@@ -1,8 +1,8 @@
 import type { GetStaticPropsContext } from "next";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import z from "zod";
 
-import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Button, Icon } from "@calcom/ui";
 
@@ -17,11 +17,9 @@ const querySchema = z.object({
 
 export default function Error() {
   const { t } = useLocale();
-  const searchParams = useCompatSearchParams();
-  const { error } = querySchema.parse(searchParams);
-  const isTokenVerificationError = error?.toLowerCase() === "verification";
-  const errorMsg = isTokenVerificationError ? t("token_invalid_expired") : t("error_during_login");
-
+  const searchParams = useSearchParams();
+  const { error } = querySchema.parse({ error: searchParams?.get("error") || undefined });
+  const errorMsg = error || t("error_during_login");
   return (
     <AuthContainer title="" description="">
       <div>
@@ -30,11 +28,8 @@ export default function Error() {
         </div>
         <div className="mt-3 text-center sm:mt-5">
           <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
-            {error}
+            {errorMsg}
           </h3>
-          <div className="mt-2">
-            <p className="text-subtle text-sm">{errorMsg}</p>
-          </div>
         </div>
       </div>
       <div className="mt-5 sm:mt-6">

@@ -99,10 +99,13 @@ const TravelScheduleModal = ({
             <>
               <Label className="mt-2">{t("time_range")}</Label>
               <DateRangePicker
-                startDate={startDate}
-                endDate={endDate ?? startDate}
+                dates={{
+                  startDate,
+                  endDate: endDate ?? startDate,
+                }}
                 onDatesChange={({ startDate: newStartDate, endDate: newEndDate }) => {
-                  setStartDate(newStartDate);
+                  // If newStartDate does become undefined - we resort back to to-todays date
+                  setStartDate(newStartDate ?? new Date());
                   setEndDate(newEndDate);
                   setErrorMessage("");
                 }}

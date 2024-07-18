@@ -1,35 +1,70 @@
-// @see: https://github.com/wojtekmaj/react-daterange-picker/issues/91
-import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
-import PrimitiveDateRangePicker from "@wojtekmaj/react-daterange-picker/dist/entry.nostyle";
+"use client";
 
-import { Icon } from "../../..";
-import "./styles.css";
+import { format } from "date-fns";
+import * as React from "react";
+import type { DateRange } from "react-day-picker";
 
-type Props = {
-  disabled?: boolean | undefined;
-  startDate: Date;
-  endDate: Date;
-  onDatesChange?: ((arg: { startDate: Date; endDate: Date }) => void) | undefined;
+import { classNames as cn } from "@calcom/lib";
+
+import { Button } from "../../button";
+import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
+import { Calendar } from "./Calendar";
+
+type DatePickerWithRangeProps = {
+  dates: { startDate: Date; endDate?: Date };
+  onDatesChange: ({ startDate, endDate }: { startDate?: Date; endDate?: Date }) => void;
+  disabled?: boolean;
 };
 
-const DateRangePicker = ({ disabled, startDate, endDate, onDatesChange }: Props) => {
+export function DatePickerWithRange({
+  className,
+  dates,
+  onDatesChange,
+  disabled,
+}: React.HTMLAttributes<HTMLDivElement> & DatePickerWithRangeProps) {
+  // Even though this is uncontrolled we need to do a bit of logic to improve the UX when selecting dates
+  function _onDatesChange(onChangeValues: DateRange | undefined) {
+    if (onChangeValues?.from && !onChangeValues?.to) {
+      onDatesChange({ startDate: onChangeValues.from, endDate: onChangeValues.from });
+    } else {
+      onDatesChange({ startDate: onChangeValues?.from, endDate: onChangeValues?.to });
+    }
+  }
+
   return (
-    <>
-      <PrimitiveDateRangePicker
-        disabled={disabled || false}
-        className="border-default rounded-sm text-sm"
-        clearIcon={null}
-        calendarIcon={<Icon name="calendar" className="text-subtle h-4 w-4" />}
-        rangeDivider={<Icon name="arrow-right" className="text-muted h-4 w-4 ltr:mr-2 rtl:ml-2" />}
-        value={[startDate, endDate]}
-        onChange={([startDate, endDate]: [Date, Date]) => {
-          if (typeof onDatesChange === "function") onDatesChange({ startDate, endDate });
-        }}
-        nextLabel={<Icon name="chevron-right" className="text-subtle h-4 w-4" />}
-        prevLabel={<Icon name="chevron-left" className="text-subtle h-4 w-4" />}
-      />
-    </>
+    <div className={cn("grid gap-2", className)}>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            id="date"
+            color="secondary"
+            EndIcon="calendar"
+            className={cn("justify-between text-left font-normal", !dates && "text-subtle")}>
+            {dates?.startDate ? (
+              dates?.endDate ? (
+                <>
+                  {format(dates.startDate, "LLL dd, y")} - {format(dates.endDate, "LLL dd, y")}
+                </>
+              ) : (
+                format(dates.startDate, "LLL dd, y")
+              )
+            ) : (
+              <span>Pick a date</span>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar
+            initialFocus
+            mode="range"
+            defaultMonth={dates?.startDate}
+            selected={{ from: dates?.startDate, to: dates?.endDate }}
+            onSelect={(values) => _onDatesChange(values)}
+            numberOfMonths={1}
+            disabled={disabled}
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
   );
-};
-
-export default DateRangePicker;
+}

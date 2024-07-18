@@ -6,7 +6,7 @@ import { assert } from "ts-essentials";
 import type { CalSdk } from "../cal";
 
 export abstract class EndpointHandler {
-  constructor(private readonly key: string, private readonly calSdk: CalSdk) {}
+  protected constructor(private readonly key: string, private readonly calSdk: CalSdk) {}
 
   withForAtomParam(forAtom: boolean, config?: AxiosRequestConfig<unknown>) {
     if (!forAtom) return config;

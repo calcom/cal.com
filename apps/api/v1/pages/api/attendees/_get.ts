@@ -31,8 +31,8 @@ import { schemaAttendeeReadPublic } from "~/lib/validations/attendee";
  *         description: No attendees were found
  */
 async function handler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  const args: Prisma.AttendeeFindManyArgs = isAdmin ? {} : { where: { booking: { userId } } };
+  const { userId, isSystemWideAdmin } = req;
+  const args: Prisma.AttendeeFindManyArgs = isSystemWideAdmin ? {} : { where: { booking: { userId } } };
   const data = await prisma.attendee.findMany(args);
   const attendees = data.map((attendee) => schemaAttendeeReadPublic.parse(attendee));
   if (!attendees) throw new HttpError({ statusCode: 404, message: "No attendees were found" });

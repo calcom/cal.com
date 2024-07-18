@@ -65,6 +65,7 @@ export class TokensRepository {
         // discard.
       }
     }
+
     const accessExpiry = DateTime.now().plus({ minute: 60 }).startOf("minute").toJSDate();
     const refreshExpiry = DateTime.now().plus({ year: 1 }).startOf("day").toJSDate();
     const [accessToken, refreshToken] = await this.dbWrite.prisma.$transaction([
@@ -88,6 +89,7 @@ export class TokensRepository {
 
     return {
       accessToken: accessToken.secret,
+      accessTokenExpiresAt: accessToken.expiresAt,
       refreshToken: refreshToken.secret,
     };
   }

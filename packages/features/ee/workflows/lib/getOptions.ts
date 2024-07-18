@@ -1,15 +1,9 @@
 import type { TFunction } from "next-i18next";
 
-import { WorkflowActions } from "@calcom/prisma/enums";
+import type { WorkflowActions } from "@calcom/prisma/enums";
 
+import { isSMSOrWhatsappAction, isWhatsappAction, isEmailToAttendeeAction } from "./actionHelperFunctions";
 import {
-  isTextMessageToAttendeeAction,
-  isSMSOrWhatsappAction,
-  isWhatsappAction,
-  isEmailToAttendeeAction,
-} from "./actionHelperFunctions";
-import {
-  TIME_UNIT,
   WHATSAPP_WORKFLOW_TEMPLATES,
   WORKFLOW_ACTIONS,
   BASIC_WORKFLOW_TEMPLATES,
@@ -18,18 +12,15 @@ import {
 } from "./constants";
 
 export function getWorkflowActionOptions(t: TFunction, isTeamsPlan?: boolean, isOrgsPlan?: boolean) {
-  return WORKFLOW_ACTIONS.filter((action) => action !== WorkflowActions.EMAIL_ADDRESS) //removing EMAIL_ADDRESS for now due to abuse episode
-    .map((action) => {
-      const actionString = t(`${action.toLowerCase()}_action`);
+  return WORKFLOW_ACTIONS.map((action) => {
+    const actionString = t(`${action.toLowerCase()}_action`);
 
-      return {
-        label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
-        value: action,
-        needsTeamsUpgrade:
-          isSMSOrWhatsappAction(action) && !isTextMessageToAttendeeAction(action) && !isTeamsPlan,
-        needsOrgsUpgrade: isTextMessageToAttendeeAction(action) && !isOrgsPlan,
-      };
-    });
+    return {
+      label: actionString.charAt(0).toUpperCase() + actionString.slice(1),
+      value: action,
+      needsTeamsUpgrade: isSMSOrWhatsappAction(action) && !isTeamsPlan,
+    };
+  });
 }
 
 export function getWorkflowTriggerOptions(t: TFunction) {
@@ -37,12 +28,6 @@ export function getWorkflowTriggerOptions(t: TFunction) {
     const triggerString = t(`${triggerEvent.toLowerCase()}_trigger`);
 
     return { label: triggerString.charAt(0).toUpperCase() + triggerString.slice(1), value: triggerEvent };
-  });
-}
-
-export function getWorkflowTimeUnitOptions(t: TFunction) {
-  return TIME_UNIT.map((timeUnit) => {
-    return { label: t(`${timeUnit.toLowerCase()}_timeUnit`), value: timeUnit };
   });
 }
 

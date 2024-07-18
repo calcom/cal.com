@@ -129,6 +129,14 @@ export async function getTeamWithMembers(args: {
             not: SchedulingType.MANAGED,
           },
         },
+        orderBy: [
+          {
+            position: "desc",
+          },
+          {
+            id: "asc",
+          },
+        ] as Prisma.EventTypeOrderByWithRelationInput[],
         select: {
           hosts: {
             select: {
@@ -261,7 +269,15 @@ export async function isTeamAdmin(userId: number, teamId: number) {
       accepted: true,
       OR: [{ role: "ADMIN" }, { role: "OWNER" }],
     },
-    include: { team: true },
+    include: {
+      team: {
+        select: {
+          metadata: true,
+          parentId: true,
+          isOrganization: true,
+        },
+      },
+    },
   });
   if (!team) return false;
   return team;

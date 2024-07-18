@@ -5,6 +5,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import { IdentityProvider } from "@calcom/prisma/enums";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TMeInputSchema } from "./me.schema";
@@ -71,6 +72,38 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     identityProviderEmail = account?.providerEmail || "";
   }
 
+  const additionalUserInfo = await prisma.user.findFirst({
+    where: {
+      id: user.id,
+    },
+    select: {
+      bookings: {
+        select: { id: true },
+      },
+      selectedCalendars: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              eventTypes: true,
+            },
+          },
+        },
+      },
+      eventTypes: {
+        select: { id: true },
+      },
+    },
+  });
+  let sumOfTeamEventTypes = 0;
+  for (const team of additionalUserInfo?.teams || []) {
+    for (const _eventType of team.team.eventTypes) {
+      sumOfTeamEventTypes++;
+    }
+  }
+  const userMetadataPrased = userMetadata.parse(user.metadata);
+
   // Destructuring here only makes it more illegible
   // pick only the part we want to expose in the API
   return {
@@ -113,6 +146,12 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
     profile: user.profile ?? null,
     profiles: allUserEnrichedProfiles,
     secondaryEmails,
+    sumOfBookings: additionalUserInfo?.bookings.length,
+    sumOfCalendars: additionalUserInfo?.selectedCalendars.length,
+    sumOfTeams: additionalUserInfo?.teams.length,
+    sumOfEventTypes: additionalUserInfo?.eventTypes.length,
+    isPremium: userMetadataPrased?.isPremium,
+    sumOfTeamEventTypes,
     ...(passwordAdded ? { passwordAdded } : {}),
   };
 };

@@ -53,7 +53,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if ((process.env.NEXT_PUBLIC_DISABLE_SIGNUP === "true" && !token) || signupDisabled) {
     return {
-      notFound: true,
+      redirect: {
+        permanent: false,
+        destination: `/auth/error?error=Signup is disabled in this instance`,
+      },
     } as const;
   }
 
@@ -98,7 +101,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   if (!verificationToken || verificationToken.expires < new Date()) {
     return {
-      notFound: true,
+      redirect: {
+        permanent: false,
+        destination: `/auth/error?error=Verification Token is missing or has expired`,
+      },
     } as const;
   }
 

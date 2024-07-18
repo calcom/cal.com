@@ -80,6 +80,7 @@ const WebhooksView = () => {
               isAdmin={isAdmin}
               createFunction={createFunction}
               data-testid="new_webhook"
+              includeOrg={true}
             />
           ) : (
             <></>
@@ -167,6 +168,7 @@ const WebhooksList = ({
                   isAdmin={isAdmin}
                   createFunction={createFunction}
                   data-testid="new_webhook"
+                  includeOrg={true}
                 />
               }
             />

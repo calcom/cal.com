@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -10,10 +10,10 @@ export type OrganizationCreation = {
   from: string;
   to: string;
   ownerNewUsername: string;
-  ownerOldUsername: string;
+  ownerOldUsername: string | null;
   orgDomain: string;
   orgName: string;
-  prevLink: string;
+  prevLink: string | null;
   newLink: string;
 };
 
@@ -29,7 +29,7 @@ export default class OrganizationCreationEmail extends BaseEmail {
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: this.organizationCreationEvent.to,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       subject: this.organizationCreationEvent.language(`email_organization_created|subject`),
       html: await renderEmail("OrganizationCreationEmail", this.organizationCreationEvent),
       text: "",

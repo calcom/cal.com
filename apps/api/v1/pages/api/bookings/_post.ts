@@ -2,7 +2,11 @@ import type { NextApiRequest } from "next";
 
 import getBookingDataSchemaForApi from "@calcom/features/bookings/lib/getBookingDataSchemaForApi";
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { HttpError } from "@calcom/lib/http-error";
 import { defaultResponder } from "@calcom/lib/server";
+
+import { getAccessibleUsers } from "~/lib/utils/retrieveScopedAccessibleUsers";
 
 /**
  * @swagger
@@ -204,10 +208,28 @@ import { defaultResponder } from "@calcom/lib/server";
  *         description: Authorization information is missing or invalid.
  */
 async function handler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  if (isAdmin) req.userId = req.body.userId || userId;
+  const { userId, isSystemWideAdmin, isOrganizationOwnerOrAdmin } = req;
+  if (isSystemWideAdmin) req.userId = req.body.userId || userId;
 
-  return await handleNewBooking(req, getBookingDataSchemaForApi);
+  if (isOrganizationOwnerOrAdmin) {
+    const accessibleUsersIds = await getAccessibleUsers({
+      adminUserId: userId,
+      memberUserIds: [req.body.userId || userId],
+    });
+    const [requestedUserId] = accessibleUsersIds;
+    req.userId = requestedUserId || userId;
+  }
+
+  try {
+    return await handleNewBooking(req, getBookingDataSchemaForApi);
+  } catch (error: unknown) {
+    const knownError = error as Error;
+    if (knownError?.message === ErrorCode.NoAvailableUsersFound) {
+      throw new HttpError({ statusCode: 400, message: knownError.message });
+    }
+
+    throw error;
+  }
 }
 
 export default defaultResponder(handler);

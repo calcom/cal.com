@@ -94,7 +94,7 @@ const OtherTeamProfileView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [teamError]
@@ -161,8 +161,8 @@ const OtherTeamProfileView = () => {
   function leaveTeam() {
     if (team?.id && session.data)
       removeMemberMutation.mutate({
-        teamId: team.id,
-        memberId: session.data.user.id,
+        teamIds: [team.id],
+        memberIds: [session.data.user.id],
       });
   }
 

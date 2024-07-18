@@ -1,6 +1,7 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
@@ -159,8 +160,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
+  const { currentOrgDomain } = orgDomainConfig(context.req);
   return {
     props: {
+      orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,

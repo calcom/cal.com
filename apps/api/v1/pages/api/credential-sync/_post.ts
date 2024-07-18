@@ -1,7 +1,7 @@
 import type { NextApiRequest } from "next";
 
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
-import { minimumTokenResponseSchema } from "@calcom/app-store/_utils/oauth/parseRefreshTokenResponse";
+import { OAuth2UniversalSchema } from "@calcom/app-store/_utils/oauth/universalSchema";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { HttpError } from "@calcom/lib/http-error";
@@ -70,7 +70,7 @@ async function handler(req: NextApiRequest) {
     symmetricDecrypt(encryptedKey, process.env.CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY || "")
   );
 
-  const key = minimumTokenResponseSchema.parse(decryptedKey);
+  const key = OAuth2UniversalSchema.parse(decryptedKey);
 
   // Need to get app type
   const app = await prisma.app.findUnique({
