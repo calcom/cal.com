@@ -74,7 +74,11 @@ export class OrganizationsRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
-        organizationId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
       },
     });
   }
