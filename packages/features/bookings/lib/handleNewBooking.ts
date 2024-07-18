@@ -259,7 +259,6 @@ async function handler(
   }
 
   const fullName = getFullName(bookerName);
-
   // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
@@ -296,6 +295,8 @@ async function handler(
     })
   );
 
+  const organizerTimeZone = eventType.schedule?.timeZone ?? null;
+
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(
@@ -306,7 +307,8 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        organizerUtcOffset: organizerTimeZone ? getUTCOffsetByTimezone(organizerTimeZone) ?? 0 : 0,
       },
       eventType.minimumBookingNotice
     );
@@ -429,7 +431,7 @@ async function handler(
         startAsDate,
         eventType.id,
         rescheduleUid,
-        eventType.schedule?.timeZone
+        organizerTimeZone
       );
     }
     if (eventType.durationLimits) {

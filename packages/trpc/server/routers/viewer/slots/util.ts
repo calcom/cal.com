@@ -617,7 +617,8 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
-
+  const organizerTimeZone =
+    eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
   const timeSlots = getSlots({
     inviteeDate: startTime,
     eventLength: input.duration || eventType.length,
@@ -625,8 +626,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone:
-      eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone,
+    organizerTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
@@ -765,15 +765,17 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
-  const utcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
+  const organizerUtcOffset = getUTCOffsetByTimezone(organizerTimeZone) ?? 0;
+  const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
     periodType: eventType.periodType,
     periodDays: eventType.periodDays,
     periodCountCalendarDays: eventType.periodCountCalendarDays,
     periodStartDate: eventType.periodStartDate,
     periodEndDate: eventType.periodEndDate,
-    allDatesWithBookabilityStatus,
-    utcOffset,
+    allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
+    organizerUtcOffset,
+    bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
   const withinBoundsSlotsMappedToDate = Object.entries(slotsMappedToDate).reduce(

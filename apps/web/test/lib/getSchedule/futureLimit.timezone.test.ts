@@ -675,7 +675,6 @@ describe("getSchedule", () => {
           ];
 
           expect(scheduleForEvent).toHaveTimeSlots(
-            // All slots on current day are available
             [
               // "2024-05-30T04:30:00.000Z", // Not available as before the start of the range
               "2024-05-31T04:30:00.000Z",
@@ -1546,6 +1545,122 @@ describe("getSchedule", () => {
 
         expect(scheduleForEvent).toHaveDateDisabled({
           dateString: plus4DateString,
+        });
+      });
+      describe("GMT-11 Browsing", () => {
+        test.only("Basic test", async () => {
+          const startDateString = "2024-06-30";
+          vi.setSystemTime(`${startDateString}T01:30:00Z`);
+          const yesterdayDateString = "2024-07-23";
+          const todayDateString = "2024-07-24";
+          const plus1DateString = "2024-07-25";
+          const plus2DateString = "2024-07-26";
+          const plus3DateString = "2024-07-27";
+          const plus4DateString = "2024-07-28";
+          const plus5DateString = "2024-07-29";
+
+          const scenarioData = {
+            eventTypes: [
+              {
+                id: 1,
+                length: 60,
+                // Makes today and tomorrow only available
+                ...getPeriodTypeData({
+                  type: "RANGE",
+                  // dayPlus1InIst
+                  periodStartDate: new Date(`${todayDateString}T18:30:00.000Z`),
+                  // datePlus2InIst
+                  periodEndDate: new Date(`${plus1DateString}T18:30:00.000Z`),
+                  periodCountCalendarDays: true,
+                }),
+                users: [
+                  {
+                    id: 101,
+                  },
+                ],
+              },
+            ],
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+                schedules: [TestData.schedules.IstWorkHours],
+              },
+            ],
+          } satisfies ScenarioData;
+
+          await createBookingScenario(scenarioData);
+
+          const scheduleForEvent = await getSchedule({
+            input: {
+              eventTypeId: 1,
+              eventTypeSlug: "",
+              usernameList: [],
+              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
+              startTime: `${startDateString}T18:30:00.000Z`,
+              endTime: `${plus5DateString}T18:29:59.999Z`,
+              timeZone: Timezones["-11:00"],
+              isTeamEvent: false,
+            },
+          });
+
+          console.log({ scheduleForEvent: JSON.stringify(scheduleForEvent) });
+
+          expect(scheduleForEvent).toHaveDateDisabled({
+            dateString: yesterdayDateString,
+          });
+
+          expect(scheduleForEvent).toHaveTimeSlots(
+            [
+              // "2024-05-31T11:30:00.000Z",
+              "2024-07-25T04:30:00.000Z",
+              "2024-07-25T05:30:00.000Z",
+              "2024-07-25T06:30:00.000Z",
+              "2024-07-25T07:30:00.000Z",
+              "2024-07-25T08:30:00.000Z",
+              "2024-07-25T09:30:00.000Z",
+              "2024-07-25T10:30:00.000Z",
+            ],
+            {
+              dateString: todayDateString,
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEvent).toHaveTimeSlots(
+            [
+              "2024-07-25T11:30:00.000Z",
+              "2024-07-26T04:30:00.000Z",
+              "2024-07-26T05:30:00.000Z",
+              "2024-07-26T06:30:00.000Z",
+              "2024-07-26T07:30:00.000Z",
+              "2024-07-26T08:30:00.000Z",
+              "2024-07-26T09:30:00.000Z",
+              "2024-07-26T10:30:00.000Z",
+            ],
+            {
+              dateString: plus1DateString,
+              doExactMatch: true,
+            }
+          );
+
+          expect(scheduleForEvent).toHaveTimeSlots(["2024-07-26T11:30:00.000Z"], {
+            dateString: plus2DateString,
+            doExactMatch: true,
+          });
+
+          // After the range ends
+          expect(scheduleForEvent).toHaveDateDisabled({
+            dateString: plus3DateString,
+          });
+
+          expect(scheduleForEvent).toHaveDateDisabled({
+            dateString: plus4DateString,
+          });
+
+          expect(scheduleForEvent).toHaveDateDisabled({
+            dateString: plus4DateString,
+          });
         });
       });
     });
