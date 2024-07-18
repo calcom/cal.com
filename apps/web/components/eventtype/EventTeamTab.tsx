@@ -328,9 +328,12 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
+  // To ensure existing host do not loose its scheduleId property, whenever a new host of same type is added.
+  // This is because the host is created from list option in CheckedHostField component.
   const updatedHosts = (changedHosts: Host[]) => {
+    const existingHosts = getValues("hosts");
     return changedHosts.map((newValue) => {
-      const existingHost = getValues("hosts").find((host: Host) => host.userId === newValue.userId);
+      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
       return existingHost
         ? {
             ...newValue,

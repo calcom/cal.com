@@ -319,10 +319,6 @@ const TeamMemberSchedule = ({
       : option.value === schedules?.find((schedule) => schedule.isDefault)?.id
   );
 
-  if (!scheduleId && !getFieldState(`hosts.${index}.scheduleId`).isDirty) {
-    setValue(`hosts.${index}.scheduleId`, value?.value || null, { shouldDirty: true });
-  }
-
   const member = teamMembers.find((mem) => mem.id === host.userId);
   const avatar = member?.avatar;
   const label = member?.name;
@@ -398,15 +394,13 @@ export const TeamAvailability = ({
               className={classNames("mb-4 mt-3 rounded-md", hosts.length >= 1 && "border-subtle border")}
               ref={animationRef}>
               {hosts.map((host, index) => (
-                <>
-                  <li
-                    key={host.userId}
-                    className={`flex flex-col px-3 py-2 ${
-                      index === hosts.length - 1 ? "" : "border-subtle border-b"
-                    }`}>
-                    <TeamMemberSchedule host={host} index={index} teamMembers={teamMembers} />
-                  </li>
-                </>
+                <li
+                  key={host.userId}
+                  className={`flex flex-col px-3 py-2 ${
+                    index === hosts.length - 1 ? "" : "border-subtle border-b"
+                  }`}>
+                  <TeamMemberSchedule host={host} index={index} teamMembers={teamMembers} />
+                </li>
               ))}
             </ul>
           ) : (
