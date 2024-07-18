@@ -9,8 +9,8 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries";
+import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.18";
+import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.18";
 import { dynamicEvent } from "@calcom/platform-libraries-0.0.18";
 import {
   CreateEventTypeInput_2024_06_14,
@@ -94,6 +94,7 @@ export class EventTypesService_2024_06_14 {
     const profileId = user.movedToProfile?.id || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
