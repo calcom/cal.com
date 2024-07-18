@@ -5,7 +5,7 @@ export const checkUndefinedInValue = (where: any) => {
     for (const key in where) {
       // INFO: Since this is for $allModels, we don't have a way to get the correct
       // where type
-      const whereInput = where[key as any] as unknown;
+      const whereInput = where[key as any] as any;
       if (!whereInput) {
         throw new Error(`The value for the field "${key}" cannot be undefined.`);
       }
@@ -17,7 +17,7 @@ export const checkUndefinedInValue = (where: any) => {
   }
 };
 
-export function disallowUndefinedInDeleteUpdateManyExtension() {
+export function disallowUndefinedDeleteUpdateManyExtension() {
   return Prisma.defineExtension({
     query: {
       $allModels: {
