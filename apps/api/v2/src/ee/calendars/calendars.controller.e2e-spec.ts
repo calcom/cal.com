@@ -191,7 +191,7 @@ describe("Platform Calendars Endpoints", () => {
       .expect(200);
   });
 
-  it(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 200 returning back the user deleted calendar credentials`, async () => {
+  it(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
     const body = {
       id: 10,
     };
