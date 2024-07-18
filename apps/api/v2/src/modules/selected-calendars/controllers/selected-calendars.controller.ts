@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -26,7 +27,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 export class SelectedCalendarsController {
   constructor(
     private readonly calendarsRepository: CalendarsRepository,
-    private readonly selectedCalendarsRepository: SelectedCalendarsRepository
+    private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
+    private readonly calendarsService: CalendarsService
   ) {}
 
   @Post("/")
@@ -36,10 +38,7 @@ export class SelectedCalendarsController {
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId } = input;
-    const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
-    if (!credential) {
-      throw new NotFoundException(`Credentials not found`);
-    }
+    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
 
     const newlyAddedCalendarEntry = await this.selectedCalendarsRepository.addUserSelectedCalendar(
       user.id,
@@ -61,10 +60,7 @@ export class SelectedCalendarsController {
     @GetUser() user: UserWithProfile
   ): Promise<SelectedCalendarOutputResponseDto> {
     const { integration, externalId, credentialId } = queryParams;
-    const credential = await this.calendarsRepository.getCalendarCredentials(Number(credentialId), user.id);
-    if (!credential) {
-      throw new NotFoundException(`Credentials not found`);
-    }
+    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
 
     const removedCalendarEntry = await this.selectedCalendarsRepository.removeUserSelectedCalendar(
       user.id,

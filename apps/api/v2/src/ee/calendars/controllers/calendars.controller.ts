@@ -29,7 +29,6 @@ import {
   BadRequestException,
   Post,
   Body,
-  NotFoundException,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { User } from "@prisma/client";
@@ -201,12 +200,9 @@ export class CalendarsController {
     @GetUser() user: UserWithProfile
   ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
     const { id: credentialId } = body;
-    const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, user.id);
-    if (!credential) {
-      throw new NotFoundException(`Credentials for ${calendar} calendar not found`);
-    }
+    await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
 
-    const { key, ...deletedCredentials } = await this.calendarsRepository.deleteCredentials(credential.id);
+    const { key, ...deletedCredentials } = await this.calendarsRepository.deleteCredentials(credentialId);
 
     return {
       status: SUCCESS_STATUS,
