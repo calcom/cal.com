@@ -17,4 +17,6 @@ const getBookingDataSchema = ({
   );
 };
 
+export type TgetBookingDataSchema = z.infer<ReturnType<typeof getBookingDataSchema>>;
+
 export default getBookingDataSchema;

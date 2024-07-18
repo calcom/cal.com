@@ -1,4 +1,4 @@
-import getUserAdminTeams from "@calcom/features/ee/teams/lib/getUserAdminTeams";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -14,12 +14,7 @@ type AppCredentialsByTypeOptions = {
 /** Used for grabbing credentials on specific app pages */
 export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentialsByTypeOptions) => {
   const { user } = ctx;
-  const userAdminTeams = await getUserAdminTeams({ userId: ctx.user.id, getUserInfo: true });
-
-  const teamIds = userAdminTeams.reduce((teamIds, team) => {
-    if (!team.isUser) teamIds.push(team.id);
-    return teamIds;
-  }, [] as number[]);
+  const userAdminTeams = await UserRepository.getUserAdminTeams(ctx.user.id);
 
   const credentials = await prisma.credential.findMany({
     where: {
@@ -27,7 +22,7 @@ export const appCredentialsByTypeHandler = async ({ ctx, input }: AppCredentials
         { userId: user.id },
         {
           teamId: {
-            in: teamIds,
+            in: userAdminTeams,
           },
         },
       ],

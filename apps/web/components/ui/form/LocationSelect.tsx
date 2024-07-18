@@ -39,13 +39,17 @@ export default function LocationSelect(props: Props<LocationOption, false, Group
         Option: (props) => {
           return (
             <components.Option {...props}>
-              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+              <div data-testid={`location-select-item-${props.data.value}`}>
+                <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+              </div>
             </components.Option>
           );
         },
         SingleValue: (props) => (
           <components.SingleValue {...props}>
-            <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            <div data-testid={`location-select-item-${props.data.value}`}>
+              <OptionWithIcon icon={props.data.icon} label={props.data.label} />
+            </div>
           </components.SingleValue>
         ),
       }}
