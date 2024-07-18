@@ -20,6 +20,7 @@ export type ZohoToken = {
   token_type: string;
   access_token: string;
   accountServer: string;
+  location: string;
   refresh_token: string;
 };
 
@@ -52,6 +53,7 @@ export default class ZohoCrmCrmService implements CRM {
   private client_id = "";
   private client_secret = "";
   private accessToken = "";
+  private location = "";
 
   constructor(credential: CredentialPayload) {
     this.integrationName = "zohocrm_crm";
@@ -74,7 +76,7 @@ export default class ZohoCrmCrmService implements CRM {
     });
     const response = await axios({
       method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Contacts`,
+      url: `https://www.zohoapis.${this.location}/crm/v3/Contacts`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -100,7 +102,7 @@ export default class ZohoCrmCrmService implements CRM {
 
     const response = await axios({
       method: "get",
-      url: `https://www.zohoapis.com/crm/v3/Contacts/search?criteria=${searchCriteria}`,
+      url: `https://www.zohoapis.${this.location}/crm/v3/Contacts/search?criteria=${searchCriteria}`,
       headers: {
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
       },
@@ -140,7 +142,7 @@ export default class ZohoCrmCrmService implements CRM {
 
     return axios({
       method: "post",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
+      url: `https://www.zohoapis.${this.location}/crm/v3/Events`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -162,7 +164,7 @@ export default class ZohoCrmCrmService implements CRM {
     };
     return axios({
       method: "put",
-      url: `https://www.zohoapis.com/crm/v3/Events`,
+      url: `https://www.zohoapis.${this.location}/crm/v3/Events`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -176,7 +178,7 @@ export default class ZohoCrmCrmService implements CRM {
   private deleteMeeting = async (uid: string) => {
     return axios({
       method: "delete",
-      url: `https://www.zohoapis.com/crm/v3/Events?ids=${uid}`,
+      url: `https://www.zohoapis.${this.location}/crm/v3/Events?ids=${uid}`,
       headers: {
         "content-type": "application/json",
         authorization: `Zoho-oauthtoken ${this.accessToken}`,
@@ -194,6 +196,7 @@ export default class ZohoCrmCrmService implements CRM {
     if (!this.client_secret)
       throw new HttpError({ statusCode: 400, message: "Zoho CRM client_secret missing." });
     const credentialKey = credential.key as unknown as ZohoToken;
+    this.location = credentialKey.location;
     const isTokenValid = (token: ZohoToken) => {
       const isValid = token && token.access_token && token.expiryDate && token.expiryDate > Date.now();
       if (isValid) {
