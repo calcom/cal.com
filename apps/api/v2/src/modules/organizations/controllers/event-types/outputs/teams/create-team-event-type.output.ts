@@ -7,5 +7,5 @@ export class CreateTeamEventTypeOutput extends ApiResponseWithoutData {
   @IsNotEmptyObject()
   @ValidateNested()
   @Type(() => TeamEventTypeOutput_2024_06_14)
-  data!: TeamEventTypeOutput_2024_06_14;
+  data!: TeamEventTypeOutput_2024_06_14 | TeamEventTypeOutput_2024_06_14[];
 }

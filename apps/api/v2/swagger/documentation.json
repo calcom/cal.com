@@ -1467,6 +1467,26 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -4595,6 +4615,26 @@
           "description"
         ]
       },
+      "CreateTeamEventTypeOutput": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "RecurringEvent_2024_06_14": {
         "type": "object",
         "properties": {
@@ -4807,27 +4847,8 @@
           "seatsShowAvailabilityCount",
           "isInstantEvent",
           "schedule",
-          "teamId"
-        ]
-      },
-      "CreateTeamEventTypeOutput": {
-        "type": "object",
-        "properties": {
-          "status": {
-            "type": "string",
-            "example": "success",
-            "enum": [
-              "success",
-              "error"
-            ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
-          }
-        },
-        "required": [
-          "status",
-          "data"
+          "teamId",
+          "hosts"
         ]
       },
       "GetTeamEventTypeOutput": {
@@ -4889,7 +4910,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
+            "type": "object"
           }
         },
         "required": [

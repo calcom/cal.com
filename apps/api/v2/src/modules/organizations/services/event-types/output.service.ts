@@ -37,13 +37,16 @@ type Input = Pick<
   | "schedule"
   | "hosts"
   | "teamId"
+  | "userId"
+  | "parentId"
 >;
 
 @Injectable()
 export class OutputOrganizationsEventTypesService {
   constructor(private readonly outputEventTypesService: OutputEventTypesService_2024_06_14) {}
 
-  async getResponseTeamEventType(teamId: number, databaseEventType: Input) {
+  async getResponseTeamEventType(databaseEventType: Input) {
+    const { teamId, userId, parentId } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = await this.outputEventTypesService.getResponseEventType(
       0,
@@ -55,6 +58,8 @@ export class OutputOrganizationsEventTypesService {
       ...rest,
       hosts,
       teamId,
+      ownerId: userId,
+      parentEventTypeId: parentId,
     };
   }
 

@@ -46,20 +46,12 @@ export class OrganizationsEventTypesService {
       },
     });
 
-    await this.updateTeamEventType(
+    return await this.updateTeamEventType(
       eventTypeCreated.id,
       teamId,
       { hosts: body.hosts, assignAllTeamMembers },
       user
     );
-
-    const eventType = await this.organizationEventTypesRepository.getEventTypeById(eventTypeCreated.id);
-
-    if (!eventType) {
-      throw new NotFoundException(`Event type with id ${eventTypeCreated.id} not found`);
-    }
-
-    return this.outputService.getResponseTeamEventType(teamId, eventType);
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
@@ -82,14 +74,14 @@ export class OrganizationsEventTypesService {
       return null;
     }
 
-    return this.outputService.getResponseTeamEventType(teamId, eventType);
+    return this.outputService.getResponseTeamEventType(eventType);
   }
 
   async getTeamEventTypes(teamId: number) {
     const eventTypes = await this.organizationEventTypesRepository.getTeamEventTypes(teamId);
 
     const eventTypePromises = eventTypes.map(async (eventType) => {
-      return await this.outputService.getResponseTeamEventType(teamId, eventType);
+      return await this.outputService.getResponseTeamEventType(eventType);
     });
 
     return await Promise.all(eventTypePromises);
@@ -99,7 +91,7 @@ export class OrganizationsEventTypesService {
     const eventTypes = await this.organizationEventTypesRepository.getTeamsEventTypes(orgId, skip, take);
 
     const eventTypePromises = eventTypes.map(async (eventType) => {
-      return await this.outputService.getResponseTeamEventType(eventType.teamId || 0, eventType);
+      return await this.outputService.getResponseTeamEventType(eventType);
     });
 
     return await Promise.all(eventTypePromises);
@@ -112,7 +104,12 @@ export class OrganizationsEventTypesService {
     user: UserWithProfile
   ) {
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
-    const bodyTransformed = await this.inputService.transformInputUpdateTeamEventType(teamId, body);
+    const bodyTransformed = await this.inputService.transformInputUpdateTeamEventType(
+      eventTypeId,
+      teamId,
+      body
+    );
+
     await updateEventType({
       input: { id: eventTypeId, ...bodyTransformed },
       ctx: {
@@ -129,7 +126,19 @@ export class OrganizationsEventTypesService {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
 
-    return this.outputService.getResponseTeamEventType(teamId, eventType);
+    if (eventType.schedulingType !== "MANAGED") {
+      return this.outputService.getResponseTeamEventType(eventType);
+    }
+
+    const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventType.id);
+
+    const eventTypes = [eventType, ...children];
+
+    const eventTypePromises = eventTypes.map(async (e) => {
+      return await this.outputService.getResponseTeamEventType(e);
+    });
+
+    return await Promise.all(eventTypePromises);
   }
 
   async deleteTeamEventType(teamId: number, eventTypeId: number) {

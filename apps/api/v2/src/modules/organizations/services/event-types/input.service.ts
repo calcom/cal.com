@@ -1,5 +1,7 @@
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
+import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
 import {
@@ -12,7 +14,9 @@ import {
 export class InputOrganizationsEventTypesService {
   constructor(
     private readonly inputEventTypesService: InputEventTypesService_2024_06_14,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly usersRepository: UsersRepository,
+    private readonly orgEventTypesRepository: OrganizationsEventTypesRepository
   ) {}
   async transformInputCreateTeamEventType(
     teamId: number,
@@ -22,16 +26,20 @@ export class InputOrganizationsEventTypesService {
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
 
+    const metadata = rest.schedulingType === "MANAGED" ? { managedEventConfig: {} } : undefined;
+
     const teamEventType = {
       ...eventType,
       hosts: assignAllTeamMembers ? await this.getAllTeamMembers(teamId) : this.transformInputHosts(hosts),
       assignAllTeamMembers,
+      metadata,
     };
 
     return teamEventType;
   }
 
   async transformInputUpdateTeamEventType(
+    eventTypeId: number,
     teamId: number,
     inputEventType: UpdateTeamEventTypeInput_2024_06_14
   ) {
@@ -39,13 +47,57 @@ export class InputOrganizationsEventTypesService {
 
     const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
 
+    const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType);
     const teamEventType = {
       ...eventType,
-      hosts: assignAllTeamMembers ? await this.getAllTeamMembers(teamId) : this.transformInputHosts(hosts),
+      hosts: !children
+        ? assignAllTeamMembers
+          ? await this.getAllTeamMembers(teamId)
+          : this.transformInputHosts(hosts)
+        : undefined,
       assignAllTeamMembers,
+      children,
     };
 
     return teamEventType;
+  }
+
+  async getChildEventTypesForManagedEventType(
+    eventTypeId: number,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+  ) {
+    const eventType = await this.orgEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
+
+    if (!eventType || eventType.schedulingType !== "MANAGED") {
+      return undefined;
+    }
+
+    const hostsIds = inputEventType.hosts
+      ? inputEventType.hosts.map((host) => host.userId)
+      : (eventType.children.map((child) => child.userId).filter((id) => !!id) as number[]);
+    const owners = await this.getOwnersForManagedEventType(hostsIds);
+
+    return owners.map((owner) => {
+      return {
+        hidden: false,
+        owner,
+      };
+    });
+  }
+
+  async getOwnersForManagedEventType(userIds: number[]) {
+    const users = await this.usersRepository.findByIdsWithEventTypes(userIds);
+
+    return users.map((user) => {
+      const nonManagedEventTypes = user.eventTypes.filter((eventType) => !eventType.parentId);
+      return {
+        id: user.id,
+        name: user.name || user.email,
+        email: user.email,
+        // note(Lauris): managed event types slugs have to be excluded otherwise checkExistentEventTypes within handleChildrenEventTypes.ts will incorrectly delete managed user event type.
+        eventTypeSlugs: nonManagedEventTypes.map((eventType) => eventType.slug),
+      };
+    });
   }
 
   async getAllTeamMembers(teamId: number) {
@@ -58,7 +110,7 @@ export class InputOrganizationsEventTypesService {
     }));
   }
 
-  transformInputHosts(inputHosts: CreateTeamEventTypeInput_2024_06_14["hosts"]) {
+  transformInputHosts(inputHosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
     if (!inputHosts) {
       return undefined;
     }

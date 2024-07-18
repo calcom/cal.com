@@ -229,7 +229,16 @@ export class TeamEventTypeOutput_2024_06_14 {
   schedule!: Schedule_2024_06_14 | null;
 
   @IsInt()
-  teamId!: number;
+  @IsOptional()
+  teamId?: number | null;
+
+  @IsInt()
+  @IsOptional()
+  ownerId?: number | null;
+
+  @IsInt()
+  @IsOptional()
+  parentEventTypeId?: number | null;
 
   @ValidateNested({ each: true })
   @Type(() => Host)

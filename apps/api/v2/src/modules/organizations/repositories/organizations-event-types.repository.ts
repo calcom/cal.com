@@ -32,6 +32,13 @@ export class OrganizationsEventTypesRepository {
     });
   }
 
+  async getEventTypeChildren(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findMany({
+      where: { parentId: eventTypeId },
+      include: { users: true, schedule: true, hosts: true },
+    });
+  }
+
   async getTeamsEventTypes(orgId: number, skip: number, take: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
@@ -42,6 +49,13 @@ export class OrganizationsEventTypesRepository {
       skip,
       take,
       include: { users: true, schedule: true, hosts: true },
+    });
+  }
+
+  async getEventTypeByIdWithChildren(eventTypeId: number) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: { id: eventTypeId },
+      include: { children: true },
     });
   }
 }
