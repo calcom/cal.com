@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 
-import { checkUndefinedInValue } from "./disallow-undefined-in-delete-update-many";
+import { checkUndefinedInValue } from "./disallow-undefined-delete-update-many";
 
 describe("Disallow undefined delete/update many", () => {
   it("checkUndefinedInValue should throw exception when the 'in' field of where object is undefined", async () => {
