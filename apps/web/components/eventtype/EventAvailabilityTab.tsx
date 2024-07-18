@@ -303,10 +303,6 @@ const TeamMemberSchedule = ({
     userId: host.userId,
   });
 
-  if (isPending) {
-    return <Spinner className="mt-3 h-6 w-6" />;
-  }
-
   const schedules = data?.schedules;
   const options = schedules?.map((schedule) => ({
     value: schedule.id,
@@ -330,6 +326,20 @@ const TeamMemberSchedule = ({
   const member = teamMembers.find((mem) => mem.id === host.userId);
   const avatar = member?.avatar;
   const label = member?.name;
+
+  if (isPending) {
+    return (
+      <>
+        <div className="flex w-full items-center">
+          <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
+          <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
+        </div>
+        <div className="flex w-full flex-col pt-2 ">
+          <Spinner className="mt-2 h-6 w-6" />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
