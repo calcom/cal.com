@@ -3,9 +3,6 @@ import { IsBoolean, IsOptional, IsEnum, IsInt } from "class-validator";
 
 export class CreateOrgMembershipDto {
   @IsInt()
-  readonly teamId!: number;
-
-  @IsInt()
   readonly userId!: number;
 
   @IsOptional()

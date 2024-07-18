@@ -141,7 +141,6 @@ describe("Organizations Memberships Endpoints", () => {
       return request(app.getHttpServer())
         .post(`/v2/organizations/${org.id}/memberships`)
         .send({
-          teamId: org.id,
           userId: userToInviteViaApi.id,
           accepted: true,
           role: "MEMBER",
@@ -280,7 +279,6 @@ describe("Organizations Memberships Endpoints", () => {
         .post(`/v2/organizations/${org.id}/memberships`)
         .send({
           role: "OWNER",
-          teamId: org.id,
           userId: user.id,
           accepted: true,
         } satisfies CreateOrgMembershipDto)
