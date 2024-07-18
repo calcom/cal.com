@@ -18,6 +18,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
 
+import { UpdateOrgMembershipDto } from "../../inputs/update-organization-membership.input";
+
 describe("Organizations Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
     let app: INestApplication;
@@ -161,7 +163,7 @@ describe("Organizations Memberships Endpoints", () => {
         .patch(`/v2/organizations/${org.id}/memberships/${membershipCreatedViaApi.id}`)
         .send({
           role: "OWNER",
-        } satisfies Partial<CreateOrgMembershipDto>)
+        } satisfies UpdateOrgMembershipDto)
         .expect(200)
         .then((response) => {
           const responseBody: ApiSuccessResponse<Membership> = response.body;

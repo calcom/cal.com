@@ -1515,24 +1515,7 @@
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
       "get": {
         "operationId": "OrganizationsMembershipsController_getUserSchedule",
-        "parameters": [
-          {
-            "name": "orgId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "membershipId",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "200": {
             "description": "",
@@ -1605,6 +1588,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOrgMembershipDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -5019,6 +5012,14 @@
       "OrgMembershipOutputDto": {
         "type": "object",
         "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
           "id": {
             "type": "number"
           },
@@ -5031,19 +5032,16 @@
           "accepted": {
             "type": "boolean"
           },
-          "role": {
-            "type": "object"
-          },
           "disableImpersonation": {
             "type": "boolean"
           }
         },
         "required": [
+          "role",
           "id",
           "userId",
           "teamId",
-          "accepted",
-          "role"
+          "accepted"
         ]
       },
       "GetAllOrgMemberships": {
@@ -5069,8 +5067,14 @@
       "CreateOrgMembershipDto": {
         "type": "object",
         "properties": {
-          "teamId": {
-            "type": "number"
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "userId": {
             "type": "number"
@@ -5079,19 +5083,14 @@
             "type": "boolean",
             "default": false
           },
-          "role": {
-            "type": "object",
-            "default": "MEMBER"
-          },
           "disableImpersonation": {
             "type": "boolean",
             "default": false
           }
         },
         "required": [
-          "teamId",
-          "userId",
-          "role"
+          "role",
+          "userId"
         ]
       },
       "CreateOrgMembershipOutput": {
@@ -5153,6 +5152,28 @@
           "status",
           "data"
         ]
+      },
+      "UpdateOrgMembershipDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "default": "MEMBER",
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
+          },
+          "accepted": {
+            "type": "boolean",
+            "default": false
+          },
+          "disableImpersonation": {
+            "type": "boolean",
+            "default": false
+          }
+        }
       },
       "UpdateOrgMembership": {
         "type": "object",

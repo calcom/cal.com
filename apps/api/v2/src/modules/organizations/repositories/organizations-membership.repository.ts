@@ -3,6 +3,8 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 
+import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
+
 @Injectable()
 export class OrganizationsMembershipRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
@@ -31,11 +33,7 @@ export class OrganizationsMembershipRepository {
     });
   }
 
-  async updateOrgMembership(
-    organizationId: number,
-    membershipId: number,
-    data: Partial<CreateOrgMembershipDto>
-  ) {
+  async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
     return this.dbWrite.prisma.membership.update({
       data: { ...data },
       where: { id: membershipId, teamId: organizationId },

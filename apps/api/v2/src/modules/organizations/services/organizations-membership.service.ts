@@ -3,6 +3,8 @@ import { OrganizationsMembershipRepository } from "@/modules/organizations/repos
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { Injectable } from "@nestjs/common";
 
+import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
+
 @Injectable()
 export class OrganizationsMembershipService {
   constructor(
@@ -35,11 +37,7 @@ export class OrganizationsMembershipService {
     return memberships;
   }
 
-  async updateOrgMembership(
-    organizationId: number,
-    membershipId: number,
-    data: Partial<CreateOrgMembershipDto>
-  ) {
+  async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
     const membership = await this.organizationsMembershipRepository.updateOrgMembership(
       organizationId,
       membershipId,

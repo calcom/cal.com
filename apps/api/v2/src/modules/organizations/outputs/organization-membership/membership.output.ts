@@ -1,3 +1,4 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { MembershipRole } from "@prisma/client";
 import { Expose } from "class-transformer";
 import { IsBoolean, IsInt, IsOptional, IsString } from "class-validator";
@@ -20,6 +21,7 @@ export class OrgMembershipOutputDto {
   readonly accepted!: boolean;
 
   @IsString()
+  @ApiProperty({ enum: ["MEMBER", "OWNER", "ADMIN"] })
   @Expose()
   readonly role!: MembershipRole;
 

@@ -6,6 +6,7 @@ import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membersh
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
+import { UpdateOrgMembershipDto } from "@/modules/organizations/inputs/update-organization-membership.input";
 import { CreateOrgMembershipOutput } from "@/modules/organizations/outputs/organization-membership/create-membership.output";
 import { DeleteOrgMembership } from "@/modules/organizations/outputs/organization-membership/delete-membership.output";
 import { GetAllOrgMemberships } from "@/modules/organizations/outputs/organization-membership/get-all-memberships.output";
@@ -82,11 +83,7 @@ export class OrganizationsMembershipsController {
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
-  async getUserSchedule(
-    @Param("orgId", ParseIntPipe) orgId: number,
-    @Param("membershipId", ParseIntPipe) membershipId: number,
-    @GetMembership() membership: Membership
-  ): Promise<GetOrgMembership> {
+  async getUserSchedule(@GetMembership() membership: Membership): Promise<GetOrgMembership> {
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgMembershipOutputDto, membership, { strategy: "excludeAll" }),
@@ -115,7 +112,7 @@ export class OrganizationsMembershipsController {
   async updateMembership(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("membershipId", ParseIntPipe) membershipId: number,
-    @Body() body: Partial<CreateOrgMembershipDto>
+    @Body() body: UpdateOrgMembershipDto
   ): Promise<UpdateOrgMembership> {
     const membership = await this.organizationsMembershipService.updateOrgMembership(
       orgId,
