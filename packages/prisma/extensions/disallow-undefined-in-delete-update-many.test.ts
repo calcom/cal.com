@@ -24,4 +24,15 @@ describe("Disallow undefined delete/update many", () => {
       'The value for the field "from" cannot be undefined.'
     );
   });
+
+  it("checkUndefinedInValue should not throw exception when the where object does not contain undefined values", async () => {
+    const where = {
+      id: {
+        in: [1, 2, 3],
+      },
+      name: "test name",
+    };
+
+    checkUndefinedInValue(where);
+  });
 });
