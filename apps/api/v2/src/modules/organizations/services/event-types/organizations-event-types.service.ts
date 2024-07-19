@@ -67,6 +67,14 @@ export class OrganizationsEventTypesService {
     }
   }
 
+  async validateEventTypeExists(teamId: number, eventTypeId: number) {
+    const eventType = await this.organizationEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
+    }
+  }
+
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
     const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
     const profileId = user.movedToProfileId || null;
@@ -116,6 +124,7 @@ export class OrganizationsEventTypesService {
     body: UpdateTeamEventTypeInput_2024_06_14,
     user: UserWithProfile
   ) {
+    await this.validateEventTypeExists(teamId, eventTypeId);
     await this.validateHosts(teamId, body.hosts);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
     const bodyTransformed = await this.inputService.transformInputUpdateTeamEventType(
@@ -160,6 +169,7 @@ export class OrganizationsEventTypesService {
       teamId,
       eventTypeId
     );
+
     if (!existingEventType) {
       throw new NotFoundException(`Event type with ID=${eventTypeId} does not exist.`);
     }

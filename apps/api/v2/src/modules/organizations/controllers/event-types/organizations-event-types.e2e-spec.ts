@@ -344,6 +344,18 @@ describe("Organizations Event Types Endpoints", () => {
         });
     });
 
+    it("should not get an event-type of team outside org", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
+        .expect(404);
+    });
+
+    it("should not get a non existing event-type", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
+        .expect(404);
+    });
+
     it("should get a team event-type", async () => {
       return request(app.getHttpServer())
         .get(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${collectiveEventType.id}`)
@@ -360,6 +372,12 @@ describe("Organizations Event Types Endpoints", () => {
 
           collectiveEventType = responseBody.data;
         });
+    });
+
+    it("should not get event-types of team outside org", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types`)
+        .expect(404);
     });
 
     it("should get team event-types", async () => {
@@ -385,6 +403,28 @@ describe("Organizations Event Types Endpoints", () => {
           evaluateHost(collectiveEventType.hosts[0], eventTypeCollective?.hosts[0]);
           evaluateHost(collectiveEventType.hosts[1], eventTypeCollective?.hosts[1]);
         });
+    });
+
+    it("should not be able to update event-type for incorrect team", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        title: "Clean code consultation",
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
+        .send(body)
+        .expect(404);
+    });
+
+    it("should not be able to update non existing event-type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        title: "Clean code consultation",
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/999999`)
+        .send(body)
+        .expect(404);
     });
 
     it("should update collective event-type", async () => {
@@ -511,6 +551,18 @@ describe("Organizations Event Types Endpoints", () => {
 
           managedEventType = responseTeamEvent;
         });
+    });
+
+    it("should not delete event-type of team outside org", async () => {
+      return request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types/${collectiveEventType.id}`)
+        .expect(404);
+    });
+
+    it("should delete event-type not part of the team", async () => {
+      return request(app.getHttpServer())
+        .delete(`/v2/organizations/${org.id}/teams/${team.id}/event-types/99999`)
+        .expect(404);
     });
 
     it("should delete collective event-type", async () => {
