@@ -156,7 +156,8 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
       }
     },
     onError: (err) => {
-      showToast(t("something_went_wrong"), "error");
+      const message = err?.message ? err.message : t("something_went_wrong");
+      showToast(message, "error");
     },
   });
 

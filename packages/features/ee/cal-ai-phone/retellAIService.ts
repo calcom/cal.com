@@ -155,10 +155,17 @@ class GetPhoneNumberDetailsCommand implements Command<TGetPhoneNumberSchema> {
       return phoneNumberDetails;
     } catch (err) {
       log.error("Unable to Get Phone number", safeStringify(err));
-      throw new Error("Something went wrong! Unable to Get Phone number");
+      throw new Error(
+        "Something went wrong! Unable to Get Phone number. Please only use the phone number assigned to you."
+      );
     }
   }
 }
+
+export const validatePhoneNumber = (phoneNumber: string) => {
+  const command = new GetPhoneNumberDetailsCommand(phoneNumber);
+  return command.execute();
+};
 
 class CreateRetellPhoneCallCommand implements Command<TCreatePhoneSchema> {
   constructor(private props: initProps, private numberToCall: string) {}

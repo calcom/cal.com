@@ -47,6 +47,7 @@ export const ZGetPhoneNumberSchema = z
     agent_id: z.string(),
     inbound_agent_id: z.string(),
     outbound_agent_id: z.string(),
+    error_message: z.string().optional(),
   })
   .passthrough();
 

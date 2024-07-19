@@ -1,15 +1,14 @@
 import type { z } from "zod";
 
 import { PROMPT_TEMPLATES } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
-import { RetellAIService } from "@calcom/features/ee/cal-ai-phone/retellAIService";
+import { RetellAIService, validatePhoneNumber } from "@calcom/features/ee/cal-ai-phone/retellAIService";
 import type { createPhoneCallSchema } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
+import { TRPCError } from "@calcom/trpc/server";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
-
-import { TRPCError } from "@trpc/server";
 
 type CreatePhoneCallProps = {
   ctx: {
@@ -28,6 +27,8 @@ const createPhoneCallHandler = async ({ input, ctx }: CreatePhoneCallProps) => {
     rateLimitingType: "core",
     identifier: `createPhoneCall:${ctx.user.id}`,
   });
+
+  await validatePhoneNumber(input.yourPhoneNumber);
 
   const {
     yourPhoneNumber,
