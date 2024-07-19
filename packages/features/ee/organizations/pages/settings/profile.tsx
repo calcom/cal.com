@@ -272,7 +272,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
                   <OrgBanner
                     data-testid="profile-upload-banner"
                     alt={`${defaultValues.name} Banner` || ""}
-                    className="grid min-h-[150px] w-full place-items-center sm:min-h-[200px]"
+                    className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
                     fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}
                   />
