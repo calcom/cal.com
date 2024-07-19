@@ -5,11 +5,13 @@ jobs:
   test:
     name: Unit (API v2)
     timeout-minutes: 20
-    runs-on: buildjet-2vcpu-ubuntu-2204
+    runs-on: buildjet-4vcpu-ubuntu-2204
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
       - uses: ./.github/actions/yarn-install
       - name: Run tests
         working-directory: apps/api/v2
-        run: yarn test
+        run: |
+          export NODE_OPTIONS="--max_old_space_size=8192"
+          yarn test
