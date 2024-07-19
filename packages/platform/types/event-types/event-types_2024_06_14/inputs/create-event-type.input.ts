@@ -110,42 +110,52 @@ export class CreateTeamEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @ValidateLocations_2024_06_14()
+  @DocsProperty()
   locations?: Location_2024_06_14[];
 
   @IsOptional()
   @ValidateBookingFields_2024_06_14()
+  @DocsProperty()
   bookingFields?: BookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   disableGuests?: boolean;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   slotInterval?: number;
 
   @IsInt()
   @Min(0)
   @IsOptional()
+  @DocsProperty()
   minimumBookingNotice?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   beforeEventBuffer?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   afterEventBuffer?: number;
 
   @IsEnum(SchedulingType)
+  @DocsProperty()
   schedulingType!: keyof typeof SchedulingType;
 
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
+  @DocsProperty()
   hosts!: Host[];
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   assignAllTeamMembers?: boolean;
 }

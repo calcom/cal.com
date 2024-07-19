@@ -1,3 +1,4 @@
+import { ApiProperty as DocsProperty } from "@nestjs/swagger";
 import { Type } from "class-transformer";
 import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } from "class-validator";
 
@@ -58,56 +59,69 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
+  @DocsProperty()
   lengthInMinutes?: number;
 
   @IsOptional()
   @IsString()
+  @DocsProperty()
   title?: string;
 
   @IsString()
   @IsOptional()
+  @DocsProperty()
   slug?: string;
 
   @IsOptional()
   @IsString()
+  @DocsProperty()
   description?: string;
 
   @IsOptional()
   @ValidateLocations_2024_06_14()
+  @DocsProperty()
   locations?: Location_2024_06_14[];
 
   @IsOptional()
   @ValidateBookingFields_2024_06_14()
+  @DocsProperty()
   bookingFields?: BookingField_2024_06_14[];
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   disableGuests?: boolean;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   slotInterval?: number;
 
   @IsInt()
   @Min(0)
   @IsOptional()
+  @DocsProperty()
   minimumBookingNotice?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   beforeEventBuffer?: number;
 
   @IsInt()
   @IsOptional()
+  @DocsProperty()
   afterEventBuffer?: number;
 
   @ValidateNested({ each: true })
   @Type(() => Host)
   @IsArray()
   @IsOptional()
+  @DocsProperty()
   hosts?: Host[];
 
   @IsBoolean()
   @IsOptional()
+  @DocsProperty()
   assignAllTeamMembers?: boolean;
 }
