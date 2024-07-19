@@ -53,8 +53,6 @@ describe("Organizations Event Types Endpoints", () => {
 
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
-    let managedTeammate1EventType: TeamEventTypeOutput_2024_06_14;
-    let managedTeammate2EventType: TeamEventTypeOutput_2024_06_14;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -343,8 +341,6 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
-          managedTeammate1EventType = responseTeammate1Event;
-          managedTeammate2EventType = responseTeammate2Event;
         });
     });
 
@@ -514,8 +510,6 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
 
           managedEventType = responseTeamEvent;
-          managedTeammate1EventType = responseTeammate1Event;
-          managedTeammate2EventType = responseTeammate2Event;
         });
     });
 
