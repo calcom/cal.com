@@ -39,7 +39,7 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
               router.replace(`/event-types/${id}?tabName=team`);
             }}
             color="minimal">
-            {t("go_back_and_save")}
+            {t("go_back_and_assign")}
           </Button>
           <Button
             onClick={(e) => {
