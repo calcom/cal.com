@@ -1539,8 +1539,6 @@
   "report_app": "Alkalmazás jelentése",
   "limit_booking_frequency": "Korlátozza a foglalás gyakoriságát",
   "limit_booking_frequency_description": "Korlátozza, hányszor foglalható le ez az esemény",
-  "limit_booking_only_first_slot": "Korlátozza a foglalást csak az első lehetőségre",
-  "limit_booking_only_first_slot_description": "Minden nap csak az első hely foglalását engedélyezze",
   "limit_total_booking_duration": "Korlátozza a foglalás teljes időtartamát",
   "limit_total_booking_duration_description": "Korlátozza az esemény foglalható teljes időtartamát",
   "add_limit": "Korlát hozzáadása",
