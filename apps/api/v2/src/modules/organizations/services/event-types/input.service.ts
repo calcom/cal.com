@@ -50,6 +50,7 @@ export class InputOrganizationsEventTypesService {
     const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType, teamId);
     const teamEventType = {
       ...eventType,
+      // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
       hosts: !children
         ? assignAllTeamMembers
           ? await this.getAllTeamMembers(teamId)
@@ -73,22 +74,8 @@ export class InputOrganizationsEventTypesService {
       return undefined;
     }
 
-    if (inputEventType.assignAllTeamMembers) {
-      const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
-      const owners = await this.getOwnersForManagedEventType(membersIds);
-
-      return owners.map((owner) => {
-        return {
-          hidden: false,
-          owner,
-        };
-      });
-    }
-
-    const hostsIds = inputEventType.hosts
-      ? inputEventType.hosts.map((host) => host.userId)
-      : (eventType.children.map((child) => child.userId).filter((id) => !!id) as number[]);
-    const owners = await this.getOwnersForManagedEventType(hostsIds);
+    const ownersIds = await this.getOwnersIdsForManagedEventType(teamId, inputEventType, eventType);
+    const owners = await this.getOwnersForManagedEventType(ownersIds);
 
     return owners.map((owner) => {
       return {
@@ -96,6 +83,24 @@ export class InputOrganizationsEventTypesService {
         owner,
       };
     });
+  }
+
+  async getOwnersIdsForManagedEventType(
+    teamId: number,
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14,
+    eventType: { children: { userId: number | null }[] }
+  ) {
+    if (inputEventType.assignAllTeamMembers) {
+      return await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+    }
+
+    // note(Lauris): when API user updates managed event type users
+    if (inputEventType.hosts) {
+      return inputEventType.hosts.map((host) => host.userId);
+    }
+
+    // note(Lauris): when API user DOES NOT update managed event type users, but we still need existing managed event type users to know which event-types to update
+    return eventType.children.map((child) => child.userId).filter((id) => !!id) as number[];
   }
 
   async getOwnersForManagedEventType(userIds: number[]) {
