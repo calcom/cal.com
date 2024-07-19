@@ -2,8 +2,40 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import { listOOOEntries } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { defaultHandler, defaultResponder } from "@calcom/lib/server";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
+
+export const selectOOOEntries = Prisma.validator<Prisma.OOOEntrySelect>()({
+  id: true,
+  start: true,
+  end: true,
+  createdAt: true,
+  updatedAt: true,
+  notes: true,
+  reason: {
+    select: {
+      reason: true,
+      emoji: true,
+    },
+  },
+  reasonId: true,
+  user: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  toUser: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  },
+  uuid: true,
+});
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { account: authorizedAccount, appApiKey: validKey } = await validateAccountOrApiKey(req, [
@@ -20,13 +52,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return;
   }
   if (oooEntries.length === 0) {
-    res.status(204).json([]);
+    res.status(200).json([]);
     return;
   }
   // Wrap entries in metadata object
   const response = oooEntries.map((oooEntry) => {
     return {
       payload: {
+        createdAt: oooEntry.createdAt,
+        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
         oooEntry: {
           ...oooEntry,
         },

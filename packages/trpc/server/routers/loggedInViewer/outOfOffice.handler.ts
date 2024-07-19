@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 
+import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
 import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
@@ -158,7 +159,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
   const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
-  const createdRedirect = await prisma.outOfOfficeEntry.create({
+  let createdRedirect = await prisma.outOfOfficeEntry.create({
     data: {
       uuid: uuidv4(),
       start: startDateUtc.startOf("day").toISOString(),
@@ -171,6 +172,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       updatedAt: new Date(),
     },
   });
+  if (createdRedirect) {
+    createdRedirect = await prisma.outOfOfficeEntry.findFirst({
+      where: {
+        uuid: createdRedirect.uuid,
+      },
+      select: selectOOOEntries,
+    });
+  }
   const toUser = toUserId
     ? await prisma.user.findFirst({
         where: {
@@ -274,23 +283,6 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
               : null,
             uuid: createdRedirect.uuid,
           },
-          // Dummy data
-          attendees: [],
-          title: "",
-          startTime: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-          endTime: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-          organizer: {
-            name: "",
-            username: "",
-            email: "",
-            timeZone: "",
-            locale: "",
-            language: {
-              locale: ctx.user.locale,
-              translate: await getTranslation(ctx.user.locale ?? "en", "common"),
-            },
-          },
-          type: "",
         }
       );
     })

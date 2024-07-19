@@ -73,24 +73,25 @@ export type OOOEntryPayload = {
   };
 };
 
-export type WebhookDataType = CalendarEvent &
-  TranscriptionGeneratedPayload &
-  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
-  OOOEntryPayload &
-  EventTypeInfo & {
-    metadata?: { [key: string]: string | number | boolean | null };
-    bookingId?: number;
-    status?: string;
-    smsReminderNumber?: string;
-    rescheduleId?: number;
-    rescheduleUid?: string;
-    rescheduleStartTime?: string;
-    rescheduleEndTime?: string;
-    triggerEvent: string;
-    createdAt: string;
-    downloadLink?: string;
-    paymentId?: number;
-  };
+export type WebhookDataType =
+  | (CalendarEvent &
+      TranscriptionGeneratedPayload &
+      // BookingNoShowUpdatedPayload & // This breaks all other webhooks
+      EventTypeInfo & {
+        metadata?: { [key: string]: string | number | boolean | null };
+        bookingId?: number;
+        status?: string;
+        smsReminderNumber?: string;
+        rescheduleId?: number;
+        rescheduleUid?: string;
+        rescheduleStartTime?: string;
+        rescheduleEndTime?: string;
+        triggerEvent: string;
+        createdAt: string;
+        downloadLink?: string;
+        paymentId?: number;
+      })
+  | OOOEntryPayload;
 
 function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
