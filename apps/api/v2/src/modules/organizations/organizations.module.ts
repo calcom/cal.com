@@ -6,11 +6,13 @@ import { MembershipsRepository } from "@/modules/memberships/memberships.reposit
 import { OrganizationsEventTypesController } from "@/modules/organizations/controllers/event-types/organizations-event-types.controller";
 import { OrganizationsMembershipsController } from "@/modules/organizations/controllers/memberships/organizations-membership.controller";
 import { OrganizationsSchedulesController } from "@/modules/organizations/controllers/schedules/organizations-schedules.controller";
+import { OrganizationsTeamsMembershipsController } from "@/modules/organizations/controllers/teams/memberships/organizations-teams-memberships.controller";
 import { OrganizationsTeamsController } from "@/modules/organizations/controllers/teams/organizations-teams.controller";
 import { OrganizationsUsersController } from "@/modules/organizations/controllers/users/organizations-users.controller";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
 import { OrganizationSchedulesRepository } from "@/modules/organizations/repositories/organizations-schedules.repository";
+import { OrganizationsTeamsMembershipsRepository } from "@/modules/organizations/repositories/organizations-teams-memberships.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
 import { OrganizationsMembershipService } from "@/modules/organizations/services/organizations-membership.service";
@@ -19,6 +21,7 @@ import { InputOrganizationsEventTypesService } from "@/modules/organizations/ser
 import { OrganizationsEventTypesService } from "@/modules/organizations/services/event-types/organizations-event-types.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
 import { OrganizationsSchedulesService } from "@/modules/organizations/services/organizations-schedules.service";
+import { OrganizationsTeamsMembershipsService } from "@/modules/organizations/services/organizations-teams-memberships.service";
 import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { OrganizationsUsersService } from "@/modules/organizations/services/organizations-users-service";
 import { OrganizationsService } from "@/modules/organizations/services/organizations.service";
@@ -47,6 +50,8 @@ import { Module } from "@nestjs/common";
     InputOrganizationsEventTypesService,
     OutputOrganizationsEventTypesService,
     OrganizationsEventTypesRepository,
+    OrganizationsTeamsMembershipsRepository,
+    OrganizationsTeamsMembershipsService,
   ],
   exports: [
     OrganizationsService,
@@ -56,6 +61,8 @@ import { Module } from "@nestjs/common";
     OrganizationsUsersService,
     OrganizationsMembershipRepository,
     OrganizationsMembershipService,
+    OrganizationsTeamsMembershipsRepository,
+    OrganizationsTeamsMembershipsService,
   ],
   controllers: [
     OrganizationsTeamsController,
@@ -63,6 +70,7 @@ import { Module } from "@nestjs/common";
     OrganizationsUsersController,
     OrganizationsMembershipsController,
     OrganizationsEventTypesController
+    OrganizationsTeamsMembershipsController,
   ],
 })
 export class OrganizationsModule {}
