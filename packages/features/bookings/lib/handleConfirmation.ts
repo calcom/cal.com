@@ -63,12 +63,13 @@ export async function handleConfirmation(args: {
   paid?: boolean;
 }) {
   const { user, evt, recurringEventId, prisma, bookingId, booking, paid } = args;
-  const eventManager = new EventManager(user);
+  const eventType = booking.eventType;
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+  const eventManager = new EventManager(user, eventTypeMetadata?.apps);
   const scheduleResult = await eventManager.create(evt);
   const results = scheduleResult.results;
   const metadata: AdditionalInformation = {};
 
-  const eventType = booking.eventType;
   const workflows = await getAllWorkflowsFromEventType(eventType, booking.userId);
 
   if (results.length > 0 && results.every((res) => !res.success)) {
@@ -87,7 +88,7 @@ export async function handleConfirmation(args: {
     }
     try {
       const eventType = booking.eventType;
-      const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
+
       let isHostConfirmationEmailsDisabled = false;
       let isAttendeeConfirmationEmailDisabled = false;
 
