@@ -1,3 +1,5 @@
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -6,6 +8,7 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
+import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
@@ -169,9 +172,24 @@ const Days = ({
   // Create placeholder elements for empty days in first week
   const weekdayOfFirst = browsingDate.date(1).day();
 
+  // We need to set minDate to today's (or current) date. If we just do new Date(), we get browser's current date.
+  // But we need to respect selected timezone on booking page.
+  // The below logic gets today's date w.r.t to selected timezone.
+  // Example :
+  // Consider browser current date-time is - "Sat Jul 20 2024 01:00:00 AM (Asia/Kolkata GMT +5:30)".
+  // And, if preferred timezone is "Pacific/Pago GMT -11:00", we need to get today's date as "Fri Jul 19".
+  dayjs.extend(utc);
+  dayjs.extend(timezone); // These plugins is requred for dayjs to calculate today's date w.r.t input timezone
+  const todayDateInPreferredTZ = dayjs().tz(useTimePreferences().timezone);
+  // 'todayDateInPreferredTZ' is dayjs date, we need to convert this into type 'Date',
+  // as input required for getAvailableDatesInMonth() is 'Date' type.
+  const offsetMinutes = dayjs().utcOffset();
+  const jsDate: Date = new Date(`${todayDateInPreferredTZ.format("YYYY-MM-DDTHH:mm:ss")}Z`); // UTC format
+  jsDate.setMinutes(jsDate.getMinutes() - offsetMinutes); // Adjust to local timezone
+
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
-    minDate,
+    minDate: jsDate,
     includedDates: props.includedDates,
   });
 
