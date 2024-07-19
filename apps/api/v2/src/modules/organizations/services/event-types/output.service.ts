@@ -39,6 +39,7 @@ type Input = Pick<
   | "teamId"
   | "userId"
   | "parentId"
+  | "assignAllTeamMembers"
 >;
 
 @Injectable()
@@ -46,7 +47,7 @@ export class OutputOrganizationsEventTypesService {
   constructor(private readonly outputEventTypesService: OutputEventTypesService_2024_06_14) {}
 
   async getResponseTeamEventType(databaseEventType: Input) {
-    const { teamId, userId, parentId } = databaseEventType;
+    const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { ownerId, users, ...rest } = await this.outputEventTypesService.getResponseEventType(
       0,
@@ -60,6 +61,7 @@ export class OutputOrganizationsEventTypesService {
       teamId,
       ownerId: userId,
       parentEventTypeId: parentId,
+      assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
   }
 

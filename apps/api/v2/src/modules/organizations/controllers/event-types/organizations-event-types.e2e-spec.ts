@@ -364,8 +364,12 @@ describe("Organizations Event Types Endpoints", () => {
             1
           );
 
-          expect(data[0].title).toEqual(newTitle);
-          expect(data[1].title).toEqual(newTitle);
+          const responseTeamEvent = responseBody.data[0];
+          expect(responseTeamEvent.title).toEqual(newTitle);
+          expect(responseTeamEvent.assignAllTeamMembers).toEqual(false);
+
+          const responseTeammate1Event = responseBody.data[1];
+          expect(responseTeammate1Event.title).toEqual(newTitle);
 
           expect(teammate1EventTypes[0].title).toEqual(newTitle);
           expect(
@@ -404,6 +408,7 @@ describe("Organizations Event Types Endpoints", () => {
 
           const responseTeamEvent = responseBody.data[0];
           expect(responseTeamEvent?.teamId).toEqual(team.id);
+          expect(responseTeamEvent.assignAllTeamMembers).toEqual(true);
 
           const responseTeammate1Event = responseBody.data[1];
           expect(responseTeammate1Event?.ownerId).toEqual(teammate1.id);
