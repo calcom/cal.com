@@ -88,6 +88,12 @@ describe("Organizations Event Types Endpoints", () => {
         isOrganization: true,
       });
 
+      team = await teamsRepositoryFixture.create({
+        name: "Test org team",
+        isOrganization: false,
+        parent: { connect: { id: org.id } },
+      });
+
       await profileRepositoryFixture.create({
         uid: `usr-${userAdmin.id}`,
         username: userEmail,
@@ -113,19 +119,15 @@ describe("Organizations Event Types Endpoints", () => {
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teammate1.id } },
-        team: { connect: { id: org.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
       });
 
       await membershipsRepositoryFixture.create({
         role: "MEMBER",
         user: { connect: { id: teammate2.id } },
-        team: { connect: { id: org.id } },
-      });
-
-      team = await teamsRepositoryFixture.create({
-        name: "Test org team",
-        isOrganization: false,
-        parent: { connect: { id: org.id } },
+        team: { connect: { id: team.id } },
+        accepted: true,
       });
 
       app = moduleRef.createNestApplication();
@@ -371,6 +373,49 @@ describe("Organizations Event Types Endpoints", () => {
           ).toEqual(newTitle);
 
           managedEventType = responseBody.data[0];
+        });
+    });
+
+    it("should assign all members to managed event-type", async () => {
+      const body: UpdateTeamEventTypeInput_2024_06_14 = {
+        assignAllTeamMembers: true,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/v2/organizations/${org.id}/teams/${team.id}/event-types/${managedEventType.id}`)
+        .send(body)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          const data = responseBody.data;
+          expect(data.length).toEqual(3);
+
+          const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
+          const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
+          const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+
+          expect(teammate1EventTypes.length).toEqual(1);
+          expect(teammate2EventTypes.length).toEqual(1);
+          expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
+            1
+          );
+
+          const responseTeamEvent = responseBody.data[0];
+          expect(responseTeamEvent?.teamId).toEqual(team.id);
+
+          const responseTeammate1Event = responseBody.data[1];
+          expect(responseTeammate1Event?.ownerId).toEqual(teammate1.id);
+          expect(responseTeammate1Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
+
+          const responseTeammate2Event = responseBody.data[2];
+          expect(responseTeammate2Event?.ownerId).toEqual(teammate2.id);
+          expect(responseTeammate2Event?.parentEventTypeId).toEqual(responseTeamEvent?.id);
+
+          managedEventType = responseTeamEvent;
+          managedTeammate1EventType = responseTeammate1Event;
+          managedTeammate2EventType = responseTeammate2Event;
         });
     });
 

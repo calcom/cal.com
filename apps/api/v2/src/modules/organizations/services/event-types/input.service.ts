@@ -47,7 +47,7 @@ export class InputOrganizationsEventTypesService {
 
     const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
 
-    const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType);
+    const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType, teamId);
     const teamEventType = {
       ...eventType,
       hosts: !children
@@ -64,12 +64,25 @@ export class InputOrganizationsEventTypesService {
 
   async getChildEventTypesForManagedEventType(
     eventTypeId: number,
-    inputEventType: UpdateTeamEventTypeInput_2024_06_14
+    inputEventType: UpdateTeamEventTypeInput_2024_06_14,
+    teamId: number
   ) {
     const eventType = await this.orgEventTypesRepository.getEventTypeByIdWithChildren(eventTypeId);
 
     if (!eventType || eventType.schedulingType !== "MANAGED") {
       return undefined;
+    }
+
+    if (inputEventType.assignAllTeamMembers) {
+      const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+      const owners = await this.getOwnersForManagedEventType(membersIds);
+
+      return owners.map((owner) => {
+        return {
+          hidden: false,
+          owner,
+        };
+      });
     }
 
     const hostsIds = inputEventType.hosts
