@@ -659,6 +659,11 @@ function VariantFields({
         label={t("identifier")}
       />
 
+      <CheckboxField
+        description={t("disable_input_if_prefilled")}
+        {...fieldForm.register("disableOnPrefill", { setValueAs: Boolean })}
+      />
+
       <ul
         className={classNames(
           !isSimpleVariant ? "border-subtle divide-subtle mt-2 divide-y rounded-md border" : ""

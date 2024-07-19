@@ -309,12 +309,12 @@ export const fieldTypesSchemaMap: Partial<
         }
         const valueIdentified = response as unknown as Record<string, string>;
         if (subField.required) {
+          if (!isPartialSchema && !valueIdentified[subField.name])
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
           if (!schema.safeParse(valueIdentified[subField.name]).success) {
             ctx.addIssue({ code: z.ZodIssueCode.custom, message: m("Invalid string") });
             return;
           }
-          if (!isPartialSchema && !valueIdentified[subField.name])
-            ctx.addIssue({ code: z.ZodIssueCode.custom, message: m(`error_required_field`) });
         }
       });
     },
