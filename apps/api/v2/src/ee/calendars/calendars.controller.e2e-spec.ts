@@ -198,6 +198,7 @@ describe("Platform Calendars Endpoints", () => {
 
     return request(app.getHttpServer())
       .post(`/v2/calendars/${OFFICE_365_CALENDAR}/disconnect`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
       .send(body)
       .expect(201)
       .then(async (response) => {
