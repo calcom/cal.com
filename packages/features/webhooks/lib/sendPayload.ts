@@ -96,16 +96,17 @@ export type WebhookDataType =
 function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ): WithUTCOffsetType<WebhookDataType> {
-  if (data.organizer?.timeZone) {
-    (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
-      data.organizer.timeZone,
-      data.startTime
+  const calendarEventData = data as CalendarEvent;
+  if (calendarEventData?.organizer?.timeZone) {
+    (calendarEventData.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
+      calendarEventData.organizer.timeZone,
+      calendarEventData.startTime
     );
   }
 
-  if (data?.attendees?.length) {
-    (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
-      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
+  if (calendarEventData?.attendees?.length) {
+    (calendarEventData.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
+      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, calendarEventData.startTime);
     });
   }
 
@@ -190,15 +191,21 @@ const sendPayload = async (
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
-  data.description = data.description || data.additionalNotes;
+  if ("description" in data && "notes" in data) {
+    data.description = data.description || data.notes;
+  }
   data = addUTCOffset(data);
 
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
   if (appId === "zapier" && triggerEvent !== "OOO_CREATED") {
-    body = getZapierPayload({ ...data, createdAt });
+    const zapierData = data as WithUTCOffsetType<
+      CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
+    >;
+    body = getZapierPayload({ ...zapierData, createdAt });
   } else if (template) {
-    body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+    const templateData = data as WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string }>;
+    body = applyTemplate(template, { ...templateData, triggerEvent, createdAt }, contentType);
   } else {
     body = JSON.stringify({
       triggerEvent: triggerEvent,
