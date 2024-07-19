@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
+import { UpdateOrgMembershipDto } from "@/modules/organizations/inputs/update-organization-membership.input";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -17,8 +18,6 @@ import { withApiAuth } from "test/utils/withApiAuth";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Membership, Team } from "@calcom/prisma/client";
-
-import { UpdateOrgMembershipDto } from "../../inputs/update-organization-membership.input";
 
 describe("Organizations Memberships Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
@@ -198,6 +197,7 @@ describe("Organizations Memberships Endpoints", () => {
 
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
+      await userRepositoryFixture.deleteByEmail(user2.email);
       await userRepositoryFixture.deleteByEmail(userToInviteViaApi.email);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
