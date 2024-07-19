@@ -172,10 +172,6 @@ export class UsersRepository {
     if (userInput.weekStart) {
       userInput.weekStart = userInput.weekStart;
     }
-
-    if (userInput.timeZone) {
-      userInput.timeZone = capitalizeTimezone(userInput.timeZone);
-    }
   }
 
   setDefaultSchedule(userId: number, scheduleId: number) {
@@ -206,18 +202,4 @@ export class UsersRepository {
     });
     return profiles.map((profile) => profile.user);
   }
-}
-
-function capitalizeTimezone(timezone: string) {
-  const segments = timezone.split("/");
-
-  const capitalizedSegments = segments.map((segment) => {
-    return capitalize(segment);
-  });
-
-  return capitalizedSegments.join("/");
-}
-
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
