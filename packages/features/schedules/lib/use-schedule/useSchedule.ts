@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
@@ -66,7 +67,7 @@ export const useSchedule = ({
       // Do we want / need to keep that behavior?
       startTime,
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime,
+      endTime: correctEndTime,
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
