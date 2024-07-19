@@ -1,7 +1,3 @@
-import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-
-import type { Host } from "~/event-types/views/event-types-single-view";
-
 // This function checks if EventType requires assignment.
 // returns true: if EventType requires assignment but there is no assignment yet done by the user.
 // returns false: for all other scenarios.
@@ -12,8 +8,8 @@ export function checkForEmptyAssignment({
   assignAllTeamMembers,
   isTeamEvent,
 }: {
-  assignedUsers: ChildrenEventType[];
-  hosts: Host[];
+  assignedUsers: any;
+  hosts: any;
   isManagedEventType: boolean;
   assignAllTeamMembers: boolean;
   isTeamEvent: boolean;

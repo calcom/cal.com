@@ -2461,6 +2461,7 @@
   "leave_without_assigning_anyone": "Partir sans affecter personne ?",
   "leave_without_adding_attendees": "Voulez-vous vraiment quitter cet évènement sans ajouter de participants ?",
   "no_availability_shown_to_bookers": "Si vous n'affectez personne à cet évènement, aucune disponibilité ne sera indiquée aux personnes qui effectuent une réservation.",
+  "go_back_and_assign": "Revenir en arrière et affecter",
   "leave_without_assigning": "Quitter sans affecter",
   "always_show_x_days": "Tout disponible pendant {{x}} jours",
   "unable_to_subscribe_to_the_platform": "Une erreur est survenue lors de la souscription à l'offre de plateforme. Veuillez réessayer plus tard",
@@ -2474,6 +2475,5 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "L'utilisateur est un membre en attente de l'organisation",
   "USER_ALREADY_INVITED_OR_MEMBER": "L'utilisateur a déjà été invité ou est déjà membre",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "L'utilisateur est membre d'une organisation dont cette équipe ne fait pas partie.",
-  "go_back_assign_and_save": "Revenir en arrière, attribuer et enregistrer",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Ajoutez vos nouvelles chaînes ci-dessus ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

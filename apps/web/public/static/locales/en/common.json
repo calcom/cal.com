@@ -2478,6 +2478,7 @@
   "leave_without_assigning_anyone": "Leave without assigning anyone?",
   "leave_without_adding_attendees": "Are you sure want to leave this event without adding attendees?",
   "no_availability_shown_to_bookers": "If you don't assign anyone for this event, there will be no availability shown to bookers.",
+  "go_back_and_assign": "Go back and Assign",
   "leave_without_assigning": "Leave without Assigning",
   "signing_up_terms": "By proceeding, you agree to our <0>Terms</0> and <1>Privacy Policy</1>.",
   "always_show_x_days": "Always {{x}} days available",
@@ -2497,6 +2498,5 @@
   "rescheduling_not_possible": "Rescheduling is not possible as the event has expired",
   "event_expired": "This event is expired",
   "skip_writing_to_calendar_note": "If your ICS link is read-only (e.g., Proton Calendar), check the box above to avoid errors. You'll also need to manually update your calendar for changes.",
-  "go_back_assign_and_save": "Go back, Assign and Save",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

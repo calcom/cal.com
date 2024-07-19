@@ -2461,6 +2461,7 @@
   "leave_without_assigning_anyone": "Sair sem atribuir ninguém?",
   "leave_without_adding_attendees": "Tem a certeza de que deseja sair deste evento sem adicionar participantes?",
   "no_availability_shown_to_bookers": "Se não atribuir ninguém a este evento, não será apresentada disponibilidade aos responsáveis da reserva.",
+  "go_back_and_assign": "Voltar e atribuir",
   "leave_without_assigning": "Sair sem atribuir",
   "always_show_x_days": "Sempre {{x}} dias disponíveis",
   "unable_to_subscribe_to_the_platform": "Ocorreu um erro ao tentar subscrever o plano Platform. Tente novamente mais tarde",
@@ -2474,6 +2475,5 @@
   "USER_PENDING_MEMBER_OF_THE_ORG": "O utilizador é um membro pendente da organização",
   "USER_ALREADY_INVITED_OR_MEMBER": "O utilizador já está convidado ou já é um membro",
   "USER_MEMBER_OF_OTHER_ORGANIZATION": "O utilizador é membro de uma organização da qual esta equipa não faz parte.",
-  "go_back_assign_and_save": "Voltar, atribuir e salvar",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
