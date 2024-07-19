@@ -1,3 +1,4 @@
+import dayjs from "@calcom/dayjs";
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
@@ -41,6 +42,17 @@ export const useSchedule = ({
     selectedDate,
   });
 
+  const sevenDaysAfterStarTime = dayjs(startTime).add(7, "day").format("YYYY-MM-DD");
+  let correctEndTime = endTime;
+
+  switch (eventSlug) {
+    case "terapia-ocupacional-sessao-50-min-semanal-subscription":
+    case "terapia-ocupacional-sessao-50-minutos-quinzenal":
+    case "terapia-cognitivo-comportamental-sessao-50-min-semanal-subscription":
+    case "terapia-cognitivo-comportamental-sessao-50-min-quinzenal-subscription":
+      correctEndTime = sevenDaysAfterStarTime;
+  }
+
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
       isTeamEvent,
@@ -53,7 +65,7 @@ export const useSchedule = ({
       // Do we want / need to keep that behavior?
       startTime,
       // if `prefetchNextMonth` is true, two months are fetched at once.
-      endTime,
+      endTime: correctEndTime,
       timeZone: timezone!,
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
