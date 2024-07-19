@@ -357,12 +357,14 @@ describe("Organizations Event Types Endpoints", () => {
           const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
           const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+          const managedTeamEventTypes = teamEventTypes.filter(
+            (eventType) => eventType.schedulingType === "MANAGED"
+          );
 
           expect(teammate1EventTypes.length).toEqual(1);
           expect(teammate2EventTypes.length).toEqual(0);
-          expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
-            1
-          );
+          expect(managedTeamEventTypes.length).toEqual(1);
+          expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(false);
 
           const responseTeamEvent = responseBody.data[0];
           expect(responseTeamEvent.title).toEqual(newTitle);
@@ -399,12 +401,14 @@ describe("Organizations Event Types Endpoints", () => {
           const teammate1EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate1.id);
           const teammate2EventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(teammate2.id);
           const teamEventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(team.id);
+          const managedTeamEventTypes = teamEventTypes.filter(
+            (eventType) => eventType.schedulingType === "MANAGED"
+          );
 
           expect(teammate1EventTypes.length).toEqual(1);
           expect(teammate2EventTypes.length).toEqual(1);
-          expect(teamEventTypes.filter((eventType) => eventType.schedulingType === "MANAGED").length).toEqual(
-            1
-          );
+          expect(managedTeamEventTypes.length).toEqual(1);
+          expect(managedTeamEventTypes[0].assignAllTeamMembers).toEqual(true);
 
           const responseTeamEvent = responseBody.data[0];
           expect(responseTeamEvent?.teamId).toEqual(team.id);
