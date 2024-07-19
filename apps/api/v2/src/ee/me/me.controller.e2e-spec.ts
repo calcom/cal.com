@@ -103,6 +103,21 @@ describe("Me Endpoints", () => {
         });
     });
 
+    it("should update user associated with access token given badly formatted timezone", async () => {
+      const bodyWithBadlyFormattedTimeZone: UpdateManagedUserInput = { timeZone: "America/New_york" };
+
+      return request(app.getHttpServer())
+        .patch("/v2/me")
+        .send(bodyWithBadlyFormattedTimeZone)
+        .expect(200)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<UserResponse> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+
+          expect(responseBody.data.timeZone).toEqual("America/New_York");
+        });
+    });
+
     it("should not update user associated with access token given invalid timezone", async () => {
       const bodyWithIncorrectTimeZone: UpdateManagedUserInput = { timeZone: "Narnia/Woods" };
 

@@ -35,6 +35,8 @@ import {
   SkeletonText,
   TextField,
 } from "@calcom/ui";
+// if I include this in the above barrel import, I get a runtime error that the component is not exported.
+import { OrgBanner } from "@calcom/ui";
 
 import { getLayout } from "../../../../settings/layouts/SettingsLayout";
 import { useOrgBranding } from "../../../organizations/context/provider";
@@ -97,7 +99,7 @@ const OrgProfileView = () => {
         router.replace("/enterprise");
       }
     },
-    [error]
+    [error, router]
   );
 
   if (isPending || !orgBranding || !currentOrganisation) {
@@ -258,7 +260,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
           />
         </div>
 
-        <div className="mt-2 flex items-center">
+        <div className="my-4 flex flex-col gap-4">
           <Controller
             control={form.control}
             name="banner"
@@ -267,11 +269,12 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
 
               return (
                 <>
-                  <Avatar
+                  <OrgBanner
                     data-testid="profile-upload-banner"
                     alt={`${defaultValues.name} Banner` || ""}
+                    className="grid min-h-[150px] w-full place-items-center rounded-md sm:min-h-[200px]"
+                    fallback={t("no_target", { target: "banner" })}
                     imageSrc={value}
-                    size="lg"
                   />
                   <div className="ms-4">
                     <div className="flex gap-2">
