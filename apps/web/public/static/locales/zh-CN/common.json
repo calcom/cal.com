@@ -1523,8 +1523,6 @@
   "report_app": "报告应用",
   "limit_booking_frequency": "限制预约频率",
   "limit_booking_frequency_description": "限制可以预约此活动的次数",
-  "limit_booking_only_first_slot": "仅限预订第一个时段",
-  "limit_booking_only_first_slot_description": "允许每天仅预订第一个时段",
   "limit_total_booking_duration": "限制总预约时长",
   "limit_total_booking_duration_description": "限制可以预约此活动的总时间",
   "add_limit": "添加限制",
