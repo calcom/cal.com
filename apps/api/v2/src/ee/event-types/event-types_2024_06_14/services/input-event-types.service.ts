@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import {
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
-} from "@calcom/platform-libraries-0.0.18";
+} from "@calcom/platform-libraries-0.0.19";
 import { CreateEventTypeInput_2024_06_14, UpdateEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 
 @Injectable()
@@ -29,10 +29,11 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14) {
-    const { locations, bookingFields, ...rest } = inputEventType;
+    const { lengthInMinutes, locations, bookingFields, ...rest } = inputEventType;
 
     const eventType = {
       ...rest,
+      length: lengthInMinutes,
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
     };

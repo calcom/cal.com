@@ -12,6 +12,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   className,
   onCheckError,
   redir,
+  initialData,
 }) => {
   return (
     <OAuthConnect
@@ -22,6 +23,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
       className={className}
       onCheckError={onCheckError}
       redir={redir}
+      initialData={initialData}
     />
   );
 };
