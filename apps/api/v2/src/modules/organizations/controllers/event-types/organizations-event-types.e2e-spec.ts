@@ -38,14 +38,18 @@ describe("Organizations Event Types Endpoints", () => {
 
     let org: Team;
     let team: Team;
+    let falseTestOrg: Team;
+    let falseTestTeam: Team;
 
     const userEmail = "org-admin-event-types-controller-e222e@api.com";
     let userAdmin: User;
 
     const teammate1Email = "teammate111@team.com";
     const teammate2Email = "teammate221@team.com";
+    const falseTestUserEmail = "false-user@false-team.com";
     let teammate1: User;
     let teammate2: User;
+    let falseTestUser: User;
 
     let collectiveEventType: TeamEventTypeOutput_2024_06_14;
     let managedEventType: TeamEventTypeOutput_2024_06_14;
@@ -83,8 +87,18 @@ describe("Organizations Event Types Endpoints", () => {
         username: teammate2Email,
       });
 
+      falseTestUser = await userRepositoryFixture.create({
+        email: falseTestUserEmail,
+        username: falseTestUserEmail,
+      });
+
       org = await organizationsRepositoryFixture.create({
         name: "Test Organization",
+        isOrganization: true,
+      });
+
+      falseTestOrg = await organizationsRepositoryFixture.create({
+        name: "False test org",
         isOrganization: true,
       });
 
@@ -92,6 +106,12 @@ describe("Organizations Event Types Endpoints", () => {
         name: "Test org team",
         isOrganization: false,
         parent: { connect: { id: org.id } },
+      });
+
+      falseTestTeam = await teamsRepositoryFixture.create({
+        name: "Outside org team",
+        isOrganization: false,
+        parent: { connect: { id: falseTestOrg.id } },
       });
 
       await profileRepositoryFixture.create({
@@ -130,6 +150,13 @@ describe("Organizations Event Types Endpoints", () => {
         accepted: true,
       });
 
+      await membershipsRepositoryFixture.create({
+        role: "MEMBER",
+        user: { connect: { id: falseTestUser.id } },
+        team: { connect: { id: falseTestTeam.id } },
+        accepted: true,
+      });
+
       app = moduleRef.createNestApplication();
       bootstrap(app as NestExpressApplication);
 
@@ -141,6 +168,64 @@ describe("Organizations Event Types Endpoints", () => {
       expect(organizationsRepositoryFixture).toBeDefined();
       expect(userAdmin).toBeDefined();
       expect(org).toBeDefined();
+    });
+
+    it("should not be able to create event-type for team outside org", async () => {
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation",
+        slug: "coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId: teammate1.id,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${falseTestTeam.id}/event-types`)
+        .send(body)
+        .expect(404);
+    });
+
+    it("should not be able to create event-type for user outside org", async () => {
+      const userId = falseTestUser.id;
+
+      const body: CreateTeamEventTypeInput_2024_06_14 = {
+        title: "Coding consultation",
+        slug: "coding-consultation",
+        description: "Our team will review your codebase.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        schedulingType: "COLLECTIVE",
+        hosts: [
+          {
+            userId,
+            mandatory: true,
+            priority: "high",
+          },
+        ],
+      };
+
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams/${team.id}/event-types`)
+        .send(body)
+        .expect(404);
     });
 
     it("should create a collective team event-type", async () => {
@@ -290,13 +375,19 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
+          console.log("asap responseBody.data", JSON.stringify(responseBody.data, null, 2));
           expect(data.length).toEqual(2);
 
-          const eventType = data[0];
-          expect(eventType.title).toEqual(collectiveEventType.title);
-          expect(eventType.hosts.length).toEqual(2);
-          evaluateHost(collectiveEventType.hosts[0], eventType.hosts[0]);
-          evaluateHost(collectiveEventType.hosts[1], eventType.hosts[1]);
+          const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
+          const eventTypeManaged = data.find((eventType) => eventType.schedulingType === "MANAGED");
+
+          expect(eventTypeCollective?.title).toEqual(collectiveEventType.title);
+          expect(eventTypeCollective?.hosts.length).toEqual(2);
+
+          expect(eventTypeManaged?.title).toEqual(managedEventType.title);
+          expect(eventTypeManaged?.hosts.length).toEqual(2);
+          evaluateHost(collectiveEventType.hosts[0], eventTypeCollective?.hosts[0]);
+          evaluateHost(collectiveEventType.hosts[1], eventTypeCollective?.hosts[1]);
         });
     });
 
@@ -440,10 +531,10 @@ describe("Organizations Event Types Endpoints", () => {
         .expect(200);
     });
 
-    function evaluateHost(expected: Host, received: Host) {
-      expect(expected.userId).toEqual(received.userId);
-      expect(expected.mandatory).toEqual(received.mandatory);
-      expect(expected.priority).toEqual(received.priority);
+    function evaluateHost(expected: Host, received: Host | undefined) {
+      expect(expected.userId).toEqual(received?.userId);
+      expect(expected.mandatory).toEqual(received?.mandatory);
+      expect(expected.priority).toEqual(received?.priority);
     }
 
     afterAll(async () => {

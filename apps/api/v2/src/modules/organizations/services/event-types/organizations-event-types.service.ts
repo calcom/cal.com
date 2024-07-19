@@ -2,6 +2,7 @@ import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_20
 import { EventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/event-types.service";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
@@ -23,7 +24,8 @@ export class OrganizationsEventTypesService {
     private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly outputService: OutputOrganizationsEventTypesService,
-    private readonly membershipsRepository: MembershipsRepository
+    private readonly membershipsRepository: MembershipsRepository,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
   ) {}
 
   async createTeamEventType(
@@ -32,6 +34,7 @@ export class OrganizationsEventTypesService {
     orgId: number,
     body: CreateTeamEventTypeInput_2024_06_14
   ) {
+    await this.validateHosts(teamId, body.hosts);
     const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hosts, assignAllTeamMembers, ...rest } =
@@ -52,6 +55,16 @@ export class OrganizationsEventTypesService {
       { hosts: body.hosts, assignAllTeamMembers },
       user
     );
+  }
+
+  async validateHosts(teamId: number, hosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
+    if (hosts && hosts.length) {
+      const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+      const invalidHosts = hosts.filter((host) => !membersIds.includes(host.userId));
+      if (invalidHosts.length) {
+        throw new NotFoundException(`Invalid hosts: ${invalidHosts.join(", ")}`);
+      }
+    }
   }
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
@@ -103,6 +116,7 @@ export class OrganizationsEventTypesService {
     body: UpdateTeamEventTypeInput_2024_06_14,
     user: UserWithProfile
   ) {
+    await this.validateHosts(teamId, body.hosts);
     const eventTypeUser = await this.eventTypesService.getUserToUpdateEvent(user);
     const bodyTransformed = await this.inputService.transformInputUpdateTeamEventType(
       eventTypeId,
