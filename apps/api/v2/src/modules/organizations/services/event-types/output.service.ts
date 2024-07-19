@@ -1,4 +1,5 @@
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host } from "@prisma/client";
 
@@ -44,7 +45,10 @@ type Input = Pick<
 
 @Injectable()
 export class OutputOrganizationsEventTypesService {
-  constructor(private readonly outputEventTypesService: OutputEventTypesService_2024_06_14) {}
+  constructor(
+    private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
+    private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository
+  ) {}
 
   async getResponseTeamEventType(databaseEventType: Input) {
     const { teamId, userId, parentId, assignAllTeamMembers } = databaseEventType;
@@ -53,7 +57,10 @@ export class OutputOrganizationsEventTypesService {
       0,
       databaseEventType
     );
-    const hosts = this.transformHosts(databaseEventType.hosts);
+    const hosts =
+      databaseEventType.schedulingType === "MANAGED"
+        ? await this.getManagedEventTypeHosts(databaseEventType.id)
+        : this.transformHosts(databaseEventType.hosts);
 
     return {
       ...rest,
@@ -63,6 +70,17 @@ export class OutputOrganizationsEventTypesService {
       parentEventTypeId: parentId,
       assignAllTeamMembers: teamId ? assignAllTeamMembers : undefined,
     };
+  }
+
+  async getManagedEventTypeHosts(eventTypeId: number) {
+    const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventTypeId);
+    const hostsIds: number[] = [];
+    for (const child of children) {
+      if (child.userId) {
+        hostsIds.push(child.userId);
+      }
+    }
+    return hostsIds.map((userId) => ({ userId }));
   }
 
   transformHosts(hosts: Host[]) {
