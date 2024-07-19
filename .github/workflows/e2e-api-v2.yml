@@ -41,7 +41,7 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          - 5450:5432
+          - 5432:5432
       redis:
         image: redis:latest
         ports:
@@ -63,8 +63,8 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
-        with:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5450/calendso
+        # with:
+        #   DATABASE_URL: postgresql://postgres:postgres@localhost:5450/calendso
       #- uses: ./.github/actions/cache-build
       #- uses: ./.github/workflows/api-v2-production-build.yml
       - name: Run Tests
