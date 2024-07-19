@@ -527,7 +527,6 @@ async function addQuestionAndSave({
     label?: string;
     placeholder?: string;
     required?: boolean;
-    disableOnPrefill?: boolean;
   };
 }) {
   await page.click('[data-testid="add-field"]');
@@ -545,11 +544,6 @@ async function addQuestionAndSave({
   if (question.name !== undefined) {
     await page.fill('[name="name"]', question.name);
   }
-
-  if (question.disableOnPrefill !== undefined) {
-    await page.click('[name="disableOnPrefill"]');
-  }
-
   if (question.label !== undefined) {
     await page.fill('[name="label"]', question.label);
   }
