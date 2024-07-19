@@ -12,6 +12,7 @@ import basecamp3_config_json from "./basecamp3/config.json";
 import cal_ai_config_json from "./cal-ai/config.json";
 import { metadata as caldavcalendar__metadata_ts } from "./caldavcalendar/_metadata";
 import campfire_config_json from "./campfire/config.json";
+import campsite_config_json from "./campsite/config.json";
 import clic_config_json from "./clic/config.json";
 import closecom_config_json from "./closecom/config.json";
 import cron_config_json from "./cron/config.json";
@@ -75,7 +76,9 @@ import event_type_app_card_config_json from "./templates/event-type-app-card/con
 import event_type_location_video_static_config_json from "./templates/event-type-location-video-static/config.json";
 import general_app_settings_config_json from "./templates/general-app-settings/config.json";
 import link_as_an_app_config_json from "./templates/link-as-an-app/config.json";
+import twipla_config_json from "./twipla/config.json";
 import typeform_config_json from "./typeform/config.json";
+import umami_config_json from "./umami/config.json";
 import vimcal_config_json from "./vimcal/config.json";
 import { metadata as vital__metadata_ts } from "./vital/_metadata";
 import weather_in_your_calendar_config_json from "./weather_in_your_calendar/config.json";
@@ -101,6 +104,7 @@ export const appStoreMetadata = {
   "cal-ai": cal_ai_config_json,
   caldavcalendar: caldavcalendar__metadata_ts,
   campfire: campfire_config_json,
+  campsite: campsite_config_json,
   clic: clic_config_json,
   closecom: closecom_config_json,
   cron: cron_config_json,
@@ -164,7 +168,9 @@ export const appStoreMetadata = {
   "event-type-location-video-static": event_type_location_video_static_config_json,
   "general-app-settings": general_app_settings_config_json,
   "link-as-an-app": link_as_an_app_config_json,
+  twipla: twipla_config_json,
   typeform: typeform_config_json,
+  umami: umami_config_json,
   vimcal: vimcal_config_json,
   vital: vital__metadata_ts,
   weather_in_your_calendar: weather_in_your_calendar_config_json,

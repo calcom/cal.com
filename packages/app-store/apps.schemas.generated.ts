@@ -4,6 +4,7 @@
 **/
 import { appDataSchema as alby_zod_ts } from "./alby/zod";
 import { appDataSchema as basecamp3_zod_ts } from "./basecamp3/zod";
+import { appDataSchema as campsite_zod_ts } from "./campsite/zod";
 import { appDataSchema as closecom_zod_ts } from "./closecom/zod";
 import { appDataSchema as dailyvideo_zod_ts } from "./dailyvideo/zod";
 import { appDataSchema as fathom_zod_ts } from "./fathom/zod";
@@ -36,6 +37,8 @@ import { appDataSchema as stripepayment_zod_ts } from "./stripepayment/zod";
 import { appDataSchema as tandemvideo_zod_ts } from "./tandemvideo/zod";
 import { appDataSchema as booking_pages_tag_zod_ts } from "./templates/booking-pages-tag/zod";
 import { appDataSchema as event_type_app_card_zod_ts } from "./templates/event-type-app-card/zod";
+import { appDataSchema as twipla_zod_ts } from "./twipla/zod";
+import { appDataSchema as umami_zod_ts } from "./umami/zod";
 import { appDataSchema as vital_zod_ts } from "./vital/zod";
 import { appDataSchema as webex_zod_ts } from "./webex/zod";
 import { appDataSchema as wordpress_zod_ts } from "./wordpress/zod";
@@ -48,6 +51,7 @@ import { appDataSchema as zoomvideo_zod_ts } from "./zoomvideo/zod";
 export const appDataSchemas = {
   alby: alby_zod_ts,
   basecamp3: basecamp3_zod_ts,
+  campsite: campsite_zod_ts,
   closecom: closecom_zod_ts,
   dailyvideo: dailyvideo_zod_ts,
   fathom: fathom_zod_ts,
@@ -80,6 +84,8 @@ export const appDataSchemas = {
   tandemvideo: tandemvideo_zod_ts,
   "booking-pages-tag": booking_pages_tag_zod_ts,
   "event-type-app-card": event_type_app_card_zod_ts,
+  twipla: twipla_zod_ts,
+  umami: umami_zod_ts,
   vital: vital_zod_ts,
   webex: webex_zod_ts,
   wordpress: wordpress_zod_ts,

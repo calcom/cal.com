@@ -1,4 +1,4 @@
-import { TokenExpiredException } from "@/modules/auth/guards/access-token/token-expired.exception";
+import { TokenExpiredException } from "@/modules/auth/guards/api-auth/token-expired.exception";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
