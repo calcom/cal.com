@@ -45,7 +45,7 @@ import {
 export class OrganizationsEventTypesController {
   constructor(private readonly organizationsEventTypesService: OrganizationsEventTypesService) {}
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @UseGuards(IsTeamInOrg)
   @Post("/teams/:teamId/event-types")
   async createTeamEventType(
@@ -67,7 +67,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @UseGuards(IsTeamInOrg)
   @Get("/teams/:teamId/event-types/:eventTypeId")
   async getTeamEventType(
@@ -86,7 +86,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @UseGuards(IsTeamInOrg)
   @Get("/teams/:teamId/event-types")
   async getTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<GetTeamEventTypesOutput> {
@@ -98,7 +98,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @Get("/teams/event-types")
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -113,7 +113,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @UseGuards(IsTeamInOrg)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   async updateTeamEventType(
@@ -135,7 +135,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("ORG_ADMIN")
+  @Roles("TEAM_ADMIN")
   @UseGuards(IsTeamInOrg)
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
