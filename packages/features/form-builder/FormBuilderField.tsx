@@ -58,14 +58,24 @@ export const FormBuilderField = ({
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
-  const isPreFilledInUrl = (): boolean => {
-    const message = (formState?.errors?.responses?.message || "") as string;
-    const name = message.replace(/\{([^}]+)\}.*/, "$1");
-    //if the field is already prefilled in url and it has error then we don't want to disable it
+  const getFieldNameFromErrorMessage = (errorMessage: string): string => {
+    const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
+    return name;
+  };
+
+  const shouldBeDisabledDueToPrefill = (): boolean => {
+    const errorMessage = (formState?.errors?.responses?.message || "") as string;
+    const name = getFieldNameFromErrorMessage(errorMessage);
+    // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
     if (name === field.name) {
       return false;
     }
-    return !!(field.disableOnPrefill && searchParams && searchParams[field.name]);
+
+    if (!field.disableOnPrefill || !searchParams) {
+      return false;
+    }
+
+    return !!searchParams[field.name];
   };
 
   return (
@@ -80,7 +90,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly || isPreFilledInUrl()}
+                readOnly={readOnly || shouldBeDisabledDueToPrefill()}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
@@ -91,7 +101,7 @@ export const FormBuilderField = ({
                 render={({ message }: { message: string | undefined }) => {
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
-                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const name = getFieldNameFromErrorMessage(message);
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {

@@ -530,6 +530,7 @@ async function addQuestionAndSave({
   };
 }) {
   await page.click('[data-testid="add-field"]');
+
   if (question.type !== undefined) {
     await selectOption({
       page,
@@ -544,6 +545,7 @@ async function addQuestionAndSave({
   if (question.name !== undefined) {
     await page.fill('[name="name"]', question.name);
   }
+
   if (question.label !== undefined) {
     await page.fill('[name="label"]', question.label);
   }
