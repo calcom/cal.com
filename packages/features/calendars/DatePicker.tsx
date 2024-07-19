@@ -1,5 +1,3 @@
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -8,13 +6,14 @@ import type { Dayjs } from "@calcom/dayjs";
 import dayjs from "@calcom/dayjs";
 import { useEmbedStyles } from "@calcom/embed-core/embed-iframe";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
-import { useTimePreferences } from "@calcom/features/bookings/lib";
 import { getAvailableDatesInMonth } from "@calcom/features/calendars/lib/getAvailableDatesInMonth";
 import classNames from "@calcom/lib/classNames";
 import { daysInMonth, yyyymmdd } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
+
+import { getTodaysDateInTimeZone } from "./lib/getTodaysDateInTimeZone";
 
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
@@ -54,6 +53,8 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
+  // Preferred timezone selected on booker page
+  timezone?: string;
 };
 
 export const Day = ({
@@ -155,6 +156,7 @@ const Days = ({
   slots,
   customClassName,
   isBookingInPast,
+  timezone,
   ...props
 }: Omit<DatePickerProps, "locale" | "className" | "weekStart"> & {
   DayComponent?: React.FC<React.ComponentProps<typeof Day>>;
@@ -174,22 +176,10 @@ const Days = ({
 
   // We need to set minDate to today's (or current) date. If we just do new Date(), we get browser's current date.
   // But we need to respect selected timezone on booking page.
-  // The below logic gets today's date w.r.t to selected timezone.
-  // Example :
-  // Consider browser current date-time is - "Sat Jul 20 2024 01:00:00 AM (Asia/Kolkata GMT +5:30)".
-  // And, if preferred timezone is "Pacific/Pago GMT -11:00", we need to get today's date as "Fri Jul 19".
-  dayjs.extend(utc);
-  dayjs.extend(timezone); // These plugins is requred for dayjs to calculate today's date w.r.t input timezone
-  const todayDateInPreferredTZ = dayjs().tz(useTimePreferences().timezone);
-  // 'todayDateInPreferredTZ' is dayjs date, we need to convert this into type 'Date',
-  // as input required for getAvailableDatesInMonth() is 'Date' type.
-  const offsetMinutes = dayjs().utcOffset();
-  const jsDate: Date = new Date(`${todayDateInPreferredTZ.format("YYYY-MM-DDTHH:mm:ss")}Z`); // UTC format
-  jsDate.setMinutes(jsDate.getMinutes() - offsetMinutes); // Adjust to local timezone
-
+  // The getTodaysDateInTimeZone() function gets today's date w.r.t to selected timezone.
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
-    minDate: jsDate,
+    minDate: getTodaysDateInTimeZone(timezone),
     includedDates: props.includedDates,
   });
 
@@ -327,6 +317,7 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
+  timezone,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -432,6 +423,7 @@ const DatePicker = ({
           slots={!isBookingInPast ? slots : {}}
           includedDates={!isBookingInPast ? includedDates : []}
           isBookingInPast={isBookingInPast}
+          timezone={timezone}
         />
       </div>
     </div>
