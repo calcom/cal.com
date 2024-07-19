@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { v4 as uuidv4 } from "uuid";
 
 import { selectOOOEntries } from "@calcom/app-store/zapier/api/subscriptions/listOOOEntries";
@@ -159,7 +160,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
   const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
-  let createdRedirect = await prisma.outOfOfficeEntry.create({
+  const createdRedirect = await prisma.outOfOfficeEntry.create({
     data: {
       uuid: uuidv4(),
       start: startDateUtc.startOf("day").toISOString(),
@@ -172,13 +173,20 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       updatedAt: new Date(),
     },
   });
+  let resultRedirect: Prisma.OutOfOfficeEntryGetPayload<{ select: typeof selectOOOEntries }> | null = null;
   if (createdRedirect) {
-    createdRedirect = await prisma.outOfOfficeEntry.findFirst({
+    const findRedirect = await prisma.outOfOfficeEntry.findFirst({
       where: {
         uuid: createdRedirect.uuid,
       },
       select: selectOOOEntries,
     });
+    if (findRedirect) {
+      resultRedirect = findRedirect;
+    }
+  }
+  if (!resultRedirect) {
+    return;
   }
   const toUser = toUserId
     ? await prisma.user.findFirst({
