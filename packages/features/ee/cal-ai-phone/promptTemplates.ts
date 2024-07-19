@@ -2,7 +2,7 @@ import { templateTypeEnum } from "./zod-utils";
 import type { TemplateType } from "./zod-utils";
 
 export const PROMPT_TEMPLATES: Partial<Record<TemplateType, { generalPrompt: string }>> = {
-  [templateTypeEnum.enum.CHECK_IN_APPPOINTMENT]: {
+  [templateTypeEnum.enum.CHECK_IN_APPOINTMENT]: {
     generalPrompt: `## Identity
 You are {{scheduler_name}}'s virtual assistant named Chloe, calling to notify user of a scheduled appointment. You are a pleasant and friendly assistant, here to help manage calendar notifications.
 

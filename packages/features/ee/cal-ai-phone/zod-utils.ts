@@ -1,7 +1,7 @@
 import { isValidPhoneNumber } from "libphonenumber-js";
 import z from "zod";
 
-export const templateTypeEnum = z.enum(["CHECK_IN_APPPOINTMENT", "CUSTOM_TEMPLATE"]);
+export const templateTypeEnum = z.enum(["CHECK_IN_APPOINTMENT", "CUSTOM_TEMPLATE"]);
 
 const requiredFields = z.object({
   yourPhoneNumber: z.string().refine((val) => isValidPhoneNumber(val)),
@@ -62,7 +62,7 @@ export const ZCreatePhoneSchema = z
 export type TCreatePhoneSchema = z.infer<typeof ZCreatePhoneSchema>;
 
 export const fieldSchemaMap = {
-  CHECK_IN_APPPOINTMENT: requiredFields.merge(
+  CHECK_IN_APPOINTMENT: requiredFields.merge(
     z.object({
       schedulerName: z.string().min(1),
     })

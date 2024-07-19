@@ -231,27 +231,32 @@ const AISettings = ({ eventType }: { eventType: EventTypeSetup }) => {
                 formMethods.setValue("aiPhoneCallConfig.templateType", val, { shouldDirty: true });
               }}>
               <div className="flex gap-2">
-                <RadioGroup.Item
-                  className="flex h-80 flex-1 items-start rounded-lg border p-4"
-                  key="CHECK_IN_APPPOINTMENT"
-                  value="CHECK_IN_APPPOINTMENT">
-                  <div>
+                <div className="flex flex-1 rounded-lg border p-4">
+                  <RadioGroup.Item
+                    id="CHECK_IN_APPOINTMENT"
+                    key="CHECK_IN_APPOINTMENT"
+                    value="CHECK_IN_APPOINTMENT"
+                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2 ">
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-
-                    <h2 className="font-semibold">{t("check_in_assistant")}</h2>
+                  </RadioGroup.Item>
+                  <label className="h-full" htmlFor="CHECK_IN_APPOINTMENT">
+                    <h2 className="font-semibold leading-tight">{t("check_in_assistant")}</h2>
                     <p className="text-subtle mt-2">{t("check_in_assistant_description")}</p>
-                  </div>
-                </RadioGroup.Item>
-                <RadioGroup.Item
-                  className="flex h-80 flex-1 items-start rounded-lg border p-4"
-                  key="CUSTOM_TEMPLATE"
-                  value="CUSTOM_TEMPLATE">
-                  <div>
+                  </label>
+                </div>
+                <div className="flex flex-1 rounded-lg border p-4">
+                  <RadioGroup.Item
+                    id="CUSTOM_TEMPLATE"
+                    key="CUSTOM_TEMPLATE"
+                    value="CUSTOM_TEMPLATE"
+                    className="min-w-4 bg-default border-default flex h-4 w-4 cursor-pointer items-center rounded-full border focus:border-2 focus:outline-none ltr:mr-2 rtl:ml-2">
                     <RadioGroup.Indicator className="after:bg-inverted relative flex h-4 w-4 items-center justify-center after:block after:h-2 after:w-2 after:rounded-full" />
-                    <h2 className="font-semibold">{t("custom_template")}</h2>
+                  </RadioGroup.Item>
+                  <label htmlFor="CUSTOM_TEMPLATE">
+                    <h2 className="font-semibold leading-tight">{t("custom_template")}</h2>
                     <p className="text-subtle mt-2">{t("create_your_own_prompt")}</p>
-                  </div>
-                </RadioGroup.Item>
+                  </label>
+                </div>
               </div>
             </RadioGroup.Root>
           </>
