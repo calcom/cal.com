@@ -6,7 +6,7 @@ import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 import { validateAccountOrApiKey } from "../../lib/validateAccountOrApiKey";
 
-export const selectOOOEntries = Prisma.validator<Prisma.OOOEntrySelect>()({
+export const selectOOOEntries = {
   id: true,
   start: true,
   end: true,
@@ -35,7 +35,7 @@ export const selectOOOEntries = Prisma.validator<Prisma.OOOEntrySelect>()({
     },
   },
   uuid: true,
-});
+};
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { account: authorizedAccount, appApiKey: validKey } = await validateAccountOrApiKey(req, [
