@@ -127,7 +127,7 @@ export const BookEventForm = ({
                 <Link
                   className="text-emphasis hover:underline"
                   key="privacy"
-                  href={`${WEBSITE_URL}/politicas-de-privacidade`}
+                  href={`${WEBSITE_URL}/politica-de-privacidade`}
                   target="_blank">
                   Políticas de privacidade
                 </Link>,

@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn } from "next-auth/react";
-import { Trans } from "next-i18next";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -538,25 +537,25 @@ export default function Signup({
                   </Link>
                 </div>
                 <div className="text-subtle ">
-                  <Trans
-                    i18nKey="signing_up_terms"
-                    components={[
-                      <Link
-                        className="text-emphasis hover:underline"
-                        key="terms"
-                        href={`${WEBSITE_URL}/termos-de-uso`}
-                        target="_blank">
-                        Termos de uso
-                      </Link>,
-                      <Link
-                        className="text-emphasis hover:underline"
-                        key="privacy"
-                        href={`${WEBSITE_URL}/politicas-de-privacidade`}
-                        target="_blank">
-                        Políticas de privacidade
-                      </Link>,
-                    ]}
-                  />
+                  <span>
+                    Ao continuar, você concorda com nossos{" "}
+                    <Link
+                      className="text-emphasis hover:underline"
+                      key="terms"
+                      href={`${WEBSITE_URL}/termos-de-uso`}
+                      target="_blank">
+                      Termos
+                    </Link>
+                    {" e "}
+                    <Link
+                      className="text-emphasis hover:underline"
+                      key="privacy"
+                      href={`${WEBSITE_URL}/politica-de-privacidade`}
+                      target="_blank">
+                      Política de Privacidade
+                    </Link>
+                    .
+                  </span>
                 </div>
               </div>
             </div>
