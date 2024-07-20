@@ -63,7 +63,7 @@ export const EventDuration = ({
 
   return selectedDuration ? (
     <ToggleGroup
-      className="md:block"
+      className="block"
       onValueChange={(duration) => setSelectedDuration(Number(duration))}
       defaultValue={selectedDuration.toString()}
       options={durations
