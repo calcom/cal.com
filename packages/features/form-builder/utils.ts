@@ -140,6 +140,7 @@ const validateCPF = (cpf: string) => {
 };
 
 export const cpfMask = (value: string) => {
+  if (!value) return { isValid: false, value: "" };
   const onlyNumbers = value.replace(/[^\d]/g, "");
 
   const cpfIsValid = validateCPF(onlyNumbers);
