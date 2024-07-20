@@ -322,6 +322,7 @@ const DatePicker = ({
     scrollToTimeSlots?: () => void;
   }) => {
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
+  const minDate = passThroughProps.minDate ? dayjs(passThroughProps.minDate) : dayjs().startOf("month");
   const { i18n } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
   const isBookingInPast = bookingData ? new Date(bookingData.endTime) < new Date() : false;
@@ -365,7 +366,16 @@ const DatePicker = ({
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
-              disabled={!browsingDate.isAfter(dayjs())}
+              // Previous button should not be disabled if -
+              // 1. Browsing date is after the current date.
+              // OR
+              // ( 2. Current date is after the minimum schedule date. AND 3. Browsing month is not same as min-date month. )
+              disabled={
+                !(
+                  browsingDate.isAfter(dayjs()) ||
+                  (dayjs().isAfter(minDate) && browsingDate.month() !== minDate.month())
+                )
+              }
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"

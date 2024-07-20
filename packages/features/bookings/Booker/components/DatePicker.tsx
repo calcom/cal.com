@@ -64,6 +64,11 @@ export const DatePicker = ({
       selected={dayjs(selectedDate)}
       weekStart={weekdayToWeekIndex(event?.data?.users?.[0]?.weekStart)}
       slots={schedule?.data?.slots}
+      minDate={
+        schedule?.data?.slots && Object.keys(schedule?.data?.slots).length
+          ? new Date(Object.keys(schedule?.data?.slots)[0])
+          : new Date()
+      }
       scrollToTimeSlots={scrollToTimeSlots}
     />
   );
