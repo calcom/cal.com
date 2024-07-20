@@ -8,7 +8,9 @@ import dayjs from "@calcom/dayjs";
 // Example :
 // Consider browser current date-time is - "Sat Jul 20 2024 01:00:00 AM (Asia/Kolkata GMT +5:30)".
 // And, if preferred timezone is "Pacific/Pago GMT -11:00", we need to get today's date as "Fri Jul 19".
-export function getTodaysDateInTimeZone(selectedTimeZone: string | undefined): Date {
+export function getTodaysDateInTimeZone(
+  selectedTimeZone: string = dayjs.tz.guess() || "Europe/London"
+): Date {
   // These plugins is requred for dayjs to calculate today's date w.r.t input timezone
   dayjs.extend(utc);
   dayjs.extend(timezone);
