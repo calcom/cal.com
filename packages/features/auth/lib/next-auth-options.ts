@@ -756,9 +756,44 @@ export const AUTH_OPTIONS: AuthOptions = {
           } else {
             return "/auth/error?error=new-email-conflict";
           }
+        } else {
+          const existingUserWithEmail = await prisma.user.findFirst({
+            where: {
+              email: {
+                equals: user.email,
+                mode: "insensitive",
+              },
+            },
+            include: {
+              password: true,
+            },
+          });
+
+          if (existingUserWithEmail) {
+            {
+              await prisma.user.update({
+                where: {
+                  email: existingUserWithEmail.email,
+                },
+                data: {
+                  // update the email to the IdP email
+                  email: user.email,
+                  // Slugify the incoming name and append a few random characters to
+                  // prevent conflicts for users with the same name.
+                  username: usernameSlug(user.name),
+                  emailVerified: new Date(Date.now()),
+                  name: user.name,
+                  identityProvider: idP,
+                  identityProviderId: account.providerAccountId,
+                },
+              });
+
+              return true;
+            }
+          } else {
+            return "/auth/error?error=account-does-not-exist";
+          }
         }
-      } else {
-        return "/auth/error?error=account-does-not-exist";
       }
 
       return false;
