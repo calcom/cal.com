@@ -550,7 +550,7 @@ export default function Signup({
                     <Link
                       className="text-emphasis hover:underline"
                       key="privacy"
-                      href={`${WEBSITE_URL}/politica-de-privacidade`}
+                      href={`${WEBSITE_URL}/politicas-de-privacidade`}
                       target="_blank">
                       Política de Privacidade
                     </Link>
