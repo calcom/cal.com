@@ -353,7 +353,6 @@ model Profile {
   @@unique([userId, organizationId])
   // Allow username reuse only across different organizations
   @@unique([username, organizationId])
-
   @@index([uid])
   @@index([userId])
   @@index([organizationId])
