@@ -8,12 +8,12 @@ export default function NoMeetingFound() {
 
   return (
     <>
-      <HeadSeo title={t("no_meeting_found")} description={t("no_meeting_found")} />
+      <HeadSeo title={t("No meeting found")} description={t("No meeting found")} />
       <main className="mx-auto my-24 max-w-3xl">
         <EmptyScreen
           Icon="x"
-          headline={t("no_meeting_found")}
-          description={t("no_meeting_found_description")}
+          headline={t("No meeting found")}
+          description={t("No meeting found description")}
           buttonRaw={
             <Button data-testid="return-home" href="/event-types" EndIcon="arrow-right">
               {t("go_back_home")}

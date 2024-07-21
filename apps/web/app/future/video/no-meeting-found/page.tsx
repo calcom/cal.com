@@ -8,8 +8,8 @@ import NoMeetingFound from "~/videos/views/videos-no-meeting-found-single-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
-    (t) => t("no_meeting_found"),
-    (t) => t("no_meeting_found")
+    (t) => t("No meeting found"),
+    (t) => t("No meeting found")
   );
 
 // ssr was added by Intuita, legacy page does not have it
