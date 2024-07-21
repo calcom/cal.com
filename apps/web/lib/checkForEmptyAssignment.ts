@@ -1,3 +1,5 @@
+import type { EventTypeAssignedUsers, EventTypeHosts } from "~/event-types/views/event-types-single-view";
+
 // This function checks if EventType requires assignment.
 // returns true: if EventType requires assignment but there is no assignment yet done by the user.
 // returns false: for all other scenarios.
@@ -8,8 +10,8 @@ export function checkForEmptyAssignment({
   assignAllTeamMembers,
   isTeamEvent,
 }: {
-  assignedUsers: any;
-  hosts: any;
+  assignedUsers: EventTypeAssignedUsers;
+  hosts: EventTypeHosts;
   isManagedEventType: boolean;
   assignAllTeamMembers: boolean;
   isTeamEvent: boolean;
