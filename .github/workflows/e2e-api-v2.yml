@@ -68,7 +68,14 @@ jobs:
       #- uses: ./.github/workflows/api-v2-production-build.yml
       - name: Run Tests
         working-directory: apps/api/v2
-        run: yarn test:e2e
+        run: |
+          yarn test:e2e
+          EXIT_CODE=$?
+          echo "yarn test:e2e command exit code: $EXIT_CODE"
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "yarn test:e2e command failed with exit code $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
       # - name: Upload Test Results
       #   if: ${{ always() }}
       #   uses: actions/upload-artifact@v4

@@ -53,7 +53,6 @@ describe("Platform Calendars Endpoints", () => {
       .useValue({
         canActivate: () => true,
       })
-
       .compile();
 
     app = moduleRef.createNestApplication();
