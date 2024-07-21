@@ -5,7 +5,10 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import {
+  useShouldBeDisabledDueToPrefill,
+  getFieldNameFromErrorMessage,
+} from "@calcom/lib/hooks/useShouldBeDisabledDueToPrefill";
 import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
@@ -54,29 +57,9 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
-  const searchParams = useRouterQuery();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
-
-  const getFieldNameFromErrorMessage = (errorMessage: string): string => {
-    const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
-    return name;
-  };
-
-  const shouldBeDisabledDueToPrefill = (): boolean => {
-    const errorMessage = (formState?.errors?.responses?.message || "") as string;
-    const name = getFieldNameFromErrorMessage(errorMessage);
-    // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
-    if (name === field.name) {
-      return false;
-    }
-
-    if (!field.disableOnPrefill || !searchParams) {
-      return false;
-    }
-
-    return !!searchParams[field.name];
-  };
+  const shoudlBeDisable = useShouldBeDisabledDueToPrefill(field);
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
@@ -90,7 +73,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly || shouldBeDisabledDueToPrefill()}
+                readOnly={readOnly || shoudlBeDisable}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
