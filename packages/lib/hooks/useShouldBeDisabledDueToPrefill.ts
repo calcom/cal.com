@@ -1,7 +1,17 @@
 import { useFormContext } from "react-hook-form";
+import type { z } from "zod";
 
-import type { RhfFormField } from "./types";
+import type { fieldsSchema } from "@calcom/features/form-builder/schema";
+
 import { useRouterQuery } from "./useRouterQuery";
+
+type RhfForm = {
+  fields: z.infer<typeof fieldsSchema>;
+};
+
+type RhfFormFields = RhfForm["fields"];
+
+type RhfFormField = RhfFormFields[number];
 
 export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
   const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");

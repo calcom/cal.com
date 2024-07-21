@@ -6,7 +6,6 @@ import { useShouldBeDisabledDueToPrefill } from "@calcom/lib/hooks/useShouldBeDi
 
 // Mock dependencies
 vi.mock("@hookform/error-message", () => ({ ErrorMessage: () => null }));
-vi.mock("next-i18next", () => ({ useLocale: () => ({ t: (key) => key }) }));
 vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
   useRouterQuery: () => ({
     "test-email-n": "test123@gmail", // Mock search params
@@ -51,7 +50,7 @@ const getFormatStateForQuestionType = (questionType: string) => {
 
 // Mock `react-hook-form` module
 vi.mock("react-hook-form", async () => {
-  const actual = await vi.importActual("react-hook-form");
+  const actual: any = await vi.importActual("react-hook-form");
   return {
     ...actual,
     useFormContext: vi.fn().mockReturnValue({
