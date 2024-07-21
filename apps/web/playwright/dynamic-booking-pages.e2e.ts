@@ -72,24 +72,24 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   await page.waitForLoadState("networkidle");
 
-  const badgeByDurationTestId = (duration: number) => `toggle-group-item-${duration}`;
+  const toggleGroupItemByDurationTestId = (duration: number) => `toggle-group-item-${duration.toString()}`;
 
-  let badgeLocator = await page.getByTestId(badgeByDurationTestId(duration));
-  let activeState = await badgeLocator.getAttribute("data-active");
+  let toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
+  let disabled = await toggleGroupItemLocator.getAttribute("disabled");
 
-  expect(activeState).toEqual("true");
+  expect(disabled).toEqual("false");
 
   duration = 30;
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
-  badgeLocator = await page.getByTestId(badgeByDurationTestId(duration));
-  activeState = await badgeLocator.getAttribute("data-active");
+  toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
+  disabled = await toggleGroupItemLocator.getAttribute("disabled");
 
-  expect(activeState).toEqual("true");
+  expect(disabled).toEqual("false");
 
   // Check another badge just to ensure its not selected
-  badgeLocator = await page.getByTestId(badgeByDurationTestId(15));
-  activeState = await badgeLocator.getAttribute("data-active");
-  expect(activeState).toEqual("false");
+  toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(15));
+  disabled = await toggleGroupItemLocator.getAttribute("disabled");
+  expect(disabled).toEqual("true");
 });
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip("it contains the right event details", async ({ page }) => {
