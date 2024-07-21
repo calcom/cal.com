@@ -4,6 +4,8 @@ import { describe, expect, test, vi } from "vitest";
 
 import { useShouldBeDisabledDueToPrefill } from "@calcom/lib/hooks/useShouldBeDisabledDueToPrefill";
 
+import type { RhfFormField } from "./utils";
+
 // Mock dependencies
 vi.mock("@hookform/error-message", () => ({ ErrorMessage: () => null }));
 vi.mock("@calcom/lib/hooks/useRouterQuery", () => ({
@@ -68,71 +70,63 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
 
   for (const { questionType, label } of questionTypes) {
     test(`should remain enabled when 'disableOnPrefill' is true and there are errors for ${label} (${questionType})`, () => {
-      const props = {
-        field: {
-          value: "",
-          disableOnPrefill: true,
-          type: questionType,
-          name: `test-${questionType}-n`,
-          label: `test-${questionType}-l`,
-          placeholder: `test-${questionType}-p`,
-          required: true,
-        },
-        readOnly: false,
-      } as FormBuildFieldPropsType;
+      const field = {
+        value: "",
+        disableOnPrefill: true,
+        type: questionType,
+        name: `test-${questionType}-n`,
+        label: `test-${questionType}-l`,
+        placeholder: `test-${questionType}-p`,
+        required: true,
+      } as RhfFormField;
       const formState = getFormatStateForQuestionType(questionType);
       const mockFormContext = { formState, control: {} as Control };
       // Mock `useFormContext` for this specific test
       (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
 
-      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(props.field);
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
       expect(shouldBeDisabled).toBe(false);
     });
   }
   for (const { questionType, label } of questionTypes) {
     test(`should remain enabled when 'disableOnPrefill' is false for ${label} (${questionType})`, () => {
-      const props = {
-        field: {
-          value: "",
-          disableOnPrefill: false,
-          type: questionType,
-          name: `test-${questionType}-n`,
-          label: `test-${questionType}-l`,
-          placeholder: `test-${questionType}-p`,
-          required: true,
-        },
-        readOnly: false,
-      };
+      const field = {
+        value: "",
+        disableOnPrefill: false,
+        type: questionType,
+        name: `test-${questionType}-n`,
+        label: `test-${questionType}-l`,
+        placeholder: `test-${questionType}-p`,
+        required: true,
+      } as RhfFormField;
+
       const formState = getFormatStateForQuestionType(questionType);
       const mockFormContext = { formState, control: {} as Control };
       // Mock `useFormContext` for this specific test
       (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
 
-      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(props.field);
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
       expect(shouldBeDisabled).toBe(false);
     });
   }
   for (const { questionType, label } of questionTypes) {
     test(`should be disabled when 'disableOnPrefill' is true and there are no errors for ${label} (${questionType})`, () => {
-      const props = {
-        field: {
-          value: "",
-          disableOnPrefill: true,
-          type: questionType,
-          name: `test-${questionType}-n`,
-          label: `test-${questionType}-l`,
-          placeholder: `test-${questionType}-p`,
-          required: true,
-        },
-        readOnly: false,
-      };
+      const field = {
+        value: "",
+        disableOnPrefill: true,
+        type: questionType,
+        name: `test-${questionType}-n`,
+        label: `test-${questionType}-l`,
+        placeholder: `test-${questionType}-p`,
+        required: true,
+      } as RhfFormField;
       //no errors
       const formState = {};
       const mockFormContext = { formState, control: {} as Control };
       // Mock `useFormContext` for this specific test
       (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
-      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(props.field);
+      const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
       expect(shouldBeDisabled).toBe(true);
     });
   }
