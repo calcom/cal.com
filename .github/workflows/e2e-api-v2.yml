@@ -72,10 +72,7 @@ jobs:
           yarn test:e2e
           EXIT_CODE=$?
           echo "yarn test:e2e command exit code: $EXIT_CODE"
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo "yarn test:e2e command failed with exit code $EXIT_CODE"
-            exit $EXIT_CODE
-          fi
+          exit $EXIT_CODE
       # - name: Upload Test Results
       #   if: ${{ always() }}
       #   uses: actions/upload-artifact@v4
