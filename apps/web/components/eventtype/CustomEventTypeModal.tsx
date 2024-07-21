@@ -133,7 +133,7 @@ const CustomEventTypeModal: FC<CustomEventTypeModalProps> = (props) => {
   });
 
   return (
-    <Dialog open={true} onOpenChange={close} useDialogForMobile>
+    <Dialog open={true} onOpenChange={close}>
       <DialogContent
         title={t("custom_event_name")}
         description={t("custom_event_name_description")}

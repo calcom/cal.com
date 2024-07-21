@@ -139,61 +139,63 @@ function DialogPortalWrapper({ children }: { children: ReactElement }) {
   );
 }
 
-function DialogContentWrapper(
-  props: {
-    children?: ReactNode;
-    forwardedRef?: React.ForwardedRef<HTMLDivElement>;
-    className?: string;
-  } & (DialogContentProps | DrawerContentProps)
-) {
-  const isMobile = useDialogMediaQuery();
-  const { enableOverflow, forwardedRef, children, ...rest } = props;
-  const isPlatform = useIsPlatform();
-  const [Content] = useMemo(
-    () => (isPlatform ? [PlatformDialogPrimitives.DialogContent] : [DialogPrimitive.Content]),
-    [isPlatform]
-  );
-  if (isMobile) {
+type TDialogContentWrapper = {
+  children?: ReactNode;
+  className?: string;
+} & (DialogContentProps | DrawerContentProps);
+
+// eslint-disable-next-line react/display-name
+const DialogContentWrapper = React.forwardRef<HTMLDivElement, TDialogContentWrapper>(
+  (props, forwardedRef) => {
+    const isMobile = useDialogMediaQuery();
+    const { enableOverflow, children, ...rest } = props;
+    const isPlatform = useIsPlatform();
+    const [Content] = useMemo(
+      () => (isPlatform ? [PlatformDialogPrimitives.DialogContent] : [DialogPrimitive.Content]),
+      [isPlatform]
+    );
+    if (isMobile) {
+      return (
+        <DrawerPrimitive.Content
+          {...(rest as DrawerContentProps)}
+          className={classNames(
+            "fadeIn bg-default scroll-bar fixed inset-x-0 bottom-0 z-50 flex max-h-[95vh] w-full flex-col overflow-visible rounded-t-md text-left shadow-xl after:!hidden focus-visible:outline-none sm:align-middle",
+            `${props.className || ""}`
+          )}
+          ref={forwardedRef}>
+          <div className="bg-muted mx-auto mt-4 h-2 w-[100px] rounded-full" />
+          <div
+            className={classNames(
+              "scroll-bar mx-auto w-full rounded-t-md px-8 pt-8",
+              enableOverflow ? "overflow-auto" : "overflow-visible"
+            )}>
+            {children}
+          </div>
+        </DrawerPrimitive.Content>
+      );
+    }
     return (
-      <DrawerPrimitive.Content
-        {...(rest as DrawerContentProps)}
+      <Content
+        {...(rest as DialogContentProps)}
         className={classNames(
-          "fadeIn bg-default scroll-bar fixed inset-x-0 bottom-0 z-50 flex max-h-[95vh] w-full flex-col overflow-visible rounded-t-md text-left shadow-xl after:!hidden focus-visible:outline-none sm:align-middle",
+          "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
+          props.size == "xl"
+            ? "px-8 pt-8 sm:max-w-[90rem]"
+            : props.size == "lg"
+            ? "px-8 pt-8 sm:max-w-[70rem]"
+            : props.size == "md"
+            ? "px-8 pt-8 sm:max-w-[48rem]"
+            : "px-8 pt-8 sm:max-w-[35rem]",
+          "max-h-[95vh]",
+          enableOverflow ? "overflow-auto" : "overflow-visible",
           `${props.className || ""}`
         )}
         ref={forwardedRef}>
-        <div className="bg-muted mx-auto mt-4 h-2 w-[100px] rounded-full" />
-        <div
-          className={classNames(
-            "scroll-bar mx-auto w-full rounded-t-md px-8 pt-8",
-            enableOverflow ? "overflow-auto" : "overflow-visible"
-          )}>
-          {children}
-        </div>
-      </DrawerPrimitive.Content>
+        {children}
+      </Content>
     );
   }
-  return (
-    <Content
-      {...(rest as DialogContentProps)}
-      className={classNames(
-        "fadeIn bg-default scroll-bar fixed left-1/2 top-1/2 z-50 w-full max-w-[22rem] -translate-x-1/2 -translate-y-1/2 rounded-md text-left shadow-xl focus-visible:outline-none sm:align-middle",
-        props.size == "xl"
-          ? "px-8 pt-8 sm:max-w-[90rem]"
-          : props.size == "lg"
-          ? "px-8 pt-8 sm:max-w-[70rem]"
-          : props.size == "md"
-          ? "px-8 pt-8 sm:max-w-[48rem]"
-          : "px-8 pt-8 sm:max-w-[35rem]",
-        "max-h-[95vh]",
-        enableOverflow ? "overflow-auto" : "overflow-visible",
-        `${props.className || ""}`
-      )}
-      ref={forwardedRef}>
-      {children}
-    </Content>
-  );
-}
+);
 
 type DialogContentProps = React.ComponentProps<(typeof DialogPrimitive)["Content"]> & ContentProps;
 type DrawerContentProps = React.ComponentProps<(typeof DrawerPrimitive)["Content"]> & ContentProps;
