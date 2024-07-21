@@ -37,6 +37,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
       type: true,
       options: {
         select: {
+          id: true,
           value: true,
         },
       },
@@ -47,7 +48,7 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
     id: z.string(),
     name: z.string(),
     type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-    options: z.array(z.object({ value: z.string() })),
+    options: z.array(z.object({ value: z.string(), id: z.string().optional() })),
   });
 
   return attrReturnValue.parse(attribute);

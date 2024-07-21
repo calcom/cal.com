@@ -17,7 +17,7 @@ const CreateAttributeSchema = z.object({
   // Calling this name would make sense but conflicts with rhf "watch" "name" field
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-  options: z.array(z.object({ value: z.string() })),
+  options: z.array(z.object({ value: z.string(), id: z.string() })),
 });
 
 type FormValues = z.infer<typeof CreateAttributeSchema>;

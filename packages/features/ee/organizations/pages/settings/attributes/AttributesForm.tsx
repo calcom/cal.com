@@ -10,7 +10,7 @@ import { Button, Form, SelectField, InputField, Label, Input } from "@calcom/ui"
 const AttributeSchema = z.object({
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-  options: z.array(z.object({ value: z.string() })),
+  options: z.array(z.object({ value: z.string(), id: z.string().optional() })),
 });
 
 type FormValues = z.infer<typeof AttributeSchema>;
@@ -56,10 +56,9 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
       form={form}
       className="mt-6 flex flex-col space-y-4 lg:space-y-6"
       handleSubmit={(values) => {
-        const uniqueAttributes = new Set(values.options.map((option) => option.value));
         onSubmit({
           ...values,
-          options: Array.from(uniqueAttributes).map((value) => ({ value })),
+          options: values.options,
         });
       }}>
       {header}
@@ -87,6 +86,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
               {fields.map((field, index) => (
                 <div className="flex items-center gap-2" key={field.id}>
                   <Input {...form.register(`options.${index}.value`)} className="w-full" />
+                  <Input {...form.register(`options.${index}.id`)} className="hidden" />
                   <Button
                     type="button"
                     variant="icon"

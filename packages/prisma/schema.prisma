@@ -1422,11 +1422,12 @@ enum AttributeType {
 }
 
 model AttributeOption {
-  id          String    @id @default(cuid())
-  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  attributeId String
-  value       String
-  slug        String
+  id            String            @id @default(cuid())
+  attribute     Attribute         @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  attributeId   String
+  value         String
+  slug          String
+  assignedUsers AttributeToUser[]
 
   @@unique([attributeId, value])
 }
@@ -1446,20 +1447,17 @@ model Attribute {
 
   usersCanEditRelation Boolean @default(false)
 
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  assignedUsers AttributeToUser[]
-  options       AttributeOption[]
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  options   AttributeOption[]
 }
 
 model AttributeToUser {
   id String @id @default(cuid())
 
-  attribute   Attribute @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  attributeId String
-
   member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
   memberId Int
 
-  options String[]
+  attribute         AttributeOption @relation(fields: [attributeOptionId], references: [id])
+  attributeOptionId String
 }

@@ -17,17 +17,18 @@ const CreateAttributeSchema = z.object({
   // Calling this name would make sense but conflicts with rhf "watch" "name" field
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-  options: z.array(z.object({ value: z.string() })),
+  options: z.array(z.object({ value: z.string(), id: z.string() })),
 });
 
 type FormValues = z.infer<typeof CreateAttributeSchema>;
 
 function CreateAttributesPage() {
   const router = useRouter();
+  const utils = trpc.useUtils();
   // Get the attribute id from the url
   const { id } = useParams();
   // ensure string with zod
-  const attribute = trpc.viewer.attributes.get.useQuery({ id });
+  const attribute = trpc.viewer.attributes.get.useQuery({ id: id as string });
 
   const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
@@ -55,13 +56,15 @@ function CreateAttributesPage() {
             }}
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {
-              // Create set of attributes to get unique values
-              const uniqueAttributes = new Set(values.options.map((option) => option.value));
+              utils.viewer.attributes.get.invalidate({
+                id: id as string,
+              });
+              utils.viewer.attributes.list.invalidate();
               mutation.mutate({
                 attributeId: id as string,
                 name: values.attrName,
                 type: values.type,
-                options: Array.from(uniqueAttributes).map((value) => ({ value })),
+                options: values.options,
               });
             }}
           />
