@@ -63,6 +63,7 @@
     "prisma": "yarn workspace @calcom/prisma prisma",
     "start": "turbo run start --scope=\"@calcom/web\"",
     "tdd": "vitest watch",
+    "generate-admin": "ts-node --transpile-only ./packages/prisma/seed-generate-admin.ts",
     "e2e": "NEXT_PUBLIC_IS_E2E=1 yarn playwright test --project=@calcom/web",
     "e2e:app-store": "QUICK=true yarn playwright test --project=@calcom/app-store",
     "e2e:embed": "QUICK=true yarn playwright test --project=@calcom/embed-core",
@@ -145,7 +146,8 @@
   },
   "prisma": {
     "schema": "packages/prisma/schema.prisma",
-    "seed": "ts-node --transpile-only ./packages/prisma/seed.ts"
+    "seed": "ts-node --transpile-only ./packages/prisma/seed.ts",
+    "generate-admin": "ts-node --transpile-only ./packages/prisma/seed-generate-admin.ts"
   },
   "packageManager": "yarn@3.4.1",
   "syncpack": {
