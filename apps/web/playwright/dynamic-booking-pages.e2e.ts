@@ -72,7 +72,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   await page.waitForLoadState("networkidle");
 
-  const toggleGroupItemByDurationTestId = (duration: number) => `toggle-group-item-${duration.toString()}`;
+  const toggleGroupItemByDurationTestId = (duration: number) => `toggle-group-item-${duration}`;
 
   let toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
   let disabled = await toggleGroupItemLocator.getAttribute("disabled");
@@ -86,7 +86,7 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   expect(disabled).toEqual("false");
 
-  // Check another badge just to ensure its not selected
+  // Check another toggle group item just to ensure its not selected
   toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(15));
   disabled = await toggleGroupItemLocator.getAttribute("disabled");
   expect(disabled).toEqual("true");
