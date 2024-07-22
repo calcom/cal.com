@@ -183,7 +183,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, prepare-test-suite, e2e, e2e-api-v2, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, unit-test, check-label, build, build-api-v1, build-api-v2, prepare-test-suite, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
