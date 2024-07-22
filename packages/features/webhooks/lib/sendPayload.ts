@@ -97,14 +97,14 @@ function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ): WithUTCOffsetType<WebhookDataType> {
   if (isEventPayload(data)) {
-    if (data?.organizer?.timeZone) {
+    if (data.organizer?.timeZone) {
       (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
         data.organizer.timeZone,
         data.startTime
       );
     }
 
-    if (data?.attendees?.length) {
+    if (data.attendees?.length) {
       (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
         attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
       });
@@ -204,19 +204,20 @@ const sendPayload = async (
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
-  if ("description" in data && "notes" in data) {
-    data.description = data.description || data.notes;
-  }
-
   data = addUTCOffset(data);
 
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier" && isEventPayload(data)) {
-    body = getZapierPayload({ ...data, createdAt });
-  } else if (template && isEventPayload(data)) {
-    body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType); // we probably need this to work for ooo payload too
-  } else {
+  if (isEventPayload(data)) {
+    data.description = data.description || data.additionalNotes;
+    if (appId === "zapier") {
+      body = getZapierPayload({ ...data, createdAt });
+    } else if (template) {
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType); // we probably need this to work for ooo payload too
+    }
+  }
+
+  if (body === undefined) {
     body = JSON.stringify({
       triggerEvent: triggerEvent,
       createdAt: createdAt,
