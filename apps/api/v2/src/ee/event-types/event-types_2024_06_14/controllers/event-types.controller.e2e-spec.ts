@@ -67,12 +67,15 @@ describe("Event types Endpoints", () => {
     let schedulesRepostoryFixture: SchedulesRepositoryFixture;
 
     const userEmail = "event-types-test-e2e@api.com";
+    const falseTestEmail = "false-event-types@api.com";
     const name = "bob-the-builder";
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
+    let falseTestUser: User;
     let firstSchedule: Schedule;
     let secondSchedule: Schedule;
+    let falseTestSchedule: Schedule;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -105,6 +108,12 @@ describe("Event types Endpoints", () => {
         username,
       });
 
+      falseTestUser = await userRepositoryFixture.create({
+        email: falseTestEmail,
+        name: "false-test",
+        username: falseTestEmail,
+      });
+
       firstSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
         name: "work",
@@ -114,6 +123,12 @@ describe("Event types Endpoints", () => {
       secondSchedule = await schedulesRepostoryFixture.create({
         userId: user.id,
         name: "chill",
+        timeZone: "Europe/Rome",
+      });
+
+      falseTestSchedule = await schedulesRepostoryFixture.create({
+        userId: falseTestUser.id,
+        name: "work",
         timeZone: "Europe/Rome",
       });
 
@@ -138,6 +153,40 @@ describe("Event types Endpoints", () => {
       expect(userRepositoryFixture).toBeDefined();
       expect(oAuthClient).toBeDefined();
       expect(user).toBeDefined();
+    });
+
+    it("should not allow creating an event type with schedule user does not own", async () => {
+      const scheduleId = falseTestSchedule.id;
+
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class",
+        slug: "coding-class",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "select",
+            label: "select which language you want to learn",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+          },
+        ],
+        scheduleId,
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(404);
     });
 
     it("should create an event type", async () => {
@@ -216,6 +265,18 @@ describe("Event types Endpoints", () => {
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
         });
+    });
+
+    it("should not allow to update event type with scheduleId user does not own", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        scheduleId: falseTestSchedule.id,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(404);
     });
 
     it(`/GET/:id`, async () => {
@@ -308,6 +369,11 @@ describe("Event types Endpoints", () => {
       }
       try {
         await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(falseTestUser.id);
       } catch (e) {
         // User might have been deleted by the test
       }
