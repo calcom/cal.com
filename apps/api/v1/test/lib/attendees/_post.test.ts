@@ -88,7 +88,6 @@ describe("POST /api/attendees", () => {
       prismaMock.attendee.create.mockResolvedValue(attendeeData);
 
       req.userId = 123;
-      // req.isAdmin = false; // Not necessary, undefined is enough
       await handler(req, res);
 
       expect(res.statusCode).toBe(200);
