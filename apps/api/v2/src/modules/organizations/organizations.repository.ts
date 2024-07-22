@@ -82,4 +82,15 @@ export class OrganizationsRepository {
       },
     });
   }
+
+  async fetchOrgAdminApiStatus(organizationId: number) {
+    return this.dbRead.prisma.organizationSettings.findUnique({
+      where: {
+        organizationId,
+      },
+      select: {
+        isAdminAPIEnabled: true,
+      },
+    });
+  }
 }

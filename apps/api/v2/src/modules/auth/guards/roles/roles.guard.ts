@@ -2,6 +2,7 @@ import { ORG_ROLES, TEAM_ROLES, SYSTEM_ADMIN_ROLE } from "@/lib/roles/constants"
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
+import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
@@ -15,6 +16,7 @@ export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private membershipRepository: MembershipsRepository,
+    private organizationsRepository: OrganizationsRepository,
     private readonly redisService: RedisService
   ) {}
 
@@ -59,6 +61,14 @@ export class RolesGuard implements CanActivate {
       if (!membership) {
         this.logger.log(`User (${user.id}) is not a member of the organization (${orgId}), denying access.`);
         throw new ForbiddenException(`User is not a member of the organization.`);
+      }
+
+      const adminAPIAccessIsEnabledInOrg = await this.organizationSettings.fetchOrgAdminApiStatus(
+        Number(orgId)
+      );
+      if (!adminAPIAccessIsEnabledInOrg) {
+        this.logger.log(`Org (${orgId}) Admin API access is not enabled, denying access`);
+        throw new ForbiddenException(`Organization does not have Admin API access`);
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {

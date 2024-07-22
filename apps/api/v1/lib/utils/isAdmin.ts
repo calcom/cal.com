@@ -17,6 +17,7 @@ export const isAdminGuard = async (req: NextApiRequest) => {
     where: {
       userId: userId,
       accepted: true,
+      isAdminAPIEnabled: true,
       team: {
         isOrganization: true,
       },
