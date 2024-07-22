@@ -96,7 +96,7 @@ export const tabs = [
             data-testid="embed-react"
             ref={ref as typeof ref & MutableRefObject<HTMLTextAreaElement>}
             name="embed-react"
-            className="text-default bg-default selection:bg-subtle h-[calc(100%-50px)] font-mono"
+            className="text-default bg-default h-[calc(100%-50px)] font-mono"
             readOnly
             style={{ resize: "none", overflow: "auto" }}
             value={`/* First make sure that you have installed the package */
