@@ -142,7 +142,7 @@ export class CalendarsService {
   async checkCalendarCredentials(credentialId: number, userId: number) {
     const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, userId);
     if (!credential) {
-      throw new NotFoundException(`Credentials not found`);
+      throw new NotFoundException("Calendar credentials not found");
     }
   }
 }
