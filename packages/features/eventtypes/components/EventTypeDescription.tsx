@@ -15,13 +15,11 @@ import { Badge, Tooltip } from "@calcom/ui";
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
-    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent">
-    | "metadata"
-    | "seatsPerTimeSlot"
-    | "teamAdmin"
+    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
+    teamAdmin?: string | null;
   };
   className?: string;
   shortenDescription?: boolean;
@@ -84,7 +82,7 @@ export const EventTypeDescription = ({
           {eventType.metadata?.managedEventConfig &&
             !isPublic &&
             (!!eventType.teamAdmin ? (
-              <Tooltip content={t("managed_by_owner", { owner: eventType.teamAdmin })}>
+              <Tooltip content={t("managed_by_teamAdmin", { teamAdmin: eventType.teamAdmin })}>
                 <div>
                   <Badge variant="gray" startIcon="lock">
                     {t("managed")}
