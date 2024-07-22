@@ -13,7 +13,7 @@ import {
 } from "@/modules/selected-calendars/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Body, Controller, Post, UseGuards, Delete, NotFoundException, Query } from "@nestjs/common";
+import { Body, Controller, Post, UseGuards, Delete, Query } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
