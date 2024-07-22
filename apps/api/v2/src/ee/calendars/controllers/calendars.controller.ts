@@ -202,11 +202,17 @@ export class CalendarsController {
     const { id: credentialId } = body;
     await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
 
-    const { key, ...deletedCredentials } = await this.calendarsRepository.deleteCredentials(credentialId);
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      credentialId
+    );
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(DeletedCalendarCredentialsOutputDto, deletedCredentials, { strategy: "excludeAll" }),
+      data: plainToClass(
+        DeletedCalendarCredentialsOutputDto,
+        { id, type, userId, teamId, appId, invalid },
+        { strategy: "excludeAll" }
+      ),
     };
   }
 }

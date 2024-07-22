@@ -25,18 +25,6 @@ export class DeletedCalendarCredentialsOutputDto {
   @Expose()
   readonly appId!: string | null;
 
-  @IsString()
-  @Expose()
-  readonly subscriptionId!: string | null;
-
-  @IsString()
-  @Expose()
-  readonly paymentStatus!: string | null;
-
-  @IsInt()
-  @Expose()
-  readonly billingCycleStart!: number | null;
-
   @IsBoolean()
   @Expose()
   readonly invalid!: boolean | null;

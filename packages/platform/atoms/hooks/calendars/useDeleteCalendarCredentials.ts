@@ -1,4 +1,3 @@
-import type { Prisma } from "@prisma/client";
 import { useMutation } from "@tanstack/react-query";
 
 import type { CALENDARS } from "@calcom/platform-constants";
@@ -28,13 +27,9 @@ export const useDeleteCalendarCredentials = (
       data: {
         id: number;
         type: string;
-        key: Prisma.JsonValue;
         userId: number | null;
         teamId: number | null;
         appId: string | null;
-        subscriptionId: string | null;
-        paymentStatus: string | null;
-        billingCycleStart: number | null;
         invalid: boolean | null;
       };
     }>,
