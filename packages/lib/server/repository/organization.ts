@@ -170,6 +170,7 @@ export class OrganizationRepository {
     const orgs = await prisma.team.findMany({
       where: {
         isOrganization: true,
+        isPlatform: false,
         organizationSettings: {
           orgAutoAcceptEmail: emailDomain,
         },
