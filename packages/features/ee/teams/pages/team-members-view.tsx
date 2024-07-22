@@ -203,6 +203,7 @@ const MembersView = () => {
             <MemberInvitationModal
               isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
+              justEmailInvites={true}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
               teamId={team.id}

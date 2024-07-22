@@ -75,6 +75,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
+  console.log(props.justEmailInvites, "props.justEmailInvites");
   // Check current org role and not team role
   const isOrgAdminOrOwner =
     currentOrg &&
@@ -242,7 +243,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 render={({ field: { onChange }, fieldState: { error } }) => (
                   <>
                     <TextField
-                      label={props.justEmailInvites ? t("email") : t("email_or_username")}
+                      label={props.justEmailInvites ? t("email_address") : t("email_or_username")}
                       id="inviteUser"
                       name="inviteUser"
                       placeholder="email@example.com"
