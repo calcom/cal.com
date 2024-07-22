@@ -18,7 +18,7 @@ export type EventTypeDescriptionProps = {
     | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent">
     | "metadata"
     | "seatsPerTimeSlot"
-    | "ownerName"
+    | "teamAdmin"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
@@ -83,8 +83,8 @@ export const EventTypeDescription = ({
           )}
           {eventType.metadata?.managedEventConfig &&
             !isPublic &&
-            (!!eventType.ownerName ? (
-              <Tooltip content={t("managed_by_owner", { owner: eventType.ownerName })}>
+            (!!eventType.teamAdmin ? (
+              <Tooltip content={t("managed_by_owner", { owner: eventType.teamAdmin })}>
                 <div>
                   <Badge variant="gray" startIcon="lock">
                     {t("managed")}

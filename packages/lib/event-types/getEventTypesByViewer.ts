@@ -106,7 +106,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
   type UserEventTypes = (typeof profileEventTypes)[number];
 
   const mapEventType = async (eventType: UserEventTypes) => {
-    const { owner, ...rest } = eventType;
+    const { parent, ...rest } = eventType;
     return {
       ...rest,
       safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
@@ -132,7 +132,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           ),
         }))
       ),
-      ownerName: owner?.name,
+      teamAdmin: parent?.team?.members.find((mem) => mem.role === "ADMIN" || mem.role === "OWNER")?.user.name,
     };
   };
 
