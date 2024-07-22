@@ -178,14 +178,10 @@ export async function findUsersWithInviteStatus({
   const inviteesFromDb: UserWithMembership[] = await prisma.user.findMany({
     where: {
       OR: [
-        // Either it's a username in that organization
+        // Either it's a username with organization as null in the main user table.
         {
-          profiles: {
-            some: {
-              organizationId: team.id,
-              username: { in: usernamesOrEmails },
-            },
-          },
+          username: { in: usernamesOrEmails },
+          organizationId: null,
         },
         // Or it's an email
         { email: { in: usernamesOrEmails } },

@@ -149,6 +149,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
   const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
+  // Find users already signed up, i.e present in the users table.
   const existingUsersToBeInvited = await findUsersWithInviteStatus({
     invitations: uniqueInvitations,
     team,
