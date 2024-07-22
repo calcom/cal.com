@@ -25,7 +25,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import { isEmail } from "../util";
-import type { InviteMemberOptions, TeamWithParent } from "./types";
+import type { TeamWithParent } from "./types";
 
 const log = logger.getSubLogger({ prefix: ["inviteMember.utils"] });
 export type Invitee = Pick<
@@ -44,8 +44,11 @@ export type Invitation = {
   role: MembershipRole;
 };
 
-type ExistingUserWithInviteStatus = Awaited<ReturnType<typeof findUsersWithInviteStatus>>[number];
-type ExistingUserWithInviteStatusAndProfile = ExistingUserWithInviteStatus & {
+type InvitableExistingUser = UserWithMembership & {
+  newRole: MembershipRole;
+};
+
+type InvitableExistingUserWithProfile = InvitableExistingUser & {
   profile: {
     username: string;
   } | null;
@@ -361,19 +364,21 @@ export async function createNewUsersConnectToOrgIfExists({
 }
 
 export async function createMemberships({
-  input,
+  teamId,
+  language,
   invitees,
   parentId,
   accepted,
 }: {
-  input: Omit<InviteMemberOptions["input"], "usernameOrEmail">;
-  invitees: (ExistingUserWithInviteStatus & {
+  teamId: number;
+  language: string;
+  invitees: (InvitableExistingUser & {
     needToCreateOrgMembership: boolean | null;
   })[];
   parentId: number | null;
   accepted: boolean;
 }) {
-  log.debug("Creating memberships for", safeStringify({ input, invitees, parentId, accepted }));
+  log.debug("Creating memberships for", safeStringify({ teamId, language, invitees, parentId, accepted }));
   try {
     await prisma.membership.createMany({
       data: invitees.flatMap((invitee) => {
@@ -381,7 +386,7 @@ export async function createMemberships({
         const data = [];
         // membership for the team
         data.push({
-          teamId: input.teamId,
+          teamId,
           userId: invitee.id,
           accepted,
           role:
@@ -404,7 +409,7 @@ export async function createMemberships({
     });
   } catch (e) {
     if (e instanceof Prisma.PrismaClientKnownRequestError) {
-      logger.error("Failed to create memberships", input.teamId);
+      logger.error("Failed to create memberships", teamId);
     } else {
       throw e;
     }
@@ -558,7 +563,7 @@ export const groupUsersByJoinability = ({
   connectionInfoMap,
 }: {
   team: TeamWithParent;
-  existingUsersWithMemberships: ExistingUserWithInviteStatusAndProfile[];
+  existingUsersWithMemberships: InvitableExistingUserWithProfile[];
   connectionInfoMap: Record<string, ReturnType<typeof getOrgConnectionInfo>>;
 }) => {
   const usersToAutoJoin = [];
@@ -608,7 +613,7 @@ export const sendExistingUserTeamInviteEmails = async ({
 }: {
   language: TFunction;
   isAutoJoin: boolean;
-  existingUsersWithMemberships: Omit<ExistingUserWithInviteStatusAndProfile, "canBeInvited" | "newRole">[];
+  existingUsersWithMemberships: Omit<InvitableExistingUserWithProfile, "canBeInvited" | "newRole">[];
   currentUserTeamName?: string;
   currentUserParentTeamName: string | undefined;
   currentUserName?: string | null;
@@ -682,7 +687,6 @@ export const sendExistingUserTeamInviteEmails = async ({
 type inviteMemberHandlerInput = {
   teamId: number;
   role?: "ADMIN" | "MEMBER" | "OWNER";
-  isOrg: boolean;
   language: string;
 };
 
@@ -690,20 +694,24 @@ export async function handleExistingUsersInvites({
   invitableExistingUsers,
   team,
   orgConnectInfoByUsernameOrEmail,
-  input,
+  teamId,
+  language,
   inviter,
   orgSlug,
+  isOrg,
 }: {
-  invitableExistingUsers: Awaited<ReturnType<typeof findUsersWithInviteStatus>>;
+  invitableExistingUsers: InvitableExistingUser[];
   team: TeamWithParent;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
-  input: inviteMemberHandlerInput;
+  teamId: number;
+  language: string;
   inviter: {
     name: string | null;
   };
+  isOrg: boolean;
   orgSlug: string | null;
 }) {
-  const translation = await getTranslation(input.language ?? "en", "common");
+  const translation = await getTranslation(language, "common");
   if (!team.isOrganization) {
     const [autoJoinUsers, regularUsers] = groupUsersByJoinability({
       existingUsersWithMemberships: invitableExistingUsers.map((u) => {
@@ -727,7 +735,8 @@ export async function handleExistingUsersInvites({
     // invited users can autojoin, create their memberships in org
     if (autoJoinUsers.length) {
       await createMemberships({
-        input,
+        teamId,
+        language,
         invitees: autoJoinUsers,
         parentId: team.parentId,
         accepted: true,
@@ -744,7 +753,7 @@ export async function handleExistingUsersInvites({
         currentUserTeamName: team?.name,
         existingUsersWithMemberships: autoJoinUsers,
         language: translation,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
         teamId: team.id,
         isAutoJoin: true,
         currentUserParentTeamName: team?.parent?.name,
@@ -755,7 +764,8 @@ export async function handleExistingUsersInvites({
     // invited users cannot autojoin, create provisional memberships and send email
     if (regularUsers.length) {
       await createMemberships({
-        input,
+        teamId,
+        language,
         invitees: regularUsers,
         parentId: team.parentId,
         accepted: false,
@@ -765,7 +775,7 @@ export async function handleExistingUsersInvites({
         currentUserTeamName: team?.name,
         existingUsersWithMemberships: regularUsers,
         language: translation,
-        isOrg: input.isOrg,
+        isOrg: isOrg,
         teamId: team.id,
         isAutoJoin: false,
         currentUserParentTeamName: team?.parent?.name,
@@ -846,7 +856,7 @@ export async function handleExistingUsersInvites({
       currentUserTeamName: team?.name,
       existingUsersWithMemberships: autoJoinUsers,
       language: translation,
-      isOrg: input.isOrg,
+      isOrg,
       teamId: team.id,
       isAutoJoin: true,
       currentUserParentTeamName: team?.parent?.name,
@@ -859,7 +869,7 @@ export async function handleExistingUsersInvites({
       currentUserTeamName: team?.name,
       existingUsersWithMemberships: regularUsers,
       language: translation,
-      isOrg: input.isOrg,
+      isOrg,
       teamId: team.id,
       isAutoJoin: false,
       currentUserParentTeamName: team?.parent?.name,
@@ -872,25 +882,29 @@ export async function handleNewUsersInvites({
   invitationsForNewUsers,
   team,
   orgConnectInfoByUsernameOrEmail,
-  input,
+  teamId,
+  language,
+  isOrg,
   autoAcceptEmailDomain,
   inviter,
 }: {
   invitationsForNewUsers: Invitation[];
-  input: inviteMemberHandlerInput;
+  teamId: number;
+  language: string;
   orgConnectInfoByUsernameOrEmail: Record<string, { orgId: number | undefined; autoAccept: boolean }>;
   autoAcceptEmailDomain: string | null;
   team: TeamWithParent;
   inviter: {
     name: string | null;
   };
+  isOrg: boolean;
 }) {
-  const translation = await getTranslation(input.language ?? "en", "common");
+  const translation = await getTranslation(language, "common");
 
   await createNewUsersConnectToOrgIfExists({
     invitations: invitationsForNewUsers,
-    isOrg: input.isOrg,
-    teamId: input.teamId,
+    isOrg,
+    teamId: teamId,
     orgConnectInfoByUsernameOrEmail,
     autoAcceptEmailDomain: autoAcceptEmailDomain,
     parentId: team.parentId,
@@ -905,8 +919,8 @@ export async function handleNewUsersInvites({
       },
       translation,
       inviterName: inviter.name ?? "",
-      teamId: input.teamId,
-      isOrg: input.isOrg,
+      teamId,
+      isOrg,
     });
   });
   await sendEmails(sendVerifyEmailsPromises);
