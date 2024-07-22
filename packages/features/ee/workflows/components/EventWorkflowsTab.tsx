@@ -19,46 +19,38 @@ import { getActionIcon } from "../lib/getActionIcon";
 import SkeletonLoader from "./SkeletonLoaderEventWorkflowsTab";
 import type { WorkflowType } from "./WorkflowListPage";
 
+type PartialWorkflowType = Pick<WorkflowType, "name" | "activeOn" | "isOrg" | "steps" | "id" | "readOnly">;
+
 type ItemProps = {
-  workflow: WorkflowType;
+  workflow: PartialWorkflowType;
   eventType: {
     id: number;
     title: string;
     requiresConfirmation: boolean;
   };
   isChildrenManagedEventType: boolean;
+  isActive: boolean;
 };
 
 const WorkflowListItem = (props: ItemProps) => {
-  const { workflow, eventType } = props;
+  const { workflow, eventType, isActive } = props;
   const { t } = useLocale();
 
   const [activeEventTypeIds, setActiveEventTypeIds] = useState(
-    workflow.activeOn.map((active) => {
+    workflow.activeOn?.map((active) => {
       if (active.eventType) {
         return active.eventType.id;
       }
-    })
+    }) ?? []
   );
 
-  const isActive = activeEventTypeIds.includes(eventType.id);
   const utils = trpc.useUtils();
 
   const activateEventTypeMutation = trpc.viewer.workflows.activateEventType.useMutation({
     onSuccess: async () => {
-      let offOn = "";
-      if (activeEventTypeIds.includes(eventType.id)) {
-        const newActiveEventTypeIds = activeEventTypeIds.filter((id) => {
-          return id !== eventType.id;
-        });
-        setActiveEventTypeIds(newActiveEventTypeIds);
-        offOn = "off";
-      } else {
-        const newActiveEventTypeIds = activeEventTypeIds;
-        newActiveEventTypeIds.push(eventType.id);
-        setActiveEventTypeIds(newActiveEventTypeIds);
-        offOn = "on";
-      }
+      const offOn = isActive ? "off" : "on";
+      await utils.viewer.workflows.getAllActiveWorkflows.invalidate();
+
       await utils.viewer.eventTypes.get.invalidate({ id: eventType.id });
       showToast(
         t("workflow_turned_on_successfully", {
@@ -180,7 +172,7 @@ type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 
 type Props = {
   eventType: EventTypeSetup;
-  workflows: WorkflowType[];
+  workflows: PartialWorkflowType[];
 };
 
 function EventWorkflowsTab(props: Props) {
@@ -194,9 +186,7 @@ function EventWorkflowsTab(props: Props) {
   });
 
   const workflowsDisableProps = shouldLockDisableProps("workflows", { simple: true });
-
   const lockedText = workflowsDisableProps.isLocked ? "locked" : "unlocked";
-
   const { data, isPending } = trpc.viewer.workflows.list.useQuery({
     teamId: eventType.team?.id,
     userId: !isChildrenManagedEventType ? eventType.userId || undefined : undefined,
@@ -206,13 +196,14 @@ function EventWorkflowsTab(props: Props) {
 
   useEffect(() => {
     if (data?.workflows) {
-      const activeWorkflows = workflows.map((workflowOnEventType) => {
+      const allActiveWorkflows = workflows.map((workflowOnEventType) => {
         const dataWf = data.workflows.find((wf) => wf.id === workflowOnEventType.id);
         return {
           ...workflowOnEventType,
           readOnly: isChildrenManagedEventType && dataWf?.teamId ? true : dataWf?.readOnly ?? false,
         } as WorkflowType;
       });
+
       const disabledWorkflows = data.workflows.filter(
         (workflow) =>
           (!workflow.teamId || eventType.teamId === workflow.teamId) &&
@@ -224,8 +215,8 @@ function EventWorkflowsTab(props: Props) {
       );
       const allSortedWorkflows =
         workflowsDisableProps.isLocked && !isManagedEventType
-          ? activeWorkflows
-          : activeWorkflows.concat(disabledWorkflows);
+          ? allActiveWorkflows
+          : allActiveWorkflows.concat(disabledWorkflows);
       setSortedWorkflows(allSortedWorkflows);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -286,6 +277,7 @@ function EventWorkflowsTab(props: Props) {
                       workflow={workflow}
                       eventType={props.eventType}
                       isChildrenManagedEventType
+                      isActive={!!workflows.find((activeWorkflow) => activeWorkflow.id === workflow.id)}
                     />
                   );
                 })}

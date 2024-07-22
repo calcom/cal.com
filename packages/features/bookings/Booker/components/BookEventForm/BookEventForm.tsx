@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { FieldError } from "react-hook-form";
 
+import type { BookerEvent } from "@calcom/features/bookings/types";
 import { IS_CALCOM, WEBSITE_URL } from "@calcom/lib/constants";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Alert, Button, EmptyScreen, Form } from "@calcom/ui";
 
 import { useBookerStore } from "../../store";
-import type { useEventReturnType } from "../../utils/event";
 import type { UseBookingFormReturnType } from "../hooks/useBookingForm";
 import type { IUseBookingErrors, IUseBookingLoadingStates } from "../hooks/useBookings";
 import { BookingFields } from "./BookingFields";
@@ -27,6 +27,7 @@ type BookEventFormProps = {
   renderConfirmNotVerifyEmailButtonCond: boolean;
   extraOptions: Record<string, string | string[]>;
   isPlatform?: boolean;
+  isVerificationCodeSending: boolean;
 };
 
 export const BookEventForm = ({
@@ -41,9 +42,14 @@ export const BookEventForm = ({
   bookingForm,
   children,
   extraOptions,
+  isVerificationCodeSending,
   isPlatform = false,
 }: Omit<BookEventFormProps, "event"> & {
-  eventQuery: useEventReturnType;
+  eventQuery: {
+    isError: boolean;
+    isPending: boolean;
+    data?: Pick<BookerEvent, "price" | "currency" | "metadata" | "bookingFields" | "locations"> | null;
+  };
   rescheduleUid: string | null;
 }) => {
   const eventType = eventQuery.data;
@@ -114,17 +120,25 @@ export const BookEventForm = ({
         )}
         {!isPlatform && IS_CALCOM && (
           <div className="text-subtle my-3 w-full text-xs opacity-80">
-            <Trans i18nKey="signing_up_terms">
-              By proceeding, you agree to our
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/terms`} target="_blank">
-                Terms
-              </Link>{" "}
-              and{" "}
-              <Link className="text-emphasis hover:underline" href={`${WEBSITE_URL}/privacy`} target="_blank">
-                Privacy Policy
-              </Link>
-              .
-            </Trans>
+            <Trans
+              i18nKey="signing_up_terms"
+              components={[
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="terms"
+                  href={`${WEBSITE_URL}/terms`}
+                  target="_blank">
+                  Terms
+                </Link>,
+                <Link
+                  className="text-emphasis hover:underline"
+                  key="privacy"
+                  href={`${WEBSITE_URL}/privacy`}
+                  target="_blank">
+                  Privacy Policy.
+                </Link>,
+              ]}
+            />
           </div>
         )}
         <div className="modalsticky mt-auto flex justify-end space-x-2 rtl:space-x-reverse">
@@ -142,7 +156,11 @@ export const BookEventForm = ({
               <Button
                 type="submit"
                 color="primary"
-                loading={loadingStates.creatingBooking || loadingStates.creatingRecurringBooking}
+                loading={
+                  loadingStates.creatingBooking ||
+                  loadingStates.creatingRecurringBooking ||
+                  isVerificationCodeSending
+                }
                 data-testid={
                   rescheduleUid && bookingData ? "confirm-reschedule-button" : "confirm-book-button"
                 }>

@@ -43,6 +43,7 @@ export const getMembersHandler = async ({ input, ctx }: CreateOptions) => {
             select: {
               id: true,
               username: true,
+              avatarUrl: true,
               email: true,
               completedOnboarding: true,
               name: true,

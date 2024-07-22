@@ -1,6 +1,7 @@
-import { LazyMotion, m, AnimatePresence } from "framer-motion";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
+import { Toaster } from "react-hot-toast";
 import StickyBox from "react-sticky-box";
 import { shallow } from "zustand/shallow";
 
@@ -123,6 +124,7 @@ const BookerComponent = ({
     setEmailVerificationModalVisible,
     handleVerifyEmail,
     renderConfirmNotVerifyEmailButtonCond,
+    isVerificationCodeSending,
   } = verifyEmail;
 
   const {
@@ -171,6 +173,7 @@ const BookerComponent = ({
         eventQuery={event}
         extraOptions={extraOptions}
         rescheduleUid={rescheduleUid}
+        isVerificationCodeSending={isVerificationCodeSending}
         isPlatform={isPlatform}>
         <>
           {verifyCode ? (
@@ -268,6 +271,7 @@ const BookerComponent = ({
         )}>
         <div
           ref={animationScope}
+          data-testid="booker-container"
           className={classNames(
             ...getBookerSizeClassNames(layout, bookerState, hideEventTypeDetails),
             `bg-default dark:bg-muted grid max-w-full items-start dark:[color-scheme:dark] sm:transition-[width] sm:duration-300 sm:motion-reduce:transition-none md:flex-row`,
@@ -275,7 +279,7 @@ const BookerComponent = ({
             (layout === BookerLayouts.MONTH_VIEW || isEmbed) && "border-subtle rounded-md",
             !isEmbed && "sm:transition-[width] sm:duration-300",
             isEmbed && layout === BookerLayouts.MONTH_VIEW && "border-booker sm:border-booker-width",
-            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle`,
+            !isEmbed && layout === BookerLayouts.MONTH_VIEW && `border-subtle border`,
             `${customClassNames?.bookerContainer}`
           )}>
           <AnimatePresence>
@@ -322,13 +326,7 @@ const BookerComponent = ({
                 )}
               </BookerSection>
             )}
-            <StickyOnDesktop
-              key="meta"
-              className={classNames(
-                "relative z-10 flex [grid-area:meta]",
-                // Important: In Embed if we make min-height:100vh, it will cause the height to continuously keep on increasing
-                layout !== BookerLayouts.MONTH_VIEW && !isEmbed && "sm:min-h-screen"
-              )}>
+            <StickyOnDesktop key="meta" className={classNames("relative z-10 flex [grid-area:meta]")}>
               <BookerSection
                 area="meta"
                 className="max-w-screen flex w-full flex-col md:w-[var(--booker-meta-width)]">
@@ -353,7 +351,7 @@ const BookerComponent = ({
                 />
                 {layout !== BookerLayouts.MONTH_VIEW &&
                   !(layout === "mobile" && bookerState === "booking") && (
-                    <div className="mt-auto px-5 py-3 ">
+                    <div className="mt-auto px-5 py-3">
                       <DatePicker event={event} schedule={schedule} scrollToTimeSlots={scrollToTimeSlots} />
                     </div>
                   )}
@@ -474,6 +472,7 @@ const BookerComponent = ({
         visible={bookerState === "booking" && shouldShowFormInDialog}>
         {EventBooker}
       </BookFormAsModal>
+      <Toaster position="bottom-right" />
     </>
   );
 };

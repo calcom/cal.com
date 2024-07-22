@@ -964,7 +964,7 @@
   "how_long_before": "Hvor lenge før hendelsen starter?",
   "day_timeUnit": "dager",
   "hour_timeUnit": "timer",
-  "minute_timeUnit": "min",
+  "minute_timeUnit": "minutter",
   "new_workflow_heading": "Opprett din første arbeidsflyt",
   "new_workflow_description": "Arbeidsflyter lar deg automatisere sending av påminnelser og varsler.",
   "active_on": "Aktiv på",
@@ -1209,6 +1209,8 @@
   "copy_link_to_form": "Kopier lenken til skjemaet",
   "theme": "Tema",
   "theme_applies_note": "Dette gjelder kun for dine offentlige bookingsider",
+  "app_theme": "Dashboard-tema",
+  "app_theme_applies_note": "Dette gjelder kun ditt påloggede dashbord",
   "theme_system": "System standard",
   "add_a_team": "Legg til et team",
   "add_webhook_description": "Motta møtedata i sanntid når noe skjer i {{appName}}",
@@ -1389,5 +1391,6 @@
   "booking_confirmation_failed": "Booking-bekreftelse feilet",
   "timezone_variable": "Tidssone",
   "need_help": "Trenger du hjelp?",
+  "send_email": "Send e-post",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}"
 }

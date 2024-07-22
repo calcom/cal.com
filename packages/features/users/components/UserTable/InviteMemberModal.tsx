@@ -27,7 +27,7 @@ export function InviteMemberModal(props: Props) {
       if (Array.isArray(data.usernameOrEmail)) {
         showToast(
           t("email_invite_team_bulk", {
-            userCount: data.usernameOrEmail.length,
+            userCount: data.numUsersInvited,
           }),
           "success"
         );
@@ -68,7 +68,6 @@ export function InviteMemberModal(props: Props) {
           language: i18n.language,
           role: values.role,
           usernameOrEmail: values.emailOrUsername,
-          isOrg: true,
         });
       }}
     />

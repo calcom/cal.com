@@ -102,12 +102,12 @@ export const viewerTeamsRouter = router({
     return handler(opts);
   }),
   /** This is a temporal endpoint so we can progressively upgrade teams to the new billing system. */
-  getUpgradeable: authedProcedure.query(async (opts) => {
+  getUpgradeable: authedProcedure.query(async ({ ctx }) => {
     const handler = await importHandler(
       namespaced("getUpgradeable"),
       () => import("./getUpgradeable.handler")
     );
-    return handler(opts);
+    return handler({ userId: ctx.user.id });
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));

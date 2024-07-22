@@ -11,11 +11,36 @@ import createOAuthAppCredential from "../../_utils/oauth/createOAuthAppCredentia
 import { decodeOAuthState } from "../../_utils/oauth/decodeOAuthState";
 import appConfig from "../config.json";
 
+function isAuthorizedAccountsServerUrl(accountsServer: string) {
+  // As per https://www.zoho.com/crm/developer/docs/api/v6/multi-dc.html#:~:text=US:%20https://accounts.zoho,https://accounts.zohocloud.ca&text=The%20%22location=us%22%20parameter,domain%20in%20all%20API%20endpoints.&text=You%20must%20make%20the%20authorization,.zoho.com.cn.
+  const authorizedAccountServers = [
+    "https://accounts.zoho.com",
+    "https://accounts.zoho.eu",
+    "https://accounts.zoho.in",
+    "https://accounts.zoho.com.cn",
+    "https://accounts.zoho.jp",
+    "https://accounts.zohocloud.ca",
+    "https://accounts.zoho.com.au",
+  ];
+  return authorizedAccountServers.includes(accountsServer);
+}
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { code, "accounts-server": accountsServer } = req.query;
+  const state = decodeOAuthState(req);
 
   if (code && typeof code !== "string") {
     res.status(400).json({ message: "`code` must be a string" });
+    return;
+  }
+
+  if (!accountsServer || typeof accountsServer !== "string") {
+    res.status(400).json({ message: "`accounts-server` is required and must be a string" });
+    return;
+  }
+
+  if (!isAuthorizedAccountsServerUrl(accountsServer)) {
+    res.status(400).json({ message: "`accounts-server` is not authorized" });
     return;
   }
 
@@ -54,7 +79,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   await createOAuthAppCredential({ appId: appConfig.slug, type: appConfig.type }, tokenInfo.data, req);
 
-  const state = decodeOAuthState(req);
   res.redirect(
     getSafeRedirectUrl(state?.returnTo) ??
       getInstalledAppPath({ variant: appConfig.variant, slug: appConfig.slug })

@@ -86,8 +86,8 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
-  if (isAdmin) return;
+  const { userId, isSystemWideAdmin } = req;
+  if (isSystemWideAdmin) return;
   const data = schemaAvailabilityCreateBodyParams.parse(req.body);
   const schedule = await prisma.schedule.findFirst({
     where: { userId, id: data.scheduleId },
