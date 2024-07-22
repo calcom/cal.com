@@ -167,15 +167,18 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       continue;
     }
 
-    teamMemberPromises.push(
-      getTranslation(user.locale ?? "en", "common").then((tTeamMember) => ({
-        id: user.id,
-        email: user.email,
-        name: user.name || "",
-        timeZone: user.timeZone,
-        language: { translate: tTeamMember, locale: user.locale ?? "en" },
-      }))
-    );
+    // Check that the team member is a part of the booking
+    if (booking.attendees.some((attendee) => attendee.email === user.email)) {
+      teamMemberPromises.push(
+        getTranslation(user.locale ?? "en", "common").then((tTeamMember) => ({
+          id: user.id,
+          email: user.email,
+          name: user.name || "",
+          timeZone: user.timeZone,
+          language: { translate: tTeamMember, locale: user.locale ?? "en" },
+        }))
+      );
+    }
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
