@@ -66,7 +66,11 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   ): string {
     return `
 ${this.t(
-  title || this.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+  title
+    ? title
+    : this.calEvent.recurringEvent?.count
+    ? "new_event_scheduled_recurring"
+    : "new_event_scheduled"
 )}
 ${this.t(subtitle)}
 ${extraInfo}
