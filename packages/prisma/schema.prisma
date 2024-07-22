@@ -427,6 +427,7 @@ model OrganizationSettings {
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
   isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
+  isAdminAPIEnabled             Boolean    @default(false)
 }
 
 enum MembershipRole {
