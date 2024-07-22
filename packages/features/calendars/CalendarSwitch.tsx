@@ -19,6 +19,7 @@ export type ICalendarSwitchProps = {
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const isPlatform = useIsPlatform();
 
+  // instead of returning an empty fragment return platform calendar switch
   return !isPlatform ? <WebCalendarSwitch {...props} /> : <></>;
 };
 
