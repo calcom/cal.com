@@ -360,6 +360,7 @@ export const orgSettingsSchema = z
     isOrganizationConfigured: z.boolean().optional(),
     isAdminReviewed: z.boolean().optional(),
     orgAutoAcceptEmail: z.string().optional(),
+    isAdminAPIEnabled: z.boolean().optional(),
   })
   .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
