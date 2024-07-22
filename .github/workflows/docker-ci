@@ -1,5 +1,5 @@
 ---
-name: Docker Push/Merge Workflow
+name: Docker CI
 
 on:
   push:
