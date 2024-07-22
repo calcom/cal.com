@@ -124,8 +124,8 @@ export const OAuthClientCard = ({
               type="button"
               className="h-4 w-4 cursor-pointer"
               onClick={() => {
-                navigator.clipboard.writeText(id);
-                showToast("Client id copied to clipboard.", "success");
+                navigator.clipboard.writeText(organizationId.toString());
+                showToast("Organization id copied to clipboard.", "success");
               }}
             />
           </div>
