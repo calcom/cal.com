@@ -132,7 +132,11 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           ),
         }))
       ),
-      teamAdmin: parent?.team?.members.find((mem) => mem.role === "ADMIN")?.user.name || null,
+      teamAdmin:
+        parent?.team?.members
+          .filter((mem) => mem.role === "ADMIN")
+          .map((mem) => mem.user.name)
+          .join(", ") || null,
     };
   };
 
