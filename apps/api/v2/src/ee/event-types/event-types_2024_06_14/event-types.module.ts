@@ -22,6 +22,11 @@ import { Module } from "@nestjs/common";
     UsersService,
   ],
   controllers: [EventTypesController_2024_06_14],
-  exports: [EventTypesService_2024_06_14, EventTypesRepository_2024_06_14],
+  exports: [
+    EventTypesService_2024_06_14,
+    EventTypesRepository_2024_06_14,
+    InputEventTypesService_2024_06_14,
+    OutputEventTypesService_2024_06_14,
+  ],
 })
 export class EventTypesModule_2024_06_14 {}

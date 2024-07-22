@@ -77,6 +77,19 @@ export class UsersRepository {
     });
   }
 
+  async findByIdsWithEventTypes(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      include: {
+        eventTypes: true,
+      },
+    });
+  }
+
   async findByIdWithCalendars(userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {
