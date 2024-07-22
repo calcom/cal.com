@@ -75,7 +75,6 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     enabled: !!session.data?.user?.org,
   });
 
-  console.log(props.justEmailInvites, "props.justEmailInvites");
   // Check current org role and not team role
   const isOrgAdminOrOwner =
     currentOrg &&
