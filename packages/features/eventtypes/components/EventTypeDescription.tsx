@@ -10,12 +10,15 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { EventTypeModel } from "@calcom/prisma/zod";
-import { Badge } from "@calcom/ui";
+import { Badge, Tooltip } from "@calcom/ui";
 
 export type EventTypeDescriptionProps = {
   eventType: Pick<
     z.infer<typeof EventTypeModel>,
-    Exclude<keyof typeof baseEventTypeSelect, "recurringEvent"> | "metadata" | "seatsPerTimeSlot"
+    | Exclude<keyof typeof baseEventTypeSelect, "recurringEvent">
+    | "metadata"
+    | "seatsPerTimeSlot"
+    | "ownerName"
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
@@ -78,11 +81,21 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.metadata?.managedEventConfig && !isPublic && (
-            <Badge variant="gray" startIcon="lock">
-              {t("managed")}
-            </Badge>
-          )}
+          {eventType.metadata?.managedEventConfig &&
+            !isPublic &&
+            (!!eventType.ownerName ? (
+              <Tooltip content={t("managed_by_owner", { owner: eventType.ownerName })}>
+                <div>
+                  <Badge variant="gray" startIcon="lock">
+                    {t("managed")}
+                  </Badge>
+                </div>
+              </Tooltip>
+            ) : (
+              <Badge variant="gray" startIcon="lock">
+                {t("managed")}
+              </Badge>
+            ))}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
               <Badge variant="gray" startIcon="refresh-cw">
