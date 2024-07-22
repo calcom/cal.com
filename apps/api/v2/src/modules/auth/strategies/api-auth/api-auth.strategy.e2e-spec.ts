@@ -117,22 +117,9 @@ describe("ApiAuthStrategy", () => {
         oAuthClient.id
       );
 
-      const context: ExecutionContext = {
-        switchToHttp: () => ({
-          getRequest: () => ({
-            headers: {
-              authorization: `Bearer ${accessToken}`,
-            },
-            get: (key: string) =>
-              ({ Authorization: `Bearer ${accessToken}`, origin: "http://localhost:3000" }[key]),
-          }),
-        }),
-      } as ExecutionContext;
-      const request = context.switchToHttp().getRequest();
-
       const user = await strategy.accessTokenStrategy(accessToken);
-      await expect(user).toBeDefined();
-      if (user) await expect(user.id).toEqual(validAccessTokenUser.id);
+      expect(user).toBeDefined();
+      expect(user?.id).toEqual(validAccessTokenUser.id);
     });
 
     it("should return user associated with valid api key", async () => {
@@ -140,22 +127,9 @@ describe("ApiAuthStrategy", () => {
       now.setDate(now.getDate() + 1);
       const { keyString } = await apiKeysRepositoryFixture.createApiKey(validApiKeyUser.id, now);
 
-      const context: ExecutionContext = {
-        switchToHttp: () => ({
-          getRequest: () => ({
-            headers: {
-              authorization: `Bearer cal_test_${keyString}`,
-            },
-            get: (key: string) =>
-              ({ Authorization: `Bearer cal_test_${keyString}`, origin: "http://localhost:3000" }[key]),
-          }),
-        }),
-      } as ExecutionContext;
-      const request = context.switchToHttp().getRequest();
-
       const user = await strategy.apiKeyStrategy(keyString);
-      await expect(user).toBeDefined();
-      if (user) expect(user.id).toEqual(validApiKeyUser.id);
+      expect(user).toBeDefined();
+      expect(user?.id).toEqual(validApiKeyUser.id);
     });
 
     it("should return user associated with valid OAuth client", async () => {
