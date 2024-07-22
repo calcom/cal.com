@@ -1,3 +1,6 @@
+// eslint-disable-next-line no-restricted-imports
+import { cloneDeep } from "lodash";
+
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
@@ -307,7 +310,35 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     },
   ]);
   // Send to cancelled RR host
-  await sendRoundRobinCancelledEmails(evt, [
+  // First we need to replace the new RR host with the old RR host in the evt object
+  const cancelledRRHostEvt = cloneDeep(evt);
+  if (hasOrganizerChanged) {
+    cancelledRRHostEvt.organizer = {
+      name: previousRRHost.name || "",
+      email: previousRRHost.email,
+      language: {
+        locale: previousRRHost.locale || "en",
+        translate: previousRRHostT,
+      },
+      timeZone: previousRRHost.timeZone,
+      timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+    };
+  } else {
+    // Filter out the new RR host from attendees and add the old RR host
+    const newMembersArray = cancelledRRHostEvt.team?.members || [];
+    cancelledRRHostEvt.team.members = newMembersArray.filter(
+      (member) => member.email !== reassignedRRHost.email
+    );
+    cancelledRRHostEvt.team.members.unshift({
+      id: previousRRHost.id,
+      email: previousRRHost.email,
+      name: previousRRHost.name || "",
+      timeZone: previousRRHost.timeZone,
+      language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+    });
+  }
+
+  await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
     {
       ...previousRRHost,
       name: previousRRHost.name || "",
