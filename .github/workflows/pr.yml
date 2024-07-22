@@ -86,6 +86,7 @@ jobs:
             core.setOutput('run-e2e', labelFound);
 
   cache-db:
+    needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Cache DB for tests
     steps:
