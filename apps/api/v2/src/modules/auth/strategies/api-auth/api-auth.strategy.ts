@@ -30,27 +30,36 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   }
 
   async authenticate(request: Request) {
-    const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
-    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
-    const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
+    try {
+      const { params } = request;
+      const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
+      const oAuthClientId = request.get(X_CAL_CLIENT_ID) || params.clientId;
+      const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
-    if (oAuthClientId && oAuthClientSecret) {
-      return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret);
+      if (oAuthClientId && oAuthClientSecret) {
+        return await this.authenticateOAuthClient(oAuthClientId, oAuthClientSecret);
+      }
+
+      if (bearerToken) {
+        const requestOrigin = request.get("Origin");
+        return await this.authenticateApiKey(bearerToken, requestOrigin);
+      }
+
+      throw new UnauthorizedException(
+        "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers"
+      );
+    } catch (err) {
+      if (err instanceof Error) {
+        return this.error(err);
+      }
+      return this.error(
+        new InternalServerErrorException("An error occurred while authenticating the request")
+      );
     }
-
-    if (bearerToken) {
-      const requestOrigin = request.get("Origin");
-      return await this.authenticateApiKey(bearerToken, requestOrigin);
-    }
-
-    throw new UnauthorizedException(
-      "No authentication method provided. Either pass an API key as 'Bearer' header or OAuth client credentials as 'x-cal-secret-key' and 'x-cal-client-id' headers"
-    );
   }
 
   async authenticateOAuthClient(oAuthClientId: string, oAuthClientSecret: string) {
     const user = await this.oAuthClientStrategy(oAuthClientId, oAuthClientSecret);
-
     return this.success(user);
   }
 
