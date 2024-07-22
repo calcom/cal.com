@@ -33,7 +33,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     try {
       const { params } = request;
       const oAuthClientSecret = request.get(X_CAL_SECRET_KEY);
-      const oAuthClientId = request.get(X_CAL_CLIENT_ID) || params.clientId;
+      const oAuthClientId = params.clientId || request.get(X_CAL_CLIENT_ID);
       const bearerToken = request.get("Authorization")?.replace("Bearer ", "");
 
       if (oAuthClientId && oAuthClientSecret) {
@@ -66,8 +66,12 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
   async oAuthClientStrategy(oAuthClientId: string, oAuthClientSecret: string) {
     const client = await this.oauthRepository.getOAuthClient(oAuthClientId);
 
-    if (!client || client.secret !== oAuthClientSecret) {
-      throw new UnauthorizedException("Invalid client credentials");
+    if (!client) {
+      throw new UnauthorizedException(`Client with ID ${oAuthClientId} not found`);
+    }
+
+    if (client.secret !== oAuthClientSecret) {
+      throw new UnauthorizedException("Invalid client secret");
     }
 
     const platformCreatorId = await this.profilesRepository.getPlatformOwnerUserId(client.organizationId);
