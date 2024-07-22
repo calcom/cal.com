@@ -6,11 +6,11 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import {
   SelectedCalendarsInputDto,
   SelectedCalendarsQueryParamsInputDto,
-} from "@/modules/selected-calendars/controllers/inputs/selected-calendars.input";
+} from "@/modules/selected-calendars/inputs/selected-calendars.input";
 import {
   SelectedCalendarOutputResponseDto,
   SelectedCalendarOutputDto,
-} from "@/modules/selected-calendars/controllers/outputs/selected-calendars.output";
+} from "@/modules/selected-calendars/outputs/selected-calendars.output";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards, Delete, NotFoundException, Query } from "@nestjs/common";
