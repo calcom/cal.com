@@ -33,6 +33,16 @@ const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>
         },
       },
     },
+    activeOnTeams: {
+      select: {
+        team: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    },
     steps: true,
     team: {
       select: {
@@ -41,6 +51,7 @@ const { include: includedFields } = Prisma.validator<Prisma.WorkflowDefaultArgs>
         name: true,
         members: true,
         logoUrl: true,
+        isOrganization: true,
       },
     },
   },
@@ -88,7 +99,7 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
 
-      return { readOnly, ...workflow };
+      return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
     });
 
     return {
@@ -140,7 +151,7 @@ export const filteredListHandler = async ({ ctx, input }: FilteredListOptions) =
         (member) => member.userId === ctx.user.id && member.role === MembershipRole.MEMBER
       );
 
-      return { readOnly, ...workflow };
+      return { readOnly, isOrg: workflow.team?.isOrganization ?? false, ...workflow };
     });
 
     return {
