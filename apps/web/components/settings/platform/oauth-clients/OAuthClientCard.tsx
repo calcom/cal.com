@@ -22,6 +22,7 @@ type OAuthClientCardProps = {
   secret: string;
   onDelete: (id: string) => Promise<void>;
   isLoading: boolean;
+  organizationId: number;
 };
 
 export const OAuthClientCard = ({
@@ -38,6 +39,7 @@ export const OAuthClientCard = ({
   onDelete,
   isLoading,
   areEmailsEnabled,
+  organizationId,
 }: OAuthClientCardProps) => {
   const router = useRouter();
 
@@ -109,6 +111,21 @@ export const OAuthClientCard = ({
               onClick={() => {
                 navigator.clipboard.writeText(secret);
                 showToast("Client secret copied to clipboard.", "success");
+              }}
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <div className="font-semibold">Organization Id:</div>
+            <div>{organizationId}</div>
+            <Icon
+              name="clipboard"
+              type="button"
+              className="h-4 w-4 cursor-pointer"
+              onClick={() => {
+                navigator.clipboard.writeText(id);
+                showToast("Client id copied to clipboard.", "success");
               }}
             />
           </div>
