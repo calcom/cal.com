@@ -219,8 +219,6 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   isInstantEvent!: boolean;
 
-  schedule!: Schedule_2024_06_14 | null;
-
   @IsInt()
   @IsOptional()
   teamId?: number | null;
