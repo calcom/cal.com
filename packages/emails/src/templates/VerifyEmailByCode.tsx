@@ -7,7 +7,10 @@ export const VerifyEmailByCode = (
   props: EmailVerifyCode & Partial<React.ComponentProps<typeof BaseEmailHtml>>
 ) => {
   return (
-    <BaseEmailHtml subject={props.language("verify_email_subject", { appName: APP_NAME })}>
+    <BaseEmailHtml
+      subject={props.language(`verify_email_subject${props.isVerifyingEmail ? "_verifying_email" : ""}`, {
+        appName: APP_NAME,
+      })}>
       <p
         style={{
           fontWeight: 600,

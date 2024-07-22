@@ -1,1 +1,21 @@
-{}
+{
+  "identity_provider": "Доставчик на самоличност",
+  "trial_days_left": "Остава $t(day, {\"count\": {{days}} }) до края на пробната ви версия на PRO",
+  "day_one": "{{count}} ден",
+  "day_other": "{{count}} дни",
+  "second_one": "{{count}} секунда",
+  "second_other": "{{count}} секунди",
+  "upgrade_now": "Обновяване сега",
+  "accept_invitation": "Приемане на покана",
+  "calcom_explained": "{{appName}} предоставя инфраструктура за планиране за абсолютно всички.",
+  "calcom_explained_new_user": "Завършете настройката на своя акаунт в {{appName}}! Само няколко стъпки Ви делят от решаването на всичките Ви проблеми с планирането.",
+  "have_any_questions": "Имате въпроси? Ние сме тук, за да ви помогнем.",
+  "reset_password_subject": "{{appName}}: Инструкции за нулиране на паролата",
+  "verify_email_subject": "{{appName}}: Потвърждаване на профила ви",
+  "verify_email_subject_verifying_email": "{{appName}}: Проверете имейла си",
+  "check_your_email": "Проверете електронната си поща",
+  "old_email_address": "Стар имейл",
+  "new_email_address": "Нов имейл",
+  "verify_email_page_body": "Изпратихме имейл до {{email}}. Важно е да проверите имейл адреса си, за да гарантирате най-добрата възможност за доставка на имейли и календари от {{appName}}.",
+  "verify_email_banner_body": "Проверете имейл адреса си, за да гарантирате най-добрата доставка на имейли и календари"
+}

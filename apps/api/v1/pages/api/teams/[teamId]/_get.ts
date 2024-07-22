@@ -37,11 +37,11 @@ import { schemaTeamReadPublic } from "~/lib/validations/team";
  *         description: Team was not found
  */
 export async function getHandler(req: NextApiRequest) {
-  const { isAdmin, userId } = req;
+  const { isSystemWideAdmin, userId } = req;
   const { teamId } = schemaQueryTeamId.parse(req.query);
   const where: Prisma.TeamWhereInput = { id: teamId };
   // Non-admins can only query the teams they're part of
-  if (!isAdmin) where.members = { some: { userId } };
+  if (!isSystemWideAdmin) where.members = { some: { userId } };
   const data = await prisma.team.findFirstOrThrow({ where });
   return { team: schemaTeamReadPublic.parse(data) };
 }

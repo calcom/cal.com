@@ -414,6 +414,8 @@
   "error": "Greška",
   "edit_location": "Uredi lokaciju",
   "into_the_future": "u budućnost",
+  "app_theme": "Tema kontrolne ploče",
+  "app_theme_applies_note": "Ovo se primjenjuje samo na vašu prijavljenu kontrolnu ploču",
   "already_have_account": "Već imate račun?",
   "email_team_invite|subject|invited_to_regular_team": "{{user}} vas je pozvao da se pridružite timu {{team}} na {{appName}}"
 }

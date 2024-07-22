@@ -62,9 +62,9 @@ import {
  *        description: Authorization information is missing or invalid.
  */
 async function postHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
   const body = schemaBookingCreateBodyParams.parse(req.body);
-  const args: Prisma.BookingFindFirstOrThrowArgs = isAdmin
+  const args: Prisma.BookingFindFirstOrThrowArgs = isSystemWideAdmin
     ? /* If admin, we only check that the booking exists */
       { where: { id: body.bookingId } }
     : /* For non-admins we make sure the booking belongs to the user */

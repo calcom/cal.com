@@ -14,8 +14,10 @@ const config = {
       "es",
       "fr",
       "he",
+      "hu",
       "it",
       "ja",
+      "km",
       "ko",
       "nl",
       "no",
@@ -31,7 +33,6 @@ const config = {
       "vi",
       "zh-CN",
       "zh-TW",
-      "km",
     ],
   },
   fallbackLng: {

@@ -16,8 +16,8 @@ type CustomNextApiRequest = NextApiRequest & {
 function handleAdminRequests(req: CustomNextApiRequest) {
   // To match type safety with runtime
   if (!hasReqArgs(req)) throw Error("Missing req.args");
-  const { userId, isAdmin } = req;
-  if (isAdmin && req.query.userId) {
+  const { userId, isSystemWideAdmin } = req;
+  if (isSystemWideAdmin && req.query.userId) {
     const query = schemaQuerySingleOrMultipleUserIds.parse(req.query);
     const userIds = Array.isArray(query.userId) ? query.userId : [query.userId || userId];
     req.args.where = { userId: { in: userIds } };
@@ -30,8 +30,8 @@ function hasReqArgs(req: CustomNextApiRequest): req is Ensure<CustomNextApiReque
 }
 
 async function getHandler(req: CustomNextApiRequest) {
-  const { userId, isAdmin } = req;
-  req.args = isAdmin ? {} : { where: { userId } };
+  const { userId, isSystemWideAdmin } = req;
+  req.args = isSystemWideAdmin ? {} : { where: { userId } };
   // Proof of concept: allowing mutation in exchange of composability
   handleAdminRequests(req);
   const data = await prisma.apiKey.findMany(req.args);
