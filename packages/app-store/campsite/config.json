@@ -3,7 +3,7 @@
   "name": "Campsite",
   "slug": "campsite",
   "type": "campsite_conferencing",
-  "logo": "icon.svg",
+  "logo": "icon.png",
   "url": "https://campsite.co",
   "variant": "conferencing",
   "categories": ["conferencing"],
