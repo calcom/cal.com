@@ -44,70 +44,71 @@ export type TranscriptionGeneratedPayload = {
   };
 };
 
-export type OOOEntryPayload = {
-  oooEntry?: {
-    id?: number;
-    start?: string;
-    end?: string;
-    createdAt?: string;
-    updatedAt?: string;
-    notes?: string | null;
-    reason?: {
+export type OOOEntryPayloadType = {
+  oooEntry: {
+    id: number;
+    start: string;
+    end: string;
+    createdAt: string;
+    updatedAt: string;
+    notes: string | null;
+    reason: {
       emoji?: string;
       reason?: string;
     };
-    reasonId?: number;
-    user?: {
-      id?: number;
-      name?: string | null;
-      username?: string | null;
-      timeZone?: string;
+    reasonId: number;
+    user: {
+      id: number;
+      name: string | null;
+      username: string | null;
+      timeZone: string;
     };
-    toUser?: {
-      id?: number;
+    toUser: {
+      id: number;
       name?: string | null;
       username?: string | null;
       timeZone?: string;
     } | null;
-    uuid?: string;
+    uuid: string;
   };
 };
 
-export type WebhookDataType =
-  | (CalendarEvent &
-      TranscriptionGeneratedPayload &
-      // BookingNoShowUpdatedPayload & // This breaks all other webhooks
-      EventTypeInfo & {
-        metadata?: { [key: string]: string | number | boolean | null };
-        bookingId?: number;
-        status?: string;
-        smsReminderNumber?: string;
-        rescheduleId?: number;
-        rescheduleUid?: string;
-        rescheduleStartTime?: string;
-        rescheduleEndTime?: string;
-        triggerEvent: string;
-        createdAt: string;
-        downloadLink?: string;
-        paymentId?: number;
-      })
-  | OOOEntryPayload;
+export type EventPayloadType = CalendarEvent &
+  TranscriptionGeneratedPayload &
+  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
+  EventTypeInfo & {
+    metadata?: { [key: string]: string | number | boolean | null };
+    bookingId?: number;
+    status?: string;
+    smsReminderNumber?: string;
+    rescheduleId?: number;
+    rescheduleUid?: string;
+    rescheduleStartTime?: string;
+    rescheduleEndTime?: string;
+    triggerEvent: string;
+    createdAt: string;
+    downloadLink?: string;
+    paymentId?: number;
+  };
+
+export type WebhookDataType = EventPayloadType | OOOEntryPayloadType;
 
 function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ): WithUTCOffsetType<WebhookDataType> {
-  const calendarEventData = data as CalendarEvent;
-  if (calendarEventData?.organizer?.timeZone) {
-    (calendarEventData.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
-      calendarEventData.organizer.timeZone,
-      calendarEventData.startTime
-    );
-  }
+  if (isEventPayload(data)) {
+    if (data?.organizer?.timeZone) {
+      (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
+        data.organizer.timeZone,
+        data.startTime
+      );
+    }
 
-  if (calendarEventData?.attendees?.length) {
-    (calendarEventData.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
-      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, calendarEventData.startTime);
-    });
+    if (data?.attendees?.length) {
+      (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
+        attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
+      });
+    }
   }
 
   return data as WithUTCOffsetType<WebhookDataType>;
@@ -179,6 +180,18 @@ export function jsonParse(jsonString: string) {
   return false;
 }
 
+export function isOOOEntryPayload(
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+): data is Omit<OOOEntryPayloadType, "createdAt" | "triggerEvent"> {
+  return "oooEntry" in data;
+}
+
+export function isEventPayload(
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+): data is Omit<EventPayloadType, "createdAt" | "triggerEvent"> {
+  return !("oooEntry" in data);
+}
+
 const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
@@ -194,18 +207,15 @@ const sendPayload = async (
   if ("description" in data && "notes" in data) {
     data.description = data.description || data.notes;
   }
+
   data = addUTCOffset(data);
 
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier" && triggerEvent !== "OOO_CREATED") {
-    const zapierData = data as WithUTCOffsetType<
-      CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
-    >;
-    body = getZapierPayload({ ...zapierData, createdAt });
-  } else if (template) {
-    const templateData = data as WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string }>;
-    body = applyTemplate(template, { ...templateData, triggerEvent, createdAt }, contentType);
+  if (appId === "zapier" && isEventPayload(data)) {
+    body = getZapierPayload({ ...data, createdAt });
+  } else if (template && isEventPayload(data)) {
+    body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType); // we probably need this to work for ooo payload too
   } else {
     body = JSON.stringify({
       triggerEvent: triggerEvent,
