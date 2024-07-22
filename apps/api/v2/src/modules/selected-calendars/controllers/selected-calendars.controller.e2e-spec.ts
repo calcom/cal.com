@@ -65,6 +65,12 @@ describe("Platform Selected Calendars Endpoints", () => {
     const tokens = await tokensRepositoryFixture.createTokens(user.id, oAuthClient.id);
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
+    appleCalendarCredentials = await credentialsRepositoryFixture.create(
+      APPLE_CALENDAR_TYPE,
+      {},
+      user.id,
+      APPLE_CALENDAR_ID
+    );
     await app.init();
     jest
       .spyOn(CalendarsService.prototype, "getCalendars")
@@ -93,14 +99,7 @@ describe("Platform Selected Calendars Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`/POST/v2/selected-calendars: it should respond with a 201 returning back the user added selected calendar`, async () => {
-    appleCalendarCredentials = await credentialsRepositoryFixture.create(
-      APPLE_CALENDAR_TYPE,
-      {},
-      user.id,
-      APPLE_CALENDAR_ID
-    );
-
+  it(`POST /v2/selected-calendars: it should respond with a 201 returning back the user added selected calendar`, async () => {
     const body = {
       integration: appleCalendarCredentials.type,
       externalId: "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/",
@@ -113,29 +112,22 @@ describe("Platform Selected Calendars Endpoints", () => {
       .send(body)
       .expect(201)
       .then(async (response) => {
-        const responseBody: Promise<SelectedCalendarOutputResponseDto> = response.body;
+        const responseBody: SelectedCalendarOutputResponseDto = response.body;
 
-        expect((await responseBody).status).toEqual(SUCCESS_STATUS);
-        expect((await responseBody).data).toBeDefined();
-        expect((await responseBody).data.credentialId).toEqual(body.credentialId);
-        expect((await responseBody).data.integration).toEqual(body.integration);
-        expect((await responseBody).data.externalId).toEqual(body.externalId);
-        expect((await responseBody).data.userId).toEqual(user.id);
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data).toBeDefined();
+        expect(responseBody.data.credentialId).toEqual(body.credentialId);
+        expect(responseBody.data.integration).toEqual(body.integration);
+        expect(responseBody.data.externalId).toEqual(body.externalId);
+        expect(responseBody.data.userId).toEqual(user.id);
       });
   });
 
-  it(`/DELETE/v2/selected-calendars: it should respond with a 200 returning back the user deleted selected calendar`, async () => {
-    appleCalendarCredentials = await credentialsRepositoryFixture.create(
-      APPLE_CALENDAR_TYPE,
-      {},
-      user.id,
-      APPLE_CALENDAR_ID
-    );
-
+  it(`DELETE /v2/selected-calendars: it should respond with a 200 returning back the user deleted selected calendar`, async () => {
     const integration = appleCalendarCredentials.type;
     const externalId =
       "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/";
-    const credentialId = String(appleCalendarCredentials.id);
+    const credentialId = appleCalendarCredentials.id;
 
     await request(app.getHttpServer())
       .delete(
@@ -144,14 +136,14 @@ describe("Platform Selected Calendars Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .expect(200)
       .then(async (response) => {
-        const responseBody: Promise<SelectedCalendarOutputResponseDto> = response.body;
+        const responseBody: SelectedCalendarOutputResponseDto = response.body;
 
-        expect((await responseBody).status).toEqual(SUCCESS_STATUS);
-        expect((await responseBody).data).toBeDefined();
-        expect((await responseBody).data.credentialId).toEqual(Number(credentialId));
-        expect((await responseBody).data.externalId).toEqual(externalId);
-        expect((await responseBody).data.integration).toEqual(integration);
-        expect((await responseBody).data.userId).toEqual(user.id);
+        expect(responseBody.status).toEqual(SUCCESS_STATUS);
+        expect(responseBody.data).toBeDefined();
+        expect(responseBody.data.credentialId).toEqual(credentialId);
+        expect(responseBody.data.externalId).toEqual(externalId);
+        expect(responseBody.data.integration).toEqual(integration);
+        expect(responseBody.data.userId).toEqual(user.id);
       });
   });
 
@@ -159,7 +151,6 @@ describe("Platform Selected Calendars Endpoints", () => {
     await oauthClientRepositoryFixture.delete(oAuthClient.id);
     await teamRepositoryFixture.delete(organization.id);
     await userRepositoryFixture.deleteByEmail(user.email);
-    await await credentialsRepositoryFixture.delete(appleCalendarCredentials.id);
     await app.close();
   });
 });
