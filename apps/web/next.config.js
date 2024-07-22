@@ -265,6 +265,162 @@ const nextConfig = {
   async rewrites() {
     const beforeFiles = [
       {
+        source: "/404",
+        destination: "/404.html",
+      },
+      {
+        source: "/agenda",
+        destination: "/agenda.html",
+      },
+      {
+        source: "/agendar-consulta",
+        destination: "/agendar-consulta.html",
+      },
+      {
+        source: "/agendar-terapia",
+        destination: "/agendar-terapia.html",
+      },
+      {
+        source: "/artigos",
+        destination: "/artigos.html",
+      },
+      {
+        source: "/blog",
+        destination: "/blog.html",
+      },
+      {
+        source: "/codigo-de-etica",
+        destination: "/codigo-de-etica.html",
+      },
+      {
+        source: "/conclua-sua-inscricao",
+        destination: "/conclua-sua-inscricao.html",
+      },
+      {
+        source: "/consulta-agendada",
+        destination: "/consulta-agendada.html",
+      },
+      {
+        source: "/cookie-modal",
+        destination: "/cookie-modal.html",
+      },
+      {
+        source: "/detail_author",
+        destination: "/detail_author.html",
+      },
+      {
+        source: "/detail_category",
+        destination: "/detail_category.html",
+      },
+      {
+        source: "/detail_docs",
+        destination: "/detail_docs.html",
+      },
+      {
+        source: "/detail_politics",
+        destination: "/detail_politics.html",
+      },
+      {
+        source: "/detail_post",
+        destination: "/detail_post.html",
+      },
+      {
+        source: "/detail_team",
+        destination: "/detail_team.html",
+      },
+      {
+        source: "/discover",
+        destination: "/discover.html",
+      },
+      {
+        source: "/guias",
+        destination: "/guias.html",
+      },
+      {
+        source: "/home",
+        destination: "/home.html",
+      },
+      {
+        source: "/index",
+        destination: "/index.html",
+      },
+      {
+        source: "/pedido-aprovado",
+        destination: "/pedido-aprovado.html",
+      },
+      {
+        source: "/perguntas-frequentes",
+        destination: "/perguntas-frequentes.html",
+      },
+      {
+        source: "/planos-de-terapia",
+        destination: "/planos-de-terapia.html",
+      },
+      {
+        source: "/politica-de-privacidade",
+        destination: "/politica-de-privacidade.html",
+      },
+      {
+        source: "/politica-de-reembolso",
+        destination: "/politica-de-reembolso.html",
+      },
+      {
+        source: "/quem-somos",
+        destination: "/quem-somos.html",
+      },
+      {
+        source: "/terapia-agendada",
+        destination: "/terapia-agendada.html",
+      },
+      {
+        source: "/terapia-cognitivo-comportamental",
+        destination: "/terapia-cognitivo-comportamental.html",
+      },
+      {
+        source: "/terapia-ocupacional",
+        destination: "/terapia-ocupacional.html",
+      },
+      {
+        source: "/terapias-to-tcc",
+        destination: "/terapias-to-tcc.html",
+      },
+      {
+        source: "/termos-de-uso",
+        destination: "/termos-de-uso.html",
+      },
+      {
+        source: "/terms-modal",
+        destination: "/terms-modal.html",
+      },
+      {
+        source: "/tests",
+        destination: "/tests.html",
+      },
+      {
+        source: "/trabalhe-conosco",
+        destination: "/trabalhe-conosco.html",
+      },
+      {
+        source: "/tratamento-para-ansiedade",
+        destination: "/tratamento-para-ansiedade.html",
+      },
+      {
+        source: "/tratamento-para-dor-cronica",
+        destination: "/tratamento-para-dor-cronica.html",
+      },
+      {
+        source: "/tratamento-para-estresse-burnout",
+        destination: "/tratamento-para-estresse-burnout.html",
+      },
+      {
+        source: "/tratamento-para-insonia",
+        destination: "/tratamento-para-insonia.html",
+      },
+      {
+        source: "/tratamento-para-tdah",
+        destination: "/tratamento-para-tdah.html",
+      },
+      {
         source: "/forms/:formQuery*",
         destination: "/apps/routing-forms/routing-link/:formQuery*",
       },
