@@ -18,30 +18,12 @@ jobs:
     runs-on: buildjet-2vcpu-ubuntu-2204
     permissions:
       pull-requests: read
-    services:
-      postgres:
-        image: postgres:13
-        credentials:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: calendso
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
     outputs:
       has-files-requiring-all-checks: ${{ steps.filter.outputs.has-files-requiring-all-checks }}
       commit-sha: ${{ steps.get_sha.outputs.commit-sha }}
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/dangerous-git-checkout
-      - uses: ./.github/actions/yarn-install
       - uses: dorny/paths-filter@v3
         id: filter
         with:
@@ -52,7 +34,6 @@ jobs:
         id: get_sha
         run: |
           echo "commit-sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
-      - uses: ./.github/actions/cache-db
 
   check-label:
     needs: [changes]
@@ -104,6 +85,12 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
+  prepare-test-suite:
+    name: Prepare test suite
+    needs: [changes, check-label]
+    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/prepare-test-suite.yml
+    secrets: inherit
 
   type-check:
     name: Type check
