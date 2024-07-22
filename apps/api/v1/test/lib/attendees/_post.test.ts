@@ -26,7 +26,7 @@ describe("POST /api/attendees", () => {
       prismaMock.booking.findFirst.mockResolvedValue(null);
 
       req.userId = 123;
-      // req.isAdmin = false; // Não é necessário especificar que não é admin
+      // req.isAdmin = false;
       await handler(req, res);
 
       expect(res.statusCode).toBe(403);
@@ -53,7 +53,7 @@ describe("POST /api/attendees", () => {
       };
 
       prismaMock.attendee.create.mockResolvedValue(attendeeData);
-      req.isAdmin = true;
+      req.isSystemWideAdmin = true;
       req.userId = 123;
       await handler(req, res);
 
