@@ -85,6 +85,12 @@ jobs:
             console.log('Found the label?', labelFound);
             core.setOutput('run-e2e', labelFound);
 
+  cache-db:
+    runs-on: buildjet-2vcpu-ubuntu-2204
+    name: Cache DB for tests
+    steps:
+      - uses: ./.github/actions/cache-db
+
   type-check:
     name: Type check
     needs: [changes, check-label]
@@ -104,13 +110,6 @@ jobs:
     needs: [changes, check-label]
     if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
     uses: ./.github/workflows/unit-tests.yml
-    secrets: inherit
-
-  cache-db:
-    name: Tests
-    needs: [changes, check-label]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/actions/cache-db
     secrets: inherit
 
   build-api-v1:
