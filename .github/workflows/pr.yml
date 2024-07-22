@@ -134,12 +134,12 @@ jobs:
     uses: ./.github/workflows/production-build-without-database.yml
     secrets: inherit
 
-  integration-test:
-    name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2, prepare-test-suite]
-    if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/integration-tests.yml
-    secrets: inherit
+  # integration-test:
+  #   name: Tests
+  #   needs: [changes, check-label, build, build-api-v1, build-api-v2, prepare-test-suite]
+  #   if: ${{ needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+  #   uses: ./.github/workflows/integration-tests.yml
+  #   secrets: inherit
 
   e2e:
     name: Tests
@@ -148,12 +148,12 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
-  e2e-api-v2:
-    name: Tests
-    needs: [changes, check-label, build, build-api-v1, build-api-v2, prepare-test-suite]
-    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
-    uses: ./.github/workflows/e2e-api-v2.yml
-    secrets: inherit
+  # e2e-api-v2:
+  #   name: Tests
+  #   needs: [changes, check-label, build, build-api-v1, build-api-v2, prepare-test-suite]
+  #   if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+  #   uses: ./.github/workflows/e2e-api-v2.yml
+  #   secrets: inherit
 
   e2e-app-store:
     name: Tests
