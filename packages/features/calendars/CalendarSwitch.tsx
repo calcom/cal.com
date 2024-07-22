@@ -1,12 +1,12 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { classNames } from "@calcom/lib";
+import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Icon, showToast, Switch } from "@calcom/ui";
+import { showToast, CalendarSwitchComponent, Switch } from "@calcom/ui";
 
-interface ICalendarSwitchProps {
+export type ICalendarSwitchProps = {
   title: string;
   externalId: string;
   type: string;
@@ -15,9 +15,15 @@ interface ICalendarSwitchProps {
   isLastItemInList?: boolean;
   destination?: boolean;
   credentialId: number;
-}
+};
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
-  const { title, externalId, type, isChecked, name, isLastItemInList = false, credentialId } = props;
+  const isPlatform = useIsPlatform();
+
+  return !isPlatform ? <WebCalendarSwitch {...props} /> : <></>;
+};
+
+const WebCalendarSwitch = (props: ICalendarSwitchProps) => {
+  const { isChecked, title, credentialId, type, externalId } = props;
   const [checkedInternal, setCheckedInternal] = useState(isChecked);
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -62,9 +68,11 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
       showToast(`Something went wrong when toggling "${title}"`, "error");
     },
   });
+
   return (
-    <div className={classNames("my-2 flex flex-row items-center")}>
-      <div className="flex pl-2">
+    <CalendarSwitchComponent
+      {...props}
+      Switch={
         <Switch
           id={externalId}
           checked={checkedInternal}
@@ -74,20 +82,13 @@ const CalendarSwitch = (props: ICalendarSwitchProps) => {
             await mutation.mutate({ isOn });
           }}
         />
-      </div>
-      <label className="ml-3 text-sm font-medium leading-5" htmlFor={externalId}>
-        {name}
-      </label>
-      {!!props.destination && (
-        <span className="bg-subtle text-default ml-8 inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm font-normal sm:ml-4">
-          <Icon name="arrow-left" className="h-4 w-4" />
-          {t("adding_events_to")}
-        </span>
-      )}
-      {mutation.isPending && (
-        <Icon name="rotate-cw" className="text-muted h-4 w-4 animate-spin ltr:ml-1 rtl:mr-1" />
-      )}
-    </div>
+      }
+      isChecked={checkedInternal}
+      isLoading={mutation.isPending}
+      translations={{
+        spanText: t("adding_events_to"),
+      }}
+    />
   );
 };
 
