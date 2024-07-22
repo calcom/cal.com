@@ -6,6 +6,7 @@ import {
   TestData,
 } from "@calcom/web/test/utils/bookingScenario/bookingScenario";
 import { createMockNextJsRequest } from "@calcom/web/test/utils/bookingScenario/createMockNextJsRequest";
+import { expectBookingToBeInDatabase } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 
@@ -13,6 +14,8 @@ import type { Request, Response } from "express";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createMocks } from "node-mocks-http";
 import { describe, expect, test } from "vitest";
+
+import { BookingStatus } from "@calcom/prisma/enums";
 
 import handler from "../../../../pages/api/bookings/[id]/_confirm";
 
@@ -42,7 +45,7 @@ describe("Confirm /api/bookings/${id}/confirm", () => {
   });
 
   describe("Success", () => {
-    async function createMockBooking() {
+    test("Booking Status Accepted in database", async () => {
       const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
       const booker = getBooker({
         email: "booker@example.com",
@@ -90,10 +93,7 @@ describe("Confirm /api/bookings/${id}/confirm", () => {
         body: mockBookingData,
       });
 
-      return await handleNewBooking(bookingReq);
-    }
-    test("Booking Accepted", async () => {
-      const createdBooking = await createMockBooking();
+      const createdBooking = await handleNewBooking(bookingReq);
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
         body: {
@@ -111,9 +111,62 @@ describe("Confirm /api/bookings/${id}/confirm", () => {
           status: "ACCEPTED",
         })
       );
+      await expectBookingToBeInDatabase({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        uid: createdBooking.uid!,
+        eventTypeId: mockBookingData.eventTypeId,
+        status: BookingStatus.ACCEPTED,
+      });
     });
-    test("Booking Rejected", async () => {
-      const createdBooking = await createMockBooking();
+    test("Booking Status Rejected in database", async () => {
+      const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
+      const booker = getBooker({
+        email: "booker@example.com",
+        name: "Booker",
+      });
+
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slotInterval: 30,
+            requiresConfirmation: true,
+            length: 30,
+            users: [
+              {
+                id: 101,
+              },
+            ],
+          },
+        ],
+        organizer,
+        apps: [],
+      });
+      await createBookingScenario(scenarioData);
+
+      const mockBookingData = getMockRequestDataForBooking({
+        data: {
+          eventTypeId: 1,
+          responses: {
+            email: booker.email,
+            name: booker.name,
+            location: { optionValue: "", value: "New York" },
+          },
+        },
+      });
+
+      const { req: bookingReq } = createMockNextJsRequest({
+        method: "POST",
+        body: mockBookingData,
+      });
+
+      const createdBooking = await handleNewBooking(bookingReq);
       const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
         method: "POST",
         body: {
@@ -131,6 +184,12 @@ describe("Confirm /api/bookings/${id}/confirm", () => {
           status: "REJECTED",
         })
       );
+      await expectBookingToBeInDatabase({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        uid: createdBooking.uid!,
+        eventTypeId: mockBookingData.eventTypeId,
+        status: BookingStatus.REJECTED,
+      });
     });
   });
 });
