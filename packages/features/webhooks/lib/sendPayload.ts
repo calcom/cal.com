@@ -212,17 +212,19 @@ const sendPayload = async (
     data.description = data.description || data.additionalNotes;
     if (appId === "zapier") {
       body = getZapierPayload({ ...data, createdAt });
-    } else if (template) {
-      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType); // we probably need this to work for ooo payload too
     }
   }
 
   if (body === undefined) {
-    body = JSON.stringify({
-      triggerEvent: triggerEvent,
-      createdAt: createdAt,
-      payload: data,
-    });
+    if (template && (isOOOEntryPayload(data) || isEventPayload(data))) {
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+    } else {
+      body = JSON.stringify({
+        triggerEvent: triggerEvent,
+        createdAt: createdAt,
+        payload: data,
+      });
+    }
   }
 
   return _sendPayload(secretKey, webhook, body, contentType);
