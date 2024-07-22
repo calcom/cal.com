@@ -2,9 +2,19 @@
 name: Docker Push/Merge Workflow
 
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
+
+  pull_request: 
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+  pull_request_target:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
   workflow_dispatch:
 
@@ -249,6 +259,8 @@ jobs:
           input-file: "./apps/web/CHANGELOG.md"
           output-file: "./apps/web/CHANGELOG.md"
           tag-prefix: "v"
+          pre-release: "${{github.event_name == 'pull_request'}} || ${{github.event_name == 'pull_request_target'}}"
+          pre-release-identifier: "alpha"
           skip-on-empty: 'false'
           # release-count: 20
           skip-git-pull: true
@@ -328,9 +340,9 @@ jobs:
    
 
 # NEXT JOB #######################################################################  
-#update docker compose image tag and  kubernetes manifest "image tag "in a seperate repo
+#update docker compose image tag 
 
-  tag-manifest-update-compose:
+  update-compose:
     name: Tag kubernetes manifest and update compose
     needs: [unit-test, integration-test, scan-image,changelog,build-final-image]
     runs-on: ubuntu-latest
@@ -339,11 +351,6 @@ jobs:
     
     steps:
     
-      - name: Set default values for manifest tag
-        run: |
-          echo "PUSH_MANIFEST_TAG='false'" >> $GITHUB_ENV
-          echo "REMOTE_REPO=''" >> $GITHUB_ENV
-          echo "REMOTE_WORKFLOW=''" >> $GITHUB_ENV
         
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -377,15 +384,7 @@ jobs:
           github_token: ${{ secrets.RELEASE_MAIN }}
           branch: ${{ github.ref }}
 
-      - name: Trigger Deployment Workflow
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && env.PUSH_MANIFEST_TAG == 'true'
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: ${{env.REMOTE_WORKFLOW}}
-          repo: ${{ env.REMOTE_REPO }}
-          inputs: '{"image": "${{ secrets.DOCKERHUB_USERNAME }}/calcom:${{ needs.changelog.outputs.TAG }}" }'
-          token: "${{ secrets.RELEASE_MAIN }}"
-
+     
      
            
 
