@@ -1988,7 +1988,7 @@
   "error_charging_card": "Midagi läks mitteilmumise tasu võtmisel valesti. Proovige hiljem uuesti.",
   "collect_no_show_fee": "Koguge mitteilmumise tasu",
   "no_show_fee_charged": "Tasutakse mitteilmumise tasu",
-  "insights": "Insights",
+  "insights": "Teadmisi",
   "testing_workflow_info_message": "Selle töövoo testimisel pidage meeles, et e-kirju ja SMS-e saab ajastada ainult vähemalt 1 tund ette",
   "insights_no_data_found_for_filter": "Valitud filtri või valitud kuupäevade kohta andmeid ei leitud.",
   "acknowledge_booking_no_show_fee": "Ma tean, et kui ma sellel üritusel ei osale, rakendatakse minu kaardile {{summa, valuuta}} mitteilmumise tasu.",
