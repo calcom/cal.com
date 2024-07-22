@@ -35,6 +35,15 @@ const schemaBookingEditParams = z
   })
   .strict();
 
+export const schemeBookingConfirmBodyParams = Booking.pick({
+  rejectionReason: true,
+  recurringEventId: true,
+}).merge(
+  z.object({
+    confirmed: z.boolean(),
+  })
+);
+
 export const schemaBookingEditBodyParams = schemaBookingBaseBodyParams
   .merge(schemaBookingEditParams)
   .omit({ uid: true });
