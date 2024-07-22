@@ -587,6 +587,7 @@ describe("Organizations Event Types Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(userAdmin.email);
       await userRepositoryFixture.deleteByEmail(teammate1.email);
       await userRepositoryFixture.deleteByEmail(teammate2.email);
+      await userRepositoryFixture.deleteByEmail(falseTestUser.email);
       await teamsRepositoryFixture.delete(team.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();

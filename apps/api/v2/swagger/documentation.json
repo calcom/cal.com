@@ -5961,22 +5961,6 @@
           "freq"
         ]
       },
-      "Schedule_2024_06_14": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "number"
-          },
-          "timeZone": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "timeZone"
-        ]
-      },
       "Host": {
         "type": "object",
         "properties": {
@@ -6091,13 +6075,9 @@
           "isInstantEvent": {
             "type": "boolean"
           },
-          "schedule": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Schedule_2024_06_14"
-              }
-            ]
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
           },
           "teamId": {
             "type": "number",
@@ -6142,7 +6122,7 @@
           "successRedirectUrl",
           "seatsShowAvailabilityCount",
           "isInstantEvent",
-          "schedule",
+          "scheduleId",
           "hosts"
         ]
       },
