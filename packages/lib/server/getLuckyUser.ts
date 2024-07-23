@@ -29,10 +29,16 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
               noShow: false,
             },
           },
-          // noShowHost can also be null
-          noShowHost: {
-            not: true,
-          },
+          // not:true won't match null and thus it is filtering only the cases where noShowHost is explicitly false and failing for already existing bookings where noShowHost is null
+          // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
+          OR: [
+            {
+              noShowHost: false,
+            },
+            {
+              noShowHost: null,
+            },
+          ],
         },
         orderBy: {
           createdAt: "desc",
