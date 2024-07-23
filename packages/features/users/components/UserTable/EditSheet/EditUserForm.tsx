@@ -14,6 +14,7 @@ import {
   Form,
   TextField,
   ToggleGroup,
+  InputField,
   TextAreaField,
   TimezoneSelect,
   Label,
@@ -22,6 +23,7 @@ import {
   ImageUploader,
   Button,
   Select,
+  SelectField,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
@@ -312,9 +314,22 @@ function AttributesList(props: { selectedUserId: number }) {
                   }}
                 />
                 {["TEXT", "NUMBER"].includes(watchedNewAttribute?.attribute.type) && (
-                  <TextField
+                  <InputField
+                    name="attributeValue"
+                    labelClassName="text-subtle mb-1 text-xs font-semibold leading-none"
                     label={t("attribute_value")}
                     type={watchedNewAttribute?.attribute.type === "TEXT" ? "text" : "number"}
+                  />
+                )}
+                {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedNewAttribute?.attribute.type) && (
+                  <SelectField
+                    isMulti={watchedNewAttribute?.attribute.type === "MULTI_SELECT"}
+                    name="attributeValue"
+                    labelProps={{
+                      className: "text-subtle mb-1 text-xs font-semibold leading-none",
+                    }}
+                    label={t("attribute_value")}
+                    options={watchedNewAttribute?.options}
                   />
                 )}
               </>
