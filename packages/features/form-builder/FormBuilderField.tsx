@@ -59,7 +59,7 @@ export const FormBuilderField = ({
   const { control, formState } = useFormContext();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
-  const shoudlBeDisabled = useShouldBeDisabledDueToPrefill(field);
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
@@ -73,7 +73,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly || shoudlBeDisabled}
+                readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
