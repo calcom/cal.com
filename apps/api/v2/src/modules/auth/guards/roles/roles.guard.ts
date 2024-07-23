@@ -68,7 +68,7 @@ export class RolesGuard implements CanActivate {
       );
       if (!adminAPIAccessIsEnabledInOrg) {
         this.logger.log(`Org (${orgId}) Admin API access is not enabled, denying access`);
-        throw new ForbiddenException(`Organization does not have Admin API access`);
+        throw new ForbiddenException(`Organization does not have Admin API access, please contact https://cal.com/sales`);
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
