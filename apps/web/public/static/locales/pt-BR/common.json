@@ -1537,8 +1537,6 @@
   "report_app": "Denunciar aplicativo",
   "limit_booking_frequency": "Limite frequência de reserva",
   "limit_booking_frequency_description": "Limite quantas vezes este evento pode ser reservado",
-  "limit_booking_only_first_slot": "Limite a reserva apenas no primeiro horário",
-  "limit_booking_only_first_slot_description": "Permitir que apenas o primeiro horário de cada dia seja reservado",
   "limit_total_booking_duration": "Limitar duração total de reserva",
   "limit_total_booking_duration_description": "Limite de quanto tempo este evento pode ser reservado",
   "add_limit": "Adicione limite",

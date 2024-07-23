@@ -1,16 +1,12 @@
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
 import { OrganizationsMembershipRepository } from "@/modules/organizations/repositories/organizations-membership.repository";
-import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { Injectable } from "@nestjs/common";
 
 import { UpdateOrgMembershipDto } from "../inputs/update-organization-membership.input";
 
 @Injectable()
 export class OrganizationsMembershipService {
-  constructor(
-    private readonly organizationsMembershipRepository: OrganizationsMembershipRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
-  ) {}
+  constructor(private readonly organizationsMembershipRepository: OrganizationsMembershipRepository) {}
 
   async getOrgMembership(organizationId: number, membershipId: number) {
     const membership = await this.organizationsMembershipRepository.findOrgMembership(
@@ -30,11 +26,11 @@ export class OrganizationsMembershipService {
   }
 
   async deleteOrgMembership(organizationId: number, membershipId: number) {
-    const memberships = await this.organizationsMembershipRepository.deleteOrgMembership(
+    const membership = await this.organizationsMembershipRepository.deleteOrgMembership(
       organizationId,
       membershipId
     );
-    return memberships;
+    return membership;
   }
 
   async updateOrgMembership(organizationId: number, membershipId: number, data: UpdateOrgMembershipDto) {
