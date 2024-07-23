@@ -1542,8 +1542,6 @@
   "report_app": "Segnala app",
   "limit_booking_frequency": "Limita frequenza di prenotazione",
   "limit_booking_frequency_description": "Indica quante volte è possibile prenotare questo evento",
-  "limit_booking_only_first_slot": "Limita prenotazione solo prima fascia",
-  "limit_booking_only_first_slot_description": "Consenti la prenotazione solo nella prima fascia oraria di ogni giorno",
   "limit_total_booking_duration": "Limita durata totale prenotazione",
   "limit_total_booking_duration_description": "Indicare la quantità di tempo totale disponibile per prenotare questo evento",
   "add_limit": "Aggiungi limite",

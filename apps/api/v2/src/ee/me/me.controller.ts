@@ -23,7 +23,7 @@ import { userSchemaResponse } from "@calcom/platform-types";
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly schedulesRepository: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
   @Get("/")
@@ -45,7 +45,7 @@ export class MeController {
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {
+      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
       });
     }
