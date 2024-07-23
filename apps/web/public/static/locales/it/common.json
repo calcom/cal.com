@@ -1581,7 +1581,7 @@
   "how_long_after": "Quanto tempo dopo la fine dell'evento?",
   "no_available_slots": "Nessuna fascia oraria disponibile",
   "time_available": "Tempo disponibile",
-  "cant_find_the_right_conferencing_app_visit_our_app_store": "Non riesci a trovare l'applicazione video necessaria? Visita il nostro <1>App Store</1>.",
+  "cant_find_the_right_video_app_visit_our_app_store": "Non riesci a trovare l'applicazione video necessaria? Visita il nostro <1>App Store</1>.",
   "install_new_calendar_app": "Installa nuova app di calendario",
   "make_phone_number_required": "Rendi obbligatorio il numero di telefono per prenotare un evento",
   "new_event_type_availability": "Disponibilità {{eventTypeTitle}}",

@@ -1586,7 +1586,7 @@
   "how_long_after": "Kui kaua pärast ürituse lõppu?",
   "no_available_slots": "Saadaolevaid teenindusaegu pole",
   "time_available": "Aeg saadaval",
-  "cant_find_the_right_conferencing_app_visit_our_app_store": "Kas te ei leia õiget videorakendust? Külastage meie <1>App Store'i</1>.",
+  "cant_find_the_right_video_app_visit_our_app_store": "Kas te ei leia õiget videorakendust? Külastage meie <1>App Store'i</1>.",
   "install_new_calendar_app": "Installi uus kalendrirakendus",
   "make_phone_number_required": "Tee telefoninumber ürituse broneerimiseks vajalikuks",
   "new_event_type_availability": "{{eventTypeTitle}} Saadavus",
