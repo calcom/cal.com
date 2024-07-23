@@ -10,7 +10,6 @@ on:
 
 permissions:
   contents: read
-  pull
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
@@ -43,6 +42,8 @@ jobs:
     needs: [changes]
     runs-on: buildjet-2vcpu-ubuntu-2204
     name: Check for E2E label
+    permissions:
+      pull-requests: read
     outputs:
       run-e2e: ${{ steps.check-if-pr-has-label.outputs.run-e2e == 'true' && (github.event.action != 'labeled' || (github.event.action == 'labeled' && github.event.label.name == 'ready-for-e2e')) }}
     steps:
