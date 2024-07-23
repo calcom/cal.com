@@ -6,6 +6,8 @@ import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrganizationIdOfBooking from "@calcom/lib/getOrganizationIdOfBooking";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
@@ -159,7 +161,9 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       }
     }
   }
-
+  const bookerBaseUrl = await getBookerBaseUrl(
+    getOrganizationIdOfBooking({ eventType: eventTypeRaw, user: bookingInfoRaw.user })
+  );
   const { currentOrgDomain } = orgDomainConfig(context.req);
   return {
     props: {
@@ -176,6 +180,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      bookerBaseUrl,
     },
   };
 }

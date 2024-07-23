@@ -4,7 +4,10 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
+import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrganizationIdOfBooking from "@calcom/lib/getOrganizationIdOfBooking";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
@@ -42,6 +45,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           team: {
             select: {
               slug: true,
+              parentId: true,
             },
           },
           seatsPerTimeSlot: true,
@@ -64,7 +68,16 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       },
       dynamicEventSlugRef: true,
       dynamicGroupSlugRef: true,
-      user: true,
+      user: {
+        include: {
+          movedToProfile: {
+            select: {
+              username: true,
+              organizationId: true,
+            },
+          },
+        },
+      },
       status: true,
     },
   });
@@ -130,17 +143,30 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ? `team/${eventType.team.slug}`
       : dynamicEventSlugRef
       ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick" /* This shouldn't happen */
+      : booking.user?.movedToProfile?.username || booking.user?.username || "rick" /* This shouldn't happen */
   }/${eventType?.slug}`;
   const destinationUrl = new URLSearchParams();
 
   destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
 
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(context.req);
+  const isOrgContext = isValidOrgDomain && currentOrgDomain;
+
+  let redirectDestinationUrl = `/${eventPage}?${destinationUrl.toString()}${
+    eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+  }`;
+
+  // redirecting to org domain if  the req is of non org domain but the booking is associated with team or user profile that belongs to org
+  if ((eventType.team?.parentId || booking.user?.movedToProfile?.organizationId) && !isOrgContext) {
+    const redirectBaseUrl = await getBookerBaseUrl(getOrganizationIdOfBooking(booking));
+    redirectDestinationUrl = `${redirectBaseUrl}/${eventPage}?${destinationUrl.toString()}${
+      eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
+    }`;
+  }
+
   return {
     redirect: {
-      destination: `/${eventPage}?${destinationUrl.toString()}${
-        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
-      }`,
+      destination: redirectDestinationUrl,
       permanent: false,
     },
   };

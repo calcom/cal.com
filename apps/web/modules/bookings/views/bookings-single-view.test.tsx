@@ -89,6 +89,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
     },
     dynamicEventName: "Event Title",
     paymentStatus: null,
+    bookerBaseUrl: "http://app.cal.local:3000",
     ...props,
   } satisfies React.ComponentProps<typeof Success>;
 }
