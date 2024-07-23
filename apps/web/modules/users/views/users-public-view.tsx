@@ -130,26 +130,26 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
                   className="text-emphasis absolute right-4 top-4 h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
                 />
                 {/* Don't prefetch till the time we drop the amount of javascript in [user][type] page which is impacting score for [user] page */}
-                <div className="block w-full p-5">
-                  <Link
-                    prefetch={false}
-                    href={{
-                      pathname: `/${user.profile.username}/${type.slug}`,
-                      query,
-                    }}
-                    passHref
-                    onClick={async () => {
-                      sdkActionManager?.fire("eventTypeSelected", {
-                        eventType: type,
-                      });
-                    }}
-                    data-testid="event-type-link">
+                <Link
+                  prefetch={false}
+                  href={{
+                    pathname: `/${user.profile.username}/${type.slug}`,
+                    query,
+                  }}
+                  passHref
+                  onClick={async () => {
+                    sdkActionManager?.fire("eventTypeSelected", {
+                      eventType: type,
+                    });
+                  }}
+                  data-testid="event-type-link">
+                  <div className="block w-full p-5">
                     <div className="flex flex-wrap items-center">
                       <h2 className="text-default pr-2 text-sm font-semibold">{type.title}</h2>
                     </div>
                     <EventTypeDescription eventType={type} isPublic={true} shortenDescription />
-                  </Link>
-                </div>
+                  </div>
+                </Link>
               </div>
             ))}
           </div>
