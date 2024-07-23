@@ -1,4 +1,5 @@
 import prisma from "@calcom/prisma";
+import { AttributeType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -15,6 +16,7 @@ type GetOptions = {
 type GroupedAttribute = {
   id: string;
   name: string;
+  type: AttributeType;
   options: {
     id: string;
     slug: string;
@@ -63,6 +65,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
             select: {
               id: true,
               name: true,
+              type: true,
             },
           },
         },
@@ -82,6 +85,7 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
       acc.push({
         id: attrInfo.id,
         name: attrInfo.name,
+        type: attrInfo.type,
         options: [
           {
             ...optionInfo,

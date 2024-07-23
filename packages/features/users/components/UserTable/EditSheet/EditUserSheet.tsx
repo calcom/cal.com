@@ -1,11 +1,23 @@
 import type { Dispatch } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { shallow } from "zustand/shallow";
 
 import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Label, Loader, Sheet, SheetContent, SheetFooter, Skeleton } from "@calcom/ui";
+import {
+  Avatar,
+  Button,
+  Label,
+  Loader,
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  Skeleton,
+  Select,
+} from "@calcom/ui";
 
 import type { Action, State } from "../UserListTable";
 import { DisplayInfo } from "./DisplayInfo";
@@ -80,23 +92,6 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     <div className="flex flex-col">
                       {schedulesNames
                         ? schedulesNames.map((scheduleName) => (
-                            <span
-                              key={scheduleName}
-                              className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">
-                              {scheduleName}
-                            </span>
-                          ))
-                        : t("user_has_no_schedules")}
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
-                      {t("attributes")}
-                    </Label>
-                    <div className="flex flex-col">
-                      {attributes
-                        ? attributes.map((scheduleName) => (
                             <span
                               key={scheduleName}
                               className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">
