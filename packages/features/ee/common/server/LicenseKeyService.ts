@@ -1,8 +1,8 @@
 import * as cache from "memory-cache";
 
 import { IS_SELF_HOSTED, CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+import prisma from "@calcom/prisma";
 
-import { prisma } from "../../../../prisma";
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 import { generateNonce, createSignature } from "./private-api-utils";
 
@@ -25,15 +25,13 @@ class LicenseKeyService {
   // Static async factory method
   public static async create(): Promise<LicenseKeyService> {
     const baseUrl = CALCOM_PRIVATE_API_ROUTE;
-    if (!baseUrl && !IS_SELF_HOSTED) {
+    if (!baseUrl || !IS_SELF_HOSTED) {
       throw new Error("CALCOM_PRIVATE_API_ROUTE is not set");
     }
 
     const licenseKey = await getDeploymentKey(prisma);
 
-    // It is thrown if no baseUrl is set - just weird ctor logic
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    return new LicenseKeyService(baseUrl!, licenseKey);
+    return new LicenseKeyService(baseUrl, licenseKey);
   }
 
   private async fetch({
