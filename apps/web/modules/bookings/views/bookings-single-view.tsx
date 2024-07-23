@@ -1002,12 +1002,12 @@ const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) =
   const { t } = useLocale();
   return (
     <>
-      <div className="mt-3 font-medium">{t("rescheduled_to")}</div>
+      <div className="mt-3 font-medium">{t("rescheduled")}</div>
       <div className="col-span-2 mb-2 mt-3">
         <span className="underline">
           <Link href={`/booking/${rescheduledToUid}`}>
             <div className="flex items-center gap-1">
-              {t("Link")}
+              {t("view_booking")}
               <Icon name="external-link" className="h-4 w-4" />
             </div>
           </Link>
