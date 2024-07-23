@@ -1,6 +1,6 @@
 name: Bug report
 description: "Found a bug? Please fill out the sections below. \U0001F44D"
-title: "[BUG]"
+title: "fix: "
 labels: bug
 assignees: []
 body:
