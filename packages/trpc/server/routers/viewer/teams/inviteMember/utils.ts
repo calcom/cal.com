@@ -76,7 +76,7 @@ export function checkInputEmailIsValid(email: string) {
   if (!isEmail(email))
     throw new TRPCError({
       code: "BAD_REQUEST",
-      message: `Invite failed because ${email} is not a valid email address`,
+      message: `Invite failed: User with ${email} username doesn't exist. To auto-create user please provide an email.`,
     });
 }
 
@@ -280,7 +280,7 @@ export async function createNewUsersConnectToOrgIfExists({
   weekStart?: string;
   timeZone?: string;
 }) {
-  // fail if we have invalid emails
+  // For creating new users email is mandatory, therefore fail.
   invitations.forEach((invitation) => checkInputEmailIsValid(invitation.usernameOrEmail));
   // from this point we know usernamesOrEmails contains only emails
   const createdUsers = await prisma.$transaction(
@@ -293,6 +293,7 @@ export async function createNewUsersConnectToOrgIfExists({
         const [emailUser, emailDomain] = invitation.usernameOrEmail.split("@");
 
         // An org member can't change username during signup, so we set the username
+        // @todo: This has risk of conflicting username.
         const orgMemberUsername =
           emailDomain === autoAcceptEmailDomain
             ? slugify(emailUser)

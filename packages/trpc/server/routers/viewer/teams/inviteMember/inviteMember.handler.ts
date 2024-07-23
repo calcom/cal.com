@@ -162,8 +162,15 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const orgState = getOrgState(isTeamAnOrg, team);
 
-  const orgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
-    uniqueInvitations,
+  const existingUsersInvitations = existingUsersToBeInvited.map((user) => {
+    return {
+      usernameOrEmail: user.email,
+      role: user.newRole,
+    };
+  });
+
+  const existingUsersOrgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
+    uniqueInvitations: existingUsersInvitations,
     orgState,
     team: {
       parentId: team.parentId,
@@ -177,13 +184,23 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     uniqueInvitations,
   });
 
+  const newUsersOrgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
+    uniqueInvitations: invitationsForNewUsers,
+    orgState,
+    team: {
+      parentId: team.parentId,
+      id: team.id,
+    },
+    isOrg: isTeamAnOrg,
+  });
+
   const inviter = { name: inviterName };
 
   if (invitationsForNewUsers.length) {
     await handleNewUsersInvites({
       invitationsForNewUsers,
       team,
-      orgConnectInfoByUsernameOrEmail,
+      orgConnectInfoByUsernameOrEmail: newUsersOrgConnectInfoByUsernameOrEmail,
       teamId: team.id,
       language,
       isOrg: isTeamAnOrg,
@@ -201,7 +218,10 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     "Notable variables:",
     safeStringify({
       uniqueInvitations,
-      orgConnectInfoByUsernameOrEmail,
+      orgConnectInfoByUsernameOrEmail: {
+        ...existingUsersOrgConnectInfoByUsernameOrEmail,
+        ...newUsersOrgConnectInfoByUsernameOrEmail,
+      },
       invitableExistingUsers,
       existingUsersToBeInvited,
       invitationsForNewUsers,
@@ -212,7 +232,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     await handleExistingUsersInvites({
       invitableExistingUsers,
       team,
-      orgConnectInfoByUsernameOrEmail,
+      orgConnectInfoByUsernameOrEmail: existingUsersOrgConnectInfoByUsernameOrEmail,
       teamId: team.id,
       language,
       isOrg: isTeamAnOrg,
