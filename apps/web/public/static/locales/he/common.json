@@ -1578,7 +1578,7 @@
   "how_long_after": "כמה זמן לאחר סיום האירוע?",
   "no_available_slots": "אין חלונות זמן זמינים",
   "time_available": "זמן זמין",
-  "cant_find_the_right_video_app_visit_our_app_store": "לא הצלחת למצוא את האפליקציה הנכונה לשיחות ועידה? כדאי לבקר ב-<1>App Store</1> שלנו.",
+  "cant_find_the_right_conferencing_app_visit_our_app_store": "לא הצלחת למצוא את האפליקציה הנכונה לשיחות ועידה? כדאי לבקר ב-<1>App Store</1> שלנו.",
   "install_new_calendar_app": "התקנת האפליקציה החדשה של לוחות שנה",
   "make_phone_number_required": "הגדרת מספר טלפון כפרט נדרש עבור סוג האירוע הזה",
   "new_event_type_availability": "זמינות {{eventTypeTitle}}",
