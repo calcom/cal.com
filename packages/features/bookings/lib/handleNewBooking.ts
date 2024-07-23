@@ -215,7 +215,6 @@ async function handler(
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
-
   eventType = {
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -1116,7 +1115,7 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
 
   let videoCallUrl;
 
@@ -1153,7 +1152,6 @@ async function handler(
       changedOrganizer,
       previousHostDestinationCalendar
     );
-
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;
@@ -1268,8 +1266,7 @@ async function handler(
 
     evt.appsStatus = handleAppsStatus(results, booking, reqAppsStatus);
 
-    // If there is an integration error, we don't send successful rescheduling email, instead broken integration email should be sent that are handled by either CalendarManager or videoClient
-    if (noEmail !== true && isConfirmedByDefault && !isThereAnIntegrationError) {
+    if (noEmail !== true && isConfirmedByDefault) {
       const copyEvent = cloneDeep(evt);
       const copyEventAdditionalInfo = {
         ...copyEvent,
