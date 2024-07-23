@@ -15,3 +15,4 @@ export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";
 export { BookerEmbed } from "./booker-embed";
+export { CalendarSettings } from "./calendar-settings/CalendarSettings";
