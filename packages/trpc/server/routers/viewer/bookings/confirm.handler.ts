@@ -394,7 +394,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       currency: booking.eventType?.currency,
       length: booking.eventType?.length,
     };
-    const webhookData: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+    const webhookData: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       bookingId,

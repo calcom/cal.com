@@ -295,7 +295,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
   };
   const webhooks = await getWebhooks(subscriberOptions);
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
   };

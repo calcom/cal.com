@@ -139,7 +139,7 @@ export const paymentsRouter = router({
 
         const subscribers = await getWebhooks(subscriberOptions);
 
-        const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+        const payload: EventPayloadType = {
           ...evt,
           bookingId: booking.id,
           paymentId: payment.id,

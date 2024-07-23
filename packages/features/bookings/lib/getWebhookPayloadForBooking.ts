@@ -30,7 +30,7 @@ export const getWebhookPayloadForBooking = ({
     length: booking.eventType?.length,
   };
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking.id,

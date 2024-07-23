@@ -350,7 +350,7 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
-    const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+    const payload: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       bookingId,

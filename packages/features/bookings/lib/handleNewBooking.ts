@@ -1512,7 +1512,7 @@ async function handler(
       }
     : undefined;
 
-  const webhookData: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,

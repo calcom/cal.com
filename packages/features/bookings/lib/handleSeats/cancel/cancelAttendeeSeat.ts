@@ -123,7 +123,7 @@ async function cancelAttendeeSeat(
       ]
     : [];
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     status: "CANCELLED",

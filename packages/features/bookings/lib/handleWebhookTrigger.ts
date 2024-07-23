@@ -4,7 +4,7 @@ import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
 import {
   isEventPayload,
   isOOOEntryPayload,
-  type WebhookDataType,
+  type WebhookPayloadType,
 } from "@calcom/features/webhooks/lib/sendPayload";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
@@ -12,7 +12,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 export async function handleWebhookTrigger(args: {
   subscriberOptions: GetSubscriberOptions;
   eventTrigger: string;
-  webhookData: Omit<WebhookDataType, "createdAt" | "triggerEvent">;
+  webhookData: WebhookPayloadType;
 }) {
   try {
     const subscribers = await getWebhooks(args.subscriberOptions);

@@ -115,7 +115,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
       loggerWithEventDetails.error("Error while scheduling workflow reminders", JSON.stringify({ error }));
     }
 
-    const webhookData: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+    const webhookData: EventPayloadType = {
       ...evt,
       ...eventTypeInfo,
       uid: resultBooking?.uid || uid,

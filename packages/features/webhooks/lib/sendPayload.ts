@@ -84,18 +84,16 @@ export type EventPayloadType = CalendarEvent &
     rescheduleUid?: string;
     rescheduleStartTime?: string;
     rescheduleEndTime?: string;
-    triggerEvent: string;
-    createdAt: string;
     downloadLink?: string;
     paymentId?: number;
     paymentData?: { [key: string]: string | number | boolean | null };
   };
 
-export type WebhookDataType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
 
-function addUTCOffset(
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): WithUTCOffsetType<WebhookDataType> {
+type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
+
+function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloadType> {
   if (isEventPayload(data)) {
     if (data.organizer?.timeZone) {
       (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
@@ -111,12 +109,10 @@ function addUTCOffset(
     }
   }
 
-  return data as WithUTCOffsetType<WebhookDataType>;
+  return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-function getZapierPayload(
-  data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
-): string {
+function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt: string }>): string {
   const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
@@ -180,21 +176,15 @@ export function jsonParse(jsonString: string) {
   return false;
 }
 
-export function isOOOEntryPayload(
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): data is OOOEntryPayloadType {
+export function isOOOEntryPayload(data: WebhookPayloadType): data is OOOEntryPayloadType {
   return "oooEntry" in data;
 }
 
-export function isNoShowPayload(
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): data is BookingNoShowUpdatedPayload {
+export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShowUpdatedPayload {
   return "message" in data;
 }
 
-export function isEventPayload(
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): data is Omit<EventPayloadType, "createdAt" | "triggerEvent"> {
+export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
   return !isNoShowPayload(data) && !isOOOEntryPayload(data);
 }
 
@@ -203,7 +193,7 @@ const sendPayload = async (
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+  data: WebhookPayloadType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
 

@@ -54,7 +54,7 @@ export const triggerRecordingReadyWebhook = async ({
     })
   );
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     downloadLink,
   };
@@ -94,7 +94,7 @@ export const triggerTranscriptionGeneratedWebhook = async ({
     })
   );
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     downloadLinks,
   };

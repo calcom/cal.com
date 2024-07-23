@@ -18,7 +18,7 @@ export const testTriggerHandler = async ({ ctx: _ctx, input }: TestTriggerOption
     translate: translation,
   };
 
-  const data: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const data: EventPayloadType = {
     type: "Test",
     title: "Test trigger event",
     description: "",

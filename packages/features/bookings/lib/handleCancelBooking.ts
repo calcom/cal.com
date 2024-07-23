@@ -314,7 +314,7 @@ async function handler(req: CustomRequest) {
   const result = await cancelAttendeeSeat(req, dataForWebhooks);
   if (result) return { success: true };
 
-  const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
+  const payload: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     status: "CANCELLED",
