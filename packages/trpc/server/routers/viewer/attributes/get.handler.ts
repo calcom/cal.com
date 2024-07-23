@@ -14,8 +14,6 @@ type GetOptions = {
   input: ZGetAttributeSchema;
 };
 
-const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
-
 const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 

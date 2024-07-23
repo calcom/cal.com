@@ -1460,4 +1460,6 @@ model AttributeToUser {
 
   attribute         AttributeOption @relation(fields: [attributeOptionId], references: [id])
   attributeOptionId String
+
+  @@unique([memberId, attributeOptionId])
 }

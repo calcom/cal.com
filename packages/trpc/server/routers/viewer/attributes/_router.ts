@@ -1,6 +1,7 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
 import { createAttributeSchema } from "./create.schema";
+import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
 import { getAttributeSchema } from "./get.schema";
 import { toggleActiveSchema } from "./toggleActive.schema";
@@ -24,6 +25,10 @@ export const attributesRouter = router({
   }),
   edit: authedProcedure.input(editAttributeSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("edit"), () => import("./edit.handler"));
+    return handler({ ctx, input });
+  }),
+  delete: authedProcedure.input(deleteAttributeSchema).mutation(async ({ ctx, input }) => {
+    const handler = await importHandler(namespaced("delete"), () => import("./delete.handler"));
     return handler({ ctx, input });
   }),
   toggleActive: authedProcedure.input(toggleActiveSchema).mutation(async ({ ctx, input }) => {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -30,10 +31,21 @@ const TypeToLabelMap = {
 };
 
 function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
+  const utils = trpc.useUtils();
   const [isEnabled, setIsEnabled] = useState(attribute.enabled);
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
     onSuccess: () => {
       showToast(t("attribute_updated_successfully"), "success");
+    },
+    onError: (err) => {
+      showToast(err.message, "error");
+    },
+  });
+
+  const deleteMutation = trpc.viewer.attributes.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("attribute_deleted_successfully"), "success");
+      utils.viewer.attributes.list.invalidate();
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -52,6 +64,10 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
         },
       }
     );
+  };
+
+  const handleDelete = () => {
+    deleteMutation.mutate({ id: attribute.id });
   };
 
   const { t } = useLocale();
@@ -91,7 +107,12 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
               </DropdownItem>
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <DropdownItem type="button" StartIcon="trash-2" color="destructive">
+              <DropdownItem
+                type="button"
+                StartIcon="trash-2"
+                color="destructive"
+                disabled={deleteMutation.isPending}
+                onClick={handleDelete}>
                 {t("delete")}
               </DropdownItem>
             </DropdownMenuItem>
@@ -104,6 +125,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
 
 function OrganizationAttributesPage() {
   const { t } = useLocale();
+  const [animateRef] = useAutoAnimate<HTMLLIElement>();
   const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;
@@ -117,7 +139,9 @@ function OrganizationAttributesPage() {
           {data && data?.length > 0 ? (
             <>
               <h2 className="text-emphasis leadning-none text-base font-semibold">{t("custom")}</h2>
-              <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
+              <li
+                className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border"
+                ref={animateRef}>
                 {data?.map((attribute) => (
                   <AttributeItem attribute={attribute} key={attribute.id} />
                 ))}

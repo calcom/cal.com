@@ -32,9 +32,7 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const slug = slugify(input.name);
   const options = input.options;
-  const typeHasOptions = typesWithOptions.includes(input.type);
 
   const foundAttribute = await prisma.attribute.findUnique({
     where: {
