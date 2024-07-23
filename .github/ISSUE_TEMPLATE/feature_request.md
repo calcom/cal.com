@@ -1,7 +1,7 @@
 name: Feature request
 description: "Suggest an idea for this project \U0001F680"
 title: ""
-labels: ✨ feature
+labels: ["✨ feature", "🚨 needs approval"], 
 assignees: []
 body:
   - type: textarea
