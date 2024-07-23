@@ -11,7 +11,7 @@ import AddMembersWithSwitch, {
 } from "@calcom/features/eventtypes/components/AddMembersWithSwitch";
 import AssignAllTeamMembers from "@calcom/features/eventtypes/components/AssignAllTeamMembers";
 import ChildrenEventTypeSelect from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
-import { weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
+import { sortHosts, weightDescription } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type { FormValues, TeamMember } from "@calcom/features/eventtypes/lib/types";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -232,13 +232,9 @@ const RoundRobinHosts = ({
                 setIsRRWeightsEnabled(active);
                 const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
 
-                if (active) {
-                  rrHosts.sort((a, b) => (b.priority ?? 2) - (a.priority ?? 2));
-                } else {
-                  rrHosts.sort((a, b) => (b.weight ?? 2) - (a.weight ?? 2));
-                }
+                const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
 
-                setValue("hosts", rrHosts);
+                setValue("hosts", sortedRRHosts);
               }}
             />
           )}
@@ -374,10 +370,7 @@ const Hosts = ({
                 value={value}
                 onChange={(changeValue) => {
                   const hosts = [...value.filter((host: Host) => host.isFixed), ...changeValue];
-                  const sortedValue = getValues("isRRWeightsEnabled")
-                    ? hosts
-                    : hosts.sort((a, b) => b.priority - a.priority);
-                  onChange(sortedValue);
+                  onChange(hosts);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}

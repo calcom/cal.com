@@ -197,7 +197,7 @@ export async function addWeightAdjustmentToNewHosts({
   });
 
   const hostsWithUserData = usersWithHostData.map((user) => {
-    const hostData = user.hosts[0] ?? hosts.find((host) => host.userId === user.id);
+    const hostData = hosts.find((host) => host.userId === user.id);
     return {
       isNewHost: !user.hosts.length,
       isFixed: hostData?.isFixed ?? false,

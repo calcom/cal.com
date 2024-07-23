@@ -43,6 +43,7 @@ export const PriorityDialog = (props: IDialog) => {
   const setPriority = () => {
     if (!!newPriority) {
       const hosts: Host[] = getValues("hosts");
+      const isRRWeightsEnabled = getValues("isRRWeightsEnabled");
       const updatedHosts = hosts
         .filter((host) => !host.isFixed)
         .map((host) => {
@@ -55,7 +56,10 @@ export const PriorityDialog = (props: IDialog) => {
             weightAdjustment: host.weightAdjustment,
           };
         });
-      onChange(updatedHosts);
+
+      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, isRRWeightsEnabled));
+
+      onChange(sortedHosts);
     }
     setIsOpenDialog(false);
   };
@@ -93,6 +97,22 @@ export const weightDescription = (
   </Trans>
 );
 
+export function sortHosts(
+  hostA: { priority: number | null; weight: number | null },
+  hostB: { priority: number | null; weight: number | null },
+  isRRWeightsEnabled: boolean
+) {
+  if (isRRWeightsEnabled) {
+    if ((hostA.weight ?? 100) === (hostB.weight ?? 100)) {
+      return (hostB.priority ?? 2) - (hostA.priority ?? 2);
+    } else {
+      return (hostB.weight ?? 100) - (hostA.weight ?? 100);
+    }
+  } else {
+    return (hostB.priority ?? 2) - (hostA.priority ?? 2);
+  }
+}
+
 export const WeightDialog = (props: IDialog) => {
   const { t } = useLocale();
   const { isOpenDialog, setIsOpenDialog, option, onChange } = props;
@@ -113,9 +133,11 @@ export const WeightDialog = (props: IDialog) => {
             isFixed: false,
             weightAdjustment: host.weightAdjustment,
           };
-        })
-        .sort((a, b) => (b.weight ?? 100) - (a.weight ?? 100));
-      onChange(updatedHosts);
+        });
+
+      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
+
+      onChange(sortedHosts);
     }
     setIsOpenDialog(false);
   };

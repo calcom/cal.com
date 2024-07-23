@@ -255,7 +255,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     const isWeightsEnabled =
       isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
 
-    const hostWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
+    const hostsWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
       hosts,
       isWeightsEnabled,
       eventTypeId: id,
@@ -264,7 +264,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
 
     data.hosts = {
       deleteMany: {},
-      create: hostWithWeightAdjustment.map((host) => {
+      create: hostsWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
 
         return {
