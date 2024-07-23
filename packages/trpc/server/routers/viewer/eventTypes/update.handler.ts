@@ -55,6 +55,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     hosts,
     id,
     hashedLink,
+    singleUseLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
     userId,
@@ -302,7 +303,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       break;
     }
   }
-
+  console.log(singleUseLinks);
   const connectedLink = await ctx.prisma.hashedLink.findFirst({
     where: {
       eventTypeId: input.id,

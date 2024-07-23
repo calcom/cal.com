@@ -54,7 +54,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
-  const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const [hashedUrl, setHashedUrl] = useState(
+    eventType.hashedLink.find((link) => {
+      return link.destroyOnUse === false;
+    })?.link
+  );
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -88,9 +92,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
+    console.log(hashedUrl);
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formMethods.getValues("users"), hashedUrl, team?.id]);
+  }, [eventType.hashedLink, formMethods.getValues("users"), hashedUrl, team?.id]);
 
   const toggleGuests = (enabled: boolean) => {
     const bookingFields = formMethods.getValues("bookingFields");
@@ -418,6 +423,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </div>
         )}
       </SettingsToggle>
+      <div className="border-subtle space-y-6 rounded-lg border p-6">
+        <FormBuilder
+          title={t("single_use_links_title")}
+          description={t("single_use_links_description")}
+          addFieldLabel={t("add_a_single_use_link")}
+          formProp="singleUseLinks"
+          {...shouldLockDisableProps("singleUseLinks")}
+        />
+      </div>
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (
