@@ -294,21 +294,21 @@ export async function handleConfirmation(args: {
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamIds: teamId ? [teamId] : [],
+      teamId,
       orgId,
     });
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamIds: eventType?.teamId ? [eventType.teamId] : [],
+      teamId: eventType?.teamId,
       orgId,
     });
     const subscribersMeetingEnded = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamIds: eventType?.teamId ? [eventType.teamId] : [],
+      teamId: eventType?.teamId,
       orgId,
     });
 
@@ -383,7 +383,7 @@ export async function handleConfirmation(args: {
         userId,
         eventTypeId: booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamIds: eventType?.teamId ? [eventType.teamId] : [],
+        teamId: eventType?.teamId,
         orgId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({

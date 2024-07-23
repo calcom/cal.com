@@ -245,7 +245,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {
     userId: ctx.user.id,
-    teamIds: teamIds,
+    teamId: teamIds,
     orgId: ctx.user.organizationId,
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };

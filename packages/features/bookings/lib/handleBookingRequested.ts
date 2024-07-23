@@ -50,7 +50,7 @@ export async function handleBookingRequested(args: {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REQUESTED,
-      teamIds: booking.eventType?.teamId ? [booking.eventType.teamId] : [],
+      teamId: booking.eventType?.teamId,
       orgId,
     });
 

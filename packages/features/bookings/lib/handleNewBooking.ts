@@ -906,7 +906,7 @@ async function handler(
     userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamIds: teamId ? [teamId] : [],
+    teamId,
     orgId,
   };
 
@@ -1575,7 +1575,7 @@ async function handler(
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      teamIds: teamId ? [teamId] : [],
+      teamId,
       orgId,
     };
     await handleWebhookTrigger({

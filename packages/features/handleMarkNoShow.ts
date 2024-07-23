@@ -107,7 +107,7 @@ const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowIn
         teamId: booking?.eventType?.teamId,
       });
       const webhooks = await new WebhookService({
-        teamIds: booking?.eventType?.teamId ? [booking?.eventType?.teamId] : [],
+        teamId: booking?.eventType?.teamId,
         userId: booking?.eventType?.userId,
         eventTypeId: booking?.eventType?.id,
         orgId,
