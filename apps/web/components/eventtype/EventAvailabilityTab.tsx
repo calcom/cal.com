@@ -323,20 +323,6 @@ const TeamMemberSchedule = ({
   const avatar = member?.avatar;
   const label = member?.name;
 
-  if (isPending) {
-    return (
-      <>
-        <div className="flex w-full items-center">
-          <Avatar size="sm" imageSrc={avatar} alt={label || ""} />
-          <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
-        </div>
-        <div className="flex w-full flex-col pt-2 ">
-          <Spinner className="mt-2 h-6 w-6" />
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <div className="flex w-full items-center">
@@ -344,26 +330,30 @@ const TeamMemberSchedule = ({
         <p className="text-emphasis my-auto ms-3 text-sm">{label}</p>
       </div>
       <div className="flex w-full flex-col pt-2 ">
-        <Controller
-          name={`hosts.${index}.scheduleId`}
-          render={({ field }) => {
-            return (
-              <Select
-                placeholder={t("select")}
-                options={options}
-                isSearchable={false}
-                onChange={(selected) => {
-                  field.onChange(selected?.value || null);
-                }}
-                className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-                value={value as AvailabilityOption}
-                components={{ Option, SingleValue }}
-                isMulti={false}
-                isDisabled={isPending}
-              />
-            );
-          }}
-        />
+        {isPending ? (
+          <Spinner className="mt-2 h-6 w-6" />
+        ) : (
+          <Controller
+            name={`hosts.${index}.scheduleId`}
+            render={({ field }) => {
+              return (
+                <Select
+                  placeholder={t("select")}
+                  options={options}
+                  isSearchable={false}
+                  onChange={(selected) => {
+                    field.onChange(selected?.value || null);
+                  }}
+                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                  value={value as AvailabilityOption}
+                  components={{ Option, SingleValue }}
+                  isMulti={false}
+                  isDisabled={isPending}
+                />
+              );
+            }}
+          />
+        )}
       </div>
     </>
   );

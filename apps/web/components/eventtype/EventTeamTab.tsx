@@ -138,7 +138,7 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
                       // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || null,
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
                   }),
                   { shouldDirty: true }
@@ -185,7 +185,7 @@ const FixedHosts = ({
                       userId: parseInt(teamMember.value, 10),
                       priority: 2,
                       // if host was already added, retain scheduleId
-                      scheduleId: host?.scheduleId || null,
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                     };
                   }),
                   { shouldDirty: true }
@@ -243,7 +243,7 @@ const RoundRobinHosts = ({
                     userId: parseInt(teamMember.value, 10),
                     priority: 2,
                     // if host was already added, retain scheduleId
-                    scheduleId: host?.scheduleId || null,
+                    scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
                   };
                 })
                 .sort((a, b) => b.priority - a.priority),

@@ -27,6 +27,7 @@ export type CheckedSelectOption = {
   priority?: number;
   isFixed?: boolean;
   disabled?: boolean;
+  defaultScheduleId?: number | null;
 };
 
 export const CheckedTeamSelect = ({
