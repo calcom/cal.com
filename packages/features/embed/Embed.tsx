@@ -174,6 +174,7 @@ const EmailEmbed = ({
   const event = useEvent();
   const schedule = useScheduleForEvent({ orgSlug });
   const nonEmptyScheduleDays = useNonEmptyScheduleDays(schedule?.data?.slots);
+  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
 
   const onTimeSelect = (time: string) => {
     if (!eventType) {
@@ -299,7 +300,7 @@ const EmailEmbed = ({
         <Collapsible open>
           <CollapsibleContent>
             <div className="text-default mb-[9px] text-sm">{t("timezone")}</div>
-            <TimezoneSelect id="timezone" value={timezone} isDisabled={false} />
+            <TimezoneSelect id="timezone" value={timezone} onChange={({ value }) => setTimezone(value)} />
           </CollapsibleContent>
         </Collapsible>
       </div>
