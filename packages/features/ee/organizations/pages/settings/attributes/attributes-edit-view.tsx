@@ -33,6 +33,10 @@ function CreateAttributesPage() {
   const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
       showToast("Attribute created successfully", "success");
+      utils.viewer.attributes.get.invalidate({
+        id: id as string,
+      });
+      utils.viewer.attributes.list.invalidate();
       router.push("/settings/organizations/attributes");
     },
     onError: (err) => {
@@ -45,21 +49,15 @@ function CreateAttributesPage() {
     <>
       <LicenseRequired>
         <Meta title="Attribute" description="Edit an attribute for your team members" />
-        {attribute.isLoading ? (
-          <>Loading </>
-        ) : (
+        {!attribute.isLoading && attribute.data ? (
           <AttributeForm
             initialValues={{
-              attrName: attribute.data?.name,
-              type: attribute.data?.type,
-              options: attribute.data?.options,
+              attrName: attribute.data.name,
+              type: attribute.data.type,
+              options: attribute.data.options,
             }}
             header={<EditAttributeHeader isPending={mutation.isPending} />}
             onSubmit={(values) => {
-              utils.viewer.attributes.get.invalidate({
-                id: id as string,
-              });
-              utils.viewer.attributes.list.invalidate();
               mutation.mutate({
                 attributeId: id as string,
                 name: values.attrName,
@@ -68,6 +66,8 @@ function CreateAttributesPage() {
               });
             }}
           />
+        ) : (
+          <>Loading</>
         )}
       </LicenseRequired>
     </>

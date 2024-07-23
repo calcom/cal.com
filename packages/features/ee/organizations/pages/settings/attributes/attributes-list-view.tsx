@@ -1,6 +1,5 @@
 "use client";
 
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
@@ -125,7 +124,6 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
 
 function OrganizationAttributesPage() {
   const { t } = useLocale();
-  const [animateRef] = useAutoAnimate<HTMLLIElement>();
   const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
 
   if (isLoading) return <div>Loading...</div>;
@@ -139,9 +137,7 @@ function OrganizationAttributesPage() {
           {data && data?.length > 0 ? (
             <>
               <h2 className="text-emphasis leadning-none text-base font-semibold">{t("custom")}</h2>
-              <li
-                className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border"
-                ref={animateRef}>
+              <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
                 {data?.map((attribute) => (
                   <AttributeItem attribute={attribute} key={attribute.id} />
                 ))}

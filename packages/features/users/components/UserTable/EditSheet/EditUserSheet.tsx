@@ -19,7 +19,11 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
   const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery({
-    userId: selectedUser?.id,
+    userId: selectedUser.id,
+  });
+
+  const { data: attributes, isPending: attributesPending } = trpc.viewer.attributes.getByUserId.useQuery({
+    userId: selectedUser.id,
   });
 
   const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
@@ -76,6 +80,23 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     <div className="flex flex-col">
                       {schedulesNames
                         ? schedulesNames.map((scheduleName) => (
+                            <span
+                              key={scheduleName}
+                              className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">
+                              {scheduleName}
+                            </span>
+                          ))
+                        : t("user_has_no_schedules")}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col">
+                    <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
+                      {t("attributes")}
+                    </Label>
+                    <div className="flex flex-col">
+                      {attributes
+                        ? attributes.map((scheduleName) => (
                             <span
                               key={scheduleName}
                               className="text-emphasis inline-flex items-center gap-1 text-sm font-normal leading-5">

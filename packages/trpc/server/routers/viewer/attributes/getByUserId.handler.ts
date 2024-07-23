@@ -1,0 +1,101 @@
+import prisma from "@calcom/prisma";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../trpc";
+import type { ZGetByUserIdSchema } from "./getByUserId.schema";
+
+type GetOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: ZGetByUserIdSchema;
+};
+
+type GroupedAttribute = {
+  id: string;
+  name: string;
+  options: {
+    id: string;
+    slug: string;
+    value: string;
+  }[];
+};
+
+const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
+  const org = ctx.user.organization;
+
+  if (!org.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
+  // Ensure user is apart of the organizaiton
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: input.userId,
+      teamId: org.id,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "This user is not apart of your organization",
+    });
+  }
+
+  const userAttributes = await prisma.attributeToUser.findMany({
+    where: {
+      member: {
+        id: membership.id,
+      },
+    },
+    select: {
+      attributeOption: {
+        select: {
+          id: true,
+          value: true,
+          slug: true,
+          attribute: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const groupedAttributes = userAttributes.reduce<GroupedAttribute[]>((acc, attribute) => {
+    const { attributeOption } = attribute;
+    const { attribute: attrInfo, ...optionInfo } = attributeOption;
+
+    const existingGroup = acc.find((group) => group.id === attrInfo.id);
+
+    if (existingGroup) {
+      existingGroup.options.push(optionInfo);
+    } else {
+      acc.push({
+        id: attrInfo.id,
+        name: attrInfo.name,
+        options: [
+          {
+            ...optionInfo,
+          },
+        ],
+      });
+    }
+
+    return acc;
+  }, []);
+
+  console.log("groupedAttributes", groupedAttributes);
+
+  return groupedAttributes;
+};
+
+export default createAttributesHandler;

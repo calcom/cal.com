@@ -4,6 +4,7 @@ import { createAttributeSchema } from "./create.schema";
 import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
 import { getAttributeSchema } from "./get.schema";
+import { getByUserIdSchema } from "./getByUserId.schema";
 import { toggleActiveSchema } from "./toggleActive.schema";
 
 const NAMESPACE = "attributes";
@@ -19,6 +20,11 @@ export const attributesRouter = router({
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
     return handler(opts);
   }),
+  getByUserId: authedProcedure.input(getByUserIdSchema).query(async ({ ctx, input }) => {
+    const handler = await importHandler(namespaced("getByUserId"), () => import("./getByUserId.handler"));
+    return handler({ ctx, input });
+  }),
+  // Mutations
   create: authedProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler({ ctx, input });
