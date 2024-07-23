@@ -246,7 +246,9 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                 <p className="text-default text-sm">
                   <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
                     Can&apos;t find the right video app? Visit our
-                    <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+                    <Link
+                      className="cursor-pointer text-blue-500 underline"
+                      href="/apps/categories/conferencing">
                       App Store
                     </Link>
                     .
