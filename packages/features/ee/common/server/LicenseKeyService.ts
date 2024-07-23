@@ -46,7 +46,7 @@ class LicenseKeyService {
     const nonce = generateNonce();
     const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
     if (!signatureToken) {
-      throw new Error("CALCOM_SIGNATURE_TOKEN needs to be set");
+      throw new Error("CAL_SIGNATURE_TOKEN needs to be set");
     }
     const signature = createSignature(body || {}, nonce, signatureToken);
 
