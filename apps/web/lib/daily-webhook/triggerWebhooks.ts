@@ -56,7 +56,7 @@ export const triggerRecordingReadyWebhook = async ({
 
   const payload: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
     ...evt,
-    downloadLink,
+    downloadLink: downloadLink,
   };
 
   const promises = webhooks.map((webhook) =>
