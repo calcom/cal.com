@@ -1125,7 +1125,7 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
 
   let videoCallUrl;
 
@@ -1162,7 +1162,6 @@ async function handler(
       changedOrganizer,
       previousHostDestinationCalendar
     );
-
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;

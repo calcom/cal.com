@@ -1542,8 +1542,6 @@
   "report_app": "Reportar aplicação",
   "limit_booking_frequency": "Limitar a frequência das reservas",
   "limit_booking_frequency_description": "Limitar o número de vezes que este evento pode ser reservado",
-  "limit_booking_only_first_slot": "Limitar a reserva apenas à primeira vaga",
-  "limit_booking_only_first_slot_description": "Permitir que apenas a primeira vaga de todos os dias seja reservada",
   "limit_total_booking_duration": "Limitar a duração total da reserva",
   "limit_total_booking_duration_description": "Limitar o tempo total que pode ser reservado para este evento",
   "add_limit": "Adicionar limite",
