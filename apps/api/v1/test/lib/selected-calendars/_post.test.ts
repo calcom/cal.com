@@ -25,7 +25,7 @@ describe("POST /api/selected-calendars", () => {
       });
 
       req.userId = 333333;
-      req.isSystemWideAdmin = false;
+
       try {
         await handler(req, res);
       } catch (e) {
@@ -102,7 +102,6 @@ describe("POST /api/selected-calendars", () => {
       });
 
       req.userId = 333333;
-      req.isSystemWideAdmin = false;
 
       prismaMock.selectedCalendar.create.mockResolvedValue({
         credentialId: 1,
