@@ -22,7 +22,7 @@ export enum ApiVersion {
 }
 
 export type SdkAuthOptions = {
-  clientSecret: string;
+  clientSecret?: string;
   accessToken?: string;
   refreshToken?: string;
 };

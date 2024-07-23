@@ -38,6 +38,16 @@ export const bulkUpdateToDefaultLocationHandler = async ({
     });
   }
 
+  const credential = await prisma.credential.findFirst({
+    where: {
+      userId: ctx.user.id,
+      appId: foundApp.slug,
+    },
+    select: {
+      id: true,
+    },
+  });
+
   return await prisma.eventType.updateMany({
     where: {
       id: {
@@ -46,7 +56,9 @@ export const bulkUpdateToDefaultLocationHandler = async ({
       userId: ctx.user.id,
     },
     data: {
-      locations: [{ type: appType, link: defaultApp.appLink }] as LocationObject[],
+      locations: [
+        { type: appType, link: defaultApp.appLink, credentialId: credential?.id },
+      ] as LocationObject[],
     },
   });
 };

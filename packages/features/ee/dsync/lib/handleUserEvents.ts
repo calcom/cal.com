@@ -49,7 +49,7 @@ const handleUserEvents = async (event: DirectorySyncEvent, organizationId: numbe
       await sendExistingUserTeamInviteEmails({
         currentUserName: user.username,
         currentUserTeamName: org.name,
-        existingUsersWithMembersips: [
+        existingUsersWithMemberships: [
           {
             ...addedUser,
             profile: null,

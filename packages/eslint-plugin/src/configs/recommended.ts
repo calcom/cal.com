@@ -6,6 +6,7 @@ const recommended = {
     "@calcom/eslint/deprecated-imports-next-router": "error",
     "@calcom/eslint/avoid-web-storage": "error",
     "@calcom/eslint/avoid-prisma-client-import-for-enums": "error",
+    "@calcom/eslint/no-prisma-include-true": "warn",
   },
 };
 

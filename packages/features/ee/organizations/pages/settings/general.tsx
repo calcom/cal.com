@@ -27,6 +27,7 @@ import {
 } from "@calcom/ui";
 
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
+import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
 const SkeletonLoader = ({ title, description }: { title: string; description: string }) => {
   return (
@@ -66,7 +67,7 @@ const OrgGeneralView = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/enterprise");
       }
     },
     [error]
@@ -87,6 +88,7 @@ const OrgGeneralView = () => {
       />
 
       <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
+      <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
   );
 };

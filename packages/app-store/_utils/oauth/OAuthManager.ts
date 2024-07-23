@@ -174,7 +174,6 @@ export class OAuthManager {
      */
     isTokenExpired?: IsTokenExpired;
   }) {
-    ensureValidResourceOwner(resourceOwner);
     this.resourceOwner = resourceOwner;
     this.currentTokenObject = currentTokenObject;
     this.appSlug = appSlug;
@@ -191,6 +190,13 @@ export class OAuthManager {
       credentialSyncVariables.CREDENTIAL_SYNC_SECRET_HEADER_NAME &&
       credentialSyncVariables.CREDENTIAL_SYNC_SECRET
     );
+
+    if (this.useCredentialSync) {
+      // Though it should be validated without credential sync as well but it seems like we have some credentials without userId in production
+      // So, we are not validating it for now
+      ensureValidResourceOwner(resourceOwner);
+    }
+
     this.autoCheckTokenExpiryOnRequest = autoCheckTokenExpiryOnRequest;
     this.updateTokenObject = updateTokenObject;
   }

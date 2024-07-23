@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { Booking, EventType, Prisma, Webhook } from "@prisma/client";
+import type { Booking, EventType, Prisma, Webhook, BookingReference } from "@prisma/client";
 import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
@@ -31,7 +31,9 @@ export const buildPerson = (person?: Partial<Person>): Person => {
   };
 };
 
-export const buildBooking = (booking?: Partial<Booking>): Booking => {
+export const buildBooking = (
+  booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
+): Booking & { references?: Partial<BookingReference>[] } => {
   const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),
@@ -80,6 +82,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     description: faker.lorem.paragraph(),
     position: 1,
     isInstantEvent: false,
+    instantMeetingExpiryTimeOffsetInSeconds: 90,
     locations: null,
     length: 15,
     offsetStart: 0,
@@ -117,6 +120,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     slotInterval: null,
     metadata: null,
     successRedirectUrl: null,
+    forwardParamsSuccessRedirect: true,
     bookingFields: [],
     parentId: null,
     profileId: null,

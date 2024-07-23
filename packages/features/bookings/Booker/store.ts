@@ -137,11 +137,13 @@ export type BookerStore = {
    * both the slug and the event slug.
    */
   isTeamEvent: boolean;
-  org?: string | null;
   seatedEventData: SeatedEventData;
   setSeatedEventData: (seatedEventData: SeatedEventData) => void;
 
   isInstantMeeting?: boolean;
+
+  org?: string | null;
+  setOrg: (org: string | null | undefined) => void;
 };
 
 /**
@@ -341,6 +343,10 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   formValues: {},
   setFormValues: (formValues: Record<string, any>) => {
     set({ formValues });
+  },
+  org: null,
+  setOrg: (org: string | null | undefined) => {
+    set({ org });
   },
 }));
 

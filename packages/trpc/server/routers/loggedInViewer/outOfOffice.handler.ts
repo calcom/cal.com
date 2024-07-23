@@ -53,8 +53,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
         /** You can only create OOO for members of teams you belong to */
         teams: {
           some: {
-            userId: ctx.user.id,
-            accepted: true,
+            team: {
+              members: {
+                some: {
+                  userId: ctx.user.id,
+                  accepted: true,
+                },
+              },
+            },
           },
         },
       },

@@ -90,6 +90,10 @@ function preprocess<T extends z.ZodType>({
             parsedValue = JSON.parse(value);
           } catch (e) {}
           newResponses[field.name] = parsedValue;
+        } else if (field.type === "phone") {
+          // + in URL could be replaced with space, so we need to replace it back
+          // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
+          newResponses[field.name] = value.replace(/^ +/, "+");
         } else {
           newResponses[field.name] = value;
         }

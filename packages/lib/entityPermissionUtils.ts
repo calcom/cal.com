@@ -64,7 +64,12 @@ async function getMembership(teamId: number | null, userId: number) {
           },
         },
         include: {
-          members: true,
+          members: {
+            select: {
+              userId: true,
+              role: true,
+            },
+          },
         },
       })
     : null;
@@ -81,8 +86,7 @@ export async function canCreateEntity({
   if (targetTeamId) {
     // If it doesn't exist and it is being created for a team. Check if user is the member of the team
     const membership = await getMembership(targetTeamId, userId);
-    const creationAllowed = membership ? withRoleCanCreateEntity(membership.role) : false;
-    return creationAllowed;
+    return membership ? withRoleCanCreateEntity(membership.role) : false;
   }
   return true;
 }

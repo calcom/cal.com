@@ -506,7 +506,7 @@ describe("getBookingResponsesSchema", () => {
         })
       );
     });
-    test(`should succesfull give responses if phone type field value is valid`, async ({}) => {
+    test(`should successfully give responses if phone type field value is valid`, async ({}) => {
       const schema = getBookingResponsesSchema({
         bookingFields: [
           {
@@ -537,6 +537,60 @@ describe("getBookingResponsesSchema", () => {
         throw new Error("Should not reach here");
       }
       expect(parsedResponses.data).toEqual({
+        email: "test@test.com",
+        name: "test",
+        testPhone: "+919999999999",
+      });
+    });
+
+    test(`should give parsed response if phone type field value starts with a space`, async ({}) => {
+      const schema = getBookingResponsesSchema({
+        bookingFields: [
+          {
+            name: "name",
+            type: "name",
+            required: true,
+          },
+          {
+            name: "email",
+            type: "email",
+            required: true,
+          },
+          {
+            name: "testPhone",
+            type: "phone",
+            required: true,
+          },
+        ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+        view: "ALL_VIEWS",
+      });
+      const parsedResponses = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        // Space can come due to libraries considering + to be space
+        testPhone: " 919999999999",
+      });
+      expect(parsedResponses.success).toBe(true);
+      if (!parsedResponses.success) {
+        throw new Error("Should not reach here");
+      }
+      expect(parsedResponses.data).toEqual({
+        email: "test@test.com",
+        name: "test",
+        testPhone: "+919999999999",
+      });
+
+      const parsedResponses2 = await schema.safeParseAsync({
+        email: "test@test.com",
+        name: "test",
+        // Space can come due to libraries considering + to be space
+        testPhone: "     919999999999",
+      });
+      expect(parsedResponses2.success).toBe(true);
+      if (!parsedResponses2.success) {
+        throw new Error("Should not reach here");
+      }
+      expect(parsedResponses2.data).toEqual({
         email: "test@test.com",
         name: "test",
         testPhone: "+919999999999",

@@ -42,13 +42,13 @@ const querySchema = z.object({
  *         description: No event types were found
  */
 async function getHandler(req: NextApiRequest) {
-  const { userId, isAdmin } = req;
+  const { userId, isSystemWideAdmin } = req;
 
   const { teamId } = querySchema.parse(req.query);
 
   const args: Prisma.EventTypeFindManyArgs = {
     where: {
-      team: isAdmin
+      team: isSystemWideAdmin
         ? {
             id: teamId,
           }

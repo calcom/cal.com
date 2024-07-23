@@ -45,7 +45,7 @@ const generateCheckoutSession = async ({
 
   const checkoutSession = await purchaseTeamOrOrgSubscription({
     teamId,
-    seats,
+    seatsUsed: seats,
     userId,
     pricePerSeat: null,
   });

@@ -93,12 +93,17 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                     <p>{booking.user?.email}</p>
                   </div>
                 </div>
-                <div>
-                  <div>
-                    <h4>{`${booking.responses.name}`}</h4>
-                    <p>{`${booking.responses.email}`}</p>
-                  </div>
-                </div>
+                {booking.attendees.map((attendee, i) => {
+                  return (
+                    <div key={`${i}-${attendee.name}`}>
+                      <br />
+                      <div>
+                        <h4>{`${attendee.name}`}</h4>
+                        <p>{`${attendee.email}`}</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             {!!booking.location && booking.location.startsWith("http") && (

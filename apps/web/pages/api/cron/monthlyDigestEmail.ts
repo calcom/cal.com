@@ -110,43 +110,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             teamId: null,
           },
         ],
+        createdAt: {
+          gte: dayjs(firstDateOfMonth).toISOString(),
+          lte: dayjs(new Date()).toISOString(),
+        },
       };
 
-      const promisesResult = await Promise.all([
-        EventsInsights.getCreatedEventsInTimeRange(
-          {
-            start: dayjs(firstDateOfMonth),
-            end: dayjs(new Date()),
-          },
-          whereConditional
-        ),
-        EventsInsights.getCompletedEventsInTimeRange(
-          {
-            start: dayjs(firstDateOfMonth),
-            end: dayjs(new Date()),
-          },
-          whereConditional
-        ),
-        EventsInsights.getRescheduledEventsInTimeRange(
-          {
-            start: dayjs(firstDateOfMonth),
-            end: dayjs(new Date()),
-          },
-          whereConditional
-        ),
-        EventsInsights.getCancelledEventsInTimeRange(
-          {
-            start: dayjs(firstDateOfMonth),
-            end: dayjs(new Date()),
-          },
-          whereConditional
-        ),
-      ]);
+      const countGroupedByStatus = await EventsInsights.countGroupedByStatus(whereConditional);
 
-      EventData["Created"] = promisesResult[0];
-      EventData["Completed"] = promisesResult[1];
-      EventData["Rescheduled"] = promisesResult[2];
-      EventData["Cancelled"] = promisesResult[3];
+      EventData["Created"] = countGroupedByStatus["_all"];
+      EventData["Completed"] = countGroupedByStatus["completed"];
+      EventData["Rescheduled"] = countGroupedByStatus["rescheduled"];
+      EventData["Cancelled"] = countGroupedByStatus["cancelled"];
 
       // Most Booked Event Type
       const bookingWhere: Prisma.BookingTimeStatusWhereInput = {

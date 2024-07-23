@@ -77,6 +77,19 @@ export class UsersRepository {
     });
   }
 
+  async findByIdsWithEventTypes(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      include: {
+        eventTypes: true,
+      },
+    });
+  }
+
   async findByIdWithCalendars(userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {
@@ -157,11 +170,7 @@ export class UsersRepository {
 
   formatInput(userInput: CreateManagedUserInput | UpdateManagedUserInput) {
     if (userInput.weekStart) {
-      userInput.weekStart = capitalize(userInput.weekStart);
-    }
-
-    if (userInput.timeZone) {
-      userInput.timeZone = capitalizeTimezone(userInput.timeZone);
+      userInput.weekStart = userInput.weekStart;
     }
   }
 
@@ -173,18 +182,24 @@ export class UsersRepository {
       },
     });
   }
-}
 
-function capitalizeTimezone(timezone: string) {
-  const segments = timezone.split("/");
+  async getUserScheduleDefaultId(userId: number) {
+    const user = await this.findById(userId);
 
-  const capitalizedSegments = segments.map((segment) => {
-    return capitalize(segment);
-  });
+    if (!user?.defaultScheduleId) return null;
 
-  return capitalizedSegments.join("/");
-}
+    return user?.defaultScheduleId;
+  }
 
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  async getOrganizationUsers(organizationId: number) {
+    const profiles = await this.dbRead.prisma.profile.findMany({
+      where: {
+        organizationId,
+      },
+      include: {
+        user: true,
+      },
+    });
+    return profiles.map((profile) => profile.user);
+  }
 }

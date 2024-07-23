@@ -20,6 +20,8 @@ interface VerifyEmailType {
   email: string;
   language?: string;
   secondaryEmailId?: number;
+  isVerifyingEmail?: boolean;
+  isPlatform?: boolean;
 }
 
 export const sendEmailVerification = async ({
@@ -27,6 +29,7 @@ export const sendEmailVerification = async ({
   language,
   username,
   secondaryEmailId,
+  isPlatform = false,
 }: VerifyEmailType) => {
   const token = randomBytes(32).toString("hex");
   const translation = await getTranslation(language ?? "en", "common");
@@ -34,6 +37,11 @@ export const sendEmailVerification = async ({
 
   if (!emailVerification) {
     log.warn("Email verification is disabled - Skipping");
+    return { ok: true, skipped: true };
+  }
+
+  if (isPlatform) {
+    log.warn("Skipping Email verification");
     return { ok: true, skipped: true };
   }
 
@@ -68,7 +76,12 @@ export const sendEmailVerification = async ({
   return { ok: true, skipped: false };
 };
 
-export const sendEmailVerificationByCode = async ({ email, language, username }: VerifyEmailType) => {
+export const sendEmailVerificationByCode = async ({
+  email,
+  language,
+  username,
+  isVerifyingEmail,
+}: VerifyEmailType) => {
   const translation = await getTranslation(language ?? "en", "common");
   const secret = createHash("md5")
     .update(email + process.env.CALENDSO_ENCRYPTION_KEY)
@@ -84,6 +97,7 @@ export const sendEmailVerificationByCode = async ({ email, language, username }:
       email,
       name: username,
     },
+    isVerifyingEmail,
   });
 
   return { ok: true, skipped: false };

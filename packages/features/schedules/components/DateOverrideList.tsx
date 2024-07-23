@@ -19,6 +19,7 @@ const DateOverrideList = ({
   hour12,
   replace,
   fields,
+  weekStart = 0,
 }: {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   replace: any;
@@ -28,6 +29,7 @@ const DateOverrideList = ({
   userTimeFormat: number | null;
   hour12: boolean;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
+  weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
 }) => {
   const { t, i18n } = useLocale();
 
@@ -87,6 +89,7 @@ const DateOverrideList = ({
               excludedDates={excludedDates}
               workingHours={workingHours}
               value={item.ranges}
+              weekStart={weekStart}
               onChange={(ranges) => {
                 // update has very weird side-effects with sorting.
                 replace([...fields.filter((currentItem) => currentItem.id !== item.id), { ranges }]);

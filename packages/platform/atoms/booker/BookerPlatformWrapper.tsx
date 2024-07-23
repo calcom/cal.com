@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -21,26 +22,41 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
+import { transformApiEventTypeForAtom } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import { useEventType } from "../hooks/event-types/public/useEventType";
+import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
+import type { UseCreateBookingInput } from "../hooks/useCreateBooking";
 import { useCreateBooking } from "../hooks/useCreateBooking";
 import { useCreateInstantBooking } from "../hooks/useCreateInstantBooking";
 import { useCreateRecurringBooking } from "../hooks/useCreateRecurringBooking";
-import { useGetBookingForReschedule } from "../hooks/useGetBookingForReschedule";
+import {
+  useGetBookingForReschedule,
+  QUERY_KEY as BOOKING_RESCHEDULE_KEY,
+} from "../hooks/useGetBookingForReschedule";
 import { useHandleBookEvent } from "../hooks/useHandleBookEvent";
 import { useMe } from "../hooks/useMe";
-import { usePublicEvent } from "../hooks/usePublicEvent";
 import { useSlots } from "../hooks/useSlots";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 
-type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
+export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
-  firstName?: string;
-  lastName?: string;
-  guests?: string[];
-  name?: string;
+  username: string | string[];
+  entity?: BookerProps["entity"];
+  // values for the booking form and booking fields
+  defaultFormValues?: {
+    firstName?: string;
+    lastName?: string;
+    guests?: string[];
+    name?: string;
+    email?: string;
+    notes?: string;
+    rescheduleReason?: string;
+  } & Record<string, string | string[]>;
+  handleCreateBooking?: (input: UseCreateBookingInput) => void;
   onCreateBookingSuccess?: (data: ApiSuccessResponse<BookingResponse>) => void;
   onCreateBookingError?: (data: ApiErrorResponse | Error) => void;
   onCreateRecurringBookingSuccess?: (data: ApiSuccessResponse<BookingResponse[]>) => void;
@@ -55,31 +71,50 @@ type BookerPlatformWrapperAtomProps = Omit<BookerProps, "entity"> & {
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
+  const { clientId } = useAtomsContext();
   const [bookerState, setBookerState] = useBookerStore((state) => [state.state, state.setState], shallow);
   const setSelectedDate = useBookerStore((state) => state.setSelectedDate);
+  const setSelectedDuration = useBookerStore((state) => state.setSelectedDuration);
   const setBookingData = useBookerStore((state) => state.setBookingData);
+  const setOrg = useBookerStore((state) => state.setOrg);
   const bookingData = useBookerStore((state) => state.bookingData);
-
   const setSelectedTimeslot = useBookerStore((state) => state.setSelectedTimeslot);
   const setSelectedMonth = useBookerStore((state) => state.setMonth);
-  const { data: booking } = useGetBookingForReschedule({
+  useGetBookingForReschedule({
     uid: props.rescheduleUid ?? props.bookingUid ?? "",
     onSuccess: (data) => {
       setBookingData(data);
     },
   });
+  const queryClient = useQueryClient();
+  const username = useMemo(() => {
+    return formatUsername(props.username);
+  }, [props.username]);
 
-  useEffect(() => {
-    // reset booker whenever it's unmounted
-    return () => {
-      setBookerState("loading");
-      setSelectedDate(null);
-      setSelectedTimeslot(null);
-      setSelectedMonth(null);
+  setSelectedDuration(props.duration ?? null);
+  setOrg(props.entity?.orgSlug ?? null);
+
+  const isDynamic = useMemo(() => {
+    return getUsernameList(username ?? "").length > 1;
+  }, [username]);
+
+  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug);
+
+  const event = useMemo(() => {
+    return {
+      isSuccess,
+      isError,
+      isPending,
+      data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
     };
-  }, []);
+  }, [isSuccess, isError, isPending, data, props.entity]);
 
-  const event = usePublicEvent({ username: props.username, eventSlug: props.eventSlug });
+  if (isDynamic && props.duration && event.data) {
+    // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
+    // but we are re-using the dynamic event type as a team event, so we must set the event length to whatever the event length is.
+    event.data.length = props.duration;
+  }
+
   const bookerLayout = useBookerLayout(event.data);
   useInitializeBookerStore({
     ...props,
@@ -87,7 +122,8 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     rescheduleUid: props.rescheduleUid ?? null,
     bookingUid: props.bookingUid ?? null,
     layout: bookerLayout.defaultLayout,
-    org: event.data?.entity.orgSlug,
+    org: props.entity?.orgSlug,
+    username,
     bookingData,
   });
   const [dayCount] = useBookerStore((state) => [state.dayCount, state.setDayCount], shallow);
@@ -100,12 +136,17 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
 
   const { data: session } = useMe();
   const hasSession = !!session;
+  const { name: defaultName, guests: defaultGuests, ...restFormValues } = props.defaultFormValues ?? {};
   const prefillFormParams = useMemo(() => {
     return {
-      name: props.name ?? null,
-      guests: props.guests ?? [],
+      name: defaultName ?? null,
+      guests: defaultGuests ?? [],
     };
-  }, [props.name, props.guests]);
+  }, [defaultName, defaultGuests]);
+
+  const extraOptions = useMemo(() => {
+    return restFormValues;
+  }, [restFormValues]);
   const date = dayjs(selectedDate).format("YYYY-MM-DD");
 
   const prefetchNextMonth =
@@ -131,8 +172,9 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     prefetchNextMonth,
     selectedDate,
   });
+
   const schedule = useAvailableSlots({
-    usernameList: getUsernameList(props.username ?? ""),
+    usernameList: getUsernameList(username ?? ""),
     eventTypeId: event?.data?.id ?? 0,
     startTime,
     endTime,
@@ -140,20 +182,25 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     duration: selectedDuration ?? undefined,
     rescheduleUid: props.rescheduleUid,
     enabled:
-      Boolean(props.username) &&
+      Boolean(username) &&
       Boolean(month) &&
       Boolean(timezone) &&
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
+    orgSlug: props.entity?.orgSlug ?? undefined,
+    eventTypeSlug: isDynamic ? "dynamic" : undefined,
   });
 
   const bookerForm = useBookingForm({
     event: event.data,
-    sessionEmail: session?.data?.email,
+    sessionEmail:
+      session?.data?.email && clientId
+        ? session.data.email.replace(`+${clientId}`, "")
+        : session?.data?.email,
     sessionUsername: session?.data?.username,
     sessionName: session?.data?.username,
     hasSession,
-    extraOptions: {},
+    extraOptions: extraOptions ?? {},
     prefillFormParams: prefillFormParams,
   });
   const {
@@ -229,18 +276,41 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     bookingForm: bookerForm.bookingForm,
     hashedLink: props.hashedLink,
     metadata: {},
-    handleBooking: createBooking,
+    handleBooking: props?.handleCreateBooking ?? createBooking,
     handleInstantBooking: createInstantBooking,
     handleRecBooking: createRecBooking,
     locationUrl: props.locationUrl,
   });
+
+  useEffect(() => {
+    // reset booker whenever it's unmounted
+    return () => {
+      slots.handleRemoveSlot();
+      setBookerState("loading");
+      setSelectedDate(null);
+      setSelectedTimeslot(null);
+      setSelectedDuration(null);
+      setOrg(null);
+      setSelectedMonth(null);
+      setSelectedDuration(null);
+      if (props.rescheduleUid) {
+        // clean booking data from cache
+        queryClient.removeQueries({
+          queryKey: [BOOKING_RESCHEDULE_KEY, props.rescheduleUid],
+          exact: true,
+        });
+        setBookingData(null);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <AtomsWrapper>
       <BookerComponent
         customClassNames={props.customClassNames}
         eventSlug={props.eventSlug}
-        username={props.username}
+        username={username}
         entity={
           event?.data?.entity ?? {
             considerUnpublished: false,
@@ -266,10 +336,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
         onClickOverlayContinue={function (): void {
           throw new Error("Function not implemented.");
         }}
-        onOverlaySwitchStateChange={function (state: boolean): void {
+        onOverlaySwitchStateChange={function (): void {
           throw new Error("Function not implemented.");
         }}
-        extraOptions={{}}
+        extraOptions={extraOptions ?? {}}
         bookings={{
           handleBookEvent: () => {
             handleBookEvent();
@@ -311,6 +381,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
             return;
           },
           renderConfirmNotVerifyEmailButtonCond: true,
+          isVerificationCodeSending: false,
         }}
         bookerForm={bookerForm}
         event={event}
@@ -322,3 +393,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     </AtomsWrapper>
   );
 };
+
+function formatUsername(username: string | string[]): string {
+  if (typeof username === "string") {
+    return username;
+  }
+  return username.join("+");
+}
