@@ -6,6 +6,8 @@ import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
+import { deleteWorkfowRemindersOfRemovedMember } from "./deleteWorkflowRemindersOfRemovedMember";
+
 const log = logger.getSubLogger({ prefix: ["removeMember"] });
 
 const removeMember = async ({
@@ -40,34 +42,55 @@ const removeMember = async ({
     }),
   ]);
 
+  const team = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      isOrganization: true,
+      organizationSettings: true,
+      id: true,
+      metadata: true,
+      activeOrgWorkflows: true,
+      parentId: true,
+    },
+  });
+
+  const orgInfo = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      isOrganization: true,
+      organizationSettings: true,
+      slug: true,
+      id: true,
+      metadata: true,
+    },
+  });
+
+  const foundUser = await prisma.user.findUnique({
+    where: { id: memberId },
+    select: {
+      id: true,
+      movedToProfileId: true,
+      email: true,
+      username: true,
+      completedOnboarding: true,
+      teams: {
+        select: {
+          team: {
+            select: {
+              id: true,
+              parentId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!team || !foundUser) throw new TRPCError({ code: "NOT_FOUND" });
+
   if (isOrg) {
     log.debug("Removing a member from the organization");
-
     // Deleting membership from all child teams
-    const foundUser = await prisma.user.findUnique({
-      where: { id: memberId },
-      select: {
-        id: true,
-        movedToProfileId: true,
-        email: true,
-        username: true,
-        completedOnboarding: true,
-      },
-    });
-
-    const orgInfo = await prisma.team.findUnique({
-      where: { id: teamId },
-      select: {
-        isOrganization: true,
-        organizationSettings: true,
-        slug: true,
-        id: true,
-        metadata: true,
-      },
-    });
-
-    if (!foundUser || !orgInfo) throw new TRPCError({ code: "NOT_FOUND" });
-
     // Delete all sub-team memberships where this team is the organization
     await prisma.membership.deleteMany({
       where: {
@@ -82,7 +105,7 @@ const removeMember = async ({
 
     const profileToDelete = await ProfileRepository.findByUserIdAndOrgId({
       userId: userToDeleteMembershipOf.id,
-      organizationId: orgInfo.id,
+      organizationId: team.id,
     });
 
     if (redirectToUserId && profileToDelete) {
@@ -124,7 +147,7 @@ const removeMember = async ({
       }),
       ProfileRepository.delete({
         userId: membership.userId,
-        organizationId: orgInfo.id,
+        organizationId: team.id,
       }),
     ]);
   }
@@ -133,6 +156,8 @@ const removeMember = async ({
   await prisma.eventType.deleteMany({
     where: { parent: { teamId: teamId }, userId: membership.userId },
   });
+
+  await deleteWorkfowRemindersOfRemovedMember(team, memberId, isOrg);
 
   return { membership };
 };
