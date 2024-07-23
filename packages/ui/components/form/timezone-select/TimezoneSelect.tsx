@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import type { ITimezoneOption, ITimezone, Props as SelectProps } from "react-timezone-select";
 import BaseSelect from "react-timezone-select";
 
-import { useTimePreferences } from "@calcom/features/bookings/lib/timePreferences";
 import { classNames } from "@calcom/lib";
 import { CALCOM_VERSION } from "@calcom/lib/constants";
 import { filterByCities, addCitiesToDropdown, handleOptionLabel } from "@calcom/lib/timezone";
@@ -49,7 +48,6 @@ export function TimezoneSelectComponent({
   value,
   ...props
 }: TimezoneSelectComponentProps) {
-  const [setTimezone] = useTimePreferences((state) => [state.setTimezone]);
   const [cities, setCities] = useState<ICity[]>([]);
   const handleInputChange = (tz: string) => {
     if (data) setCities(filterByCities(tz, data));
@@ -72,7 +70,6 @@ export function TimezoneSelectComponent({
         ...(data ? addCitiesToDropdown(data) : {}),
         ...addCitiesToDropdown(cities),
       }}
-      onChange={({ value }) => setTimezone(value)}
       onInputChange={handleInputChange}
       {...props}
       formatOptionLabel={(option) => (
