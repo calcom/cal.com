@@ -84,13 +84,13 @@ export default class SendgridService extends SyncServiceCore implements ISyncSer
       },
       delete: async (webUser: WebUserInfoType) => {
         try {
-          const deleteSubUserResp = await this.service.sendgridRequest({
+          const deleteSubUserResponse = await this.service.sendgridRequest({
             url: `/v3/subusers/${webUser.username}`,
             method: "DELETE",
           });
           this.log.debug(
             "sync:sendgrid:web:user:delete:subuser:statuscode",
-            deleteSubUserResp.statusCode.toString()
+            deleteSubUserResponse.statusCode.toString()
           );
         } catch (e) {
           this.log.warn("sync:sendgrid:web:user:delete:subuser", e);
