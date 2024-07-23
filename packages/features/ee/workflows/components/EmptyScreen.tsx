@@ -82,6 +82,7 @@ export default function EmptyScreen(props: { isFilteredView: boolean }) {
               createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
               buttonText={t("create_workflow")}
               isPending={createMutation.isPending}
+              includeOrg={true}
             />
           </div>
         </div>
