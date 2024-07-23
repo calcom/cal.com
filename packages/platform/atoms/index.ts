@@ -14,3 +14,7 @@ export { useGetBookings } from "./hooks/useGetBookings";
 export { useMe } from "./hooks/useMe";
 export { OutlookConnect } from "./connect/outlook/OutlookConnect";
 export * as Connect from "./connect";
+export { BookerEmbed } from "./booker-embed";
+export { useDeleteCalendarCredentials } from "./hooks/calendars/useDeleteCalendarCredentials";
+export { useAddSelectedCalendar } from "./hooks/calendars/useAddSelectedCalendar";
+export { useRemoveSelectedCalendar } from "./hooks/calendars/useRemoveSelectedCalendar";
