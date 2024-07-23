@@ -133,32 +133,8 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
 
-  if (hasOrganizerChanged) {
-    booking = await prisma.booking.update({
-      where: {
-        id: bookingId,
-      },
-      data: {
-        userId: reassignedRRHost.id,
-      },
-      select: bookingSelect,
-    });
-  } else {
-    const previousRRHostAttendee = booking.attendees.find(
-      (attendee) => attendee.email === previousRRHost.email
-    );
-    await prisma.attendee.update({
-      where: {
-        id: previousRRHostAttendee!.id,
-      },
-      data: {
-        name: reassignedRRHost.name || "",
-        email: reassignedRRHost.email,
-        timeZone: reassignedRRHost.timeZone,
-        locale: reassignedRRHost.locale,
-      },
-    });
-  }
+  const currentBookingTitle = booking.title;
+  let newBookingTitle = currentBookingTitle;
 
   const reassignedRRHostT = await getTranslation(reassignedRRHost.locale || "en", "common");
 
@@ -218,6 +194,36 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   const attendeeList = await Promise.all(attendeePromises);
 
+  if (hasOrganizerChanged) {
+    newBookingTitle = newBookingTitle.replace(previousRRHost.name, reassignedRRHost.name);
+
+    booking = await prisma.booking.update({
+      where: {
+        id: bookingId,
+      },
+      data: {
+        userId: reassignedRRHost.id,
+        title: newBookingTitle,
+      },
+      select: bookingSelect,
+    });
+  } else {
+    const previousRRHostAttendee = booking.attendees.find(
+      (attendee) => attendee.email === previousRRHost.email
+    );
+    await prisma.attendee.update({
+      where: {
+        id: previousRRHostAttendee!.id,
+      },
+      data: {
+        name: reassignedRRHost.name || "",
+        email: reassignedRRHost.email,
+        timeZone: reassignedRRHost.timeZone,
+        locale: reassignedRRHost.locale,
+      },
+    });
+  }
+
   const destinationCalendar = await (async () => {
     if (eventType?.destinationCalendar) {
       return [eventType.destinationCalendar];
@@ -260,7 +266,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     startTime: dayjs(booking.startTime).utc().format(),
     endTime: dayjs(booking.endTime).utc().format(),
     type: eventType.slug,
-    title: booking.title,
+    title: newBookingTitle,
     description: eventType.description,
     attendees: attendeeList,
     uid: booking.uid,
@@ -312,6 +318,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   // Send to cancelled RR host
   // First we need to replace the new RR host with the old RR host in the evt object
   const cancelledRRHostEvt = cloneDeep(evt);
+  cancelledRRHostEvt.title = currentBookingTitle;
   if (hasOrganizerChanged) {
     cancelledRRHostEvt.organizer = {
       name: previousRRHost.name || "",
