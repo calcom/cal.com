@@ -75,21 +75,21 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
   const toggleGroupItemByDurationTestId = (duration: number) => `toggle-group-item-${duration}`;
 
   let toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
-  let disabled = await toggleGroupItemLocator.getAttribute("disabled");
+  let activeState = await toggleGroupItemLocator.getAttribute("data-active");
 
-  expect(disabled).toEqual("false");
+  expect(activeState).toEqual("true");
 
   duration = 30;
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
   toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
-  disabled = await toggleGroupItemLocator.getAttribute("disabled");
+  activeState = await toggleGroupItemLocator.getAttribute("data-active");
 
-  expect(disabled).toEqual("false");
+  expect(activeState).toEqual("true");
 
   // Check another toggle group item just to ensure its not selected
   toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(15));
-  disabled = await toggleGroupItemLocator.getAttribute("disabled");
-  expect(disabled).toEqual("true");
+  activeState = await toggleGroupItemLocator.getAttribute("data-active");
+  expect(activeState).toEqual("false");
 });
 // eslint-disable-next-line playwright/no-skipped-test
 test.skip("it contains the right event details", async ({ page }) => {

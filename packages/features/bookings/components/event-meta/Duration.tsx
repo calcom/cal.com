@@ -71,6 +71,7 @@ export const EventDuration = ({
         .map((duration) => ({
           value: duration.toString(),
           label: getDurationFormatted(duration, t),
+          active: selectedDuration === duration ? true : false,
         }))}
     />
   ) : null;
