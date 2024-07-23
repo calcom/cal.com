@@ -30,6 +30,7 @@ export type TeamMember = {
   label: string;
   avatar: string;
   email: string;
+  defaultScheduleId: number | null;
 };
 
 export type FormValues = {
