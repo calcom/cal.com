@@ -1,6 +1,9 @@
 name: Lint
 on:
   workflow_call:
+permissions:
+  actions: write
+  contents: read
 jobs:
   lint:
     runs-on: buildjet-4vcpu-ubuntu-2204

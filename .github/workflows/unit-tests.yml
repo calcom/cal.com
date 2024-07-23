@@ -1,11 +1,12 @@
 name: Unit
 on:
   workflow_call:
+permissions:
+  contents: read
 jobs:
   test:
     name: Unit
-    permissions:
-      contents: read
+
     timeout-minutes: 20
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
