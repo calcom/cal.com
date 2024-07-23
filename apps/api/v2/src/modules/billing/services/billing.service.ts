@@ -6,14 +6,14 @@ import { PlatformPlan } from "@/modules/billing/types";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
 import { StripeService } from "@/modules/stripe/stripe.service";
 import { InjectQueue } from "@nestjs/bull";
-import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
+import { Injectable, InternalServerErrorException, Logger, OnModuleDestroy } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Queue } from "bull";
 import { DateTime } from "luxon";
 import Stripe from "stripe";
 
 @Injectable()
-export class BillingService {
+export class BillingService implements OnModuleDestroy {
   private logger = new Logger("BillingService");
   private readonly webAppUrl: string;
 
@@ -153,5 +153,13 @@ export class BillingService {
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
     }
     return;
+  }
+
+  async onModuleDestroy() {
+    try {
+      await this.billingQueue.close();
+    } catch (err) {
+      this.logger.error(err);
+    }
   }
 }
