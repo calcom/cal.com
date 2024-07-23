@@ -76,7 +76,7 @@ export const bookingsRouter = router({
       input,
     });
   }),
-  addGuests: bookingsProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
+  addGuests: authedProcedure.input(ZAddGuestsInputSchema).mutation(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.addGuests) {
       UNSTABLE_HANDLER_CACHE.addGuests = await import("./addGuests.handler").then(
         (mod) => mod.addGuestsHandler

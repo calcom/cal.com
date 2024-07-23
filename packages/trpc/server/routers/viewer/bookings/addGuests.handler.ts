@@ -19,9 +19,28 @@ type AddGuestsOptions = {
 };
 export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
   const { bookingId, guests } = input;
-  const { booking } = ctx;
 
   try {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        id: bookingId,
+      },
+      include: {
+        attendees: true,
+        eventType: true,
+        destinationCalendar: true,
+        references: true,
+        user: {
+          include: {
+            destinationCalendar: true,
+            credentials: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) throw new TRPCError({ code: "UNAUTHORIZED" });
+
     const organizer = await prisma.user.findFirstOrThrow({
       where: {
         id: booking.userId || 0,
@@ -34,18 +53,17 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
       },
     });
 
-    const currentGuests = await prisma.booking.findFirstOrThrow({
-      where: {
-        id: bookingId,
-      },
-      select: {
-        attendees: true,
-      },
-    });
+    const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
+      ? process.env.BLACKLISTED_GUEST_EMAILS.split(",").map((email) => email.toLowerCase())
+      : [];
 
     const uniqueGuests = guests.filter(
-      (guest) => !currentGuests.attendees.some((attendee) => guest === attendee.email)
+      (guest) =>
+        !booking.attendees.some((attendee) => guest === attendee.email) &&
+        !blacklistedGuestEmails.includes(guest)
     );
+
+    if (uniqueGuests.length === 0) throw new TRPCError({ code: "BAD_REQUEST" });
 
     const guestsFullDetails = uniqueGuests.map((guest) => {
       return {
