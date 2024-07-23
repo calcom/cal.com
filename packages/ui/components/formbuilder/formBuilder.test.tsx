@@ -7,7 +7,7 @@ import { vi } from "vitest";
 
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
 
-import { mockProps, questionUtils, setMockIntersectionObserver, setMockMatchMedia } from "./utils";
+import { mockProps, questionUtils, setMockIntersectionObserver, setMockMatchMedia } from "./testUtils";
 
 vi.mock("@formkit/auto-animate/react", () => ({
   useAutoAnimate: () => [null],

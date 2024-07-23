@@ -2,9 +2,9 @@ import type { Control } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
 import { describe, expect, test, vi } from "vitest";
 
-import { useShouldBeDisabledDueToPrefill } from "@calcom/lib/hooks/useShouldBeDisabledDueToPrefill";
+import { useShouldBeDisabledDueToPrefill } from "@calcom/features/form-builder/FormBuilderField";
 
-import type { RhfFormField } from "./utils";
+import type { RhfFormField } from "./testUtils";
 
 // Mock dependencies
 vi.mock("@hookform/error-message", () => ({ ErrorMessage: () => null }));

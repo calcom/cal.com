@@ -5,10 +5,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import {
-  useShouldBeDisabledDueToPrefill,
-  getFieldNameFromErrorMessage,
-} from "@calcom/lib/hooks/useShouldBeDisabledDueToPrefill";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
@@ -45,6 +42,32 @@ type ValueProps =
       value: boolean;
       setValue: (value: boolean) => void;
     };
+
+export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
+  const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
+  return name;
+};
+
+export const useShouldBeDisabledDueToPrefill = (field: RhfFormField): boolean => {
+  const { formState } = useFormContext();
+  const searchParams = useRouterQuery();
+  // Get the value of a specific field
+  const errorMessage = (formState?.errors?.responses?.message || "") as string;
+  const name = getFieldNameFromErrorMessage(errorMessage);
+  // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
+  if (!field) {
+    return false;
+  }
+  if (name === field?.name) {
+    return false;
+  }
+
+  if (!field.disableOnPrefill || !searchParams) {
+    return false;
+  }
+
+  return !!searchParams[field.name];
+};
 
 export const FormBuilderField = ({
   field,
