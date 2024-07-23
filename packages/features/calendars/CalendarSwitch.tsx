@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { useIsPlatform } from "@calcom/atoms/monorepo";
+import { useIsPlatform, PlatformCalendarSwitch } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { showToast, CalendarSwitchComponent, Switch } from "@calcom/ui";
@@ -19,8 +19,7 @@ export type ICalendarSwitchProps = {
 const CalendarSwitch = (props: ICalendarSwitchProps) => {
   const isPlatform = useIsPlatform();
 
-  // instead of returning an empty fragment return platform calendar switch
-  return !isPlatform ? <WebCalendarSwitch {...props} /> : <></>;
+  return !isPlatform ? <WebCalendarSwitch {...props} /> : <PlatformCalendarSwitch {...props} />;
 };
 
 const WebCalendarSwitch = (props: ICalendarSwitchProps) => {

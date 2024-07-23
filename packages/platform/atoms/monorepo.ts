@@ -7,3 +7,4 @@ export { useEventTypeById } from "./hooks/event-types/private/useEventTypeById";
 export { useHandleBookEvent } from "./hooks/useHandleBookEvent";
 export * as Dialog from "./src/components/ui/dialog";
 export { Timezone } from "./timezone";
+export { PlatformCalendarSwitch } from "./src/components/ui/PlatformCalendarSwitch";
