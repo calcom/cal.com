@@ -37,4 +37,41 @@ export class SelectedCalendarsRepository {
       },
     });
   }
+
+  async addUserSelectedCalendar(
+    userId: number,
+    integration: string,
+    externalId: string,
+    credentialId: number
+  ) {
+    return await this.dbWrite.prisma.selectedCalendar.upsert({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          integration,
+          externalId,
+        },
+      },
+      create: {
+        userId,
+        integration,
+        externalId,
+        credentialId,
+      },
+      // already exists
+      update: {},
+    });
+  }
+
+  async removeUserSelectedCalendar(userId: number, integration: string, externalId: string) {
+    return await this.dbWrite.prisma.selectedCalendar.delete({
+      where: {
+        userId_integration_externalId: {
+          userId,
+          externalId,
+          integration,
+        },
+      },
+    });
+  }
 }
