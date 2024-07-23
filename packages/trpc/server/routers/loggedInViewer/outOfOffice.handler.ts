@@ -198,6 +198,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           name: true,
           username: true,
           timeZone: true,
+          email: true,
         },
       })
     : null;
@@ -269,6 +270,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
         id: ctx.user.id,
         name: ctx.user.name,
         username: ctx.user.username,
+        email: ctx.user.email,
         timeZone: ctx.user.timeZone,
       },
       toUser: toUserId
@@ -276,6 +278,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
             id: toUserId,
             name: toUser?.name,
             username: toUser?.username,
+            email: toUser?.email,
             timeZone: toUser?.timeZone,
           }
         : null,

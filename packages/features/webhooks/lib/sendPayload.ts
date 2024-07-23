@@ -62,12 +62,14 @@ export type OOOEntryPayloadType = {
       name: string | null;
       username: string | null;
       timeZone: string;
+      email: string;
     };
     toUser: {
       id: number;
       name?: string | null;
       username?: string | null;
       timeZone?: string;
+      email?: string;
     } | null;
     uuid: string;
   };
