@@ -10,7 +10,7 @@ import { TextArea } from "@calcom/ui";
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
 import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
-import { getApiName } from "./getApiName";
+import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 import { useEmbedCalOrigin } from "./hooks";
 
@@ -181,7 +181,7 @@ const getEmbedTypeSpecificString = ({
   };
   if (embedFramework === "react") {
     uiInstructionStringArg = {
-      apiName: getApiName({ namespace, mainApiName: "cal" }),
+      apiName: getApiNameForReactSnippet({ mainApiName: "cal" }),
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
@@ -189,7 +189,7 @@ const getEmbedTypeSpecificString = ({
     };
   } else {
     uiInstructionStringArg = {
-      apiName: getApiName({ namespace, mainApiName: "Cal" }),
+      apiName: getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" }),
       theme: previewState.theme,
       brandColor: previewState.palette.brandColor,
       hideEventTypeDetails: previewState.hideEventTypeDetails,
