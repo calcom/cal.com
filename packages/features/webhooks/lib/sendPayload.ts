@@ -33,7 +33,7 @@ export type WithUTCOffsetType<T> = T & {
 export type BookingNoShowUpdatedPayload = {
   message: string;
   bookingUid: string;
-  bookingId: number;
+  bookingId?: number;
   attendees: { email: string; noShow: boolean }[];
 };
 
@@ -75,7 +75,6 @@ export type OOOEntryPayloadType = {
 
 export type EventPayloadType = CalendarEvent &
   TranscriptionGeneratedPayload &
-  // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };
     bookingId?: number;
@@ -89,9 +88,10 @@ export type EventPayloadType = CalendarEvent &
     createdAt: string;
     downloadLink?: string;
     paymentId?: number;
+    paymentData?: { [key: string]: string | number | boolean | null };
   };
 
-export type WebhookDataType = EventPayloadType | OOOEntryPayloadType;
+export type WebhookDataType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
 
 function addUTCOffset(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
@@ -182,14 +182,20 @@ export function jsonParse(jsonString: string) {
 
 export function isOOOEntryPayload(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): data is Omit<OOOEntryPayloadType, "createdAt" | "triggerEvent"> {
+): data is OOOEntryPayloadType {
   return "oooEntry" in data;
+}
+
+export function isNoShowPayload(
+  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+): data is BookingNoShowUpdatedPayload {
+  return "message" in data;
 }
 
 export function isEventPayload(
   data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
 ): data is Omit<EventPayloadType, "createdAt" | "triggerEvent"> {
-  return !("oooEntry" in data);
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
 }
 
 const sendPayload = async (
@@ -216,7 +222,7 @@ const sendPayload = async (
   }
 
   if (body === undefined) {
-    if (template && (isOOOEntryPayload(data) || isEventPayload(data))) {
+    if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
       body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
     } else {
       body = JSON.stringify({

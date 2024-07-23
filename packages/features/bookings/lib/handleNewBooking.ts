@@ -84,7 +84,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -1512,7 +1512,7 @@ async function handler(
       }
     : undefined;
 
-  const webhookData = {
+  const webhookData: Omit<EventPayloadType, "createdAt" | "triggerEvent"> = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,

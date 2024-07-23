@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -251,6 +252,37 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
 
   const subscribers = await getWebhooks(subscriberOptions);
 
+  const payload: OOOEntryPayloadType = {
+    oooEntry: {
+      id: createdRedirect.id,
+      start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      createdAt: createdRedirect.createdAt.toISOString(),
+      updatedAt: createdRedirect.updatedAt.toISOString(),
+      notes: createdRedirect.notes,
+      reason: {
+        emoji: reason?.emoji,
+        reason: reason?.reason,
+      },
+      reasonId: input.reasonId,
+      user: {
+        id: ctx.user.id,
+        name: ctx.user.name,
+        username: ctx.user.username,
+        timeZone: ctx.user.timeZone,
+      },
+      toUser: toUserId
+        ? {
+            id: toUserId,
+            name: toUser?.name,
+            username: toUser?.username,
+            timeZone: toUser?.timeZone,
+          }
+        : null,
+      uuid: createdRedirect.uuid,
+    },
+  };
+
   await Promise.all(
     subscribers.map(async (subscriber) => {
       sendPayload(
@@ -262,36 +294,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           subscriberUrl: subscriber.subscriberUrl,
           payloadTemplate: subscriber.payloadTemplate,
         },
-        {
-          oooEntry: {
-            id: createdRedirect.id,
-            start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-            end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-            createdAt: createdRedirect.createdAt.toISOString(),
-            updatedAt: createdRedirect.updatedAt.toISOString(),
-            notes: createdRedirect.notes,
-            reason: {
-              emoji: reason?.emoji,
-              reason: reason?.reason,
-            },
-            reasonId: input.reasonId,
-            user: {
-              id: ctx.user.id,
-              name: ctx.user.name,
-              username: ctx.user.username,
-              timeZone: ctx.user.timeZone,
-            },
-            toUser: toUserId
-              ? {
-                  id: toUserId,
-                  name: toUser?.name,
-                  username: toUser?.username,
-                  timeZone: toUser?.timeZone,
-                }
-              : null,
-            uuid: createdRedirect.uuid,
-          },
-        }
+        payload
       );
     })
   );
