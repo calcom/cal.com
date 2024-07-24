@@ -1,13 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
-import { Controller, useForm, useFieldArray } from "react-hook-form";
+import { useMemo, useEffect } from "react";
+import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { type AttributeOption } from "@calcom/prisma/enums";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { trpc, type RouterOutputs } from "@calcom/trpc/react";
 import {
@@ -22,7 +21,6 @@ import {
   Avatar,
   ImageUploader,
   Button,
-  Select,
   SelectField,
 } from "@calcom/ui";
 
@@ -34,6 +32,17 @@ type MembershipOption = {
   label: string;
 };
 
+const attributeSchema = z
+  .object({
+    id: z.string(),
+    value: z.string().optional(),
+    options: z.array(z.object({ id: z.string() })).optional(),
+  })
+  .refine((data) => data.value !== undefined || data.options !== undefined, {
+    message: "Either 'value' or 'options' must be provided",
+    path: ["value", "options"], // This will show the error on both fields
+  });
+
 const editSchema = z.object({
   name: z.string(),
   username: z.string(),
@@ -44,6 +53,7 @@ const editSchema = z.object({
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
+  attributes: z.array(attributeSchema),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -60,6 +70,7 @@ export function EditForm({
   dispatch: Dispatch<Action>;
 }) {
   const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
+  const setEditMode = useEditMode((state) => state.setEditMode);
   const { t } = useLocale();
   const session = useSession();
   const org = session?.data?.user?.org;
@@ -126,17 +137,17 @@ export function EditForm({
       form={form}
       id="edit-user-form"
       handleSubmit={(values) => {
-        setMutationLoading(true);
-        mutation.mutate({
-          userId: selectedUser?.id ?? "",
-          role: values.role,
-          username: values.username,
-          name: values.name,
-          email: values.email,
-          avatar: values.avatar,
-          bio: values.bio,
-          timeZone: values.timeZone,
-        });
+        console.log(values);
+        // mutation.mutate({
+        //   userId: selectedUser?.id ?? "",
+        //   role: values.role,
+        //   username: values.username,
+        //   name: values.name,
+        //   email: values.email,
+        //   avatar: values.avatar,
+        //   bio: values.bio,
+        //   timeZone: values.timeZone,
+        // });
       }}>
       <div className="mt-4 flex flex-col gap-2">
         <Controller
@@ -190,68 +201,56 @@ export function EditForm({
         </div>
         <AttributesList selectedUserId={selectedUser.id} />
       </div>
+      <Button
+        color="secondary"
+        type="button"
+        className="justify-center md:w-1/5"
+        onClick={() => {
+          setEditMode(false);
+        }}>
+        {t("cancel")}
+      </Button>
+
+      <Button
+        type="submit"
+        className="w-full justify-center"
+        form="edit-user-form"
+        loading={mutation.isPending}>
+        {t("update")}
+      </Button>
     </Form>
   );
 }
 
-type GroupedAttribute = {
-  id: string;
-  options: {
-    id: string;
-    slug: string;
-    value: string;
-  }[];
-};
-
-type Attribute = {
-  value: string;
-  label: string;
-  type: AttributeOption;
-};
-
-type AttributeSelection = {
-  attribute: Attribute;
-  options: {
-    label: string;
-    value: string;
-  }[];
-};
-
-type FormValues = {
-  attributeSelections: AttributeSelection[];
-  newAttribute: AttributeSelection | undefined;
-};
+type AttributeType = z.infer<typeof attributeSchema>;
 
 function AttributesList(props: { selectedUserId: number }) {
   const { data: usersAttributes, isPending: usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
       userId: props.selectedUserId,
     });
-  const [toggleAddAttribute, setToggleAddAttribute] = useState(false);
   const { data: attributes, isPending: attributesPending } = trpc.viewer.attributes.list.useQuery();
+  const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();
+  const { control, watch, setValue } = useFormContext();
 
-  const { control, handleSubmit, setValue, watch } = useForm<FormValues>({
-    defaultValues: {
-      attributeSelections: [],
-      newAttribute: undefined,
-    },
-  });
+  // Watch the 'attributes' field from the form context
+  const formAttributes = watch("attributes") as AttributeType[];
 
-  const watchedAttributeSelections = watch("attributeSelections");
-  const watchedNewAttribute = watch("newAttribute");
-
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: "attributeSelections",
-  });
-
-  const attributeOptions = attributes?.map((attr) => ({
-    value: attr.id,
-    label: attr.name,
-    type: attr.type,
-  }));
+  // useEffect(() => {
+  //   if (usersAttributes && !formAttributes) {
+  //     // Initialize form attributes with user attributes when available
+  //     setValue(
+  //       "attributes",
+  //       usersAttributes.map((attr) => ({
+  //         id: attr.id,
+  //         value: attr.type === "MULTI_SELECT" ? undefined : attr.value,
+  //         options: attr.type === "MULTI_SELECT" ? attr.value.split(",").map((id) => ({ id })) : undefined,
+  //       }))
+  //     );
+  //   }
+  // }, [usersAttributes, formAttributes, setValue]);
 
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
@@ -263,112 +262,66 @@ function AttributesList(props: { selectedUserId: number }) {
       : [];
   };
 
-  const nextAttribute = attributes?.find(
-    (attr) => !watchedAttributeSelections?.some((selectedAttr) => selectedAttr.attribute.value === attr.id)
-  );
-
-  console.log({
-    nextAttribute,
-    watchedAttributeSelections,
-    attributes,
-  });
-
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
-  };
+  if (!enabledAttributes) return null;
 
   return (
     <div className="flex flex-col">
-      <Label className="text-subtle mb-1 text-xs font-semibold uppercase leading-none">
-        {t("attributes")}
-      </Label>
-      <div className="flex flex-col">
-        {toggleAddAttribute ? (
-          <div className="bg-subtle rounged-lg flex flex-col gap-2 p-4">
-            <Label className="text-subtle mb-1 text-xs font-semibold leading-none">
-              {t("attribute_type")}
-            </Label>
-            {nextAttribute && (
-              <>
-                <Select
-                  defaultValue={
-                    attributes && attributes?.length > 0
-                      ? {
-                          label: attributes[0].name,
-                          value: attributes[0].id,
-                          type: attributes[0].type,
+      <div className="bg-subtle flex flex-col gap-3 rounded-lg p-4">
+        <Label className="text-emphasis mb-2 block text-sm font-medium leading-none">{t("attributes")}</Label>
+        <p className="text-subtle mb-2 block text-sm font-medium leading-none">
+          {t("attributes_leave_empty_to_hide")}
+        </p>
+        {enabledAttributes.map((attr) => (
+          <Controller
+            name={`attributes.${attr.id}`}
+            control={control}
+            defaultValue={{ id: attr.id }}
+            render={({ field }) => {
+              return (
+                <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
+                  {["TEXT", "NUMBER"].includes(attr.type) && (
+                    <InputField
+                      {...field}
+                      name={`attribute_${attr.id}`}
+                      containerClassName="w-full"
+                      labelClassName="text-subtle mb-1 text-xs font-semibold leading-none"
+                      label={attr.name}
+                      type={attr.type === "TEXT" ? "text" : "number"}
+                      value={field.value?.value || ""}
+                      onChange={(e) => {
+                        field.onChange({ id: attr.id, value: e.target.value });
+                      }}
+                    />
+                  )}
+                  {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
+                    <SelectField
+                      {...field}
+                      containerClassName="w-full"
+                      name={`attribute_${attr.id}`}
+                      isMulti={attr.type === "MULTI_SELECT"}
+                      labelProps={{
+                        className: "text-subtle mb-1 text-xs font-semibold leading-none",
+                      }}
+                      label={attr.name}
+                      options={getOptionsByAttributeId(attr.id)}
+                      value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.name}
+                      onChange={(value) => {
+                        if (attr.type === "MULTI_SELECT") {
+                          field.onChange({
+                            id: attr.id,
+                            options: value.map((v: any) => ({ label: v.label, value: v.value })),
+                          });
+                        } else {
+                          field.onChange({ id: attr.id, value: value.value });
                         }
-                      : null
-                  }
-                  options={attributeOptions}
-                  onChange={(option) => {
-                    if (!option) return;
-                    setValue("newAttribute", {
-                      attribute: {
-                        value: option.value,
-                        label: option.label,
-                        type: option.type,
-                      },
-                      options: getOptionsByAttributeId(option.value),
-                    });
-                  }}
-                />
-                {["TEXT", "NUMBER"].includes(watchedNewAttribute?.attribute.type) && (
-                  <InputField
-                    name="attributeValue"
-                    labelClassName="text-subtle mb-1 text-xs font-semibold leading-none"
-                    label={t("attribute_value")}
-                    type={watchedNewAttribute?.attribute.type === "TEXT" ? "text" : "number"}
-                  />
-                )}
-                {["SINGLE_SELECT", "MULTI_SELECT"].includes(watchedNewAttribute?.attribute.type) && (
-                  <SelectField
-                    isMulti={watchedNewAttribute?.attribute.type === "MULTI_SELECT"}
-                    name="attributeValue"
-                    labelProps={{
-                      className: "text-subtle mb-1 text-xs font-semibold leading-none",
-                    }}
-                    label={t("attribute_value")}
-                    options={watchedNewAttribute?.options}
-                  />
-                )}
-              </>
-            )}
-
-            <div className="flex flex-wrap justify-end gap-2">
-              <Button color="minimal" onClick={() => setToggleAddAttribute(false)}>
-                {t("cancel")}
-              </Button>
-              <Button
-                color="secondary"
-                disabled={!nextAttribute}
-                onClick={() => {
-                  if (!nextAttribute) return;
-                  // Get an attribute that is not in the selection
-                  setValue("newAttribute", {
-                    attribute: {
-                      value: nextAttribute?.id,
-                      label: nextAttribute?.id,
-                      type: nextAttribute?.type,
-                    },
-                    options: getOptionsByAttributeId(nextAttribute.id),
-                  });
-                }}>
-                {t("add")}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <Button
-            color="minimal"
-            className="w-fit"
-            StartIcon="plus"
-            onClick={() => {
-              setToggleAddAttribute(true);
-            }}>
-            {t("add_attributes")}
-          </Button>
-        )}
+                      }}
+                    />
+                  )}
+                </div>
+              );
+            }}
+          />
+        ))}
       </div>
     </div>
   );
