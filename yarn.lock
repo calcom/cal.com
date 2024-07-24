@@ -4065,8 +4065,8 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
-    "@calcom/platform-libraries-0.0.19": "npm:@calcom/platform-libraries@0.0.19"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
+    "@calcom/platform-libraries-0.0.20": "npm:@calcom/platform-libraries@0.0.20"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -5025,14 +5025,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.19@npm:@calcom/platform-libraries@0.0.19":
-  version: 0.0.19
-  resolution: "@calcom/platform-libraries@npm:0.0.19"
+"@calcom/platform-libraries-0.0.20@npm:@calcom/platform-libraries@0.0.20":
+  version: 0.0.20
+  resolution: "@calcom/platform-libraries@npm:0.0.20"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: e5c4f2ca63c927e811232d3c83b5341e306d33f3fd0bfdeaf6dcdbca7f31ae02892bd4f8244273cd411fc0b725d2ff7690b58498ae29f6556c22d19159943b08
+  checksum: f17e9bd51429a1a70240944b8f3836be41790a8c0eba34ddeaa7336c4f98503c0ff8c70c4d79b15809895c3af8462cbf10cff14ca4ba0453cc751febf4dd86cb
   languageName: node
   linkType: hard
 
@@ -9012,14 +9012,14 @@ __metadata:
   linkType: hard
 
 "@langchain/core@npm:>0.1.56 <0.3.0, @langchain/core@npm:>0.2.0 <0.3.0":
-  version: 0.2.17
-  resolution: "@langchain/core@npm:0.2.17"
+  version: 0.2.18
+  resolution: "@langchain/core@npm:0.2.18"
   dependencies:
     ansi-styles: ^5.0.0
     camelcase: 6
     decamelize: 1.2.0
     js-tiktoken: ^1.0.12
-    langsmith: ~0.1.30
+    langsmith: ~0.1.39
     ml-distance: ^4.0.0
     mustache: ^4.2.0
     p-queue: ^6.6.2
@@ -9027,7 +9027,7 @@ __metadata:
     uuid: ^10.0.0
     zod: ^3.22.4
     zod-to-json-schema: ^3.22.3
-  checksum: 76d77a71b7f97ee5383a2d93b9b528349452105a35b0bec181bb5e318a27f95cc75a605975aa604ad176d490fb71d214d43f4ac9be69fbd8312fe6c8e417397a
+  checksum: f1090a300825a8cefdf873a38926f5a3a8f1208ebcdd9f65c4858e851082b8f89b7b7d7dba50c3907de997b0f2fad2856d611adf61096dffcf240e959809e4fc
   languageName: node
   linkType: hard
 
@@ -32993,9 +32993,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"langsmith@npm:~0.1.1, langsmith@npm:~0.1.30, langsmith@npm:~0.1.7":
-  version: 0.1.38
-  resolution: "langsmith@npm:0.1.38"
+"langsmith@npm:~0.1.1, langsmith@npm:~0.1.39, langsmith@npm:~0.1.7":
+  version: 0.1.39
+  resolution: "langsmith@npm:0.1.39"
   dependencies:
     "@types/uuid": ^9.0.1
     commander: ^10.0.1
@@ -33013,7 +33013,7 @@ __metadata:
       optional: true
     openai:
       optional: true
-  checksum: 25e9f68589ef935791258c25c0ac0473f6d45cb6d50970266e3f9ed25eb84530dd5cb8c1a6c13d8ddadf81d2364a56081d5d3798dadb75e685d7c93afac9f903
+  checksum: df21332662ec3a2d2d5cf915acede52b96aedf2a286259435d683f230af5926500b129cab1f0275450e0d3de6d9d8476e410ac46f5e994beb43f2e2df8a1965f
   languageName: node
   linkType: hard
 

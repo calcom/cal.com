@@ -18,15 +18,15 @@
     "test:watch": "yarn dev:build && jest --watch",
     "test:cov": "yarn dev:build && jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "yarn dev:build && jest --runInBand --config ./jest-e2e.json",
+    "test:e2e": "yarn dev:build && jest --runInBand --detectOpenHandles --forceExit --config ./jest-e2e.json",
     "prisma": "yarn workspace @calcom/prisma prisma",
     "generate-schemas": "yarn prisma generate && yarn prisma format",
     "copy-swagger-module": "ts-node -r tsconfig-paths/register swagger/copy-swagger-module.ts"
   },
   "dependencies": {
     "@calcom/platform-constants": "*",
-    "@calcom/platform-libraries-0.0.19": "npm:@calcom/platform-libraries@0.0.19",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
+    "@calcom/platform-libraries-0.0.20": "npm:@calcom/platform-libraries@0.0.20",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
