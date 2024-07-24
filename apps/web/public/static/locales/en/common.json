@@ -854,6 +854,7 @@
   "single_use_links_title": "Single Use Links",
   "single_use_links_description": "Generate a single use Link, which will be destroyed once used",
   "add_a_single_use_link": "Add new link",
+  "single_use_link_copied": "Single use link copied",
   "invitees_can_schedule": "Invitees can schedule",
   "date_range": "Date Range",
   "calendar_days": "calendar days",

@@ -24,7 +24,7 @@ interface handleChildrenEventTypesProps {
     workflows?: { workflowId: number }[];
   } | null;
   hashedLink: string | undefined;
-  connectedLink: { id: number } | null;
+  connectedLink: { id: number; link: string; destroyOnUse: boolean } | null;
   children:
     | {
         hidden: boolean;

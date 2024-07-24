@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -59,7 +60,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       return link.destroyOnUse === false;
     })?.link
   );
+
   const bookingFields: Prisma.JsonObject = {};
+
+  const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
@@ -92,7 +96,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
 
   useEffect(() => {
-    console.log(hashedUrl);
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventType.hashedLink, formMethods.getValues("users"), hashedUrl, team?.id]);
@@ -424,12 +427,77 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         )}
       </SettingsToggle>
       <div className="border-subtle space-y-6 rounded-lg border p-6">
-        <FormBuilder
-          title={t("single_use_links_title")}
-          description={t("single_use_links_description")}
-          addFieldLabel={t("add_a_single_use_link")}
-          formProp="singleUseLinks"
-          {...shouldLockDisableProps("singleUseLinks")}
+        <Label className="mb-1 text-base font-semibold">{t("single_use_links_title")}</Label>
+        <p className="text-subtle max-w-full break-words text-sm leading-tight">
+          {t("single_use_links_description")}
+        </p>
+        <Controller
+          name="singleUseLinks"
+          render={({ field: { value } }) => {
+            const addSingleUseLink = () => {
+              let seed = String(formMethods.getValues("users")[0]?.id ?? team?.id);
+              // Append the last generated link to the seed for more randomized link generation.
+              if (value.length > 0) {
+                seed = `${seed}:${value[value.length - 1]}`;
+              } else {
+                // If this is the first one then just append a constant string to the seed.
+                seed = `${seed}:single_use`;
+              }
+              const newSingleUseLink = generateHashedLink(seed);
+              value.push(newSingleUseLink);
+              formMethods.setValue("singleUseLinks", value, { shouldDirty: true });
+            };
+
+            const removeSingleUseLink = (index: number) => {
+              value.splice(index, 1);
+              formMethods.setValue("singleUseLinks", value, { shouldDirty: true });
+            };
+            return (
+              <ul ref={animateRef}>
+                {value &&
+                  value.map((val: string, key: string) => {
+                    const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
+                    return (
+                      <div data-testid="add-single-use-link" className="mb-4 flex items-center" key={key}>
+                        <TextField
+                          containerClassName="w-full"
+                          disabled
+                          labelSrOnly
+                          type="text"
+                          defaultValue={singleUseURL}
+                          addOnSuffix={
+                            <Tooltip content={t("copy_to_clipboard")}>
+                              <Button
+                                color="minimal"
+                                size="sm"
+                                type="button"
+                                className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                                aria-label="copy link"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(singleUseURL);
+                                  showToast(t("single_use_link_copied"), "success");
+                                }}>
+                                <Icon name="copy" className="h-4 w-4" />
+                              </Button>
+                            </Tooltip>
+                          }
+                        />
+                        <Button
+                          variant="icon"
+                          StartIcon="trash-2"
+                          color="destructive"
+                          className="border-none"
+                          onClick={() => removeSingleUseLink(parseInt(key))}
+                        />
+                      </div>
+                    );
+                  })}
+                <Button color="minimal" StartIcon="plus" onClick={addSingleUseLink}>
+                  {t("add_a_single_use_link")}
+                </Button>
+              </ul>
+            );
+          }}
         />
       </div>
       <Controller

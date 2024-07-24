@@ -1673,14 +1673,33 @@ async function handler(
 
   try {
     if (hasHashedBookingLink) {
-      await prisma.hashedLink.update({
+      // Get the hashed link to check if this is to be deleted or updated.
+      const existingHashedLink = await prisma.hashedLink.findUnique({
         where: {
-          link: reqBody.hashedLink as string,
+          link: reqBody.hashedLink,
         },
-        data: {
-          link: hashedUid,
+        select: {
+          destroyOnUse: true,
         },
       });
+      // Delete if it has destroy-on-use flag set.
+      if (existingHashedLink.destroyOnUse) {
+        await prisma.hashedLink.delete({
+          where: {
+            link: reqBody.hashedLink as string,
+          },
+        });
+      } else {
+        // Else update.
+        await prisma.hashedLink.update({
+          where: {
+            link: reqBody.hashedLink as string,
+          },
+          data: {
+            link: hashedUid,
+          },
+        });
+      }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
