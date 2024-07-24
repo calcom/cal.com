@@ -542,7 +542,7 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && (userId === booking.user?.id || booking.user?.isTeamAdminOrOwner) && (
+              {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
                 <TableActions actions={pendingActions} />
               )}
               {isConfirmed && <TableActions actions={bookedActions} />}
@@ -646,9 +646,9 @@ const RecurringBookingsTooltip = ({
 };
 
 interface UserProps {
-  id?: number;
-  name?: string | null;
-  email?: string;
+  id: number;
+  name: string | null;
+  email: string;
 }
 
 const FirstAttendee = ({

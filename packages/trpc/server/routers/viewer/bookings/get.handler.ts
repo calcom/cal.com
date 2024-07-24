@@ -3,7 +3,7 @@ import getAllUserBookings from "@calcom/lib/bookings/getAllUserBookings";
 import type { PrismaClient } from "@calcom/prisma";
 import { bookingMinimalSelect } from "@calcom/prisma";
 import type { Prisma } from "@calcom/prisma/client";
-import type { BookingStatus } from "@calcom/prisma/enums";
+import { MembershipRole, type BookingStatus } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -183,6 +183,7 @@ export async function getBookings({
           select: {
             id: true,
             name: true,
+            members: true,
           },
         },
       },
@@ -370,16 +371,6 @@ export async function getBookings({
     }
   );
 
-  const userMembership = await prisma.membership.findFirst({
-    where: {
-      userId: user.id,
-      OR: [{ role: "OWNER" }, { role: "ADMIN" }],
-    },
-    select: {
-      teamId: true,
-    },
-  });
-
   const plainBookings = getUniqueBookings(
     // It's going to mess up the orderBy as we are concatenating independent queries results
     bookingsQueryUserId
@@ -406,7 +397,11 @@ export async function getBookings({
     if (booking.seatsReferences.length && !booking.eventType?.seatsShowAttendees) {
       booking.attendees = booking.attendees.filter((attendee) => attendee.email === user.email);
     }
-    const isTeamAdminOrOwner = !!userMembership && booking.eventType?.team?.id === userMembership.teamId;
+
+    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
+    const isUserTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
     return {
       ...booking,
       eventType: {
@@ -416,14 +411,9 @@ export async function getBookings({
         currency: booking.eventType?.currency || "usd",
         metadata: EventTypeMetaDataSchema.parse(booking.eventType?.metadata || {}),
       },
-      user: booking.user
-        ? {
-            ...booking.user,
-            isTeamAdminOrOwner,
-          }
-        : null,
       startTime: booking.startTime.toISOString(),
       endTime: booking.endTime.toISOString(),
+      isUserTeamAdminOrOwner,
     };
   });
   return { bookings, recurringInfo };
