@@ -65,11 +65,13 @@ const SlotItem = ({
 
   const overlayCalendarToggled =
     getQueryParam("overlayCalendar") === "true" || localStorage.getItem("overlayCalendarSwitchDefault");
-  const [timeFormat, timezone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
+  const [timeFormat, preferenceTimeZone] = useTimePreferences((state) => [state.timeFormat, state.timezone]);
   const bookingData = useBookerStore((state) => state.bookingData);
   const layout = useBookerStore((state) => state.layout);
+  const timezoneFromBookerStore = useBookerStore((state) => state.timeZone);
   const { data: eventData } = event;
   const hasTimeSlots = !!seatsPerTimeSlot;
+  const timezone = timezoneFromBookerStore ?? preferenceTimeZone;
   const computedDateWithUsersTimezone = dayjs.utc(slot.time).tz(timezone);
 
   const bookingFull = !!(hasTimeSlots && slot.attendees && slot.attendees >= seatsPerTimeSlot);
