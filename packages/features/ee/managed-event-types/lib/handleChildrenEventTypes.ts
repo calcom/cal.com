@@ -153,7 +153,11 @@ export default async function handleChildrenEventTypes({
         ? { create: { link: generateHashedLink(userId) } }
         : undefined
       : connectedLink
-      ? { delete: true }
+      ? {
+          delete: {
+            link: generateHashedLink(userId),
+          },
+        }
       : undefined;
   };
 

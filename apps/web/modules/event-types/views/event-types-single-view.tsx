@@ -558,6 +558,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {

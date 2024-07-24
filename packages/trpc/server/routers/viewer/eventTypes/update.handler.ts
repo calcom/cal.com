@@ -475,7 +475,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     currentUserId: ctx.user.id,
     oldEventType: eventType,
     hashedLink,
-    connectedLink: connectedPrivateLink,
+    connectedLink: connectedPrivateLink || null,
     updatedEventType,
     children,
     profileId: ctx.user.profile.id,
