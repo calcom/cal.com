@@ -265,8 +265,8 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
     ...pathsWebsite,
     ...pathsWebsiteNonDefaultLocales,
     // /apps
-    ...pathsAppStore,
-    ...pathsAppStoreCategories,
+    // ...pathsAppStore,
+    // ...pathsAppStoreCategories,
     // // /blog
     // ...pathsPosts,
     // ...pathsCategories,
