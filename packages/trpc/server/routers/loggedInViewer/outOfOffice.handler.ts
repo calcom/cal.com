@@ -131,7 +131,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       toUserId: true,
     },
     where: {
-      ...(toUserId && { toUserId: toUserId }),
+      ...(toUserId && { userId: toUserId }),
       toUserId: ctx.user.id,
       // Check for time overlap or collision
       OR: [
@@ -250,7 +250,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   };
 
   const subscribers = await getWebhooks(subscriberOptions);
-
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
   await Promise.all(
     subscribers.map(async (subscriber) => {
       sendPayload(
@@ -272,7 +272,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
             notes: createdRedirect.notes,
             reason: {
               emoji: reason?.emoji,
-              reason: reason?.reason,
+              reason: reason?.reason ? t(reason?.reason) : t("ooo_reasons_unspecified"),
             },
             reasonId: input.reasonId,
             user: {
