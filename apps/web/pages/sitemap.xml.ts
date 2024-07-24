@@ -59,37 +59,37 @@ function generateSiteMap(paths: string[]) {
 
 export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: GetServerSidePropsContext) => {
   // - all all non-dynamic (non-[].tsx) pages
-  const allWebsitePage = await globby("*", { cwd: "../../apps/website/pages" });
   const websitePages = await globby(
     [
-      // all TSX/MDX pages
-      "./**/*{.tsx,.mdx}",
-      // except for:
-      // - dynamic routes, and
-      "!*].tsx",
-      // - nextjs pages (e.g. _app, _document, etc.), and
-      "!_*.tsx",
-      // - api routes (e.g. social/og.tsx)
-      "!./api/**/*",
+      // all TSX/JSX pages
+      "./**/*{.tsx,.jsx}",
     ],
     { cwd: "../../apps/website/pages" }
   );
-  const pathsWebsite = websitePages.map((page) => {
-    const slug = page.replace("pages", "").replace(".tsx", "").replace(".mdx", "");
-    return process.env.NEXT_PUBLIC_WEBSITE_URL + slug;
-  });
+  const pathsWebsite = websitePages
+    .filter((page) => {
+      // exclude dynamic pages (e.g. /[...slugs].tsx)
+      // nextjs pages (e.g. _app, _document, etc.),
+      // api routes (e.g. social/og.tsx)
+      return !page.includes("[") && !page.includes("api/") && !page.startsWith("_");
+    })
+    .map((page) => {
+      const slug = page.replace("pages", "").replace(".tsx", "").replace(".jsx", "");
+      return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${slug}`;
+    });
   console.log(`[sitemap] 
     - ${pathsWebsite.length} website pages
 
     all pages: 
-    ${allWebsitePage.join("\n")}`);
+    ${pathsWebsite.join("\n")}`);
 
   // - locales versions of all non-dynamic (non-[].tsx) pages
   const pathsWebsiteNonDefaultLocales: Array<string> = [];
   for (const locale of locales) {
     if (locale === "en") continue;
     pathsWebsiteNonDefaultLocales.push(
-      ...pathsWebsite.map((path) => {
+      ...pathsWebsite.flatMap((path) => {
+        if (path.includes("/blog")) return [];
         const regex = new RegExp(`^(${process.env.NEXT_PUBLIC_WEBSITE_URL})\/(.+)$`);
         return path.replace(regex, `$1/${locale}/$2`);
       })
