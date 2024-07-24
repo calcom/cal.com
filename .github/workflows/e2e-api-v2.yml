@@ -72,9 +72,9 @@ jobs:
           EXIT_CODE=$?
           echo "yarn test:e2e command exit code: $EXIT_CODE"
           exit $EXIT_CODE
-      # - name: Upload Test Results
-      #   if: ${{ always() }}
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-results-api-v2
-      #     path: test-results
+      - name: Upload Test Results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-api-v2
+          path: test-results
