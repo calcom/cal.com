@@ -1,4 +1,3 @@
-// Tremor Raw Sheet [v0.0.0]
 import * as SheetPrimitives from "@radix-ui/react-dialog";
 import * as React from "react";
 
