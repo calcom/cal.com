@@ -1,12 +1,12 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 
-import { useConnectedCalendars } from "@calcom/atoms";
+import { useConnectedCalendars, CalendarSettings } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Calendars(props: { calUsername: string; calEmail: string }) {
-  const { isLoading, data: calendars } = useConnectedCalendars();
+  const { isLoading, data: calendars } = useConnectedCalendars({});
   const connectedCalendars = calendars?.connectedCalendars ?? [];
   const destinationCalendar = calendars?.destinationCalendar ?? {};
   return (
@@ -42,6 +42,9 @@ export default function Calendars(props: { calUsername: string; calEmail: string
             <p>{destinationCalendar.integrationTitle}</p>
           </div>
         )}
+      </div>
+      <div className="p-4">
+        <CalendarSettings />
       </div>
     </main>
   );
