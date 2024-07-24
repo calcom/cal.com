@@ -1,5 +1,6 @@
 import type { User } from "@prisma/client";
 
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
@@ -162,40 +163,11 @@ export async function getLuckyUser<
   }
 
   // all bookings of event type of all rr hosts
-  const allBookings = await prisma.booking.findMany({
-    where: {
-      eventTypeId: eventType.id,
-      OR: [
-        {
-          userId: {
-            in: allRRHosts.map((host) => host.user.id),
-          },
-        },
-        {
-          attendees: {
-            some: {
-              email: {
-                in: allRRHosts.map((host) => host.user.email),
-              },
-            },
-          },
-        },
-      ],
-    },
-    select: {
-      id: true,
-      createdAt: true,
-      status: true,
-      userId: true,
-      attendees: {
-        select: {
-          email: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+  const allBookings = await BookingRepository.getAllBookingsOfUsers({
+    eventTypeId: eventType.id,
+    users: allRRHosts.map((host) => {
+      return { id: host.user.id, email: host.user.email };
+    }),
   });
 
   switch (distributionAlgorithm) {

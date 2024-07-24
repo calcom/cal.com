@@ -13,15 +13,16 @@ export class BookingRepository {
     });
   }
 
-  static async getAllAcceptedBookingsOfUsers({
+  static async getAllBookingsOfUsers({
     users,
     eventTypeId,
+    onlyAccepted = false,
   }: {
-    users: { id: number; email: string };
+    users: { id: number; email: string }[];
     eventTypeId?: number;
+    onlyAccepted?: boolean;
   }) {
     const whereClause = {
-      status: BookingStatus.ACCEPTED,
       OR: [
         {
           user: {
@@ -46,11 +47,26 @@ export class BookingRepository {
       whereClause.eventTypeId = eventTypeId;
     }
 
+    if (onlyAccepted) {
+      whereClause.status = BookingStatus.ACCEPTED;
+    }
+
     const allBookings = await prisma.booking.findMany({
       where: whereClause,
       select: {
+        id: true,
         attendees: true,
         userId: true,
+        createdAt: true,
+        status: true,
+        attendees: {
+          select: {
+            email: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     });
 

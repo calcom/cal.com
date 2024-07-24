@@ -227,11 +227,12 @@ export async function addWeightAdjustmentToNewHosts({
     }));
   }
 
-  const ongoingHostBookings = await BookingRepository.getAllAcceptedBookingsOfUsers({
+  const ongoingHostBookings = await BookingRepository.getAllBookingsOfUsers({
     eventTypeId,
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
+    onlyAccepted: true,
   });
 
   const ongoingHostsWeightAdjustment = ongoingRRHosts.reduce(
@@ -246,9 +247,10 @@ export async function addWeightAdjustmentToNewHosts({
       let weightAdjustment = host.weightAdjustment;
       if (host.isNewHost) {
         // host can already have bookings, if they ever was assigned before
-        const existingBookings = await BookingRepository.getAllAcceptedBookingsOfUsers({
+        const existingBookings = await BookingRepository.getAllBookingsOfUsers({
           eventTypeId,
           users: [{ id: host.user.id, email: host.user.email }],
+          onlyAccepted: true,
         });
 
         const proporationalNrOfBookings =
