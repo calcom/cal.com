@@ -1,6 +1,6 @@
 import * as cache from "memory-cache";
 
-import { IS_SELF_HOSTED, CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
@@ -12,26 +12,20 @@ export enum UsageEvent {
 }
 
 class LicenseKeyService {
-  private readonly baseUrl: string;
+  private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
   public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
 
   // Private constructor to prevent direct instantiation
-  private constructor(baseUrl: string, licenseKey: string) {
-    this.baseUrl = baseUrl;
+  private constructor(licenseKey: string) {
+    this.baseUrl = CALCOM_PRIVATE_API_ROUTE;
     this.licenseKey = licenseKey;
   }
 
   // Static async factory method
   public static async create(): Promise<LicenseKeyService> {
-    const baseUrl = CALCOM_PRIVATE_API_ROUTE;
-    if (!baseUrl || !IS_SELF_HOSTED) {
-      throw new Error("CALCOM_PRIVATE_API_ROUTE is not set");
-    }
-
     const licenseKey = await getDeploymentKey(prisma);
-
-    return new LicenseKeyService(baseUrl, licenseKey);
+    return new LicenseKeyService(licenseKey);
   }
 
   private async fetch({
@@ -87,17 +81,14 @@ class LicenseKeyService {
     /** We check first on env */
     const url = `${this.baseUrl}/v1/license/${this.licenseKey}`;
     const cachedResponse = cache.get(url);
-    if (cachedResponse) {
-      return cachedResponse;
-    } else {
-      try {
-        const response = await this.fetch({ url: url, options: { mode: "cors" } });
-        const data = await response.json();
-        cache.put(url, data.stauts, this.CACHING_TIME);
-        return data.status;
-      } catch (error) {
-        return false;
-      }
+    if (cachedResponse) return cachedResponse;
+    try {
+      const response = await this.fetch({ url: url, options: { mode: "cors" } });
+      const data = await response.json();
+      cache.put(url, data.stauts, this.CACHING_TIME);
+      return data.status;
+    } catch (error) {
+      return false;
     }
   }
 }
