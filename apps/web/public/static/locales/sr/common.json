@@ -1496,7 +1496,6 @@
   "how_long_after": "Koliko vremena nakon što se događaj završi?",
   "no_available_slots": "Nema dostupnih termina",
   "time_available": "Dostupno vreme",
-  "cant_find_the_right_video_app_visit_our_app_store": "Ne možete da nađete pravu video aplikaciju? Posetite našu <1>App Store</1>.",
   "install_new_calendar_app": "Instaliraj novu aplikaciju kalendara",
   "make_phone_number_required": "Postaviti da je neophodan telefonski broj za rezervaciju događaja",
   "new_event_type_availability": "{{eventTypeTitle}} Dostupnost",

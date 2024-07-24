@@ -1496,7 +1496,6 @@
   "how_long_after": "La cât timp după finalul evenimentului?",
   "no_available_slots": "Niciun interval disponibil",
   "time_available": "Oră disponibilă",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nu găsiți aplicația video corectă? Vizitați <1>App Store</1>.",
   "install_new_calendar_app": "Instalați noua aplicație pentru calendar",
   "make_phone_number_required": "Setați numărul de telefon ca fiind obligatoriu pentru rezervarea evenimentului",
   "new_event_type_availability": "Disponibilitate {{eventTypeTitle}}",

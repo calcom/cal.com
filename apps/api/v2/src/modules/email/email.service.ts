@@ -1,7 +1,6 @@
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { sendSignupToOrganizationEmail, getTranslation } from "@calcom/platform-libraries-0.0.18";
+import { sendSignupToOrganizationEmail, getTranslation } from "@calcom/platform-libraries-0.0.21";
 
 @Injectable()
 export class EmailService {
