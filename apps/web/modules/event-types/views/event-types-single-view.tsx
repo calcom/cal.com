@@ -327,9 +327,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         eventType.hashedLink.find((link) => {
           return link.destroyOnUse === false;
         })?.link || undefined,
-      singleUseLinks: eventType.hashedLink
-        .filter((link) => link.destroyOnUse === true)
-        .map((link) => link.link || []),
+      singleUseLinks:
+        eventType.hashedLink.filter((link) => link.destroyOnUse === true).map((link) => link.link) || [],
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
