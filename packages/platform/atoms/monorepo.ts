@@ -8,3 +8,4 @@ export { useHandleBookEvent } from "./hooks/useHandleBookEvent";
 export * as Dialog from "./src/components/ui/dialog";
 export { Timezone } from "./timezone";
 export { PlatformCalendarSwitch } from "./src/components/ui/PlatformCalendarSwitch";
+export { PlatformDisconnectIntegration } from "./src/components/ui/PlatformDisconnectIntegration";
