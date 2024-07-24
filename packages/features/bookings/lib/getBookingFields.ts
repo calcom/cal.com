@@ -131,6 +131,8 @@ export const ensureBookingInputsHaveSystemFields = ({
   });
 
   // These fields should be added before other user fields
+  const query = new URLSearchParams(window.location.search);
+  const hasEmailParam = query.get("email") !== null;
   const systemBeforeFields: typeof bookingFields = [
     {
       type: "name",
@@ -154,6 +156,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       name: "email",
       required: true,
       editable: "system",
+      disabled: hasEmailParam, //disabling based on the emailparam from window location
       sources: [
         {
           label: "Default",

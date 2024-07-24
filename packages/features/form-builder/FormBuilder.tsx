@@ -45,6 +45,7 @@ type RhfFormField = RhfFormFields[number];
  * It works with a react-hook-form only.
  * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
  */
+
 export const FormBuilder = function FormBuilder({
   title,
   description,
@@ -439,6 +440,12 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
 
+  const [isFieldLocked, setIsFieldLocked] = useState(false);
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const hasParams = Array.from(query.entries()).length > 0; //added this to check if the length of URL params is greater than 0 using window.search
+    setIsFieldLocked(hasParams);
+  }, []);
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
@@ -449,15 +456,10 @@ function FieldEditDialog({
               defaultValue={fieldTypesConfigMap.text}
               data-testid="test-field-type"
               id="test-field-type"
-              isDisabled={
-                fieldForm.getValues("editable") === "system" ||
-                fieldForm.getValues("editable") === "system-but-optional"
-              }
+              isDisabled={isFieldLocked} //checking if its disabled if any parameter is there in the URL
               onChange={(e) => {
                 const value = e?.value;
-                if (!value) {
-                  return;
-                }
+                if (!value) return;
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
               value={fieldTypesConfigMap[fieldForm.getValues("type")]}
