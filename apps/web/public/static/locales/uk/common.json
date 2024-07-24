@@ -1528,7 +1528,6 @@
   "how_long_after": "Через який час після завершення заходу?",
   "no_available_slots": "Немає доступних вікон",
   "time_available": "Доступний час",
-  "cant_find_the_right_video_app_visit_our_app_store": "Не можете знайти потрібний додаток для відео? Перейдіть у наш <1>магазин програм</1>.",
   "install_new_calendar_app": "Установити новий додаток календаря",
   "make_phone_number_required": "Вимагати введення номера телефону під час бронювання заходу",
   "new_event_type_availability": "Доступність: {{eventTypeTitle}}",
