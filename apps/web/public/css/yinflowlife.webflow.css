@@ -12389,7 +12389,6 @@ a {
   justify-content: space-between;
   align-items: flex-start;
   margin-top: 96px;
-  margin-bottom: 96px;
   display: flex;
 }
 
@@ -12545,7 +12544,7 @@ a {
   grid-column-gap: 32px;
   grid-row-gap: 32px;
   flex-flow: column;
-  width: 50%;
+  width: 48%;
   margin-top: 32px;
   display: flex;
 }
@@ -12559,7 +12558,7 @@ a {
 }
 
 .image-14 {
-  width: 50%;
+  width: 48%;
 }
 
 .feature-title {
@@ -12795,10 +12794,6 @@ a {
     height: 0;
     padding-bottom: 0;
     padding-right: 0;
-  }
-
-  .nav_logo {
-    display: none;
   }
 
   .nav_menu-left {
@@ -17473,10 +17468,6 @@ a {
     height: 2px;
     display: block;
     overflow: visible;
-  }
-
-  .nav_logo {
-    display: none;
   }
 
   .nav_menu-left.is-page-height-tablet {
