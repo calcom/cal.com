@@ -79,6 +79,7 @@
       "outputs": [".next/**"],
       "env": [
         "CSP_POLICY",
+        "DATABASE_URL",
         "DATOCMS_API_TOKEN",
         "DATOCMS_GRAPHQL_ENDPOINT",
         "DATOCMS_WEBHOOK_SECRET",
@@ -278,6 +279,7 @@
     "E2E_TEST_SAML_ADMIN_EMAIL",
     "E2E_TEST_SAML_ADMIN_PASSWORD",
     "EMAIL_FROM",
+    "EMAIL_FROM_NAME",
     "EMAIL_SERVER_HOST",
     "EMAIL_SERVER_PASSWORD",
     "EMAIL_SERVER_PORT",

@@ -24,6 +24,10 @@ export class MembershipRepositoryFixture {
     return this.primaReadClient.membership.findFirst({ where: { id: membershipId } });
   }
 
+  async getUserMembershipByTeamId(userId: User["id"], teamId: Team["id"]) {
+    return this.primaReadClient.membership.findFirst({ where: { teamId, userId } });
+  }
+
   async addUserToOrg(user: User, org: Team, role: MembershipRole, accepted: boolean) {
     const membership = await this.prismaWriteClient.membership.create({
       data: { teamId: org.id, userId: user.id, role, accepted },
