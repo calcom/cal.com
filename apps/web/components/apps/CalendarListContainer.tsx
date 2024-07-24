@@ -118,6 +118,7 @@ function ConnectedCalendarsList(props: Props) {
                       actions={
                         <div className="flex w-32 justify-end">
                           <DisconnectIntegration
+                            slug={item.integration.slug}
                             credentialId={item.credentialId}
                             trashIcon
                             onSuccess={props.onChanged}
