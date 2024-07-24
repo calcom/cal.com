@@ -433,7 +433,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         </p>
         <Controller
           name="singleUseLinks"
-          render={({ field: { value } }) => {
+          render={({ field: { value, onChange } }) => {
             const addSingleUseLink = () => {
               let seed = String(formMethods.getValues("users")[0]?.id ?? team?.id);
               // Append the last generated link to the seed for more randomized link generation.
@@ -445,12 +445,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               }
               const newSingleUseLink = generateHashedLink(seed);
               value.push(newSingleUseLink);
-              formMethods.setValue("singleUseLinks", value, { shouldDirty: true });
+              onChange(value);
             };
 
             const removeSingleUseLink = (index: number) => {
               value.splice(index, 1);
-              formMethods.setValue("singleUseLinks", value, { shouldDirty: true });
+              onChange(value);
             };
             return (
               <ul ref={animateRef}>
