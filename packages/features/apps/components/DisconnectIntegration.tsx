@@ -1,26 +1,35 @@
 import { useState } from "react";
 
+import { useIsPlatform, PlatformDisconnectIntegration } from "@calcom/atoms/monorepo";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { ButtonProps } from "@calcom/ui";
-import { Button, ConfirmationDialogContent, Dialog, DialogTrigger, showToast } from "@calcom/ui";
+import { showToast, DisconnectIntegrationComponent } from "@calcom/ui";
 
-export default function DisconnectIntegration({
-  credentialId,
-  label,
-  trashIcon,
-  isGlobal,
-  onSuccess,
-  buttonProps,
-}: {
+export default function DisconnectIntegration(props: {
+  credentialId: number;
+  label?: string;
+  slug?: string;
+  trashIcon?: boolean;
+  isGlobal?: boolean;
+  onSuccess?: () => void;
+  buttonProps?: ButtonProps;
+}) {
+  const isPlatform = useIsPlatform();
+
+  return !isPlatform ? <WebDisconnectIntegration {...props} /> : <PlatformDisconnectIntegration {...props} />;
+}
+
+const WebDisconnectIntegration = (props: {
   credentialId: number;
   label?: string;
   trashIcon?: boolean;
   isGlobal?: boolean;
   onSuccess?: () => void;
   buttonProps?: ButtonProps;
-}) {
+}) => {
   const { t } = useLocale();
+  const { onSuccess, credentialId } = props;
   const [modalOpen, setModalOpen] = useState(false);
   const utils = trpc.useUtils();
 
@@ -41,29 +50,11 @@ export default function DisconnectIntegration({
   });
 
   return (
-    <>
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogTrigger asChild>
-          <Button
-            color={buttonProps?.color || "destructive"}
-            StartIcon={!trashIcon ? undefined : "trash"}
-            size="base"
-            variant={trashIcon && !label ? "icon" : "button"}
-            disabled={isGlobal}
-            {...buttonProps}>
-            {label && label}
-          </Button>
-        </DialogTrigger>
-        <ConfirmationDialogContent
-          variety="danger"
-          title={t("remove_app")}
-          confirmBtnText={t("yes_remove_app")}
-          onConfirm={() => {
-            mutation.mutate({ id: credentialId });
-          }}>
-          <p className="mt-5">{t("are_you_sure_you_want_to_remove_this_app")}</p>
-        </ConfirmationDialogContent>
-      </Dialog>
-    </>
+    <DisconnectIntegrationComponent
+      onDeletionConfirmation={() => mutation.mutate({ id: credentialId })}
+      {...props}
+      isModalOpen={modalOpen}
+      onModalOpen={() => setModalOpen((prevValue) => !prevValue)}
+    />
   );
-}
+};
