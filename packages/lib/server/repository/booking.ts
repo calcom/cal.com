@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 
@@ -22,7 +24,7 @@ export class BookingRepository {
     eventTypeId?: number;
     onlyAccepted?: boolean;
   }) {
-    const whereClause = {
+    const whereClause: Prisma.BookingWhereInput = {
       OR: [
         {
           user: {
@@ -59,11 +61,6 @@ export class BookingRepository {
         userId: true,
         createdAt: true,
         status: true,
-        attendees: {
-          select: {
-            email: true,
-          },
-        },
       },
       orderBy: {
         createdAt: "desc",
