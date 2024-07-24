@@ -1,8 +1,6 @@
 import * as cache from "memory-cache";
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 
-import * as constants from "@calcom/lib/constants";
-
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
 import LicenseKeyService from "./LicenseKeyService";
 import { createSignature, generateNonce } from "./private-api-utils";
@@ -105,11 +103,10 @@ describe("LicenseKeyService", () => {
   });
 
   describe("checkLicense", () => {
-    it("should return true if IS_E2E_ENABLED is set", async () => {
-      const spy = vi.spyOn(constants, "IS_E2E_ENABLED", "get").mockReturnValue(true);
+    it("should return true if NEXT_PUBLIC_IS_E2E is set", async () => {
+      process.env.NEXT_PUBLIC_IS_E2E = "true";
       const result = await service.checkLicense();
       expect(result).toBe(true);
-      spy.mockRestore();
     });
 
     it("should return cached response if available", async () => {
