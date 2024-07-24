@@ -1724,7 +1724,7 @@ describe("getSchedule", () => {
           isTeamEvent: false,
         },
       });
-      console.log("schedule", JSON.stringify(schedule, null, 2));
+
       const allTimeSlots = [
         "04:30:00.000Z",
         "05:30:00.000Z",

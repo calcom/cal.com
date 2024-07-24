@@ -230,8 +230,6 @@ async function handler(
     schema: bookingDataSchema,
   });
 
-  console.log("booking data 888", bookingData);
-
   const {
     recurringCount,
     noEmail,
