@@ -40,7 +40,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
-      showToast(t("something_went_wrong"), "error");
+      showToast(t("unable_to_add_guests"), "error");
     },
   });
 
