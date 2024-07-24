@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 import { getLuckyUser } from "./getLuckyUser";
 
 describe("getLuckyUser tests", () => {
-  describe("should not consider no show bookings for round robin when: ", () => {
+  describe("should not consider no show bookings for round robin: ", () => {
     let userIds: number[] = [];
     let eventTypeId: number;
 
@@ -43,8 +43,8 @@ describe("getLuckyUser tests", () => {
       });
     });
 
-    it("Host is a no show", async () => {
-      const user1 = await prisma.user.create({
+    it("When a host is no show, that is chosen when competing with another host that showed up for the booking", async () => {
+      const organizerThatShowedUp = await prisma.user.create({
         data: {
           email: "test-user1@example.com",
           bookings: {
@@ -71,7 +71,7 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      const user2 = await prisma.user.create({
+      const organizerThatDidntShowUp = await prisma.user.create({
         data: {
           email: "test-user2@example.com",
           bookings: {
@@ -99,18 +99,18 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      userIds.push(user1.id, user2.id);
+      userIds.push(organizerThatShowedUp.id, organizerThatDidntShowUp.id);
 
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          availableUsers: [user1, user2],
+          availableUsers: [organizerThatShowedUp, organizerThatDidntShowUp],
           eventTypeId,
         })
-      ).resolves.toStrictEqual(user2);
+      ).resolves.toStrictEqual(organizerThatDidntShowUp);
     });
 
-    it("Attendee is a no show", async () => {
-      const user1 = await prisma.user.create({
+    it("When a attendee is a noShow for organizers booking, that organizer is competing with another host whose attendee showed up for the booking", async () => {
+      const organizerWhoseAttendeeShowedUp = await prisma.user.create({
         data: {
           email: "test-user1@example.com",
           bookings: {
@@ -137,7 +137,7 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      const user2 = await prisma.user.create({
+      const organizerWhoseAttendeeDidntShowUp = await prisma.user.create({
         data: {
           email: "test-user2@example.com",
           bookings: {
@@ -165,18 +165,18 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      userIds.push(user1.id, user2.id);
+      userIds.push(organizerWhoseAttendeeShowedUp.id, organizerWhoseAttendeeDidntShowUp.id);
 
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          availableUsers: [user1, user2],
+          availableUsers: [organizerWhoseAttendeeShowedUp, organizerWhoseAttendeeDidntShowUp],
           eventTypeId,
         })
-      ).resolves.toStrictEqual(user2);
+      ).resolves.toStrictEqual(organizerWhoseAttendeeDidntShowUp);
     });
 
-    it("One of the attendees was host and was no show", async () => {
-      const user1 = await prisma.user.create({
+    it("When a organizer is attendee (event types with fixed hosts) and no show, that organizer is competing other hosts", async () => {
+      const organizerWhoseAttendeeShowedUp = await prisma.user.create({
         data: {
           email: "test-user1@example.com",
           bookings: {
@@ -203,7 +203,7 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      const user2 = await prisma.user.create({
+      const fixedHostOrganizerWhoseAttendeeDidNotShowUp = await prisma.user.create({
         data: {
           email: "test-user2@example.com",
           bookings: {
@@ -236,7 +236,7 @@ describe("getLuckyUser tests", () => {
                   create: [
                     {
                       name: "test-attendee",
-                      email: "test-user33@example.com",
+                      email: "test-user3@example.com",
                       timeZone: "Asia/Calcutta",
                       noShow: true,
                     },
@@ -249,7 +249,7 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      const user3 = await prisma.user.create({
+      const organizerWhoWasAttendeeAndDidntShowUp = await prisma.user.create({
         data: {
           email: `test-user3@example.com`,
           bookings: {
@@ -276,14 +276,22 @@ describe("getLuckyUser tests", () => {
         },
       });
 
-      userIds.push(user1.id, user2.id, user3.id);
+      userIds.push(
+        organizerWhoseAttendeeShowedUp.id,
+        fixedHostOrganizerWhoseAttendeeDidNotShowUp.id,
+        organizerWhoWasAttendeeAndDidntShowUp.id
+      );
 
       expect(
         getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          availableUsers: [user1, user2, user3],
+          availableUsers: [
+            organizerWhoseAttendeeShowedUp,
+            fixedHostOrganizerWhoseAttendeeDidNotShowUp,
+            organizerWhoWasAttendeeAndDidntShowUp,
+          ],
           eventTypeId,
         })
-      ).resolves.toStrictEqual(user3);
+      ).resolves.toStrictEqual(organizerWhoWasAttendeeAndDidntShowUp);
     });
 
     it("should consider booking when noShowHost is null", async () => {
