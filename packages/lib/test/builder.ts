@@ -33,7 +33,7 @@ export const buildPerson = (person?: Partial<Person>): Person => {
 
 export const buildBooking = (
   booking?: Partial<Booking> & { references?: Partial<BookingReference>[] }
-): Booking & { references?: Partial<BookingReference>[]; attendees?: [] } => {
+): Booking & { references?: Partial<BookingReference>[] } => {
   const uid = faker.datatype.uuid();
   return {
     id: faker.datatype.number(),

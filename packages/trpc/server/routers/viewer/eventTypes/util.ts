@@ -1,7 +1,8 @@
 import { z } from "zod";
 
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import type { PrismaClient } from "@calcom/prisma";
-import { BookingStatus, MembershipRole, PeriodType } from "@calcom/prisma/enums";
+import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -203,7 +204,7 @@ export async function addWeightAdjustmentToNewHosts({
     return {
       isNewHost: !user.hosts.length,
       isFixed: hostData?.isFixed ?? false,
-      weightAdjustment: user.hosts[0].weightAdjustment ?? 0,
+      weightAdjustment: user.hosts[0]?.weightAdjustment ?? 0,
       priority: hostData?.priority ?? 2,
       weight: hostData?.weight ?? 100,
       user: {
@@ -226,12 +227,11 @@ export async function addWeightAdjustmentToNewHosts({
     }));
   }
 
-  const ongoingHostBookings = await getAllBookingsOfUsers({
+  const ongoingHostBookings = await BookingRepository.getAllAcceptedBookingsOfUsers({
+    eventTypeId,
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
-    eventTypeId,
-    prisma,
   });
 
   const ongoingHostsWeightAdjustment = ongoingRRHosts.reduce(
@@ -246,10 +246,9 @@ export async function addWeightAdjustmentToNewHosts({
       let weightAdjustment = host.weightAdjustment;
       if (host.isNewHost) {
         // host can already have bookings, if they ever was assigned before
-        const existingBookings = await getAllBookingsOfUsers({
-          users: [{ id: host.user.id, email: host.user.email }],
+        const existingBookings = await BookingRepository.getAllAcceptedBookingsOfUsers({
           eventTypeId,
-          prisma,
+          users: [{ id: host.user.id, email: host.user.email }],
         });
 
         const proporationalNrOfBookings =
@@ -268,45 +267,4 @@ export async function addWeightAdjustmentToNewHosts({
   );
 
   return hostsWithWeightAdjustments;
-}
-
-async function getAllBookingsOfUsers({
-  users,
-  eventTypeId,
-  prisma,
-}: {
-  users: { id: number; email: string }[];
-  eventTypeId: number;
-  prisma: PrismaClient;
-}) {
-  const allBookings = await prisma.booking.findMany({
-    where: {
-      eventTypeId,
-      status: BookingStatus.ACCEPTED,
-      OR: [
-        {
-          user: {
-            id: {
-              in: users.map((user) => user.id),
-            },
-          },
-        },
-        {
-          attendees: {
-            some: {
-              email: {
-                in: users.map((user) => user.email),
-              },
-            },
-          },
-        },
-      ],
-    },
-    select: {
-      attendees: true,
-      userId: true,
-    },
-  });
-
-  return allBookings;
 }

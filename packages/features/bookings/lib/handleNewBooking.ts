@@ -571,6 +571,7 @@ async function handler(
       });
 
       const notAvailableLuckyUsers: typeof users = [];
+
       loggerWithEventDetails.debug(
         "Computed available users",
         safeStringify({

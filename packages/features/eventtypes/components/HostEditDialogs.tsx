@@ -102,14 +102,19 @@ export function sortHosts(
   hostB: { priority: number | null; weight: number | null },
   isRRWeightsEnabled: boolean
 ) {
+  const weightA = hostA.weight ?? 100;
+  const priorityA = hostA.priority ?? 2;
+  const weightB = hostB.weight ?? 100;
+  const priorityB = hostB.priority ?? 2;
+
   if (isRRWeightsEnabled) {
-    if ((hostA.weight ?? 100) === (hostB.weight ?? 100)) {
-      return (hostB.priority ?? 2) - (hostA.priority ?? 2);
+    if (weightA === weightB) {
+      return priorityB - priorityA;
     } else {
-      return (hostB.weight ?? 100) - (hostA.weight ?? 100);
+      return weightB - weightA;
     }
   } else {
-    return (hostB.priority ?? 2) - (hostA.priority ?? 2);
+    return priorityB - priorityA;
   }
 }
 

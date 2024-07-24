@@ -266,7 +266,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
       deleteMany: {},
       create: hostsWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
-
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
