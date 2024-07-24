@@ -543,21 +543,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         />
       )}
-      {allowDisablingHostConfirmationEmails(workflows) && (
+      {(allowDisablingHostConfirmationEmails(workflows) || team?.parentId) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
           render={({ field: { value, onChange } }) => (
             <>
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_host_confirmation_emails")}
-                description={t("disable_host_confirmation_emails_description")}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-              />
+              <DisableEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
             </>
           )}
         />

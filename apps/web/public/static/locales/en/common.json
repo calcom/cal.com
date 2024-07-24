@@ -2501,7 +2501,8 @@
   "skip_contact_creation": "Skip creating contacts if they do not exist in {{appName}} ",
   "skip_writing_to_calendar_note": "If your ICS link is read-only (e.g., Proton Calendar), check the box above to avoid errors. You'll also need to manually update your calendar for changes.",
   "disable_all_emails_to_attendees": "Disable all emails to attendees related to this event type",
-  "disable_all_emails_to_attendees_description": "Disables all email communication related to this event type, including booking confirmations, reminders, and cancellations.",
+  "disable_all_emails_description": "Disables all email communication related to this event type, including booking confirmations, reminders, and cancellations.",
+  "disable_all_emails_to_hosts": "Disable all emails to hosts related to this event type",
   "type_confirm_to_continue": "Type confirm to continue",
   "disable_email": "Disable email",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"

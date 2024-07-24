@@ -15,7 +15,7 @@ import {
 interface DisableEmailsSettingProps {
   checked: boolean;
   onCheckedChange: (e: boolean) => void;
-  recipient: "attendees" | "host";
+  recipient: "attendees" | "hosts";
   t: TFunction;
 }
 
@@ -28,19 +28,22 @@ export const DisableEmailsSetting = ({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [confirmText, setConfirmText] = useState("");
 
+  const title =
+    recipient === "attendees" ? t("disable_all_emails_to_attendees") : t("disable_all_emails_to_hosts");
+
   return (
     <div>
       <Dialog open={dialogOpen} onOpenChange={(e) => setDialogOpen(e)}>
-        <DialogContent title={t("disable_all_emails_to_attendees")} Icon="circle-alert">
+        <DialogContent title={title} Icon="circle-alert">
           <p className="text-default text-sm">
             <Trans i18nKey="disable_attendees_emails_description">
               <p>
-                This will disable all emails to attendees. This includes booking confirmations, requests,
-                reschedules and reschedule requests, and cancellation emails.
+                This will disable all emails to {{ recipient }}. This includes booking confirmations,
+                requests, reschedules and reschedule requests, and cancellation emails.
               </p>
               <p className="mt-2">
-                It is your responsibility to ensure that your attendees are aware of any bookings and changes
-                to their booking.
+                It is your responsibility to ensure that your {{ recipient }} are aware of any bookings and
+                changes to their booking.
               </p>
             </Trans>
 
@@ -69,8 +72,8 @@ export const DisableEmailsSetting = ({
         labelClassName="text-sm"
         toggleSwitchAtTheEnd={true}
         switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-        title={t("disable_all_emails_to_attendees")}
-        description={t("disable_all_emails_to_attendees_description")}
+        title={title}
+        description={t("disable_all_emails_description")}
         checked={!!checked}
         onCheckedChange={() => {
           checked ? onCheckedChange(false) : setDialogOpen(true);
