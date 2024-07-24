@@ -123,7 +123,6 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
 
     if (eventType && !eventType.users.find((user) => booking.userId === user.id) && !isTeamAdminOrOwner) {
-      console.log({ isTeamAdminOrOwner });
       throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
     }
   }
