@@ -6,7 +6,6 @@ permissions:
 jobs:
   test:
     name: Unit
-
     timeout-minutes: 20
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
