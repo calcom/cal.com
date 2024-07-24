@@ -40,6 +40,7 @@ import {
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import { DisableEmailsSetting } from "./settings/DisableEmailsSetting";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -532,20 +533,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      {allowDisablingAttendeeConfirmationEmails(workflows) && (
+      {(allowDisablingAttendeeConfirmationEmails(workflows) || team?.parentId) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => (
             <>
-              <SettingsToggle
-                labelClassName="text-sm"
-                toggleSwitchAtTheEnd={true}
-                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-                title={t("disable_attendees_confirmation_emails")}
-                description={t("disable_attendees_confirmation_emails_description")}
-                checked={value}
-                onCheckedChange={(e) => onChange(e)}
-              />
+              <DisableEmailsSetting checked={value} onCheckedChange={onChange} recipient="attendees" t={t} />
             </>
           )}
         />
