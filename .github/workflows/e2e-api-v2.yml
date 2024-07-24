@@ -64,7 +64,6 @@ jobs:
       - uses: ./.github/actions/yarn-install
       - uses: ./.github/actions/yarn-playwright-install
       - uses: ./.github/actions/cache-db
-      #- uses: ./.github/workflows/api-v2-production-build.yml
       - name: Run Tests
         working-directory: apps/api/v2
         run: |
