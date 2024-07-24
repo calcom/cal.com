@@ -274,7 +274,7 @@ export class BookingsController {
 
       if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();
-        // add a 10 secondes delay to the usage incrementation
+        // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
         now.setSeconds(now.getSeconds() + 10);
         void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
           uid: instantMeeting.bookingUid,
