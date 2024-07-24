@@ -5,7 +5,7 @@ import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { Injectable } from "@nestjs/common";
 
 import { SUCCESS_STATUS, APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
-import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries-0.0.18";
+import { symmetricEncrypt, CalendarService } from "@calcom/platform-libraries-0.0.21";
 
 @Injectable()
 export class AppleCalendarService implements CredentialSyncCalendarApp {

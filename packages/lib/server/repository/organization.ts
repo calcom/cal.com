@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
+import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
 const orgSelect = {
@@ -162,5 +163,26 @@ export class OrganizationRepository {
         organizationSettings: true,
       },
     });
+  }
+
+  static async findUniqueByMatchingAutoAcceptEmail({ email }: { email: string }) {
+    const emailDomain = email.split("@").at(-1);
+    const orgs = await prisma.team.findMany({
+      where: {
+        isOrganization: true,
+        organizationSettings: {
+          orgAutoAcceptEmail: emailDomain,
+        },
+      },
+    });
+    if (orgs.length > 1) {
+      // Detect and fail just in case this situation arises. We should really identify the problem in this case and fix the data.
+      throw new Error("Multiple organizations found with the same auto accept email domain");
+    }
+    const org = orgs[0];
+    if (!org) {
+      return null;
+    }
+    return getParsedTeam(org);
   }
 }
