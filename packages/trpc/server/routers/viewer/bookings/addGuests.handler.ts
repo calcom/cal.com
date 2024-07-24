@@ -14,7 +14,7 @@ import type { BookingsProcedureContext } from "./util";
 type AddGuestsOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-  } & BookingsProcedureContext;
+  };
   input: TAddGuestsInputSchema;
 };
 export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
