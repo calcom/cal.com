@@ -1,9 +1,8 @@
 name: Unit
 on:
   workflow_call:
-  workflow_run:
-    workflows: [Crowdin Action]
-    types: [completed]
+permissions:
+  contents: read
 jobs:
   test:
     name: Unit
