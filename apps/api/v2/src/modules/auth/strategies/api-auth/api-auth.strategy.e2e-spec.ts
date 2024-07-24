@@ -37,9 +37,9 @@ describe("ApiAuthStrategy", () => {
   const validAccessTokenEmail = "access-token-user-email@example.com";
   let validApiKeyUser: User;
   let validAccessTokenUser: User;
-
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+  let module: TestingModule;
+  beforeAll(async () => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           ignoreEnvFile: true,
@@ -176,5 +176,11 @@ describe("ApiAuthStrategy", () => {
         }
       }
     });
+  });
+
+  afterAll(async () => {
+    await userRepositoryFixture.deleteByEmail(validApiKeyEmail);
+    await userRepositoryFixture.deleteByEmail(validAccessTokenEmail);
+    module.close();
   });
 });

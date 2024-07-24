@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -18,6 +19,7 @@ import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.reposit
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GOOGLE_CALENDAR,
   OFFICE_365_CALENDAR,
@@ -187,6 +189,26 @@ describe("Platform Calendars Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
+  });
+
+  it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+    const body = {
+      id: 10,
+    };
+
+    return request(app.getHttpServer())
+      .post(`/v2/calendars/${OFFICE_365_CALENDAR}/disconnect`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .send(body)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: Promise<DeletedCalendarCredentialsOutputResponseDto> = response.body;
+
+        expect((await responseBody).status).toEqual(SUCCESS_STATUS);
+        expect((await responseBody).data).toBeDefined();
+        expect((await responseBody).data.id).toEqual(body.id);
+        expect((await responseBody).data.userId).toEqual(user.id);
+      });
   });
 
   afterAll(async () => {

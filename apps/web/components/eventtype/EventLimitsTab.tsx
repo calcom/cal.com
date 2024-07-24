@@ -486,8 +486,8 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
             <SettingsToggle
               toggleSwitchAtTheEnd={true}
               labelClassName="text-sm"
-              title={t("limit_booking_only_first_slot")}
-              description={t("limit_booking_only_first_slot_description")}
+              title={t("only_show_first_available_slot")}
+              description={t("only_show_first_available_slot_description")}
               checked={isChecked}
               {...onlyFirstAvailableSlotLocked}
               onCheckedChange={(active) => {

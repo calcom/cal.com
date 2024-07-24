@@ -14,7 +14,7 @@ import {
   updateEventType,
   EventTypesPublic,
   getEventTypesPublic,
-} from "@calcom/platform-libraries-0.0.18";
+} from "@calcom/platform-libraries-0.0.20";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -60,6 +60,7 @@ export class EventTypesService_2024_04_15 {
     const profileId = user.movedToProfile?.id || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
