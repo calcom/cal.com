@@ -1,6 +1,6 @@
 import * as cache from "memory-cache";
 
-import { IS_SELF_HOSTED, CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+import { IS_SELF_HOSTED, CALCOM_PRIVATE_API_ROUTE, IS_E2E_ENABLED } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
@@ -83,7 +83,7 @@ class LicenseKeyService {
 
   async checkLicense(): Promise<boolean> {
     /** We skip for E2E testing */
-    if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
+    if (!!IS_E2E_ENABLED) return true;
     /** We check first on env */
     const url = `${this.baseUrl}/v1/license/${this.licenseKey}`;
     const cachedResponse = cache.get(url);
