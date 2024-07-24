@@ -1,6 +1,9 @@
 name: E2E Embed React tests and booking flow (for non-embed as well)
 on:
   workflow_call:
+permissions:
+  actions: write
+  contents: read
 env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}

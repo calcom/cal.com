@@ -3,6 +3,9 @@ name: Yarn install
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   setup:
     name: Yarn install & cache
