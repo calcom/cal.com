@@ -2,7 +2,7 @@ import type { FC } from "react";
 import React, { useState } from "react";
 
 import { classNames } from "@calcom/lib";
-import { CAL_URL } from "@calcom/lib/constants";
+import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Team, User } from "@calcom/prisma/client";
 import { Avatar, StepCard } from "@calcom/ui";
@@ -31,7 +31,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       className={classNames(
         "hover:bg-muted flex cursor-pointer flex-row items-center gap-2 p-1",
         (alreadyInstalled || loading) && "cursor-not-allowed",
-        selected && "bg-muted animate-pulse"
+        selected && loading && "bg-muted animate-pulse"
       )}
       data-testid={testId}
       onClick={() => {
@@ -42,7 +42,7 @@ const AccountSelector: FC<AccountSelectorProps> = ({
       }}>
       <Avatar
         alt={avatar || ""}
-        imageSrc={avatar || `${CAL_URL}/${avatar}`} // if no image, use default avatar
+        imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar
         size="sm"
       />
       <div className="text-md pt-0.5 font-medium text-gray-500">
@@ -60,13 +60,20 @@ export type TeamsProp = (Pick<Team, "id" | "name" | "logoUrl"> & {
 })[];
 
 type AccountStepCardProps = {
-  teams: TeamsProp;
+  teams?: TeamsProp;
   personalAccount: PersonalAccountProps;
   onSelect: (id?: number) => void;
   loading: boolean;
+  installableOnTeams: boolean;
 };
 
-export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAccount, onSelect, loading }) => {
+export const AccountsStepCard: FC<AccountStepCardProps> = ({
+  teams,
+  personalAccount,
+  onSelect,
+  loading,
+  installableOnTeams,
+}) => {
   const { t } = useLocale();
   return (
     <StepCard>
@@ -80,17 +87,18 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({ teams, personalAcco
           onClick={() => onSelect()}
           loading={loading}
         />
-        {teams.map((team) => (
-          <AccountSelector
-            key={team.id}
-            testId={`install-app-button-team${team.id}`}
-            alreadyInstalled={team.alreadyInstalled}
-            avatar={team.logoUrl ?? ""}
-            name={team.name}
-            onClick={() => onSelect(team.id)}
-            loading={loading}
-          />
-        ))}
+        {installableOnTeams &&
+          teams?.map((team) => (
+            <AccountSelector
+              key={team.id}
+              testId={`install-app-button-team${team.id}`}
+              alreadyInstalled={team.alreadyInstalled}
+              avatar={team.logoUrl ?? ""}
+              name={team.name}
+              onClick={() => onSelect(team.id)}
+              loading={loading}
+            />
+          ))}
       </div>
     </StepCard>
   );
