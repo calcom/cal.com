@@ -1,7 +1,7 @@
 name: Bug report
 description: "Found a bug? Please fill out the sections below. \U0001F44D"
 title: ""
-labels: 🐛 bug
+labels: ["🐛 bug"]
 assignees: []
 body:
 - type: textarea

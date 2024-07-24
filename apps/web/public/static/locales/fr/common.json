@@ -1581,7 +1581,6 @@
   "how_long_after": "Combien de temps après la fin de l'événement ?",
   "no_available_slots": "Aucun créneau disponible",
   "time_available": "Disponibilités",
-  "cant_find_the_right_video_app_visit_our_app_store": "Vous ne trouvez pas la bonne application de visioconférence ? Visitez notre <1>App Store</1>.",
   "install_new_calendar_app": "Installer une nouvelle application de calendrier",
   "make_phone_number_required": "Rendre le numéro de téléphone obligatoire pour la réservation de l'événement",
   "new_event_type_availability": "Disponibilités de {{eventTypeTitle}}",

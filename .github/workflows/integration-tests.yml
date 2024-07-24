@@ -1,6 +1,8 @@
 name: Integration
 on:
   workflow_call:
+permissions:
+  contents: read
 env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
