@@ -147,6 +147,13 @@ jobs:
     uses: ./.github/workflows/e2e.yml
     secrets: inherit
 
+  e2e-api-v2:
+    name: Tests
+    needs: [changes, check-label, build, build-api-v1, build-api-v2]
+    if: ${{ needs.check-label.outputs.run-e2e == 'true' && needs.changes.outputs.has-files-requiring-all-checks == 'true' }}
+    uses: ./.github/workflows/e2e-api-v2.yml
+    secrets: inherit
+
   e2e-app-store:
     name: Tests
     needs: [changes, check-label, build, build-api-v1, build-api-v2]
@@ -175,7 +182,7 @@ jobs:
     secrets: inherit
 
   required:
-    needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
+    needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-api-v2, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
