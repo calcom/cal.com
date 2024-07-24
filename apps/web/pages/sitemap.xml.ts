@@ -5,7 +5,6 @@ import { withAxiomGetServerSideProps } from "next-axiom";
 import { z } from "zod";
 
 import { prisma } from "@calcom/prisma";
-import { AppCategories } from "@calcom/prisma/enums";
 
 // import { getAllBlogPaths } from "@lib/blog/server";
 
@@ -121,16 +120,16 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
   //   }/scheduling/${slugs.join("/")}`;
   // });
 
-  // Now, we get the relevant pages from the apps/web app
+  // Note: App store pages are excluded for now, since they display a skeleton sidebar for search engines & don't have proper i18n support (or a workflow integration to publish the page only if it contains enough content).
   // - pages/apps/[slug].tsx getStaticPaths from `apps/web`
-  const appStore = await prisma.app.findMany({ select: { slug: true }, where: { enabled: true } });
-  const pathsAppStore = appStore.map(({ slug }) => `${process.env.NEXT_PUBLIC_WEBSITE_URL}/apps/${slug}`);
+  // const appStore = await prisma.app.findMany({ select: { slug: true }, where: { enabled: true } });
+  // const pathsAppStore = appStore.map(({ slug }) => `${process.env.NEXT_PUBLIC_WEBSITE_URL}/apps/${slug}`);
 
-  // - pages/apps/categories/[category].tsx getStaticPaths from `apps/web`
-  const appStoreCategories = Object.keys(AppCategories);
-  const pathsAppStoreCategories = appStoreCategories.map(
-    (category) => `${process.env.NEXT_PUBLIC_WEBSITE_URL}/apps/categories/${category}`
-  );
+  // // - pages/apps/categories/[category].tsx getStaticPaths from `apps/web`
+  // const appStoreCategories = Object.keys(AppCategories);
+  // const pathsAppStoreCategories = appStoreCategories.map(
+  //   (category) => `${process.env.NEXT_PUBLIC_WEBSITE_URL}/apps/categories/${category}`
+  // );
 
   const excluded: any[] = [];
   // include the /docs pages as well from motif.land
