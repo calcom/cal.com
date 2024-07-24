@@ -202,9 +202,9 @@ export async function addWeightAdjustmentToNewHosts({
     // hostData is the new host data
     const hostData = hosts.find((host) => host.userId === user.id);
     return {
-      isNewHost: !user.hosts.length,
+      isNewRRHost: !hostData?.isFixed && (!user.hosts.length || user.hosts[0].isFixed),
       isFixed: hostData?.isFixed ?? false,
-      weightAdjustment: user.hosts[0]?.weightAdjustment ?? 0,
+      weightAdjustment: hostData?.isFixed ? 0 : user.hosts[0]?.weightAdjustment ?? 0,
       priority: hostData?.priority ?? 2,
       weight: hostData?.weight ?? 100,
       user: {
@@ -214,9 +214,10 @@ export async function addWeightAdjustmentToNewHosts({
     };
   });
 
-  const ongoingRRHosts = hostsWithUserData.filter((host) => !host.isFixed && !host.isNewHost);
+  const ongoingRRHosts = hostsWithUserData.filter((host) => !host.isFixed && !host.isNewRRHost);
+  const allRRHosts = hosts.filter((host) => !host.isFixed);
 
-  if (ongoingRRHosts.length === hosts.length) {
+  if (ongoingRRHosts.length === allRRHosts.length) {
     //no new RR host was added
     return hostsWithUserData.map((host) => ({
       userId: host.user.id,
@@ -244,8 +245,8 @@ export async function addWeightAdjustmentToNewHosts({
 
   const hostsWithWeightAdjustments = await Promise.all(
     hostsWithUserData.map(async (host) => {
-      let weightAdjustment = host.weightAdjustment;
-      if (host.isNewHost) {
+      let weightAdjustment = !host.isFixed ? host.weightAdjustment : 0;
+      if (host.isNewRRHost) {
         // host can already have bookings, if they ever was assigned before
         const existingBookings = await BookingRepository.getAllBookingsOfUsers({
           eventTypeId,
