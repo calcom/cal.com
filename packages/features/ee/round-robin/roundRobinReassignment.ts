@@ -406,6 +406,43 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
       await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
     }
+
+    // Send new event workflows to new organizer
+    const newEventWorkflows = await prisma.workflow.findMany({
+      where: {
+        trigger: WorkflowTriggerEvents.NEW_EVENT,
+        activeOn: {
+          some: {
+            eventTypeId: eventTypeId,
+          },
+        },
+        activeOnTeams: {
+          some: {
+            teamId: eventType.teamId,
+          },
+        },
+      },
+      include: {
+        workflowStep: true,
+      },
+    });
+
+    for (const workflow of newEventWorkflows) {
+      await scheduleEmailReminder({
+        evt: {
+          ...evt,
+          eventType,
+        },
+        action: WorkflowActions.EMAIL_HOST,
+        triggerEvent: workflow.trigger,
+        timeSpan: {
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
+        },
+        sendTo: reassignedRRHost.email,
+        template: workflow.workflowStep.template,
+      });
+    }
   }
 };
 
