@@ -1,5 +1,6 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
+import { DeletedCalendarCredentialsOutputResponseDto } from "@/ee/calendars/outputs/delete-calendar-credentials.output";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
@@ -16,7 +17,9 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
+import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   GOOGLE_CALENDAR,
   OFFICE_365_CALENDAR,
@@ -26,20 +29,6 @@ import {
 import { OFFICE_365_CALENDAR_ID, OFFICE_365_CALENDAR_TYPE } from "@calcom/platform-constants";
 
 const CLIENT_REDIRECT_URI = "http://localhost:5555";
-
-class CalendarsServiceMock {
-  async getCalendars() {
-    return {
-      connectedCalendars: [
-        {
-          integration: {
-            type: "google_calendar",
-          },
-        },
-      ],
-    };
-  }
-}
 
 describe("Platform Calendars Endpoints", () => {
   let app: INestApplication;
@@ -66,8 +55,7 @@ describe("Platform Calendars Endpoints", () => {
       .useValue({
         canActivate: () => true,
       })
-      .overrideProvider(CalendarsService)
-      .useClass(CalendarsServiceMock)
+
       .compile();
 
     app = moduleRef.createNestApplication();
@@ -85,6 +73,9 @@ describe("Platform Calendars Endpoints", () => {
     accessTokenSecret = tokens.accessToken;
     refreshTokenSecret = tokens.refreshToken;
     await app.init();
+    jest
+      .spyOn(CalendarsService.prototype, "getCalendars")
+      .mockImplementation(CalendarsServiceMock.prototype.getCalendars);
   });
 
   async function createOAuthClient(organizationId: number) {
@@ -116,15 +107,16 @@ describe("Platform Calendars Endpoints", () => {
       .expect(401);
   });
 
-  it(`/GET/v2/calendars/${OFFICE_365_CALENDAR}/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
-    const response = await request(app.getHttpServer())
-      .get(`/v2/calendars/${OFFICE_365_CALENDAR}/connect`)
-      .set("Authorization", `Bearer ${accessTokenSecret}`)
-      .set("Origin", CLIENT_REDIRECT_URI)
-      .expect(200);
-    const data = response.body.data;
-    expect(data.authUrl).toBeDefined();
-  });
+  // TODO: Uncomment this once CI is ready to run proper Office365 tests
+  // it(`/GET/v2/calendars/${OFFICE_365_CALENDAR}/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
+  //   const response = await request(app.getHttpServer())
+  //     .get(`/v2/calendars/${OFFICE_365_CALENDAR}/connect`)
+  //     .set("Authorization", `Bearer ${accessTokenSecret}`)
+  //     .set("Origin", CLIENT_REDIRECT_URI)
+  //     .expect(200);
+  //   const data = response.body.data;
+  //   expect(data.authUrl).toBeDefined();
+  // });
 
   it(`/GET/v2/calendars/${GOOGLE_CALENDAR}/connect: it should redirect to auth-url for google calendar oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
@@ -198,6 +190,26 @@ describe("Platform Calendars Endpoints", () => {
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .set("Origin", CLIENT_REDIRECT_URI)
       .expect(200);
+  });
+
+  it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+    const body = {
+      id: 10,
+    };
+
+    return request(app.getHttpServer())
+      .post(`/v2/calendars/${OFFICE_365_CALENDAR}/disconnect`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .send(body)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: Promise<DeletedCalendarCredentialsOutputResponseDto> = response.body;
+
+        expect((await responseBody).status).toEqual(SUCCESS_STATUS);
+        expect((await responseBody).data).toBeDefined();
+        expect((await responseBody).data.id).toEqual(body.id);
+        expect((await responseBody).data.userId).toEqual(user.id);
+      });
   });
 
   afterAll(async () => {
