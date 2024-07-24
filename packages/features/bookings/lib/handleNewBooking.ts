@@ -246,7 +246,6 @@ async function handler(
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
-
     ...reqBody
   } = bookingData;
 
