@@ -84,7 +84,7 @@ import type {
 } from "@calcom/types/Calendar";
 import type { EventResult, PartialReference } from "@calcom/types/EventManager";
 
-import type { EventTypeInfo } from "../../webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "../../webhooks/lib/sendPayload";
 import { getAllCredentials } from "./getAllCredentialsForUsersOnEvent/getAllCredentials";
 import { refreshCredentials } from "./getAllCredentialsForUsersOnEvent/refreshCredentials";
 import getBookingDataSchema from "./getBookingDataSchema";
@@ -906,7 +906,7 @@ async function handler(
     userId: organizerUserId,
     eventTypeId,
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-    teamIds: teamId ? [teamId] : [],
+    teamId,
     orgId,
   };
 
@@ -1512,7 +1512,7 @@ async function handler(
       }
     : undefined;
 
-  const webhookData = {
+  const webhookData: EventPayloadType = {
     ...evt,
     ...eventTypeInfo,
     bookingId: booking?.id,
@@ -1575,7 +1575,7 @@ async function handler(
       userId: triggerForUser ? organizerUser.id : null,
       eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
-      teamIds: teamId ? [teamId] : [],
+      teamId,
       orgId,
     };
     await handleWebhookTrigger({

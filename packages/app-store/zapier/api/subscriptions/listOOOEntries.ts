@@ -25,6 +25,7 @@ export const selectOOOEntries = {
       id: true,
       name: true,
       email: true,
+      timeZone: true,
     },
   },
   toUser: {
@@ -32,6 +33,7 @@ export const selectOOOEntries = {
       id: true,
       name: true,
       email: true,
+      timeZone: true,
     },
   },
   uuid: true,
@@ -58,12 +60,10 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Wrap entries in metadata object
   const response = oooEntries.map((oooEntry) => {
     return {
+      createdAt: oooEntry.createdAt,
+      triggerEvent: WebhookTriggerEvents.OOO_CREATED,
       payload: {
-        createdAt: oooEntry.createdAt,
-        triggerEvent: WebhookTriggerEvents.OOO_CREATED,
-        oooEntry: {
-          ...oooEntry,
-        },
+        oooEntry,
       },
     };
   });

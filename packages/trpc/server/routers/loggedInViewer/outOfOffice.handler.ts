@@ -6,6 +6,7 @@ import dayjs from "@calcom/dayjs";
 import { sendBookingRedirectNotification } from "@calcom/emails";
 import type { GetSubscriberOptions } from "@calcom/features/webhooks/lib/getWebhooks";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { OOOEntryPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import sendPayload from "@calcom/features/webhooks/lib/sendPayload";
 import { getTranslation } from "@calcom/lib/server";
 import prisma from "@calcom/prisma";
@@ -197,6 +198,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           name: true,
           username: true,
           timeZone: true,
+          email: true,
         },
       })
     : null;
@@ -244,13 +246,46 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   // Send webhook to notify other services
   const subscriberOptions: GetSubscriberOptions = {
     userId: ctx.user.id,
-    teamIds: teamIds,
+    teamId: teamIds,
     orgId: ctx.user.organizationId,
     triggerEvent: WebhookTriggerEvents.OOO_CREATED,
   };
 
   const subscribers = await getWebhooks(subscriberOptions);
-  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  const payload: OOOEntryPayloadType = {
+    oooEntry: {
+      id: createdRedirect.id,
+      start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
+      createdAt: createdRedirect.createdAt.toISOString(),
+      updatedAt: createdRedirect.updatedAt.toISOString(),
+      notes: createdRedirect.notes,
+      reason: {
+        emoji: reason?.emoji,
+        reason: reason?.reason,
+      },
+      reasonId: input.reasonId,
+      user: {
+        id: ctx.user.id,
+        name: ctx.user.name,
+        username: ctx.user.username,
+        email: ctx.user.email,
+        timeZone: ctx.user.timeZone,
+      },
+      toUser: toUserId
+        ? {
+            id: toUserId,
+            name: toUser?.name,
+            username: toUser?.username,
+            email: toUser?.email,
+            timeZone: toUser?.timeZone,
+          }
+        : null,
+      uuid: createdRedirect.uuid,
+    },
+  };
+
   await Promise.all(
     subscribers.map(async (subscriber) => {
       sendPayload(
@@ -262,36 +297,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
           subscriberUrl: subscriber.subscriberUrl,
           payloadTemplate: subscriber.payloadTemplate,
         },
-        {
-          oooEntry: {
-            id: createdRedirect.id,
-            start: dayjs(createdRedirect.start).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-            end: dayjs(createdRedirect.end).tz(ctx.user.timeZone, true).format("YYYY-MM-DDTHH:mm:ssZ"),
-            createdAt: createdRedirect.createdAt.toISOString(),
-            updatedAt: createdRedirect.updatedAt.toISOString(),
-            notes: createdRedirect.notes,
-            reason: {
-              emoji: reason?.emoji,
-              reason: reason?.reason ? t(reason?.reason) : t("ooo_reasons_unspecified"),
-            },
-            reasonId: input.reasonId,
-            user: {
-              id: ctx.user.id,
-              name: ctx.user.name,
-              username: ctx.user.username,
-              timeZone: ctx.user.timeZone,
-            },
-            toUser: toUserId
-              ? {
-                  id: toUserId,
-                  name: toUser?.name,
-                  username: toUser?.username,
-                  timeZone: toUser?.timeZone,
-                }
-              : null,
-            uuid: createdRedirect.uuid,
-          },
-        }
+        payload
       );
     })
   );

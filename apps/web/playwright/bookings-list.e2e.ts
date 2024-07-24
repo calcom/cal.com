@@ -107,7 +107,7 @@ test.describe("Bookings", () => {
         createdAt: "[redacted/dynamic]",
         payload: {
           message: "first@cal.com marked as no-show",
-          attendees: [{ email: "first@cal.com", noShow: true, utcOffset: null }],
+          attendees: [{ email: "first@cal.com", noShow: true }],
           bookingUid: bookingWhereFirstUserIsOrganizer?.uid,
           bookingId: bookingWhereFirstUserIsOrganizer?.id,
         },

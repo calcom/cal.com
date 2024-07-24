@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { CalendarsController } from "@/ee/calendars/controllers/calendars.controller";
 import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
@@ -21,6 +22,7 @@ import { Module } from "@nestjs/common";
     AppleCalendarService,
     SelectedCalendarsRepository,
     AppsRepository,
+    CalendarsRepository,
   ],
   controllers: [CalendarsController],
   exports: [CalendarsService],

@@ -13,7 +13,7 @@ import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { scheduleTrigger } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -294,21 +294,21 @@ export async function handleConfirmation(args: {
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
-      teamIds: teamId ? [teamId] : [],
+      teamId,
       orgId,
     });
     const subscribersMeetingStarted = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_STARTED,
-      teamIds: eventType?.teamId ? [eventType.teamId] : [],
+      teamId: eventType?.teamId,
       orgId,
     });
     const subscribersMeetingEnded = await getWebhooks({
       userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.MEETING_ENDED,
-      teamIds: eventType?.teamId ? [eventType.teamId] : [],
+      teamId: eventType?.teamId,
       orgId,
     });
 
@@ -350,16 +350,24 @@ export async function handleConfirmation(args: {
       length: eventType?.length,
     };
 
+    const payload: EventPayloadType = {
+      ...evt,
+      ...eventTypeInfo,
+      bookingId,
+      eventTypeId: eventType?.id,
+      status: "ACCEPTED",
+      smsReminderNumber: booking.smsReminderNumber || undefined,
+      metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
+    };
+
     const promises = subscribersBookingCreated.map((sub) =>
-      sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_CREATED, new Date().toISOString(), sub, {
-        ...evt,
-        ...eventTypeInfo,
-        bookingId,
-        eventTypeId: eventType?.id,
-        status: "ACCEPTED",
-        smsReminderNumber: booking.smsReminderNumber || undefined,
-        metadata: meetingUrl ? { videoCallUrl: meetingUrl } : undefined,
-      }).catch((e) => {
+      sendPayload(
+        sub.secret,
+        WebhookTriggerEvents.BOOKING_CREATED,
+        new Date().toISOString(),
+        sub,
+        payload
+      ).catch((e) => {
         log.error(
           `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_CREATED}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
           safeStringify(e)
@@ -375,7 +383,7 @@ export async function handleConfirmation(args: {
         userId,
         eventTypeId: booking.eventTypeId,
         triggerEvent: WebhookTriggerEvents.BOOKING_PAID,
-        teamIds: eventType?.teamId ? [eventType.teamId] : [],
+        teamId: eventType?.teamId,
         orgId,
       });
       const bookingWithPayment = await prisma.booking.findFirst({
@@ -405,19 +413,20 @@ export async function handleConfirmation(args: {
         eventTitle: eventType?.title,
         externalId: paymentExternalId,
       };
+
+      payload.paymentId = bookingWithPayment?.payment?.[0].id;
+      payload.metadata = {
+        ...(paid ? paymentMetadata : {}),
+      };
+
       const bookingPaidSubscribers = subscriberMeetingPaid.map((sub) =>
-        sendPayload(sub.secret, WebhookTriggerEvents.BOOKING_PAID, new Date().toISOString(), sub, {
-          ...evt,
-          ...eventTypeInfo,
-          bookingId,
-          eventTypeId: eventType?.id,
-          status: "ACCEPTED",
-          smsReminderNumber: booking.smsReminderNumber || undefined,
-          paymentId: bookingWithPayment?.payment?.[0].id,
-          metadata: {
-            ...(paid ? paymentMetadata : {}),
-          },
-        }).catch((e) => {
+        sendPayload(
+          sub.secret,
+          WebhookTriggerEvents.BOOKING_PAID,
+          new Date().toISOString(),
+          sub,
+          payload
+        ).catch((e) => {
           log.error(
             `Error executing webhook for event: ${WebhookTriggerEvents.BOOKING_PAID}, URL: ${sub.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
             safeStringify(e)

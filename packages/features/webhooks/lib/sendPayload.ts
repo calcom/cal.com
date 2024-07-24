@@ -33,7 +33,7 @@ export type WithUTCOffsetType<T> = T & {
 export type BookingNoShowUpdatedPayload = {
   message: string;
   bookingUid: string;
-  bookingId: number;
+  bookingId?: number;
   attendees: { email: string; noShow: boolean }[];
 };
 
@@ -44,78 +44,77 @@ export type TranscriptionGeneratedPayload = {
   };
 };
 
-export type OOOEntryPayload = {
-  oooEntry?: {
-    id?: number;
-    start?: string;
-    end?: string;
-    createdAt?: string;
-    updatedAt?: string;
-    notes?: string | null;
-    reason?: {
+export type OOOEntryPayloadType = {
+  oooEntry: {
+    id: number;
+    start: string;
+    end: string;
+    createdAt: string;
+    updatedAt: string;
+    notes: string | null;
+    reason: {
       emoji?: string;
       reason?: string;
     };
-    reasonId?: number;
-    user?: {
-      id?: number;
-      name?: string | null;
-      username?: string | null;
-      timeZone?: string;
+    reasonId: number;
+    user: {
+      id: number;
+      name: string | null;
+      username: string | null;
+      timeZone: string;
+      email: string;
     };
-    toUser?: {
-      id?: number;
+    toUser: {
+      id: number;
       name?: string | null;
       username?: string | null;
       timeZone?: string;
+      email?: string;
     } | null;
-    uuid?: string;
+    uuid: string;
   };
 };
 
-export type WebhookDataType =
-  | (CalendarEvent &
-      TranscriptionGeneratedPayload &
-      // BookingNoShowUpdatedPayload & // This breaks all other webhooks
-      EventTypeInfo & {
-        metadata?: { [key: string]: string | number | boolean | null };
-        bookingId?: number;
-        status?: string;
-        smsReminderNumber?: string;
-        rescheduleId?: number;
-        rescheduleUid?: string;
-        rescheduleStartTime?: string;
-        rescheduleEndTime?: string;
-        triggerEvent: string;
-        createdAt: string;
-        downloadLink?: string;
-        paymentId?: number;
-      })
-  | OOOEntryPayload;
+export type EventPayloadType = CalendarEvent &
+  TranscriptionGeneratedPayload &
+  EventTypeInfo & {
+    metadata?: { [key: string]: string | number | boolean | null };
+    bookingId?: number;
+    status?: string;
+    smsReminderNumber?: string;
+    rescheduleId?: number;
+    rescheduleUid?: string;
+    rescheduleStartTime?: string;
+    rescheduleEndTime?: string;
+    downloadLink?: string;
+    paymentId?: number;
+    paymentData?: { [key: string]: string | number | boolean | null };
+  };
 
-function addUTCOffset(
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
-): WithUTCOffsetType<WebhookDataType> {
-  const calendarEventData = data as CalendarEvent;
-  if (calendarEventData?.organizer?.timeZone) {
-    (calendarEventData.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
-      calendarEventData.organizer.timeZone,
-      calendarEventData.startTime
-    );
+export type WebhookPayloadType = EventPayloadType | OOOEntryPayloadType | BookingNoShowUpdatedPayload;
+
+type WebhookDataType = WebhookPayloadType & { triggerEvent: string; createdAt: string };
+
+function addUTCOffset(data: WebhookPayloadType): WithUTCOffsetType<WebhookPayloadType> {
+  if (isEventPayload(data)) {
+    if (data.organizer?.timeZone) {
+      (data.organizer as Person & UTCOffset).utcOffset = getUTCOffsetByTimezone(
+        data.organizer.timeZone,
+        data.startTime
+      );
+    }
+
+    if (data.attendees?.length) {
+      (data.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
+        attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, data.startTime);
+      });
+    }
   }
 
-  if (calendarEventData?.attendees?.length) {
-    (calendarEventData.attendees as (Person & UTCOffset)[]).forEach((attendee) => {
-      attendee.utcOffset = getUTCOffsetByTimezone(attendee.timeZone, calendarEventData.startTime);
-    });
-  }
-
-  return data as WithUTCOffsetType<WebhookDataType>;
+  return data as WithUTCOffsetType<WebhookPayloadType>;
 }
 
-function getZapierPayload(
-  data: WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }>
-): string {
+function getZapierPayload(data: WithUTCOffsetType<EventPayloadType & { createdAt: string }>): string {
   const attendees = (data.attendees as (Person & UTCOffset)[]).map((attendee) => {
     return {
       name: attendee.name,
@@ -179,39 +178,51 @@ export function jsonParse(jsonString: string) {
   return false;
 }
 
+export function isOOOEntryPayload(data: WebhookPayloadType): data is OOOEntryPayloadType {
+  return "oooEntry" in data;
+}
+
+export function isNoShowPayload(data: WebhookPayloadType): data is BookingNoShowUpdatedPayload {
+  return "message" in data;
+}
+
+export function isEventPayload(data: WebhookPayloadType): data is EventPayloadType {
+  return !isNoShowPayload(data) && !isOOOEntryPayload(data);
+}
+
 const sendPayload = async (
   secretKey: string | null,
   triggerEvent: string,
   createdAt: string,
   webhook: Pick<Webhook, "subscriberUrl" | "appId" | "payloadTemplate">,
-  data: Omit<WebhookDataType, "createdAt" | "triggerEvent">
+  data: WebhookPayloadType
 ) => {
   const { appId, payloadTemplate: template } = webhook;
 
   const contentType =
     !template || jsonParse(template) ? "application/json" : "application/x-www-form-urlencoded";
 
-  if ("description" in data && "notes" in data) {
-    data.description = data.description || data.notes;
-  }
   data = addUTCOffset(data);
 
   let body;
   /* Zapier id is hardcoded in the DB, we send the raw data for this case  */
-  if (appId === "zapier" && triggerEvent !== "OOO_CREATED") {
-    const zapierData = data as WithUTCOffsetType<
-      CalendarEvent & EventTypeInfo & { status?: string; createdAt: string }
-    >;
-    body = getZapierPayload({ ...zapierData, createdAt });
-  } else if (template) {
-    const templateData = data as WithUTCOffsetType<CalendarEvent & EventTypeInfo & { status?: string }>;
-    body = applyTemplate(template, { ...templateData, triggerEvent, createdAt }, contentType);
-  } else {
-    body = JSON.stringify({
-      triggerEvent: triggerEvent,
-      createdAt: createdAt,
-      payload: data,
-    });
+  if (isEventPayload(data)) {
+    data.description = data.description || data.additionalNotes;
+    if (appId === "zapier") {
+      body = getZapierPayload({ ...data, createdAt });
+    }
+  }
+
+  if (body === undefined) {
+    if (template && (isOOOEntryPayload(data) || isEventPayload(data) || isNoShowPayload(data))) {
+      body = applyTemplate(template, { ...data, triggerEvent, createdAt }, contentType);
+    } else {
+      body = JSON.stringify({
+        triggerEvent: triggerEvent,
+        createdAt: createdAt,
+        payload: data,
+      });
+    }
   }
 
   return _sendPayload(secretKey, webhook, body, contentType);

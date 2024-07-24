@@ -12,7 +12,7 @@ import { sendCancelledReminders } from "@calcom/features/ee/workflows/lib/remind
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
-import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
+import type { EventPayloadType, EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
@@ -314,13 +314,15 @@ async function handler(req: CustomRequest) {
   const result = await cancelAttendeeSeat(req, dataForWebhooks);
   if (result) return { success: true };
 
+  const payload: EventPayloadType = {
+    ...evt,
+    ...eventTypeInfo,
+    status: "CANCELLED",
+    smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
+  };
+
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      ...eventTypeInfo,
-      status: "CANCELLED",
-      smsReminderNumber: bookingToDelete.smsReminderNumber || undefined,
-    }).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
       logger.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)

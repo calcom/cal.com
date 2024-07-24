@@ -4,9 +4,11 @@ import appStore from "@calcom/app-store";
 import dayjs from "@calcom/dayjs";
 import { sendNoShowFeeChargedEmail } from "@calcom/emails";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -137,15 +139,17 @@ export const paymentsRouter = router({
 
         const subscribers = await getWebhooks(subscriberOptions);
 
+        const payload: EventPayloadType = {
+          ...evt,
+          bookingId: booking.id,
+          paymentId: payment.id,
+          paymentData,
+          eventTypeId: subscriberOptions.eventTypeId,
+        };
+
         await Promise.all(
           subscribers.map(async (subscriber) => {
-            sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, {
-              ...evt,
-              bookingId: booking.id,
-              paymentId: payment.id,
-              paymentData,
-              eventTypeId: subscriberOptions.eventTypeId,
-            });
+            sendPayload(subscriber.secret, WebhookTriggerEvents.BOOKING_PAID, payload);
           })
         );
 
