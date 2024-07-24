@@ -149,7 +149,6 @@ export class BillingService implements OnModuleDestroy {
       await job.remove();
       this.logger.log(`Removed increment job for cancelled booking ${bookingUid}`);
     }
-    return;
   }
 
   async onModuleDestroy() {
