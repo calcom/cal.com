@@ -564,7 +564,6 @@ describe("addWeightAdjustmentToNewHosts", () => {
     /*
     both users have weight 100, user1 has 4 bookings user 2 has 1 bookings already
     */
-    console.log(`hostsWithAdjustedWeight ${JSON.stringify(hostsWithAdjustedWeight)}`);
     expect(hostsWithAdjustedWeight.find((host) => host.userId === 2)?.weightAdjustment).toBe(3);
   });
 
