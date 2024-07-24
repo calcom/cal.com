@@ -11,7 +11,7 @@ it("can find lucky user with maximize availability", async () => {
     id: 1,
     username: "test1",
     name: "Test User 1",
-    email: "test@example.com",
+    email: "test1@example.com",
     bookings: [
       {
         createdAt: new Date("2022-01-25T05:30:00.000Z"),
@@ -25,7 +25,7 @@ it("can find lucky user with maximize availability", async () => {
     id: 2,
     username: "test2",
     name: "Test User 2",
-    email: "tes2t@example.com",
+    email: "test2@example.com",
     bookings: [
       {
         createdAt: new Date("2022-01-25T04:30:00.000Z"),
@@ -54,7 +54,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 1,
     username: "test1",
     name: "Test User 1",
-    email: "test@example.com",
+    email: "test1@example.com",
     priority: 2,
     bookings: [
       {
@@ -69,7 +69,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 2,
     username: "test2",
     name: "Test User 2",
-    email: "tes2t@example.com",
+    email: "test2@example.com",
     bookings: [
       {
         createdAt: new Date("2022-01-25T04:30:00.000Z"),
@@ -98,7 +98,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 1,
     username: "test1",
     name: "Test User 1",
-    email: "test@example.com",
+    email: "test1@example.com",
     priority: 0,
     bookings: [
       {
@@ -110,7 +110,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 2,
     username: "test2",
     name: "Test User 2",
-    email: "tes2t@example.com",
+    email: "test2@example.com",
     priority: 2,
     bookings: [
       {
@@ -123,7 +123,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 2,
     username: "test2",
     name: "Test User 2",
-    email: "tes2t@example.com",
+    email: "test2@example.com",
     priority: 4,
     bookings: [
       {
@@ -153,7 +153,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 1,
     username: "test1",
     name: "Test User 1",
-    email: "test@example.com",
+    email: "test1@example.com",
     priority: 0,
     bookings: [
       {
@@ -178,7 +178,7 @@ it("can find lucky user with maximize availability and priority ranking", async 
     id: 3,
     username: "test3",
     name: "Test User 3",
-    email: "test3t@example.com",
+    email: "test3@example.com",
     priority: 3,
     bookings: [
       {
@@ -211,7 +211,7 @@ describe("maximize availability and weights", () => {
       id: 1,
       username: "test1",
       name: "Test User 1",
-      email: "test@example.com",
+      email: "test1@example.com",
       priority: 3,
       weight: 100,
       bookings: [
@@ -227,7 +227,7 @@ describe("maximize availability and weights", () => {
       id: 2,
       username: "test2",
       name: "Test User 2",
-      email: "tes2t@example.com",
+      email: "test2@example.com",
       priority: 3,
       weight: 100,
       bookings: [
@@ -295,7 +295,7 @@ describe("maximize availability and weights", () => {
       id: 1,
       username: "test1",
       name: "Test User 1",
-      email: "test@example.com",
+      email: "test1@example.com",
       priority: 3,
       weight: 200,
       bookings: [
@@ -314,7 +314,7 @@ describe("maximize availability and weights", () => {
       id: 2,
       username: "test2",
       name: "Test User 2",
-      email: "tes2t@example.com",
+      email: "test2@example.com",
       priority: 3,
       weight: 100,
       bookings: [
@@ -387,7 +387,7 @@ describe("maximize availability and weights", () => {
       id: 1,
       username: "test1",
       name: "Test User 1",
-      email: "test@example.com",
+      email: "test1@example.com",
       priority: 3,
       weight: 150,
       weightAdjustment: 4, // + 3 = 7 bookings
@@ -407,7 +407,7 @@ describe("maximize availability and weights", () => {
       id: 2,
       username: "test2",
       name: "Test User 2",
-      email: "tes2t@example.com",
+      email: "test2@example.com",
       priority: 3,
       weight: 100,
       weightAdjustment: 3, // + 2 = 5 bookings
