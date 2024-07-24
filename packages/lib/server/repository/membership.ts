@@ -131,4 +131,73 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findAllByUpIdIncludeTeam(
+    { upId }: { upId: string },
+    { where }: { where?: Prisma.MembershipWhereInput } = {}
+  ) {
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    let prismaWhere;
+
+    if (lookupTarget.type === LookupTarget.Profile) {
+      /**
+       * TODO: When we add profileId to membership, we lookup by profileId
+       * If the profile is movedFromUser, we lookup all memberships without profileId as well.
+       */
+      const profile = await ProfileRepository.findById(lookupTarget.id);
+      if (!profile) {
+        return [];
+      }
+      prismaWhere = {
+        userId: profile.user.id,
+        ...where,
+      };
+    } else {
+      prismaWhere = {
+        userId: lookupTarget.id,
+        ...where,
+      };
+    }
+    return await prisma.membership.findMany({
+      where: prismaWhere,
+      include: {
+        team: {
+          include: {
+            members: {
+              select: membershipSelect,
+            },
+            parent: {
+              select: teamParentSelect,
+            },
+            // eventTypes: {
+            //   select: {
+            //     ...eventTypeSelect,
+            //     hashedLink: true,
+            //     users: { select: userSelect },
+            //     children: {
+            //       include: {
+            //         users: { select: userSelect },
+            //       },
+            //     },
+            //     hosts: {
+            //       include: {
+            //         user: { select: userSelect },
+            //       },
+            //     },
+            //   },
+            //   // As required by getByViewHandler - Make it configurable
+            //   orderBy: [
+            //     {
+            //       position: "desc",
+            //     },
+            //     {
+            //       id: "asc",
+            //     },
+            //   ],
+            // },
+          },
+        },
+      },
+    });
+  }
 }

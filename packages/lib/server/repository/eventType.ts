@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import { safeStringify } from "../../safeStringify";
@@ -92,7 +93,14 @@ export class EventTypeRepository {
     {
       orderBy,
       where = {},
-    }: { orderBy?: Prisma.EventTypeOrderByWithRelationInput[]; where?: Prisma.EventTypeWhereInput } = {}
+      cursor,
+      limit = 10,
+    }: {
+      orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
+      where?: Prisma.EventTypeWhereInput;
+      cursor?: number | null;
+      limit?: number | null;
+    } = {}
   ) {
     if (!upId) return [];
     const lookupTarget = ProfileRepository.getLookupTarget(upId);
@@ -130,6 +138,8 @@ export class EventTypeRepository {
           ...where,
         },
         select,
+        cursor: cursor ? { id: cursor } : undefined,
+        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
         orderBy,
       });
     }
@@ -161,6 +171,8 @@ export class EventTypeRepository {
           ...where,
         },
         select,
+        cursor: cursor ? { id: cursor } : undefined,
+        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
         orderBy,
       });
     } else {
@@ -181,9 +193,84 @@ export class EventTypeRepository {
           ...where,
         },
         select,
+        cursor: cursor ? { id: cursor } : undefined,
+        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
         orderBy,
       });
     }
+  }
+
+  static async findTeamEventTypes({
+    teamId,
+    parentId,
+    userId,
+    limit = 10,
+    cursor,
+    orderBy,
+  }: {
+    teamId: number;
+    parentId?: number;
+    userId: number;
+    limit?: number | null;
+    cursor?: number | null;
+    orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
+  }) {
+    const userSelect = Prisma.validator<Prisma.UserSelect>()({
+      name: true,
+      avatarUrl: true,
+      username: true,
+      id: true,
+    });
+
+    const select = {
+      ...eventTypeSelect,
+      hashedLink: true,
+      users: { select: userSelect },
+      children: {
+        include: {
+          users: { select: userSelect },
+        },
+      },
+      hosts: {
+        include: {
+          user: { select: userSelect },
+        },
+      },
+    };
+
+    return await prisma.eventType.findMany({
+      where: {
+        teamId,
+        team: {
+          parentId,
+          OR: [
+            {
+              members: {
+                some: {
+                  userId,
+                  accepted: true,
+                },
+              },
+            },
+            {
+              parent: {
+                members: {
+                  some: {
+                    userId,
+                    accepted: true,
+                    role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      select,
+      cursor: cursor ? { id: cursor } : undefined,
+      take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
+      orderBy,
+    });
   }
 
   static async findAllByUserId({ userId }: { userId: number }) {

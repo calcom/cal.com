@@ -69,6 +69,7 @@ type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eve
 
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
+type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 
 interface EventTypeListHeadingProps {
   profile: EventTypeGroupProfile;
@@ -100,8 +101,11 @@ interface EventTypeListProps {
   lockedByOrg?: boolean;
 }
 
+// interface MobileTeamsTabProps {
+//   eventTypeGroups: DeNormalizedEventTypeGroup[];
+// }
 interface MobileTeamsTabProps {
-  eventTypeGroups: DeNormalizedEventTypeGroup[];
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
 }
 
 const querySchema = z.object({
@@ -851,13 +855,17 @@ const EmptyEventTypeList = ({ group }: { group: DeNormalizedEventTypeGroup }) =>
 const Main = ({
   status,
   errorMessage,
-  data: rawData,
+  // data: rawData,
   filters,
+  eventTypeGroups,
+  profiles,
 }: {
   status: string;
-  data: GetByViewerResponse;
+  // data: GetByViewerResponse;
   errorMessage?: string;
   filters: ReturnType<typeof getTeamsFiltersFromQuery>;
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
+  profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
   const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
@@ -866,78 +874,167 @@ const Main = ({
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
-  if (!rawData || status === "pending") {
+  // if (!rawData || status === "pending") {
+  //   return <SkeletonLoader />;
+  // }
+
+  if (!eventTypeGroups || !profiles || status === "pending") {
     return <SkeletonLoader />;
   }
 
   const isFilteredByOnlyOneItem =
-    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) &&
-    rawData.eventTypeGroups.length === 1;
+    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && eventTypeGroups.length === 1;
 
-  const data = denormalizePayload(rawData);
+  // const data = denormalizePayload(rawData);
   return (
     <>
-      {data.eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+      {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
         <>
           {isMobile ? (
-            <MobileTeamsTab eventTypeGroups={data.eventTypeGroups} />
+            <MobileTeamsTab eventTypeGroups={eventTypeGroups} />
           ) : (
-            data.eventTypeGroups.map((group, index: number) => {
-              const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
-              const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
-                (event) => event.metadata?.managedEventConfig || event.hidden
-              );
-              if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
-              return (
-                <div
-                  className="mt-4 flex flex-col"
-                  data-testid={`slug-${group.profile.slug}`}
-                  key={group.profile.slug}>
-                  {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
-                    to it being readonly for that user */}
-                  {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
-                    <EventTypeListHeading
-                      profile={group.profile}
-                      membershipCount={group.metadata.membershipCount}
-                      teamId={group.teamId}
-                      bookerUrl={group.bookerUrl}
-                    />
-                  )}
+            eventTypeGroups.map((group, index: number) => {
+              // const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
+              // const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
+              //   (event) => event.metadata?.managedEventConfig || event.hidden
+              // );
+              // if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
 
-                  {group.eventTypes.length ? (
-                    <EventTypeList
-                      types={group.eventTypes}
-                      group={group}
-                      bookerUrl={group.bookerUrl}
-                      groupIndex={index}
-                      readOnly={group.metadata.readOnly}
-                      lockedByOrg={eventsLockedByOrg}
-                    />
-                  ) : group.teamId && !group.metadata.readOnly ? (
-                    <EmptyEventTypeList group={group} />
-                  ) : !group.metadata.readOnly ? (
-                    <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />
-                  ) : null}
-                </div>
+              return (
+                <EventTypesInfiteScroll key={index} group={group} index={index} profiles={profiles} />
+                // <div
+                //   className="mt-4 flex flex-col"
+                //   data-testid={`slug-${group.profile.slug}`}
+                //   key={group.profile.slug}>
+                //   f
+                //   {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
+                //     to it being readonly for that user */}
+                //   {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
+                //     <EventTypeListHeading
+                //       profile={group.profile}
+                //       membershipCount={group.metadata.membershipCount}
+                //       teamId={group.teamId}
+                //       bookerUrl={group.bookerUrl}
+                //     />
+                //   )}
+
+                //   {group.eventTypes.length ? (
+                //     <EventTypeList
+                //       types={group.eventTypes}
+                //       group={group}
+                //       bookerUrl={group.bookerUrl}
+                //       groupIndex={index}
+                //       readOnly={group.metadata.readOnly}
+                //       lockedByOrg={eventsLockedByOrg}
+                //     />
+                //   ) : group.teamId && !group.metadata.readOnly ? (
+                //     <EmptyEventTypeList group={group} />
+                //   ) : !group.metadata.readOnly ? (
+                //     <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
+                //   ) : null}
+                // </div>
               );
             })
           )}
         </>
       ) : (
-        data.eventTypeGroups.length === 1 && (
+        eventTypeGroups.length === 1 && (
           <EventTypeList
-            types={data.eventTypeGroups[0].eventTypes}
-            group={data.eventTypeGroups[0]}
+            types={eventTypeGroups[0]?.eventTypes}
+            group={eventTypeGroups[0]}
             groupIndex={0}
-            bookerUrl={data.eventTypeGroups[0].bookerUrl}
-            readOnly={data.eventTypeGroups[0].metadata.readOnly}
+            bookerUrl={eventTypeGroups[0].bookerUrl}
+            readOnly={eventTypeGroups[0].metadata.readOnly}
           />
         )
       )}
-      {data.eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={data.profiles[0].slug ?? ""} />}
+      {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
+  );
+};
+
+const EventTypesInfiteScroll = ({
+  group,
+  index,
+  profiles,
+}: {
+  group: GetUserEventGroupsResponse["eventTypeGroups"][number];
+  index: number;
+  profiles: GetUserEventGroupsResponse["profiles"];
+}) => {
+  const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
+
+  const getEventTypes = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: 10,
+      group: group,
+      // filters: filters,
+    },
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 1 * 60 * 60 * 1000,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  if (getEventTypes.loading) return null;
+
+  const isEmpty = !getEventTypes?.data?.pages[0]?.eventTypes.length;
+
+  console.log("getEventTypesFromGroup", getEventTypes?.data);
+
+  return (
+    <div className="mt-4 flex flex-col" data-testid={`slug-${group.profile.slug}`} key={group.profile.slug}>
+      {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
+                    to it being readonly for that user */}
+      {isEmpty && group.metadata.readOnly ? null : (
+        <EventTypeListHeading
+          profile={group.profile}
+          membershipCount={group.metadata.membershipCount}
+          teamId={group.teamId}
+          bookerUrl={group.bookerUrl}
+        />
+      )}
+      {!isEmpty ? (
+        <EventTypeList
+          types={getEventTypes?.data?.pages[0]?.eventTypes}
+          group={group}
+          bookerUrl={group.bookerUrl}
+          groupIndex={index}
+          readOnly={group.metadata.readOnly}
+          lockedByOrg={eventsLockedByOrg}
+        />
+      ) : group.teamId && !group.metadata.readOnly ? (
+        <EmptyEventTypeList group={group} />
+      ) : !group.metadata.readOnly ? (
+        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
+      ) : null}
+      {/* {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
+        <EventTypeListHeading
+          profile={group.profile}
+          membershipCount={group.metadata.membershipCount}
+          teamId={group.teamId}
+          bookerUrl={group.bookerUrl}
+        />
+      )}
+
+      {group.eventTypes.length ? (
+        <EventTypeList
+          types={group.eventTypes}
+          group={group}
+          bookerUrl={group.bookerUrl}
+          groupIndex={index}
+          readOnly={group.metadata.readOnly}
+          lockedByOrg={eventsLockedByOrg}
+        />
+      ) : group.teamId && !group.metadata.readOnly ? (
+        <EmptyEventTypeList group={group} />
+      ) : !group.metadata.readOnly ? (
+        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
+      ) : null} */}
+    </div>
   );
 };
 
@@ -957,11 +1054,25 @@ const EventTypesPage: React.FC & {
   const router = useRouter();
 
   // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
-  const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
+  // const { data: getByViewer } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
+  //   refetchOnWindowFocus: false,
+  //   gcTime: 1 * 60 * 60 * 1000,
+  //   staleTime: 1 * 60 * 60 * 1000,
+  // });
+  // console.log("getByViewer", getByViewer);
+
+  const { data, status, error } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(filters && { filters }, {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
   });
+  console.log("userEventGroups", data);
+
+  //   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useInfiniteQuery(filters && { filters }, {
+  //   refetchOnWindowFocus: false,
+  //   gcTime: 1 * 60 * 60 * 1000,
+  //   staleTime: 1 * 60 * 60 * 1000,
+  // });
 
   useEffect(() => {
     if (searchParams?.get("openIntercom") === "true") {
@@ -983,7 +1094,22 @@ const EventTypesPage: React.FC & {
     );
   }, [orgBranding, user]);
 
-  const profileOptions = data
+  // const profileOptions = data
+  //   ? data?.profiles
+  //       .filter((profile) => !profile.readOnly)
+  //       .filter((profile) => !profile.eventTypesLockedByOrg)
+  //       .map((profile) => {
+  //         return {
+  //           teamId: profile.teamId,
+  //           label: profile.name || profile.slug,
+  //           image: profile.image,
+  //           membershipRole: profile.membershipRole,
+  //           slug: profile.slug,
+  //         };
+  //       })
+  //   : [];
+
+  const profileOptions = data?.profiles
     ? data?.profiles
         .filter((profile) => !profile.readOnly)
         .filter((profile) => !profile.eventTypesLockedByOrg)
@@ -1013,7 +1139,14 @@ const EventTypesPage: React.FC & {
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
+      {/* <h1>Let&apos;s go</h1> */}
+      <Main
+        profiles={data?.profiles}
+        eventTypeGroups={data?.eventTypeGroups}
+        status={status}
+        errorMessage={error?.message}
+        filters={filters}
+      />
     </Shell>
   );
 };
