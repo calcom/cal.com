@@ -28,7 +28,7 @@ class LicenseKeyService {
     return new LicenseKeyService(licenseKey);
   }
 
-  private async fetch({
+  private async fetcher({
     url,
     body,
     options = {},
@@ -61,7 +61,7 @@ class LicenseKeyService {
 
   async incrementUsage(usageEvent?: UsageEvent) {
     try {
-      const response = await this.fetch({
+      const response = await this.fetcher({
         url: `${this.baseUrl}/v1/license/usage/increment?event=${usageEvent ?? UsageEvent.BOOKING}`,
         options: {
           method: "POST",
@@ -77,17 +77,18 @@ class LicenseKeyService {
 
   async checkLicense(): Promise<boolean> {
     /** We skip for E2E testing */
-    if (!!process.env.NEXT_PUBLIC_IS_E2E) return true;
+    if (process.env.NEXT_PUBLIC_IS_E2E === "1") return true;
     /** We check first on env */
     const url = `${this.baseUrl}/v1/license/${this.licenseKey}`;
     const cachedResponse = cache.get(url);
     if (cachedResponse) return cachedResponse;
     try {
-      const response = await this.fetch({ url: url, options: { mode: "cors" } });
+      const response = await this.fetcher({ url, options: { mode: "cors" } });
       const data = await response.json();
       cache.put(url, data.stauts, this.CACHING_TIME);
       return data.status;
     } catch (error) {
+      console.error("Check license failed:", error);
       return false;
     }
   }
