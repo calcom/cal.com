@@ -1499,7 +1499,6 @@
   "how_long_after": "Bao lâu sau khi sự kiện kết thúc?",
   "no_available_slots": "Không còn khoảng thời gian trống",
   "time_available": "Thời gian trống",
-  "cant_find_the_right_video_app_visit_our_app_store": "Không thể tìm thấy ứng dụng video phù hợp? Ghé <1>App Store</1> của chúng tôi.",
   "install_new_calendar_app": "Cài ứng dụng lịch mới",
   "make_phone_number_required": "Yêu cầu điện thoại khi đặt lịch hẹn sự kiện",
   "new_event_type_availability": "Tình trạng trống lịch của {{eventTypeTitle}}",
