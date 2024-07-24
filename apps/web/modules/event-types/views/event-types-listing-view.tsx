@@ -395,8 +395,10 @@ export const EventTypeList = ({
         {types.map((type, index) => {
           const embedLink = `${group.profile.slug}/${type.slug}`;
           const calLink = `${bookerUrl}/${embedLink}`;
-          const isPrivateURLEnabled = type.hashedLink?.link;
-          const placeholderHashedLink = `${WEBSITE_URL}/d/${type.hashedLink?.link}/${type.slug}`;
+          const isPrivateURLEnabled = type.hashedLink.find((link) => {
+            return link.destroyOnUse === false;
+          })?.link;
+          const placeholderHashedLink = `${WEBSITE_URL}/d/${isPrivateURLEnabled}/${type.slug}`;
           const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
           const isChildrenManagedEventType =
             type.metadata?.managedEventConfig !== undefined && type.schedulingType !== SchedulingType.MANAGED;
