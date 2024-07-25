@@ -107,7 +107,7 @@ async function saveBooking(
   const createBookingObj = {
     include: {
       user: {
-        select: { email: true, name: true, timeZone: true, username: true },
+        select: { email: true, name: true, timeZone: true, username: true, timeFormat: true, locale: true },
       },
       attendees: true,
       payment: true,

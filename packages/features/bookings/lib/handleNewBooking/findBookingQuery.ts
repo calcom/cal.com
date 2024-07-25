@@ -21,6 +21,8 @@ export const findBookingQuery = async (bookingId: number) => {
           email: true,
           timeZone: true,
           username: true,
+          locale: true,
+          timeFormat: true,
         },
       },
       eventType: {
