@@ -235,7 +235,7 @@ export default function Success(props: PageProps) {
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   const isLoggedIn = session?.user;
-  const isOrganizer = session?.user?.id === bookingInfo.user.id;
+  const isOrganizer = !!(session?.user?.id && bookingInfo.user?.id === session.user.id);
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
