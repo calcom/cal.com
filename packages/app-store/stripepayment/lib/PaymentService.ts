@@ -9,6 +9,7 @@ import { getErrorFromUnknown } from "@calcom/lib/errors";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { IAbstractPaymentService } from "@calcom/types/PaymentService";
 
@@ -336,22 +337,26 @@ export class PaymentService implements IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    eventTypeMetadata?: EventTypeMetadata
   ): Promise<void> {
-    await sendAwaitingPaymentEmail({
-      ...event,
-      paymentInfo: {
-        link: createPaymentLink({
-          paymentUid: paymentData.uid,
-          name: booking.user?.name,
-          email: booking.user?.email,
-          date: booking.startTime.toISOString(),
-        }),
-        paymentOption: paymentData.paymentOption || "ON_BOOKING",
-        amount: paymentData.amount,
-        currency: paymentData.currency,
+    await sendAwaitingPaymentEmail(
+      {
+        ...event,
+        paymentInfo: {
+          link: createPaymentLink({
+            paymentUid: paymentData.uid,
+            name: booking.user?.name,
+            email: booking.user?.email,
+            date: booking.startTime.toISOString(),
+          }),
+          paymentOption: paymentData.paymentOption || "ON_BOOKING",
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+        },
       },
-    });
+      eventTypeMetadata
+    );
   }
 
   async deletePayment(paymentId: Payment["id"]): Promise<boolean> {

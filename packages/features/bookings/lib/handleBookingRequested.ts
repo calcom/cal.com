@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -28,6 +30,7 @@ export async function handleBookingRequested(args: {
       requiresConfirmation: boolean;
       title: string;
       teamId?: number | null;
+      metadata: Prisma.JsonValue;
     } | null;
     eventTypeId: number | null;
     userId: number | null;
@@ -37,8 +40,8 @@ export async function handleBookingRequested(args: {
   const { evt, booking } = args;
 
   log.debug("Emails: Sending booking requested emails");
-  await sendOrganizerRequestEmail({ ...evt });
-  await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+  await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata);
+  await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0], booking?.eventType?.metadata);
 
   const orgId = await getOrgIdFromMemberOrTeamId({
     memberId: booking.userId,

@@ -248,6 +248,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
                   eventName: true,
+                  metadata: true,
                 },
               },
               uid: true,
@@ -339,7 +340,8 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
               },
               {
                 eventName: booking?.eventType?.eventName,
-              }
+              },
+              booking.eventType.metadata
             );
           }
         });

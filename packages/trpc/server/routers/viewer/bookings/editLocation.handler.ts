@@ -131,7 +131,10 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         metadata.entryPoints = results[0].updatedEvent?.entryPoints;
       }
       try {
-        await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
+        await sendLocationChangeEmails(
+          { ...evt, additionalInformation: metadata },
+          booking?.eventType?.metadata
+        );
       } catch (error) {
         console.log("Error sending LocationChangeEmails");
       }

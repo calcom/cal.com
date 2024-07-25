@@ -240,9 +240,13 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
 
   log.debug("builder.calendarEvent", safeStringify(builder.calendarEvent));
   // Send emails
-  await sendRequestRescheduleEmail(builder.calendarEvent, {
-    rescheduleLink: builder.rescheduleLink,
-  });
+  await sendRequestRescheduleEmail(
+    builder.calendarEvent,
+    {
+      rescheduleLink: builder.rescheduleLink,
+    },
+    eventType?.metadata
+  );
 
   const evt: CalendarEvent = {
     title: bookingToReschedule?.title,

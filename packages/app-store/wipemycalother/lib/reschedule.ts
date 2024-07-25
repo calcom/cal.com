@@ -41,6 +41,11 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
           destinationCalendar: true,
         },
       },
+      eventType: {
+        select: {
+          metadata: true,
+        },
+      },
     },
     where: {
       uid: bookingUid,
@@ -141,9 +146,13 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
 
     // Send emails
     try {
-      await sendRequestRescheduleEmail(builder.calendarEvent, {
-        rescheduleLink: builder.rescheduleLink,
-      });
+      await sendRequestRescheduleEmail(
+        builder.calendarEvent,
+        {
+          rescheduleLink: builder.rescheduleLink,
+        },
+        booking?.eventType?.metadata
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.error(error.message);

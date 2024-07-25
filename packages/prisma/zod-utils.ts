@@ -109,6 +109,8 @@ export const EventTypeMetaDataSchema = z
   })
   .nullable();
 
+export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
+
 export const eventTypeBookingFields = formBuilderFieldsSchema;
 export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;
 export type BookingFieldType = FormBuilderFieldType;

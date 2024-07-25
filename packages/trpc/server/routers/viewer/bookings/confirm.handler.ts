@@ -366,7 +366,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       });
     }
 
-    await sendDeclinedEmails(evt);
+    await sendDeclinedEmails(evt, eventType?.metadata);
 
     const teamId = await getTeamIdFromEventType({
       eventType: {

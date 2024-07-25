@@ -311,7 +311,7 @@ async function handler(req: CustomRequest) {
   const dataForWebhooks = { evt, webhooks, eventTypeInfo };
 
   // If it's just an attendee of a booking then just remove them from that booking
-  const result = await cancelAttendeeSeat(req, dataForWebhooks);
+  const result = await cancelAttendeeSeat(req, dataForWebhooks, bookingToDelete?.eventType?.metdata);
   if (result) return { success: true };
 
   const promises = webhooks.map((webhook) =>
@@ -487,7 +487,11 @@ async function handler(req: CustomRequest) {
   try {
     // TODO: if emails fail try to requeue them
     if (!platformClientId || (platformClientId && arePlatformEmailsEnabled))
-      await sendCancelledEmails(evt, { eventName: bookingToDelete?.eventType?.eventName });
+      await sendCancelledEmails(
+        evt,
+        { eventName: bookingToDelete?.eventType?.eventName },
+        bookingToDelete?.eventType?.metadata
+      );
   } catch (error) {
     console.error("Error deleting event", error);
   }

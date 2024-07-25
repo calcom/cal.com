@@ -1,6 +1,7 @@
 import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 
 import type { PaymentService } from "@calcom/app-store/paypal/lib/PaymentService";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export interface PaymentApp {
@@ -46,7 +47,8 @@ export interface IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    eventTypeMetadata?: EventTypeMetadata
   ): Promise<void>;
   deletePayment(paymentId: Payment["id"]): Promise<boolean>;
   isSetupAlready(): boolean;

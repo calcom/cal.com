@@ -61,6 +61,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           select: {
             recurringEvent: true,
             bookingFields: true,
+            metadata: true,
           },
         },
         responses: true,
@@ -130,7 +131,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         destinationCalendar: selectedDestinationCalendar ? [selectedDestinationCalendar] : [],
       };
 
-      await sendOrganizerRequestReminderEmail(evt);
+      await sendOrganizerRequestReminderEmail(evt, booking.eventType.metadata);
 
       await prisma.reminderMail.create({
         data: {
