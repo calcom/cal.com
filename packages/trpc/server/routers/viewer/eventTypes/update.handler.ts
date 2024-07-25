@@ -3,12 +3,16 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -273,21 +277,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
-        )
-      ) {
+      if (!allowDisablingHostConfirmationEmails(workflows, !!eventType?.team?.parentId)) {
         input.metadata.disableStandardEmails.confirmation.host = false;
       }
     }
 
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
-        )
-      ) {
+      if (!allowDisablingAttendeeConfirmationEmails(workflows, !!eventType?.team?.parentId)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
       }
     }
