@@ -125,7 +125,7 @@ SheetTitle.displayName = "SheetTitle";
 
 const SheetBody = React.forwardRef<HTMLDivElement, React.ComponentPropsWithoutRef<"div">>(
   ({ className, ...props }, ref) => {
-    return <div ref={ref} className={classNames("flex-1 py-4", className)} {...props} />;
+    return <div ref={ref} className={classNames("flex-1 overflow-y-auto py-4", className)} {...props} />;
   }
 );
 
