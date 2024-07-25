@@ -26,7 +26,6 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
-import { SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -34,7 +33,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
-import { checkForEmptyAssignment } from "@lib/checkForEmptyAssignment";
+import { hasEmptyAssignment } from "@lib/hasEmptyAssignment";
 
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
@@ -411,11 +410,11 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       if (
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types") &&
-        checkForEmptyAssignment({
+        hasEmptyAssignment({
           assignedUsers: eventType.children,
           hosts: eventType.hosts,
           assignAllTeamMembers: eventType.assignAllTeamMembers,
-          isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+          schedulingType: eventType.schedulingType,
           isTeamEvent: !!team,
         })
       ) {
