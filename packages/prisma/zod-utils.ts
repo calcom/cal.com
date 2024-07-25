@@ -81,6 +81,12 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
       .object({
+        all: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
         confirmation: z
           .object({
             host: z.boolean().optional(),

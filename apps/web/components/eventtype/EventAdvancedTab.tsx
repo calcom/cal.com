@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -40,7 +41,7 @@ import {
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
-import { DisableEmailsSetting } from "./settings/DisableEmailsSetting";
+import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -57,6 +58,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const bookingFields: Prisma.JsonObject = {};
+  const session = useSession();
+  const hasValidLicense = session.data ? session.data.hasValidLicense : null;
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
@@ -533,13 +536,50 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      {allowDisablingAttendeeConfirmationEmails(workflows, !!team?.parentId) && (
+      {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_attendees_confirmation_emails")}
+                description={t("disable_attendees_confirmation_emails_description")}
+                checked={value}
+                onCheckedChange={(e) => onChange(e)}
+              />
+            </>
+          )}
+        />
+      )}
+      {allowDisablingHostConfirmationEmails(workflows) && (
+        <Controller
+          name="metadata.disableStandardEmails.confirmation.host"
+          defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+          render={({ field: { value, onChange } }) => (
+            <>
+              <SettingsToggle
+                labelClassName="text-sm"
+                toggleSwitchAtTheEnd={true}
+                switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+                title={t("disable_host_confirmation_emails")}
+                description={t("disable_host_confirmation_emails_description")}
+                checked={value}
+                onCheckedChange={(e) => onChange(e)}
+              />
+            </>
+          )}
+        />
+      )}
+      {hasValidLicense && (
+        <Controller
+          name="metadata.disableStandardEmails.all.attendee"
           render={({ field: { value, onChange } }) => {
             return (
               <>
-                <DisableEmailsSetting
+                <DisableAllEmailsSetting
                   checked={value}
                   onCheckedChange={onChange}
                   recipient="attendees"
@@ -550,13 +590,13 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       )}
-      {allowDisablingHostConfirmationEmails(workflows, !!team?.parentId) && (
+      {hasValidLicense && (
         <Controller
-          name="metadata.disableStandardEmails.confirmation.host"
+          name="metadata.disableStandardEmails.all.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
           render={({ field: { value, onChange } }) => (
             <>
-              <DisableEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
+              <DisableAllEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
             </>
           )}
         />

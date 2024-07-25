@@ -19,7 +19,7 @@ interface DisableEmailsSettingProps {
   t: TFunction;
 }
 
-export const DisableEmailsSetting = ({
+export const DisableAllEmailsSetting = ({
   checked,
   onCheckedChange,
   recipient,

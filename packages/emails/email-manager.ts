@@ -75,11 +75,11 @@ const sendEmail = (prepare: () => BaseEmail) => {
 };
 
 const eventTypeDisableAttendeeEmail = (metadata?: EventTypeMetadata) => {
-  return !!metadata?.disableStandardEmails?.confirmation?.attendee;
+  return !!metadata?.disableStandardEmails?.all?.attendee;
 };
 
 const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
-  return !!metadata?.disableStandardEmails?.confirmation?.host;
+  return !!metadata?.disableStandardEmails?.all?.host;
 };
 
 export const sendScheduledEmails = async (
