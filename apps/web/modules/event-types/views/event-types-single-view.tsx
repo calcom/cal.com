@@ -33,7 +33,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
-import { hasEmptyAssignment } from "@lib/hasEmptyAssignment";
+import { checkForEmptyAssignment } from "@lib/checkForEmptyAssignment";
 
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
@@ -411,7 +411,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         team &&
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types") &&
-        hasEmptyAssignment({
+        checkForEmptyAssignment({
           assignedUsers: eventType.children,
           hosts: eventType.hosts,
           assignAllTeamMembers: eventType.assignAllTeamMembers,

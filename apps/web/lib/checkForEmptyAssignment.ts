@@ -5,7 +5,7 @@ import type { EventTypeAssignedUsers, EventTypeHosts } from "~/event-types/views
 // This function checks if EventType requires assignment.
 // returns true: if EventType requires assignment but there is no assignment yet done by the user.
 // returns false: for all other scenarios.
-export function hasEmptyAssignment({
+export function checkForEmptyAssignment({
   assignedUsers,
   hosts,
   schedulingType,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { hasEmptyAssignment } from "../../lib/hasEmptyAssignment";
+import { checkForEmptyAssignment } from "../../lib/checkForEmptyAssignment";
 
 describe("Tests to Check if Event Types have empty Assignment", () => {
   it("should return true if managed event type has no assigned users", () => {
     expect(
-      hasEmptyAssignment({
+      checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
         hosts: [{ userId: 101, isFixed: false, priority: 2 }],
@@ -15,7 +15,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   });
   it("should return true if non-managed event type has no hosts assigned", () => {
     expect(
-      hasEmptyAssignment({
+      checkForEmptyAssignment({
         assignedUsers: [
           {
             created: true,
@@ -48,7 +48,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   });
   it("should return false if assignAllTeamMembers is selected", () => {
     expect(
-      hasEmptyAssignment({
+      checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: true,
         hosts: [],
@@ -58,7 +58,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   });
   it("should return false if non-managed event type has hosts assigned", () => {
     expect(
-      hasEmptyAssignment({
+      checkForEmptyAssignment({
         assignedUsers: [],
         assignAllTeamMembers: false,
         hosts: [{ userId: 101, isFixed: false, priority: 2 }],
@@ -68,7 +68,7 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
   });
   it("should return false if managed event type has assigned users", () => {
     expect(
-      hasEmptyAssignment({
+      checkForEmptyAssignment({
         assignedUsers: [
           {
             created: true,
