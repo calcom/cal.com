@@ -103,7 +103,8 @@
         "STRIPE_SUPPORT_TABLE",
         "MOTIFLAND_REST_ENDPOINT",
         "MOTIFLAND_DOCS_API_KEY",
-        "MOTIFLAND_DOCS_PROJECT_ID"
+        "MOTIFLAND_DOCS_PROJECT_ID",
+        "DOCS_PROJECT_URL"
       ]
     },
     "build": {
