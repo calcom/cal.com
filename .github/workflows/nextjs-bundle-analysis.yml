@@ -7,6 +7,10 @@ on:
     branches:
       - main
 
+permissions:
+  actions: write
+  contents: read
+
 env:
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}

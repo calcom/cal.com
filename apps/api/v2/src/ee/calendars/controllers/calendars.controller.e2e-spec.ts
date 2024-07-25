@@ -107,15 +107,16 @@ describe("Platform Calendars Endpoints", () => {
       .expect(401);
   });
 
-  it(`/GET/v2/calendars/${OFFICE_365_CALENDAR}/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
-    const response = await request(app.getHttpServer())
-      .get(`/v2/calendars/${OFFICE_365_CALENDAR}/connect`)
-      .set("Authorization", `Bearer ${accessTokenSecret}`)
-      .set("Origin", CLIENT_REDIRECT_URI)
-      .expect(200);
-    const data = response.body.data;
-    expect(data.authUrl).toBeDefined();
-  });
+  // TODO: Uncomment this once CI is ready to run proper Office365 tests
+  // it(`/GET/v2/calendars/${OFFICE_365_CALENDAR}/connect: it should redirect to auth-url for office 365 calendar oauth with valid access token `, async () => {
+  //   const response = await request(app.getHttpServer())
+  //     .get(`/v2/calendars/${OFFICE_365_CALENDAR}/connect`)
+  //     .set("Authorization", `Bearer ${accessTokenSecret}`)
+  //     .set("Origin", CLIENT_REDIRECT_URI)
+  //     .expect(200);
+  //   const data = response.body.data;
+  //   expect(data.authUrl).toBeDefined();
+  // });
 
   it(`/GET/v2/calendars/${GOOGLE_CALENDAR}/connect: it should redirect to auth-url for google calendar oauth with valid access token `, async () => {
     const response = await request(app.getHttpServer())
