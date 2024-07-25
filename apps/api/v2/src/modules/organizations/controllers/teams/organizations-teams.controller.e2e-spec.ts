@@ -149,6 +149,16 @@ describe("Organizations Team Endpoints", () => {
         });
     });
 
+    it("should get all the teams of the authenticated org member", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/me`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<Team[]> = response.body;
+          expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)).toBeDefined();
+        });
+    });
+
     it("should update the team of the org", async () => {
       return request(app.getHttpServer())
         .patch(`/v2/organizations/${org.id}/teams/${teamCreatedViaApi.id}`)

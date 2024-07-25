@@ -44,7 +44,6 @@ export class OrganizationsTeamsController {
 
   @Get()
   @ApiOperation({ summary: "Get all the teams of an organization." })
-  @UseGuards()
   @Roles("ORG_ADMIN")
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -52,6 +51,27 @@ export class OrganizationsTeamsController {
   ): Promise<OrgTeamsOutputResponseDto> {
     const { skip, take } = queryParams;
     const teams = await this.organizationsTeamsService.getPaginatedOrgTeams(orgId, skip ?? 0, take ?? 250);
+    return {
+      status: SUCCESS_STATUS,
+      data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
+    };
+  }
+
+  @Get("/me")
+  @ApiOperation({ summary: "Get the organization's teams user is a member of" })
+  @Roles("ORG_ADMIN")
+  async getMyTeams(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Query() queryParams: SkipTakePagination,
+    @GetUser() user: UserWithProfile
+  ): Promise<OrgTeamsOutputResponseDto> {
+    const { skip, take } = queryParams;
+    const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
+      orgId,
+      user.id,
+      skip ?? 0,
+      take ?? 250
+    );
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
