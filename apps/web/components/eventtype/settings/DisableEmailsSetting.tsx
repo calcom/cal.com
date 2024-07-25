@@ -46,15 +46,14 @@ export const DisableEmailsSetting = ({
                 changes to their booking.
               </p>
             </Trans>
-
-            <p className="mb-1 mt-2">{t("type_confirm_to_continue")}</p>
-            <InputField
-              value={confirmText}
-              onChange={(e) => {
-                setConfirmText(e.target.value);
-              }}
-            />
           </p>
+          <p className="mb-1 mt-2">{t("type_confirm_to_continue")}</p>
+          <InputField
+            value={confirmText}
+            onChange={(e) => {
+              setConfirmText(e.target.value);
+            }}
+          />
           <DialogFooter>
             <DialogClose />
             <Button

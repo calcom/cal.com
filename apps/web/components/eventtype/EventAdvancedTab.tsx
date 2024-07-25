@@ -536,11 +536,18 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       {(allowDisablingAttendeeConfirmationEmails(workflows) || team?.parentId) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
-          render={({ field: { value, onChange } }) => (
-            <>
-              <DisableEmailsSetting checked={value} onCheckedChange={onChange} recipient="attendees" t={t} />
-            </>
-          )}
+          render={({ field: { value, onChange } }) => {
+            return (
+              <>
+                <DisableEmailsSetting
+                  checked={value}
+                  onCheckedChange={() => onChange(true)}
+                  recipient="attendees"
+                  t={t}
+                />
+              </>
+            );
+          }}
         />
       )}
       {(allowDisablingHostConfirmationEmails(workflows) || team?.parentId) && (
