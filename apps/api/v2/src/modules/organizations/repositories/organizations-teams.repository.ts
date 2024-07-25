@@ -60,7 +60,7 @@ export class OrganizationsTeamsRepository {
         },
       },
       include: {
-        members: { select: { accepted: true } },
+        members: { select: { accepted: true, userId: true } },
       },
       skip,
       take,
