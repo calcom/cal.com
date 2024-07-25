@@ -1,9 +1,10 @@
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
+import { UsersRepository } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host } from "@prisma/client";
 
-import { HostPriority } from "@calcom/platform-types";
+import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -47,7 +48,8 @@ type Input = Pick<
 export class OutputOrganizationsEventTypesService {
   constructor(
     private readonly outputEventTypesService: OutputEventTypesService_2024_06_14,
-    private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository
+    private readonly organizationEventTypesRepository: OrganizationsEventTypesRepository,
+    private readonly usersRepository: UsersRepository
   ) {}
 
   async getResponseTeamEventType(databaseEventType: Input) {
@@ -60,7 +62,7 @@ export class OutputOrganizationsEventTypesService {
     const hosts =
       databaseEventType.schedulingType === "MANAGED"
         ? await this.getManagedEventTypeHosts(databaseEventType.id)
-        : this.transformHosts(databaseEventType.hosts);
+        : await this.transformHosts(databaseEventType.hosts);
 
     return {
       ...rest,
@@ -74,25 +76,31 @@ export class OutputOrganizationsEventTypesService {
 
   async getManagedEventTypeHosts(eventTypeId: number) {
     const children = await this.organizationEventTypesRepository.getEventTypeChildren(eventTypeId);
-    const hostsIds: number[] = [];
+    const transformedHosts: TeamEventTypeResponseHost[] = [];
     for (const child of children) {
       if (child.userId) {
-        hostsIds.push(child.userId);
+        const user = await this.usersRepository.findById(child.userId);
+        transformedHosts.push({ userId: child.userId, name: user?.name || "" });
       }
     }
-    return hostsIds.map((userId) => ({ userId }));
+    return transformedHosts;
   }
 
-  transformHosts(hosts: Host[]) {
+  async transformHosts(hosts: Host[]): Promise<TeamEventTypeResponseHost[]> {
     if (!hosts) return [];
 
-    return hosts.map((host) => {
-      return {
+    const transformedHosts: TeamEventTypeResponseHost[] = [];
+    for (const host of hosts) {
+      const user = await this.usersRepository.findById(host.userId);
+      transformedHosts.push({
         userId: host.userId,
+        name: user?.name || "",
         mandatory: host.isFixed,
         priority: getPriorityLabel(host.priority || 2),
-      };
-    });
+      });
+    }
+
+    return transformedHosts;
   }
 }
 
