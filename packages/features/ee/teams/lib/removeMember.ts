@@ -108,7 +108,7 @@ const removeMember = async ({
       organizationId: team.id,
     });
 
-    if (redirectToUserId && profileToDelete) {
+    if (orgInfo && redirectToUserId && profileToDelete) {
       const userToRedirectTo = await ProfileRepository.findByUserIdAndOrgId({
         userId: redirectToUserId,
         organizationId: orgInfo.id,
