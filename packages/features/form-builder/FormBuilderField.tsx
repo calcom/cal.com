@@ -48,25 +48,58 @@ export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
   return name;
 };
 
+function toArray(value: string[] | string): string[] {
+  return Array.isArray(value) ? value : [value];
+}
+
+function intersected(arr1: string[], arr2: string[]): boolean {
+  return !!arr1.find((value) => arr2.find((innerValue) => innerValue?.toString() == value?.toString()));
+}
+
+function isEqual(searchParamValue: string | string[], formValue: string[] | string): boolean {
+  if (typeof formValue === "string") {
+    return searchParamValue?.toString() == formValue?.toString();
+  }
+
+  const formValueToArray = toArray(formValue as string | string[]);
+  const urlValueToArray = toArray(searchParamValue);
+
+  return intersected(formValueToArray, urlValueToArray);
+}
+
+//why entire field is paased here. we might need to validated the value based on the field type and options.
 export const useShouldBeDisabledDueToPrefill = (field: RhfFormField): boolean => {
-  const { formState } = useFormContext();
+  const { getValues, formState } = useFormContext();
   const searchParams = useRouterQuery();
+  //TO DO:currently formValues were defaulted to search params values even the form input value is empty. need to fix that
+  const formValues = getValues()?.responses || {};
+
   // Get the value of a specific field
   const errorMessage = (formState?.errors?.responses?.message || "") as string;
-  const name = getFieldNameFromErrorMessage(errorMessage);
+  const fieldNameThatHasError = getFieldNameFromErrorMessage(errorMessage);
   // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
-  if (!field) {
+  if (fieldNameThatHasError === field?.name) {
     return false;
   }
-  if (name === field?.name) {
+
+  const fieldValueInForm = formValues[field.name];
+
+  if (!fieldValueInForm && fieldValueInForm !== 0) {
+    // handling the zero number case
     return false;
   }
 
   if (!field.disableOnPrefill || !searchParams) {
     return false;
   }
+  const searchParamValue = searchParams[field.name];
 
-  return !!searchParams[field.name];
+  //normal text,number,boolean,single select validations
+  if (searchParamValue == fieldValueInForm?.toString()) {
+    return true;
+  }
+
+  return isEqual(searchParamValue, fieldValueInForm);
 };
 
 export const FormBuilderField = ({
