@@ -338,6 +338,8 @@ export default function Success(props: PageProps) {
     bookingInfo.status
   );
 
+  const unconfirmedBookingLocationMessage = getSuccessPageLocationMessage(location, t, bookingInfo.status);
+
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
   const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
@@ -546,30 +548,38 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-3 font-medium">{t("where")}</div>
                             <div className="col-span-2 mt-3" data-testid="where">
-                              {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
-                                <DisplayLocation
-                                  locationToDisplay={locationToDisplay}
-                                  providerName={providerName}
-                                />
+                              {unconfirmedBookingLocationMessage &&
+                              bookingInfo.status === BookingStatus.PENDING ? (
+                                <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />
                               ) : (
                                 <>
-                                  {!!formerTime && (
+                                  {!rescheduleLocation ||
+                                  locationToDisplay === rescheduleLocationToDisplay ? (
                                     <DisplayLocation
                                       locationToDisplay={locationToDisplay}
                                       providerName={providerName}
-                                      className="line-through"
                                     />
+                                  ) : (
+                                    <>
+                                      {!!formerTime && (
+                                        <DisplayLocation
+                                          locationToDisplay={locationToDisplay}
+                                          providerName={providerName}
+                                          className="line-through"
+                                        />
+                                      )}
+                                      <DisplayLocation
+                                        locationToDisplay={rescheduleLocationToDisplay}
+                                        providerName={rescheduleProviderName}
+                                      />
+                                    </>
                                   )}
-
-                                  <DisplayLocation
-                                    locationToDisplay={rescheduleLocationToDisplay}
-                                    providerName={rescheduleProviderName}
-                                  />
                                 </>
                               )}
                             </div>
                           </>
                         )}
+
                         {props.paymentStatus && (
                           <>
                             <div className="mt-3 font-medium">
