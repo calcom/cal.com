@@ -1496,7 +1496,6 @@
   "how_long_after": "Hur länge efter händelsens slut?",
   "no_available_slots": "Inga tillgängliga tider",
   "time_available": "Tid tillgänglig",
-  "cant_find_the_right_video_app_visit_our_app_store": "Kan du inte hitta rätt videoapp? Besök vår <1>App Store</1>.",
   "install_new_calendar_app": "Installera ny kalenderapp",
   "make_phone_number_required": "Gör telefonnummer obligatoriskt för att boka händelse",
   "new_event_type_availability": "Tillgänglighet till {{eventTypeTitle}}",

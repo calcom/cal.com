@@ -2,6 +2,7 @@ import { DEFAULT_EVENT_TYPES } from "@/ee/event-types/event-types_2024_06_14/con
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/input-event-types.service";
 import { OutputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/services/output-event-types.service";
+import { SchedulesRepository_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/schedules.repository";
 import { MembershipsRepository } from "@/modules/memberships/memberships.repository";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { SelectedCalendarsRepository } from "@/modules/selected-calendars/selected-calendars.repository";
@@ -9,9 +10,9 @@ import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.18";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.18";
-import { dynamicEvent } from "@calcom/platform-libraries-0.0.18";
+import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.21";
+import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.21";
+import { dynamicEvent } from "@calcom/platform-libraries-0.0.21";
 import {
   CreateEventTypeInput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
@@ -30,7 +31,8 @@ export class EventTypesService_2024_06_14 {
     private readonly usersRepository: UsersRepository,
     private readonly usersService: UsersService,
     private readonly selectedCalendarsRepository: SelectedCalendarsRepository,
-    private readonly dbWrite: PrismaWriteService
+    private readonly dbWrite: PrismaWriteService,
+    private readonly schedulesRepository: SchedulesRepository_2024_06_11
   ) {}
 
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
@@ -61,6 +63,7 @@ export class EventTypesService_2024_06_14 {
     if (existsWithSlug) {
       throw new BadRequestException("User already has an event type with this slug.");
     }
+    await this.checkUserOwnsSchedule(userId, body.scheduleId);
   }
 
   async getEventTypeByUsernameAndSlug(username: string, eventTypeSlug: string) {
@@ -203,7 +206,7 @@ export class EventTypesService_2024_06_14 {
   }
 
   async updateEventType(eventTypeId: number, body: UpdateEventTypeInput_2024_06_14, user: UserWithProfile) {
-    this.checkCanUpdateEventType(user.id, eventTypeId);
+    await this.checkCanUpdateEventType(user.id, eventTypeId, body.scheduleId);
     const eventTypeUser = await this.getUserToUpdateEvent(user);
     const bodyTransformed = this.inputEventTypesService.transformInputUpdateEventType(body);
     await updateEventType({
@@ -225,12 +228,13 @@ export class EventTypesService_2024_06_14 {
     return this.outputEventTypesService.getResponseEventType(user.id, eventType);
   }
 
-  async checkCanUpdateEventType(userId: number, eventTypeId: number) {
+  async checkCanUpdateEventType(userId: number, eventTypeId: number, scheduleId: number | undefined) {
     const existingEventType = await this.getUserEventType(userId, eventTypeId);
     if (!existingEventType) {
       throw new NotFoundException(`Event type with id ${eventTypeId} not found`);
     }
     this.checkUserOwnsEventType(userId, { id: eventTypeId, userId: existingEventType.ownerId });
+    await this.checkUserOwnsSchedule(userId, scheduleId);
   }
 
   async getUserToUpdateEvent(user: UserWithProfile) {
@@ -253,6 +257,18 @@ export class EventTypesService_2024_06_14 {
   checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {
     if (userId !== eventType.userId) {
       throw new ForbiddenException(`User with ID=${userId} does not own event type with ID=${eventType.id}`);
+    }
+  }
+
+  async checkUserOwnsSchedule(userId: number, scheduleId: number | null | undefined) {
+    if (!scheduleId) {
+      return;
+    }
+
+    const schedule = await this.schedulesRepository.getScheduleByIdAndUserId(scheduleId, userId);
+
+    if (!schedule) {
+      throw new NotFoundException(`User with ID=${userId} does not own schedule with ID=${scheduleId}`);
     }
   }
 }
