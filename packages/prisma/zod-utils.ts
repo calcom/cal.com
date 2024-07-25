@@ -19,7 +19,7 @@ import { isPasswordValid } from "@calcom/features/auth/lib/isPasswordValid";
 import type { FieldType as FormBuilderFieldType } from "@calcom/features/form-builder/schema";
 import { fieldsSchema as formBuilderFieldsSchema } from "@calcom/features/form-builder/schema";
 import { isSupportedTimeZone } from "@calcom/lib/date-fns";
-import { emailSchema, emailRegex } from "@calcom/lib/emailSchema";
+import { emailSchema as emailRegexSchema, emailRegex } from "@calcom/lib/emailSchema";
 import { slugify } from "@calcom/lib/slugify";
 import { EventTypeCustomInputType } from "@calcom/prisma/enums";
 
@@ -663,6 +663,8 @@ export const unlockedManagedEventTypeProps = {
   scheduleId: allManagedEventTypeProps.scheduleId,
   destinationCalendar: allManagedEventTypeProps.destinationCalendar,
 };
+
+export const emailSchema = emailRegexSchema;
 
 // The PR at https://github.com/colinhacks/zod/pull/2157 addresses this issue and improves email validation
 // I introduced this refinement(to be used with z.email()) as a short term solution until we upgrade to a zod

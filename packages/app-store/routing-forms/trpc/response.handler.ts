@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
+import { emailSchema } from "@calcom/lib/emailSchema";
 import type { PrismaClient } from "@calcom/prisma";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@calcom/trpc/server";
@@ -71,7 +72,7 @@ export const responseHandler = async ({ ctx, input }: ResponseHandlerOptions) =>
         }
         let schema;
         if (field.type === "email") {
-          schema = z.string().email();
+          schema = emailSchema;
         } else if (field.type === "phone") {
           schema = z.any();
         } else {

@@ -13,7 +13,7 @@ export const ZInviteMemberInputSchema = z.object({
         .union([
           z.string(),
           z.object({
-            email: z.string().email(),
+            email: emailSchema,
             role: z.nativeEnum(MembershipRole),
           }),
         ])
