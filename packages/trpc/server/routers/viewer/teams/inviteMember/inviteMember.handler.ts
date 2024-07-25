@@ -149,7 +149,6 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const uniqueInvitations = await getUniqueInvitationsOrThrowIfEmpty(invitations);
   const beSilentAboutErrors = shouldBeSilentAboutErrors(uniqueInvitations);
-  // Find users already signed up, i.e present in the users table.
   const existingUsersToBeInvited = await findUsersWithInviteStatus({
     invitations: uniqueInvitations,
     team,
@@ -162,15 +161,8 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
 
   const orgState = getOrgState(isTeamAnOrg, team);
 
-  const existingUsersInvitations = existingUsersToBeInvited.map((user) => {
-    return {
-      usernameOrEmail: user.email,
-      role: user.newRole,
-    };
-  });
-
-  const existingUsersOrgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
-    uniqueInvitations: existingUsersInvitations,
+  const orgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
+    uniqueInvitations,
     orgState,
     team: {
       parentId: team.parentId,
@@ -184,23 +176,13 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     uniqueInvitations,
   });
 
-  const newUsersOrgConnectInfoByUsernameOrEmail = getOrgConnectionInfoGroupedByUsernameOrEmail({
-    uniqueInvitations: invitationsForNewUsers,
-    orgState,
-    team: {
-      parentId: team.parentId,
-      id: team.id,
-    },
-    isOrg: isTeamAnOrg,
-  });
-
   const inviter = { name: inviterName };
 
   if (invitationsForNewUsers.length) {
     await handleNewUsersInvites({
       invitationsForNewUsers,
       team,
-      orgConnectInfoByUsernameOrEmail: newUsersOrgConnectInfoByUsernameOrEmail,
+      orgConnectInfoByUsernameOrEmail,
       teamId: team.id,
       language,
       isOrg: isTeamAnOrg,
@@ -218,10 +200,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     "Notable variables:",
     safeStringify({
       uniqueInvitations,
-      orgConnectInfoByUsernameOrEmail: {
-        ...existingUsersOrgConnectInfoByUsernameOrEmail,
-        ...newUsersOrgConnectInfoByUsernameOrEmail,
-      },
+      orgConnectInfoByUsernameOrEmail,
       invitableExistingUsers,
       existingUsersToBeInvited,
       invitationsForNewUsers,
@@ -232,7 +211,7 @@ export const inviteMembersWithNoInviterPermissionCheck = async (
     await handleExistingUsersInvites({
       invitableExistingUsers,
       team,
-      orgConnectInfoByUsernameOrEmail: existingUsersOrgConnectInfoByUsernameOrEmail,
+      orgConnectInfoByUsernameOrEmail,
       teamId: team.id,
       language,
       isOrg: isTeamAnOrg,

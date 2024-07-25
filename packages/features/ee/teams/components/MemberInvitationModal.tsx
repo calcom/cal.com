@@ -231,10 +231,11 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                 name="emailOrUsername"
                 control={newMemberFormMethods.control}
                 rules={{
-                  required: isOrg ? t("enter_email") : t("enter_email_or_username"),
+                  required: isOrg || props.justEmailInvites ? t("enter_email") : t("enter_email_or_username"),
                   validate: (value) => {
                     // orgs can only invite members by email
-                    if (typeof value === "string" && isOrg && !isEmail(value)) return t("enter_email");
+                    if (typeof value === "string" && (isOrg || props.justEmailInvites) && !isEmail(value))
+                      return t("enter_email");
                     if (typeof value === "string")
                       return validateUniqueInvite(value) || t("member_already_invited");
                   },

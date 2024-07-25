@@ -206,6 +206,7 @@ const MembersView = () => {
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
               teamId={team.id}
+              justEmailInvites={true}
               token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values, resetFields) => {
