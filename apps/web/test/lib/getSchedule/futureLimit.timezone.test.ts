@@ -1547,8 +1547,9 @@ describe("getSchedule", () => {
           dateString: plus4DateString,
         });
       });
+
       describe("GMT-11 Browsing", () => {
-        test.only("Basic test", async () => {
+        test("with 2 days date", async () => {
           const startDateString = "2024-06-30";
           vi.setSystemTime(`${startDateString}T01:30:00Z`);
           const yesterdayDateString = "2024-07-23";
@@ -1567,10 +1568,11 @@ describe("getSchedule", () => {
                 // Makes today and tomorrow only available
                 ...getPeriodTypeData({
                   type: "RANGE",
-                  // dayPlus1InIst
-                  periodStartDate: new Date(`${todayDateString}T18:30:00.000Z`),
-                  // datePlus2InIst
-                  periodEndDate: new Date(`${plus1DateString}T18:30:00.000Z`),
+
+                  // Only 24th and 25th(as per the event timezone) should be available
+                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`),
+                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`),
+
                   periodCountCalendarDays: true,
                 }),
                 users: [
@@ -1603,8 +1605,6 @@ describe("getSchedule", () => {
               isTeamEvent: false,
             },
           });
-
-          console.log({ scheduleForEvent: JSON.stringify(scheduleForEvent) });
 
           expect(scheduleForEvent).toHaveDateDisabled({
             dateString: yesterdayDateString,
@@ -1649,13 +1649,8 @@ describe("getSchedule", () => {
             doExactMatch: true,
           });
 
-          // After the range ends
           expect(scheduleForEvent).toHaveDateDisabled({
             dateString: plus3DateString,
-          });
-
-          expect(scheduleForEvent).toHaveDateDisabled({
-            dateString: plus4DateString,
           });
 
           expect(scheduleForEvent).toHaveDateDisabled({

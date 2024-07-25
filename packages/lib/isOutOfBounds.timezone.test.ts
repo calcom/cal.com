@@ -22,7 +22,7 @@ const getDayJsTimeWithUtcOffset = ({
 describe("getRollingWindowEndDate", () => {
   it("should return the startDate itself when that date is bookable and 0 days in future are needed", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -38,7 +38,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should return the last possible time of the date so that all the timeslots of the last day are considered within range ", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -55,7 +55,7 @@ describe("getRollingWindowEndDate", () => {
   it("Input startDate normalization - should return the startDate with 00:00 time when that date is bookable and only 1 day is needed", () => {
     const endDay = getRollingWindowEndDate({
       // startDate has a time other than 00:00
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-11T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -71,7 +71,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should return the first bookable date when only 1 day is needed and the startDate is unavailable", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -99,7 +99,7 @@ describe("getRollingWindowEndDate", () => {
     return;
     function testWhenNonBusinessDaysAreBooked() {
       const endDay = getRollingWindowEndDate({
-        startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+        startDateInBookerTz: getDayJsTimeWithUtcOffset({
           dateStringWithOffset: "2024-05-02T15:09:46+11:00",
           utcOffset: 11,
         }),
@@ -123,7 +123,7 @@ describe("getRollingWindowEndDate", () => {
 
     function testWhenNonBusinessDaysAreNotBooked() {
       const endDay2 = getRollingWindowEndDate({
-        startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+        startDateInBookerTz: getDayJsTimeWithUtcOffset({
           dateStringWithOffset: "2024-05-02T15:09:46+11:00",
           utcOffset: 11,
         }),
@@ -145,7 +145,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should return the first `daysNeeded` bookable days", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -165,7 +165,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should return the last bookable day if enough `daysNeeded` bookable days aren't found", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -184,7 +184,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should treat non existing dates in `allDatesWithBookabilityStatusInBookerTz` as having isBookable:false  the first `daysNeeded` bookable days", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -202,7 +202,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should return the last day in maximum window(that would be ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK days ahead) if no bookable day is found at all", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),
@@ -215,7 +215,7 @@ describe("getRollingWindowEndDate", () => {
 
   it("should consider the bookable day very close to ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK but not beyond it", () => {
     const endDay = getRollingWindowEndDate({
-      startDateInOrganizerTz: getDayJsTimeWithUtcOffset({
+      startDateInBookerTz: getDayJsTimeWithUtcOffset({
         dateStringWithOffset: "2024-05-02T05:09:46+11:00",
         utcOffset: 11,
       }),

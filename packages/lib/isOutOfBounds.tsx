@@ -34,7 +34,7 @@ export function calculatePeriodLimits({
    * These dates will be considered in the same utfcOffset as provided
    */
   allDatesWithBookabilityStatusInBookerTz,
-  organizerUtcOffset,
+  eventUtcOffset,
   bookerUtcOffset,
   /**
    * This is temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability.
@@ -47,12 +47,12 @@ export function calculatePeriodLimits({
   "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
 > & {
   allDatesWithBookabilityStatusInBookerTz: Record<string, { isBookable: boolean }> | null;
-  organizerUtcOffset: number;
+  eventUtcOffset: number;
   bookerUtcOffset: number;
   _skipRollingWindowCheck?: boolean;
 }): PeriodLimits {
   const currentTime = dayjs();
-  const currentTimeInOrganizerTz = currentTime.utcOffset(organizerUtcOffset);
+  const currentTimeInEventTz = currentTime.utcOffset(eventUtcOffset);
   const currentTimeInBookerTz = currentTime.utcOffset(bookerUtcOffset);
   periodDays = periodDays || 0;
   const log = logger.getSubLogger({ prefix: ["calculatePeriodLimits"] });
@@ -63,22 +63,22 @@ export function calculatePeriodLimits({
       periodCountCalendarDays,
       periodStartDate: periodStartDate,
       periodEndDate: periodEndDate,
-      currentTime: currentTimeInOrganizerTz.format(),
+      currentTime: currentTimeInEventTz.format(),
     })
   );
 
   switch (periodType) {
     case PeriodType.ROLLING: {
-      // We use booker's timezone to calculate the end of the rolling period. This is because we want earliest possible timeslot to be available to be booked which could be on an earlier day as per booker's timezone.
-      // Simply put, rolling is a relative period from the current time, so this is important.
+      // We use booker's timezone to calculate the end of the rolling period(for both ROLLING and ROLLING_WINDOW). This is because we want earliest possible timeslot to be available to be booked which could be on an earlier day(compared to event timezone) as per booker's timezone.
+      // So, if 2 day rolling period is set and 2024-07-24T8:30:00 slot is available in event timezone, the corresponding slot in GMT-11 would be 2024-07-24T21:30:00. So, 24th should be bookable for that timeslot, which could only be made available if we consider things in booker timezone.
       const rollingEndDay = periodCountCalendarDays
         ? currentTimeInBookerTz.add(periodDays, "days")
         : currentTimeInBookerTz.businessDaysAdd(periodDays);
       // The future limit talks in terms of days so we take the end of the day here to consider the entire day
       return {
         endOfRollingPeriodEndDayInBookerTz: rollingEndDay.endOf("day"),
-        startOfRangeStartDayInOrganizerTz: null,
-        endOfRangeEndDayInOrganizerTz: null,
+        startOfRangeStartDayInEventTz: null,
+        endOfRangeEndDayInEventTz: null,
       };
     }
 
@@ -86,8 +86,8 @@ export function calculatePeriodLimits({
       if (_skipRollingWindowCheck) {
         return {
           endOfRollingPeriodEndDayInBookerTz: null,
-          startOfRangeStartDayInOrganizerTz: null,
-          endOfRangeEndDayInOrganizerTz: null,
+          startOfRangeStartDayInEventTz: null,
+          endOfRangeEndDayInEventTz: null,
         };
       }
 
@@ -104,32 +104,30 @@ export function calculatePeriodLimits({
 
       return {
         endOfRollingPeriodEndDayInBookerTz,
-        startOfRangeStartDayInOrganizerTz: null,
-        endOfRangeEndDayInOrganizerTz: null,
+        startOfRangeStartDayInEventTz: null,
+        endOfRangeEndDayInEventTz: null,
       };
     }
 
     case PeriodType.RANGE: {
-      // The future limit talks in terms of days so we take the start of the day for starting range and endOf the day for ending range
-      // We use organizer's timezone to calculate the range. This is because in case of range the start and end date objects are determined by the organizer.
-      // This is in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects.
-      const startOfRangeStartDayInOrganizerTz = dayjs(periodStartDate)
-        .utcOffset(organizerUtcOffset)
-        .startOf("day");
-      const endOfRangeEndDayInOrganizerTz = dayjs(periodEndDate).utcOffset(organizerUtcOffset).endOf("day");
+      // We take the start of the day for the start of the range and endOf the day for end of range, so that entire days are covered
+      // We use organizer's timezone here(in contrast with ROLLING/ROLLING_WINDOW where number of days is available and not the specific date objects).
+      // This is because in case of range the start and end date objects are determined by the organizer, so we should consider the range in organizer/event's timezone.
+      const startOfRangeStartDayInEventTz = dayjs(periodStartDate).utcOffset(eventUtcOffset).startOf("day");
+      const endOfRangeEndDayInEventTz = dayjs(periodEndDate).utcOffset(eventUtcOffset).endOf("day");
 
       return {
         endOfRollingPeriodEndDayInBookerTz: null,
-        startOfRangeStartDayInOrganizerTz,
-        endOfRangeEndDayInOrganizerTz,
+        startOfRangeStartDayInEventTz,
+        endOfRangeEndDayInEventTz,
       };
     }
   }
 
   return {
     endOfRollingPeriodEndDayInBookerTz: null,
-    startOfRangeStartDayInOrganizerTz: null,
-    endOfRangeEndDayInOrganizerTz: null,
+    startOfRangeStartDayInEventTz: null,
+    endOfRangeEndDayInEventTz: null,
   };
 }
 
@@ -152,13 +150,13 @@ export function getRollingWindowEndDate({
   log.debug("called:", safeStringify({ startDay: startDateInBookerTz.format(), daysNeeded }));
   let counter = 1;
   let rollingEndDay;
-  const startOfStartDayInOrganizerTz = startDateInBookerTz.startOf("day");
+  const startOfStartDayInEventTz = startDateInBookerTz.startOf("day");
   // It helps to break out of the loop if we don't find enough bookable days.
   const maxDaysToCheck = ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK;
 
   let bookableDaysCount = 0;
 
-  let startOfIterationDay = startOfStartDayInOrganizerTz;
+  let startOfIterationDay = startOfStartDayInEventTz;
   // Add periodDays to currentDate, skipping non-bookable days.
   while (bookableDaysCount < daysNeeded) {
     // What if we don't find any bookable days. We should break out of the loop after a certain number of days.
@@ -197,10 +195,10 @@ export function getRollingWindowEndDate({
    * We can't just return null(if rollingEndDay couldn't be obtained) and allow days farther than ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK to be booked as that would mean there is no future limit
    * The future limit talks in terms of days so we take the end of the day here to consider the entire day
    */
-  const endOfLastDayOfWindowInOrganizerTz = (rollingEndDay ?? startOfIterationDay).endOf("day");
-  log.debug("Returning rollingEndDay", endOfLastDayOfWindowInOrganizerTz.format());
+  const endOfLastDayOfWindowInEventTz = (rollingEndDay ?? startOfIterationDay).endOf("day");
+  log.debug("Returning rollingEndDay", endOfLastDayOfWindowInEventTz.format());
 
-  return endOfLastDayOfWindowInOrganizerTz;
+  return endOfLastDayOfWindowInEventTz;
 }
 
 /**
@@ -230,8 +228,8 @@ export function isTimeOutOfBounds({
 
 type PeriodLimits = {
   endOfRollingPeriodEndDayInBookerTz: dayjs.Dayjs | null;
-  startOfRangeStartDayInOrganizerTz: dayjs.Dayjs | null;
-  endOfRangeEndDayInOrganizerTz: dayjs.Dayjs | null;
+  startOfRangeStartDayInEventTz: dayjs.Dayjs | null;
+  endOfRangeEndDayInEventTz: dayjs.Dayjs | null;
 };
 
 export function isTimeViolatingFutureLimit({
@@ -255,15 +253,15 @@ export function isTimeViolatingFutureLimit({
     return isAfterRollingEndDay;
   }
 
-  if (periodLimits.startOfRangeStartDayInOrganizerTz && periodLimits.endOfRangeEndDayInOrganizerTz) {
-    const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInOrganizerTz);
-    const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInOrganizerTz);
+  if (periodLimits.startOfRangeStartDayInEventTz && periodLimits.endOfRangeEndDayInEventTz) {
+    const isBeforeRangeStart = dateInSystemTz.isBefore(periodLimits.startOfRangeStartDayInEventTz);
+    const isAfterRangeEnd = dateInSystemTz.isAfter(periodLimits.endOfRangeEndDayInEventTz);
     log.debug("rangeCheck", {
       formattedDate: dateInSystemTz.format(),
       isAfterRangeEnd,
       isBeforeRangeStart,
-      startOfRangeStartDayInOrganizerTz: periodLimits.startOfRangeStartDayInOrganizerTz.format(),
-      endOfRangeEndDayInOrganizerTz: periodLimits.endOfRangeEndDayInOrganizerTz.format(),
+      startOfRangeStartDayInEventTz: periodLimits.startOfRangeStartDayInEventTz.format(),
+      endOfRangeEndDayInEventTz: periodLimits.endOfRangeEndDayInEventTz.format(),
     });
     return isBeforeRangeStart || isAfterRangeEnd;
   }
@@ -278,13 +276,13 @@ export default function isOutOfBounds(
     periodCountCalendarDays,
     periodStartDate,
     periodEndDate,
-    organizerUtcOffset,
+    eventUtcOffset,
     bookerUtcOffset,
   }: Pick<
     EventType,
     "periodType" | "periodDays" | "periodCountCalendarDays" | "periodStartDate" | "periodEndDate"
   > & {
-    organizerUtcOffset: number;
+    eventUtcOffset: number;
     bookerUtcOffset: number;
   },
   minimumBookingNotice?: number
@@ -302,7 +300,7 @@ export default function isOutOfBounds(
         // Temporary till we find a way to provide allDatesWithBookabilityStatus in handleNewBooking without re-computing availability for the booked timeslot
         allDatesWithBookabilityStatusInBookerTz: null,
         _skipRollingWindowCheck: true,
-        organizerUtcOffset,
+        eventUtcOffset,
         bookerUtcOffset,
       }),
     })

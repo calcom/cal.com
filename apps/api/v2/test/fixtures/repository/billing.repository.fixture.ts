@@ -22,4 +22,17 @@ export class PlatformBillingRepositoryFixture {
       },
     });
   }
+
+  async deleteSubscriptionForTeam(teamId: number) {
+    // silently try to delete the subscription
+    try {
+      await this.prismaWriteClient.platformBilling.delete({
+        where: {
+          id: teamId,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+    }
+  }
 }

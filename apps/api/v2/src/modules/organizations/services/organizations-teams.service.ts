@@ -29,7 +29,7 @@ export class OrganizationsTeamsService {
   async createOrgTeam(organizationId: number, data: CreateOrgTeamDto, user: UserWithProfile) {
     const team = await this.organizationsTeamRepository.createOrgTeam(organizationId, data);
     if (user.role !== "ADMIN") {
-      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER");
+      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", true);
     }
     return team;
   }

@@ -2,7 +2,7 @@ import { ArgumentsHost, Catch, ExceptionFilter, Logger } from "@nestjs/common";
 import { Request } from "express";
 
 import { ERROR_STATUS } from "@calcom/platform-constants";
-import { TRPCError } from "@calcom/platform-libraries-0.0.18";
+import { TRPCError } from "@calcom/platform-libraries-0.0.21";
 import { Response } from "@calcom/platform-types";
 
 @Catch(TRPCError)

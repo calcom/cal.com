@@ -96,6 +96,17 @@ export class SchedulesRepository_2024_06_11 {
     return schedule;
   }
 
+  async getScheduleByIdAndUserId(scheduleId: number, userId: number) {
+    const schedule = await this.dbRead.prisma.schedule.findUnique({
+      where: {
+        id: scheduleId,
+        userId,
+      },
+    });
+
+    return schedule;
+  }
+
   async updateSchedule(
     userId: number,
     scheduleId: number,

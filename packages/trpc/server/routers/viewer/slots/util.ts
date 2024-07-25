@@ -617,7 +617,11 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventType.schedulingType === SchedulingType.COLLECTIVE ||
     eventType.schedulingType === SchedulingType.ROUND_ROBIN ||
     allUsersAvailability.length > 1;
-  const organizerTimeZone =
+
+  // timeZone isn't directly set on eventType now(So, it is legacy)
+  // schedule is always expected to be set for an eventType now so it must never fallback to allUsersAvailability[0].timeZone(fallback is again legacy behavior)
+  // TODO: Also, handleNewBooking only seems to be using eventType?.schedule?.timeZone which seems to confirm that we should simplify it as well.
+  const eventTimeZone =
     eventType.timeZone || eventType?.schedule?.timeZone || allUsersAvailability?.[0]?.timeZone;
   const timeSlots = getSlots({
     inviteeDate: startTime,
@@ -626,7 +630,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     dateRanges: aggregatedAvailability,
     minimumBookingNotice: eventType.minimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
-    organizerTimeZone,
+    organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
   });
 
@@ -765,7 +769,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
   const allDatesWithBookabilityStatus = getAllDatesWithBookabilityStatus(availableDates);
   loggerWithEventDetails.debug(safeStringify({ availableDates }));
 
-  const organizerUtcOffset = getUTCOffsetByTimezone(organizerTimeZone) ?? 0;
+  const eventUtcOffset = getUTCOffsetByTimezone(eventTimeZone) ?? 0;
   const bookerUtcOffset = input.timeZone ? getUTCOffsetByTimezone(input.timeZone) ?? 0 : 0;
   const periodLimits = calculatePeriodLimits({
     periodType: eventType.periodType,
@@ -774,7 +778,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     periodStartDate: eventType.periodStartDate,
     periodEndDate: eventType.periodEndDate,
     allDatesWithBookabilityStatusInBookerTz: allDatesWithBookabilityStatus,
-    organizerUtcOffset,
+    eventUtcOffset,
     bookerUtcOffset,
   });
   let foundAFutureLimitViolation = false;
