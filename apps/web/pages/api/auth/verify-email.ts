@@ -5,14 +5,39 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import dayjs from "@calcom/dayjs";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { IS_STRIPE_ENABLED } from "@calcom/lib/constants";
+import { OrganizationRepository } from "@calcom/lib/server/repository/organization";
 import { prisma } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/client";
 import { userMetadata } from "@calcom/prisma/zod-utils";
+import { inviteMembersWithNoInviterPermissionCheck } from "@calcom/trpc/server/routers/viewer/teams/inviteMember/inviteMember.handler";
 
 const verifySchema = z.object({
   token: z.string(),
 });
 
 const USER_ALREADY_EXISTING_MESSAGE = "A User already exists with this email";
+
+// TODO: To be unit tested
+export async function moveUserToMatchingOrg({ email }: { email: string }) {
+  const org = await OrganizationRepository.findUniqueByMatchingAutoAcceptEmail({ email });
+
+  if (!org) {
+    return;
+  }
+
+  await inviteMembersWithNoInviterPermissionCheck({
+    inviterName: null,
+    teamId: org.id,
+    language: "en",
+    invitations: [
+      {
+        usernameOrEmail: email,
+        role: MembershipRole.MEMBER,
+      },
+    ],
+    orgSlug: org.slug || org.requestedSlug,
+  });
+}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { token } = verifySchema.parse(req.query);
@@ -140,6 +165,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   });
 
   const hasCompletedOnboarding = user.completedOnboarding;
+
+  await moveUserToMatchingOrg({ email: user.email });
 
   return res.redirect(`${WEBAPP_URL}/${hasCompletedOnboarding ? "/event-types" : "/getting-started"}`);
 }

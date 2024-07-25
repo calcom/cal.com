@@ -1496,7 +1496,6 @@
   "how_long_after": "Jak dlouho po ukončení události?",
   "no_available_slots": "Žádné dostupné sloty",
   "time_available": "Dostupný čas",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nemůžete najít správnou video aplikaci? Navštivte náš <1>App Store</1>.",
   "install_new_calendar_app": "Nainstalovat novou aplikaci kalendáře",
   "make_phone_number_required": "Pro rezervaci události vyžadovat telefonní číslo",
   "new_event_type_availability": "Dostupnost pro {{eventTypeTitle}}",

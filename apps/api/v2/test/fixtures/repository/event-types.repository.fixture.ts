@@ -21,6 +21,14 @@ export class EventTypesRepositoryFixture {
     });
   }
 
+  async getAllTeamEventTypes(teamId: number) {
+    return this.prismaWriteClient.eventType.findMany({
+      where: {
+        teamId,
+      },
+    });
+  }
+
   async create(
     data: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">,
     userId: number
