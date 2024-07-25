@@ -26,12 +26,11 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import type { BookingsProcedureContext } from "./util";
 
 type ConfirmOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-  } & BookingsProcedureContext;
+  };
   input: TConfirmInputSchema;
 };
 
@@ -76,6 +75,7 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           team: {
             select: {
               parentId: true,
+              members: true,
             },
           },
           workflows: {
@@ -123,7 +123,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
-    if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
+    const isTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
+    if (eventType && !eventType.users.find((user) => booking.userId === user.id) && !isTeamAdminOrOwner) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
     }
   }
