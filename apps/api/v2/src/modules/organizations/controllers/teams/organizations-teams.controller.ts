@@ -59,7 +59,7 @@ export class OrganizationsTeamsController {
 
   @Get("/me")
   @ApiOperation({ summary: "Get the organization's teams user is a member of" })
-  @Roles("ORG_ADMIN")
+  @Roles("ORG_MEMBER")
   async getMyTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination,
