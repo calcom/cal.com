@@ -2,12 +2,13 @@ import { InputEventTypesService_2024_06_14 } from "@/ee/event-types/event-types_
 import { OrganizationsEventTypesRepository } from "@/modules/organizations/repositories/organizations-event-types.repository";
 import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { UsersRepository } from "@/modules/users/users.repository";
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
   HostPriority,
+  SchedulingType,
 } from "@calcom/platform-types";
 
 @Injectable()
@@ -30,7 +31,9 @@ export class InputOrganizationsEventTypesService {
 
     const teamEventType = {
       ...eventType,
-      hosts: assignAllTeamMembers ? await this.getAllTeamMembers(teamId) : this.transformInputHosts(hosts),
+      hosts: assignAllTeamMembers
+        ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
+        : this.transformInputHosts(hosts, inputEventType.schedulingType),
       assignAllTeamMembers,
       metadata,
     };
@@ -46,6 +49,11 @@ export class InputOrganizationsEventTypesService {
     const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
+    const dbEventType = await this.orgEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+
+    if (!dbEventType) {
+      throw new BadRequestException("Event type to update not found");
+    }
 
     const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType, teamId);
     const teamEventType = {
@@ -53,8 +61,8 @@ export class InputOrganizationsEventTypesService {
       // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
       hosts: !children
         ? assignAllTeamMembers
-          ? await this.getAllTeamMembers(teamId)
-          : this.transformInputHosts(hosts)
+          ? await this.getAllTeamMembers(teamId, dbEventType.schedulingType)
+          : this.transformInputHosts(hosts, dbEventType.schedulingType)
         : undefined,
       assignAllTeamMembers,
       children,
@@ -118,22 +126,26 @@ export class InputOrganizationsEventTypesService {
     });
   }
 
-  async getAllTeamMembers(teamId: number) {
+  async getAllTeamMembers(teamId: number, schedulingType: SchedulingType | null) {
     const membersIds = await this.organizationsTeamsRepository.getTeamMembersIds(teamId);
+    const isFixed = schedulingType === "COLLECTIVE" ? true : false;
 
     return membersIds.map((id) => ({
       userId: id,
-      isFixed: false,
+      isFixed,
       priority: 2,
     }));
   }
 
-  transformInputHosts(inputHosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined) {
+  transformInputHosts(
+    inputHosts: CreateTeamEventTypeInput_2024_06_14["hosts"] | undefined,
+    schedulingType: SchedulingType | null
+  ) {
     if (!inputHosts) {
       return undefined;
     }
 
-    const defaultMandatory = false;
+    const defaultMandatory = schedulingType === "COLLECTIVE" ? true : false;
     const defaultPriority = "medium";
 
     return inputHosts.map((host) => ({
