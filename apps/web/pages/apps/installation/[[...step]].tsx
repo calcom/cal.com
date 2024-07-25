@@ -583,7 +583,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
 
     const isConferencing = isConferencingApp(appMetadata.categories);
     const showEventTypesStep = extendsEventType || isConferencing;
-    console.log("sshowEventTypesStephowEventTypesStep: ", showEventTypesStep);
 
     if (!session?.user?.id) throw new Error(ERROR_MESSAGES.userNotAuthed);
 
@@ -628,15 +627,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
             eventTypeId: null,
           },
         });
-        for (let groupIndex = 0; groupIndex < eventTypeGroups.length; groupIndex++) {
-          for (let eventIndex = 0; eventIndex < eventTypeGroups[groupIndex].eventTypes.length; eventIndex++) {
-            let eventType = eventTypeGroups[groupIndex].eventTypes[eventIndex];
+
+        eventTypeGroups.forEach((group) => {
+          group.eventTypes = group.eventTypes.map((eventType) => {
             if (!eventType.destinationCalendar) {
-              eventType = { ...eventType, destinationCalendar };
+              return { ...eventType, destinationCalendar };
             }
-            eventTypeGroups[groupIndex].eventTypes[eventIndex] = eventType;
-          }
-        }
+            return eventType;
+          });
+        });
       }
     }
 
