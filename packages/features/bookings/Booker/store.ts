@@ -238,7 +238,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     set({ seatedEventData });
     updateQueryParam("bookingUid", seatedEventData.bookingUid ?? "null");
   },
-  timeZone: getQueryParam("timeZone") ?? null,
+  timeZone: getQueryParam("tz") ?? null,
   setTimeZone: (timeZone: string | null) => {
     set({ timeZone });
   },
