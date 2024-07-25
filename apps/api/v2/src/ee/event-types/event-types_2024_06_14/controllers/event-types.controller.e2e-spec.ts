@@ -9,10 +9,11 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, Schedule } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withApiAuth } from "test/utils/withApiAuth";
@@ -63,12 +64,18 @@ describe("Event types Endpoints", () => {
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let schedulesRepostoryFixture: SchedulesRepositoryFixture;
 
     const userEmail = "event-types-test-e2e@api.com";
+    const falseTestEmail = "false-event-types@api.com";
     const name = "bob-the-builder";
     const username = name;
     let eventType: EventTypeOutput_2024_06_14;
     let user: User;
+    let falseTestUser: User;
+    let firstSchedule: Schedule;
+    let secondSchedule: Schedule;
+    let falseTestSchedule: Schedule;
 
     beforeAll(async () => {
       const moduleRef = await withApiAuth(
@@ -91,6 +98,7 @@ describe("Event types Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      schedulesRepostoryFixture = new SchedulesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
@@ -98,6 +106,30 @@ describe("Event types Endpoints", () => {
         email: userEmail,
         name,
         username,
+      });
+
+      falseTestUser = await userRepositoryFixture.create({
+        email: falseTestEmail,
+        name: "false-test",
+        username: falseTestEmail,
+      });
+
+      firstSchedule = await schedulesRepostoryFixture.create({
+        userId: user.id,
+        name: "work",
+        timeZone: "Europe/Rome",
+      });
+
+      secondSchedule = await schedulesRepostoryFixture.create({
+        userId: user.id,
+        name: "chill",
+        timeZone: "Europe/Rome",
+      });
+
+      falseTestSchedule = await schedulesRepostoryFixture.create({
+        userId: falseTestUser.id,
+        name: "work",
+        timeZone: "Europe/Rome",
       });
 
       await app.init();
@@ -123,6 +155,40 @@ describe("Event types Endpoints", () => {
       expect(user).toBeDefined();
     });
 
+    it("should not allow creating an event type with schedule user does not own", async () => {
+      const scheduleId = falseTestSchedule.id;
+
+      const body: CreateEventTypeInput_2024_06_14 = {
+        title: "Coding class",
+        slug: "coding-class",
+        description: "Let's learn how to code like a pro.",
+        lengthInMinutes: 60,
+        locations: [
+          {
+            type: "integration",
+            integration: "cal-video",
+          },
+        ],
+        bookingFields: [
+          {
+            type: "select",
+            label: "select which language you want to learn",
+            slug: "select-language",
+            required: true,
+            placeholder: "select language",
+            options: ["javascript", "python", "cobol"],
+          },
+        ],
+        scheduleId,
+      };
+
+      return request(app.getHttpServer())
+        .post("/api/v2/event-types")
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(404);
+    });
+
     it("should create an event type", async () => {
       const body: CreateEventTypeInput_2024_06_14 = {
         title: "Coding class",
@@ -145,6 +211,7 @@ describe("Event types Endpoints", () => {
             options: ["javascript", "python", "cobol"],
           },
         ],
+        scheduleId: firstSchedule.id,
       };
 
       return request(app.getHttpServer())
@@ -162,6 +229,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.locations).toEqual(body.locations);
           expect(createdEventType.bookingFields).toEqual(body.bookingFields);
           expect(createdEventType.ownerId).toEqual(user.id);
+          expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
 
           eventType = responseBody.data;
         });
@@ -172,6 +240,7 @@ describe("Event types Endpoints", () => {
 
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
+        scheduleId: secondSchedule.id,
       };
 
       return request(app.getHttpServer())
@@ -191,9 +260,23 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.locations).toEqual(eventType.locations);
           expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
           expect(updatedEventType.ownerId).toEqual(user.id);
+          expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
 
           eventType.title = newTitle;
+          eventType.scheduleId = secondSchedule.id;
         });
+    });
+
+    it("should not allow to update event type with scheduleId user does not own", async () => {
+      const body: UpdateEventTypeInput_2024_06_14 = {
+        scheduleId: falseTestSchedule.id,
+      };
+
+      return request(app.getHttpServer())
+        .patch(`/api/v2/event-types/${eventType.id}`)
+        .set(CAL_API_VERSION_HEADER, VERSION_2024_06_14)
+        .send(body)
+        .expect(404);
     });
 
     it(`/GET/:id`, async () => {
@@ -272,7 +355,7 @@ describe("Event types Endpoints", () => {
         .expect(404);
     });
 
-    it("should delete schedule", async () => {
+    it("should delete event type", async () => {
       return request(app.getHttpServer()).delete(`/api/v2/event-types/${eventType.id}`).expect(200);
     });
 
@@ -286,6 +369,11 @@ describe("Event types Endpoints", () => {
       }
       try {
         await userRepositoryFixture.delete(user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(falseTestUser.id);
       } catch (e) {
         // User might have been deleted by the test
       }

@@ -19,7 +19,7 @@ export const EditableHeading = function EditableHeading({
   const enableEditing = () => setIsEditing(!disabled);
   return (
     <div
-      className="group pointer-events-none relative truncate sm:pointer-events-auto"
+      className="group pointer-events-auto relative truncate"
       onClick={enableEditing}>
       <div className={classNames(!disabled && "cursor-pointer", "flex items-center")}>
         <label className="min-w-8 relative inline-block">

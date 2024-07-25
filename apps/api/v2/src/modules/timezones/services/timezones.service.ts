@@ -1,8 +1,8 @@
 import { RedisService } from "@/modules/redis/redis.service";
 import { Injectable } from "@nestjs/common";
 
-import { cityTimezonesHandler } from "@calcom/platform-libraries-0.0.18";
-import type { CityTimezones } from "@calcom/platform-libraries-0.0.18";
+import { cityTimezonesHandler } from "@calcom/platform-libraries-0.0.21";
+import type { CityTimezones } from "@calcom/platform-libraries-0.0.21";
 
 @Injectable()
 export class TimezonesService {
