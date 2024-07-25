@@ -1496,7 +1496,6 @@
   "how_long_after": "Hoelang na afloop van de gebeurtenis?",
   "no_available_slots": "Geen beschikbare tijdvakken",
   "time_available": "Tijd beschikbaar",
-  "cant_find_the_right_video_app_visit_our_app_store": "Kunt u de juiste video-app niet vinden? Bezoek onze <1>App Store</1>.",
   "install_new_calendar_app": "Installeer een nieuwe agenda-app",
   "make_phone_number_required": "Een telefoonnummer verplicht stellen voor het boeken van een gebeurtenis",
   "new_event_type_availability": "Beschikbaarheid {{eventTypeTitle}}",
