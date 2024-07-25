@@ -47,7 +47,7 @@ export const DisableEmailsSetting = ({
               </p>
             </Trans>
           </p>
-          <p className="mb-1 mt-2">{t("type_confirm_to_continue")}</p>
+          <p className="text-default mb-1 mt-2 text-sm">{t("type_confirm_to_continue")}</p>
           <InputField
             value={confirmText}
             onChange={(e) => {
@@ -75,7 +75,7 @@ export const DisableEmailsSetting = ({
         description={t("disable_all_emails_description")}
         checked={!!checked}
         onCheckedChange={() => {
-          checked ? onCheckedChange(false) : setDialogOpen(true);
+          checked ? onCheckedChange(!checked) : setDialogOpen(true);
         }}
       />
     </div>

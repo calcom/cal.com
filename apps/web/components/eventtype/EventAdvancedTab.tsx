@@ -533,7 +533,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           />
         )}
       />
-      {(allowDisablingAttendeeConfirmationEmails(workflows) || team?.parentId) && (
+      {allowDisablingAttendeeConfirmationEmails(workflows, !!team?.parentId) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"
           render={({ field: { value, onChange } }) => {
@@ -541,7 +541,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <>
                 <DisableEmailsSetting
                   checked={value}
-                  onCheckedChange={() => onChange(true)}
+                  onCheckedChange={onChange}
                   recipient="attendees"
                   t={t}
                 />
@@ -550,7 +550,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       )}
-      {(allowDisablingHostConfirmationEmails(workflows) || team?.parentId) && (
+      {allowDisablingHostConfirmationEmails(workflows, !!team?.parentId) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
