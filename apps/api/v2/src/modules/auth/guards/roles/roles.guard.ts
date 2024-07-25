@@ -63,12 +63,12 @@ export class RolesGuard implements CanActivate {
         throw new ForbiddenException(`User is not a member of the organization.`);
       }
 
-      const adminAPIAccessIsEnabledInOrg = await this.organizationSettings.fetchOrgAdminApiStatus(
+      const adminAPIAccessIsEnabledInOrg = await this.organizationsRepository.fetchOrgAdminApiStatus(
         Number(orgId)
       );
       if (!adminAPIAccessIsEnabledInOrg) {
         this.logger.log(`Org (${orgId}) Admin API access is not enabled, denying access`);
-        throw new ForbiddenException(`Organization does not have Admin API access, please contact https://cal.com/sales`);
+        throw new ForbiddenException(`Organization does not have Admin API access`);
       }
 
       if (ORG_ROLES.includes(allowedRole as unknown as (typeof ORG_ROLES)[number])) {
