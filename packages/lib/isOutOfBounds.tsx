@@ -195,10 +195,10 @@ export function getRollingWindowEndDate({
    * We can't just return null(if rollingEndDay couldn't be obtained) and allow days farther than ROLLING_WINDOW_PERIOD_MAX_DAYS_TO_CHECK to be booked as that would mean there is no future limit
    * The future limit talks in terms of days so we take the end of the day here to consider the entire day
    */
-  const endOfLastDayOfWindowInEventTz = (rollingEndDay ?? startOfIterationDay).endOf("day");
-  log.debug("Returning rollingEndDay", endOfLastDayOfWindowInEventTz.format());
+  const endOfLastDayOfWindowInBookerTz = (rollingEndDay ?? startOfIterationDay).endOf("day");
+  log.debug("Returning rollingEndDay", endOfLastDayOfWindowInBookerTz.format());
 
-  return endOfLastDayOfWindowInEventTz;
+  return endOfLastDayOfWindowInBookerTz;
 }
 
 /**

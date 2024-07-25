@@ -1549,16 +1549,8 @@ describe("getSchedule", () => {
       });
 
       describe("GMT-11 Browsing", () => {
-        test("with 2 days date", async () => {
-          const startDateString = "2024-06-30";
-          vi.setSystemTime(`${startDateString}T01:30:00Z`);
-          const yesterdayDateString = "2024-07-23";
-          const todayDateString = "2024-07-24";
-          const plus1DateString = "2024-07-25";
-          const plus2DateString = "2024-07-26";
-          const plus3DateString = "2024-07-27";
-          const plus4DateString = "2024-07-28";
-          const plus5DateString = "2024-07-29";
+        test("should show correct timeslots only for 24th and 25th July(of IST Timezone)", async () => {
+          vi.setSystemTime(`2024-07-05T01:30:00Z`);
 
           const scenarioData = {
             eventTypes: [
@@ -1569,9 +1561,9 @@ describe("getSchedule", () => {
                 ...getPeriodTypeData({
                   type: "RANGE",
 
-                  // Only 24th and 25th(as per the event timezone) should be available
-                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`),
-                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`),
+                  // Only 25th and 26th(as per the event timezone(IST)) should be available
+                  periodStartDate: new Date(`2024-07-24T18:30:00.000Z`), // 25th July in IST
+                  periodEndDate: new Date(`2024-07-25T18:30:00.000Z`), // 26th July in IST
 
                   periodCountCalendarDays: true,
                 }),
@@ -1593,26 +1585,37 @@ describe("getSchedule", () => {
 
           await createBookingScenario(scenarioData);
 
-          const scheduleForEvent = await getSchedule({
+          const scheduleForEventForPagoTz = await getSchedule({
             input: {
               eventTypeId: 1,
               eventTypeSlug: "",
               usernameList: [],
-              // Because this time is in GMT, it will be 00:00 in IST with todayDateString
-              startTime: `${startDateString}T18:30:00.000Z`,
-              endTime: `${plus5DateString}T18:29:59.999Z`,
+              startTime: `2024-06-30T18:30:00.000Z`,
+              endTime: `2024-07-31T18:29:59.999Z`,
               timeZone: Timezones["-11:00"],
               isTeamEvent: false,
             },
           });
 
-          expect(scheduleForEvent).toHaveDateDisabled({
-            dateString: yesterdayDateString,
-          });
+          /**
+           * Current day in test is 5th July, so verify that earlier timeslots than 24th July are disabled
+           */
+          {
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-21",
+            });
 
-          expect(scheduleForEvent).toHaveTimeSlots(
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-22",
+            });
+
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-23",
+            });
+          }
+
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(
             [
-              // "2024-05-31T11:30:00.000Z",
               "2024-07-25T04:30:00.000Z",
               "2024-07-25T05:30:00.000Z",
               "2024-07-25T06:30:00.000Z",
@@ -1622,12 +1625,13 @@ describe("getSchedule", () => {
               "2024-07-25T10:30:00.000Z",
             ],
             {
-              dateString: todayDateString,
+              // 25th timeslots are shown mostly on 24th of Pago Pago
+              dateString: "2024-07-24",
               doExactMatch: true,
             }
           );
 
-          expect(scheduleForEvent).toHaveTimeSlots(
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(
             [
               "2024-07-25T11:30:00.000Z",
               "2024-07-26T04:30:00.000Z",
@@ -1639,23 +1643,28 @@ describe("getSchedule", () => {
               "2024-07-26T10:30:00.000Z",
             ],
             {
-              dateString: plus1DateString,
+              dateString: "2024-07-25",
               doExactMatch: true,
             }
           );
 
-          expect(scheduleForEvent).toHaveTimeSlots(["2024-07-26T11:30:00.000Z"], {
-            dateString: plus2DateString,
+          expect(scheduleForEventForPagoTz).toHaveTimeSlots(["2024-07-26T11:30:00.000Z"], {
+            dateString: "2024-07-26",
             doExactMatch: true,
           });
 
-          expect(scheduleForEvent).toHaveDateDisabled({
-            dateString: plus3DateString,
-          });
+          /**
+           * Verify that timeslots beyond 26th July are disabled
+           */
+          {
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-27",
+            });
 
-          expect(scheduleForEvent).toHaveDateDisabled({
-            dateString: plus4DateString,
-          });
+            expect(scheduleForEventForPagoTz).toHaveDateDisabled({
+              dateString: "2024-07-28",
+            });
+          }
         });
       });
     });

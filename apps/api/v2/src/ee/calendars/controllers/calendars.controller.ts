@@ -1,4 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import {
@@ -196,7 +197,7 @@ export class CalendarsController {
   @HttpCode(HttpStatus.OK)
   async deleteCalendarCredentials(
     @Param("calendar") calendar: string,
-    @Body() body: { id: number },
+    @Body() body: DeleteCalendarCredentialsInputBodyDto,
     @GetUser() user: UserWithProfile
   ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
     const { id: credentialId } = body;
