@@ -10,6 +10,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { Person } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
@@ -151,7 +152,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
         {
           rescheduleLink: builder.rescheduleLink,
         },
-        booking?.eventType?.metadata
+        bookingToReschedule?.eventType?.metadata as EventTypeMetadata
       );
     } catch (error) {
       if (error instanceof Error) {

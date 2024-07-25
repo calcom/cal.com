@@ -22,6 +22,7 @@ import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
 import { prisma } from "@calcom/prisma";
 import type { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { BookingStatus } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { TRPCError } from "@trpc/server";
@@ -245,7 +246,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     {
       rescheduleLink: builder.rescheduleLink,
     },
-    eventType?.metadata
+    eventType?.metadata as EventTypeMetadata
   );
 
   const evt: CalendarEvent = {

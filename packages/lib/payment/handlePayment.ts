@@ -75,7 +75,7 @@ const handlePayment = async (
     throw new Error("Payment data is null");
   }
   try {
-    await paymentInstance.afterPayment(evt, booking, paymentData, selectedEventType?.metdata);
+    await paymentInstance.afterPayment(evt, booking, paymentData, selectedEventType?.metadata);
   } catch (e) {
     console.error(e);
   }

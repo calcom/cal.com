@@ -1,5 +1,3 @@
-import type { z } from "zod";
-
 import { getCalendar } from "@calcom/app-store/_utils/getCalendar";
 import { updateMeeting } from "@calcom/core/videoClient";
 import { sendCancelledSeatEmails } from "@calcom/emails";
@@ -13,7 +11,7 @@ import prisma from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { schemaBookingCancelParams } from "@calcom/prisma/zod-utils";
-import type { EventTypeMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { deleteAllWorkflowReminders } from "@calcom/trpc/server/routers/viewer/workflows/util";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -32,7 +30,7 @@ async function cancelAttendeeSeat(
     evt: CalendarEvent;
     eventTypeInfo: EventTypeInfo;
   },
-  eventTypeMetadata: z.infer<typeof EventTypeMetadataSchema>
+  eventTypeMetadata: EventTypeMetadata
 ) {
   const { seatReferenceUid } = schemaBookingCancelParams.parse(req.body);
   const { webhooks, evt, eventTypeInfo } = dataForWebhooks;
