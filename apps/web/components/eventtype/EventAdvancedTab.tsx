@@ -573,7 +573,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           )}
         />
       )}
-      {hasValidLicense && (
+      {team?.parentId && (
         <Controller
           name="metadata.disableStandardEmails.all.attendee"
           render={({ field: { value, onChange } }) => {
@@ -590,7 +590,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           }}
         />
       )}
-      {hasValidLicense && (
+      {team?.parentId && (
         <Controller
           name="metadata.disableStandardEmails.all.host"
           defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
