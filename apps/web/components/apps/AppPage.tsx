@@ -1,12 +1,17 @@
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { IframeHTMLAttributes } from "react";
 import React, { useEffect, useState } from "react";
 
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
 import { AppDependencyComponent, InstallAppButton } from "@calcom/app-store/components";
+import { doesAppSupportTeamInstall, isConferencing } from "@calcom/app-store/utils";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
+import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
+import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import classNames from "@calcom/lib/classNames";
-import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS } from "@calcom/lib/constants";
+import { APP_NAME, COMPANY_NAME, SUPPORT_MAIL_ADDRESS, WEBAPP_URL } from "@calcom/lib/constants";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import type { App as AppType } from "@calcom/types/App";
@@ -21,7 +26,6 @@ export type AppPageProps = {
   isGlobal?: AppType["isGlobal"];
   logo: string;
   slug: string;
-  dirName: string | undefined;
   variant: string;
   body: React.ReactNode;
   categories: string[];
@@ -69,20 +73,58 @@ export const AppPage = ({
   dependencies,
   concurrentMeetings,
   paid,
-  dirName,
 }: AppPageProps) => {
   const { t, i18n } = useLocale();
+  const router = useRouter();
+  const searchParams = useCompatSearchParams();
+
   const hasDescriptionItems = descriptionItems && descriptionItems.length > 0;
 
   const mutation = useAddAppMutation(null, {
     onSuccess: (data) => {
       if (data?.setupPending) return;
+      setIsLoading(false);
       showToast(t("app_successfully_installed"), "success");
     },
     onError: (error) => {
       if (error instanceof Error) showToast(error.message || t("app_could_not_be_installed"), "error");
+      setIsLoading(false);
     },
   });
+
+  /**
+   * @todo Refactor to eliminate the isLoading state by using mutation.isPending directly.
+   * Currently, the isLoading state is used to manage the loading indicator due to the delay in loading the next page,
+   * which is caused by heavy queries in getServersideProps. This causes the loader to turn off before the page changes.
+   */
+  const [isLoading, setIsLoading] = useState<boolean>(mutation.isPending);
+
+  const handleAppInstall = () => {
+    setIsLoading(true);
+    if (isConferencing(categories)) {
+      mutation.mutate({
+        type,
+        variant,
+        slug,
+        returnTo:
+          WEBAPP_URL +
+          getAppOnboardingUrl({
+            slug,
+            step: AppOnboardingSteps.EVENT_TYPES_STEP,
+          }),
+      });
+    } else if (
+      !doesAppSupportTeamInstall({
+        appCategories: categories,
+        concurrentMeetings: concurrentMeetings,
+        isPaid: !!paid,
+      })
+    ) {
+      mutation.mutate({ type });
+    } else {
+      router.push(getAppOnboardingUrl({ slug, step: AppOnboardingSteps.ACCOUNTS_STEP }));
+    }
+  };
 
   const priceInDollar = Intl.NumberFormat("en-US", {
     style: "currency",
@@ -120,6 +162,11 @@ export const AppPage = ({
   // variant not other allows, an app to be shown in calendar category without requiring an actual calendar connection e.g. vimcal
   // Such apps, can only be installed once.
   const allowedMultipleInstalls = categories.indexOf("calendar") > -1 && variant !== "other";
+  useEffect(() => {
+    if (searchParams?.get("defaultInstall") === "true") {
+      mutation.mutate({ type, variant, slug, defaultInstall: true });
+    }
+  }, []);
 
   return (
     <div className="relative flex-1 flex-col items-start justify-start px-4 md:flex md:px-8 lg:flex-row lg:px-0">
@@ -212,23 +259,12 @@ export const AppPage = ({
                       props = {
                         ...props,
                         onClick: () => {
-                          mutation.mutate({ type, variant, slug });
+                          handleAppInstall();
                         },
-                        loading: mutation.isPending,
+                        loading: isLoading,
                       };
                     }
-                    return (
-                      <InstallAppButtonChild
-                        appCategories={categories}
-                        userAdminTeams={appDbQuery.data?.userAdminTeams}
-                        addAppMutationInput={{ type, variant, slug }}
-                        multiInstall
-                        concurrentMeetings={concurrentMeetings}
-                        paid={paid}
-                        dirName={dirName}
-                        {...props}
-                      />
-                    );
+                    return <InstallAppButtonChild multiInstall paid={paid} {...props} />;
                   }}
                 />
               )}
@@ -252,22 +288,13 @@ export const AppPage = ({
                   props = {
                     ...props,
                     onClick: () => {
-                      mutation.mutate({ type, variant, slug });
+                      handleAppInstall();
                     },
-                    loading: mutation.isPending,
+                    loading: isLoading,
                   };
                 }
                 return (
-                  <InstallAppButtonChild
-                    appCategories={categories}
-                    userAdminTeams={appDbQuery.data?.userAdminTeams}
-                    addAppMutationInput={{ type, variant, slug }}
-                    credentials={appDbQuery.data?.credentials}
-                    concurrentMeetings={concurrentMeetings}
-                    paid={paid}
-                    dirName={dirName}
-                    {...props}
-                  />
+                  <InstallAppButtonChild credentials={appDbQuery.data?.credentials} paid={paid} {...props} />
                 );
               }}
             />

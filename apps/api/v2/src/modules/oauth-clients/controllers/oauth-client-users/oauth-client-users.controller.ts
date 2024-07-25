@@ -1,3 +1,5 @@
+import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -21,7 +23,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  BadRequestException,
   Delete,
   Query,
   NotFoundException,
@@ -33,8 +34,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { Pagination } from "@calcom/platform-types";
 
 @Controller({
-  path: "oauth-clients/:clientId/users",
-  version: "2",
+  path: "/v2/oauth-clients/:clientId/users",
+  version: API_VERSIONS_VALUES,
 })
 @UseGuards(OAuthClientCredentialsGuard)
 @DocsTags("Managed users")
@@ -91,6 +92,7 @@ export class OAuthClientUsersController {
       data: {
         user: this.getResponseUser(user),
         accessToken: tokens.accessToken,
+        accessTokenExpiresAt: tokens.accessTokenExpiresAt.valueOf(),
         refreshToken: tokens.refreshToken,
       },
     };
@@ -155,7 +157,7 @@ export class OAuthClientUsersController {
 
     const { id } = await this.validateManagedUserOwnership(oAuthClientId, userId);
 
-    const { accessToken, refreshToken } = await this.tokensRepository.createOAuthTokens(
+    const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(
       oAuthClientId,
       id,
       true
@@ -166,6 +168,7 @@ export class OAuthClientUsersController {
       data: {
         accessToken,
         refreshToken,
+        accessTokenExpiresAt: accessTokenExpiresAt.valueOf(),
       },
     };
   }
@@ -189,6 +192,7 @@ export class OAuthClientUsersController {
       createdDate: user.createdDate,
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
+      locale: user.locale as Locales,
     };
   }
 }

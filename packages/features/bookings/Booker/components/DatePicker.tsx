@@ -6,9 +6,10 @@ import { default as DatePickerComponent } from "@calcom/features/calendars/DateP
 import { useNonEmptyScheduleDays } from "@calcom/features/schedules";
 import { weekdayToWeekIndex } from "@calcom/lib/date-fns";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { User } from "@calcom/prisma/client";
 
 import { useBookerStore } from "../store";
-import type { useEventReturnType, useScheduleForEventReturnType } from "../utils/event";
+import type { useScheduleForEventReturnType } from "../utils/event";
 
 export const DatePicker = ({
   event,
@@ -16,7 +17,9 @@ export const DatePicker = ({
   classNames,
   scrollToTimeSlots,
 }: {
-  event: useEventReturnType;
+  event: {
+    data?: { users: Pick<User, "weekStart">[] } | null;
+  };
   schedule: useScheduleForEventReturnType;
   classNames?: {
     datePickerContainer?: string;
