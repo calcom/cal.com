@@ -5,7 +5,19 @@ import { useOrgBranding } from "@calcom/ee/organizations/context/provider";
 import { WEBAPP_URL } from "@calcom/lib/constants";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Avatar, Label, Loader, Sheet, SheetContent, SheetFooter, Skeleton } from "@calcom/ui";
+import {
+  Avatar,
+  Label,
+  Loader,
+  Sheet,
+  SheetContent,
+  SheetBody,
+  Skeleton,
+  SheetHeader,
+  SheetDescription,
+  SheetTitle,
+  SheetFooter,
+} from "@calcom/ui";
 
 import type { Action, State } from "../UserListTable";
 import { DisplayInfo } from "./DisplayInfo";
@@ -35,32 +47,34 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
         setEditMode(false);
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent position="right" size="default">
+      <SheetContent>
         {!isPending && loadedUser ? (
-          <div className="flex h-full flex-col">
+          <>
             {!editMode ? (
-              <div className="flex-grow">
-                <div className="mt-4 flex items-center gap-2">
+              <>
+                <SheetHeader>
                   <Avatar
                     asChild
                     className="h-[36px] w-[36px]"
                     alt={`${loadedUser?.name} avatar`}
                     imageSrc={loadedUser.avatarUrl}
                   />
-                  <div className="space-between flex flex-col leading-none">
+                  <SheetTitle>
                     <Skeleton loading={isPending} as="p" waitForTranslation={false}>
                       <span className="text-emphasis text-lg font-semibold">
                         {loadedUser?.name ?? "Nameless User"}
                       </span>
                     </Skeleton>
+                  </SheetTitle>
+                  <SheetDescription>
                     <Skeleton loading={isPending} as="p" waitForTranslation={false}>
                       <p className="subtle text-sm font-normal">
                         {orgBranding?.fullDomain ?? WEBAPP_URL}/{loadedUser?.username}
                       </p>
                     </Skeleton>
-                  </div>
-                </div>
-                <div className="mt-6 flex flex-col space-y-5">
+                  </SheetDescription>
+                </SheetHeader>
+                <SheetBody className="flex flex-col space-y-5">
                   <DisplayInfo label={t("email")} value={loadedUser?.email ?? ""} displayCopy />
                   <DisplayInfo
                     label={t("bio")}
@@ -94,22 +108,22 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                     }
                     asBadge={teamNames && teamNames?.length > 0}
                   />
-                </div>
-              </div>
+                </SheetBody>
+                <SheetFooter>
+                  <SheetFooterControls />
+                </SheetFooter>
+              </>
             ) : (
-              <div className="mb-4 flex-grow">
+              <>
                 <EditForm
                   selectedUser={loadedUser}
                   avatarUrl={loadedUser.avatarUrl ?? avatarURL}
                   domainUrl={orgBranding?.fullDomain ?? WEBAPP_URL}
                   dispatch={dispatch}
                 />
-              </div>
+              </>
             )}
-            <SheetFooter className="mt-auto">
-              <SheetFooterControls />
-            </SheetFooter>
-          </div>
+          </>
         ) : (
           <Loader />
         )}
