@@ -408,6 +408,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       const paths = url.split("/");
 
       if (
+        team &&
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types") &&
         hasEmptyAssignment({
@@ -415,7 +416,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
           hosts: eventType.hosts,
           assignAllTeamMembers: eventType.assignAllTeamMembers,
           schedulingType: eventType.schedulingType,
-          isTeamEvent: !!team,
         })
       ) {
         setIsOpenAssignmentWarnDialog(true);

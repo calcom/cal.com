@@ -10,20 +10,12 @@ export function hasEmptyAssignment({
   hosts,
   schedulingType,
   assignAllTeamMembers,
-  isTeamEvent,
 }: {
   assignedUsers: EventTypeAssignedUsers;
   hosts: EventTypeHosts;
   schedulingType: SchedulingType | null;
   assignAllTeamMembers: boolean;
-  isTeamEvent: boolean;
 }): boolean {
-  // if Non-Team event, no need to check for assignments.
-  if (!isTeamEvent) {
-    return false;
-  }
-
-  // Team-events
   // If Team-events have assignAllTeamMembers checked, return false as assignemnt is complete.
   if (assignAllTeamMembers) {
     return false;

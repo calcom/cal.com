@@ -10,7 +10,6 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         assignAllTeamMembers: false,
         hosts: [{ userId: 101, isFixed: false, priority: 2 }],
         schedulingType: "MANAGED",
-        isTeamEvent: true,
       })
     ).toBe(true);
   });
@@ -44,7 +43,6 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         assignAllTeamMembers: false,
         hosts: [],
         schedulingType: "ROUND_ROBIN",
-        isTeamEvent: true,
       })
     ).toBe(true);
   });
@@ -55,7 +53,6 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         assignAllTeamMembers: true,
         hosts: [],
         schedulingType: "ROUND_ROBIN",
-        isTeamEvent: true,
       })
     ).toBe(false);
   });
@@ -66,7 +63,6 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         assignAllTeamMembers: false,
         hosts: [{ userId: 101, isFixed: false, priority: 2 }],
         schedulingType: "ROUND_ROBIN",
-        isTeamEvent: true,
       })
     ).toBe(false);
   });
@@ -100,7 +96,6 @@ describe("Tests to Check if Event Types have empty Assignment", () => {
         assignAllTeamMembers: false,
         hosts: [],
         schedulingType: "MANAGED",
-        isTeamEvent: true,
       })
     ).toBe(false);
   });
