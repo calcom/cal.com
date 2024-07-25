@@ -56,7 +56,6 @@ export class OrganizationsTeamsRepository {
         members: {
           some: {
             userId,
-            accepted: true,
           },
         },
       },
