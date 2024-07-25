@@ -14,6 +14,9 @@ jobs:
     if: always()
     runs-on: buildjet-2vcpu-ubuntu-2204
     steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/yarn-install
+      - uses: ./.github/actions/cache-build
       - name: Download base branch bundle stats
         uses: dawidd6/action-download-artifact@v2
         if: success()
@@ -35,6 +38,7 @@ jobs:
       #
       # Either of these arguments can be changed or removed by editing the `nextBundleAnalysis`
       # entry in your package.json file.
+
       - name: Compare with base branch bundle
         if: success()
         run: |
