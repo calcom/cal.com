@@ -1,5 +1,5 @@
 import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
-import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete.calendar-credentials.input";
+import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
 import {
