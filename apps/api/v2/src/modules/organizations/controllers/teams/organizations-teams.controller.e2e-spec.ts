@@ -18,6 +18,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
+import { OrgMeTeamOutputDto } from "../../outputs/organization-team.output";
+
 describe("Organizations Team Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
     let app: INestApplication;
@@ -154,8 +156,9 @@ describe("Organizations Team Endpoints", () => {
         .get(`/v2/organizations/${org.id}/teams/me`)
         .expect(200)
         .then((response) => {
-          const responseBody: ApiSuccessResponse<Team[]> = response.body;
+          const responseBody: ApiSuccessResponse<OrgMeTeamOutputDto[]> = response.body;
           expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)).toBeDefined();
+          expect(responseBody.data.some((t) => t.accepted)).toBeTruthy();
         });
     });
 

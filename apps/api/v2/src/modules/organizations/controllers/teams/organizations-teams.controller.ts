@@ -8,6 +8,8 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
 import {
+  OrgMeTeamOutputDto,
+  OrgMeTeamsOutputResponseDto,
   OrgTeamOutputDto,
   OrgTeamOutputResponseDto,
   OrgTeamsOutputResponseDto,
@@ -64,7 +66,7 @@ export class OrganizationsTeamsController {
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination,
     @GetUser() user: UserWithProfile
-  ): Promise<OrgTeamsOutputResponseDto> {
+  ): Promise<OrgMeTeamsOutputResponseDto> {
     const { skip, take } = queryParams;
     const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
       orgId,
@@ -74,7 +76,13 @@ export class OrganizationsTeamsController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
+      data: teams.map((team) =>
+        plainToClass(
+          OrgMeTeamOutputDto,
+          { ...team, accepted: team.members?.[0]?.accepted ?? false },
+          { strategy: "excludeAll" }
+        )
+      ),
     };
   }
 
