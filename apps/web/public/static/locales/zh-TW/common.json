@@ -1503,7 +1503,6 @@
   "how_long_after": "活動結束過後多久？",
   "no_available_slots": "沒有可預約的時段",
   "time_available": "開放時間",
-  "cant_find_the_right_video_app_visit_our_app_store": "找不到合適的視訊應用程式嗎？請造訪我們的<1>應用程式商店</1>。",
   "install_new_calendar_app": "安裝新的行事歷應用程式",
   "make_phone_number_required": "預約活動時需提供電話號碼",
   "new_event_type_availability": "{{eventTypeTitle}} 開放時間",
