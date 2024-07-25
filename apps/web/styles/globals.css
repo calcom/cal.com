@@ -396,7 +396,6 @@ select:focus {
 /* animations */
 .slideInBottom {
   animation-duration: 0.3s;
-  animation-fill-mode: both;
   animation-name: slideInBottom;
 }
 
@@ -415,7 +414,6 @@ select:focus {
 /* animations */
 .slideInTop {
   animation-duration: 0.3s;
-  animation-fill-mode: both;
   animation-name: slideInTop;
 }
 
@@ -434,7 +432,6 @@ select:focus {
 
 .fadeIn {
   animation-duration: 0.3s;
-  animation-fill-mode: both;
   animation-name: fadeIn;
   animation-timing-function: ease-in-out;
 }
