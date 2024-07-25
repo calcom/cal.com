@@ -1,3 +1,4 @@
+import { Client, gql, fetchExchange, cacheExchange } from "@urql/core";
 import { globby } from "globby";
 import type { GetServerSidePropsContext } from "next";
 import { withAxiomGetServerSideProps } from "next-axiom";
@@ -35,6 +36,26 @@ export enum SiteLocale {
   It = "it",
   Pt = "pt",
 }
+const urql = new Client({
+  url: process.env.DATOCMS_GRAPHQL_ENDPOINT!,
+  exchanges: [cacheExchange, fetchExchange],
+  fetchOptions: () => {
+    if (!process.env.DATOCMS_API_TOKEN) {
+      throw new Error("Missing env DATOCMS_API_TOKEN");
+    }
+    if (!process.env.DATOCMS_GRAPHQL_ENDPOINT) {
+      throw new Error("Missing env DATOCMS_GRAPHQL_ENDPOINT");
+    }
+    return {
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${process.env.DATOCMS_API_TOKEN}`,
+      },
+    };
+  },
+});
+
 // taken from @link: https://nextjs.org/learn/seo/crawling-and-indexing/xml-sitemaps
 function SiteMap() {
   // getServerSideProps will do the heavy lifting
@@ -73,14 +94,9 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
       return !page.includes("[") && !page.includes("api/") && !page.startsWith("_");
     })
     .map((page) => {
-      const slug = page.replace("pages", "").replace(".tsx", "").replace(".jsx", "");
-      return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${slug}`;
+      const slug = page.replace("pages", "").replace("index.tsx", "").replace(".tsx", "").replace(".jsx", "");
+      return `${process.env.NEXT_PUBLIC_WEBSITE_URL}${slug ? `/${slug}` : ""}`;
     });
-  console.log(`[sitemap] 
-    - ${pathsWebsite.length} website pages
-
-    all pages: 
-    ${pathsWebsite.join("\n")}`);
 
   // - locales versions of all non-dynamic (non-[].tsx) pages
   const pathsWebsiteNonDefaultLocales: Array<string> = [];
@@ -88,37 +104,76 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
     if (locale === "en") continue;
     pathsWebsiteNonDefaultLocales.push(
       ...pathsWebsite.flatMap((path) => {
-        if (path.includes("/blog")) return [];
+        //  exclude /blog and /faq for which we don't have i18n support
+        if (path.includes("/blog") || path === "/faq") return [];
+        // for homepage, we can append the locale to the path
+        if (path.endsWith(process.env.NEXT_PUBLIC_WEBSITE_URL)) {
+          return `${path}/${locale}`;
+        }
+        // for all other pages, we need to replace the locale in the path
         const regex = new RegExp(`^(${process.env.NEXT_PUBLIC_WEBSITE_URL})\/(.+)$`);
         return path.replace(regex, `$1/${locale}/$2`);
       })
     );
   }
+  const GET_ALL_BLOG_PATHS = gql`
+    query getAllBlogPaths {
+      allBlogPosts {
+        slug
+        _locales
+        __typename
+      }
+      allTags {
+        categorySlug
+        _locales
+        __typename
+      }
+    }
+  `;
+  const blogPathsResponse = await urql.query(GET_ALL_BLOG_PATHS, undefined);
+  const { allBlogPosts, allTags } = blogPathsResponse.data;
 
-  // const { allBlogPosts, allTags } = await getAllBlogPaths();
-  // // - pages/blog/[slug].tsx
-  // const pathsPosts = allBlogPosts
-  //   .map(({ _locales, slug }) => {
-  //     if (!_locales.includes(SiteLocale.En)) return null;
-  //     return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/blog/${slug}`;
-  //   })
-  //   .filter(Boolean); // remove nulls
+  // - pages/blog/[slug].tsx
+  const pathsBlogPosts = allBlogPosts
+    // @ts-expect-error - deliberately avoid TS setup for graphql types in apps/web
+    .map(({ _locales, slug }) => {
+      if (!_locales.includes(SiteLocale.En)) return null;
+      return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/blog/${slug}`;
+    })
+    .filter(Boolean); // remove nulls
 
-  // // - pages/blog/category/[category].tsx
-  // const pathsCategories = allTags
-  //   .map(({ _locales, categorySlug }) => {
-  //     if (!_locales.includes(SiteLocale.En)) return null;
-  //     return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/blog/category/${categorySlug}`;
-  //   })
-  //   .filter(Boolean); // removes nulls
+  // - pages/blog/category/[category].tsx
+  const pathsCategories = allTags
+    // @ts-expect-error - deliberately avoid TS setup for graphql types in apps/web
+    .map(({ _locales, categorySlug }) => {
+      if (!_locales.includes(SiteLocale.En)) return null;
+      return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/blog/category/${categorySlug}`;
+    })
+    .filter(Boolean); // removes nulls
 
-  // // - pages/resources/[...slugs].tsx (nb: this already supports i18n)
-  // const { paths: resourcesStaticPaths } = await getStaticPathsResources();
-  // const pathsResources = resourcesStaticPaths.map(({ params: { slugs }, locale }) => {
-  //   return `${process.env.NEXT_PUBLIC_WEBSITE_URL}${
-  //     locale !== "en" ? `/${locale}` : ""
-  //   }/scheduling/${slugs.join("/")}`;
-  // });
+  // - pages/scheduling/[...slugs].tsx (nb: this already supports i18n)
+  const GET_ALL_TEMPLATE_PAGES = gql`
+    query getAllPages {
+      allTemplatePages {
+        path
+        _locales
+      }
+    }
+  `;
+  const templatePagesResponse = await urql.query(GET_ALL_TEMPLATE_PAGES, undefined);
+  const { allTemplatePages } = templatePagesResponse.data;
+  const pathsTemplates = allTemplatePages
+    // @ts-expect-error - deliberately avoid TS setup for graphql types in apps/web
+    .map(({ _locales, path }) => {
+      if (!_locales.includes(SiteLocale.En)) return null;
+      return _locales.map(
+        // @ts-expect-error - deliberately avoid TS setup for graphql types in apps/web
+        (locale) =>
+          `${process.env.NEXT_PUBLIC_WEBSITE_URL}${locale !== "en" ? `/${locale}` : ""}/scheduling/${path}`
+      );
+    })
+    .filter(Boolean) // removes nulls
+    .flat();
 
   // Note: App store pages are excluded for now, since they display a skeleton sidebar for search engines & don't have proper i18n support (or a workflow integration to publish the page only if it contains enough content).
   // - pages/apps/[slug].tsx getStaticPaths from `apps/web`
@@ -181,7 +236,7 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
       
       Excluded ${excluded.length} MOTIF pages from sitemap because they are not public:
 
-      ${JSON.stringify(excluded.map(({ id, name, isPublic, path }) => ({ id, name, isPublic, path })))}
+      ${JSON.stringify(excluded.map(({ isPublic, path }) => ({ isPublic, path })))}
       ==================== [SITEMAP] ====================
       `
     );
@@ -207,12 +262,7 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
       ],
     },
   });
-
-  console.log(`[sitemap] 
-    - ${totalUsersWithMinimumContent} users with enough content
-    `);
   // chunk the query so that we can run in parallel
-  // Note: this is necessary as prisma encounters a limit on accelerate otherwise
   const pageSize = 1000; // Example page size
   const numberOfQueries = Math.ceil(totalUsersWithMinimumContent / pageSize);
   const userQueries = Array.from({ length: numberOfQueries }, (_, index) => {
@@ -262,7 +312,7 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
   const usersWithEnoughContentPaths = usersWithEnoughContent.map((user) => {
     return `${process.env.NEXT_PUBLIC_WEBSITE_URL}/${user.username}`;
   });
-  // ====================  ====================
+  // ==================== END: INDEX USERS WITH ENOUGH CONTENT ====================
 
   // Note: we're excluding orgs, since they are hosted on subdomains, which are treated as separate domains on google.
 
@@ -271,7 +321,12 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
     ...pathsWebsiteNonDefaultLocales,
     ...pathsDocs,
     ...usersWithEnoughContentPaths,
+    // dato-stuff
+    ...pathsBlogPosts,
+    ...pathsCategories,
+    ...pathsTemplates,
   ];
+  console.log(`ℹ️ Generated ${paths.length} paths for sitemap`);
   // We generate the XML sitemap with the posts data
   const sitemap = generateSiteMap(paths);
 
