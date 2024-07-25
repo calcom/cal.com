@@ -198,7 +198,7 @@ export const sendRescheduledEmails = async (
     }
   }
 
-  if (!eventTypeDisableAttendeeEmail) {
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...calendarEvent.attendees.map((attendee) => {
         return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));
