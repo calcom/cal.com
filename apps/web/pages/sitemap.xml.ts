@@ -198,25 +198,30 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
   // https://github.com/prisma/prisma/issues/7872
 
   // count all users so that we can chunk the query
-  const totalUsers = await prisma.user.count({
+  const totalUsersWithMinimumContent = await prisma.user.count({
     where: {
       AND: [
         { avatarUrl: { not: null } },
         { bio: { not: null } },
-        { eventTypes: { some: { AND: { eventName: { not: null }, description: { not: null } } } } },
+        { eventTypes: { some: { AND: { title: { not: undefined }, description: { not: null } } } } },
       ],
     },
   });
+
+  console.log(`[sitemap] 
+    - ${totalUsersWithMinimumContent} users with enough content
+    `);
   // chunk the query so that we can run in parallel
+  // Note: this is necessary as prisma encounters a limit on accelerate otherwise
   const pageSize = 1000; // Example page size
-  const numberOfQueries = Math.ceil(totalUsers / pageSize);
+  const numberOfQueries = Math.ceil(totalUsersWithMinimumContent / pageSize);
   const userQueries = Array.from({ length: numberOfQueries }, (_, index) => {
     return prisma.user.findMany({
       skip: index * pageSize,
       take: pageSize,
       where: {
         AND: [
-          { avatar: { not: null } },
+          { avatarUrl: { not: null } },
           { bio: { not: null } },
           { eventTypes: { some: { AND: { eventName: { not: null }, description: { not: null } } } } },
         ],
@@ -237,7 +242,7 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
   // run the queries in parallel
   const allUsers = (await Promise.all(userQueries)).flat();
 
-  // Filter the users that meet the content criteria
+  // Now, filter the users that meet the content criteria
   // - they have an avatar set
   // - they have a description provided with at least 50 characters
   // - they have at least 2 eventTypes
@@ -259,25 +264,14 @@ export const getServerSideProps = withAxiomGetServerSideProps(async ({ res }: Ge
   });
   // ====================  ====================
 
-  // note: excluding the /[user] & /[team] pages as they currently don't have a lot of content
+  // Note: we're excluding orgs, since they are hosted on subdomains, which are treated as separate domains on google.
+
   const paths = [
-    // /pages in website
     ...pathsWebsite,
     ...pathsWebsiteNonDefaultLocales,
-    // /apps
-    // ...pathsAppStore,
-    // ...pathsAppStoreCategories,
-    // // /blog
-    // ...pathsPosts,
-    // ...pathsCategories,
-    // // /scheduling
-    // ...pathsResources,
-    // /docs
     ...pathsDocs,
-    // users with enough content
     ...usersWithEnoughContentPaths,
   ];
-
   // We generate the XML sitemap with the posts data
   const sitemap = generateSiteMap(paths);
 
@@ -296,7 +290,6 @@ export interface Sitemap {
     url: Array<{ loc: Array<string> }>;
   };
 }
-
 export const MotifLandProjectDataSchema = z.object({
   data: z.object({
     id: z.string(),
