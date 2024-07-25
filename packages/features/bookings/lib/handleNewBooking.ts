@@ -1334,7 +1334,7 @@ async function handler(
             additionalNotes, // Resets back to the additionalNote input and not the override value
             cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
           },
-          eventType.metadata
+          eventType?.metadata
         );
       }
     }
