@@ -144,7 +144,7 @@ async function postHandler(req: NextApiRequest) {
     return {
       team: schemaTeamReadPublic.parse(team),
       owner: schemaMembershipPublic.parse(team.members[0]),
-      message: `Team created successfully. We also made user with ID=${ownerId} the owner of this team.`,
+      message: `Team created successfully. We also made user with ID=${effectiveUserId} the owner of this team.`,
     };
   }
 
