@@ -32,6 +32,7 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CreateTeamEventTypeInput_2024_06_14,
+  GetTeamEventTypesQuery_2024_06_14,
   SkipTakePagination,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
@@ -40,13 +41,12 @@ import {
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
 @DocsTags("Organizations Event Types")
 export class OrganizationsEventTypesController {
   constructor(private readonly organizationsEventTypesService: OrganizationsEventTypesService) {}
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg)
   @Post("/teams/:teamId/event-types")
   async createTeamEventType(
     @GetUser() user: UserWithProfile,
@@ -68,7 +68,7 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg)
   @Get("/teams/:teamId/event-types/:eventTypeId")
   async getTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -86,10 +86,22 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @Roles("TEAM_ADMIN")
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(IsOrgGuard, IsTeamInOrg)
   @Get("/teams/:teamId/event-types")
-  async getTeamEventTypes(@Param("teamId", ParseIntPipe) teamId: number): Promise<GetTeamEventTypesOutput> {
+  async getTeamEventTypes(
+    @Param("teamId", ParseIntPipe) teamId: number,
+    @Query() queryParams: GetTeamEventTypesQuery_2024_06_14
+  ): Promise<GetTeamEventTypesOutput> {
+    const { eventSlug } = queryParams;
+    if (eventSlug) {
+      const eventType = await this.organizationsEventTypesService.getTeamEventTypeBySlug(teamId, eventSlug);
+
+      return {
+        status: SUCCESS_STATUS,
+        data: eventType ? [eventType] : [],
+      };
+    }
+
     const eventTypes = await this.organizationsEventTypesService.getTeamEventTypes(teamId);
 
     return {
@@ -99,6 +111,7 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
   @Get("/teams/event-types")
   async getTeamsEventTypes(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -114,7 +127,7 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg)
   @Patch("/teams/:teamId/event-types/:eventTypeId")
   async updateTeamEventType(
     @Param("teamId", ParseIntPipe) teamId: number,
@@ -136,7 +149,7 @@ export class OrganizationsEventTypesController {
   }
 
   @Roles("TEAM_ADMIN")
-  @UseGuards(IsTeamInOrg)
+  @UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsTeamInOrg)
   @Delete("/teams/:teamId/event-types/:eventTypeId")
   @HttpCode(HttpStatus.OK)
   async deleteTeamEventType(
