@@ -1,5 +1,3 @@
-import type { SchedulingType } from "@calcom/prisma/enums";
-
 import type { EventTypeAssignedUsers, EventTypeHosts } from "~/event-types/views/event-types-single-view";
 
 // This function checks if EventType requires assignment.
@@ -8,12 +6,12 @@ import type { EventTypeAssignedUsers, EventTypeHosts } from "~/event-types/views
 export function checkForEmptyAssignment({
   assignedUsers,
   hosts,
-  schedulingType,
+  isManagedEventType,
   assignAllTeamMembers,
 }: {
   assignedUsers: EventTypeAssignedUsers;
   hosts: EventTypeHosts;
-  schedulingType: SchedulingType | null;
+  isManagedEventType: boolean;
   assignAllTeamMembers: boolean;
 }): boolean {
   // If Team-events have assignAllTeamMembers checked, return false as assignemnt is complete.
@@ -21,13 +19,9 @@ export function checkForEmptyAssignment({
     return false;
   }
 
-  // For Managed EventType, check if assigned users are empty.
-  if (schedulingType === "MANAGED" && assignedUsers.length === 0) {
-    return true;
-  }
-
-  // For Non-Managed EventType (i.e RoundRobin or Collective), check if hosts are empty.
-  if ((schedulingType === "ROUND_ROBIN" || schedulingType === "COLLECTIVE") && hosts.length === 0) {
+  // For managed eventtype check if assigned users are empty.
+  // For non-managed eventtype check if hosts are empty.
+  if (isManagedEventType ? assignedUsers.length === 0 : hosts.length === 0) {
     return true;
   }
 
