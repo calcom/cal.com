@@ -1496,7 +1496,6 @@
   "how_long_after": "Jak długo po zakończeniu wydarzenia?",
   "no_available_slots": "Brak dostępnych przedziałów",
   "time_available": "Dostępny czas",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nie możesz znaleźć właściwej aplikacji wideo? Odwiedź nasz sklep <1>App Store</1>.",
   "install_new_calendar_app": "Zainstaluj nową aplikację kalendarza",
   "make_phone_number_required": "Ustaw wymóg podania numeru telefonu w celu rezerwacji wydarzenia",
   "new_event_type_availability": "{{eventTypeTitle}} – dostępność",
