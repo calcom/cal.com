@@ -277,13 +277,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (!allowDisablingHostConfirmationEmails(workflows, !!eventType?.team?.parentId)) {
+      if (!allowDisablingHostConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.host = false;
       }
     }
 
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (!allowDisablingAttendeeConfirmationEmails(workflows, !!eventType?.team?.parentId)) {
+      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
       }
     }
