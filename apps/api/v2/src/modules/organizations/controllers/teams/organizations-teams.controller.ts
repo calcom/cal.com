@@ -79,7 +79,7 @@ export class OrganizationsTeamsController {
       data: teams.map((team) =>
         plainToClass(
           OrgMeTeamOutputDto,
-          { ...team, accepted: team.members.find((member) => member.userId === user.id) ?? false },
+          { ...team, accepted: team.members.find((member) => member.userId === user.id)?.accepted ?? false },
           { strategy: "excludeAll" }
         )
       ),
