@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { OrgMeTeamOutputDto } from "@/modules/organizations/outputs/organization-team.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -17,8 +18,6 @@ import { withApiAuth } from "test/utils/withApiAuth";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
-
-import { OrgMeTeamOutputDto } from "../../outputs/organization-team.output";
 
 describe("Organizations Team Endpoints", () => {
   describe("User Authentication - User is Org Admin", () => {
