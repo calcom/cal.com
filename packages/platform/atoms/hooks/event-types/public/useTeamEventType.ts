@@ -12,7 +12,7 @@ export const QUERY_KEY = "use-team-event-type";
 
 export const useTeamEventType = (orgId: number | undefined, teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
   const [stateEventSlug] = useBookerStore(
-    (state) => [state.username, state.eventSlug],
+    (state) => [state.eventSlug],
     shallow
   );
 
