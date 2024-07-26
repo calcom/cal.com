@@ -3,6 +3,7 @@ import { GetMembership } from "@/modules/auth/decorators/get-membership/get-memb
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
+import { IsAdminAccessGuard } from "@/modules/auth/guards/organizations/is-admin-access.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { CreateOrgMembershipDto } from "@/modules/organizations/inputs/create-organization-membership.input";
@@ -39,7 +40,7 @@ import { Membership } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsAdminAccessGuard)
 @DocsTags("Organizations Memberships")
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}

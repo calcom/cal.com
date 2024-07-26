@@ -2,6 +2,7 @@ import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { IsAdminAccessGuard } from "@/modules/auth/guards/organizations/is-admin-access.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
@@ -38,7 +39,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsAdminAccessGuard)
 @DocsTags("Organizations Schedules")
 export class OrganizationsSchedulesController {
   constructor(
