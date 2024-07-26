@@ -22,7 +22,7 @@ export class PlatformPlanGuard implements CanActivate {
     const user = request.user as GetUserReturnType;
     const minimumPlan = this.reflector.get(PlatformPlan, context.getHandler()) as PlatformPlanType;
 
-    const REDIS_CACHE_KEY = `apiv2:user:${user.id ?? "none"}:org:${orgId ?? "none"}:team:${
+    const REDIS_CACHE_KEY = `apiv2:user:${user?.id ?? "none"}:org:${orgId ?? "none"}:team:${
       teamId ?? "none"
     }:guard:platformbilling:${minimumPlan}`;
 
@@ -34,8 +34,8 @@ export class PlatformPlanGuard implements CanActivate {
 
     let canAccess = false;
 
-    if (user) {
-      const team = await this.organizationsRepository.findByIdIncludeBilling(Number(teamId));
+    if (user && orgId) {
+      const team = await this.organizationsRepository.findByIdIncludeBilling(Number(orgId));
       const isPlatform = team?.isPlatform;
       const hasSubscription = team?.platformBilling?.subscriptionId;
 
