@@ -4,7 +4,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateUserWebhookInputDto } from "@/modules/webhooks/inputs/create-user-webhook.input";
+import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import {
   WebhookOutputResponseDto,
   WebhooksOutputResponseDto,
@@ -79,7 +79,7 @@ describe("WebhooksController (e2e)", () => {
         eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
-      } satisfies CreateUserWebhookInputDto)
+      } satisfies CreateWebhookInputDto)
       .expect(201)
       .then(async (res) => {
         expect(res.body).toMatchObject({
@@ -105,7 +105,7 @@ describe("WebhooksController (e2e)", () => {
         eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
-      } satisfies CreateUserWebhookInputDto)
+      } satisfies CreateWebhookInputDto)
       .expect(409);
   });
 
@@ -114,7 +114,7 @@ describe("WebhooksController (e2e)", () => {
       .patch(`/v2/webhooks/${webhook.id}`)
       .send({
         active: false,
-      } satisfies Partial<CreateUserWebhookInputDto>)
+      } satisfies Partial<CreateWebhookInputDto>)
       .expect(200)
       .then((res) => {
         expect(res.body.data.active).toBe(false);

@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { WebhookTriggerEvents } from "@prisma/client";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
-export class CreateUserWebhookInputDto {
+export class CreateWebhookInputDto {
   @IsString()
   @IsOptional()
   payloadTemplate?: string;

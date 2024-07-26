@@ -1,16 +1,24 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
-import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { UserWithProfile } from "@/modules/users/users.repository";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
-import { IsUserWebhookGuard } from "@/modules/webhooks/guards/is-user-webhook-guard";
 import {
   WebhookOutputDto,
   WebhookOutputResponseDto,
   WebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/webhook.output";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
-import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Get,
+  Param,
+  Query,
+  Delete,
+  Patch,
+  ParseIntPipe,
+} from "@nestjs/common";
 import { ApiOperation } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
@@ -18,54 +26,53 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
+import { IsUserEventTypeWebhookGuard } from "../guards/is-user-event-type-webhook-guard";
 import { CreateWebhookInputDto } from "../inputs/create-webhook.input";
 
 @Controller({
-  path: "/v2/webhooks",
+  path: "/v2/webhooks/event-types/:eventTypeId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard)
-export class WebhooksController {
+@UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
+export class EventTypeWebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 
   @Post("/")
-  @ApiOperation({ summary: "Create a webhook" })
-  async createWebhook(
+  @ApiOperation({ summary: "Create a webhook for an event-type" })
+  async createEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
-    @GetUser() user: UserWithProfile
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<WebhookOutputResponseDto> {
-    const webhook = await this.webhooksService.createUserWebhook(user.id, body);
+    const webhook = await this.webhooksService.createEventTypeWebhook(eventTypeId, body);
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 
   @Patch("/:webhookId")
-  @ApiOperation({ summary: "Update a webhook" })
-  @UseGuards(IsUserWebhookGuard)
+  @ApiOperation({ summary: "Update a webhook of an event-type" })
   async updateWebhook(
-    @Param("webhookId") webhookId: string,
-    @Body() body: Partial<CreateWebhookInputDto>
+    @Body() body: Partial<CreateWebhookInputDto>,
+    @Param("webhookId") webhookId: string
   ): Promise<WebhookOutputResponseDto> {
     const webhook = await this.webhooksService.updateWebhook(webhookId, body);
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 
   @Get("/:webhookId")
-  @ApiOperation({ summary: "Get a webhook" })
-  @UseGuards(IsUserWebhookGuard)
+  @ApiOperation({ summary: "Get a webhook of an event-type" })
   async getWebhook(@GetWebhook() webhook: Webhook): Promise<WebhookOutputResponseDto> {
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 
   @Get("/")
-  @ApiOperation({ summary: "Get all user webhooks paginated" })
-  async getWebhooks(
-    @GetUser() user: UserWithProfile,
-    @Query() query: SkipTakePagination
+  @ApiOperation({ summary: "Get all webhooks of an event-type" })
+  async getEventWebhooks(
+    @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
+    @Query() pagination: SkipTakePagination
   ): Promise<WebhooksOutputResponseDto> {
-    const webhooks = await this.webhooksService.getUserWebhooksPaginated(
-      user.id,
-      query.skip ?? 0,
-      query.take ?? 250
+    const webhooks = await this.webhooksService.getEventTypeWebhooksPaginated(
+      eventTypeId,
+      pagination.skip ?? 0,
+      pagination.take ?? 250
     );
     return {
       status: SUCCESS_STATUS,
@@ -74,10 +81,9 @@ export class WebhooksController {
   }
 
   @Delete("/:webhookId")
-  @ApiOperation({ summary: "Delete a webhook" })
-  @UseGuards(IsUserWebhookGuard)
-  async deleteWebhook(@Param("webhookId") webhookId: string): Promise<WebhookOutputResponseDto> {
-    const webhook = await this.webhooksService.deleteWebhook(webhookId);
+  @ApiOperation({ summary: "Delete a webhook of an event-type" })
+  async deleteWebhook(@GetWebhook() webhook: Webhook): Promise<WebhookOutputResponseDto> {
+    await this.webhooksService.deleteWebhook(webhook.id);
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 }

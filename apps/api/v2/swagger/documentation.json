@@ -3050,7 +3050,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateUserWebhookInputDto"
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
               }
             }
           }
@@ -7376,7 +7376,7 @@
         "type": "object",
         "properties": {}
       },
-      "CreateUserWebhookInputDto": {
+      "CreateWebhookInputDto": {
         "type": "object",
         "properties": {
           "eventTriggers": {
