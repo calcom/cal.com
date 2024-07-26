@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { OrgMeTeamOutputDto } from "@/modules/organizations/outputs/organization-team.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -146,6 +147,17 @@ describe("Organizations Team Endpoints", () => {
             teamCreatedViaApi.id
           );
           expect(membership?.role ?? "").toEqual("OWNER");
+        });
+    });
+
+    it("should get all the teams of the authenticated org member", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/me`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<OrgMeTeamOutputDto[]> = response.body;
+          expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)).toBeDefined();
+          expect(responseBody.data.some((t) => t.accepted)).toBeTruthy();
         });
     });
 
