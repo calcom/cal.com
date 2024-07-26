@@ -61,7 +61,9 @@ export default class AttendeeScheduledEmail extends BaseEmail {
   protected getTextBody(title = "", subtitle = "emailed_you_and_any_other_attendees"): string {
     return `
 ${this.t(
-  title || this.calEvent.recurringEvent?.count
+  title
+    ? title
+    : this.calEvent.recurringEvent?.count
     ? "your_event_has_been_scheduled_recurring"
     : "your_event_has_been_scheduled"
 )}

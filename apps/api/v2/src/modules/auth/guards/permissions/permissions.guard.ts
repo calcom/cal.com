@@ -1,13 +1,19 @@
+import { isApiKey } from "@/lib/api-key";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { Reflector } from "@nestjs/core";
 
 import { hasPermissions } from "@calcom/platform-utils";
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector, private tokensRepository: TokensRepository) {}
+  constructor(
+    private reflector: Reflector,
+    private tokensRepository: TokensRepository,
+    private readonly config: ConfigService
+  ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermissions = this.reflector.get(Permissions, context.getHandler());
@@ -17,13 +23,18 @@ export class PermissionsGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest();
-    const accessToken = request.get("Authorization")?.replace("Bearer ", "");
+    const authString = request.get("Authorization")?.replace("Bearer ", "");
 
-    if (!accessToken) {
+    if (!authString) {
       return false;
     }
 
-    const oAuthClientPermissions = await this.getOAuthClientPermissions(accessToken);
+    // only check permissions for accessTokens attached to an oAuth Client
+    if (isApiKey(authString, this.config.get("api.apiKeyPrefix") ?? "cal_")) {
+      return true;
+    }
+
+    const oAuthClientPermissions = await this.getOAuthClientPermissions(authString);
 
     if (!oAuthClientPermissions) {
       return false;

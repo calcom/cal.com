@@ -3,10 +3,9 @@ import type { FC } from "react";
 import type { CALENDARS } from "@calcom/platform-constants";
 import { Button } from "@calcom/ui";
 
-import type { OnCheckErrorType } from "../hooks/connect/useCheck";
+import type { OnCheckErrorType, UseCheckProps } from "../hooks/connect/useCheck";
 import { useCheck } from "../hooks/connect/useCheck";
 import { useConnect } from "../hooks/connect/useConnect";
-import { useAtomsContext } from "../hooks/useAtomsContext";
 import { AtomsWrapper } from "../src/components/atoms-wrapper";
 import { cn } from "../src/lib/utils";
 
@@ -17,9 +16,14 @@ export type OAuthConnectProps = {
   loadingLabel: string;
   onCheckError?: OnCheckErrorType;
   redir?: string;
+  initialData: UseCheckProps["initialData"];
 };
 
-export const OAuthConnect: FC<OAuthConnectProps & { calendar: (typeof CALENDARS)[number] }> = ({
+export const OAuthConnect: FC<
+  OAuthConnectProps & {
+    calendar: (typeof CALENDARS)[number];
+  }
+> = ({
   label,
   alreadyConnectedLabel,
   loadingLabel,
@@ -27,17 +31,17 @@ export const OAuthConnect: FC<OAuthConnectProps & { calendar: (typeof CALENDARS)
   onCheckError,
   calendar,
   redir,
+  initialData,
 }) => {
-  const { isAuth } = useAtomsContext();
   const { connect } = useConnect(calendar, redir);
 
   const { allowConnect, checked } = useCheck({
-    isAuth,
     onCheckError,
     calendar: calendar,
+    initialData,
   });
 
-  const isChecking = !isAuth || !checked;
+  const isChecking = !checked;
   const isDisabled = isChecking || !allowConnect;
 
   let displayedLabel = label;
