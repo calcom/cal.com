@@ -10,7 +10,6 @@ import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organiza
 import {
   OrgMeTeamOutputDto,
   OrgMeTeamsOutputResponseDto,
-  OrgTeamOutputDto,
   OrgTeamOutputResponseDto,
   OrgTeamsOutputResponseDto,
 } from "@/modules/organizations/outputs/organization-team.output";
@@ -32,6 +31,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 

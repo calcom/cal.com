@@ -19,3 +19,4 @@ export { BookerEmbed } from "./booker-embed";
 export { useDeleteCalendarCredentials } from "./hooks/calendars/useDeleteCalendarCredentials";
 export { useAddSelectedCalendar } from "./hooks/calendars/useAddSelectedCalendar";
 export { useRemoveSelectedCalendar } from "./hooks/calendars/useRemoveSelectedCalendar";
+export { useTeams } from "./hooks/teams/useTeams";
