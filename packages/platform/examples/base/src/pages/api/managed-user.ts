@@ -102,10 +102,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
   // eslint-disable-next-line turbo/no-undeclared-env-vars
   const organizationId = process.env.ORGANIZATION_ID;
-  const team = await createTeam(organizationId, "Team Doe");
-  await createMembership(organizationId, team.id, body.data?.user.id);
-  await createMembership(bodorganizationId, team.id, bodyTwo.data?.user.id);
-  await createCollectiveEventType(organizationId, team.id, [body.data?.user.id, bodyTwo.data?.user.id]);
+  if (!organizationId) {
+    throw new Error("Organization ID is not set");
+  }
+
+  const team = await createTeam(+organizationId, "Team Doe");
+  await createMembership(+organizationId, team.id, body.data?.user.id);
+  await createMembership(+organizationId, team.id, bodyTwo.data?.user.id);
+  await createCollectiveEventType(+organizationId, team.id, [body.data?.user.id, bodyTwo.data?.user.id]);
 
   return res.status(200).json({
     id: body?.data?.user?.id,

@@ -97,7 +97,7 @@ export default function Bookings(props: { calUsername: string; calEmail: string 
                 setBookingTitle(data.data.title ?? "");
                 router.push(`/${data.data.uid}`);
               }}
-              teamId={me?.data?.teams?.[1]?.teamId || 0}
+              teamId={teams?.[0]?.id || 0}
               isTeamEvent={isTeamEvent}
               duration={eventTypeDuration}
               customClassNames={{
