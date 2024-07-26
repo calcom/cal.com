@@ -26,6 +26,7 @@ type AvailabilitySettingsPlatformWrapperProps = {
   onDeleteSuccess?: (res: ApiResponse) => void;
   onDeleteError?: (err: ApiErrorResponse) => void;
   disableEditableHeading?: boolean;
+  enableOverrides?: boolean;
 };
 
 export const AvailabilitySettingsPlatformWrapper = ({
@@ -36,6 +37,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
   onUpdateError,
   onUpdateSuccess,
   disableEditableHeading = false,
+  enableOverrides = false,
 }: AvailabilitySettingsPlatformWrapperProps) => {
   const { isLoading, data: schedule } = useSchedule(id);
   const { data: schedules } = useSchedules();
@@ -97,8 +99,9 @@ export const AvailabilitySettingsPlatformWrapper = ({
         handleSubmit={async (data) => {
           atomSchedule.id && handleUpdate(atomSchedule.id, data);
         }}
-        weekStart="Sunday"
+        weekStart={me?.data?.weekStart || "Sunday"}
         timeFormat={timeFormat}
+        enableOverrides={enableOverrides}
         isLoading={isLoading}
         schedule={{
           name: atomSchedule.name,

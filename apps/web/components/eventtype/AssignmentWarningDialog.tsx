@@ -12,6 +12,7 @@ interface AssignmentWarningDialogProps {
   leaveWithoutAssigningHosts: MutableRefObject<boolean>;
   id: number;
 }
+
 const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
   const { t } = useLocale();
   const {
@@ -24,11 +25,12 @@ const AssignmentWarningDialog = (props: AssignmentWarningDialogProps) => {
   const router = useRouter();
   return (
     <Dialog open={isOpenAssignmentWarnDialog} onOpenChange={setIsOpenAssignmentWarnDialog}>
-      <DialogContent title={t("leave_without_assigning_anyone")} Icon="circle-alert" type="confirmation">
-        <div className="text-subtle text-sm">
-          <p className="mt-3">{t("leave_without_adding_attendees")}</p>
-          <p className="mt-4">{t("no_availability_shown_to_bookers")}</p>
-        </div>
+      <DialogContent
+        title={t("leave_without_assigning_anyone")}
+        description={`${t("leave_without_adding_attendees")} ${t("no_availability_shown_to_bookers")}`}
+        Icon="circle-alert"
+        enableOverflow
+        type="confirmation">
         <DialogFooter className="mt-6">
           <Button
             onClick={(e) => {

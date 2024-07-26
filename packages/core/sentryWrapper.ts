@@ -1,5 +1,4 @@
-import { getCurrentHub, startTransaction, captureException } from "@sentry/nextjs";
-import type { Span, Transaction } from "@sentry/types";
+import { startSpan, captureException } from "@sentry/nextjs";
 
 /*
 WHEN TO USE
@@ -11,37 +10,6 @@ For smaller loops, the cost incurred may not be very significant on an absolute 
 considering that a million monitored iterations only took roughly 8 seconds when monitored.
 */
 
-const setUpMonitoring = (name: string) => {
-  // Attempt to retrieve the current transaction from Sentry's scope
-  let transaction = getCurrentHub().getScope()?.getTransaction();
-
-  // Check if there's an existing transaction, if not, start a new one
-  if (!transaction) {
-    transaction = startTransaction({
-      op: name,
-      name: name,
-    });
-  }
-
-  // Start a new span in the current transaction
-  const span = transaction.startChild({
-    op: name,
-    description: `Executing ${name}`,
-  });
-  return [transaction, span];
-};
-
-// transaction will always be Transaction, since returned in a list with Span type must be listed as either or here
-const finishMonitoring = (transaction: Transaction | Span, span: Span) => {
-  // Attempt to retrieve the current transaction from Sentry's scope
-  span.finish();
-
-  // If this was a new transaction, finish it
-  if (!getCurrentHub().getScope()?.getTransaction()) {
-    transaction.finish();
-  }
-};
-
 const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   cb: T,
   ...args: Parameters<T>
@@ -49,17 +17,15 @@ const monitorCallbackAsync = async <T extends (...args: any[]) => any>(
   // Check if Sentry set
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return (await cb(...args)) as ReturnType<T>;
 
-  const [transaction, span] = setUpMonitoring(cb.name);
-
-  try {
-    const result = await cb(...args);
-    return result as ReturnType<T>;
-  } catch (error) {
-    captureException(error);
-    throw error;
-  } finally {
-    finishMonitoring(transaction, span);
-  }
+  return await startSpan({ name: cb.name }, async () => {
+    try {
+      const result = await cb(...args);
+      return result as ReturnType<T>;
+    } catch (error) {
+      captureException(error);
+      throw error;
+    }
+  });
 };
 
 const monitorCallbackSync = <T extends (...args: any[]) => any>(
@@ -69,17 +35,15 @@ const monitorCallbackSync = <T extends (...args: any[]) => any>(
   // Check if Sentry set
   if (!process.env.NEXT_PUBLIC_SENTRY_DSN) return cb(...args) as ReturnType<T>;
 
-  const [transaction, span] = setUpMonitoring(cb.name);
-
-  try {
-    const result = cb(...args);
-    return result as ReturnType<T>;
-  } catch (error) {
-    captureException(error);
-    throw error;
-  } finally {
-    finishMonitoring(transaction, span);
-  }
+  return startSpan({ name: cb.name }, () => {
+    try {
+      const result = cb(...args);
+      return result as ReturnType<T>;
+    } catch (error) {
+      captureException(error);
+      throw error;
+    }
+  });
 };
 
 export default monitorCallbackAsync;

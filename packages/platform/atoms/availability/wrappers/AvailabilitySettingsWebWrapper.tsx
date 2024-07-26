@@ -86,6 +86,7 @@ export const AvailabilitySettingsWebWrapper = () => {
       isDeleting={deleteMutation.isPending}
       isLoading={isPending}
       isSaving={updateMutation.isPending}
+      enableOverrides={true}
       timeFormat={timeFormat}
       weekStart={me.data?.weekStart || "Sunday"}
       backPath={fromEventType ? true : "/availability"}

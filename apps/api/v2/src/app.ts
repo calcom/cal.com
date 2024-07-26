@@ -1,11 +1,11 @@
-import { getEnv } from "@/env";
+import "./instrument";
+
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
-import { SentryFilter } from "@/filters/sentry-exception.filter";
 import { ZodExceptionFilter } from "@/filters/zod-exception.filter";
 import type { ValidationError } from "@nestjs/common";
 import { BadRequestException, ValidationPipe, VersioningType } from "@nestjs/common";
-import { HttpAdapterHost } from "@nestjs/core";
+import { BaseExceptionFilter, HttpAdapterHost } from "@nestjs/core";
 import type { NestExpressApplication } from "@nestjs/platform-express";
 import * as Sentry from "@sentry/node";
 import * as cookieParser from "cookie-parser";
@@ -30,9 +30,7 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     type: VersioningType.CUSTOM,
     extractor: (request: unknown) => {
       const headerVersion = (request as Request)?.headers[CAL_API_VERSION_HEADER] as string | undefined;
-      console.log("asap header headerVersion", headerVersion);
       if (headerVersion && API_VERSIONS.includes(headerVersion as API_VERSIONS_ENUM)) {
-        console.log("asap return header headerVersion", headerVersion);
         return headerVersion;
       }
       return VERSION_2024_04_15;
@@ -71,15 +69,11 @@ export const bootstrap = (app: NestExpressApplication): NestExpressApplication =
     })
   );
 
-  if (process.env.SENTRY_DSN) {
-    Sentry.init({
-      dsn: getEnv("SENTRY_DSN"),
-    });
-  }
-
   // Exception filters, new filters go at the bottom, keep the order
   const { httpAdapter } = app.get(HttpAdapterHost);
-  app.useGlobalFilters(new SentryFilter(httpAdapter));
+  if (process.env.SENTRY_DSN) {
+    Sentry.setupNestErrorHandler(app, new BaseExceptionFilter(httpAdapter));
+  }
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalFilters(new ZodExceptionFilter());
   app.useGlobalFilters(new HttpExceptionFilter());
