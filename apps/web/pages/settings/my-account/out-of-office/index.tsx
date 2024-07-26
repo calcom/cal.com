@@ -306,7 +306,7 @@ const CreateOutOfOfficeEntryModal = ({
               type="submit"
               disabled={createOutOfOfficeEntry.isPending}
               data-testid="create-entry-ooo-redirect">
-              {currentlyEditingOutOfOfficeEntry ? t("edit") : t("create")}
+              {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
             </Button>
           </div>
         </DialogFooter>
@@ -400,7 +400,7 @@ const OutOfOfficeEntriesList = ({
                   </div>
                 </div>
 
-                <div className="flex flex-row items-center">
+                <div className="flex flex-row items-center gap-x-2">
                   <Button
                     className="self-center rounded-lg border"
                     type="button"
