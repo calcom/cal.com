@@ -42,8 +42,6 @@
   outline: 0;
   padding: 10px 10px;
   outline: none;
-  hyphens: auto !important;
-  word-wrap: break-word !important;
 }
 
 .editor-text-bold {
@@ -54,7 +52,7 @@
   font-style: italic;
 }
 
-/* // h6 is only used for emoji links */
+/* h6 is only used for emoji links */
 .editor-heading-h6 {
 }
 
