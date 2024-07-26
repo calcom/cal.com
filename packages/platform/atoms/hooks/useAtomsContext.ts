@@ -26,6 +26,7 @@ export interface IAtomsContext {
     locales: CalProviderLanguagesType[];
     exists: (key: translationKeys | string) => boolean;
   };
+  orgId: number;
 }
 
 export const AtomsContext = createContext({
@@ -33,6 +34,7 @@ export const AtomsContext = createContext({
   accessToken: "",
   options: { refreshUrl: "", apiUrl: "" },
   error: "",
+  orgId: 0,
   getClient: () => {
     return;
   },
