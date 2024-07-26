@@ -5,9 +5,11 @@ import type { TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
 
 import http from "../../../lib/http";
+import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-types";
-export const useTeamEventTypes = (orgId: number, teamId: number) => {
+export const useTeamEventTypes = (teamId: number) => {
+  const { orgId } = useAtomsContext();
   const pathname = `/organizations/${orgId}/teams/${teamId}/event-types`;
 
   return useQuery({

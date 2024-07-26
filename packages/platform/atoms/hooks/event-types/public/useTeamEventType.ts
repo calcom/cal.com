@@ -7,10 +7,13 @@ import type { ApiSuccessResponse, TeamEventTypeOutput_2024_06_14 } from "@calcom
 import type { ApiResponse } from "@calcom/platform-types";
 
 import http from "../../../lib/http";
+import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-type";
 
-export const useTeamEventType = (orgId: number | undefined, teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
+export const useTeamEventType = (teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
+  const { orgId } = useAtomsContext();
+
   const [stateEventSlug] = useBookerStore(
     (state) => [state.eventSlug],
     shallow

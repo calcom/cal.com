@@ -72,7 +72,6 @@ export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "ent
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
-  orgId?: number;
   teamId?: number;
 };
 
@@ -113,7 +112,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     isError: isTeamError,
     isPending: isTeamPending,
     data: teamData,
-  } = useTeamEventType(props.orgId, props.teamId, props.eventSlug, props.isTeamEvent);
+  } = useTeamEventType(props.teamId, props.eventSlug, props.isTeamEvent);
 
   const event = useMemo(() => {
     if (props.isTeamEvent) {
