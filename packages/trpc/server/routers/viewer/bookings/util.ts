@@ -76,7 +76,11 @@ export const bookingsProcedure = authedProcedure
 
 export type BookingsProcedureContext = {
   booking: Booking & {
-    eventType: EventType | null;
+    eventType:
+      | (EventType & {
+          team?: { id: number; name: string; parentId?: number | null } | null;
+        })
+      | null;
     destinationCalendar: DestinationCalendar | null;
     user:
       | (User & {
