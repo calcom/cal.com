@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Select from "react-select";
 
 import { CalProvider, BookerEmbed } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
@@ -27,14 +28,24 @@ export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [options, setOptions] = useState([]);
+
   const router = useRouter();
   const pathname = usePathname();
+  useEffect(() => {
+    fetch("/api/get-managed-users", {
+      method: "get",
+    }).then(async (res) => {
+      const data = await res.json();
+      setOptions(data.users.map((item) => ({ ...item, value: item.id, label: item.username })));
+    });
+  }, []);
 
   useEffect(() => {
     const randomEmail = generateRandomEmail();
     fetch("/api/managed-user", {
       method: "POST",
-
       body: JSON.stringify({ email: randomEmail }),
     }).then(async (res) => {
       const data = await res.json();
@@ -43,8 +54,17 @@ export default function App({ Component, pageProps }: AppProps) {
       setUsername(data.username);
     });
   }, []);
+  useEffect(() => {
+    setAccessToken(selectedUser?.accessToken);
+    setUserEmail(selectedUser?.email);
+    setUsername(selectedUser?.username);
+  }, [selectedUser]);
+
   return (
     <div className={`${poppins.className} text-black`}>
+      {options.length > 0 && (
+        <Select defaultValue={selectedUser} onChange={setSelectedUser} options={options} />
+      )}
       <CalProvider
         accessToken={accessToken}
         // eslint-disable-next-line turbo/no-undeclared-env-vars
