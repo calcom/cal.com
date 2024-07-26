@@ -216,4 +216,28 @@ export class CalendarsController {
       ),
     };
   }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/disconnect/:credentialId")
+  @HttpCode(HttpStatus.OK)
+  async deleteUserCalendarCredentials(
+    @Param("calendar") calendar: string,
+    @Query("credentialId") credentialId: string,
+    @GetUser() user: UserWithProfile
+  ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
+    await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
+
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      Number(credentialId)
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(
+        DeletedCalendarCredentialsOutputDto,
+        { id, type, userId, teamId, appId, invalid },
+        { strategy: "excludeAll" }
+      ),
+    };
+  }
 }
