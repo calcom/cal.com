@@ -22,6 +22,5 @@ export const useTeamEventTypes = (teamId: number) => {
         throw new Error(res.data.error.message);
       });
     },
-    enabled: !!orgId && !!teamId,
   });
 };

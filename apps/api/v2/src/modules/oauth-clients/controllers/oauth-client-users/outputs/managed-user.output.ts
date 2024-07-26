@@ -1,7 +1,7 @@
 import { Locales } from "@/lib/enums/locales";
 import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
-import { IsEnum, IsNumber, IsOptional } from "class-validator";
+import { IsEnum, IsOptional } from "class-validator";
 
 export class ManagedUserOutput {
   @ApiProperty({ example: 1 })
@@ -33,7 +33,4 @@ export class ManagedUserOutput {
   @IsOptional()
   @ApiProperty({ example: Locales.EN, enum: Locales })
   locale?: Locales;
-
-  @IsNumber()
-  organizationId!: number | null;
 }

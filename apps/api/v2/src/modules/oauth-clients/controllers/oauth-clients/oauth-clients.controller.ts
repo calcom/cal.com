@@ -168,7 +168,6 @@ export class OAuthClientsController {
       createdDate: user.createdDate,
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
-      organizationId: user.organizationId,
     };
   }
 }
