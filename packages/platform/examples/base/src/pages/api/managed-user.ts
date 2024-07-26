@@ -107,6 +107,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   }
 
   const team = await createTeam(+organizationId, "Team Doe");
+  if (!team) {
+    throw new Error("Failed to create team. Probably your platform team does not have required plan.");
+  }
+
   await createMembership(+organizationId, team.id, body.data?.user.id);
   await createMembership(+organizationId, team.id, bodyTwo.data?.user.id);
   await createCollectiveEventType(+organizationId, team.id, [body.data?.user.id, bodyTwo.data?.user.id]);
