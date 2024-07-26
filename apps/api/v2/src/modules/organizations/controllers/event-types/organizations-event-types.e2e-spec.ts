@@ -599,6 +599,7 @@ describe("Organizations Event Types Endpoints", () => {
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);
+      await organizationsRepositoryFixture.delete(falseTestOrg.id);
       await app.close();
     });
   });
