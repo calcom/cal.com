@@ -80,6 +80,11 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       AND: [
         { userId: ctx.user.id },
         {
+          uuid: {
+            not: input.uuid,
+          },
+        },
+        {
           OR: [
             {
               start: {
@@ -154,8 +159,11 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
   const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
   const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
-  const createdRedirect = await prisma.outOfOfficeEntry.create({
-    data: {
+  const createdRedirect = await prisma.outOfOfficeEntry.upsert({
+    where: {
+      uuid: input.uuid ?? "",
+    },
+    create: {
       uuid: uuidv4(),
       start: startDateUtc.startOf("day").toISOString(),
       end: endDateUtc.endOf("day").toISOString(),
@@ -165,6 +173,14 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       toUserId: toUserId,
       createdAt: new Date(),
       updatedAt: new Date(),
+    },
+    update: {
+      start: startDateUtc.startOf("day").toISOString(),
+      end: endDateUtc.endOf("day").toISOString(),
+      notes: input.notes,
+      userId: ctx.user.id,
+      reasonId: input.reasonId,
+      toUserId: toUserId,
     },
   });
 

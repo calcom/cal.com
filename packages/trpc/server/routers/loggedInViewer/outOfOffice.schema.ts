@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const ZOutOfOfficeInputSchema = z.object({
+  uuid: z.string().optional(),
   dateRange: z.object({
     startDate: z.date(),
     endDate: z.date(),
