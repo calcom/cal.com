@@ -252,13 +252,9 @@ describe("Organizations Event Types Endpoints", () => {
         hosts: [
           {
             userId: teammate1.id,
-            mandatory: true,
-            priority: "high",
           },
           {
             userId: teammate2.id,
-            mandatory: false,
-            priority: "low",
           },
         ],
       };
@@ -431,8 +427,6 @@ describe("Organizations Event Types Endpoints", () => {
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
         {
           userId: teammate1.id,
-          mandatory: true,
-          priority: "medium",
         },
       ];
 

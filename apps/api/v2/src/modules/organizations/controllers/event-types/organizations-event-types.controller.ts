@@ -3,7 +3,7 @@ import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.de
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-billing.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -90,8 +90,7 @@ export class OrganizationsEventTypesController {
     };
   }
 
-  @UseGuards(IsOrgGuard, IsTeamInOrg, PlatformPlanGuard)
-  @PlatformPlan("ESSENTIALS")
+  @UseGuards(IsOrgGuard, IsTeamInOrg)
   @Get("/teams/:teamId/event-types")
   async getTeamEventTypes(
     @Param("teamId", ParseIntPipe) teamId: number,
