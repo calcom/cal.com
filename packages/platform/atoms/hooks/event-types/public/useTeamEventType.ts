@@ -12,7 +12,7 @@ import { useAtomsContext } from "../../useAtomsContext";
 export const QUERY_KEY = "use-team-event-type";
 
 export const useTeamEventType = (teamId: number  | undefined, eventSlug: string, isTeamEvent: boolean | undefined) => {
-  const { orgId } = useAtomsContext();
+  const { organizationId } = useAtomsContext();
 
   const [stateEventSlug] = useBookerStore(
     (state) => [state.eventSlug],
@@ -21,12 +21,12 @@ export const useTeamEventType = (teamId: number  | undefined, eventSlug: string,
 
   const requestEventSlug = stateEventSlug ?? eventSlug;
 
-  const pathname = `/organizations/${orgId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
+  const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types?eventSlug=${requestEventSlug}`;
 
   const event = useQuery({
-    queryKey: [QUERY_KEY, eventSlug, orgId, teamId],
+    queryKey: [QUERY_KEY, eventSlug, organizationId, teamId],
     queryFn: async () => {
-      if(orgId && teamId && eventSlug && isTeamEvent) {
+      if(organizationId && teamId && eventSlug && isTeamEvent) {
         return http?.get<ApiResponse<TeamEventTypeOutput_2024_06_14[]>>(pathname).then((res) => {
           if (res.data.status === SUCCESS_STATUS) {
             return (res.data as ApiSuccessResponse<TeamEventTypeOutput_2024_06_14[]>).data;

@@ -9,11 +9,11 @@ import { useAtomsContext } from "../../useAtomsContext";
 
 export const QUERY_KEY = "use-team-event-types";
 export const useTeamEventTypes = (teamId: number) => {
-  const { orgId } = useAtomsContext();
-  const pathname = `/organizations/${orgId}/teams/${teamId}/event-types`;
+  const { organizationId } = useAtomsContext();
+  const pathname = `/organizations/${organizationId}/teams/${teamId}/event-types`;
 
   return useQuery({
-    queryKey: [QUERY_KEY, orgId, teamId],
+    queryKey: [QUERY_KEY, organizationId, teamId],
     queryFn: () => {
       return http?.get<ApiResponse<TeamEventTypeOutput_2024_06_14[]>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
@@ -22,6 +22,6 @@ export const useTeamEventTypes = (teamId: number) => {
         throw new Error(res.data.error.message);
       });
     },
-    enabled: !!orgId && !!teamId,
+    enabled: !!organizationId && !!teamId,
   });
 };

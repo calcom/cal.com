@@ -11,12 +11,12 @@ import { useAtomsContext } from "../useAtomsContext";
 export const QUERY_KEY = "use-teams";
 
 export const useTeams = () => {
-  const { orgId } = useAtomsContext();
+  const { organizationId } = useAtomsContext();
 
-  const pathname = `/organizations/${orgId}/teams/me`;
+  const pathname = `/organizations/${organizationId}/teams/me`;
 
   const event = useQuery({
-    queryKey: [QUERY_KEY, orgId],
+    queryKey: [QUERY_KEY, organizationId],
     queryFn: async () => {
       return http?.get<ApiResponse<OrgTeamOutputDto[]>>(pathname).then((res) => {
         if (res.data.status === SUCCESS_STATUS) {
@@ -25,7 +25,7 @@ export const useTeams = () => {
         throw new Error(res.data.error.message);
       });
     },
-    enabled: !!orgId,
+    enabled: !!organizationId,
   });
 
   return event;

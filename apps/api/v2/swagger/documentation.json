@@ -2518,7 +2518,7 @@
     },
     "/v2/provider/{clientId}": {
       "get": {
-        "operationId": "CalProviderController_getClient",
+        "operationId": "CalProviderController_verifyClientId",
         "parameters": [
           {
             "name": "clientId",
@@ -3735,7 +3735,8 @@
             "example": 3
           },
           "logo": {
-            "type": "object",
+            "type": "string",
+            "nullable": true,
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -7271,14 +7272,10 @@
               "success",
               "error"
             ]
-          },
-          "data": {
-            "$ref": "#/components/schemas/PlatformOAuthClientDto"
           }
         },
         "required": [
-          "status",
-          "data"
+          "status"
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
@@ -7321,6 +7318,10 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
@@ -7330,7 +7331,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "organizationId"
         ]
       },
       "GetMeOutput": {

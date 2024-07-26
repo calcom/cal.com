@@ -38,7 +38,6 @@ export default function App({ Component, pageProps }: AppProps) {
     const randomEmailTwo = generateRandomEmail();
     if (!seeding) {
       seeding = true;
-      console.log("asap counting");
       fetch("/api/managed-user", {
         method: "POST",
 
