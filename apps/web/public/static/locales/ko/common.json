@@ -1496,7 +1496,6 @@
   "how_long_after": "이벤트 종료 후 얼마나 경과해야 합니까?",
   "no_available_slots": "사용 가능한 슬롯 없음",
   "time_available": "시간 사용 가능",
-  "cant_find_the_right_video_app_visit_our_app_store": "올바른 비디오 앱을 찾을 수 없으신가요? <1>App Store</1>를 방문하세요.",
   "install_new_calendar_app": "새 캘린더 앱 설치",
   "make_phone_number_required": "예약 이벤트에 전화번호가 필요하도록 만들기",
   "new_event_type_availability": "{{eventTypeTitle}} 가용성",

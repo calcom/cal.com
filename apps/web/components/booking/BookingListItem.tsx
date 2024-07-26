@@ -542,7 +542,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
+                <TableActions actions={pendingActions} />
+              )}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
