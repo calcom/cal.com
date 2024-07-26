@@ -37,7 +37,7 @@ export enum SiteLocale {
   Pt = "pt",
 }
 const urql = new Client({
-  url: process.env.DATOCMS_GRAPHQL_ENDPOINT!,
+  url: "https://graphql.datocms.com/",
   exchanges: [cacheExchange, fetchExchange],
   fetchOptions: () => {
     if (!process.env.DATOCMS_API_TOKEN) {
