@@ -27816,8 +27816,8 @@ __metadata:
   linkType: hard
 
 "framer-motion@npm:^11.0.25":
-  version: 11.3.17
-  resolution: "framer-motion@npm:11.3.17"
+  version: 11.3.12
+  resolution: "framer-motion@npm:11.3.12"
   dependencies:
     tslib: ^2.4.0
   peerDependencies:
@@ -27831,7 +27831,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: ee70ce0eae4d606748a915df4d4ac527eaed07346caae16930fef7a0c12287e4ac0a89efdc810d0af58962a13bfc812245303584d1ebc15ddc2205408f1c7f8a
+  checksum: d13fa5fd2a21e73846a1171b8e6cad0be214b48f0c9b91070397975977758a98c66ea55d3e8dc027d959831027d76d0d8044cf41c49942cc3362a7b0cce7d4a0
   languageName: node
   linkType: hard
 
@@ -41072,12 +41072,12 @@ __metadata:
   linkType: hard
 
 "react-parallax-tilt@npm:^1.7.226":
-  version: 1.7.233
-  resolution: "react-parallax-tilt@npm:1.7.233"
+  version: 1.7.232
+  resolution: "react-parallax-tilt@npm:1.7.232"
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: a99ee6d1d4232f55f2f312289f8989d21bda7be17f5e8a3532394aeba3fc6968ed92923cf5a518d388bc1f314a3882ae327e72bf44b170170f92914cb626ea36
+  checksum: 8c866c9c06315aeaf1eddd4e5265db706e010d788667c337be552cbf8786e8b39f19cafc529be6c69d925e25b31705c52398e90bd89a805bf8914bbb46a8ebdb
   languageName: node
   linkType: hard
 
