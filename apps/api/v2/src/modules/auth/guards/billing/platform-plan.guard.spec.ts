@@ -110,12 +110,12 @@ describe("PlatformPlanGuard", () => {
     await expect(guard.canActivate(mockContext)).resolves.toBe(false);
   });
 
-  function createMockExecutionContext(params: Record<string, string | object>): ExecutionContext {
+  function createMockExecutionContext(context: Record<string, string | object>): ExecutionContext {
     return createMock<ExecutionContext>({
       switchToHttp: () => ({
         getRequest: () => ({
-          params,
-          user: params.user,
+          params: context.params,
+          user: context.user,
         }),
       }),
     });
