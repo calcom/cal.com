@@ -31,7 +31,7 @@ const useDeleteSchedule = (
   const mutation = useMutation<ApiResponse<undefined>, unknown, DeleteScheduleInput>({
     mutationFn: (data) => {
       const { id } = data;
-      const pathname = `/${V2_ENDPOINTS.availability}/${id}?for=atom`;
+      const pathname = `/${V2_ENDPOINTS.availability}/${id}`;
 
       return http?.delete(pathname).then((res) => res.data);
     },

@@ -6,6 +6,7 @@ import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
+import { getParsedTeam } from "./teamUtils";
 import { UserRepository } from "./user";
 
 const orgSelect = {
@@ -14,6 +15,7 @@ const orgSelect = {
   slug: true,
   logoUrl: true,
 };
+
 export class OrganizationRepository {
   static async createWithExistingUserAsOwner({
     orgData,
@@ -28,6 +30,7 @@ export class OrganizationRepository {
       seats: number | null;
       pricePerSeat: number | null;
       isPlatform: boolean;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
     };
     owner: {
       id: number;
@@ -68,6 +71,7 @@ export class OrganizationRepository {
       isOrganizationAdminReviewed: boolean;
       autoAcceptEmail: string;
       seats: number | null;
+      billingPeriod?: "MONTHLY" | "ANNUALLY";
       pricePerSeat: number | null;
       isPlatform: boolean;
     };
@@ -109,6 +113,7 @@ export class OrganizationRepository {
     isOrganizationAdminReviewed: boolean;
     autoAcceptEmail: string;
     seats: number | null;
+    billingPeriod?: "MONTHLY" | "ANNUALLY";
     pricePerSeat: number | null;
     isPlatform: boolean;
   }) {
@@ -130,6 +135,7 @@ export class OrganizationRepository {
           orgSeats: orgData.seats,
           orgPricePerSeat: orgData.pricePerSeat,
           isPlatform: orgData.isPlatform,
+          billingPeriod: orgData.billingPeriod,
         },
         isPlatform: orgData.isPlatform,
       },
@@ -157,5 +163,26 @@ export class OrganizationRepository {
         organizationSettings: true,
       },
     });
+  }
+
+  static async findUniqueByMatchingAutoAcceptEmail({ email }: { email: string }) {
+    const emailDomain = email.split("@").at(-1);
+    const orgs = await prisma.team.findMany({
+      where: {
+        isOrganization: true,
+        organizationSettings: {
+          orgAutoAcceptEmail: emailDomain,
+        },
+      },
+    });
+    if (orgs.length > 1) {
+      // Detect and fail just in case this situation arises. We should really identify the problem in this case and fix the data.
+      throw new Error("Multiple organizations found with the same auto accept email domain");
+    }
+    const org = orgs[0];
+    if (!org) {
+      return null;
+    }
+    return getParsedTeam(org);
   }
 }

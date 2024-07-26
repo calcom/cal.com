@@ -30,7 +30,7 @@ const SAMLSSO = () => {
   useEffect(
     function refactorMeWithoutEffect() {
       if (error) {
-        router.push("/settings");
+        router.replace("/teams");
       }
     },
     [error]

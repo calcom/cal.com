@@ -1,4 +1,4 @@
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 
 import { renderEmail } from "../";
 import BaseEmail from "./_base-email";
@@ -20,7 +20,7 @@ export default class FeedbackEmail extends BaseEmail {
 
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: process.env.SEND_FEEDBACK_EMAIL,
       subject: `User Feedback`,
       html: await renderEmail("FeedbackEmail", this.feedback),

@@ -7,16 +7,6 @@
  *
  * They don't intend to test what the apps logic should do, but rather test if the apps are called with the correct data. For testing that, once should write tests within each app.
  */
-import type { Request, Response } from "express";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
-import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
-import { ErrorCode } from "@calcom/lib/errorCodes";
-import { resetTestEmails } from "@calcom/lib/testEmails";
-import { BookingStatus } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getDate,
@@ -57,6 +47,17 @@ import {
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
 import { testWithAndWithoutOrg } from "@calcom/web/test/utils/bookingScenario/test";
+
+import type { Request, Response } from "express";
+import type { NextApiRequest, NextApiResponse } from "next";
+import { describe, expect } from "vitest";
+
+import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
+import { WEBSITE_URL, WEBAPP_URL } from "@calcom/lib/constants";
+import { ErrorCode } from "@calcom/lib/errorCodes";
+import { resetTestEmails } from "@calcom/lib/testEmails";
+import { BookingStatus } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 export type CustomNextApiRequest = NextApiRequest & Request;
 
@@ -118,7 +119,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -290,7 +291,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -453,7 +454,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -608,7 +609,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -729,7 +730,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -894,7 +895,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -1099,7 +1100,7 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        `Booking should still be created if booking with Zoom errors`,
+        `Booking should still be created using calvideo, if error occurs with zoom`,
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
           const subscriberUrl = "http://my-webhook.example.com";
@@ -1131,7 +1132,7 @@ describe("handleNewBooking", () => {
                   ],
                 },
               ],
-              apps: [TestData.apps["zoomvideo"]],
+              apps: [TestData.apps["zoomvideo"], TestData.apps["daily-video"]],
               webhooks: [
                 {
                   userId: organizer.id,
@@ -1149,6 +1150,15 @@ describe("handleNewBooking", () => {
             metadataLookupKey: "zoomvideo",
           });
 
+          mockSuccessfulVideoMeetingCreation({
+            metadataLookupKey: "dailyvideo",
+            videoMeetingData: {
+              id: "MOCK_ID",
+              password: "MOCK_PASS",
+              url: `http://mock-dailyvideo.example.com/meeting-1`,
+            },
+          });
+
           const { req } = createMockNextJsRequest({
             method: "POST",
             body: getMockRequestDataForBooking({
@@ -1162,16 +1172,18 @@ describe("handleNewBooking", () => {
               },
             }),
           });
-          await handleNewBooking(req);
+          const createdBooking = await handleNewBooking(req);
 
+          expect(createdBooking).toContain({
+            location: BookingLocations.CalVideo,
+          });
           expectBrokenIntegrationEmails({ organizer, emails });
-
           expectBookingCreatedWebhookToHaveBeenFired({
             booker,
             organizer,
-            location: BookingLocations.ZoomVideo,
+            location: BookingLocations.CalVideo,
             subscriberUrl,
-            videoCallUrl: null,
+            videoCallUrl: `${WEBAPP_URL}/video/${createdBooking.uid}`,
           });
         },
         timeout
@@ -1445,7 +1457,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -1571,7 +1583,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -1695,7 +1707,7 @@ describe("handleNewBooking", () => {
                   trigger: "NEW_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -1827,7 +1839,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -2034,7 +2046,7 @@ describe("handleNewBooking", () => {
               trigger: "NEW_EVENT",
               action: "EMAIL_HOST",
               template: "REMINDER",
-              activeEventTypeId: 1,
+              activeOn: [1],
             },
           ],
           eventTypes: [
@@ -2140,7 +2152,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [
@@ -2299,7 +2311,7 @@ describe("handleNewBooking", () => {
                 trigger: "NEW_EVENT",
                 action: "EMAIL_HOST",
                 template: "REMINDER",
-                activeEventTypeId: 1,
+                activeOn: [1],
               },
             ],
             eventTypes: [

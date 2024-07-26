@@ -1,6 +1,6 @@
 import type { TFunction } from "next-i18next";
 
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -22,7 +22,7 @@ export default class OrganizerDailyVideoDownloadTranscriptEmail extends BaseEmai
   protected async getNodeMailerPayload(): Promise<Record<string, unknown>> {
     return {
       to: `${this.calEvent.organizer.email}>`,
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       replyTo: [...this.calEvent.attendees.map(({ email }) => email), this.calEvent.organizer.email],
       subject: `${this.t("download_transcript_email_subject", {
         title: this.calEvent.title,

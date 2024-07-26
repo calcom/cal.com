@@ -1,18 +1,18 @@
-import type { ScheduleAvailabilityInput, UpdateScheduleInput, WeekDay } from "@calcom/platform-types";
+import type {
+  ScheduleAvailabilityInput_2024_06_11,
+  UpdateScheduleInput_2024_06_11,
+  WeekDay,
+} from "@calcom/platform-types";
 
 import type { AvailabilityFormValues } from "../types";
 
-export function transformAtomScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput {
+export function transformAtomScheduleForApi(body: AvailabilityFormValues): UpdateScheduleInput_2024_06_11 {
   const { name, schedule, dateOverrides, timeZone, isDefault } = body;
 
   const overrides =
     dateOverrides.flatMap(
       (dateOverridesRanges) =>
-        dateOverridesRanges?.ranges?.map((range) => ({
-          date: `${range.start.getUTCFullYear}-${range.start.getUTCMonth}-${range.start.getUTCDate}`,
-          startTime: `${range.start.getUTCHours}-${range.start.getUTCMinutes}`,
-          endTime: `${range.end.getUTCHours}-${range.end.getUTCMinutes}`,
-        })) ?? []
+        dateOverridesRanges?.ranges?.map((range) => transfromAtomOverrideForApi(range)) ?? []
     ) ?? [];
 
   const availability = formatScheduleTime(schedule);
@@ -20,9 +20,35 @@ export function transformAtomScheduleForApi(body: AvailabilityFormValues): Updat
   return { name, timeZone, isDefault, availability, overrides };
 }
 
+type AtomDateOverride = {
+  start: Date;
+  end: Date;
+};
+
+function transfromAtomOverrideForApi(override: AtomDateOverride) {
+  const date = `${override.start.getUTCFullYear()}-${(override.start.getUTCMonth() + 1)
+    .toString()
+    .padStart(2, "0")}-${override.start.getUTCDate().toString().padStart(2, "0")}`;
+
+  return {
+    date,
+    startTime: padHoursMinutesWithZeros(`${override.start.getUTCHours()}:${override.start.getUTCMinutes()}`),
+    endTime: padHoursMinutesWithZeros(`${override.end.getUTCHours()}:${override.end.getUTCMinutes()}`),
+  };
+}
+
+function padHoursMinutesWithZeros(hhMM: string) {
+  const [hours, minutes] = hhMM.split(":");
+
+  const formattedHours = hours.padStart(2, "0");
+  const formattedMinutes = minutes.padStart(2, "0");
+
+  return `${formattedHours}:${formattedMinutes}`;
+}
+
 function formatScheduleTime(
   weekSchedule: AvailabilityFormValues["schedule"]
-): UpdateScheduleInput["availability"] {
+): UpdateScheduleInput_2024_06_11["availability"] {
   const daysOfWeek: WeekDay[] = [
     "Sunday",
     "Monday",
@@ -41,7 +67,7 @@ function formatScheduleTime(
     }))
   );
 
-  const timeMap: { [key: string]: ScheduleAvailabilityInput } = {};
+  const timeMap: { [key: string]: ScheduleAvailabilityInput_2024_06_11 } = {};
 
   formattedSchedule.flat().forEach((event) => {
     const timeKey = `${event.startTime}-${event.endTime}`;
