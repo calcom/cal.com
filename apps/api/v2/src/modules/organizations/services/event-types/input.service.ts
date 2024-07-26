@@ -145,13 +145,15 @@ export class InputOrganizationsEventTypesService {
       return undefined;
     }
 
-    const defaultMandatory = schedulingType === "COLLECTIVE" ? true : false;
     const defaultPriority = "medium";
+    const defaultIsFixed = false;
 
     return inputHosts.map((host) => ({
       userId: host.userId,
-      isFixed: host.mandatory || defaultMandatory,
-      priority: getPriorityValue(host.priority || defaultPriority),
+      isFixed: schedulingType === "COLLECTIVE" ? true : host.mandatory || defaultIsFixed,
+      priority: getPriorityValue(
+        schedulingType === "COLLECTIVE" ? "medium" : host.priority || defaultPriority
+      ),
     }));
   }
 }
