@@ -22,6 +22,7 @@ import { WEBAPP_URL } from "@calcom/lib/constants";
 import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma from "@calcom/prisma";
 import type { Prisma, Team } from "@calcom/prisma/client";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -349,66 +350,25 @@ const ERROR_MESSAGES = {
 } as const;
 
 const getUser = async (userId: number) => {
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-    select: {
-      id: true,
-      avatarUrl: true,
-      name: true,
-      username: true,
-      teams: {
-        where: {
-          accepted: true,
-          team: {
-            members: {
-              some: {
-                userId,
-                role: {
-                  in: ["ADMIN", "OWNER"],
-                },
-              },
-            },
-          },
-        },
-        select: {
-          team: {
-            select: {
-              id: true,
-              name: true,
-              logoUrl: true,
-              isOrganization: true,
-              parent: {
-                select: {
-                  logoUrl: true,
-                  name: true,
-                  id: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const userAdminTeams = await UserRepository.getUserAdminTeams(userId);
 
-  if (!user) {
+  if (!userAdminTeams?.id) {
     throw new Error(ERROR_MESSAGES.userNotFound);
   }
 
-  let teams = user.teams.map(({ team }) => ({
+  let teams = userAdminTeams.teams.map(({ team }) => ({
     ...team,
     logoUrl: team.parent
       ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
       : getPlaceholderAvatar(team.logoUrl, team.name),
   }));
+
   const orgTeam = teams.find((team) => team.isOrganization === true);
   if (orgTeam?.id) {
     teams = teams.filter((team) => team?.parent?.id !== orgTeam.id);
   }
   return {
-    ...user,
+    ...userAdminTeams,
     teams,
   };
 };
