@@ -432,7 +432,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
-  }, [router]);
+  }, [router, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
