@@ -46,9 +46,10 @@ describe("ApiAuthStrategy", () => {
   let validApiKeyUser: User;
   let validAccessTokenUser: User;
   let validOAuthUser: User;
+  let module: TestingModule;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+  beforeAll(async () => {
+    module = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
           ignoreEnvFile: true,
@@ -235,5 +236,6 @@ describe("ApiAuthStrategy", () => {
     await userRepositoryFixture.delete(validAccessTokenUser.id);
     await userRepositoryFixture.delete(validOAuthUser.id);
     await teamRepositoryFixture.delete(organization.id);
+    module.close();
   });
 });

@@ -36,7 +36,7 @@ type Input = Pick<
   | "recurringEvent"
   | "metadata"
   | "users"
-  | "schedule"
+  | "scheduleId"
   | "hosts"
   | "teamId"
   | "userId"
