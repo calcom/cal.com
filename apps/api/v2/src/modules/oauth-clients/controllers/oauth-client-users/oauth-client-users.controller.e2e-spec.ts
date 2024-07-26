@@ -293,6 +293,11 @@ describe("OAuth Client Users Endpoints", () => {
       } catch (e) {
         // User might have been deleted by the test
       }
+      try {
+        await userRepositoryFixture.delete(platformAdmin.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
       await app.close();
     });
   });
