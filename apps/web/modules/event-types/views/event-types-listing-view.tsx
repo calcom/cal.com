@@ -120,15 +120,36 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
     avatar: item.profile.image,
   }));
   const { data } = useTypedQuery(querySchema);
-  const events = eventTypeGroups.filter((item) => item.teamId === data.teamId);
+  const events = eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+
+  const getEventTypes = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: 10,
+      group: events[0],
+      // filters: filters,
+    },
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 1 * 60 * 60 * 1000,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  console.log("eventTypeGroups", eventTypeGroups, getEventTypes?.data);
+
+  if (getEventTypes.loading || !getEventTypes?.data) return null;
+
+  const isEmpty = !getEventTypes?.data?.pages[0]?.eventTypes.length;
 
   return (
     <div>
       <HorizontalTabs tabs={tabs} />
       {events.length > 0 ? (
         <EventTypeList
-          types={events[0].eventTypes}
-          group={events[0]}
+          // types={events[0].eventTypes}
+          types={getEventTypes?.data?.pages[0]?.eventTypes}
+          // group={events[0]}
+          group={eventTypeGroups[0]}
           groupIndex={0}
           bookerUrl={events[0].bookerUrl}
           readOnly={events[0].metadata.readOnly}
@@ -886,57 +907,11 @@ const Main = ({
     (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && eventTypeGroups.length === 1;
 
   // const data = denormalizePayload(rawData);
+  // <EventTypesInfiteScroll key={index} group={group} index={index} profiles={profiles} />
   return (
     <>
       {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
-        <>
-          {isMobile ? (
-            <MobileTeamsTab eventTypeGroups={eventTypeGroups} />
-          ) : (
-            eventTypeGroups.map((group, index: number) => {
-              // const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
-              // const userHasManagedOrHiddenEventTypes = group.eventTypes.find(
-              //   (event) => event.metadata?.managedEventConfig || event.hidden
-              // );
-              // if (eventsLockedByOrg && !userHasManagedOrHiddenEventTypes) return null;
-
-              return (
-                <EventTypesInfiteScroll key={index} group={group} index={index} profiles={profiles} />
-                // <div
-                //   className="mt-4 flex flex-col"
-                //   data-testid={`slug-${group.profile.slug}`}
-                //   key={group.profile.slug}>
-                //   f
-                //   {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
-                //     to it being readonly for that user */}
-                //   {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
-                //     <EventTypeListHeading
-                //       profile={group.profile}
-                //       membershipCount={group.metadata.membershipCount}
-                //       teamId={group.teamId}
-                //       bookerUrl={group.bookerUrl}
-                //     />
-                //   )}
-
-                //   {group.eventTypes.length ? (
-                //     <EventTypeList
-                //       types={group.eventTypes}
-                //       group={group}
-                //       bookerUrl={group.bookerUrl}
-                //       groupIndex={index}
-                //       readOnly={group.metadata.readOnly}
-                //       lockedByOrg={eventsLockedByOrg}
-                //     />
-                //   ) : group.teamId && !group.metadata.readOnly ? (
-                //     <EmptyEventTypeList group={group} />
-                //   ) : !group.metadata.readOnly ? (
-                //     <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
-                //   ) : null}
-                // </div>
-              );
-            })
-          )}
-        </>
+        <MobileTeamsTab eventTypeGroups={eventTypeGroups} />
       ) : (
         eventTypeGroups.length === 1 && (
           <EventTypeList
