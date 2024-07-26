@@ -5,6 +5,7 @@ import { Injectable } from "@nestjs/common";
 import type { EventType, User, Schedule, Host } from "@prisma/client";
 
 import { HostPriority, TeamEventTypeResponseHost } from "@calcom/platform-types";
+import { SchedulingType } from "@calcom/prisma/enums";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null; hosts: Host[] };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -62,7 +63,7 @@ export class OutputOrganizationsEventTypesService {
     const hosts =
       databaseEventType.schedulingType === "MANAGED"
         ? await this.getManagedEventTypeHosts(databaseEventType.id)
-        : await this.transformHosts(databaseEventType.hosts);
+        : await this.transformHosts(databaseEventType.hosts, databaseEventType.schedulingType);
 
     return {
       ...rest,
@@ -86,18 +87,25 @@ export class OutputOrganizationsEventTypesService {
     return transformedHosts;
   }
 
-  async transformHosts(hosts: Host[]): Promise<TeamEventTypeResponseHost[]> {
-    if (!hosts) return [];
+  async transformHosts(
+    hosts: Host[],
+    schedulingType: SchedulingType | null
+  ): Promise<TeamEventTypeResponseHost[]> {
+    if (!schedulingType) return [];
 
     const transformedHosts: TeamEventTypeResponseHost[] = [];
     for (const host of hosts) {
       const user = await this.usersRepository.findById(host.userId);
-      transformedHosts.push({
-        userId: host.userId,
-        name: user?.name || "",
-        mandatory: host.isFixed,
-        priority: getPriorityLabel(host.priority || 2),
-      });
+      if (schedulingType === "ROUND_ROBIN") {
+        transformedHosts.push({
+          userId: host.userId,
+          name: user?.name || "",
+          mandatory: host.isFixed,
+          priority: getPriorityLabel(host.priority || 2),
+        });
+      } else {
+        transformedHosts.push({ userId: host.userId, name: user?.name || "" });
+      }
     }
 
     return transformedHosts;
