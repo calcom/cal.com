@@ -1497,7 +1497,6 @@
   "how_long_after": "Спустя какое время после окончания события?",
   "no_available_slots": "Нет доступных интервалов",
   "time_available": "Доступное время",
-  "cant_find_the_right_video_app_visit_our_app_store": "Не удается найти подходящее приложение для просмотра видео? Посетите наш <1>App Store</1>.",
   "install_new_calendar_app": "Установить новое приложение календаря",
   "make_phone_number_required": "Сделать номер телефона обязательным для бронирования",
   "new_event_type_availability": "{{eventTypeTitle}} | Доступность",

@@ -25,14 +25,6 @@ enum SchedulingTypeEnum {
 
 export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
 
-class Schedule_2024_06_14 {
-  @IsInt()
-  id!: number;
-
-  @IsString()
-  timeZone!: string | null;
-}
-
 class User_2024_06_14 {
   @IsInt()
   id!: number;
@@ -143,7 +135,8 @@ export class EventTypeOutput_2024_06_14 {
 
   users!: User_2024_06_14[];
 
-  schedule!: Schedule_2024_06_14 | null;
+  @IsInt()
+  scheduleId!: number | null;
 }
 
 export class TeamEventTypeOutput_2024_06_14 {
@@ -226,7 +219,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   isInstantEvent!: boolean;
 
-  schedule!: Schedule_2024_06_14 | null;
+  @IsInt()
+  scheduleId!: number | null;
 
   @IsInt()
   @IsOptional()
