@@ -57,9 +57,9 @@ const AccountSelector: FC<AccountSelectorProps> = ({
         imageSrc={getPlaceholderAvatar(avatar, name)} // if no image, use default avatar
         size="sm"
       />
-      <div className="text-md pt-0.5 font-medium text-gray-500">
+      <div className="text-md text-subtle pt-0.5 font-medium">
         {name}
-        {alreadyInstalled ? <span className="ml-1 text-sm text-gray-400">{t("already_installed")}</span> : ""}
+        {alreadyInstalled ? <span className="text-subtle ml-2 text-sm">({t("already_installed")})</span> : ""}
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ export const AccountsStepCard: FC<AccountStepCardProps> = ({
   const { t } = useLocale();
   return (
     <StepCard>
-      <div className="text-sm font-medium text-gray-400">{t("install_app_on")}</div>
+      <div className="text-subtle text-sm font-medium">{t("install_app_on")}</div>
       <div className={classNames("mt-2 flex flex-col gap-2 ")}>
         <AccountSelector
           testId="install-app-button-personal"
