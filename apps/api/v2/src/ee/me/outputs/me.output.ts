@@ -1,9 +1,4 @@
-import { IsInt, IsEmail, IsOptional, IsArray, IsString } from "class-validator";
-
-class Team {
-  @IsInt()
-  readonly teamId!: number;
-}
+import { IsInt, IsEmail, IsOptional, IsString } from "class-validator";
 
 export class MeOutput {
   @IsInt()
@@ -27,7 +22,4 @@ export class MeOutput {
 
   @IsString()
   timeZone!: string;
-
-  @IsArray()
-  teams!: Team[];
 }

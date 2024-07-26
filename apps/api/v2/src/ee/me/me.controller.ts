@@ -29,11 +29,11 @@ export class MeController {
   @Get("/")
   @Permissions([PROFILE_READ])
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
-    const me = await this.usersRepository.findByIdWithTeams(user.id);
+    const me = userSchemaResponse.parse(user);
 
     return {
       status: SUCCESS_STATUS,
-      data: userSchemaResponse.parse(me),
+      data: me,
     };
   }
 
@@ -43,18 +43,18 @@ export class MeController {
     @GetUser() user: UserWithProfile,
     @Body() bodySchedule: UpdateManagedUserInput
   ): Promise<UpdateMeOutput> {
-    await this.usersRepository.update(user.id, bodySchedule);
+    const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
       await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
       });
     }
 
-    const me = await this.usersRepository.findByIdWithTeams(user.id);
+    const me = userSchemaResponse.parse(updatedUser);
 
     return {
       status: SUCCESS_STATUS,
-      data: userSchemaResponse.parse(me),
+      data: me,
     };
   }
 }
