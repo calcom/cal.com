@@ -1,6 +1,6 @@
 import { CreateUserWebhookInputDto } from "@/modules/webhooks/inputs/create-user-webhook.input";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
 import { Webhook } from "@prisma/client";
 
 @Injectable()
@@ -8,6 +8,10 @@ export class WebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
   async createUserWebhook(userId: number, body: CreateUserWebhookInputDto): Promise<Webhook> {
+    const existingWebhook = await this.webhooksRepository.getUserWebhookByUrl(userId, body.subscriberUrl);
+    if (existingWebhook) {
+      throw new ConflictException("Webhook with this subscriber url already exists for this user");
+    }
     return this.webhooksRepository.createUserWebhook(userId, body);
   }
 

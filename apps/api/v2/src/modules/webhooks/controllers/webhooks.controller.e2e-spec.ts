@@ -97,6 +97,18 @@ describe("WebhooksController (e2e)", () => {
       });
   });
 
+  it("/webhooks (POST) should fail to create a webhook that already has same userId / subcriberUrl combo", () => {
+    return request(app.getHttpServer())
+      .post("/v2/webhooks")
+      .send({
+        subscriberUrl: "https://example.com",
+        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        active: true,
+        payloadTemplate: "string",
+      } satisfies CreateUserWebhookInputDto)
+      .expect(409);
+  });
+
   it("/webhooks/:webhookId (PATCH)", () => {
     return request(app.getHttpServer())
       .patch(`/v2/webhooks/${webhook.id}`)

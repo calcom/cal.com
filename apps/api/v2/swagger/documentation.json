@@ -7381,7 +7381,16 @@
         "properties": {
           "eventTriggers": {
             "type": "string",
-            "example": ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
             "enum": [
               "BOOKING_CREATED",
               "BOOKING_PAYMENT_INITIATED",
@@ -7398,9 +7407,6 @@
               "INSTANT_MEETING",
               "RECORDING_TRANSCRIPTION_GENERATED"
             ]
-          },
-          "eventTypeId": {
-            "type": "number"
           },
           "payloadTemplate": {
             "type": "string"

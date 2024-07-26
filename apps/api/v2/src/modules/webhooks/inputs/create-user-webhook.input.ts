@@ -17,9 +17,14 @@ export class CreateUserWebhookInputDto {
   @IsArray()
   @ApiProperty({
     example: [
-      WebhookTriggerEvents["BOOKING_CREATED"],
-      WebhookTriggerEvents["BOOKING_RESCHEDULED"],
-      WebhookTriggerEvents["BOOKING_CANCELLED"],
+      "BOOKING_CREATED",
+      "BOOKING_RESCHEDULED",
+      "BOOKING_CANCELLED",
+      "BOOKING_CONFIRMED",
+      "BOOKING_REJECTED",
+      "BOOKING_COMPLETED",
+      "BOOKING_NO_SHOW",
+      "BOOKING_REOPENED",
     ],
     enum: WebhookTriggerEvents,
   })

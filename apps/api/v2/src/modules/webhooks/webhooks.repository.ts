@@ -37,6 +37,12 @@ export class WebhooksRepository {
     });
   }
 
+  async getUserWebhookByUrl(userId: number, subscriberUrl: string) {
+    return this.dbRead.prisma.webhook.findFirst({
+      where: { userId, subscriberUrl },
+    });
+  }
+
   async deleteWebhook(webhookId: string) {
     return this.dbWrite.prisma.webhook.delete({
       where: { id: webhookId },
