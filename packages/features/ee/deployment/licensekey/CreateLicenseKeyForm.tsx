@@ -72,7 +72,7 @@ const CreateANewLicenseKeyFormChild = ({ session }: { session: Ensure<SessionCon
   function calculateMonthlyPrice() {
     const occurrence = watchedBillingPeriod === "MONTHLY" ? 1 : 12;
 
-    const sum = watchedEntityCount * watchedEntityPrice * occurrence;
+    const sum = watchedEntityCount * watchedEntityPrice;
     return `$ ${sum / 100} / ${occurrence} months`;
   }
 
