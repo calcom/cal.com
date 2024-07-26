@@ -193,6 +193,7 @@ export class OAuthClientUsersController {
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
       locale: user.locale as Locales,
+      organizationId: user.organizationId,
     };
   }
 }

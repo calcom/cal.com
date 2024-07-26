@@ -2392,7 +2392,7 @@
     },
     "/v2/provider/{clientId}": {
       "get": {
-        "operationId": "CalProviderController_verifyClientId",
+        "operationId": "CalProviderController_getClient",
         "parameters": [
           {
             "name": "clientId",
@@ -3184,6 +3184,10 @@
             ],
             "type": "string",
             "example": "en"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
@@ -3194,7 +3198,8 @@
           "weekStart",
           "createdDate",
           "timeFormat",
-          "defaultScheduleId"
+          "defaultScheduleId",
+          "organizationId"
         ]
       },
       "GetManagedUsersOutput": {
@@ -3569,8 +3574,7 @@
             "example": 3
           },
           "logo": {
-            "type": "string",
-            "nullable": true,
+            "type": "object",
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
@@ -5977,9 +5981,12 @@
           "timeZone"
         ]
       },
-      "Host": {
+      "TeamEventTypeResponseHost": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "userId": {
             "type": "number"
           },
@@ -5993,6 +6000,7 @@
           }
         },
         "required": [
+          "name",
           "userId"
         ]
       },
@@ -6114,7 +6122,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -7036,10 +7044,14 @@
               "success",
               "error"
             ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/PlatformOAuthClientDto"
           }
         },
         "required": [
-          "status"
+          "status",
+          "data"
         ]
       },
       "ProviderVerifyAccessTokenOutput": {
@@ -7056,6 +7068,17 @@
         },
         "required": [
           "status"
+        ]
+      },
+      "Team": {
+        "type": "object",
+        "properties": {
+          "teamId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "teamId"
         ]
       },
       "MeOutput": {
@@ -7082,6 +7105,12 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "teams": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Team"
+            }
           }
         },
         "required": [
@@ -7091,7 +7120,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "teams"
         ]
       },
       "GetMeOutput": {

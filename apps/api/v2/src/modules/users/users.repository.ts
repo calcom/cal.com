@@ -77,6 +77,17 @@ export class UsersRepository {
     });
   }
 
+  async findByIdWithTeams(userId: number) {
+    return this.dbRead.prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      include: {
+        teams: true,
+      },
+    });
+  }
+
   async findByIdsWithEventTypes(userIds: number[]) {
     return this.dbRead.prisma.user.findMany({
       where: {
