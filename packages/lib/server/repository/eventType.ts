@@ -237,6 +237,7 @@ export class EventTypeRepository {
       afterEventBuffer: true,
       slotInterval: true,
       hashedLink: true,
+      eventTypeColour: true,
       bookingLimits: true,
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
