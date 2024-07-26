@@ -47,7 +47,17 @@ export const bookingsProcedure = authedProcedure
       },
       include: {
         attendees: true,
-        eventType: true,
+        eventType: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
         destinationCalendar: true,
         references: true,
         user: {

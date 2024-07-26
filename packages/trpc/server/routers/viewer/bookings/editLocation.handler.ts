@@ -91,6 +91,13 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         : [],
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+      team: !!booking.eventType?.team
+        ? {
+            name: booking.eventType.team.name,
+            id: booking.eventType.team.id,
+            members: [],
+          }
+        : undefined,
     };
 
     const credentials = await getUsersCredentials(ctx.user);
