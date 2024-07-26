@@ -56,7 +56,7 @@ export function BaseCalProvider({
 
   useTimezone(getTimezoneChangeHandler());
 
-  const { isInit, orgId } = useOAuthClient({
+  const { isInit } = useOAuthClient({
     clientId,
     apiUrl: options.apiUrl,
     refreshUrl: options.refreshUrl,
@@ -109,7 +109,6 @@ export function BaseCalProvider({
     <AtomsContext.Provider
       value={{
         clientId,
-        orgId,
         accessToken: currentAccessToken,
         options,
         error,
@@ -127,7 +126,6 @@ export function BaseCalProvider({
     <AtomsContext.Provider
       value={{
         clientId,
-        orgId,
         options,
         error,
         getClient: () => http,

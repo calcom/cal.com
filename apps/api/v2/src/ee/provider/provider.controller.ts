@@ -30,18 +30,16 @@ export class CalProviderController {
 
   @Get("/:clientId")
   @HttpCode(HttpStatus.OK)
-  async getClient(@Param("clientId") clientId: string): Promise<ProviderVerifyClientOutput> {
+  async verifyClientId(@Param("clientId") clientId: string): Promise<ProviderVerifyClientOutput> {
     if (!clientId) {
       throw new NotFoundException();
     }
-
     const oAuthClient = await this.oauthClientRepository.getOAuthClient(clientId);
 
     if (!oAuthClient) throw new UnauthorizedException();
 
     return {
       status: SUCCESS_STATUS,
-      data: oAuthClient,
     };
   }
 
