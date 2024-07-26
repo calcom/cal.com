@@ -548,10 +548,7 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-3 font-medium">{t("where")}</div>
                             <div className="col-span-2 mt-3" data-testid="where">
-                              {unconfirmedBookingLocationMessage &&
-                              bookingInfo.status === BookingStatus.PENDING ? (
-                                <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />
-                              ) : (
+                              {bookingInfo.status !== BookingStatus.PENDING ? (
                                 <>
                                   {!rescheduleLocation ||
                                   locationToDisplay === rescheduleLocationToDisplay ? (
@@ -575,6 +572,8 @@ export default function Success(props: PageProps) {
                                     </>
                                   )}
                                 </>
+                              ) : (
+                                <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />
                               )}
                             </div>
                           </>
