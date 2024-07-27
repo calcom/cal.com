@@ -1279,7 +1279,6 @@
   "how_long_after": "Hvor lenge etter at hendelsen er ferdig?",
   "no_available_slots": "Ingen Tilgjengelige tidsluker",
   "time_available": "Tilgjengelig tid",
-  "cant_find_the_right_video_app_visit_our_app_store": "Finner du ikke riktig video app? Besøk vår <1>App Butikk</1>.",
   "install_new_calendar_app": "Installer ny kalender-app",
   "make_phone_number_required": "Gjør telefonnummer pålagt for å booke hendelser",
   "new_event_type_availability": "{{eventTypeTitle}} Tilgjengelighet",

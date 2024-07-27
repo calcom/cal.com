@@ -1,10 +1,10 @@
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogTitle,
-  DialogHeader,
   DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import type { FC } from "react";
 import { useState } from "react";
@@ -25,6 +25,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   alreadyConnectedLabel = "Connected Apple Calendar",
   loadingLabel = "Checking Apple Calendar",
   className,
+  initialData,
 }) => {
   const form = useForm({
     defaultValues: {
@@ -35,6 +36,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   const { toast } = useToast();
   const { allowConnect, checked, refetch } = useCheck({
     calendar: "apple",
+    initialData,
   });
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
