@@ -1,6 +1,6 @@
 import { Trans } from "next-i18next";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm, useFormState } from "react-hook-form";
 
 import dayjs from "@calcom/dayjs";
@@ -115,6 +115,17 @@ const CreateOutOfOfficeEntryModal = ({
     },
   });
 
+  const resetForm = useCallback(() => {
+    setValue("toTeamUserId", null);
+    setValue("notes", "");
+    setValue("dateRange", dateRange);
+    setValue("reasonId", 1);
+    setValue("uuid", null);
+    setSelectedReason(null);
+    setSelectedMember(null);
+    setProfileRedirect(false);
+  }, [dateRange, setValue]);
+
   const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
     onSuccess: () => {
       if (currentlyEditingOutOfOfficeEntry) {
@@ -123,12 +134,7 @@ const CreateOutOfOfficeEntryModal = ({
         showToast(t("success_entry_created"), "success");
       }
       utils.viewer.outOfOfficeEntriesList.invalidate();
-      setValue("toTeamUserId", null);
-      setValue("notes", "");
-      setValue("uuid", null);
-      setSelectedReason(null);
-      setSelectedMember(null);
-      setProfileRedirect(false);
+      resetForm();
       closeModal();
     },
     onError: (error) => {
@@ -138,14 +144,7 @@ const CreateOutOfOfficeEntryModal = ({
 
   useEffect(() => {
     if (currentlyEditingOutOfOfficeEntry === null) {
-      setValue("toTeamUserId", null);
-      setValue("notes", "");
-      setValue("dateRange", dateRange);
-      setValue("reasonId", 1);
-      setValue("uuid", null);
-      setSelectedReason(null);
-      setSelectedMember(null);
-      setProfileRedirect(false);
+      resetForm();
       return;
     }
 
@@ -180,7 +179,7 @@ const CreateOutOfOfficeEntryModal = ({
     });
 
     setValue("uuid", currentlyEditingOutOfOfficeEntry.uuid);
-  }, [currentlyEditingOutOfOfficeEntry, setValue, reasonList, dateRange, memberListOptions]);
+  }, [currentlyEditingOutOfOfficeEntry, setValue, reasonList, dateRange, memberListOptions, resetForm]);
 
   return (
     <Dialog open={openModal}>
@@ -304,7 +303,14 @@ const CreateOutOfOfficeEntryModal = ({
         </form>
         <DialogFooter showDivider noSticky>
           <div className="flex">
-            <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
+            <Button
+              color="minimal"
+              type="button"
+              onClick={() => {
+                resetForm();
+                closeModal();
+              }}
+              className="mr-1">
               {t("cancel")}
             </Button>
             <Button
