@@ -76,6 +76,11 @@ export const EventMeta = ({
     [isPlatform]
   );
 
+  function convertLineBreaksToHTML(inputText: string): string {
+    if (!inputText || inputText === "") return;
+    return inputText.replace(/\n/g, "<br>");
+  }
+
   useEffect(() => {
     //In case the event has lockTimeZone enabled ,set the timezone to event's attached availability timezone
     if (event && event?.lockTimeZoneToggleOnBookingPage && event?.schedule?.timeZone) {
@@ -122,7 +127,7 @@ export const EventMeta = ({
           <EventTitle className={`${classNames?.eventMetaTitle} my-2`}>{event?.title}</EventTitle>
           {event.description && (
             <EventMetaBlock contentClassName="mb-8 break-words max-w-full max-h-[180px] scroll-bar pr-4">
-              <div dangerouslySetInnerHTML={{ __html: event.description }} />
+              <div dangerouslySetInnerHTML={{ __html: convertLineBreaksToHTML(event.description) }} />
             </EventMetaBlock>
           )}
           <div className="space-y-4 font-medium rtl:-mr-2">

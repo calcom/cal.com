@@ -34,9 +34,14 @@ const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
     setIsMounted(true);
   }, []);
 
+  function convertLineBreaksToHTML(inputText: string): string {
+    if (!inputText || inputText === "") return;
+    return inputText.replace(/\n/g, "<br>");
+  }
+
   return mounted ? (
     <Editor
-      getText={() => md.render(formMethods.getValues("description") || "")}
+      getText={() => md.render(convertLineBreaksToHTML(formMethods.getValues("description") || ""))}
       setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}

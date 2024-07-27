@@ -38,6 +38,11 @@ export const EventTypeDescription = ({
     [eventType.recurringEvent]
   );
 
+  function convertLineBreaksToHTML(inputText: string): string {
+    if (!inputText || inputText === "") return;
+    return inputText.replace(/\n/g, "<br>");
+  }
+
   const paymentAppData = getPaymentAppData(eventType);
 
   return (
@@ -50,7 +55,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: eventType.descriptionAsSafeHTML || "",
+              __html: convertLineBreaksToHTML(eventType.descriptionAsSafeHTML || ""),
             }}
           />
         )}
