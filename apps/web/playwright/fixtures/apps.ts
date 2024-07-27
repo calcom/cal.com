@@ -100,6 +100,7 @@ export function createAppsFixture(page: Page) {
         await bookTimeSlot(page, { name: `Test Testson`, email: `test@example.com` });
         await page.waitForLoadState("networkidle");
         await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+        await expect(page.locator("[data-testid=reschedule-link]")).toBeVisible();
         await expect(page.locator("[data-testid=where] ")).toContainText(app.label);
       }
     },
