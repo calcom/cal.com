@@ -3,7 +3,6 @@ import { Trans } from "next-i18next";
 import { useRouter } from "next/navigation";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useMemo, useState, Suspense } from "react";
-import type { Dispatch, SetStateAction } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hooks/useLockedFieldsManager";
@@ -54,7 +53,7 @@ type Props = {
   isUserOrganizationAdmin: boolean;
   bookerUrl: string;
   activeWebhooksNumber: number;
-  setIsTeamEventTypeDeleted: Dispatch<SetStateAction<boolean>>;
+  onDelete: () => void;
 };
 
 type getNavigationProps = {
@@ -119,11 +118,11 @@ function DeleteDialog({
   eventTypeId,
   open,
   onOpenChange,
-  setIsTeamEventTypeDeleted,
+  onDelete,
 }: {
   isManagedEvent: string;
   eventTypeId: number;
-  setIsTeamEventTypeDeleted: Dispatch<SetStateAction<boolean>>;
+  onDelete: () => void;
 } & Pick<DialogProps, "open" | "onOpenChange">) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -132,7 +131,7 @@ function DeleteDialog({
     onSuccess: async () => {
       await utils.viewer.eventTypes.invalidate();
       showToast(t("event_type_deleted_successfully"), "success");
-      setIsTeamEventTypeDeleted(true);
+      onDelete();
       router.push("/event-types");
       onOpenChange?.(false);
     },
@@ -189,7 +188,7 @@ function EventTypeSingleLayout({
   isUserOrganizationAdmin,
   bookerUrl,
   activeWebhooksNumber,
-  setIsTeamEventTypeDeleted,
+  onDelete,
 }: Props) {
   const { t } = useLocale();
   const eventTypesLockedByOrg = eventType.team?.parent?.organizationSettings?.lockEventTypeCreationForUsers;
@@ -519,7 +518,7 @@ function EventTypeSingleLayout({
         isManagedEvent={isManagedEvent}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        setIsTeamEventTypeDeleted={setIsTeamEventTypeDeleted}
+        onDelete={onDelete}
       />
 
       <EventTypeEmbedDialog />

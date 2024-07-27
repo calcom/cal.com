@@ -226,7 +226,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
-  const [isTeamEventTypeDeleted, setIsTeamEventTypeDeleted] = useState<boolean>(false);
+  const isTeamEventTypeDeleted = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -401,6 +401,10 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
+  const onDelete = () => {
+    isTeamEventTypeDeleted.current = true;
+  };
+
   // useEffect(() => {
   //   const handleRouteChange = (url: string) => {
   //     const paths = url.split("/");
@@ -416,7 +420,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   //
   //     const hosts = eventType.hosts;
   //     if (
-  //       !isTeamEventTypeDeleted &&
+  //       !isTeamEventTypeDeleted.current &&
   //       !leaveWithoutAssigningHosts.current &&
   //       !!team &&
   //       (hosts.length === 0 || assignedUsers.length === 0) &&
@@ -720,7 +724,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
         isUserOrganizationAdmin={props.isUserOrganizationAdmin}
-        setIsTeamEventTypeDeleted={setIsTeamEventTypeDeleted}>
+        onDelete={onDelete}>
         <Form
           form={formMethods}
           id="event-type-form"
