@@ -103,7 +103,7 @@ const CreateOutOfOfficeEntryModal = ({
 
   const { hasTeamPlan } = useHasTeamPlan();
 
-  const { handleSubmit, setValue, control, register } = useForm<BookingRedirectForm>({
+  const { handleSubmit, setValue, control, register, reset } = useForm<BookingRedirectForm>({
     defaultValues: {
       dateRange: {
         startDate: dateRange.startDate,
@@ -116,23 +116,20 @@ const CreateOutOfOfficeEntryModal = ({
   });
 
   const resetForm = useCallback(() => {
-    setValue("toTeamUserId", null);
-    setValue("notes", "");
-    setValue("dateRange", dateRange);
-    setValue("reasonId", 1);
-    setValue("uuid", null);
+    reset();
     setSelectedReason(null);
     setSelectedMember(null);
     setProfileRedirect(false);
-  }, [dateRange, setValue]);
+  }, [reset]);
 
   const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
     onSuccess: () => {
-      if (currentlyEditingOutOfOfficeEntry) {
-        showToast(t("success_edited_entry_out_of_office"), "success");
-      } else {
-        showToast(t("success_entry_created"), "success");
-      }
+      showToast(
+        currentlyEditingOutOfOfficeEntry
+          ? t("success_edited_entry_out_of_office")
+          : t("success_entry_created"),
+        "success"
+      );
       utils.viewer.outOfOfficeEntriesList.invalidate();
       resetForm();
       closeModal();
