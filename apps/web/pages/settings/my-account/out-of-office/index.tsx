@@ -39,7 +39,7 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
-  uuid?: string;
+  uuid?: string | null;
 };
 
 export type outOfOfficeEntryData = {
@@ -124,6 +124,7 @@ const CreateOutOfOfficeEntryModal = ({
       utils.viewer.outOfOfficeEntriesList.invalidate();
       setValue("toTeamUserId", null);
       setValue("notes", "");
+      setValue("uuid", null);
       setSelectedReason(null);
       setSelectedMember(null);
       setProfileRedirect(false);
@@ -140,6 +141,7 @@ const CreateOutOfOfficeEntryModal = ({
       setValue("notes", "");
       setValue("dateRange", dateRange);
       setValue("reasonId", 1);
+      setValue("uuid", null);
       setSelectedReason(null);
       setSelectedMember(null);
       setProfileRedirect(false);
@@ -260,6 +262,10 @@ const CreateOutOfOfficeEntryModal = ({
                   id="profile-redirect-switch"
                   onCheckedChange={(state) => {
                     setProfileRedirect(state);
+                    if (state === false) {
+                      setSelectedMember(null);
+                      setValue("toTeamUserId", null);
+                    }
                   }}
                   label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />

@@ -81,7 +81,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
         { userId: ctx.user.id },
         {
           uuid: {
-            not: input.uuid,
+            not: input.uuid ?? "",
           },
         },
         {
@@ -180,7 +180,7 @@ export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
       notes: input.notes,
       userId: ctx.user.id,
       reasonId: input.reasonId,
-      toUserId: toUserId,
+      toUserId: toUserId ? toUserId : null,
     },
   });
 
