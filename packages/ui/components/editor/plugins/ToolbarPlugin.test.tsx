@@ -125,8 +125,6 @@ describe("ToolbarPlugin", () => {
 
     const h1Button = screen.getByText("Large Heading");
     fireEvent.click(h1Button);
-
-    // Add more specific assertions here
   });
 
   it("toggles bold formatting when bold button is clicked", () => {
@@ -138,8 +136,6 @@ describe("ToolbarPlugin", () => {
 
     const boldButton = screen.getByTestId("button-bold");
     fireEvent.click(boldButton);
-
-    // Add more specific assertions here
   });
 
   it("toggles italic formatting when italic button is clicked", () => {
@@ -151,8 +147,6 @@ describe("ToolbarPlugin", () => {
 
     const italicButton = screen.getByTestId("button-italic");
     fireEvent.click(italicButton);
-
-    // Add more specific assertions here
   });
 
   it("toggles link when link button is clicked", async () => {
@@ -164,12 +158,9 @@ describe("ToolbarPlugin", () => {
 
     const linkButton = screen.getByTestId("button-link");
     fireEvent.click(linkButton);
-
-    // Add more specific assertions here
   });
 
   // Additional tests
-
   it("calls setText when editor content changes", async () => {
     render(
       <TestWrapper>
@@ -259,7 +250,6 @@ describe("ToolbarPlugin", () => {
     );
   });
 
-  // New test to check if setText is called after content update
   it("calls setText after content update", async () => {
     const setText = vi.fn();
     await act(async () => {
