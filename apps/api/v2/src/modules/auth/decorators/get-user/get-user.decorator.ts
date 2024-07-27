@@ -1,26 +1,33 @@
+import { UserWithProfile } from "@/modules/users/users.repository";
 import { ExecutionContext } from "@nestjs/common";
 import { createParamDecorator } from "@nestjs/common";
-import { User } from "@prisma/client";
 
-export const GetUser = createParamDecorator<keyof User | (keyof User)[], ExecutionContext>((data, ctx) => {
+export type GetUserReturnType = UserWithProfile & { isSystemAdmin: boolean };
+
+export const GetUser = createParamDecorator<
+  keyof GetUserReturnType | (keyof GetUserReturnType)[],
+  ExecutionContext
+>((data, ctx) => {
   const request = ctx.switchToHttp().getRequest();
-  const user = request.user as User;
+  const user = request.user as GetUserReturnType;
 
   if (!user) {
     throw new Error("GetUser decorator : User not found");
   }
 
+  user.isSystemAdmin = user.role === "ADMIN";
+
   if (Array.isArray(data)) {
     return data.reduce((prev, curr) => {
       return {
         ...prev,
-        [curr]: request.user[curr],
+        [curr]: user[curr],
       };
     }, {});
   }
 
   if (data) {
-    return request.user[data];
+    return user[data];
   }
 
   return user;

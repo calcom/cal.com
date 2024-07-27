@@ -371,7 +371,15 @@ export default function ToolbarPlugin(props: TextEditorProps) {
         const nodes = $generateNodesFromDOM(editor, dom);
 
         $getRoot().select();
-        $insertNodes(nodes);
+        try {
+          $insertNodes(nodes);
+        } catch (e: unknown) {
+          // resolves: "topLevelElement is root node at RangeSelection.insertNodes"
+          // @see https://stackoverflow.com/questions/73094258/setting-editor-from-html
+          const paragraphNode = $createParagraphNode();
+          nodes.forEach((n) => paragraphNode.append(n));
+          $getRoot().append(paragraphNode);
+        }
 
         editor.registerUpdateListener(({ editorState, prevEditorState }) => {
           editorState.read(() => {

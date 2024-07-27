@@ -1,11 +1,12 @@
 import type { NextMiddleware } from "next-api-middleware";
 
+import LicenseKeyService from "@calcom/ee/common/server/LicenseKeyService";
 import { hashAPIKey } from "@calcom/features/ee/api-keys/lib/apiKeys";
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
 import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 import { isAdminGuard } from "../utils/isAdmin";
+import { ScopeOfAdmin } from "../utils/scopeOfAdmin";
 
 // Used to check if the apiKey is not expired, could be extracted if reused. but not for now.
 export const dateNotInPast = function (date: Date) {
@@ -17,9 +18,12 @@ export const dateNotInPast = function (date: Date) {
 
 // This verifies the apiKey and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
-  const hasValidLicense = await checkLicense(prisma);
-  if (!hasValidLicense && IS_PRODUCTION)
+  const licenseKeyService = await LicenseKeyService.create();
+  const hasValidLicense = await licenseKeyService.checkLicense();
+
+  if (!hasValidLicense && IS_PRODUCTION) {
     return res.status(401).json({ error: "Invalid or missing CALCOM_LICENSE_KEY environment variable" });
+  }
   // Check if the apiKey query param is provided.
   if (!req.query.apiKey) return res.status(401).json({ message: "No apiKey provided" });
   // remove the prefix from the user provided api_key. If no env set default to "cal_"
@@ -36,7 +40,10 @@ export const verifyApiKey: NextMiddleware = async (req, res, next) => {
   if (!apiKey.userId) return res.status(404).json({ error: "No user found for this apiKey" });
   // save the user id in the request for later use
   req.userId = apiKey.userId;
-  // save the isAdmin boolean here for later use
-  req.isAdmin = await isAdminGuard(req);
+  const { isAdmin, scope } = await isAdminGuard(req);
+
+  req.isSystemWideAdmin = isAdmin && scope === ScopeOfAdmin.SystemWide;
+  req.isOrganizationOwnerOrAdmin = isAdmin && scope === ScopeOfAdmin.OrgOwnerOrAdmin;
+
   await next();
 };

@@ -1,4 +1,4 @@
-import type { UpdateScheduleInput } from "@calcom/platform-types";
+import type { UpdateScheduleInput_2024_06_11 } from "@calcom/platform-types";
 
 import type { AvailabilityFormValues } from "../types";
 import { transformAtomScheduleForApi } from "./transformAtomScheduleForApi";
@@ -46,7 +46,7 @@ describe("transformAtomScheduleForApi", () => {
       isDefault: true,
     };
 
-    const expectedOutput: UpdateScheduleInput = {
+    const expectedOutput: UpdateScheduleInput_2024_06_11 = {
       name: "Default",
       timeZone: "America/Cancun",
       isDefault: true,

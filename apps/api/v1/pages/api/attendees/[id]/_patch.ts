@@ -63,8 +63,8 @@ export async function patchHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest, body: z.infer<typeof schemaAttendeeEditBodyParams>) {
-  const { isAdmin } = req;
-  if (isAdmin) return;
+  const { isSystemWideAdmin } = req;
+  if (isSystemWideAdmin) return;
   const { userId } = req;
   const { bookingId } = body;
   if (bookingId) {

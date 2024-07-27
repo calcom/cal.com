@@ -1,12 +1,5 @@
 import prismaMock from "../../../../../../tests/libs/__mocks__/prisma";
 
-import { describe, expect } from "vitest";
-
-import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
-import { WEBAPP_URL } from "@calcom/lib/constants";
-import logger from "@calcom/lib/logger";
-import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
-import { test } from "@calcom/web/test/fixtures/fixtures";
 import {
   createBookingScenario,
   getDate,
@@ -42,6 +35,14 @@ import {
 } from "@calcom/web/test/utils/bookingScenario/expects";
 import { getMockRequestDataForBooking } from "@calcom/web/test/utils/bookingScenario/getMockRequestDataForBooking";
 import { setupAndTeardown } from "@calcom/web/test/utils/bookingScenario/setupAndTeardown";
+
+import { describe, expect } from "vitest";
+
+import { appStoreMetadata } from "@calcom/app-store/apps.metadata.generated";
+import { WEBAPP_URL } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
+import { test } from "@calcom/web/test/fixtures/fixtures";
 
 // Local test runs sometime gets too slow
 const timeout = process.env.CI ? 5000 : 20000;
@@ -95,7 +96,7 @@ describe("handleNewBooking", () => {
                   trigger: "RESCHEDULE_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -332,7 +333,7 @@ describe("handleNewBooking", () => {
                   trigger: "RESCHEDULE_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -544,7 +545,7 @@ describe("handleNewBooking", () => {
                   trigger: "RESCHEDULE_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -659,8 +660,11 @@ describe("handleNewBooking", () => {
 
           expectWorkflowToBeTriggered({ emailsToReceive: [organizer.email], emails });
 
-          // FIXME: We should send Broken Integration emails on calendar event updation failure
-          // expectBrokenIntegrationEmails({ booker, organizer, emails });
+          expectSuccessfulBookingRescheduledEmails({
+            booker,
+            organizer,
+            emails,
+          });
 
           expectBookingRescheduledWebhookToHaveBeenFired({
             booker,
@@ -727,7 +731,7 @@ describe("handleNewBooking", () => {
                   trigger: "RESCHEDULE_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -934,7 +938,7 @@ describe("handleNewBooking", () => {
                     trigger: "RESCHEDULE_EVENT",
                     action: "EMAIL_HOST",
                     template: "REMINDER",
-                    activeEventTypeId: 1,
+                    activeOn: [1],
                   },
                 ],
                 eventTypes: [
@@ -1183,7 +1187,7 @@ describe("handleNewBooking", () => {
                     trigger: "RESCHEDULE_EVENT",
                     action: "EMAIL_HOST",
                     template: "REMINDER",
-                    activeEventTypeId: 1,
+                    activeOn: [1],
                   },
                 ],
                 eventTypes: [
@@ -1429,7 +1433,7 @@ describe("handleNewBooking", () => {
                   trigger: "RESCHEDULE_EVENT",
                   action: "EMAIL_HOST",
                   template: "REMINDER",
-                  activeEventTypeId: 1,
+                  activeOn: [1],
                 },
               ],
               eventTypes: [
@@ -1641,7 +1645,7 @@ describe("handleNewBooking", () => {
                     trigger: "RESCHEDULE_EVENT",
                     action: "EMAIL_HOST",
                     template: "REMINDER",
-                    activeEventTypeId: 1,
+                    activeOn: [1],
                   },
                 ],
                 eventTypes: [

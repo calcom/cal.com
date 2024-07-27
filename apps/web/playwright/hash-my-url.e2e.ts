@@ -55,8 +55,8 @@ test.describe("hash my url", () => {
     // Ensure that private URL is enabled after modifying the event type.
     // Additionally, if the slug is changed, ensure that the private URL is updated accordingly.
     await page.getByTestId("vertical-tab-event_setup_tab_title").click();
-    await page.locator("[data-testid=event-title]").fill("somethingrandom");
-    await page.locator("[data-testid=event-slug]").fill("somethingrandom");
+    await page.locator("[data-testid=event-title]").first().fill("somethingrandom");
+    await page.locator("[data-testid=event-slug]").first().fill("somethingrandom");
     await page.locator("[data-testid=update-eventtype]").click();
     await page.getByTestId("toast-success").waitFor();
     await page.waitForLoadState("networkidle");

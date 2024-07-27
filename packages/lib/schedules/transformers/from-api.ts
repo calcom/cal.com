@@ -1,8 +1,8 @@
-import type { ScheduleAvailabilityInput } from "@calcom/platform-types";
-import type { ScheduleOverrideInput } from "@calcom/platform-types";
-import type { WeekDay } from "@calcom/platform-types";
+import type { ScheduleAvailabilityInput_2024_06_11 } from "@calcom/platform-types/schedules/schedules-2024-06-11";
+import type { ScheduleOverrideInput_2024_06_11 } from "@calcom/platform-types/schedules/schedules-2024-06-11";
+import type { WeekDay } from "@calcom/platform-types/schedules/schedules-2024-06-11";
 
-export function transformApiScheduleAvailability(inputAvailability: ScheduleAvailabilityInput[]) {
+export function transformApiScheduleAvailability(inputAvailability: ScheduleAvailabilityInput_2024_06_11[]) {
   return inputAvailability.map((availability) => ({
     days: availability.days.map(transformDayToNumber),
     startTime: createDateFromHoursMinutes(availability.startTime),
@@ -10,7 +10,7 @@ export function transformApiScheduleAvailability(inputAvailability: ScheduleAvai
   }));
 }
 
-export function transformApiScheduleOverrides(inputOverrides: ScheduleOverrideInput[]) {
+export function transformApiScheduleOverrides(inputOverrides: ScheduleOverrideInput_2024_06_11[]) {
   return inputOverrides.map((override) => ({
     date: new Date(override.date),
     startTime: createDateFromHoursMinutes(override.startTime),

@@ -249,7 +249,9 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     CustomStartIcon={<GoogleIcon />}
                     onClick={async (e) => {
                       e.preventDefault();
-                      await signIn("google");
+                      await signIn("google", {
+                        callbackUrl,
+                      });
                     }}>
                     {t("signin_with_google")}
                   </Button>

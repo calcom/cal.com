@@ -1,11 +1,13 @@
 import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
+import { orgDomainConfig } from "@calcom/ee/organizations/lib/orgDomains";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -69,6 +71,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  let rescheduledToUid: string | null = null;
+  if (bookingInfo.rescheduled) {
+    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+      originalBookingUid: bookingInfo.uid,
+    });
+    rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -159,8 +169,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     }
   }
 
+  const { currentOrgDomain } = orgDomainConfig(context.req);
   return {
     props: {
+      orgSlug: currentOrgDomain,
       themeBasis: eventType.team ? eventType.team.slug : eventType.users[0]?.username,
       hideBranding: eventType.team ? eventType.team.hideBranding : eventType.users[0].hideBranding,
       profile,
@@ -173,6 +185,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      rescheduledToUid,
     },
   };
 }

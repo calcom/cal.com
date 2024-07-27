@@ -1,4 +1,4 @@
-import type { CSSProperties, PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import React, { useRef, useEffect, useState } from "react";
 
 import { classNames } from "@calcom/lib";
@@ -17,15 +17,6 @@ const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?:
     }
   }, []);
 
-  const overflowIndicatorStyles = {
-    position: "absolute",
-    top: 0,
-    width: "100%",
-    height: "30px",
-    background: "linear-gradient(to bottom, transparent, gray 40px)",
-    zIndex: 10,
-  } as CSSProperties;
-
   return (
     <div
       ref={scrollableRef}
@@ -35,7 +26,7 @@ const ScrollableArea = ({ children, className }: PropsWithChildren<{ className?:
         className // Pass in your max-w / max-h
       )}>
       {children}
-      {isOverflowingY && <div style={overflowIndicatorStyles} data-testid="overflow-indicator" />}
+      {isOverflowingY && <div data-testid="overflow-indicator" />}
     </div>
   );
 };
