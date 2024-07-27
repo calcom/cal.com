@@ -158,13 +158,13 @@ export class BookingsController {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
       );
-      if (booking.userId && booking.uid && booking.startTime) {
+      /* if (booking.userId && booking.uid && booking.startTime) {
         void (await this.billingService.increaseUsageByUserId(booking.userId, {
           uid: booking.uid,
           startTime: booking.startTime,
           fromReschedule: booking.fromReschedule,
         }));
-      }
+      } */
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -187,9 +187,9 @@ export class BookingsController {
       try {
         req.body.id = parseInt(bookingId);
         const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
-        if (!res.onlyRemovedAttendee) {
+        /* if (!res.onlyRemovedAttendee) {
           void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
-        }
+        } */
         return {
           status: SUCCESS_STATUS,
           data: {
@@ -240,14 +240,14 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      createdBookings.forEach(async (booking) => {
+      /* createdBookings.forEach(async (booking) => {
         if (booking.userId && booking.uid && booking.startTime) {
           void (await this.billingService.increaseUsageByUserId(booking.userId, {
             uid: booking.uid,
             startTime: booking.startTime,
           }));
         }
-      });
+      }); */
 
       return {
         status: SUCCESS_STATUS,
@@ -272,7 +272,7 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      if (instantMeeting.userId && instantMeeting.bookingUid) {
+      /* if (instantMeeting.userId && instantMeeting.bookingUid) {
         const now = new Date();
         // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
         now.setSeconds(now.getSeconds() + 10);
@@ -280,7 +280,7 @@ export class BookingsController {
           uid: instantMeeting.bookingUid,
           startTime: now,
         }));
-      }
+      } */
 
       return {
         status: SUCCESS_STATUS,
