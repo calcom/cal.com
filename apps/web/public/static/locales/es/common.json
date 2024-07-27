@@ -1495,7 +1495,6 @@
   "how_long_after": "¿Cuánto tiempo después de que termine el evento?",
   "no_available_slots": "No hay espacios disponibles",
   "time_available": "Tiempo disponible",
-  "cant_find_the_right_video_app_visit_our_app_store": "¿No encuentra la aplicación de vídeo correcta? Visite nuestra <1>App Store</1>.",
   "install_new_calendar_app": "Instalar nueva aplicación de calendario",
   "make_phone_number_required": "Solicitar número de teléfono para reservar el evento",
   "new_event_type_availability": "Disponibilidad para {{eventTypeTitle}}",

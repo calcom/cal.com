@@ -7,7 +7,7 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.18";
+import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.21";
 
 @Injectable()
 export class OAuthClientUsersService {
@@ -59,7 +59,11 @@ export class OAuthClientUsersService {
         })
       )[0];
       await this.userRepository.addToOAuthClient(user.id, oAuthClientId);
-      await this.userRepository.update(user.id, { name: body.name ?? user.username ?? undefined });
+      const updatedUser = await this.userRepository.update(user.id, {
+        name: body.name ?? user.username ?? undefined,
+        locale: body.locale,
+      });
+      user.locale = updatedUser.locale;
     }
 
     const { accessToken, refreshToken, accessTokenExpiresAt } = await this.tokensRepository.createOAuthTokens(

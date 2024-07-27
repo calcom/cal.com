@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/cal-ai",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/lib": "*"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Cal.ai is your AI scheduling assistant. Get your personal email assistant (username@cal.ai) that you can forward emails to or have a conversation with. Cal.ai will automatically schedule meetings for you."
+}

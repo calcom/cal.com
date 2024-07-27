@@ -3,7 +3,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { Injectable } from "@nestjs/common";
 import { DateTime } from "luxon";
 
-import { MINUTES_TO_BOOK } from "@calcom/platform-libraries-0.0.18";
+import { MINUTES_TO_BOOK } from "@calcom/platform-libraries-0.0.21";
 import { ReserveSlotInput } from "@calcom/platform-types";
 
 @Injectable()
