@@ -29,6 +29,7 @@ import {
   TableRow,
   TextArea,
   UpgradeTeamsBadge,
+  Tooltip,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -407,36 +408,40 @@ const OutOfOfficeEntriesList = ({
                 </div>
 
                 <div className="flex flex-row items-center gap-x-2">
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="minimal"
-                    variant="icon"
-                    StartIcon="pencil"
-                    onClick={() => {
-                      const outOfOfficeEntryData = {
-                        uuid: item.uuid,
-                        profileRedirect: item.toUserId ? true : false,
-                        selectedReason: item.reason?.id ?? null,
-                        selectedMember: item.toUserId,
-                        notes: item.notes,
-                        start: item.start,
-                        end: item.end,
-                      };
-                      editOutOfOfficeEntry(outOfOfficeEntryData);
-                    }}
-                  />
-                  <Button
-                    className="self-center rounded-lg border"
-                    type="button"
-                    color="minimal"
-                    variant="icon"
-                    disabled={deleteOutOfOfficeEntryMutation.isPending}
-                    StartIcon="trash-2"
-                    onClick={() => {
-                      deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
-                    }}
-                  />
+                  <Tooltip content={t("edit") as string}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      StartIcon="pencil"
+                      onClick={() => {
+                        const outOfOfficeEntryData = {
+                          uuid: item.uuid,
+                          profileRedirect: item.toUserId ? true : false,
+                          selectedReason: item.reason?.id ?? null,
+                          selectedMember: item.toUserId,
+                          notes: item.notes,
+                          start: item.start,
+                          end: item.end,
+                        };
+                        editOutOfOfficeEntry(outOfOfficeEntryData);
+                      }}
+                    />
+                  </Tooltip>
+                  <Tooltip content={t("delete") as string}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      disabled={deleteOutOfOfficeEntryMutation.isPending}
+                      StartIcon="trash-2"
+                      onClick={() => {
+                        deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
+                      }}
+                    />
+                  </Tooltip>
                 </div>
               </TableCell>
             </TableRow>
