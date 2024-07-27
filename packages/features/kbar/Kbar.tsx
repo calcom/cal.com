@@ -313,10 +313,10 @@ function RenderResults() {
             // For seeing keyboard up & down navigation in action, we need visual feedback based on "active" prop
             style={{
               background: active ? "var(--cal-bg-subtle)" : `var(--cal-bg-default)`,
-              borderLeft: active ? "2px solid var(--cal-border-default)" : "2px solid transparent",
+              borderLeft: active ? "2px solid var(--cal-border)" : "2px solid transparent",
               color: "var(--cal-text)",
             }}
-            className="flex items-center justify-between px-4 py-2.5 text-sm hover:cursor-pointer">
+            className="flex items-center justify-between px-4 py-2.5 text-sm transition hover:cursor-pointer">
             <span>{t(item.name)}</span>
             <DisplayShortcuts shortcuts={item.shortcut} />
           </div>

@@ -83,9 +83,6 @@ test.describe("2FA Tests", async () => {
         page.waitForResponse("**/api/auth/callback/credentials**"),
       ]);
       const shellLocator = page.locator(`[data-testid=dashboard-shell]`);
-
-      // expects the home page for an authorized user
-      await page.goto("/");
       await expect(shellLocator).toBeVisible();
     });
   });

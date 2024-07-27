@@ -21,6 +21,7 @@ export default function AppCard({
   disableSwitch,
   switchTooltip,
   hideSettingsIcon = false,
+  hideAppCardOptions = false,
 }: {
   app: RouterOutputs["viewer"]["integrations"]["items"][number] & { credentialOwner?: CredentialOwner };
   description?: React.ReactNode;
@@ -33,6 +34,7 @@ export default function AppCard({
   disableSwitch?: boolean;
   switchTooltip?: string;
   hideSettingsIcon?: boolean;
+  hideAppCardOptions?: boolean;
 }) {
   const { t } = useTranslation();
   const [animationRef] = useAutoAnimate<HTMLDivElement>();
@@ -119,29 +121,31 @@ export default function AppCard({
           </div>
         </div>
       </div>
-      <div ref={animationRef}>
-        {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
+      {hideAppCardOptions ? null : (
+        <div ref={animationRef}>
+          {app?.isInstalled && switchChecked && <hr className="border-subtle" />}
 
-        {app?.isInstalled && switchChecked ? (
-          app.isSetupAlready === undefined || app.isSetupAlready ? (
-            <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
-              {!hideSettingsIcon && (
-                <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
-                  <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+          {app?.isInstalled && switchChecked ? (
+            app.isSetupAlready === undefined || app.isSetupAlready ? (
+              <div className="relative p-4 pt-5 text-sm [&_input]:mb-0 [&_input]:leading-4">
+                {!hideSettingsIcon && (
+                  <Link href={`/apps/${app.slug}/setup`} className="absolute right-4 top-4">
+                    <Icon name="settings" className="text-default h-4 w-4" aria-hidden="true" />
+                  </Link>
+                )}
+                {children}
+              </div>
+            ) : (
+              <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
+                <p>{t("this_app_is_not_setup_already")}</p>
+                <Link href={`/apps/${app.slug}/setup`}>
+                  <Button StartIcon="settings">{t("setup")}</Button>
                 </Link>
-              )}
-              {children}
-            </div>
-          ) : (
-            <div className="flex h-64 w-full flex-col items-center justify-center gap-4 ">
-              <p>{t("this_app_is_not_setup_already")}</p>
-              <Link href={`/apps/${app.slug}/setup`}>
-                <Button StartIcon="settings">{t("setup")}</Button>
-              </Link>
-            </div>
-          )
-        ) : null}
-      </div>
+              </div>
+            )
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
