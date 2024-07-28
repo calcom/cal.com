@@ -105,16 +105,15 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const booking = await getBooking(bookingReference.bookingId as number);
 
       const evt = await getCalendarEvent(booking);
-
-    await prisma.booking.update({
-      where: {
-        uid: booking.uid,
-      },
-      data: {
-        isRecorded: true,
-        actorUserId: userId ?? null,
-      },
-    });
+      await prisma.booking.update({
+        where: {
+          uid: booking.uid,
+        },
+        data: {
+          isRecorded: true,
+          actorUserId: userId ?? null,
+        },
+      });
 
       const downloadLink = await getDownloadLinkOfCalVideo(recording_id);
 
