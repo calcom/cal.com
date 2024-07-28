@@ -60,6 +60,7 @@ export const eventTypeOrderHandler = async ({ ctx, input }: EventTypeOrderOption
         },
         data: {
           position,
+          actorUserId: ctx.user.id ?? null,
         },
       });
     })

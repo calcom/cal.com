@@ -118,6 +118,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -147,6 +148,7 @@ describe("handleChildrenEventTypes", () => {
           durationLimits: undefined,
           recurringEvent: undefined,
           userId: 4,
+          actorUserId: 1,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -171,6 +173,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -194,6 +197,7 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          actorUserId: 1,
           locations: [],
           scheduleId: null,
           lockTimeZoneToggleOnBookingPage: false,
@@ -274,6 +278,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         id: 123,
@@ -306,6 +311,7 @@ describe("handleChildrenEventTypes", () => {
           requiresBookerEmailVerification: false,
           userId: 4,
           workflows: undefined,
+          actorUserId: 1,
         },
       });
       expect(result.newUserIds).toEqual([4]);
@@ -328,6 +334,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -352,6 +359,7 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          actorUserId: 1,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,
@@ -385,6 +393,7 @@ describe("handleChildrenEventTypes", () => {
         lockTimeZoneToggleOnBookingPage,
         useEventTypeDestinationCalendarEmail,
         secondaryEmailId,
+        actorUserId,
         ...evType
       } = mockFindFirstEventType({
         metadata: { managedEventConfig: {} },
@@ -433,6 +442,7 @@ describe("handleChildrenEventTypes", () => {
           workflows: {
             create: [{ workflowId: 11 }],
           },
+          actorUserId: 1,
         },
       });
       const { profileId, ...rest } = evType;
@@ -440,6 +450,7 @@ describe("handleChildrenEventTypes", () => {
       expect(prismaMock.eventType.update).toHaveBeenCalledWith({
         data: {
           ...rest,
+          actorUserId: 1,
           locations: [],
           lockTimeZoneToggleOnBookingPage: false,
           requiresBookerEmailVerification: false,

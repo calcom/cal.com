@@ -101,11 +101,11 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { query, body } = req;
+  const { query, body, userId } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const data = schemaBookingEditBodyParams.parse(body);
   await checkPermissions(req, data);
-  const booking = await prisma.booking.update({ where: { id }, data });
+  const booking = await prisma.booking.update({ where: { id }, data: { ...data, actorUserId: userId } });
   return { booking: schemaBookingReadPublic.parse(booking) };
 }
 

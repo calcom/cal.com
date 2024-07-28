@@ -121,6 +121,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
           references: {
             create: updatedResult.referencesToCreate,
           },
+          actorUserId: ctx.user.id ?? null,
         },
       });
 

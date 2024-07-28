@@ -7,6 +7,7 @@ import { IS_PRODUCTION } from "@calcom/lib/constants";
 import prisma from "@calcom/prisma";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const { userId } = req;
   try {
     // Look if it's get
     if (req.method !== "GET") {
@@ -62,6 +63,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
         data: {
           paid: true,
+          actorUserId: userId ?? null,
         },
       });
       const updatePayment = prisma.payment.update({

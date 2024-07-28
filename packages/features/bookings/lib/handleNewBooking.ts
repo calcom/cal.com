@@ -1037,6 +1037,7 @@ async function handler(
       data: {
         rescheduled: true,
         status: BookingStatus.CANCELLED,
+        actorUserId: userId ?? null,
       },
     });
   }
@@ -1060,6 +1061,7 @@ async function handler(
       bookerEmail,
       paymentAppData,
       changedOrganizer,
+      actorUserId: userId,
     });
 
     // @NOTE: Add specific try catch for all subsequent async calls to avoid error
@@ -1432,6 +1434,7 @@ async function handler(
             },
             data: {
               iCalUID: evt.iCalUID || booking.iCalUID,
+              actorUserId: userId ?? null,
             },
           });
         }
@@ -1701,6 +1704,7 @@ async function handler(
             data: referencesToCreate,
           },
         },
+        actorUserId: userId ?? null,
       },
     });
   } catch (error) {

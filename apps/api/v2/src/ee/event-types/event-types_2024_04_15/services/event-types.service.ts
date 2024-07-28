@@ -166,7 +166,7 @@ export class EventTypesService_2024_04_15 {
 
     this.checkUserOwnsEventType(userId, existingEventType);
 
-    return this.eventTypesRepository.deleteEventType(eventTypeId);
+    return this.eventTypesRepository.deleteEventType(eventTypeId, userId);
   }
 
   checkUserOwnsEventType(userId: number, eventType: Pick<EventType, "id" | "userId">) {

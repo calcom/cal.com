@@ -16,24 +16,26 @@ const attendeeRescheduleSeatedBooking = async (
   seatAttendee: SeatAttendee,
   newTimeSlotBooking: NewTimeSlotBooking | null,
   originalBookingEvt: CalendarEvent,
-  eventManager: EventManager
+  eventManager: EventManager,
+  actorUserId?: number
 ) => {
   const { tAttendees, bookingSeat, bookerEmail, evt } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
 
-  // Update the original calendar event by removing the attendee that is rescheduling
-  if (originalBookingEvt && originalRescheduledBooking) {
-    // Event would probably be deleted so we first check than instead of updating references
-    const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
-      return attendee.email !== bookerEmail;
-    });
-    const deletedReference = await lastAttendeeDeleteBooking(
-      originalRescheduledBooking,
-      filteredAttendees,
-      originalBookingEvt
-    );
+    // Update the original calendar event by removing the attendee that is rescheduling
+    if (originalBookingEvt && originalRescheduledBooking) {
+      // Event would probably be deleted so we first check than instead of updating references
+      const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
+        return attendee.email !== bookerEmail;
+      });
+      const deletedReference = await lastAttendeeDeleteBooking(
+        originalRescheduledBooking,
+        filteredAttendees,
+        originalBookingEvt,
+        actorUserId
+      );
 
     if (!deletedReference) {
       await eventManager.updateCalendarAttendees(originalBookingEvt, originalRescheduledBooking);
@@ -95,7 +97,12 @@ const attendeeRescheduleSeatedBooking = async (
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });
-  await lastAttendeeDeleteBooking(originalRescheduledBooking, filteredAttendees, originalBookingEvt);
+  await lastAttendeeDeleteBooking(
+    originalRescheduledBooking,
+    filteredAttendees,
+    originalBookingEvt,
+    actorUserId
+  );
 
   const foundBooking = await findBookingQuery(newTimeSlotBooking.id);
 

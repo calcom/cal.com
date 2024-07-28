@@ -143,6 +143,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
       cancellationReason,
       status: BookingStatus.CANCELLED,
       updatedAt: dayjs().toISOString(),
+      actorUserId: ctx.user.id ?? null,
     },
   });
 

@@ -2,6 +2,14 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Next.js: debug backend yarn dx",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "yarn dx",
+      "cwd": "${workspaceFolder}/apps/web",
+      "autoAttachChildProcesses": true
+    },
+    {
       "type": "node",
       "request": "launch",
       "name": "Next.js Node Debug",
