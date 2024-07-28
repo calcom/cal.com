@@ -248,6 +248,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
                   eventName: true,
+                  length: true,
                 },
               },
               uid: true,
@@ -311,6 +312,7 @@ export const deleteCredentialHandler = async ({ ctx, input }: DeleteCredentialOp
                 type: booking?.eventType?.title as string,
                 title: booking.title,
                 description: booking.description,
+                length: booking?.eventType?.length,
                 customInputs: isPrismaObjOrUndefined(booking.customInputs),
                 ...getCalEventResponses({
                   bookingFields: booking.eventType?.bookingFields ?? null,

@@ -2,7 +2,7 @@ import type { TFunction } from "next-i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
-import { getDurationFormatted } from "@calcom/features/bookings/components/event-meta/Duration";
+import { getDurationFormatted } from "@calcom/lib/getDurationFormatted";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
