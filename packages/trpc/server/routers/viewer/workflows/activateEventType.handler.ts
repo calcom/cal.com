@@ -321,19 +321,7 @@ export const activateEventTypeHandler = async ({ ctx, input }: ActivateEventType
       const isSmsReminderNumberRequired = eventTypeWorkflow.steps.some((step) => {
         return requiresAttendeeNumber(step.action) && step.numberRequired;
       });
-<<<<<<< HEAD
-
-      await upsertSmsReminderFieldForEventTypes({ activeOn, workflowId, isSmsReminderNumberRequired, isOrg });
-=======
-      [eventTypeId].concat(userEventType.children.map((ch) => ch.id)).map(async (evTyId) => {
-        await upsertSmsReminderFieldForBooking({
-          workflowId,
-          isSmsReminderNumberRequired,
-          eventTypeId: evTyId,
-          actorUserId: ctx.user.id ?? null,
-        });
-      });
->>>>>>> 11ee03aac9206539ce59fa0fdfb2031cccacfb16
+      await upsertSmsReminderFieldForEventTypes({ activeOn, workflowId, isSmsReminderNumberRequired, isOrg, actorUserId: ctx.user.id ?? null });
     }
   }
 };

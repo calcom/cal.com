@@ -181,13 +181,13 @@ export async function upsertSmsReminderFieldForEventTypes({
   workflowId,
   isSmsReminderNumberRequired,
   isOrg,
-  actorUserId
+  actorUserId,
 }: {
   activeOn: number[];
   workflowId: number;
   isSmsReminderNumberRequired: boolean;
-<<<<<<< HEAD
   isOrg: boolean;
+  actorUserId?: number;
 }) {
   let allEventTypeIds = activeOn;
 
@@ -203,23 +203,9 @@ export async function upsertSmsReminderFieldForEventTypes({
         isSmsReminderNumberRequired,
       }),
       eventTypeId,
-    actorUserId ?? null
+      actorUserId ?? null
     );
   }
-=======
-  eventTypeId: number;
-  actorUserId?: number;
-}) {
-  await upsertBookingField(
-    getSmsReminderNumberField(),
-    getSmsReminderNumberSource({
-      workflowId,
-      isSmsReminderNumberRequired,
-    }),
-    eventTypeId,
-    actorUserId ?? null
-  );
->>>>>>> 11ee03aac9206539ce59fa0fdfb2031cccacfb16
 }
 
 export async function removeSmsReminderFieldForEventTypes({

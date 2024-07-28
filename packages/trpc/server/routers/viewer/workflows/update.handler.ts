@@ -500,29 +500,21 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     await removeSmsReminderFieldForEventTypes({
       activeOnToRemove: activeOnWithChildren,
       workflowId: id,
-      eventTypeId: removedEventType,
-      actorUserId: ctx.user.id ?? null,
+      isOrg,
+      actorUserId: ctx.user.id ?? null
     });
-  }
-
-  for (const eventTypeId of activeOnWithChildren) {
-    if (smsReminderNumberNeeded) {
-      await upsertSmsReminderFieldForBooking({
-        workflowId: id,
-        isSmsReminderNumberRequired: steps.some(
-          (s) =>
-            (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
-            s.numberRequired
-        ),
-        eventTypeId,
-      });
-    } else {
-      await removeSmsReminderFieldForBooking({
-        workflowId: id,
-        eventTypeId,
-        actorUserId: ctx.user.id ?? null,
-      });
-    }
+  } else {
+    await upsertSmsReminderFieldForEventTypes({
+      activeOn: activeOnWithChildren,
+      workflowId: id,
+      isSmsReminderNumberRequired: steps.some(
+        (s) =>
+          (s.action === WorkflowActions.SMS_ATTENDEE || s.action === WorkflowActions.WHATSAPP_ATTENDEE) &&
+          s.numberRequired
+      ),
+      isOrg,
+      actorUserId: ctx.user.id ?? null
+    });
   }
 
   return {
