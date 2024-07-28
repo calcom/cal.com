@@ -29,6 +29,7 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     subscriberOptions,
     eventTrigger,
     evt,
+    workflows,
   } = newSeatedBookingObject;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventType.id, reqBodyUser, eventType.slug);
@@ -101,12 +102,11 @@ const handleSeats = async (newSeatedBookingObject: NewSeatedBookingObject) => {
     };
     try {
       await scheduleWorkflowReminders({
-        workflows: eventType.workflows,
+        workflows,
         smsReminderNumber: smsReminderNumber || null,
         calendarEvent: { ...evt, ...{ metadata, eventType: { slug: eventType.slug } } },
         isNotConfirmed: evt.requiresConfirmation || false,
         isRescheduleEvent: !!rescheduleUid,
-        isFirstRecurringEvent: true,
         emailAttendeeSendToOverride: bookerEmail,
         seatReferenceUid: evt.attendeeSeatId,
       });

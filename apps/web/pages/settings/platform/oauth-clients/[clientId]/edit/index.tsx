@@ -10,6 +10,7 @@ import { useOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/useOA
 import { useUpdateOAuthClient } from "@lib/hooks/settings/platform/oauth-clients/usePersistOAuthClient";
 
 import PageWrapper from "@components/PageWrapper";
+import NoPlatformPlan from "@components/settings/platform/dashboard/NoPlatformPlan";
 import { useGetUserAttributes } from "@components/settings/platform/hooks/useGetUserAttributes";
 import type { FormValues } from "@components/settings/platform/oauth-clients/oauth-client-form";
 import { OAuthClientForm as EditOAuthClientForm } from "@components/settings/platform/oauth-clients/oauth-client-form";
@@ -124,7 +125,7 @@ export default function EditOAuthClient() {
   return (
     <div>
       <Shell isPlatformUser={true} hideHeadingOnMobile withoutMain={false} SidebarContainer={<></>}>
-        You are not subscribed to a Platform plan.
+        <NoPlatformPlan />
       </Shell>
     </div>
   );

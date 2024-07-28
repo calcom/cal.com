@@ -12,10 +12,13 @@ const config = {
       "en",
       // "es-419", // Disabled until Crowdin reaches at least 80% completion
       "es",
+      "et",
       "fr",
       "he",
+      "hu",
       "it",
       "ja",
+      "km",
       "ko",
       "nl",
       "no",
@@ -31,7 +34,6 @@ const config = {
       "vi",
       "zh-CN",
       "zh-TW",
-      "km",
     ],
   },
   fallbackLng: {

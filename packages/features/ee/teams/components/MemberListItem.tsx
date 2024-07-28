@@ -95,8 +95,8 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({
-      teamId: props.team?.id,
-      memberId: props.member.id,
+      teamIds: [props.team?.id],
+      memberIds: [props.member.id],
       isOrg: checkIsOrg(props.team),
     });
 

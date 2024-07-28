@@ -355,18 +355,72 @@ export async function updateTriggerForExistingBookings(
 
   if (Array.isArray(where.AND)) {
     if (webhook.teamId) {
-      const teamEvents = await prisma.eventType.findMany({
+      const org = await prisma.team.findFirst({
         where: {
-          teamId: webhook.teamId,
+          id: webhook.teamId,
+          isOrganization: true,
         },
         select: {
-          bookings: {
-            where,
+          id: true,
+          children: {
+            select: {
+              id: true,
+            },
+          },
+          members: {
+            select: {
+              userId: true,
+            },
           },
         },
       });
+      // checking if teamId is an org id
+      if (org) {
+        const teamEvents = await prisma.eventType.findMany({
+          where: {
+            teamId: {
+              in: org.children.map((team) => team.id),
+            },
+          },
+          select: {
+            bookings: {
+              where,
+            },
+          },
+        });
+        const teamEventBookings = teamEvents.flatMap((event) => event.bookings);
+        const teamBookingsId = teamEventBookings.map((booking) => booking.id);
+        const orgMemberIds = org.members.map((member) => member.userId);
+        where.AND.push({
+          userId: {
+            in: orgMemberIds,
+          },
+        });
+        // don't want to get the team bookings again
+        where.AND.push({
+          id: {
+            notIn: teamBookingsId,
+          },
+        });
+        const userBookings = await prisma.booking.findMany({
+          where,
+        });
+        // add teams bookings and users bookings to get total org bookings
+        bookings = teamEventBookings.concat(userBookings);
+      } else {
+        const teamEvents = await prisma.eventType.findMany({
+          where: {
+            teamId: webhook.teamId,
+          },
+          select: {
+            bookings: {
+              where,
+            },
+          },
+        });
 
-      bookings = teamEvents.flatMap((event) => event.bookings);
+        bookings = teamEvents.flatMap((event) => event.bookings);
+      }
     } else {
       if (webhook.eventTypeId) {
         where.AND.push({ eventTypeId: webhook.eventTypeId });
