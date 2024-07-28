@@ -222,7 +222,7 @@ export class CalendarsController {
   @HttpCode(HttpStatus.OK)
   async deleteUserCalendarCredentials(
     @Param("calendar") calendar: string,
-    @Query("credentialId") credentialId: string,
+    @Param("credentialId") credentialId: string,
     @GetUser() user: UserWithProfile
   ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
     await this.calendarsService.checkCalendarCredentials(Number(credentialId), user.id);
