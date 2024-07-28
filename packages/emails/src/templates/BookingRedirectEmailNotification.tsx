@@ -6,8 +6,20 @@ export const BookingRedirectEmailNotification = (
 ) => {
   return (
     <BaseEmailHtml
-      subject={props.language("booking_redirect_email_subject")}
-      title={props.language("booking_redirect_email_title")}>
+      subject={props.language(
+        {
+          add: "booking_redirect_email_subject",
+          edit: "booking_redirect_edit_email_subject",
+          cancel: "booking_redirect_cancel_email_subject",
+        }[props.action]
+      )}
+      title={props.language(
+        {
+          add: "booking_redirect_email_title",
+          edit: "booking_redirect_edit_email_title",
+          cancel: "booking_redirect_cancel_email_title",
+        }[props.action]
+      )}>
       <p
         style={{
           color: "black",
@@ -15,10 +27,18 @@ export const BookingRedirectEmailNotification = (
           lineHeight: "24px",
           fontWeight: "400",
         }}>
-        {props.language("booking_redirect_email_description", {
-          toName: props.toName,
-        })}
-        {props.dates}
+        {props.language(
+          {
+            add: "booking_redirect_email_description",
+            edit: "booking_redirect_edit_email_description",
+            cancel: "booking_redirect_cancel_email_description",
+          }[props.action],
+          {
+            toName: props.toName,
+            dates: props.dates,
+            oldDates: props.oldDates ?? "",
+          }
+        )}
         <br />
         <div
           style={{

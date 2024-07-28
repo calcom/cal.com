@@ -10,7 +10,9 @@ export interface IBookingRedirect {
   fromEmail: string;
   toEmail: string;
   toName: string;
+  oldDates?: string;
   dates: string;
+  action: "add" | "edit" | "cancel";
 }
 
 export default class BookingRedirectNotification extends BaseEmail {
@@ -26,7 +28,13 @@ export default class BookingRedirectNotification extends BaseEmail {
     return {
       to: `${this.bookingRedirect.toName} <${this.bookingRedirect.toEmail}>`,
       from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
-      subject: this.bookingRedirect.language("booking_redirect_email_subject"),
+      subject: this.bookingRedirect.language(
+        {
+          add: "booking_redirect_email_subject",
+          edit: "booking_redirect_edit_email_subject",
+          cancel: "booking_redirect_cancel_email_subject",
+        }[this.bookingRedirect.action]
+      ),
       html: await renderEmail("BookingRedirectEmailNotification", {
         ...this.bookingRedirect,
       }),

@@ -159,6 +159,23 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
   const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
   const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
+  // Get the existing redirected user from existing out of office entry to send that user appropriate email.
+  const previousOutOfOfficeEntry = await prisma.outOfOfficeEntry.findUnique({
+    where: {
+      uuid: input.uuid ?? "",
+    },
+    select: {
+      start: true,
+      end: true,
+      toUser: {
+        select: {
+          email: true,
+          username: true,
+        },
+      },
+    },
+  });
+
   const createdOrUpdatedOutOfOffice = await prisma.outOfOfficeEntry.upsert({
     where: {
       uuid: input.uuid ?? "",
@@ -192,19 +209,63 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       },
       select: {
         email: true,
+        username: true,
       },
     });
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
     const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.start);
     const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.end);
-    if (userToNotify?.email) {
+
+    const existingFormattedStartDate = previousOutOfOfficeEntry
+      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.start)
+      : "";
+    const existingFormattedEndDate = previousOutOfOfficeEntry
+      ? new Intl.DateTimeFormat("en-US").format(previousOutOfOfficeEntry.end)
+      : "";
+
+    const existingRedirectedUser = previousOutOfOfficeEntry?.toUser
+      ? previousOutOfOfficeEntry.toUser
+      : undefined;
+
+    if (existingRedirectedUser && existingRedirectedUser?.email !== userToNotify?.email) {
       await sendBookingRedirectNotification({
         language: t,
         fromEmail: ctx.user.email,
-        toEmail: userToNotify.email,
-        toName: ctx.user.username || "",
-        dates: `${formattedStartDate} - ${formattedEndDate}`,
+        toEmail: existingRedirectedUser.email,
+        toName: existingRedirectedUser.username || "",
+        dates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
+        action: "cancel",
       });
+    }
+
+    if (userToNotify?.email) {
+      if (
+        existingRedirectedUser &&
+        existingRedirectedUser.email === userToNotify.email &&
+        (formattedStartDate !== existingFormattedStartDate || formattedEndDate !== existingFormattedEndDate)
+      ) {
+        await sendBookingRedirectNotification({
+          language: t,
+          fromEmail: ctx.user.email,
+          toEmail: userToNotify.email,
+          toName: userToNotify.username || "",
+          oldDates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
+          dates: `${formattedStartDate} - ${formattedEndDate}`,
+          action: "edit",
+        });
+      } else if (
+        !existingRedirectedUser ||
+        (existingRedirectedUser && existingRedirectedUser.email !== userToNotify.email)
+      ) {
+        await sendBookingRedirectNotification({
+          language: t,
+          fromEmail: ctx.user.email,
+          toEmail: userToNotify.email,
+          toName: userToNotify.username || "",
+          dates: `${formattedStartDate} - ${formattedEndDate}`,
+          action: "add",
+        });
+      }
     }
   }
 
