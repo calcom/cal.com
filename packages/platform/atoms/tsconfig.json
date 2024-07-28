@@ -15,7 +15,6 @@
       "@calcom/dayjs/*": ["../../dayjs/*"],
       "@calcom/platform-constants": ["../constants/index.ts"],
       "@calcom/platform-types": ["../types/index.ts"],
-      "@calcom/platform-libraries": ["../libraries/index.ts"],
       "@calcom/platform-utils": ["../constants/index.ts"],
       "@calcom/trpc": ["../../trpc"],
       "@calcom/app-store": ["../../app-store"],
@@ -43,5 +42,15 @@
     "../../trpc",
     "../../app-store"
   ],
-  "exclude": ["dist", "build", "node_modules", "**/*WebWrapper.tsx"]
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules",
+    "**/*WebWrapper.tsx",
+    "**/*.docs.mdx",
+    "**/*.stories.tsx",
+    "monorepo.ts",
+    "booker/export.ts",
+    "booker/index.ts"
+  ]
 }

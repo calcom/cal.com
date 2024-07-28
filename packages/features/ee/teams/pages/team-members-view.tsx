@@ -225,7 +225,7 @@ const MembersView = () => {
                       if (Array.isArray(data.usernameOrEmail)) {
                         showToast(
                           t("email_invite_team_bulk", {
-                            userCount: data.usernameOrEmail.length,
+                            userCount: data.numUsersInvited,
                           }),
                           "success"
                         );

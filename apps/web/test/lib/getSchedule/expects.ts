@@ -37,7 +37,10 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       toHaveTimeSlots(expectedSlots: string[], date: { dateString: string; doExactMatch?: boolean }): R;
-      toHaveNoTimeSlots(date: { dateString: string }): R;
+      /**
+       * Explicitly checks if the date is disabled and fails if date is marked as OOO
+       */
+      toHaveDateDisabled(date: { dateString: string }): R;
     }
   }
 }
@@ -55,18 +58,28 @@ expect.extend({
       };
     }
 
+    const expectedSlotHasFullTimestamp = expectedSlots[0].split("-").length === 3;
+
     if (
       !schedule.slots[`${dateString}`]
         .map((slot) => slot.time)
         .every((actualSlotTime, index) => {
-          return `${dateString}T${expectedSlots[index]}` === actualSlotTime;
+          const expectedSlotTime = expectedSlotHasFullTimestamp
+            ? expectedSlots[index]
+            : `${dateString}T${expectedSlots[index]}`;
+          return expectedSlotTime === actualSlotTime;
         })
     ) {
       return {
         pass: false,
         message: () =>
           `has incorrect timeslots for ${dateString}.\n\r ${diff(
-            expectedSlots.map((expectedSlot) => `${dateString}T${expectedSlot}`),
+            expectedSlots.map((expectedSlot) => {
+              if (expectedSlotHasFullTimestamp) {
+                return expectedSlot;
+              }
+              return `${dateString}T${expectedSlot}`;
+            }),
             schedule.slots[`${dateString}`].map((slot) => slot.time)
           )}`,
       };
@@ -88,11 +101,19 @@ expect.extend({
     };
   },
 
-  toHaveNoTimeSlots(schedule: { slots: Record<string, Slot[]> }, { dateString }: { dateString: string }) {
-    if (!schedule.slots[`${dateString}`] || schedule.slots[`${dateString}`].length === 0) {
+  toHaveDateDisabled(schedule: { slots: Record<string, Slot[]> }, { dateString }: { dateString: string }) {
+    // Frontend requires that the date must not be set for that date to be shown as disabled.Because weirdly, if an empty array is provided the date itself isn't shown which we don't want
+    if (!schedule.slots[`${dateString}`]) {
       return {
         pass: true,
-        message: () => `has no timeslots for ${dateString}`,
+        message: () => `is not disabled for ${dateString}`,
+      };
+    }
+
+    if (schedule.slots[`${dateString}`].length === 0) {
+      return {
+        pass: false,
+        message: () => `is all day OOO for ${dateString}.`,
       };
     }
     return {

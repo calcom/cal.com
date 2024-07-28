@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import appStore from "@calcom/app-store";
 import { getLocationValueForDB } from "@calcom/app-store/locations";
 import type { LocationObject } from "@calcom/app-store/locations";
+import { workflowSelect } from "@calcom/ee/workflows/lib/getAllWorkflows";
 import { sendDeclinedEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { handleConfirmation } from "@calcom/features/bookings/lib/handleConfirmation";
@@ -10,6 +11,7 @@ import { handleWebhookTrigger } from "@calcom/features/bookings/lib/handleWebhoo
 import type { EventTypeInfo } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined, parseRecurringEvent } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
+import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import { getTranslation } from "@calcom/lib/server";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -23,12 +25,11 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TConfirmInputSchema } from "./confirm.schema";
-import type { BookingsProcedureContext } from "./util";
 
 type ConfirmOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
-  } & BookingsProcedureContext;
+  };
   input: TConfirmInputSchema;
 };
 
@@ -73,19 +74,23 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
           team: {
             select: {
               parentId: true,
+              members: true,
             },
           },
           workflows: {
-            include: {
+            select: {
               workflow: {
-                include: {
-                  steps: true,
-                },
+                select: workflowSelect,
               },
             },
           },
           customInputs: true,
           parentId: true,
+          parent: {
+            select: {
+              teamId: true,
+            },
+          },
         },
       },
       location: true,
@@ -117,7 +122,11 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
-    if (eventType && !eventType.users.find((user) => booking.userId === user.id)) {
+    const membership = booking.eventType?.team?.members.find((membership) => membership.userId === user.id);
+    const isTeamAdminOrOwner =
+      membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
+    if (eventType && !eventType.users.find((user) => booking.userId === user.id) && !isTeamAdminOrOwner) {
       throw new TRPCError({ code: "UNAUTHORIZED", message: "UNAUTHORIZED" });
     }
   }
@@ -370,12 +379,15 @@ export const confirmHandler = async ({ ctx, input }: ConfirmOptions) => {
       },
     });
 
+    const orgId = await getOrgIdFromMemberOrTeamId({ memberId: booking.userId, teamId });
+
     // send BOOKING_REJECTED webhooks
     const subscriberOptions = {
       userId: booking.userId,
       eventTypeId: booking.eventTypeId,
       triggerEvent: WebhookTriggerEvents.BOOKING_REJECTED,
       teamId,
+      orgId,
     };
     const eventTrigger: WebhookTriggerEvents = WebhookTriggerEvents.BOOKING_REJECTED;
     const eventTypeInfo: EventTypeInfo = {

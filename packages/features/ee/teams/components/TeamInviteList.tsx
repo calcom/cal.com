@@ -15,6 +15,7 @@ interface Props {
     bio?: string | null;
     hideBranding?: boolean | undefined;
     role: MembershipRole;
+    logoUrl?: string | null;
     accepted: boolean;
   }[];
 }
