@@ -17,7 +17,7 @@ type TBookingRedirect = {
   input: TOutOfOfficeInputSchema;
 };
 
-export const createdOrUpdatedRedirect = async ({ ctx, input }: TBookingRedirect) => {
+export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect) => {
   const { startDate, endDate } = input.dateRange;
   if (!startDate || !endDate) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });
@@ -159,7 +159,7 @@ export const createdOrUpdatedRedirect = async ({ ctx, input }: TBookingRedirect)
   const startDateUtc = dayjs.utc(startDate).add(input.offset, "minute");
   const endDateUtc = dayjs.utc(endDate).add(input.offset, "minute");
 
-  const createdRedirect = await prisma.outOfOfficeEntry.upsert({
+  const createdOrUpdatedOutOfOffice = await prisma.outOfOfficeEntry.upsert({
     where: {
       uuid: input.uuid ?? "",
     },
@@ -195,8 +195,8 @@ export const createdOrUpdatedRedirect = async ({ ctx, input }: TBookingRedirect)
       },
     });
     const t = await getTranslation(ctx.user.locale ?? "en", "common");
-    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.start);
-    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdRedirect.end);
+    const formattedStartDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.start);
+    const formattedEndDate = new Intl.DateTimeFormat("en-US").format(createdOrUpdatedOutOfOffice.end);
     if (userToNotify?.email) {
       await sendBookingRedirectNotification({
         language: t,

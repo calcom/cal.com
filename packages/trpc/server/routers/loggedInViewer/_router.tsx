@@ -52,7 +52,7 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  createdOrUpdatedRedirect?: typeof import("./outOfOffice.handler").createdOrUpdatedRedirect;
+  outOfOfficeCreateOrUpdate?: typeof import("./outOfOffice.handler").outOfOfficeCreateOrUpdate;
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -415,21 +415,21 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.connectAndJoin({ ctx, input });
   }),
-  createdOrUpdatedRedirect: authedProcedure
+  outOfOfficeCreateOrUpdate: authedProcedure
     .input(ZOutOfOfficeInputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (!UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect) {
-        UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect = (
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
+        UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate = (
           await import("./outOfOffice.handler")
-        ).createdOrUpdatedRedirect;
+        ).outOfOfficeCreateOrUpdate;
       }
 
       // Unreachable code but required for type safety
-      if (!UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect) {
+      if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate) {
         throw new Error("Failed to load handler");
       }
 
-      return UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect({ ctx, input });
+      return UNSTABLE_HANDLER_CACHE.outOfOfficeCreateOrUpdate({ ctx, input });
     }),
   outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {

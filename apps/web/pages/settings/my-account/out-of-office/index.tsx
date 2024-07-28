@@ -53,7 +53,7 @@ export type outOfOfficeEntryData = {
   end: Date;
 };
 
-const CreateOutOfOfficeEntryModal = ({
+const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
   currentlyEditingOutOfOfficeEntry,
@@ -122,7 +122,7 @@ const CreateOutOfOfficeEntryModal = ({
     setProfileRedirect(false);
   }, [reset]);
 
-  const createOutOfOfficeEntry = trpc.viewer.createdOrUpdatedRedirect.useMutation({
+  const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry
@@ -141,7 +141,6 @@ const CreateOutOfOfficeEntryModal = ({
 
   useEffect(() => {
     if (currentlyEditingOutOfOfficeEntry === null) {
-      resetForm();
       return;
     }
 
@@ -176,7 +175,7 @@ const CreateOutOfOfficeEntryModal = ({
     });
 
     setValue("uuid", currentlyEditingOutOfOfficeEntry.uuid);
-  }, [currentlyEditingOutOfOfficeEntry, setValue, reasonList, dateRange, memberListOptions, resetForm]);
+  }, [currentlyEditingOutOfOfficeEntry, setValue, reasonList, dateRange, memberListOptions]);
 
   return (
     <Dialog open={openModal}>
@@ -185,10 +184,10 @@ const CreateOutOfOfficeEntryModal = ({
           event.preventDefault();
         }}>
         <form
-          id="create-ooo-form"
+          id="create-or-edit-ooo-form"
           className="h-full"
           onSubmit={handleSubmit((data) => {
-            createOutOfOfficeEntry.mutate(data);
+            createOrEditOutOfOfficeEntry.mutate(data);
           })}>
           <div className="px-1">
             <DialogHeader
@@ -311,11 +310,11 @@ const CreateOutOfOfficeEntryModal = ({
               {t("cancel")}
             </Button>
             <Button
-              form="create-ooo-form"
+              form="create-or-edit-ooo-form"
               color="primary"
               type="submit"
-              disabled={createOutOfOfficeEntry.isPending}
-              data-testid="create-entry-ooo-redirect">
+              disabled={createOrEditOutOfOfficeEntry.isPending}
+              data-testid="create-or-edit-entry-ooo-redirect">
               {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
             </Button>
           </div>
@@ -510,7 +509,7 @@ const OutOfOfficePage = () => {
           </Button>
         }
       />
-      <CreateOutOfOfficeEntryModal
+      <CreateOrEditOutOfOfficeEntryModal
         openModal={openModal}
         closeModal={() => {
           setOpenModal(false);
