@@ -2,6 +2,7 @@ import type { TFunction } from "next-i18next";
 import z from "zod";
 
 import { guessEventLocationType } from "@calcom/app-store/locations";
+import { getDurationFormatted } from "@calcom/features/bookings/components/event-meta/Duration";
 import type { Prisma } from "@calcom/prisma/client";
 
 export const nameObjectSchema = z.object({
@@ -23,13 +24,14 @@ export type EventNameObjectType = {
   teamName?: string | null;
   host: string;
   location?: string;
-  eventDuration?: number;
+  eventDuration: number;
   bookingFields?: Prisma.JsonObject;
   t: TFunction;
 };
 
 export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView = false) {
   const attendeeName = parseName(eventNameObj.attendeeName);
+  const eventDuration = getDurationFormatted(eventNameObj.eventDuration, eventNameObj.t);
 
   if (!eventNameObj.eventName)
     return eventNameObj.t("event_between_users", {
@@ -62,14 +64,8 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{USER}", attendeeName)
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
-    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName);
-
-  if (eventNameObj.eventDuration) {
-    dynamicEventName = dynamicEventName.replaceAll(
-      "{Event duration}",
-      `${String(eventNameObj.eventDuration)}min`
-    );
-  }
+    .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
+    .replaceAll("{Event duration}", eventDuration);
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};

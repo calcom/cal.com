@@ -1470,6 +1470,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    eventDuration: eventType.length,
     bookingFields: { ...responses },
     t: tOrganizer,
   };
