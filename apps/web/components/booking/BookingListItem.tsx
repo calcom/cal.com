@@ -542,7 +542,9 @@ function BookingListItem(booking: BookingItemProps) {
         <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
-              {isPending && userId === booking.user?.id && <TableActions actions={pendingActions} />}
+              {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
+                <TableActions actions={pendingActions} />
+              )}
               {isConfirmed && <TableActions actions={bookedActions} />}
               {isRejected && <div className="text-subtle text-sm">{t("rejected")}</div>}
             </>
@@ -692,7 +694,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
 
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message, { x: name || email }), "success");
+      showToast(
+        t("messageKey" in data && data.messageKey ? data.messageKey : data.message, { x: name || email }),
+        "success"
+      );
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -800,7 +805,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   const { t } = useLocale();
   const noShowMutation = trpc.viewer.public.noShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t(data.message), "success");
+      showToast(t("messageKey" in data && data.messageKey ? data.messageKey : data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
