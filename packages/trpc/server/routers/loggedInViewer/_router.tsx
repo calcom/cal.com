@@ -52,7 +52,7 @@ type AppsRouterHandlerCache = {
   teamsAndUserProfilesQuery?: typeof import("./teamsAndUserProfilesQuery.handler").teamsAndUserProfilesQuery;
   getUserTopBanners?: typeof import("./getUserTopBanners.handler").getUserTopBannersHandler;
   connectAndJoin?: typeof import("./connectAndJoin.handler").Handler;
-  outOfOfficeCreate?: typeof import("./outOfOffice.handler").outOfOfficeCreate;
+  createdOrUpdatedRedirect?: typeof import("./outOfOffice.handler").createdOrUpdatedRedirect;
   outOfOfficeEntriesList?: typeof import("./outOfOffice.handler").outOfOfficeEntriesList;
   outOfOfficeEntryDelete?: typeof import("./outOfOffice.handler").outOfOfficeEntryDelete;
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
@@ -415,18 +415,22 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.connectAndJoin({ ctx, input });
   }),
-  outOfOfficeCreate: authedProcedure.input(ZOutOfOfficeInputSchema).mutation(async ({ ctx, input }) => {
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
-      UNSTABLE_HANDLER_CACHE.outOfOfficeCreate = (await import("./outOfOffice.handler")).outOfOfficeCreate;
-    }
+  createdOrUpdatedRedirect: authedProcedure
+    .input(ZOutOfOfficeInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect) {
+        UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect = (
+          await import("./outOfOffice.handler")
+        ).createdOrUpdatedRedirect;
+      }
 
-    // Unreachable code but required for type safety
-    if (!UNSTABLE_HANDLER_CACHE.outOfOfficeCreate) {
-      throw new Error("Failed to load handler");
-    }
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect) {
+        throw new Error("Failed to load handler");
+      }
 
-    return UNSTABLE_HANDLER_CACHE.outOfOfficeCreate({ ctx, input });
-  }),
+      return UNSTABLE_HANDLER_CACHE.createdOrUpdatedRedirect({ ctx, input });
+    }),
   outOfOfficeEntriesList: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList) {
       UNSTABLE_HANDLER_CACHE.outOfOfficeEntriesList = (

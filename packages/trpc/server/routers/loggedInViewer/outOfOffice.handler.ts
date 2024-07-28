@@ -17,7 +17,7 @@ type TBookingRedirect = {
   input: TOutOfOfficeInputSchema;
 };
 
-export const outOfOfficeCreate = async ({ ctx, input }: TBookingRedirect) => {
+export const createdOrUpdatedRedirect = async ({ ctx, input }: TBookingRedirect) => {
   const { startDate, endDate } = input.dateRange;
   if (!startDate || !endDate) {
     throw new TRPCError({ code: "BAD_REQUEST", message: "start_date_and_end_date_required" });

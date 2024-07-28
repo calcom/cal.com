@@ -122,7 +122,7 @@ const CreateOutOfOfficeEntryModal = ({
     setProfileRedirect(false);
   }, [reset]);
 
-  const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
+  const createOutOfOfficeEntry = trpc.viewer.createdOrUpdatedRedirect.useMutation({
     onSuccess: () => {
       showToast(
         currentlyEditingOutOfOfficeEntry
