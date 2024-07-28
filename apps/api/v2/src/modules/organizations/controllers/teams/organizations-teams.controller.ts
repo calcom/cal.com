@@ -7,6 +7,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import {
   OrgMeTeamOutputDto,
   OrgMeTeamsOutputResponseDto,
@@ -119,7 +120,7 @@ export class OrganizationsTeamsController {
   async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() body: CreateOrgTeamDto
+    @Body() body: UpdateOrgTeamDto
   ): Promise<OrgTeamOutputResponseDto> {
     const team = await this.organizationsTeamsService.updateOrgTeam(orgId, teamId, body);
     return {

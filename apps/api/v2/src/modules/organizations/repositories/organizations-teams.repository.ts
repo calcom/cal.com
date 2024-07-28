@@ -1,4 +1,5 @@
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
@@ -40,7 +41,7 @@ export class OrganizationsTeamsRepository {
     });
   }
 
-  async updateOrgTeam(organizationId: number, teamId: number, data: CreateOrgTeamDto) {
+  async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
     return this.dbRead.prisma.team.update({
       data: { ...data },
       where: { id: teamId, parentId: organizationId, isOrganization: false },

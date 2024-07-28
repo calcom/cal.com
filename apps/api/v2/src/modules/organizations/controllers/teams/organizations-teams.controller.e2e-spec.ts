@@ -32,6 +32,7 @@ describe("Organizations Team Endpoints", () => {
     let team: Team;
     let team2: Team;
     let teamCreatedViaApi: Team;
+    let teamCreatedViaApi2: Team;
 
     const userEmail = "org-admin-teams-controller-e2e@api.com";
     let user: User;
@@ -147,6 +148,7 @@ describe("Organizations Team Endpoints", () => {
             teamCreatedViaApi.id
           );
           expect(membership?.role ?? "").toEqual("OWNER");
+          expect(membership?.accepted).toEqual(true);
         });
     });
 
@@ -199,10 +201,34 @@ describe("Organizations Team Endpoints", () => {
       return request(app.getHttpServer()).get(`/v2/organizations/${org.id}/teams/123132145`).expect(404);
     });
 
+    it("should create the team of the org without auto-accepting creator", async () => {
+      return request(app.getHttpServer())
+        .post(`/v2/organizations/${org.id}/teams`)
+        .send({
+          name: "Team II created via API",
+          autoAcceptCreator: false,
+        } satisfies CreateOrgTeamDto)
+        .expect(201)
+        .then(async (response) => {
+          const responseBody: ApiSuccessResponse<Team> = response.body;
+          expect(responseBody.status).toEqual(SUCCESS_STATUS);
+          teamCreatedViaApi2 = responseBody.data;
+          expect(teamCreatedViaApi2.name).toEqual("Team II created via API");
+          expect(teamCreatedViaApi2.parentId).toEqual(org.id);
+          const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+            user.id,
+            teamCreatedViaApi2.id
+          );
+          expect(membership?.role ?? "").toEqual("OWNER");
+          expect(membership?.accepted).toEqual(false);
+        });
+    });
+
     afterAll(async () => {
       await userRepositoryFixture.deleteByEmail(user.email);
       await teamsRepositoryFixture.delete(team.id);
       await teamsRepositoryFixture.delete(team2.id);
+      await teamsRepositoryFixture.delete(teamCreatedViaApi2.id);
       await organizationsRepositoryFixture.delete(org.id);
       await app.close();
     });
