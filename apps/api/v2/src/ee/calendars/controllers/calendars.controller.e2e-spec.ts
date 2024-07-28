@@ -192,9 +192,15 @@ describe("Platform Calendars Endpoints", () => {
       .expect(200);
   });
 
-  it.skip(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+  it(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+    office365Credentials = await credentialsRepositoryFixture.create(
+      OFFICE_365_CALENDAR_TYPE,
+      {},
+      user.id,
+      OFFICE_365_CALENDAR_ID
+    );
     const body = {
-      id: 10,
+      id: office365Credentials.id,
     };
 
     return request(app.getHttpServer())
@@ -208,6 +214,28 @@ describe("Platform Calendars Endpoints", () => {
         expect((await responseBody).status).toEqual(SUCCESS_STATUS);
         expect((await responseBody).data).toBeDefined();
         expect((await responseBody).data.id).toEqual(body.id);
+        expect((await responseBody).data.userId).toEqual(user.id);
+      });
+  });
+
+  it(`/POST/v2/calendars/${GOOGLE_CALENDAR}/disconnect/:credentialId: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+    googleCalendarCredentials = await credentialsRepositoryFixture.create(
+      GOOGLE_CALENDAR_TYPE,
+      {},
+      user.id,
+      GOOGLE_CALENDAR_ID
+    );
+
+    return request(app.getHttpServer())
+      .post(`/v2/calendars/${GOOGLE_CALENDAR}/disconnect/${googleCalendarCredentials.id}`)
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .expect(201)
+      .then(async (response) => {
+        const responseBody: Promise<DeletedCalendarCredentialsOutputResponseDto> = response.body;
+
+        expect((await responseBody).status).toEqual(SUCCESS_STATUS);
+        expect((await responseBody).data).toBeDefined();
+        expect((await responseBody).data.id).toEqual(googleCalendarCredentials.id);
         expect((await responseBody).data.userId).toEqual(user.id);
       });
   });
