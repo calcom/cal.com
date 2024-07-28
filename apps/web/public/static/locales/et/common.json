@@ -1,12 +1,5 @@
 {
   "identity_provider": "Identiteedi pakkuja",
-  "trial_days_left": "Teil on $t(day, {\"count\": {{days}} }) jäänud PRO prooviversiooni",
-  "day_one": "{{count}} päev",
-  "day_other": "{{count}} päeva",
-  "second_one": "{{count}} sekundit",
-  "second_other": "{{count}} sekundit",
-  "upgrade_now": "Uuenda nüüd",
-  "accept_invitation": "Võta kutse vastu",
   "calcom_explained": "{{appName}} pakub ajakava infrastruktuuri absoluutselt kõigile.",
   "reset_password_subject": "{{appName}}: Parooli taastamise juhend",
   "verify_email_subject": "{{appName}}: Kinnita oma konto",
