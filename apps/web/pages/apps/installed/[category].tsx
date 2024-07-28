@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState } from "react";
+import { useReducer } from "react";
 
 import getAppCategoryTitle from "@calcom/app-store/_utils/getAppCategoryTitle";
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
@@ -126,16 +126,12 @@ export default function InstalledApps() {
     }
   );
 
-  const [open, setopen] = useState(false);
-
   const handleModelClose = () => {
     updateData({ isOpen: false, credentialId: null });
-    setopen(false);
   };
 
   const handleDisconnect = (credentialId: number, teamId?: number) => {
     updateData({ isOpen: true, credentialId, teamId });
-    setopen(true);
   };
 
   return (
@@ -155,10 +151,9 @@ export default function InstalledApps() {
       </InstalledAppsLayout>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}
-        isOpen={open}
+        isOpen={data.isOpen}
         credentialId={data.credentialId}
         teamId={data.teamId}
-        onOpenChange={setopen}
       />
     </>
   );

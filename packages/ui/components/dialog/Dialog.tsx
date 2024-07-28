@@ -19,10 +19,14 @@ export type DialogProps = React.ComponentProps<(typeof DialogPrimitive)["Root"]>
   name?: string;
   clearQueryParamsOnClose?: string[];
   useDialogForMobile?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  setIsTriggered?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 type DialogContextProps = {
   _useDialogForMobile?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  setIsTriggered?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const DialogContext = createContext<DialogContextProps>({
@@ -32,11 +36,22 @@ const DialogContext = createContext<DialogContextProps>({
 type DialogProviderProps = {
   children: ReactNode;
   useDialogForMobile?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  setIsTriggered?: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const DialogProvider = ({ children, useDialogForMobile = false }: DialogProviderProps) => {
+const DialogProvider = ({
+  children,
+  useDialogForMobile = false,
+  onOpenChange,
+  setIsTriggered,
+}: DialogProviderProps) => {
   const [_useDialogForMobile] = useState(useDialogForMobile);
-  return <DialogContext.Provider value={{ _useDialogForMobile }}>{children}</DialogContext.Provider>;
+  return (
+    <DialogContext.Provider value={{ _useDialogForMobile, onOpenChange, setIsTriggered }}>
+      {children}
+    </DialogContext.Provider>
+  );
 };
 
 const useDialogMediaQuery = () => {
@@ -71,6 +86,7 @@ function WebDialog(props: DialogProps) {
 
   // only used if name is set
   const [dialogState, setDialogState] = useState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
+  const [isTriggered, setIsTriggered] = useState(false);
   const shouldOpenDialog = newSearchParams.get("dialog") === name;
   if (name) {
     const clearQueryParamsOnClose = ["dialog", ...(props.clearQueryParamsOnClose || [])];
@@ -104,11 +120,34 @@ function WebDialog(props: DialogProps) {
       dialogProps.open = dialogState === DIALOG_STATE.OPEN ? true : false;
     }
   }
+  const { onOpenChange, open, ...rest } = dialogProps;
 
   return (
-    <DialogProvider useDialogForMobile={useDialogForMobile}>
+    <DialogProvider
+      useDialogForMobile={useDialogForMobile}
+      onOpenChange={onOpenChange}
+      setIsTriggered={setIsTriggered}>
       {isMobile ? (
-        <DrawerPrimitive.Root {...dialogProps}>{children}</DrawerPrimitive.Root>
+        <DrawerPrimitive.Root
+          {...rest}
+          open={isTriggered || open}
+          onClose={() => {
+            setDialogState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
+            setIsTriggered(false);
+          }}
+          onRelease={() => {
+            onOpenChange?.(false);
+            setIsTriggered(false);
+          }}
+          onOpenChange={() => {
+            if (dialogState === DIALOG_STATE.OPEN) {
+              onOpenChange?.(dialogState === DIALOG_STATE.OPEN ? true : false);
+              setDialogState(!dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSING);
+              return;
+            }
+          }}>
+          {children}
+        </DrawerPrimitive.Root>
       ) : (
         <DialogPrimitive.Root {...dialogProps}>{children}</DialogPrimitive.Root>
       )}
@@ -278,11 +317,11 @@ export function DialogFooter(props: DialogFooterProps) {
       className={classNames("bg-default sticky bottom-0", props?.noSticky ? "" : "sticky", props.className)}>
       {props.showDivider && (
         // TODO: the -mx-8 is causing overflow in the dialog buttons
-        <hr data-testid="divider" className="border-subtle -mx-8" />
+        <hr data-testid="divider" className="border-subtle -mx-8 md:-mx-0" />
       )}
       <div
         className={classNames(
-          "flex justify-end space-x-2 pb-2 pt-2 rtl:space-x-reverse md:pb-4 md:pt-4",
+          "flex justify-end space-x-2 pb-2 pt-2 rtl:space-x-reverse md:px-4 md:pb-4 md:pt-4",
           !props.showDivider && "pb-6 md:pb-8"
         )}>
         {props.children}
@@ -297,8 +336,20 @@ export const DialogTrigger: ForwardRefExoticComponent<
   DialogPrimitive.DialogTriggerProps & React.RefAttributes<HTMLButtonElement>
 > = React.forwardRef((props, ref) => {
   const isPlatform = useIsPlatform();
+  const isMobile = useDialogMediaQuery();
+  const { setIsTriggered } = useContext(DialogContext);
   return !isPlatform ? (
-    <DialogPrimitive.Trigger {...props} ref={ref} />
+    isMobile ? (
+      <DrawerPrimitive.Trigger
+        ref={ref}
+        {...props}
+        onClick={() => {
+          setIsTriggered?.(true);
+        }}
+      />
+    ) : (
+      <DialogPrimitive.Trigger {...props} ref={ref} />
+    )
   ) : (
     <PlatformDialogPrimitives.DialogTrigger {...props} ref={ref} />
   );
@@ -308,10 +359,11 @@ DialogTrigger.displayName = "DialogTrigger";
 
 function DialogCloseWrapper(props: {
   children: ReactNode;
-  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+  dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive | typeof DrawerPrimitive)["Close"]>;
 }) {
   const { children, ...rest } = props;
   const isMobile = useDialogMediaQuery();
+  const { onOpenChange, setIsTriggered } = useContext(DialogContext);
   const isPlatform = useIsPlatform();
   const Close = useMemo(
     () => (isPlatform ? PlatformDialogPrimitives.DialogClose : DialogPrimitive.Close),
@@ -319,7 +371,13 @@ function DialogCloseWrapper(props: {
   );
   if (isMobile)
     return (
-      <DrawerPrimitive.Close asChild {...rest}>
+      <DrawerPrimitive.Close
+        asChild
+        {...rest}
+        onClick={() => {
+          onOpenChange?.(false);
+          setIsTriggered?.(false);
+        }}>
         {children}
       </DrawerPrimitive.Close>
     );
@@ -342,7 +400,7 @@ type DialogCloseProps = {
 export function DialogClose(
   props: {
     "data-testid"?: string;
-    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive)["Close"]>;
+    dialogCloseProps?: React.ComponentProps<(typeof DialogPrimitive | typeof DrawerPrimitive)["Close"]>;
     children?: ReactNode;
     onClick?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
     disabled?: boolean;

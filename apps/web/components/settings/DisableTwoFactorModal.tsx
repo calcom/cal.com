@@ -1,4 +1,3 @@
-import type { SetStateAction, Dispatch } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -13,7 +12,7 @@ import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 
 interface DisableTwoFactorAuthModalProps {
   open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
+  onOpenChange: () => void;
   disablePassword?: boolean;
   /** Called when the user closes the modal without disabling two-factor auth */
   onCancel: () => void;

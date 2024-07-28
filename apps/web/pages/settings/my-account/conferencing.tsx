@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState } from "react";
+import { useReducer } from "react";
 
 import DisconnectIntegrationModal from "@calcom/features/apps/components/DisconnectIntegrationModal";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
@@ -56,16 +56,12 @@ const ConferencingLayout = () => {
     onlyInstalled: true,
   });
 
-  const [open, setopen] = useState(false);
-
   const handleModelClose = () => {
     updateModal({ isOpen: false, credentialId: null });
-    setopen(false);
   };
 
   const handleDisconnect = (credentialId: number) => {
     updateModal({ isOpen: true, credentialId });
-    setopen(true);
   };
 
   return (
@@ -116,9 +112,8 @@ const ConferencingLayout = () => {
       </div>
       <DisconnectIntegrationModal
         handleModelClose={handleModelClose}
-        isOpen={open}
+        isOpen={modal.isOpen}
         credentialId={modal.credentialId}
-        onOpenChange={setopen}
       />
     </>
   );

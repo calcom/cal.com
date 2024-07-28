@@ -70,7 +70,7 @@ const TwoFactorAuthView = () => {
 
       <EnableTwoFactorModal
         open={enableModalOpen}
-        onOpenChange={setEnableModalOpen}
+        onOpenChange={() => setEnableModalOpen(!enableModalOpen)}
         onEnable={() => {
           setEnableModalOpen(false);
           utils.viewer.me.invalidate();
@@ -83,7 +83,7 @@ const TwoFactorAuthView = () => {
       <DisableTwoFactorModal
         open={disableModalOpen}
         disablePassword={!isCalProvider}
-        onOpenChange={setDisableModalOpen}
+        onOpenChange={() => setDisableModalOpen(!disableModalOpen)}
         onDisable={() => {
           setDisableModalOpen(false);
           utils.viewer.me.invalidate();

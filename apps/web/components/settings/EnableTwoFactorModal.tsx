@@ -1,4 +1,4 @@
-import type { SetStateAction, Dispatch, BaseSyntheticEvent } from "react";
+import type { BaseSyntheticEvent } from "react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -13,7 +13,7 @@ import TwoFactorAuthAPI from "./TwoFactorAuthAPI";
 
 interface EnableTwoFactorModalProps {
   open: boolean;
-  onOpenChange: Dispatch<SetStateAction<boolean>>;
+  onOpenChange: () => void;
 
   /**
    * Called when the user closes the modal without disabling two-factor auth
