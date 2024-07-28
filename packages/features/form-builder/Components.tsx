@@ -386,7 +386,15 @@ export const Components: Record<FieldType, Component> = {
   },
   radioInput: {
     propsType: propsTypes.radioInput,
-    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
+    factory: function RadioInputWithLabel({
+      label,
+      name,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+      readOnly,
+    }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -447,7 +455,7 @@ export const Components: Record<FieldType, Component> = {
                 // Show option itself as label because there is just one option
                 <>
                   <Label className="flex">
-                    {options[0].label}
+                    {label || options[0].label}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}

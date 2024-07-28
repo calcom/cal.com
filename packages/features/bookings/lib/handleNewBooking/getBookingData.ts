@@ -68,11 +68,7 @@ export async function getBookingData<T extends z.ZodType>({
     name: responses.name,
     email: responses.email,
     guests: responses.guests ? responses.guests : [],
-    location: responses.location
-      ? typeof responses.location === "object"
-        ? responses.location.optionValue || responses.location.value
-        : responses.location
-      : "",
+    location: responses.location?.optionValue || responses.location?.value || "",
     smsReminderNumber: responses.smsReminderNumber,
     notes: responses.notes || "",
     calEventUserFieldsResponses,

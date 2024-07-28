@@ -54,6 +54,7 @@ export const FormBuilderField = ({
   const { t } = useLocale();
   const { control, formState } = useFormContext();
 
+  const labelBeforeNormalize = field.label;
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
 
   return (
@@ -72,6 +73,7 @@ export const FormBuilderField = ({
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
+                labelBeforeNormalize={labelBeforeNormalize}
               />
               <ErrorMessage
                 name="responses"
@@ -151,7 +153,7 @@ const WithLabel = ({
 /**
  * Ensures that `labels` and `placeholders`, wherever they are, are set properly. If direct values are not set, default values from fieldTypeConfig are used.
  */
-export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
   let noLabel = false;
   let hidden = !!field.hidden;
   if (field.type === "radioInput") {
@@ -202,12 +204,14 @@ export const ComponentForField = ({
   value,
   setValue,
   readOnly,
+  labelBeforeNormalize,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
     label?: string;
   };
   readOnly: boolean;
+  labelBeforeNormalize?: string;
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
@@ -320,6 +324,7 @@ export const ComponentForField = ({
     return field.options.length ? (
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
+          label={labelBeforeNormalize}
           placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
