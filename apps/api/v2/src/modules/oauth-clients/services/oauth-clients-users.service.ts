@@ -1,5 +1,6 @@
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
 import { SchedulesService_2024_04_15 } from "@/ee/schedules/schedules_2024_04_15/services/schedules.service";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
 import { CreateManagedUserInput } from "@/modules/users/inputs/create-managed-user.input";
 import { UpdateManagedUserInput } from "@/modules/users/inputs/update-managed-user.input";
@@ -7,7 +8,11 @@ import { UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { User } from "@prisma/client";
 
-import { createNewUsersConnectToOrgIfExists, slugify } from "@calcom/platform-libraries-0.0.22";
+import {
+  createNewUsersConnectToOrgIfExists,
+  slugify,
+  updateNewTeamMemberEventTypes,
+} from "@calcom/platform-libraries-0.0.22";
 
 @Injectable()
 export class OAuthClientUsersService {
@@ -15,7 +20,8 @@ export class OAuthClientUsersService {
     private readonly userRepository: UsersRepository,
     private readonly tokensRepository: TokensRepository,
     private readonly eventTypesService: EventTypesService_2024_04_15,
-    private readonly schedulesService: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15,
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
   ) {}
 
   async createOauthClientUser(
@@ -78,6 +84,8 @@ export class OAuthClientUsersService {
       user.defaultScheduleId = defaultSchedule.id;
     }
 
+    await this.addUserToTeamEvents(user.id, organizationId);
+
     return {
       user,
       tokens: {
@@ -103,6 +111,14 @@ export class OAuthClientUsersService {
     }
 
     return this.userRepository.update(userId, body);
+  }
+
+  async addUserToTeamEvents(userId: number, organizationId: number) {
+    const orgTeams = await this.organizationsTeamsRepository.findOrgTeams(organizationId);
+
+    for (const team of orgTeams) {
+      await updateNewTeamMemberEventTypes(userId, team.id);
+    }
   }
 
   getOAuthUserEmail(oAuthClientId: string, userEmail: string) {

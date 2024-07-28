@@ -14,7 +14,7 @@ import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
-import { PlatformOAuthClient, Team, User } from "@prisma/client";
+import { PlatformOAuthClient, Team, User, EventType } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
@@ -267,6 +267,179 @@ describe("OAuth Client Users Endpoints", () => {
       const email = `${username}+${oAuthClientId}@${emailDomain}`;
 
       return email;
+    }
+
+    afterAll(async () => {
+      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await teamRepositoryFixture.delete(organization.id);
+      try {
+        await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      await app.close();
+    });
+  });
+
+  describe("User team even-types", () => {
+    let app: INestApplication;
+
+    let oAuthClient: PlatformOAuthClient;
+    let organization: Team;
+    let team: Team;
+    let managedEventType: EventType;
+    let userRepositoryFixture: UserRepositoryFixture;
+    let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
+    let teamRepositoryFixture: TeamRepositoryFixture;
+    let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+
+    let postResponseData: CreateUserResponse;
+
+    const userEmail = "oauth-client-user@gmail.com";
+    const userTimeZone = "Europe/Rome";
+
+    beforeAll(async () => {
+      const moduleRef = await Test.createTestingModule({
+        providers: [PrismaExceptionFilter, HttpExceptionFilter],
+        imports: [AppModule, UsersModule],
+      }).compile();
+
+      app = moduleRef.createNestApplication();
+      bootstrap(app as NestExpressApplication);
+
+      oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
+      userRepositoryFixture = new UserRepositoryFixture(moduleRef);
+      teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+
+      organization = await teamRepositoryFixture.create({
+        name: "Test Organization",
+        isOrganization: true,
+      });
+
+      team = await teamRepositoryFixture.create({
+        name: "Test org team",
+        isOrganization: false,
+        parent: { connect: { id: organization.id } },
+      });
+
+      await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Collective Event Type",
+        slug: "collective-event-type",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: team.id },
+        },
+        title: "Managed Event Type",
+        slug: "managed-event-type",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      oAuthClient = await createOAuthClient(organization.id);
+
+      await app.init();
+    });
+
+    async function createOAuthClient(organizationId: number) {
+      const data = {
+        logo: "logo-url",
+        name: "name",
+        redirectUris: [CLIENT_REDIRECT_URI],
+        permissions: 32,
+      };
+      const secret = "secret";
+
+      const client = await oauthClientRepositoryFixture.create(organizationId, data, secret);
+      return client;
+    }
+
+    it("should be defined", () => {
+      expect(oauthClientRepositoryFixture).toBeDefined();
+      expect(userRepositoryFixture).toBeDefined();
+      expect(oAuthClient).toBeDefined();
+    });
+
+    it(`/POST`, async () => {
+      const requestBody: CreateManagedUserInput = {
+        email: userEmail,
+        timeZone: userTimeZone,
+        weekStart: "Monday",
+        timeFormat: 24,
+        locale: Locales.FR,
+      };
+
+      const response = await request(app.getHttpServer())
+        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
+        .set("x-cal-secret-key", oAuthClient.secret)
+        .send(requestBody)
+        .expect(201);
+
+      const responseBody: ApiSuccessResponse<{
+        user: Omit<User, "password">;
+        accessToken: string;
+        refreshToken: string;
+      }> = response.body;
+
+      postResponseData = responseBody.data;
+
+      expect(responseBody.status).toEqual(SUCCESS_STATUS);
+      expect(responseBody.data).toBeDefined();
+
+      await userHasCorrectEventTypes(responseBody.data.user.id);
+      await teamHasCorrectEventTypes(team.id);
+    });
+
+    async function userHasCorrectEventTypes(userId: number) {
+      const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
+
+      expect(eventTypes?.length).toEqual(5);
+
+      // note(Lauris): managed event-types with assignAllTeamMembers: true
+      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+
+      // note(Lauris): default event types
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
+      ).toBeTruthy();
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
+      ).toBeTruthy();
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
+      ).toBeTruthy();
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutesVideo.slug)
+      ).toBeTruthy();
+    }
+
+    async function teamHasCorrectEventTypes(teamId: number) {
+      const eventTypes = await eventTypesRepositoryFixture.getAllTeamEventTypes(teamId);
+
+      expect(eventTypes?.length).toEqual(2);
+
+      // note(Lauris): managed event-types with assignAllTeamMembers: true
+      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+
+      // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
+      const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
+      expect(collective).toBeTruthy();
+      expect(collective?.hosts).toBeDefined();
+      expect(collective?.hosts?.length).toEqual(1);
+      expect(collective?.hosts[0].userId).toEqual(postResponseData.user.id);
     }
 
     afterAll(async () => {

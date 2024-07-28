@@ -4,6 +4,9 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
 
+import { CreateTeamEventTypeInput_2024_06_14 } from "@calcom/platform-types";
+import { Prisma } from "@calcom/prisma/client";
+
 export class EventTypesRepositoryFixture {
   private primaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
@@ -26,6 +29,9 @@ export class EventTypesRepositoryFixture {
       where: {
         teamId,
       },
+      include: {
+        hosts: true,
+      },
     });
   }
 
@@ -39,6 +45,10 @@ export class EventTypesRepositoryFixture {
         userId,
       },
     });
+  }
+
+  async createTeamEventType(data: Prisma.EventTypeCreateInput) {
+    return this.prismaWriteClient.eventType.create({ data });
   }
 
   async delete(eventTypeId: EventType["id"]) {

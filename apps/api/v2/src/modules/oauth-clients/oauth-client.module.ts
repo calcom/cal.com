@@ -11,6 +11,7 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
+import { OrganizationsTeamsRepository } from "@/modules/organizations/repositories/organizations-teams.repository";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -40,6 +41,7 @@ import { Global, Module } from "@nestjs/common";
     TokensRepository,
     OAuthFlowService,
     OAuthClientUsersService,
+    OrganizationsTeamsRepository,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
   exports: [OAuthClientRepository, OAuthClientCredentialsGuard],

@@ -16,6 +16,14 @@ export class OrganizationsTeamsRepository {
     });
   }
 
+  async findOrgTeams(organizationId: number) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+      },
+    });
+  }
+
   async deleteOrgTeam(organizationId: number, teamId: number) {
     return this.dbRead.prisma.team.delete({
       where: {
