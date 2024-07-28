@@ -65,7 +65,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
     .replaceAll("{ATTENDEE}", attendeeName)
     .replaceAll("{HOST}", eventNameObj.host)
     .replaceAll("{HOST/ATTENDEE}", forAttendeeView ? eventNameObj.host : attendeeName)
-    .replaceAll("{Event duration}", eventDuration);
+    .replaceAll("{Event duration}", eventDuration as string);
 
   const { bookingFields } = eventNameObj || {};
   const { name } = bookingFields || {};

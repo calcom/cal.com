@@ -1,7 +1,8 @@
 import type { TFunction } from "next-i18next";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
-export const getDurationFormatted = (mins: number, t: TFunction) => {
+export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
+  if (!mins) return null;
   const hours = Math.floor(mins / 60);
   mins %= 60;
   // format minutes string
