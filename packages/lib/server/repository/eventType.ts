@@ -4,7 +4,10 @@ import { Prisma } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
+
+import { TRPCError } from "@trpc/server";
 
 import { safeStringify } from "../../safeStringify";
 import { eventTypeSelect } from "../eventTypeSelect";
@@ -207,13 +210,15 @@ export class EventTypeRepository {
     limit = 10,
     cursor,
     orderBy,
+    where = {},
   }: {
     teamId: number;
-    parentId?: number;
+    parentId?: number | null;
     userId: number;
     limit?: number | null;
     cursor?: number | null;
     orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
+    where?: Prisma.EventTypeWhereInput;
   }) {
     const userSelect = Prisma.validator<Prisma.UserSelect>()({
       name: true,
@@ -225,35 +230,32 @@ export class EventTypeRepository {
     const select = {
       ...eventTypeSelect,
       hashedLink: true,
-      users: { select: userSelect },
+      users: { select: userSelect, take: 5 },
       children: {
         include: {
-          users: { select: userSelect },
+          users: { select: userSelect, take: 5 },
         },
       },
       hosts: {
         include: {
           user: { select: userSelect },
         },
+        take: 5,
       },
     };
 
-    return await prisma.eventType.findMany({
+    const teamMembership = await prisma.membership.findFirst({
       where: {
-        teamId,
-        team: {
-          parentId,
-          OR: [
-            {
-              members: {
-                some: {
-                  userId,
-                  accepted: true,
-                },
-              },
-            },
-            {
+        OR: [
+          {
+            teamId,
+            userId,
+            accepted: true,
+          },
+          {
+            team: {
               parent: {
+                ...(parentId ? { id: parentId } : {}),
                 members: {
                   some: {
                     userId,
@@ -263,8 +265,20 @@ export class EventTypeRepository {
                 },
               },
             },
-          ],
-        },
+          },
+        ],
+      },
+    });
+
+    if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
+
+    const isUserMember = teamMembership.role === MembershipRole.MEMBER;
+
+    return await prisma.eventType.findMany({
+      where: {
+        teamId,
+        ...(isUserMember ? { schedulingType: { not: SchedulingType.MANAGED } } : {}),
+        ...where,
       },
       select,
       cursor: cursor ? { id: cursor } : undefined,

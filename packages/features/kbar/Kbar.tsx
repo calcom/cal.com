@@ -17,7 +17,6 @@ import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
 import type { RouterOutputs } from "@calcom/trpc/react";
-import { trpc } from "@calcom/trpc/react";
 import { Icon, Tooltip } from "@calcom/ui";
 
 type shortcutArrayType = {
@@ -36,8 +35,9 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 const useEventTypesAction = () => {
   const router = useRouter();
-  const { data } = trpc.viewer.eventTypes.getByViewer.useQuery();
-  const eventTypeActions = data?.eventTypeGroups.reduce<Action[]>((acc: Action[], group: EventTypeGroup) => {
+  // const { data  } = trpc.viewer.eventTypes.getByViewer.useQuery();
+  const data = null;
+  const eventTypeActions = data?.eventTypeGroups?.reduce<Action[]>((acc: Action[], group: EventTypeGroup) => {
     const item: Action[] = group.eventTypes.map((item) => ({
       id: `event-type-${item.id}`,
       name: item.title,

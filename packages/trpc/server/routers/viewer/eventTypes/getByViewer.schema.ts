@@ -21,9 +21,9 @@ export type TEventTypeInputSchema = z.infer<typeof ZEventTypeInputSchema>;
 export const ZGetEventTypesFromGroupSchema = z.object({
   filters: filterQuerySchemaStrict.optional(),
   forRoutingForms: z.boolean().optional(),
-  skip: z.number().nullable().optional(),
-  limit: z.number().nullable().optional().default(10),
-  group: z.any(),
+  cursor: z.number().nullish(),
+  limit: z.number().default(10),
+  group: z.object({ teamId: z.number().nullish(), parentId: z.number().nullish() }),
 });
 
 export type TGetEventTypesFromGroupSchema = z.infer<typeof ZGetEventTypesFromGroupSchema>;

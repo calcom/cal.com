@@ -21,19 +21,15 @@ import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
-import type { User } from "@calcom/prisma/client";
 import type { MembershipRole } from "@calcom/prisma/enums";
 import { SchedulingType } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc, TRPCClientError } from "@calcom/trpc/react";
-import type { UserProfile } from "@calcom/types/UserProfile";
 import {
   Alert,
-  Avatar,
   Badge,
   Button,
   ButtonGroup,
@@ -50,7 +46,6 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
-  Icon,
   Label,
   showToast,
   Skeleton,
@@ -67,45 +62,46 @@ import SkeletonLoader from "@components/eventtype/SkeletonLoader";
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
 
-type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
-type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
+// type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
+// type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
 
-interface EventTypeListHeadingProps {
-  profile: EventTypeGroupProfile;
-  membershipCount: number;
-  teamId?: number | null;
-  bookerUrl: string;
-}
+type EventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
+type EventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 
-type EventTypeGroup = EventTypeGroups[number];
-type EventType = EventTypeGroup["eventTypes"][number];
+// interface EventTypeListHeadingProps {
+//   profile: EventTypeGroupProfile;
+//   membershipCount: number;
+//   teamId?: number | null;
+//   bookerUrl: string;
+// }
 
-type DeNormalizedEventType = Omit<EventType, "userIds"> & {
-  users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
-    nonProfileUsername: string | null;
-    profile: UserProfile;
-  })[];
-};
+// type EventTypeGroup = EventTypeGroups[number];
+// type EventType = EventTypeGroup["eventTypes"][number];
 
-type DeNormalizedEventTypeGroup = Omit<EventTypeGroup, "eventTypes"> & {
-  eventTypes: DeNormalizedEventType[];
-};
+// type DeNormalizedEventType = Omit<EventType, "userIds"> & {
+//   users: (Pick<User, "id" | "name" | "username" | "avatarUrl"> & {
+//     nonProfileUsername: string | null;
+//     profile: UserProfile;
+//   })[];
+// };
+
+// type DeNormalizedEventTypeGroup = Omit<EventTypeGroup, "eventTypes"> & {
+//   eventTypes: DeNormalizedEventType[];
+// };
 
 interface EventTypeListProps {
-  group: DeNormalizedEventTypeGroup;
+  group: EventTypeGroup;
   groupIndex: number;
   readOnly: boolean;
   bookerUrl: string | null;
-  types: DeNormalizedEventType[];
+  types: EventType[];
   lockedByOrg?: boolean;
 }
 
-// interface MobileTeamsTabProps {
-//   eventTypeGroups: DeNormalizedEventTypeGroup[];
-// }
 interface MobileTeamsTabProps {
-  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"];
+  eventTypeGroups: EventTypeGroup[];
 }
 
 const querySchema = z.object({
@@ -125,8 +121,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   const getEventTypes = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
     {
       limit: 10,
-      group: events[0],
-      // filters: filters,
+      group: { teamId: events[0]?.teamId, parentId: events[0]?.parentId },
     },
     {
       refetchOnWindowFocus: false,
@@ -137,7 +132,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
 
   console.log("eventTypeGroups", eventTypeGroups, getEventTypes?.data);
 
-  if (getEventTypes.loading || !getEventTypes?.data) return null;
+  if (getEventTypes.isLoading || !getEventTypes?.data) return null;
 
   const isEmpty = !getEventTypes?.data?.pages[0]?.eventTypes.length;
 
@@ -146,9 +141,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
       <HorizontalTabs tabs={tabs} />
       {events.length > 0 ? (
         <EventTypeList
-          // types={events[0].eventTypes}
           types={getEventTypes?.data?.pages[0]?.eventTypes}
-          // group={events[0]}
           group={eventTypeGroups[0]}
           groupIndex={0}
           bookerUrl={events[0].bookerUrl}
@@ -161,15 +154,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   );
 };
 
-const Item = ({
-  type,
-  group,
-  readOnly,
-}: {
-  type: DeNormalizedEventType;
-  group: DeNormalizedEventTypeGroup;
-  readOnly: boolean;
-}) => {
+const Item = ({ type, group, readOnly }: { type: EventType; group: EventTypeGroup; readOnly: boolean }) => {
   const { t } = useLocale();
 
   const content = () => (
@@ -269,64 +254,60 @@ export const EventTypeList = ({
 
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
     onMutate: async ({ id }) => {
-      await utils.viewer.eventTypes.getByViewer.cancel();
-      const previousValue = utils.viewer.eventTypes.getByViewer.getData();
-      if (previousValue) {
-        const newList = [...types.map(normalizeEventType)];
-        const itemIndex = newList.findIndex((item) => item.id === id);
-        if (itemIndex !== -1 && newList[itemIndex]) {
-          newList[itemIndex].hidden = !newList[itemIndex].hidden;
-        }
-        utils.viewer.eventTypes.getByViewer.setData(undefined, {
-          ...previousValue,
-          eventTypeGroups: [
-            ...previousValue.eventTypeGroups.slice(0, groupIndex),
-            { ...group, eventTypes: newList },
-            ...previousValue.eventTypeGroups.slice(groupIndex + 1),
-          ],
-        });
-      }
-      return { previousValue };
+      // await utils.viewer.eventTypes.getByViewer.cancel();
+      // const previousValue = utils.viewer.eventTypes.getByViewer.getData();
+      // if (previousValue) {
+      //   const newList = [...types.map(normalizeEventType)];
+      //   const itemIndex = newList.findIndex((item) => item.id === id);
+      //   if (itemIndex !== -1 && newList[itemIndex]) {
+      //     newList[itemIndex].hidden = !newList[itemIndex].hidden;
+      //   }
+      //   utils.viewer.eventTypes.getByViewer.setData(undefined, {
+      //     ...previousValue,
+      //     eventTypeGroups: [
+      //       ...previousValue.eventTypeGroups.slice(0, groupIndex),
+      //       { ...group, eventTypes: newList },
+      //       ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+      //     ],
+      //   });
+      // }
+      // return { previousValue };
     },
     onError: async (err, _, context) => {
-      if (context?.previousValue) {
-        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
-      }
+      // if (context?.previousValue) {
+      //   utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
+      // }
       console.error(err.message);
     },
     onSettled: () => {
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      utils.viewer.eventTypes.invalidate();
+      // utils.viewer.eventTypes.invalidate();
     },
   });
 
   async function moveEventType(index: number, increment: 1 | -1) {
-    const newList = [...types.map(normalizeEventType)];
-
-    const type = types[index];
-    const tmp = types[index + increment];
-    if (tmp) {
-      newList[index] = normalizeEventType(tmp);
-      newList[index + increment] = normalizeEventType(type);
-    }
-
-    await utils.viewer.eventTypes.getByViewer.cancel();
-
-    const previousValue = utils.viewer.eventTypes.getByViewer.getData();
-    if (previousValue) {
-      utils.viewer.eventTypes.getByViewer.setData(undefined, {
-        ...previousValue,
-        eventTypeGroups: [
-          ...previousValue.eventTypeGroups.slice(0, groupIndex),
-          { ...group, eventTypes: newList },
-          ...previousValue.eventTypeGroups.slice(groupIndex + 1),
-        ],
-      });
-    }
-
-    mutation.mutate({
-      ids: newList.map((type) => type.id),
-    });
+    // const newList = [...types.map(normalizeEventType)];
+    // const type = types[index];
+    // const tmp = types[index + increment];
+    // if (tmp) {
+    //   newList[index] = normalizeEventType(tmp);
+    //   newList[index + increment] = normalizeEventType(type);
+    // }
+    // await utils.viewer.eventTypes.getByViewer.cancel();
+    // const previousValue = utils.viewer.eventTypes.getByViewer.getData();
+    // if (previousValue) {
+    //   utils.viewer.eventTypes.getByViewer.setData(undefined, {
+    //     ...previousValue,
+    //     eventTypeGroups: [
+    //       ...previousValue.eventTypeGroups.slice(0, groupIndex),
+    //       { ...group, eventTypes: newList },
+    //       ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+    //     ],
+    //   });
+    // }
+    // mutation.mutate({
+    //   ids: newList.map((type) => type.id),
+    // });
   }
 
   async function deleteEventTypeHandler(id: number) {
@@ -335,7 +316,7 @@ export const EventTypeList = ({
   }
 
   // inject selection data into url for correct router history
-  const openDuplicateModal = (eventType: DeNormalizedEventType, group: DeNormalizedEventTypeGroup) => {
+  const openDuplicateModal = (eventType: EventType, group: EventTypeGroup) => {
     const newSearchParams = new URLSearchParams(searchParams ?? undefined);
     function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
       if (value) newSearchParams.set(key, value.toString());
@@ -357,26 +338,25 @@ export const EventTypeList = ({
       setDeleteDialogOpen(false);
     },
     onMutate: async ({ id }) => {
-      await utils.viewer.eventTypes.getByViewer.cancel();
-      const previousValue = utils.viewer.eventTypes.getByViewer.getData();
-      if (previousValue) {
-        const newList = types.filter((item) => item.id !== id).map(normalizeEventType);
-
-        utils.viewer.eventTypes.getByViewer.setData(undefined, {
-          ...previousValue,
-          eventTypeGroups: [
-            ...previousValue.eventTypeGroups.slice(0, groupIndex),
-            { ...group, eventTypes: newList },
-            ...previousValue.eventTypeGroups.slice(groupIndex + 1),
-          ],
-        });
-      }
-      return { previousValue };
+      // await utils.viewer.eventTypes.getByViewer.cancel();
+      // const previousValue = utils.viewer.eventTypes.getByViewer.getData();
+      // if (previousValue) {
+      //   const newList = types.filter((item) => item.id !== id).map(normalizeEventType);
+      //   utils.viewer.eventTypes.getByViewer.setData(undefined, {
+      //     ...previousValue,
+      //     eventTypeGroups: [
+      //       ...previousValue.eventTypeGroups.slice(0, groupIndex),
+      //       { ...group, eventTypes: newList },
+      //       ...previousValue.eventTypeGroups.slice(groupIndex + 1),
+      //     ],
+      //   });
+      // }
+      // return { previousValue };
     },
     onError: (err, _, context) => {
-      if (context?.previousValue) {
-        utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
-      }
+      // if (context?.previousValue) {
+      //   utils.viewer.eventTypes.getByViewer.setData(undefined, context.previousValue);
+      // }
       if (err instanceof HttpError) {
         const message = `${err.statusCode}: ${err.message}`;
         showToast(message, "error");
@@ -387,7 +367,7 @@ export const EventTypeList = ({
     },
     onSettled: () => {
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      utils.viewer.eventTypes.invalidate();
+      // utils.viewer.eventTypes.invalidate();
     },
   });
 
@@ -408,6 +388,8 @@ export const EventTypeList = ({
       <></>
     );
   }
+
+  console.log("types", types);
 
   const firstItem = types[0];
   const lastItem = types[types.length - 1];
@@ -739,65 +721,65 @@ export const EventTypeList = ({
   );
 };
 
-const EventTypeListHeading = ({
-  profile,
-  membershipCount,
-  teamId,
-  bookerUrl,
-}: EventTypeListHeadingProps): JSX.Element => {
-  const { t } = useLocale();
-  const router = useRouter();
+// const EventTypeListHeading = ({
+//   profile,
+//   membershipCount,
+//   teamId,
+//   bookerUrl,
+// }: EventTypeListHeadingProps): JSX.Element => {
+//   const { t } = useLocale();
+//   const router = useRouter();
 
-  const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
-    onSuccess(data) {
-      router.push(data.url);
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
+//   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
+//     onSuccess(data) {
+//       router.push(data.url);
+//     },
+//     onError: (error) => {
+//       showToast(error.message, "error");
+//     },
+//   });
 
-  return (
-    <div className="mb-4 flex items-center space-x-2">
-      <Avatar
-        alt={profile.name || ""}
-        href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-        imageSrc={profile.image}
-        size="md"
-        className="mt-1 inline-flex justify-center"
-      />
-      <div>
-        <Link
-          href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-          className="text-emphasis font-bold">
-          {profile.name || ""}
-        </Link>
-        {membershipCount && teamId && (
-          <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
-            <Link href={`/settings/teams/${teamId}/members`}>
-              <Badge variant="gray">
-                <Icon name="users" className="-mt-px mr-1 inline h-3 w-3" />
-                {membershipCount}
-              </Badge>
-            </Link>
-          </span>
-        )}
-        {profile.slug && (
-          <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
-            {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
-          </Link>
-        )}
-      </div>
-      {!profile.slug && !!teamId && (
-        <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-          <Badge variant="gray" className="-ml-2 mb-1">
-            {t("upgrade")}
-          </Badge>
-        </button>
-      )}
-    </div>
-  );
-};
+//   return (
+//     <div className="mb-4 flex items-center space-x-2">
+//       <Avatar
+//         alt={profile.name || ""}
+//         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
+//         imageSrc={profile.image}
+//         size="md"
+//         className="mt-1 inline-flex justify-center"
+//       />
+//       <div>
+//         <Link
+//           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
+//           className="text-emphasis font-bold">
+//           {profile.name || ""}
+//         </Link>
+//         {membershipCount && teamId && (
+//           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
+//             <Link href={`/settings/teams/${teamId}/members`}>
+//               <Badge variant="gray">
+//                 <Icon name="users" className="-mt-px mr-1 inline h-3 w-3" />
+//                 {membershipCount}
+//               </Badge>
+//             </Link>
+//           </span>
+//         )}
+//         {profile.slug && (
+//           <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
+//             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
+//           </Link>
+//         )}
+//       </div>
+//       {!profile.slug && !!teamId && (
+//         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
+//           <Badge variant="gray" className="-ml-2 mb-1">
+//             {t("upgrade")}
+//           </Badge>
+//         </button>
+//       )}
+//     </div>
+//   );
+// };
 
 const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
@@ -854,7 +836,7 @@ const Actions = (props: { showDivider: boolean }) => {
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: DeNormalizedEventTypeGroup }) => {
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup }) => {
   const { t } = useLocale();
   return (
     <>
@@ -888,29 +870,24 @@ const Main = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  const isMobile = useMediaQuery("(max-width: 768px)");
+  // const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
 
   if (status === "error") {
     return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
   }
 
-  // if (!rawData || status === "pending") {
-  //   return <SkeletonLoader />;
-  // }
-
   if (!eventTypeGroups || !profiles || status === "pending") {
     return <SkeletonLoader />;
   }
 
-  const isFilteredByOnlyOneItem =
-    (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && eventTypeGroups.length === 1;
+  // const isFilteredByOnlyOneItem =
+  //   (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && eventTypeGroups.length === 1;
 
   // const data = denormalizePayload(rawData);
-  // <EventTypesInfiteScroll key={index} group={group} index={index} profiles={profiles} />
   return (
     <>
-      {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
+      {/* {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
         <MobileTeamsTab eventTypeGroups={eventTypeGroups} />
       ) : (
         eventTypeGroups.length === 1 && (
@@ -922,94 +899,12 @@ const Main = ({
             readOnly={eventTypeGroups[0].metadata.readOnly}
           />
         )
-      )}
+      )} */}
+      {eventTypeGroups.length >= 1 && <MobileTeamsTab eventTypeGroups={eventTypeGroups} />}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
       {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
     </>
-  );
-};
-
-const EventTypesInfiteScroll = ({
-  group,
-  index,
-  profiles,
-}: {
-  group: GetUserEventGroupsResponse["eventTypeGroups"][number];
-  index: number;
-  profiles: GetUserEventGroupsResponse["profiles"];
-}) => {
-  const eventsLockedByOrg = group.profile.eventTypesLockedByOrg;
-
-  const getEventTypes = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
-    {
-      limit: 10,
-      group: group,
-      // filters: filters,
-    },
-    {
-      refetchOnWindowFocus: false,
-      staleTime: 1 * 60 * 60 * 1000,
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-    }
-  );
-
-  if (getEventTypes.loading) return null;
-
-  const isEmpty = !getEventTypes?.data?.pages[0]?.eventTypes.length;
-
-  console.log("getEventTypesFromGroup", getEventTypes?.data);
-
-  return (
-    <div className="mt-4 flex flex-col" data-testid={`slug-${group.profile.slug}`} key={group.profile.slug}>
-      {/* If the group is readonly and empty don't leave a floating header when the user cant see the create box due
-                    to it being readonly for that user */}
-      {isEmpty && group.metadata.readOnly ? null : (
-        <EventTypeListHeading
-          profile={group.profile}
-          membershipCount={group.metadata.membershipCount}
-          teamId={group.teamId}
-          bookerUrl={group.bookerUrl}
-        />
-      )}
-      {!isEmpty ? (
-        <EventTypeList
-          types={getEventTypes?.data?.pages[0]?.eventTypes}
-          group={group}
-          bookerUrl={group.bookerUrl}
-          groupIndex={index}
-          readOnly={group.metadata.readOnly}
-          lockedByOrg={eventsLockedByOrg}
-        />
-      ) : group.teamId && !group.metadata.readOnly ? (
-        <EmptyEventTypeList group={group} />
-      ) : !group.metadata.readOnly ? (
-        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
-      ) : null}
-      {/* {group.eventTypes.length === 0 && group.metadata.readOnly ? null : (
-        <EventTypeListHeading
-          profile={group.profile}
-          membershipCount={group.metadata.membershipCount}
-          teamId={group.teamId}
-          bookerUrl={group.bookerUrl}
-        />
-      )}
-
-      {group.eventTypes.length ? (
-        <EventTypeList
-          types={group.eventTypes}
-          group={group}
-          bookerUrl={group.bookerUrl}
-          groupIndex={index}
-          readOnly={group.metadata.readOnly}
-          lockedByOrg={eventsLockedByOrg}
-        />
-      ) : group.teamId && !group.metadata.readOnly ? (
-        <EmptyEventTypeList group={group} />
-      ) : !group.metadata.readOnly ? (
-        <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />
-      ) : null} */}
-    </div>
   );
 };
 
@@ -1042,12 +937,6 @@ const EventTypesPage: React.FC & {
     staleTime: 1 * 60 * 60 * 1000,
   });
   console.log("userEventGroups", data);
-
-  //   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useInfiniteQuery(filters && { filters }, {
-  //   refetchOnWindowFocus: false,
-  //   gcTime: 1 * 60 * 60 * 1000,
-  //   staleTime: 1 * 60 * 60 * 1000,
-  // });
 
   useEffect(() => {
     if (searchParams?.get("openIntercom") === "true") {
@@ -1128,33 +1017,33 @@ const EventTypesPage: React.FC & {
 
 export default EventTypesPage;
 
-function normalizeEventType(eventType: DeNormalizedEventType): EventType {
-  return {
-    ...eventType,
-    userIds: eventType.users.map((user) => user.id),
-  };
-}
+// function normalizeEventType(eventType: DeNormalizedEventType): EventType {
+//   return {
+//     ...eventType,
+//     userIds: eventType.users.map((user) => user.id),
+//   };
+// }
 
-function denormalizePayload(data: NonNullable<GetByViewerResponse>) {
-  return {
-    ...data,
-    eventTypeGroups: data.eventTypeGroups.map((eventTypeGroup) => {
-      return {
-        ...eventTypeGroup,
-        eventTypes: eventTypeGroup.eventTypes.map((eventType) => {
-          const { userIds, ...rest } = eventType;
-          return {
-            ...rest,
-            users: userIds.map((userId) => {
-              const user = data.allUsersAcrossAllEventTypes.get(userId);
-              if (!user) {
-                throw new Error(`User with id ${userId} not found in allUsersAcrossAllEventTypes`);
-              }
-              return user;
-            }),
-          };
-        }),
-      };
-    }),
-  };
-}
+// function denormalizePayload(data: NonNullable<GetByViewerResponse>) {
+//   return {
+//     ...data,
+//     eventTypeGroups: data.eventTypeGroups.map((eventTypeGroup) => {
+//       return {
+//         ...eventTypeGroup,
+//         eventTypes: eventTypeGroup.eventTypes.map((eventType) => {
+//           const { userIds, ...rest } = eventType;
+//           return {
+//             ...rest,
+//             users: userIds.map((userId) => {
+//               const user = data.allUsersAcrossAllEventTypes.get(userId);
+//               if (!user) {
+//                 throw new Error(`User with id ${userId} not found in allUsersAcrossAllEventTypes`);
+//               }
+//               return user;
+//             }),
+//           };
+//         }),
+//       };
+//     }),
+//   };
+// }

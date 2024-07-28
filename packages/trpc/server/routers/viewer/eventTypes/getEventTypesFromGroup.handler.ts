@@ -1,8 +1,10 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
+import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { ProfileRepository } from "@calcom/lib/server/repository/profile";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
@@ -20,24 +22,71 @@ type EventType =
   | Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 
 export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions) => {
+  await checkRateLimitAndThrowError({
+    identifier: `eventTypes:getEventTypesFromGroup:${ctx.user.id}`,
+    rateLimitingType: "common",
+  });
+
   const userProfile = ctx.user.profile;
-  const profile = await ProfileRepository.findByUpId(userProfile.upId);
-
-  const { group, limit, skip, filters } = input;
+  const { group, limit, cursor, filters } = input;
   const { teamId, parentId } = group;
-  console.log("getEventTypesFromGroup", group);
 
-  let eventTypes: EventType[] = [];
+  const isFilterSet = (filters && hasFilter(filters)) || !!teamId;
+  const isUpIdInFilter = filters?.upIds?.includes(userProfile.upId);
 
-  if (!teamId) {
-    eventTypes = await EventTypeRepository.findAllByUpId(
-      {
-        upId: userProfile.upId,
+  const shouldListUserEvents =
+    !isFilterSet || isUpIdInFilter || (isFilterSet && filters?.upIds && !isUpIdInFilter);
+
+  const eventTypes: EventType[] = [];
+
+  if (shouldListUserEvents || !teamId) {
+    const userEventTypes =
+      (await EventTypeRepository.findAllByUpId(
+        {
+          upId: userProfile.upId,
+          userId: ctx.user.id,
+        },
+        {
+          where: {
+            teamId: null,
+            // TODO: FIX THIS
+            // schedulingType: { not: SchedulingType.MANAGED },
+            // schedulingType: { in: [SchedulingType.ROUND_ROBIN, SchedulingType.COLLECTIVE, null] },
+            ...(isFilterSet && !!filters?.schedulingTypes
+              ? {
+                  schedulingType: { in: filters.schedulingTypes },
+                }
+              : {}),
+          },
+          orderBy: [
+            {
+              position: "desc",
+            },
+            {
+              id: "asc",
+            },
+          ],
+          limit,
+          cursor,
+        }
+      )) ?? [];
+
+    eventTypes.push(...userEventTypes);
+  }
+
+  if (teamId) {
+    const teamEventTypes =
+      (await EventTypeRepository.findTeamEventTypes({
+        teamId,
+        parentId,
         userId: ctx.user.id,
-      },
-      {
+        limit,
         where: {
-          teamId: null,
+          ...(isFilterSet && !!filters?.schedulingTypes
+            ? {
+                schedulingType: { in: filters.schedulingTypes },
+              }
+            : null),
         },
         orderBy: [
           {
@@ -47,55 +96,61 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
             id: "asc",
           },
         ],
-        limit,
-      }
-    );
-    eventTypes = eventTypes.filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
-  } else {
-    eventTypes = await EventTypeRepository.findTeamEventTypes({
-      teamId,
-      parentId,
-      userId: ctx.user.id,
-      limit,
-      orderBy: [
-        {
-          position: "desc",
-        },
-        {
-          id: "asc",
-        },
-      ],
+      })) ?? [];
+
+    const mapEventType = async (eventType: EventType) => ({
+      ...eventType,
+      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+      users: await Promise.all(
+        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+          async (u) =>
+            await UserRepository.enrichUserWithItsProfile({
+              user: u,
+            })
+        )
+      ),
+      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+      children: await Promise.all(
+        (eventType.children || []).map(async (c) => ({
+          ...c,
+          users: await Promise.all(
+            c.users.map(
+              async (u) =>
+                await UserRepository.enrichUserWithItsProfile({
+                  user: u,
+                })
+            )
+          ),
+        }))
+      ),
     });
+
+    const mappedEventTypes = await Promise.all(teamEventTypes.map(mapEventType));
+
+    eventTypes.push(...mappedEventTypes);
   }
 
-  const filterByTeamIds = async (eventType: EventType) => {
-    if (!filters || !hasFilter(filters)) {
+  let nextCursor: typeof cursor | undefined = undefined;
+  if (eventTypes && eventTypes.length > limit) {
+    const nextItem = eventTypes.pop();
+    nextCursor = nextItem?.id;
+  }
+
+  const filteredEventTypes = eventTypes.filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    if (!isAChildEvent) {
       return true;
     }
-    return filters?.teamIds?.includes(eventType?.teamId || 0) ?? false;
-  };
-  const filterBySchedulingTypes = (evType: EventType) => {
-    if (!filters || !hasFilter(filters) || !filters.schedulingTypes) {
-      return true;
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
+      return false;
     }
-
-    if (!evType.schedulingType) return false;
-
-    return filters.schedulingTypes.includes(evType.schedulingType);
-  };
-  const filteredEventTypes = eventTypes
-    .filter(filterByTeamIds)
-    .filter((evType) => {
-      const res = evType.userId === null || evType.userId === ctx.user.id;
-      return res;
-    })
-    // .filter((evType) =>
-    //   membership.role === MembershipRole.MEMBER ? evType.schedulingType !== SchedulingType.MANAGED : true
-    // )
-    .filter(filterBySchedulingTypes);
+    return true;
+  });
 
   return {
-    eventTypes: filteredEventTypes,
-    nextCursor: null,
+    eventTypes: filteredEventTypes || [],
+    nextCursor,
   };
 };
