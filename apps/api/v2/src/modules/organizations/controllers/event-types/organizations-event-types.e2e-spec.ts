@@ -248,7 +248,7 @@ describe("Organizations Event Types Endpoints", () => {
             options: ["javascript", "python", "cobol"],
           },
         ],
-        schedulingType: "COLLECTIVE",
+        schedulingType: "collective",
         hosts: [
           {
             userId: teammate1.id,
@@ -389,7 +389,6 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
-          console.log("asap responseBody.data", JSON.stringify(responseBody.data, null, 2));
           expect(data.length).toEqual(2);
 
           const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
