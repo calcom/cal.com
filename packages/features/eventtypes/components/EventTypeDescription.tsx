@@ -6,6 +6,7 @@ import { Price } from "@calcom/features/bookings/components/event-meta/Price";
 import { PriceIcon } from "@calcom/features/bookings/components/event-meta/PriceIcon";
 import { classNames, parseRecurringEvent } from "@calcom/lib";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
+import { useLineBreak } from "@calcom/lib/hooks/useLineBreak";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { baseEventTypeSelect } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
@@ -38,12 +39,8 @@ export const EventTypeDescription = ({
     [eventType.recurringEvent]
   );
 
-  function convertLineBreaksToHTML(inputText: string): string {
-    if (!inputText || inputText === "") return "";
-    return inputText.replace(/\n/g, "<br>");
-  }
-
   const paymentAppData = getPaymentAppData(eventType);
+  const formattedHTMLText = useLineBreak(eventType.descriptionAsSafeHTML || "");
 
   return (
     <>
@@ -55,7 +52,7 @@ export const EventTypeDescription = ({
               shortenDescription ? "line-clamp-4 [&>*:not(:first-child)]:hidden" : ""
             )}
             dangerouslySetInnerHTML={{
-              __html: convertLineBreaksToHTML(eventType.descriptionAsSafeHTML || ""),
+              __html: formattedHTMLText,
             }}
           />
         )}

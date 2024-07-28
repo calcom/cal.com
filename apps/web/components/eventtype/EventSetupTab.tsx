@@ -8,6 +8,7 @@ import useLockedFieldsManager from "@calcom/features/ee/managed-event-types/hook
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import type { FormValues, LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { WEBSITE_URL } from "@calcom/lib/constants";
+import { useLineBreak } from "@calcom/lib/hooks/useLineBreak";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { md } from "@calcom/lib/markdownIt";
 import { slugify } from "@calcom/lib/slugify";
@@ -34,14 +35,11 @@ const DescriptionEditor = ({ isEditable }: { isEditable: boolean }) => {
     setIsMounted(true);
   }, []);
 
-  function convertLineBreaksToHTML(inputText: string): string {
-    if (!inputText || inputText === "") return "";
-    return inputText.replace(/\n/g, "<br>");
-  }
+  const formattedHTMLText = useLineBreak(formMethods.getValues("description"));
 
   return mounted ? (
     <Editor
-      getText={() => md.render(convertLineBreaksToHTML(formMethods.getValues("description")) || "")}
+      getText={() => md.render(formattedHTMLText || "")}
       setText={(value: string) => formMethods.setValue("description", turndown(value), { shouldDirty: true })}
       excludedToolbarItems={["blockType"]}
       placeholder={t("quick_video_meeting")}
