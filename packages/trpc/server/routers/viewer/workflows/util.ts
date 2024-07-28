@@ -213,11 +213,13 @@ export async function removeSmsReminderFieldForEventTypes({
   workflowId,
   isOrg,
   activeOn,
+  actorUserId,
 }: {
   activeOnToRemove: number[];
   workflowId: number;
   isOrg: boolean;
   activeOn?: number[];
+  actorUserId?: number;
 }) {
   let allEventTypeIds = activeOnToRemove;
 

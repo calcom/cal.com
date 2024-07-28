@@ -41,6 +41,7 @@ type CreateBookingParams = {
   bookerEmail: AwaitedBookingData["email"];
   paymentAppData: PaymentAppData;
   changedOrganizer: boolean;
+  actorUserId?: number;
 };
 
 function updateEventDetails(
@@ -74,6 +75,7 @@ export async function createBooking({
   bookerEmail,
   paymentAppData,
   changedOrganizer,
+  actorUserId
 }: CreateBookingParams) {
   updateEventDetails(evt, originalRescheduledBooking, changedOrganizer);
 

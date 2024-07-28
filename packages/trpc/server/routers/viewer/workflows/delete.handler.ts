@@ -58,11 +58,7 @@ export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
     ? workflowToDelete.activeOnTeams.map((activeOn) => activeOn.teamId)
     : workflowToDelete.activeOn.map((activeOn) => activeOn.eventTypeId);
 
-    await removeSmsReminderFieldForBooking({
-      workflowId: id,
-      eventTypeId: activeOn.eventTypeId,
-      actorUserId: ctx.user.id ?? null,
-    });
+  await removeSmsReminderFieldForEventTypes({ activeOnToRemove, workflowId: workflowToDelete.id, isOrg, actorUserId: ctx.user.id ?? null});
 
   // automatically deletes all steps and reminders connected to this workflow
   await prisma.workflow.deleteMany({

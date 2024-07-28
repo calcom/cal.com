@@ -64,8 +64,6 @@ export async function handleConfirmation(args: {
   actorUserId?: number | null;
 }) {
   const { user, evt, recurringEventId, prisma, bookingId, booking, paid, actorUserId } = args;
-  const eventManager = new EventManager(user);
-  const { user, evt, recurringEventId, prisma, bookingId, booking, paid } = args;
   const eventType = booking.eventType;
   const eventTypeMetadata = EventTypeMetaDataSchema.parse(eventType?.metadata || {});
   const eventManager = new EventManager(user, eventTypeMetadata?.apps);
