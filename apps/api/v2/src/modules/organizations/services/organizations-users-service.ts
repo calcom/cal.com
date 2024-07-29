@@ -6,7 +6,7 @@ import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries-0.0.18";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries-0.0.21";
 import { Team } from "@calcom/prisma/client";
 
 @Injectable()

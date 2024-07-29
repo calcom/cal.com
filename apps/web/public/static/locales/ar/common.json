@@ -1562,7 +1562,6 @@
   "how_long_after": "كم من الوقت بعد انتهاء الحدث؟",
   "no_available_slots": "لا توجد فترات زمنية متاحة",
   "time_available": "الوقت المتاح",
-  "cant_find_the_right_video_app_visit_our_app_store": "لا يمكن العثور على تطبيق الفيديو الصحيح؟ قم بزيارة متجر التطبيقات <1>App Store</1>.",
   "install_new_calendar_app": "تثبيت تطبيق تقويم جديد",
   "make_phone_number_required": "جعل رقم الهاتف مطلوب لحجز الحدث",
   "new_event_type_availability": "توافر {{eventTypeTitle}}",

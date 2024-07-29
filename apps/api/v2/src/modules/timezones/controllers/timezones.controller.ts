@@ -4,7 +4,7 @@ import { Controller, Get } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import type { CityTimezones } from "@calcom/platform-libraries-0.0.18";
+import type { CityTimezones } from "@calcom/platform-libraries-0.0.21";
 import { ApiResponse } from "@calcom/platform-types";
 
 @Controller({

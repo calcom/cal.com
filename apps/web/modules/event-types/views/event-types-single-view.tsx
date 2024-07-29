@@ -26,6 +26,7 @@ import { HttpError } from "@calcom/lib/http-error";
 import { telemetryEventTypes, useTelemetry } from "@calcom/lib/telemetry";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import type { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
@@ -33,6 +34,7 @@ import { trpc } from "@calcom/trpc/react";
 import { Form, showToast } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
+import { checkForEmptyAssignment } from "@lib/checkForEmptyAssignment";
 
 import { EventTypeSingleLayout } from "@components/eventtype/EventTypeSingleLayout";
 
@@ -144,6 +146,8 @@ const querySchema = z.object({
 
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
+export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
+export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
 
 export const locationsResolver = (t: TFunction) => {
   return z
@@ -226,6 +230,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
+  const isTeamEventTypeDeleted = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -379,13 +384,15 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
           // Make it optional because it's not submitted from all tabs of the page
           eventName: z
             .string()
-            .refine(
-              (val) =>
-                validateCustomEventName(val, t("invalid_event_name_variables"), bookingFields) === true,
-              {
-                message: t("invalid_event_name_variables"),
+            .superRefine((val, ctx) => {
+              const validationResult = validateCustomEventName(val, bookingFields);
+              if (validationResult !== true) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: t("invalid_event_name_variables", { item: validationResult }),
+                });
               }
-            )
+            })
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),
@@ -400,40 +407,42 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
-  // useEffect(() => {
-  //   const handleRouteChange = (url: string) => {
-  //     const paths = url.split("/");
-  //
-  //     // Check if event is managed event type - skip if there is assigned users
-  //     const assignedUsers = eventType.children;
-  //     const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  //     if (eventType.assignAllTeamMembers) {
-  //       return;
-  //     } else if (isManagedEventType && assignedUsers.length > 0) {
-  //       return;
-  //     }
-  //
-  //     const hosts = eventType.hosts;
-  //     if (
-  //       !leaveWithoutAssigningHosts.current &&
-  //       !!team &&
-  //       (hosts.length === 0 || assignedUsers.length === 0) &&
-  //       (url === "/event-types" || paths[1] !== "event-types")
-  //     ) {
-  //       setIsOpenAssignmentWarnDialog(true);
-  //       setPendingRoute(url);
-  //       router.events.emit(
-  //         "routeChangeError",
-  //         new Error(`Aborted route change to ${url} because none was assigned to team event`)
-  //       );
-  //       throw "Aborted";
-  //     }
-  //   };
-  //   router.events.on("routeChangeStart", handleRouteChange);
-  //   return () => {
-  //     router.events.off("routeChangeStart", handleRouteChange);
-  //   };
-  // }, [router]);
+  const onDelete = () => {
+    isTeamEventTypeDeleted.current = true;
+  };
+
+  useEffect(() => {
+    const handleRouteChange = (url: string) => {
+      const paths = url.split("/");
+
+      // If the event-type is deleted, we can't show the empty assignment warning
+      if (isTeamEventTypeDeleted.current) return;
+
+      if (
+        !!team &&
+        !leaveWithoutAssigningHosts.current &&
+        (url === "/event-types" || paths[1] !== "event-types") &&
+        checkForEmptyAssignment({
+          assignedUsers: eventType.children,
+          hosts: eventType.hosts,
+          assignAllTeamMembers: eventType.assignAllTeamMembers,
+          isManagedEventType: eventType.schedulingType === SchedulingType.MANAGED,
+        })
+      ) {
+        setIsOpenAssignmentWarnDialog(true);
+        setPendingRoute(url);
+        router.events.emit(
+          "routeChangeError",
+          new Error(`Aborted route change to ${url} because none was assigned to team event`)
+        );
+        throw "Aborted";
+      }
+    };
+    router.events.on("routeChangeStart", handleRouteChange);
+    return () => {
+      router.events.off("routeChangeStart", handleRouteChange);
+    };
+  }, [router, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
   const availability = formMethods.watch("availability");
@@ -717,7 +726,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
-        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}
+        onDelete={onDelete}>
         <Form
           form={formMethods}
           id="event-type-form"
@@ -837,13 +847,13 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
           }}
         />
       ) : null}
-      {/*<AssignmentWarningDialog*/}
-      {/*  isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}*/}
-      {/*  setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}*/}
-      {/*  pendingRoute={pendingRoute}*/}
-      {/*  leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}*/}
-      {/*  id={eventType.id}*/}
-      {/*/>*/}
+      <AssignmentWarningDialog
+        isOpenAssignmentWarnDialog={isOpenAssignmentWarnDialog}
+        setIsOpenAssignmentWarnDialog={setIsOpenAssignmentWarnDialog}
+        pendingRoute={pendingRoute}
+        leaveWithoutAssigningHosts={leaveWithoutAssigningHosts}
+        id={eventType.id}
+      />
     </>
   );
 };

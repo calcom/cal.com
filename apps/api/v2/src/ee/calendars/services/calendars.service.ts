@@ -1,3 +1,4 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
 import { AppsRepository } from "@/modules/apps/apps.repository";
 import {
   CredentialsRepository,
@@ -17,7 +18,7 @@ import { User } from "@prisma/client";
 import { DateTime } from "luxon";
 import { z } from "zod";
 
-import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.18";
+import { getConnectedDestinationCalendars, getBusyCalendarTimes } from "@calcom/platform-libraries-0.0.21";
 import { Calendar } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -29,6 +30,7 @@ export class CalendarsService {
     private readonly usersRepository: UsersRepository,
     private readonly credentialsRepository: CredentialsRepository,
     private readonly appsRepository: AppsRepository,
+    private readonly calendarsRepository: CalendarsRepository,
     private readonly dbRead: PrismaReadService,
     private readonly dbWrite: PrismaWriteService,
     private readonly config: ConfigService
@@ -135,5 +137,12 @@ export class CalendarsService {
     }
 
     return { client_id, client_secret };
+  }
+
+  async checkCalendarCredentials(credentialId: number, userId: number) {
+    const credential = await this.calendarsRepository.getCalendarCredentials(credentialId, userId);
+    if (!credential) {
+      throw new NotFoundException("Calendar credentials not found");
+    }
   }
 }
