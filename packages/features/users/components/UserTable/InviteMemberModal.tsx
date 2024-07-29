@@ -60,7 +60,6 @@ export function InviteMemberModal(props: Props) {
       }}
       teamId={orgId}
       isOrg={true}
-      justEmailInvites={!!orgId}
       isPending={inviteMemberMutation.isPending}
       onSubmit={(values) => {
         inviteMemberMutation.mutate({
