@@ -1,6 +1,6 @@
 name: Bug report
-description: "Found a bug? Please fill out the sections below. \U0001F44D"
-title: ""
+description: "Please make sure you have checked for any duplicate issues."
+title: "(bug)"
 labels: ["🐛 bug"]
 assignees: []
 body:

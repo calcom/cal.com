@@ -49,6 +49,24 @@ export class OrganizationsTeamsRepository {
     });
   }
 
+  async findOrgUserTeamsPaginated(organizationId: number, userId: number, skip: number, take: number) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+        members: {
+          some: {
+            userId,
+          },
+        },
+      },
+      include: {
+        members: { select: { accepted: true, userId: true } },
+      },
+      skip,
+      take,
+    });
+  }
+
   async getTeamMembersIds(teamId: number) {
     const team = await this.dbRead.prisma.team.findUnique({
       where: {
