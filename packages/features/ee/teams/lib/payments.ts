@@ -130,18 +130,17 @@ export const purchaseTeamOrOrgSubscription = async (input: {
       seats < DEFAULT_SELF_SERVE_ORG_SEATS
     ) {
       priceId = fixedPrice as string;
-      return;
+    } else {
+      const customPriceObj = await getPriceObject(fixedPrice);
+      priceId = await createPrice({
+        isOrg: !!isOrg,
+        teamId,
+        pricePerSeat,
+        billingPeriod,
+        product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
+        currency: customPriceObj.currency,
+      });
     }
-
-    const customPriceObj = await getPriceObject(fixedPrice);
-    priceId = await createPrice({
-      isOrg: !!isOrg,
-      teamId,
-      pricePerSeat,
-      billingPeriod,
-      product: customPriceObj.product as string, // We don't expand the object from stripe so just use the product as ID
-      currency: customPriceObj.currency,
-    });
   } else {
     priceId = fixedPrice as string;
   }
