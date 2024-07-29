@@ -37,6 +37,7 @@ const applyRoleToAllTeams = async (userId: number, teamIds: number[], role: Memb
 export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   const { user } = ctx;
   const { id: userId, organizationId } = user;
+  console.log({ input });
 
   if (!organizationId)
     throw new TRPCError({ code: "UNAUTHORIZED", message: "You must be a memeber of an organizaiton" });

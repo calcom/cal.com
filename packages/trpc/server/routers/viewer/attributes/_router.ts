@@ -1,5 +1,6 @@
 import authedProcedure from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
+import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";
 import { createAttributeSchema } from "./create.schema";
 import { deleteAttributeSchema } from "./delete.schema";
 import { editAttributeSchema } from "./edit.schema";
@@ -41,4 +42,14 @@ export const attributesRouter = router({
     const handler = await importHandler(namespaced("toggleActive"), () => import("./toggleActive.handler"));
     return handler({ ctx, input });
   }),
+
+  assignUserToAttribute: authedProcedure
+    .input(assignUserToAttributeSchema)
+    .mutation(async ({ ctx, input }) => {
+      const handler = await importHandler(
+        namespaced("assignUserToAttribute"),
+        () => import("./assignUserToAttribute.handler")
+      );
+      return handler({ ctx, input });
+    }),
 });

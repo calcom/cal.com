@@ -1,10 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
-import { shallow } from "zustand/shallow";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
@@ -24,10 +23,10 @@ import {
   SheetHeader,
   SheetBody,
   SheetFooter,
+  Button,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
-import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
 type MembershipOption = {
@@ -35,16 +34,13 @@ type MembershipOption = {
   label: string;
 };
 
-const attributeSchema = z
-  .object({
-    id: z.string(),
-    value: z.string().optional(),
-    options: z.array(z.object({ id: z.string() })).optional(),
-  })
-  .refine((data) => data.value !== undefined || data.options !== undefined, {
-    message: "Either 'value' or 'options' must be provided",
-    path: ["value", "options"], // This will show the error on both fields
-  });
+const stringOrNumber = z.string().or(z.number());
+
+const attributeSchema = z.object({
+  id: z.string(),
+  options: z.array(z.object({ label: z.string().optional(), value: stringOrNumber.optional() })).optional(),
+  value: stringOrNumber.optional(),
+});
 
 const editSchema = z.object({
   name: z.string(),
@@ -72,8 +68,8 @@ export function EditForm({
   domainUrl: string;
   dispatch: Dispatch<Action>;
 }) {
-  const [setMutationLoading] = useEditMode((state) => [state.setMutationloading], shallow);
   const setEditMode = useEditMode((state) => state.setEditMode);
+  const [mutationLoading, setMutationLoading] = useState(false);
   const { t } = useLocale();
   const session = useSession();
   const org = session?.data?.user?.org;
@@ -133,16 +129,30 @@ export function EditForm({
     },
   });
 
+  const assignAttributesMutation = trpc.viewer.attributes.assignUserToAttribute.useMutation({
+    onSuccess: () => {
+      showToast(t("profile_updated_successfully"), "success");
+    },
+    onError: (error) => {
+      showToast(error.message, "error");
+    },
+  });
+
   const watchTimezone = form.watch("timeZone");
 
   return (
     <>
       <Form
         form={form}
-        id="edit-user-form"
         className="flex h-full flex-col"
         handleSubmit={(values) => {
           setMutationLoading(true);
+          console.log(values);
+          assignAttributesMutation.mutate({
+            userId: selectedUser?.id ?? "",
+            // @ts-expect-error they exist but for some reason
+            attributes: values.attributes,
+          });
           mutation.mutate({
             userId: selectedUser?.id ?? "",
             role: values.role,
@@ -208,9 +218,22 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
-          <SheetFooterControls />
+          <Button
+            color="secondary"
+            type="button"
+            className="justify-center md:w-1/5"
+            onClick={() => {
+              setEditMode(false);
+            }}>
+            {t("cancel")}
+          </Button>
+
+          <Button type="submit" className="w-full justify-center">
+            {t("update")}
+          </Button>
         </SheetFooter>
       </Form>
     </>
@@ -228,24 +251,10 @@ function AttributesList(props: { selectedUserId: number }) {
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();
-  const { control, watch, setValue } = useFormContext();
+  const { control, watch, getFieldState } = useFormContext();
 
   // Watch the 'attributes' field from the form context
   const formAttributes = watch("attributes") as AttributeType[];
-
-  // useEffect(() => {
-  //   if (usersAttributes && !formAttributes) {
-  //     // Initialize form attributes with user attributes when available
-  //     setValue(
-  //       "attributes",
-  //       usersAttributes.map((attr) => ({
-  //         id: attr.id,
-  //         value: attr.type === "MULTI_SELECT" ? undefined : attr.value,
-  //         options: attr.type === "MULTI_SELECT" ? attr.value.split(",").map((id) => ({ id })) : undefined,
-  //       }))
-  //     );
-  //   }
-  // }, [usersAttributes, formAttributes, setValue]);
 
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
@@ -258,6 +267,7 @@ function AttributesList(props: { selectedUserId: number }) {
   };
 
   if (!enabledAttributes) return null;
+  const attributeFieldState = getFieldState("attributes");
 
   return (
     <div className="flex flex-col">
@@ -266,9 +276,14 @@ function AttributesList(props: { selectedUserId: number }) {
         <p className="text-subtle mb-2 block text-sm font-medium leading-none">
           {t("attributes_leave_empty_to_hide")}
         </p>
-        {enabledAttributes.map((attr) => (
+        {attributeFieldState.error && (
+          <p className="text-error mb-2 block text-sm font-medium leading-none">
+            {JSON.stringify(attributeFieldState.error)}
+          </p>
+        )}
+        {enabledAttributes.map((attr, index) => (
           <Controller
-            name={`attributes.${attr.id}`}
+            name={`attributes.${index}`}
             control={control}
             key={attr.id}
             defaultValue={{ id: attr.id }}
@@ -278,22 +293,24 @@ function AttributesList(props: { selectedUserId: number }) {
                   {["TEXT", "NUMBER"].includes(attr.type) && (
                     <InputField
                       {...field}
-                      name={`attribute_${attr.id}`}
                       containerClassName="w-full"
                       labelClassName="text-subtle mb-1 text-xs font-semibold leading-none"
                       label={attr.name}
                       type={attr.type === "TEXT" ? "text" : "number"}
                       value={field.value?.value || ""}
                       onChange={(e) => {
-                        field.onChange({ id: attr.id, value: e.target.value });
+                        const coersedValue = attr.type === "TEXT" ? e.target.value : Number(e.target.value);
+                        field.onChange({
+                          id: attr.id,
+                          value: coersedValue,
+                        });
                       }}
                     />
                   )}
                   {["SINGLE_SELECT", "MULTI_SELECT"].includes(attr.type) && (
                     <SelectField
-                      {...field}
+                      name={field.name}
                       containerClassName="w-full"
-                      name={`attribute_${attr.id}`}
                       isMulti={attr.type === "MULTI_SELECT"}
                       labelProps={{
                         className: "text-subtle mb-1 text-xs font-semibold leading-none",
@@ -308,7 +325,10 @@ function AttributesList(props: { selectedUserId: number }) {
                             options: value.map((v: any) => ({ label: v.label, value: v.value })),
                           });
                         } else {
-                          field.onChange({ id: attr.id, value: value.value });
+                          field.onChange({
+                            id: attr.id,
+                            options: [{ label: value.label, value: value.value }],
+                          });
                         }
                       }}
                     />

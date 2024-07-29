@@ -36,6 +36,7 @@ export function DisplayInfo<T extends boolean>({
           {values.map((v) => {
             const content = (
               <span
+                key={v}
                 className={classNames(
                   "text-emphasis inline-flex items-center gap-1 font-normal leading-5",
                   asBadge ? "text-xs" : "text-sm"
