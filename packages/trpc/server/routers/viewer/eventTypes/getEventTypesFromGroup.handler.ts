@@ -17,9 +17,7 @@ type GetByViewerOptions = {
   input: TGetEventTypesFromGroupSchema;
 };
 
-type EventType =
-  | Awaited<ReturnType<typeof EventTypeRepository.findTeamEventTypes>>[number]
-  | Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
+type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 
 export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions) => {
   await checkRateLimitAndThrowError({
@@ -81,6 +79,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         parentId,
         userId: ctx.user.id,
         limit,
+        cursor,
         where: {
           ...(isFilterSet && !!filters?.schedulingTypes
             ? {
@@ -98,36 +97,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         ],
       })) ?? [];
 
-    const mapEventType = async (eventType: EventType) => ({
-      ...eventType,
-      safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-      users: await Promise.all(
-        (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-          async (u) =>
-            await UserRepository.enrichUserWithItsProfile({
-              user: u,
-            })
-        )
-      ),
-      metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
-      children: await Promise.all(
-        (eventType.children || []).map(async (c) => ({
-          ...c,
-          users: await Promise.all(
-            c.users.map(
-              async (u) =>
-                await UserRepository.enrichUserWithItsProfile({
-                  user: u,
-                })
-            )
-          ),
-        }))
-      ),
-    });
-
-    const mappedEventTypes = await Promise.all(teamEventTypes.map(mapEventType));
-
-    eventTypes.push(...mappedEventTypes);
+    eventTypes.push(...teamEventTypes);
   }
 
   let nextCursor: typeof cursor | undefined = undefined;
@@ -136,7 +106,36 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     nextCursor = nextItem?.id;
   }
 
-  const filteredEventTypes = eventTypes.filter((eventType) => {
+  const mapEventType = async (eventType: EventType) => ({
+    ...eventType,
+    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+    users: await Promise.all(
+      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+        async (u) =>
+          await UserRepository.enrichUserWithItsProfile({
+            user: u,
+          })
+      )
+    ),
+    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+    children: await Promise.all(
+      (eventType.children || []).map(async (c) => ({
+        ...c,
+        users: await Promise.all(
+          c.users.map(
+            async (u) =>
+              await UserRepository.enrichUserWithItsProfile({
+                user: u,
+              })
+          )
+        ),
+      }))
+    ),
+  });
+
+  const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
+
+  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
     const isAChildEvent = eventType.parentId;
     if (!isAChildEvent) {
       return true;
