@@ -1496,7 +1496,6 @@
   "how_long_after": "La cât timp după finalul evenimentului?",
   "no_available_slots": "Niciun interval disponibil",
   "time_available": "Oră disponibilă",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nu găsiți aplicația video corectă? Vizitați <1>App Store</1>.",
   "install_new_calendar_app": "Instalați noua aplicație pentru calendar",
   "make_phone_number_required": "Setați numărul de telefon ca fiind obligatoriu pentru rezervarea evenimentului",
   "new_event_type_availability": "Disponibilitate {{eventTypeTitle}}",
@@ -2100,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Ați fost invitat să faceți parte dintr-o echipă {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} v-a invitat să faceți parte din echipa sa „{{teamName}}” de pe {{appName}}. {{appName}} este un instrument de planificare a evenimentelor, care vă permite dvs. și echipei dvs. să programați ședințe fără a face ping-pong prin e-mail.",
   "privacy": "Confidențialitate",
+  "signing_up_terms": "Continuând, sunteți de acord cu <0>Termele</0> și <1>Politica de confidențialitate<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Adăugați stringurile noi deasupra acestui rând ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

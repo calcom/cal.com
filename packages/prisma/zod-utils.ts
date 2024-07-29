@@ -417,15 +417,17 @@ export const customInputSchema = z.object({
 
 export type CustomInputSchema = z.infer<typeof customInputSchema>;
 
-export const recordingItemSchema = z.object({
-  id: z.string(),
-  room_name: z.string(),
-  start_ts: z.number(),
-  status: z.string(),
-  max_participants: z.number(),
-  duration: z.number(),
-  share_token: z.string(),
-});
+export const recordingItemSchema = z
+  .object({
+    id: z.string(),
+    room_name: z.string(),
+    start_ts: z.number(),
+    status: z.string(),
+    max_participants: z.number().optional(),
+    duration: z.number(),
+    share_token: z.string(),
+  })
+  .passthrough();
 
 export const recordingItemsSchema = z.array(recordingItemSchema);
 
