@@ -448,7 +448,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               </span>
               <Icon
                 name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
                 aria-hidden="true"
               />
             </span>
@@ -1250,7 +1250,7 @@ function ProfileDropdown() {
             </span>
             <Icon
               name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />
           </span>
