@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { z } from "zod";
+import type { z, ZodSchema } from "zod";
+import { z as _z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import type { RouterOutputs } from "@calcom/trpc/react";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
+
+type Field = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"][number];
 
 type UseInitialFormValuesProps = {
   eventType?: Pick<BookerEvent, "bookingFields"> | null;
@@ -24,33 +28,33 @@ type UseInitialFormValuesProps = {
 };
 
 //basically it will partially test the input values against the schema. validation are not needed at the initial stage
-function getFieldSchema(field: any): ZodSchema<any> {
+function getFieldSchema(field: Field): ZodSchema<unknown> {
   switch (field.type) {
     case "name":
-      return z.string().optional();
+      return _z.string().optional();
     case "email":
-      return z.string().email({ message: "Invalid email address" }).optional();
+      return _z.string().email({ message: "Invalid email address" }).optional();
     case "text":
-      return z.string().optional();
+      return _z.string().optional();
     case "textarea":
-      return z.string().optional();
+      return _z.string().optional();
     case "multiemail":
-      return z.array(z.string().email({ message: "Invalid email address" })).optional();
+      return _z.array(_z.string().email({ message: "Invalid email address" })).optional();
     case "address":
-      return z.string().optional();
+      return _z.string().optional();
     case "phone":
-      return z
+      return _z
         .string()
         .regex(/^\+?[0-9]*$/, { message: "Invalid phone number" })
         .optional();
     case "number":
-      return z
+      return _z
         .string()
         .refine((val) => !isNaN(Number(val)), { message: "Invalid number" })
         .transform((val) => Number(val))
         .optional();
     case "boolean":
-      return z
+      return _z
         .string()
         .refine((val) => val === "true" || val === "false", { message: "Invalid boolean" })
         .transform((val) => val === "true")
@@ -60,10 +64,16 @@ function getFieldSchema(field: any): ZodSchema<any> {
     case "multiselect":
     case "checkbox":
     case "radio":
-      return z.enum(field.options.map((opt: any) => opt.value)).optional();
+      if (field.options && field.options.length > 0) {
+        // Convert options to tuple
+        const values = field.options.map((opt) => opt.value) as [string, ...string[]];
+        return _z.enum(values).optional();
+      } else {
+        return _z.any().optional();
+      }
     // Add more cases as needed
     default:
-      return z.any().optional();
+      return _z.any().optional();
   }
 }
 
@@ -86,7 +96,7 @@ export function useInitialFormValues({
   const formValues = useBookerStore((state) => state.formValues);
 
   //currently while initializing the form we are checking if the query params are valid and if not, we are returning default values
-  function checkParseQueryValues(field, parsedQuery) {
+  function checkParseQueryValues(field: Field, parsedQuery: Record<string, unknown> | undefined) {
     if (!parsedQuery || !field) return true;
 
     if (!parsedQuery[field.name]) {
