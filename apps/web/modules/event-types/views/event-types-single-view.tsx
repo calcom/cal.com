@@ -413,8 +413,10 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
 
+      // If the event-type is deleted, we can't show the empty assignment warning
+      if (isTeamEventTypeDeleted.current) return;
+
       if (
-        !isTeamEventTypeDeleted.current &&
         !!team &&
         !leaveWithoutAssigningHosts.current &&
         (url === "/event-types" || paths[1] !== "event-types") &&
