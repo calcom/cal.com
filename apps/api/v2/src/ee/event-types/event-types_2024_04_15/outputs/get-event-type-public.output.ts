@@ -87,14 +87,6 @@ class BookingField {
   @Type(() => Source)
   @IsOptional()
   sources?: Source[];
-
-  @IsOptional()
-  @IsNumber()
-  maxLength?: number;
-
-  @IsOptional()
-  @IsNumber()
-  minLength?: number;
 }
 
 class Organization {
