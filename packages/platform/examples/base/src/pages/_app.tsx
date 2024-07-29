@@ -1,3 +1,4 @@
+import type { Data } from "@/pages/api/get-managed-users";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
@@ -10,6 +11,7 @@ import { CalProvider, BookerEmbed } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
+type TUser = Data["users"][0];
 
 function generateRandomEmail() {
   const localPartLength = 10;
@@ -28,7 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<TUser | null>(null);
   const [options, setOptions] = useState([]);
 
   const router = useRouter();
@@ -38,7 +40,9 @@ export default function App({ Component, pageProps }: AppProps) {
       method: "get",
     }).then(async (res) => {
       const data = await res.json();
-      setOptions(data.users.map((item) => ({ ...item, value: item.id, label: item.username })));
+      setOptions(
+        data.users.map((item: Data["users"][0]) => ({ ...item, value: item.id, label: item.username }))
+      );
     });
   }, []);
 
@@ -55,9 +59,11 @@ export default function App({ Component, pageProps }: AppProps) {
     });
   }, []);
   useEffect(() => {
-    setAccessToken(selectedUser?.accessToken);
-    setUserEmail(selectedUser?.email);
-    setUsername(selectedUser?.username);
+    if (!!selectedUser) {
+      setAccessToken(selectedUser.accessToken);
+      setUserEmail(selectedUser.email);
+      setUsername(selectedUser.username);
+    }
   }, [selectedUser]);
 
   return (

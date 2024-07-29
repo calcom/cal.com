@@ -3,7 +3,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 import prisma from "../../lib/prismaClient";
 
-type Data = {
+export type Data = {
   users: {
     email: string;
     username: string;
