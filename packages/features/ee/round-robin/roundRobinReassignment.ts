@@ -1,7 +1,9 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
+import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
+import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
@@ -19,6 +21,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
+import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const bookingSelect = {
@@ -33,6 +36,7 @@ const bookingSelect = {
   location: true,
   eventTypeId: true,
   destinationCalendar: true,
+  responses: true,
   user: {
     include: {
       destinationCalendar: true,
@@ -100,11 +104,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     }
   })();
 
-  if (!previousRRHost) {
-    roundRobinReassignLogger.error(`Could not find RR host associated with booking ${bookingId}`);
-    throw new Error("Host not found");
-  }
-
   const previousRRHostT = await getTranslation(previousRRHost?.locale || "en", "common");
 
   // Filter out the current attendees of the booking from the event type
@@ -129,7 +128,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     availableUsers,
     eventTypeId: eventTypeId,
   });
-  const hasOrganizerChanged = booking.userId === previousRRHost.id;
+  const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
 
@@ -142,7 +141,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   for (const teamMember of eventType.hosts) {
     const user = teamMember.user;
     // Need to skip over the reassigned user and the organizer user
-    if (user.email === previousRRHost.email || user.email === organizer.email) {
+    if (user.email === previousRRHost?.email || user.email === organizer.email) {
       continue;
     }
 
@@ -161,6 +160,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
+  console.log("🚀 ~ roundRobinReassignment ~ teamMembers:", teamMembers);
   // Assume the RR host was labelled as a team member
   if (reassignedRRHost.email !== organizer.email) {
     teamMembers.push({
@@ -176,7 +176,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   for (const attendee of booking.attendees) {
     if (
       attendee.email === reassignedRRHost.email ||
-      attendee.email === previousRRHost.email ||
+      attendee.email === previousRRHost?.email ||
       teamMembers.some((member) => member.email === attendee.email)
     ) {
       continue;
@@ -195,7 +195,35 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const attendeeList = await Promise.all(attendeePromises);
 
   if (hasOrganizerChanged) {
-    newBookingTitle = newBookingTitle.replace(previousRRHost.name, reassignedRRHost.name);
+    const responses = booking.responses;
+
+    let bookingLocation = booking.location;
+
+    if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
+      const organizerMetadata = userMetadataSchema.safeParse(organizerUser.metadata);
+
+      const defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+
+      const currentBookingLocation = booking.location;
+
+      bookingLocation =
+        defaultLocationUrl || getLocationValueForDB(currentBookingLocation, eventType.locations);
+    }
+
+    const eventNameObject = {
+      attendeeName: responses.name || "Nameless",
+      eventType: eventType.title,
+      eventName: eventType.eventName,
+      // we send on behalf of team if >1 round robin attendee | collective
+      teamName: teamMembers.length > 1 ? eventType.team?.name : null,
+      // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
+      host: organizer.name || "Nameless",
+      location: bookingLocation,
+      bookingFields: { ...responses },
+      t: organizerT,
+    };
+
+    newBookingTitle = getEventName(eventNameObject);
 
     booking = await prisma.booking.update({
       where: {
@@ -315,45 +343,48 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       language: { translate: reassignedRRHostT, locale: reassignedRRHost.locale || "en" },
     },
   ]);
-  // Send to cancelled RR host
-  // First we need to replace the new RR host with the old RR host in the evt object
-  const cancelledRRHostEvt = cloneDeep(evt);
-  cancelledRRHostEvt.title = currentBookingTitle;
-  if (hasOrganizerChanged) {
-    cancelledRRHostEvt.organizer = {
-      name: previousRRHost.name || "",
-      email: previousRRHost.email,
-      language: {
-        locale: previousRRHost.locale || "en",
-        translate: previousRRHostT,
-      },
-      timeZone: previousRRHost.timeZone,
-      timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-    };
-  } else {
-    // Filter out the new RR host from attendees and add the old RR host
-    const newMembersArray = cancelledRRHostEvt.team?.members || [];
-    cancelledRRHostEvt.team.members = newMembersArray.filter(
-      (member) => member.email !== reassignedRRHost.email
-    );
-    cancelledRRHostEvt.team.members.unshift({
-      id: previousRRHost.id,
-      email: previousRRHost.email,
-      name: previousRRHost.name || "",
-      timeZone: previousRRHost.timeZone,
-      language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-    });
-  }
 
-  await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
-    {
-      ...previousRRHost,
-      name: previousRRHost.name || "",
-      username: previousRRHost.username || "",
-      timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-      language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-    },
-  ]);
+  if (previousRRHost) {
+    // Send to cancelled RR host
+    // First we need to replace the new RR host with the old RR host in the evt object
+    const cancelledRRHostEvt = cloneDeep(evt);
+    cancelledRRHostEvt.title = currentBookingTitle;
+    if (hasOrganizerChanged) {
+      cancelledRRHostEvt.organizer = {
+        name: previousRRHost.name || "",
+        email: previousRRHost.email,
+        language: {
+          locale: previousRRHost.locale || "en",
+          translate: previousRRHostT,
+        },
+        timeZone: previousRRHost.timeZone,
+        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+      };
+    } else {
+      // Filter out the new RR host from attendees and add the old RR host
+      const newMembersArray = cancelledRRHostEvt.team?.members || [];
+      cancelledRRHostEvt.team.members = newMembersArray.filter(
+        (member) => member.email !== reassignedRRHost.email
+      );
+      cancelledRRHostEvt.team.members.unshift({
+        id: previousRRHost.id,
+        email: previousRRHost.email,
+        name: previousRRHost.name || "",
+        timeZone: previousRRHost.timeZone,
+        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+      });
+    }
+
+    await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
+      {
+        ...previousRRHost,
+        name: previousRRHost.name || "",
+        username: previousRRHost.username || "",
+        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+      },
+    ]);
+  }
 
   // Handle changing workflows with organizer
   if (hasOrganizerChanged) {
