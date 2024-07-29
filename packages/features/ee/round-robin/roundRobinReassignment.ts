@@ -1,11 +1,12 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 
-import { OrganizerDefaultConferencingAppType } from "@calcom/app-store/locations";
+import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@calcom/app-store/locations";
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
+import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
 import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
@@ -37,7 +38,6 @@ const bookingSelect = {
   location: true,
   eventTypeId: true,
   destinationCalendar: true,
-  responses: true,
   user: {
     include: {
       destinationCalendar: true,
@@ -195,30 +195,39 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   const attendeeList = await Promise.all(attendeePromises);
 
   if (hasOrganizerChanged) {
-    const responses = booking.responses;
+    const bookingResponses = booking.responses;
+
+    const responseSchema = getBookingResponsesSchema({
+      bookingFields: eventType.bookingFields,
+    });
+
+    const responses = await responseSchema.safeParseAsync(bookingResponses);
 
     let bookingLocation = booking.location;
 
     if (eventType.locations.includes({ type: OrganizerDefaultConferencingAppType })) {
-      const organizerMetadata = userMetadataSchema.safeParse(organizerUser.metadata);
+      const organizerMetadataSafeParse = userMetadataSchema.safeParse(reassignedRRHost.metadata);
 
-      const defaultLocationUrl = organizerMetadata?.defaultConferencingApp?.appLink;
+      const defaultLocationUrl = organizerMetadataSafeParse.success
+        ? organizerMetadataSafeParse?.data?.defaultConferencingApp?.appLink
+        : undefined;
 
-      const currentBookingLocation = booking.location;
+      const currentBookingLocation = booking.location || "integrations:daily";
 
       bookingLocation =
-        defaultLocationUrl || getLocationValueForDB(currentBookingLocation, eventType.locations);
+        defaultLocationUrl ||
+        getLocationValueForDB(currentBookingLocation, eventType.locations).bookingLocation;
     }
 
     const eventNameObject = {
-      attendeeName: responses.name || "Nameless",
+      attendeeName: responses?.name || "Nameless",
       eventType: eventType.title,
       eventName: eventType.eventName,
       // we send on behalf of team if >1 round robin attendee | collective
       teamName: teamMembers.length > 1 ? eventType.team?.name : null,
       // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
       host: organizer.name || "Nameless",
-      location: bookingLocation,
+      location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
       t: organizerT,
     };
@@ -368,7 +377,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         timeZone: previousRRHost.timeZone,
         timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
       };
-    } else {
+    } else if (cancelledRRHostEvt.team) {
       // Filter out the new RR host from attendees and add the old RR host
       const newMembersArray = cancelledRRHostEvt.team?.members || [];
       cancelledRRHostEvt.team.members = newMembersArray.filter(
@@ -450,41 +459,51 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
     const newEventWorkflows = await prisma.workflow.findMany({
       where: {
         trigger: WorkflowTriggerEvents.NEW_EVENT,
-        activeOn: {
-          some: {
-            eventTypeId: eventTypeId,
+        OR: [
+          {
+            activeOn: {
+              some: {
+                eventTypeId: eventTypeId,
+              },
+            },
           },
-        },
-        activeOnTeams: {
-          some: {
-            teamId: eventType.teamId,
+          {
+            activeOnTeams: {
+              some: {
+                teamId: eventType.teamId,
+              },
+            },
           },
-        },
+        ],
       },
       include: {
         steps: {
+          where: {
+            action: WorkflowActions.EMAIL_HOST,
+          },
           select: {
             template: true,
           },
         },
       },
     });
-
     for (const workflow of newEventWorkflows) {
-      await scheduleEmailReminder({
-        evt: {
-          ...evt,
-          eventType,
-        },
-        action: WorkflowActions.EMAIL_HOST,
-        triggerEvent: workflow.trigger,
-        timeSpan: {
-          time: workflow.time,
-          timeUnit: workflow.timeUnit,
-        },
-        sendTo: reassignedRRHost.email,
-        template: workflow.workflowStep.template,
-      });
+      for (let i = 0; i < workflow.steps.length; i++) {
+        await scheduleEmailReminder({
+          evt: {
+            ...evt,
+            eventType,
+          },
+          action: WorkflowActions.EMAIL_HOST,
+          triggerEvent: workflow.trigger,
+          timeSpan: {
+            time: workflow.time,
+            timeUnit: workflow.timeUnit,
+          },
+          sendTo: reassignedRRHost.email,
+          template: workflow.steps[i].template,
+        });
+      }
     }
   }
 };
