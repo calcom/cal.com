@@ -18,6 +18,12 @@ module.exports = defineConfig((configEnv) => {
       }),
       ...(process.argv.includes("--https") ? [basicSsl()] : []),
     ],
+    server: {
+      // Helps us to test that embed works with these headers
+      headers: {
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      },
+    },
     build: {
       emptyOutDir: true,
       rollupOptions: {

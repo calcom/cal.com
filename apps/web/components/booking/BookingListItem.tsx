@@ -333,7 +333,7 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
+      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
         <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <Link href={bookingLink}>
             <div className="cursor-pointer py-4">
@@ -676,7 +676,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         <button
           data-testid="guest"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <s>
               {name || email} <Icon name="eye-off" className="inline h-4" />
@@ -794,7 +794,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
         <button
           data-testid="more-guests"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
@@ -855,7 +855,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
