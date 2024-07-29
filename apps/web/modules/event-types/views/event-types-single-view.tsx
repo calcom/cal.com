@@ -384,13 +384,15 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
           // Make it optional because it's not submitted from all tabs of the page
           eventName: z
             .string()
-            .refine(
-              (val) =>
-                validateCustomEventName(val, t("invalid_event_name_variables"), bookingFields) === true,
-              {
-                message: t("invalid_event_name_variables"),
+            .superRefine((val, ctx) => {
+              const validationResult = validateCustomEventName(val, bookingFields);
+              if (validationResult !== true) {
+                ctx.addIssue({
+                  code: z.ZodIssueCode.custom,
+                  message: t("invalid_event_name_variables", { item: validationResult }),
+                });
               }
-            )
+            })
             .optional(),
           length: z.union([z.string().transform((val) => +val), z.number()]).optional(),
           offsetStart: z.union([z.string().transform((val) => +val), z.number()]).optional(),

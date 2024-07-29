@@ -53,8 +53,12 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
         type="text"
         placeholder={placeHolder_}
         {...register("customEventName", {
-          validate: (value) =>
-            validateCustomEventName(value, t("invalid_event_name_variables"), event.bookingFields),
+          validate: (value) => {
+            const validationResult = validateCustomEventName(value, event.bookingFields);
+            return typeof validationResult === "string"
+              ? t("invalid_event_name_variables", { item: validationResult })
+              : validationResult;
+          },
         })}
         className="mb-0"
       />
