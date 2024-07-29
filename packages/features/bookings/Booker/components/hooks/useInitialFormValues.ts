@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { z } from "zod";
+import { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
@@ -23,6 +23,50 @@ type UseInitialFormValuesProps = {
   };
 };
 
+//basically it will partially test the input values against the schema. validation are not needed at the initial stage
+function getFieldSchema(field: any): ZodSchema<any> {
+  switch (field.type) {
+    case "name":
+      return z.string().optional();
+    case "email":
+      return z.string().email({ message: "Invalid email address" }).optional();
+    case "text":
+      return z.string().optional();
+    case "textarea":
+      return z.string().optional();
+    case "multiemail":
+      return z.array(z.string().email({ message: "Invalid email address" })).optional();
+    case "address":
+      return z.string().optional();
+    case "phone":
+      return z
+        .string()
+        .regex(/^\+?[0-9]*$/, { message: "Invalid phone number" })
+        .optional();
+    case "number":
+      return z
+        .string()
+        .refine((val) => !isNaN(Number(val)), { message: "Invalid number" })
+        .transform((val) => Number(val))
+        .optional();
+    case "boolean":
+      return z
+        .string()
+        .refine((val) => val === "true" || val === "false", { message: "Invalid boolean" })
+        .transform((val) => val === "true")
+        .optional();
+    case "radioInput":
+    case "select":
+    case "multiselect":
+    case "checkbox":
+    case "radio":
+      return z.enum(field.options.map((opt: any) => opt.value)).optional();
+    // Add more cases as needed
+    default:
+      return z.any().optional();
+  }
+}
+
 export function useInitialFormValues({
   eventType,
   rescheduleUid,
@@ -40,6 +84,21 @@ export function useInitialFormValues({
   }>({});
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
+
+  //currently while initializing the form we are checking if the query params are valid and if not, we are returning default values
+  function checkParseQueryValues(field, parsedQuery) {
+    if (!parsedQuery || !field) return true;
+
+    if (!parsedQuery[field.name]) {
+      return true;
+    }
+
+    const schema = getFieldSchema(field);
+    if (!schema) return true;
+    const parsedResponses = schema.safeParse(parsedQuery[field.name]);
+    return parsedResponses.success;
+  }
+
   useEffect(() => {
     (async function () {
       if (Object.keys(formValues).length) {
@@ -84,9 +143,13 @@ export function useInitialFormValues({
         };
 
         const responses = eventType.bookingFields.reduce((responses, field) => {
+          let value;
+          if (checkParseQueryValues(field, parsedQuery)) {
+            value = parsedQuery[field.name] || undefined;
+          }
           return {
             ...responses,
-            [field.name]: parsedQuery[field.name] || undefined,
+            [field.name]: value,
           };
         }, {});
 
@@ -111,9 +174,13 @@ export function useInitialFormValues({
       };
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
+        let value;
+        if (checkParseQueryValues(field, bookingData?.responses)) {
+          value = bookingData?.responses[field.name];
+        }
         return {
           ...responses,
-          [field.name]: bookingData?.responses[field.name],
+          [field.name]: value,
         };
       }, {});
       defaults.responses = {
