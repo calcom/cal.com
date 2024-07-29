@@ -2099,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Zaproszono Cię do dołączenia do zespołu {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "Użytkownik {{invitedBy}} zaprasza Cię do dołączenia do jego zespołu „{{teamName}}” w aplikacji {{appName}}. Aplikacja {{appName}} to terminarz do planowania wydarzeń, który umożliwi Tobie i Twojemu zespołowi planowanie spotkań bez czasochłonnej wymiany wiadomości e-mail.",
   "privacy": "Prywatność",
+  "signing_up_terms": "Kontynuując, zgadzasz się na <0>Warunki</0> i <1>Politykę prywatności<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
