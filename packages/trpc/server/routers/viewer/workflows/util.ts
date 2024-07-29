@@ -1,4 +1,5 @@
 import type { Workflow } from "@prisma/client";
+import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
@@ -25,6 +26,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
@@ -39,6 +41,8 @@ import {
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
+
+import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
 
 const log = logger.getSubLogger({ prefix: ["workflow"] });
 
@@ -804,3 +808,11 @@ export async function getAllWorkflowsFromEventType(
 
   return allWorkflows;
 }
+
+export const getEventTypeWorkflows = async (
+  userId: number,
+  eventTypeId: number
+): Promise<z.infer<typeof ZWorkflows>> => {
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  return rawEventType?.workflows;
+};

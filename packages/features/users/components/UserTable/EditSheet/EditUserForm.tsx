@@ -19,9 +19,13 @@ import {
   showToast,
   Avatar,
   ImageUploader,
+  SheetHeader,
+  SheetBody,
+  SheetFooter,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
+import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
 type MembershipOption = {
@@ -117,73 +121,83 @@ export function EditForm({
   const watchTimezone = form.watch("timeZone");
 
   return (
-    <Form
-      form={form}
-      id="edit-user-form"
-      handleSubmit={(values) => {
-        setMutationLoading(true);
-        mutation.mutate({
-          userId: selectedUser?.id ?? "",
-          role: values.role,
-          username: values.username,
-          name: values.name,
-          email: values.email,
-          avatar: values.avatar,
-          bio: values.bio,
-          timeZone: values.timeZone,
-        });
-      }}>
-      <div className="mt-4 flex flex-col gap-2">
-        <Controller
-          control={form.control}
-          name="avatar"
-          render={({ field: { value } }) => (
-            <div className="flex items-center">
-              <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
-              <div className="ml-4">
-                <ImageUploader
-                  target="avatar"
-                  id="avatar-upload"
-                  buttonMsg={t("change_avatar")}
-                  handleAvatarChange={(newAvatar) => {
-                    form.setValue("avatar", newAvatar, { shouldDirty: true });
-                  }}
-                  imageSrc={value || undefined}
-                />
-              </div>
+    <>
+      <Form
+        form={form}
+        id="edit-user-form"
+        className="flex h-full flex-col"
+        handleSubmit={(values) => {
+          setMutationLoading(true);
+          mutation.mutate({
+            userId: selectedUser?.id ?? "",
+            role: values.role,
+            username: values.username,
+            name: values.name,
+            email: values.email,
+            avatar: values.avatar,
+            bio: values.bio,
+            timeZone: values.timeZone,
+          });
+        }}>
+        <SheetHeader>
+          <div className="flex flex-col gap-2">
+            <Controller
+              control={form.control}
+              name="avatar"
+              render={({ field: { value } }) => (
+                <div className="flex items-center">
+                  <Avatar alt={`${selectedUser?.name} avatar`} imageSrc={value} size="lg" />
+                  <div className="ml-4">
+                    <ImageUploader
+                      target="avatar"
+                      id="avatar-upload"
+                      buttonMsg={t("change_avatar")}
+                      handleAvatarChange={(newAvatar) => {
+                        form.setValue("avatar", newAvatar, { shouldDirty: true });
+                      }}
+                      imageSrc={value || undefined}
+                    />
+                  </div>
+                </div>
+              )}
+            />
+            <div className="space-between flex flex-col leading-none">
+              <span className="text-emphasis text-lg font-semibold">
+                {selectedUser?.name ?? "Nameless User"}
+              </span>
+              <p className="subtle text-sm font-normal">
+                {domainUrl}/{selectedUser?.username}
+              </p>
             </div>
-          )}
-        />
-        <div className="space-between flex flex-col leading-none">
-          <span className="text-emphasis text-lg font-semibold">{selectedUser?.name ?? "Nameless User"}</span>
-          <p className="subtle text-sm font-normal">
-            {domainUrl}/{selectedUser?.username}
-          </p>
-        </div>
-      </div>
-      <div className="mt-6 flex flex-col space-y-3">
-        <TextField label={t("username")} {...form.register("username")} />
-        <TextField label={t("name")} {...form.register("name")} />
-        <TextField label={t("email")} {...form.register("email")} />
+          </div>
+        </SheetHeader>
+        <SheetBody className="mt-6 flex h-full flex-col space-y-3">
+          <TextField label={t("username")} {...form.register("username")} />
+          <TextField label={t("name")} {...form.register("name")} />
+          <TextField label={t("email")} {...form.register("email")} />
 
-        <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-52" />
-        <div>
-          <Label>{t("role")}</Label>
-          <ToggleGroup
-            isFullWidth
-            defaultValue={selectedUser?.role ?? "MEMBER"}
-            value={form.watch("role")}
-            options={membershipOptions}
-            onValueChange={(value: EditSchema["role"]) => {
-              form.setValue("role", value);
-            }}
-          />
-        </div>
-        <div>
-          <Label>{t("timezone")}</Label>
-          <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
-        </div>
-      </div>
-    </Form>
+          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-52" />
+          <div>
+            <Label>{t("role")}</Label>
+            <ToggleGroup
+              isFullWidth
+              defaultValue={selectedUser?.role ?? "MEMBER"}
+              value={form.watch("role")}
+              options={membershipOptions}
+              onValueChange={(value: EditSchema["role"]) => {
+                form.setValue("role", value);
+              }}
+            />
+          </div>
+          <div>
+            <Label>{t("timezone")}</Label>
+            <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
+          </div>
+        </SheetBody>
+        <SheetFooter>
+          <SheetFooterControls />
+        </SheetFooter>
+      </Form>
+    </>
   );
 }
