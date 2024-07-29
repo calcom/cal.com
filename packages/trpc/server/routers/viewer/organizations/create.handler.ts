@@ -206,7 +206,11 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
     // If we are making the loggedIn user the owner of the organization and he is already a part of an organization, we don't allow it because multi-org is not supported yet
     const isLoggedInUserOrgOwner = orgOwner.id === loggedInUser.id;
     if (ctx.user.profile.organizationId && isLoggedInUserOrgOwner) {
-      throw new TRPCError({ code: "FORBIDDEN", message: "User is part of an organization already" });
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are part of an organization already" });
+    }
+
+    if (!orgOwner.emailVerified) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You need to verify your email first" });
     }
 
     const nonOrgUsernameForOwner = orgOwner.username || "";
