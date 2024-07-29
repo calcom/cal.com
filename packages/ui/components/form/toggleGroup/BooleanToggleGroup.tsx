@@ -54,7 +54,7 @@ export const BooleanToggleGroup = function BooleanToggleGroup({
   }
   const commonClass = classNames(
     getVariantStyles(variant).commonClass,
-    "inline-flex items-center justify-center rounded text-sm font-medium  leading-4",
+    "inline-flex items-center justify-center rounded text-sm font-medium leading-4 transition",
     disabled && "cursor-not-allowed"
   );
 
