@@ -19,6 +19,9 @@ const teamPaymentMetadataSchema = z.object({
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
 
+const DEFAULT_SELF_SERVE_ORG_SEATS = MINIMUM_NUMBER_OF_ORG_SEATS; // Minimum number of seats for an organization 30
+const DEFAULT_SELF_SERVE_ORG_PRICE_PER_SEAT = 3700; // $37.00 per seat
+
 /** Used to prevent double charges for the same team */
 export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
   const team = await prisma.team.findUniqueOrThrow({
@@ -121,6 +124,15 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
+    if (
+      isOrg &&
+      pricePerSeat === DEFAULT_SELF_SERVE_ORG_PRICE_PER_SEAT &&
+      seats < DEFAULT_SELF_SERVE_ORG_SEATS
+    ) {
+      priceId = fixedPrice as string;
+      return;
+    }
+
     const customPriceObj = await getPriceObject(fixedPrice);
     priceId = await createPrice({
       isOrg: !!isOrg,
