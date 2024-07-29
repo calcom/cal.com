@@ -85,12 +85,8 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     },
   });
 
-  if (!verifiedEmail) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
-  }
-
-  if (teamId) {
-    if (!verifiedEmail.teamId) {
+  if (verifiedEmail) {
+    if (teamId && !verifiedEmail.teamId) {
       await prisma.verifiedEmail.update({
         where: {
           id: verifiedEmail.id,
@@ -99,7 +95,7 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
           teamId,
         },
       });
-    } else if (verifiedEmail.teamId !== teamId) {
+    } else if (teamId && verifiedEmail.teamId !== teamId) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -108,7 +104,71 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
         },
       });
     }
+    return;
   }
+
+  const userEmail = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      email,
+    },
+  });
+
+  if (userEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
+  }
+
+  if (teamId) {
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!team) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    }
+
+    const isTeamMember = team.members.some((member) => member.userId === userId);
+
+    if (!isTeamMember) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+    }
+
+    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+
+    if (teamMemberEmail) {
+      await prisma.verifiedEmail.create({
+        data: {
+          email,
+          userId,
+          teamId,
+        },
+      });
+      return;
+    }
+  }
+
+  throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
 };
 
 export function getSender(
