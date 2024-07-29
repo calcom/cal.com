@@ -1,6 +1,7 @@
 {
     "name": "Cal.com",
     "short_name": "Cal.com",
+    "description": "Create events to share for people to book on your calendar.",
     "icons": [
         {
             "src": "/api/logo?type=android-chrome-192",
