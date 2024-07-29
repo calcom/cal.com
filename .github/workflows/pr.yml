@@ -181,12 +181,6 @@ jobs:
     uses: ./.github/workflows/nextjs-bundle-analysis.yml
     secrets: inherit
 
-  annotate-analysis:
-    name: Annotate build analysis on PR
-    needs: [build, analyze]
-    uses: ./.github/workflows/nextjs-bundle-analysis-annotation.yml
-    secrets: inherit
-
   required:
     needs: [changes, lint, type-check, unit-test, integration-test, check-label, build, build-api-v1, build-api-v2, e2e, e2e-api-v2, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()
