@@ -165,6 +165,12 @@ const translateAbleKeys = [
   "organizer_default_conferencing_app",
 ];
 
+// Maps location keys where user displayed text is different from admin text
+const distinctUserLocations = {
+  phone_call_attendee_calls_organizer: "phone_call_you_call_us_on_our_number",
+  phone_call_organizer_calls_attendee: "phone_call_well_call_you_on_your_number",
+};
+
 export type LocationObject = {
   type: string;
   address?: string;
@@ -433,6 +439,12 @@ export const getTranslatedLocation = (
     : locationKey;
 
   return translatedLocation;
+};
+
+export const getTranslatedDistinctUserLocation = (eventLocationLabel: string, t: TFunction) => {
+  return Object.keys(distinctUserLocations).includes(eventLocationLabel)
+    ? t(distinctUserLocations[eventLocationLabel])
+    : "";
 };
 
 export const getOrganizerInputLocationTypes = () => {
