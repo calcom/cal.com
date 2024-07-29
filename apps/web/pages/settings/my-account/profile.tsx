@@ -703,6 +703,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         {/* // For Non-Cal indentities, we merge the values from DB and the user logging in,
