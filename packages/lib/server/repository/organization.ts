@@ -178,7 +178,7 @@ export class OrganizationRepository {
       },
     });
     if (orgs.length > 1) {
-      logger.debug(
+      logger.error(
         "Multiple organizations found with the same auto accept email domain",
         safeStringify({ orgs, emailDomain })
       );
