@@ -33,7 +33,6 @@ test.describe("Out of office", () => {
   test.skip("User can configure booking redirect", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
-    const userToSecond = await users.create({ name: "userThree" });
 
     const team = await prisma.team.create({
       data: {
@@ -57,12 +56,6 @@ test.describe("Out of office", () => {
           accepted: true,
           role: "ADMIN",
         },
-        {
-          userId: userToSecond.id,
-          teamId: team.id,
-          accepted: true,
-          role: "ADMIN",
-        },
       ],
     });
 
@@ -82,7 +75,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("userTwo");
+    await page.locator("#react-select-3-input").fill("user");
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
