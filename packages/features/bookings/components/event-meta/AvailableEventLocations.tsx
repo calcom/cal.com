@@ -3,7 +3,11 @@ import type {
   EventLocationTypeFromApp,
   LocationObject,
 } from "@calcom/app-store/locations";
-import { getEventLocationType, getTranslatedLocation } from "@calcom/app-store/locations";
+import {
+  getEventLocationType,
+  getTranslatedLocation,
+  getTranslatedDistinctUserLocation,
+} from "@calcom/app-store/locations";
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -87,7 +91,10 @@ export function AvailableEventLocations({ locations }: { locations: LocationObje
         return null;
       }
 
-      const translatedLocation = getTranslatedLocation(location, eventLocationType, t);
+      const distinctUserLocation = getTranslatedDistinctUserLocation(eventLocationType.label, t);
+      const translatedLocation =
+        getTranslatedDistinctUserLocation(eventLocationType.label, t) ||
+        getTranslatedLocation(location, eventLocationType, t);
 
       return (
         <div key={`${location.type}-${index}`} className="flex flex-row items-center text-sm font-medium">
