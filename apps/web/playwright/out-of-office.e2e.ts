@@ -30,9 +30,10 @@ test.describe("Out of office", () => {
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
-  test.skip("User can configure booking redirect", async ({ page, users }) => {
+  test("User can configure and edit booking redirect", async ({ page, users }) => {
     const user = await users.create({ name: "userOne" });
     const userTo = await users.create({ name: "userTwo" });
+    const userToSecond = await users.create({ name: "userThree" });
 
     const team = await prisma.team.create({
       data: {
@@ -56,6 +57,12 @@ test.describe("Out of office", () => {
           accepted: true,
           role: "ADMIN",
         },
+        {
+          userId: userToSecond.id,
+          teamId: team.id,
+          accepted: true,
+          role: "ADMIN",
+        },
       ],
     });
 
@@ -75,7 +82,7 @@ test.describe("Out of office", () => {
 
     await page.getByTestId("team_username_select").click();
 
-    await page.locator("#react-select-3-input").fill("user");
+    await page.locator("#react-select-3-input").fill("userTwo");
     await page.locator("#react-select-3-input").press("Enter");
 
     // send request
@@ -83,6 +90,29 @@ test.describe("Out of office", () => {
 
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
+
+    // Open the edit modal and change redirect user and note.
+    await page.getByTestId(`ooo-edit-${userTo.username}`).click();
+
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Changed notes");
+
+    await page.getByTestId("team_username_select").click();
+
+    await page.locator("#react-select-5-input").fill("userThree");
+    await page.locator("#react-select-5-input").press("Enter");
+
+    // send request
+    await page.getByTestId("create-or-edit-entry-ooo-redirect").click();
+
+    // expect entry with new username exist.
+    await expect(page.locator(`data-testid=table-redirect-${userToSecond.username}`)).toBeVisible();
+
+    // expect new note to be present.
+    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toBeVisible();
+    await expect(page.locator(`data-testid=ooo-entry-note-${userToSecond.username}`)).toContainText(
+      "Changed notes"
+    );
   });
 
   test("Profile redirection", async ({ page, users }) => {

@@ -403,7 +403,9 @@ const OutOfOfficeEntriesList = ({
                     {item.notes && (
                       <p className="px-2">
                         <span className="text-subtle">{t("notes")}: </span>
-                        {item.notes}
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
                       </p>
                     )}
                   </div>
@@ -429,6 +431,7 @@ const OutOfOfficeEntriesList = ({
                         };
                         editOutOfOfficeEntry(outOfOfficeEntryData);
                       }}
+                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
                     />
                   </Tooltip>
                   <Tooltip content={t("delete") as string}>
