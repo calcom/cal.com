@@ -1,4 +1,5 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { Locales } from "@/lib/enums/locales";
 import { CreateManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/create-managed-user.output";
 import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-user.output";
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
@@ -191,6 +192,7 @@ export class OAuthClientUsersController {
       createdDate: user.createdDate,
       timeFormat: user.timeFormat,
       defaultScheduleId: user.defaultScheduleId,
+      locale: user.locale as Locales,
     };
   }
 }
