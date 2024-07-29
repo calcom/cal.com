@@ -2498,5 +2498,7 @@
   "event_expired": "This event is expired",
   "phone_call_attendee_calls_organizer": "Phone Call (Attendee Calls Organizer)",
   "phone_call_organizer_calls_attendee": "Phone Call (Organizer Calls Attendee)",
+  "phone_call_well_call_you_on_your_number": "Phone Call (We'll call you on your number)",
+  "phone_call_you_call_us_on_our_number": "Phone Call (You call us on our number)",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
