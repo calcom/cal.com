@@ -18,6 +18,7 @@ import { isPrismaObjOrUndefined } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
+import { BookingReferenceRepository } from "@calcom/lib/server/repository/bookingReference";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
@@ -160,7 +161,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   }
 
   const teamMembers = await Promise.all(teamMemberPromises);
-  console.log("🚀 ~ roundRobinReassignment ~ teamMembers:", teamMembers);
   // Assume the RR host was labelled as a team member
   if (reassignedRRHost.email !== organizer.email) {
     teamMembers.push({
@@ -325,13 +325,21 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
   const eventManager = new EventManager({ ...organizer, credentials: [...credentials] });
 
-  await eventManager.reschedule(
+  const results = await eventManager.reschedule(
     evt,
     booking.uid,
     undefined,
     hasOrganizerChanged,
     previousHostDestinationCalendar ? [previousHostDestinationCalendar] : []
   );
+
+  let newReferencesToCreate = [];
+  newReferencesToCreate = structuredClone(results.referencesToCreate);
+
+  await BookingReferenceRepository.replaceBookingReferences({
+    bookingId,
+    newReferencesToCreate,
+  });
 
   // Send to new RR host
   await sendRoundRobinScheduledEmails(evt, [
