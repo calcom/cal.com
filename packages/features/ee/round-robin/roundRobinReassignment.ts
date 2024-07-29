@@ -199,9 +199,12 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
     const responseSchema = getBookingResponsesSchema({
       bookingFields: eventType.bookingFields,
+      view: "reschedule",
     });
 
-    const responses = await responseSchema.safeParseAsync(bookingResponses);
+    const responseSafeParse = await responseSchema.safeParseAsync(bookingResponses);
+
+    const responses = responseSafeParse.success ? responseSafeParse.data : undefined;
 
     let bookingLocation = booking.location;
 
@@ -454,7 +457,6 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
       await deleteScheduledEmailReminder(workflowReminder.id, workflowReminder.referenceId);
     }
-
     // Send new event workflows to new organizer
     const newEventWorkflows = await prisma.workflow.findMany({
       where: {
@@ -467,13 +469,17 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
               },
             },
           },
-          {
-            activeOnTeams: {
-              some: {
-                teamId: eventType.teamId,
-              },
-            },
-          },
+          ...(eventType?.teamId
+            ? [
+                {
+                  activeOnTeams: {
+                    some: {
+                      teamId: eventType.teamId,
+                    },
+                  },
+                },
+              ]
+            : []),
         ],
       },
       include: {
