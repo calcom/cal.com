@@ -8,11 +8,12 @@ import BaseEmail from "./_base-email";
 export interface IBookingRedirect {
   language: TFunction;
   fromEmail: string;
+  eventOwner: string;
   toEmail: string;
   toName: string;
   oldDates?: string;
   dates: string;
-  action: "add" | "edit" | "cancel";
+  action: "add" | "update" | "cancel";
 }
 
 export default class BookingRedirectNotification extends BaseEmail {
@@ -31,8 +32,8 @@ export default class BookingRedirectNotification extends BaseEmail {
       subject: this.bookingRedirect.language(
         {
           add: "booking_redirect_email_subject",
-          edit: "booking_redirect_edit_email_subject",
-          cancel: "booking_redirect_cancel_email_subject",
+          update: "booking_redirect_updated_email_subject",
+          cancel: "booking_redirect_cancelled_email_subject",
         }[this.bookingRedirect.action]
       ),
       html: await renderEmail("BookingRedirectEmailNotification", {

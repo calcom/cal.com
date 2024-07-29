@@ -227,10 +227,12 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
       ? previousOutOfOfficeEntry.toUser
       : undefined;
 
+    // Send cancel email to the old redirect user if it is not same as the current redirect user.
     if (existingRedirectedUser && existingRedirectedUser?.email !== userToNotify?.email) {
       await sendBookingRedirectNotification({
         language: t,
         fromEmail: ctx.user.email,
+        eventOwner: ctx.user.username || ctx.user.email,
         toEmail: existingRedirectedUser.email,
         toName: existingRedirectedUser.username || "",
         dates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
@@ -239,6 +241,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
     }
 
     if (userToNotify?.email) {
+      // If new redirect user exists and it is same as the old redirect user, then send update email.
       if (
         existingRedirectedUser &&
         existingRedirectedUser.email === userToNotify.email &&
@@ -247,12 +250,14 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         await sendBookingRedirectNotification({
           language: t,
           fromEmail: ctx.user.email,
+          eventOwner: ctx.user.username || ctx.user.email,
           toEmail: userToNotify.email,
           toName: userToNotify.username || "",
           oldDates: `${existingFormattedStartDate} - ${existingFormattedEndDate}`,
           dates: `${formattedStartDate} - ${formattedEndDate}`,
-          action: "edit",
+          action: "update",
         });
+        // If new redirect user exists and the previous redirect user didn't existed or the previous redirect user is not same as the new user, then send add email.
       } else if (
         !existingRedirectedUser ||
         (existingRedirectedUser && existingRedirectedUser.email !== userToNotify.email)
@@ -260,6 +265,7 @@ export const outOfOfficeCreateOrUpdate = async ({ ctx, input }: TBookingRedirect
         await sendBookingRedirectNotification({
           language: t,
           fromEmail: ctx.user.email,
+          eventOwner: ctx.user.username || ctx.user.email,
           toEmail: userToNotify.email,
           toName: userToNotify.username || "",
           dates: `${formattedStartDate} - ${formattedEndDate}`,
@@ -290,11 +296,41 @@ export const outOfOfficeEntryDelete = async ({ ctx, input }: TBookingRedirectDel
       /** Validate outOfOfficeEntry belongs to the user deleting it */
       userId: ctx.user.id,
     },
+    select: {
+      start: true,
+      end: true,
+      toUser: {
+        select: {
+          email: true,
+          username: true,
+        },
+      },
+    },
   });
 
   if (!deletedOutOfOfficeEntry) {
     throw new TRPCError({ code: "NOT_FOUND", message: "booking_redirect_not_found" });
   }
+
+  // Return early if no redirect user is set, and no email needs to be send.
+  if (!deletedOutOfOfficeEntry.toUser) {
+    return {};
+  }
+
+  const t = await getTranslation(ctx.user.locale ?? "en", "common");
+
+  const formattedStartDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.start);
+  const formattedEndDate = new Intl.DateTimeFormat("en-US").format(deletedOutOfOfficeEntry.end);
+
+  await sendBookingRedirectNotification({
+    language: t,
+    fromEmail: ctx.user.email,
+    eventOwner: ctx.user.username || ctx.user.email,
+    toEmail: deletedOutOfOfficeEntry.toUser.email,
+    toName: deletedOutOfOfficeEntry.toUser.username || "",
+    dates: `${formattedStartDate} - ${formattedEndDate}`,
+    action: "cancel",
+  });
 
   return {};
 };

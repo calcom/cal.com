@@ -9,15 +9,15 @@ export const BookingRedirectEmailNotification = (
       subject={props.language(
         {
           add: "booking_redirect_email_subject",
-          edit: "booking_redirect_edit_email_subject",
-          cancel: "booking_redirect_cancel_email_subject",
+          update: "booking_redirect_updated_email_subject",
+          cancel: "booking_redirect_cancelled_email_subject",
         }[props.action]
       )}
       title={props.language(
         {
           add: "booking_redirect_email_title",
-          edit: "booking_redirect_edit_email_title",
-          cancel: "booking_redirect_cancel_email_title",
+          update: "booking_redirect_updated_email_title",
+          cancel: "booking_redirect_cancelled_email_title",
         }[props.action]
       )}>
       <p
@@ -30,11 +30,11 @@ export const BookingRedirectEmailNotification = (
         {props.language(
           {
             add: "booking_redirect_email_description",
-            edit: "booking_redirect_edit_email_description",
-            cancel: "booking_redirect_cancel_email_description",
+            update: "booking_redirect_updated_email_description",
+            cancel: "booking_redirect_cancelled_email_description",
           }[props.action],
           {
-            toName: props.toName,
+            eventOwner: props.eventOwner,
             dates: props.dates,
             oldDates: props.oldDates ?? "",
           }
