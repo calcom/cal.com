@@ -1926,7 +1926,7 @@
   "cancel_url_info": "The URL to cancel the booking",
   "reschedule_url_variable": "Reschedule URL",
   "reschedule_url_info": "The URL to reschedule the booking",
-  "invalid_event_name_variables": "There is an invalid variable in your event name",
+  "invalid_event_name_variables": "{{item}} is an invalid variable in your event name",
   "select_all": "Select All",
   "default_conferencing_bulk_title": "Bulk update existing event types",
   "members_default_schedule": "Member's default schedule",
