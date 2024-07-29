@@ -81,8 +81,14 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const dataFetchStart = Date.now();
 
-  if (!isOrgContext) {
+  const usersInOrgContext = await UserRepository.findUsersByUsername({
+    usernameList,
+    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+  });
+
+  if (!isOrgContext || (!usersInOrgContext.length && isValidOrgDomain)) {
     // If there is no org context, see if some redirect is setup due to org migration
+    // Or if valid org and no users, check if user was deleted has redirect
     const redirect = await getTemporaryOrgRedirect({
       slugs: usernameList,
       redirectType: RedirectType.User,
@@ -93,12 +99,19 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
     if (redirect) {
       return redirect;
     }
-  }
 
-  const usersInOrgContext = await UserRepository.findUsersByUsername({
-    usernameList,
-    orgSlug: isValidOrgDomain ? currentOrgDomain : null,
-  });
+    const redirectDeletedUser = await getTemporaryOrgRedirect({
+      slugs: usernameList,
+      redirectType: RedirectType.UserToProfile,
+      eventTypeSlug: null,
+      currentQuery: context.query,
+      orgSlug: isValidOrgDomain ? currentOrgDomain : null,
+    });
+
+    if (redirectDeletedUser) {
+      return redirectDeletedUser;
+    }
+  }
 
   const isDynamicGroup = usersInOrgContext.length > 1;
   log.debug(safeStringify({ usersInOrgContext, isValidOrgDomain, currentOrgDomain, isDynamicGroup }));

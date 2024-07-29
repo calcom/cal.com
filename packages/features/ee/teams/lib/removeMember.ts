@@ -1,6 +1,8 @@
+import { getOrgFullOrigin } from "@calcom/features/ee/organizations/lib/orgDomains";
 import logger from "@calcom/lib/logger";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import prisma from "@calcom/prisma";
+import { RedirectType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -12,10 +14,12 @@ const removeMember = async ({
   memberId,
   teamId,
   isOrg,
+  redirectToUserId,
 }: {
   memberId: number;
   teamId: number;
   isOrg: boolean;
+  redirectToUserId?: number;
 }) => {
   const [membership] = await prisma.$transaction([
     prisma.membership.delete({
@@ -47,6 +51,17 @@ const removeMember = async ({
       metadata: true,
       activeOrgWorkflows: true,
       parentId: true,
+    },
+  });
+
+  const orgInfo = await prisma.team.findUnique({
+    where: { id: teamId },
+    select: {
+      isOrganization: true,
+      organizationSettings: true,
+      slug: true,
+      id: true,
+      metadata: true,
     },
   });
 
@@ -92,6 +107,25 @@ const removeMember = async ({
       userId: userToDeleteMembershipOf.id,
       organizationId: team.id,
     });
+
+    if (orgInfo && redirectToUserId && profileToDelete) {
+      const userToRedirectTo = await ProfileRepository.findByUserIdAndOrgId({
+        userId: redirectToUserId,
+        organizationId: orgInfo.id,
+      });
+
+      if (userToRedirectTo) {
+        const orgUrlPrefix = getOrgFullOrigin(orgInfo.slug);
+        await prisma.tempOrgRedirect.create({
+          data: {
+            from: profileToDelete.username,
+            toUrl: `${orgUrlPrefix}/${userToRedirectTo.username}`,
+            type: RedirectType.UserToProfile,
+            fromOrgId: orgInfo.id,
+          },
+        });
+      }
+    }
 
     if (
       userToDeleteMembershipOf.username &&

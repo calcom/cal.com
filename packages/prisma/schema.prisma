@@ -1207,6 +1207,7 @@ enum RedirectType {
   TeamEventType @map("team-event-type")
   User          @map("user")
   Team          @map("team")
+  UserToProfile @map("user-to-profile")
 }
 
 model TempOrgRedirect {
