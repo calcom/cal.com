@@ -12,7 +12,7 @@ type Data = {
   }[];
 };
 
-// example endpoint to create a managed cal.com user
+// example endpoint to endpoint to fetch managed users
 export default async function handler(req: NextApiRequest, res: NextApiResponse<Data>) {
   const existingUsers = await prisma.user.findMany({ orderBy: { createdAt: "desc" } });
   if (existingUsers && existingUsers.length > 2) {
