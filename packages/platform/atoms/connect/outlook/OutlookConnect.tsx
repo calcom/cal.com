@@ -19,7 +19,7 @@ export const OutlookConnect: FC<Partial<OAuthConnectProps>> = ({
   return (
     <OAuthConnect
       label={label || t("outlook_connect_atom_label")}
-      alreadyConnectedLabel={alreadyConnectedLabel || t("outlook_connect_atom_alredy_connected_label")}
+      alreadyConnectedLabel={alreadyConnectedLabel || t("outlook_connect_atom_already_connected_label")}
       loadingLabel={loadingLabel || t("outlook_connect_atom_loading_label")}
       calendar={OFFICE_365_CALENDAR}
       className={className}

@@ -68,7 +68,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
   if (isChecking) {
     displayedLabel = loadingLabel || t("apple_connect_atom_loading_label");
   } else if (!allowConnect) {
-    displayedLabel = alreadyConnectedLabel || t("apple_connect_atom_alredy_connected_label");
+    displayedLabel = alreadyConnectedLabel || t("apple_connect_atom_already_connected_label");
   }
 
   return (

@@ -19,7 +19,7 @@ export const GcalConnect: FC<Partial<OAuthConnectProps>> = ({
   return (
     <OAuthConnect
       label={label || t("google_connect_atom_label")}
-      alreadyConnectedLabel={alreadyConnectedLabel || t("google_connect_atom_alredy_connected_label")}
+      alreadyConnectedLabel={alreadyConnectedLabel || t("google_connect_atom_already_connected_label")}
       loadingLabel={loadingLabel || t("google_connect_atom_loading_label")}
       calendar={GOOGLE_CALENDAR}
       className={className}
