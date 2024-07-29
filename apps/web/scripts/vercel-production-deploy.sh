@@ -12,6 +12,7 @@ checkRoute () {
 checkRoute "$APP_ROUTER_EVENT_TYPES_ENABLED" app/future/event-types
 checkRoute "$APP_ROUTER_SETTINGS_ADMIN_ENABLED" app/future/settings/admin
 checkRoute "$APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED" app/future/apps/installed
+checkRoute "$APP_ROUTER_APPS_INSTALLATION_ENABLED" app/future/apps/installation
 checkRoute "$APP_ROUTER_APPS_SLUG_ENABLED" app/future/apps/\[slug\]
 checkRoute "$APP_ROUTER_APPS_SLUG_SETUP_ENABLED" app/future/apps/\[slug\]/setup
 checkRoute "$APP_ROUTER_APPS_CATEGORIES_ENABLED" app/future/apps/categories
