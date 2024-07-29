@@ -1,23 +1,19 @@
-import type { Workflow, WorkflowsOnEventTypes, WorkflowStep } from "@prisma/client";
-
 import type { getEventTypeResponse } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { scheduleEmailReminder } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
-import type { BookingInfo } from "@calcom/features/ee/workflows/lib/reminders/smsReminderManager";
+import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import logger from "@calcom/lib/logger";
 import { WorkflowTriggerEvents, TimeUnit, WorkflowActions, WorkflowTemplates } from "@calcom/prisma/enums";
+
+import type { ExtendedCalendarEvent } from "./reminderScheduler";
 
 const log = logger.getSubLogger({ prefix: ["[scheduleMandatoryReminder]"] });
 
 export type NewBookingEventType = Awaited<ReturnType<typeof getDefaultEvent>> | getEventTypeResponse;
 
 export async function scheduleMandatoryReminder(
-  evt: BookingInfo,
-  workflows: (WorkflowsOnEventTypes & {
-    workflow: Workflow & {
-      steps: WorkflowStep[];
-    };
-  })[],
+  evt: ExtendedCalendarEvent,
+  workflows: Workflow[],
   requiresConfirmation: boolean,
   hideBranding: boolean,
   seatReferenceUid: string | undefined
@@ -25,14 +21,10 @@ export async function scheduleMandatoryReminder(
   try {
     const hasExistingWorkflow = workflows.some((workflow) => {
       return (
-        workflow.workflow?.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
-        ((workflow.workflow.time !== null &&
-          workflow.workflow.time <= 12 &&
-          workflow.workflow?.timeUnit === TimeUnit.HOUR) ||
-          (workflow.workflow.time !== null &&
-            workflow.workflow.time <= 720 &&
-            workflow.workflow?.timeUnit === TimeUnit.MINUTE)) &&
-        workflow.workflow?.steps.some((step) => step?.action === WorkflowActions.EMAIL_ATTENDEE)
+        workflow.trigger === WorkflowTriggerEvents.BEFORE_EVENT &&
+        ((workflow.time !== null && workflow.time <= 12 && workflow.timeUnit === TimeUnit.HOUR) ||
+          (workflow.time !== null && workflow.time <= 720 && workflow.timeUnit === TimeUnit.MINUTE)) &&
+        workflow.steps.some((step) => step?.action === WorkflowActions.EMAIL_ATTENDEE)
       );
     });
 
