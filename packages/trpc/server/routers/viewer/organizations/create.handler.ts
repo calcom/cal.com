@@ -23,6 +23,47 @@ import type { TrpcSessionUser } from "../../../trpc";
 import { BillingPeriod } from "./create.schema";
 import type { TCreateInputSchema } from "./create.schema";
 
+/**
+ * We can only say for sure that the email is not a company email. We can't say for sure if it is a company email.
+ */
+function isNotACompanyEmail(email: string) {
+  // A list of popular @domains that can't be used to allow automatic acceptance of memberships to organization
+  const emailProviders = [
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "aol.com",
+    "icloud.com",
+    "mail.com",
+    "protonmail.com",
+    "zoho.com",
+    "yandex.com",
+    "gmx.com",
+    "fastmail.com",
+    "inbox.com",
+    "me.com",
+    "hushmail.com",
+    "live.com",
+    "rediffmail.com",
+    "tutanota.com",
+    "mail.ru",
+    "usa.com",
+    "qq.com",
+    "163.com",
+    "web.de",
+    "rocketmail.com",
+    "excite.com",
+    "lycos.com",
+    "outlook.co",
+    "hotmail.co.uk",
+  ];
+
+  const emailParts = email.split("@");
+  if (emailParts.length < 2) return true;
+  return emailProviders.includes(emailParts[1]);
+}
+
 type CreateOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
@@ -69,6 +110,7 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       },
     },
   });
+
   if (!loggedInUser) throw new TRPCError({ code: "UNAUTHORIZED", message: "You are not authorized." });
 
   const IS_USER_ADMIN = loggedInUser.role === UserPermissionRole.ADMIN;
@@ -85,6 +127,10 @@ export const createHandler = async ({ input, ctx }: CreateOptions) => {
       code: "FORBIDDEN",
       message: "You can only create organization where you are the owner",
     });
+  }
+
+  if (isNotACompanyEmail(orgOwnerEmail)) {
+    throw new TRPCError({ code: "BAD_REQUEST", message: "Use company email to create an organization" });
   }
 
   const publishedTeams = loggedInUser.teams.filter((team) => !!team.team.slug);
