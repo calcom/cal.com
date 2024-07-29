@@ -30,7 +30,7 @@ import { AppController } from "./app.controller";
 
     RedisModule,
     BullModule.forRoot({
-      redis: `${process.env.REDIS_URL}${process.env.NODE_ENV === "production" ? "?ssl=true" : ""}`,
+      redis: `${process.env.REDIS_URL}${process.env.NODE_ENV === "production" ? "?tls=true" : ""}`,
     }),
     ThrottlerModule.forRootAsync({
       imports: [RedisModule],
