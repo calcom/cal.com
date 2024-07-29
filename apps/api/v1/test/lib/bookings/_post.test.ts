@@ -215,6 +215,10 @@ describe.skipIf(true)("POST /api/bookings", () => {
         const rescheduledBooking = JSON.parse(res._getData()) as Booking;
         expect(prismaMock.booking.create).toHaveBeenCalledTimes(1);
         expect(rescheduledBooking.fromReschedule).toEqual(createdBooking.uid);
+        const previousBooking = await prisma.booking.findUnique({
+          where: { uid: createdBooking.uid },
+        });
+        expect(previousBooking?.status).toBe("cancelled");
       });
     });
 
