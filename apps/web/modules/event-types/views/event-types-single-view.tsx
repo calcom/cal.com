@@ -230,6 +230,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   const [isOpenAssignmentWarnDialog, setIsOpenAssignmentWarnDialog] = useState<boolean>(false);
   const [pendingRoute, setPendingRoute] = useState("");
   const leaveWithoutAssigningHosts = useRef(false);
+  const isTeamEventTypeDeleted = useRef(false);
   const [animationParentRef] = useAutoAnimate<HTMLDivElement>();
   const updateMutation = trpc.viewer.eventTypes.update.useMutation({
     onSuccess: async () => {
@@ -404,9 +405,16 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     formState: { isDirty: isFormDirty, dirtyFields },
   } = formMethods;
 
+  const onDelete = () => {
+    isTeamEventTypeDeleted.current = true;
+  };
+
   useEffect(() => {
     const handleRouteChange = (url: string) => {
       const paths = url.split("/");
+
+      // If the event-type is deleted, we can't show the empty assignment warning
+      if (isTeamEventTypeDeleted.current) return;
 
       if (
         !!team &&
@@ -716,7 +724,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         disableBorder={true}
         currentUserMembership={currentUserMembership}
         bookerUrl={eventType.bookerUrl}
-        isUserOrganizationAdmin={props.isUserOrganizationAdmin}>
+        isUserOrganizationAdmin={props.isUserOrganizationAdmin}
+        onDelete={onDelete}>
         <Form
           form={formMethods}
           id="event-type-form"
