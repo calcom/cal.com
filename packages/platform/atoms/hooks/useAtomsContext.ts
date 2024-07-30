@@ -26,11 +26,13 @@ export interface IAtomsContext {
     locales: CalProviderLanguagesType[];
     exists: (key: translationKeys | string) => boolean;
   };
+  organizationId: number;
 }
 
 export const AtomsContext = createContext({
   clientId: "",
   accessToken: "",
+  organizationId: 0,
   options: { refreshUrl: "", apiUrl: "" },
   error: "",
   getClient: () => {
