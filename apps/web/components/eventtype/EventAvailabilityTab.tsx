@@ -159,113 +159,109 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const formMethods = useFormContext<FormValues>();
   const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
     useLockedFieldsManager({ eventType, translate: t, formMethods });
-  const { watch, setValue, getValues } = formMethods;
+  const { watch, getValues, setValue, resetField } = formMethods;
   const watchSchedule = watch("schedule");
-  const [options, setOptions] = useState<AvailabilityOption[]>([]);
+
+  useEffect(() => {
+    return () => {
+      // cleanup
+      if (!watchSchedule) resetField("schedule");
+      else setValue("schedule", null, { shouldDirty: true });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
 
-  useEffect(
-    function refactorMeWithoutEffect() {
-      if (!data) {
-        return;
-      }
-      const schedules = data.schedules;
+  if (isPending || !data) {
+    return <SelectSkeletonLoader />;
+  }
 
-      const options = schedules.map((schedule) => ({
-        value: schedule.id,
-        label: schedule.name,
-        isDefault: schedule.isDefault,
-        isManaged: false,
-      }));
+  const schedules = data.schedules;
 
-      // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
-      if (isManagedEventType) {
-        options.push({
-          value: 0,
-          label: t("members_default_schedule"),
-          isDefault: false,
-          isManaged: false,
-        });
-      }
+  const options = schedules.map((schedule) => ({
+    value: schedule.id,
+    label: schedule.name,
+    isDefault: schedule.isDefault,
+    isManaged: false,
+  }));
 
-      // We are showing a managed event for a member and team owner selected their own schedule, so adding
-      // the managed schedule option
-      if (
-        isChildrenManagedEventType &&
-        watchSchedule &&
-        !schedules.find((schedule) => schedule.id === watchSchedule)
-      ) {
-        options.push({
-          value: watchSchedule,
-          label: eventType.scheduleName ?? t("default_schedule_name"),
-          isDefault: false,
-          isManaged: false,
-        });
-      }
-      // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
-      else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
-        options.push({
-          value: eventType.schedule,
-          label: eventType.scheduleName ?? t("default_schedule_name"),
-          isDefault: false,
-          isManaged: false,
-        });
-      }
+  // We are showing a managed event for a team admin, so adding the option to let members choose their schedule
+  if (isManagedEventType) {
+    options.push({
+      value: 0,
+      label: t("members_default_schedule"),
+      isDefault: false,
+      isManaged: false,
+    });
+  }
 
-      setOptions(options);
+  // We are showing a managed event for a member and team owner selected their own schedule, so adding
+  // the managed schedule option
+  if (
+    isChildrenManagedEventType &&
+    watchSchedule &&
+    !schedules.find((schedule) => schedule.id === watchSchedule)
+  ) {
+    options.push({
+      value: watchSchedule,
+      label: eventType.scheduleName ?? t("default_schedule_name"),
+      isDefault: false,
+      isManaged: false,
+    });
+  }
+  // We push the selected schedule from the event type if it's not part of the list response. This happens if the user is an admin but not the schedule owner.
+  else if (eventType.schedule && !schedules.find((schedule) => schedule.id === eventType.schedule)) {
+    options.push({
+      value: eventType.schedule,
+      label: eventType.scheduleName ?? t("default_schedule_name"),
+      isDefault: false,
+      isManaged: false,
+    });
+  }
 
-      const scheduleId = getValues("schedule");
-      const value = options.find((option) =>
-        scheduleId
-          ? option.value === scheduleId
-          : isManagedEventType
-          ? option.value === 0
-          : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-      );
-
-      setValue("availability", value, { shouldDirty: true });
-    },
-    [data]
+  const scheduleId = getValues("schedule");
+  const availabilityValue = options.find((option) =>
+    scheduleId
+      ? option.value === scheduleId
+      : isManagedEventType
+      ? option.value === 0
+      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
   );
-  const availabilityValue = watch("availability");
 
-  useEffect(() => {
-    if (!availabilityValue?.value) return;
-    setValue("schedule", availabilityValue.value, { shouldDirty: true });
-  }, [availabilityValue, setValue]);
+  if (watchSchedule !== availabilityValue?.value) {
+    setValue("schedule", availabilityValue?.value || null, { shouldDirty: true });
+  }
 
   return (
     <div>
       <div className="border-subtle rounded-t-md border p-6">
         <label htmlFor="availability" className="text-default mb-2 block text-sm font-medium leading-none">
           {t("availability")}
-          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("availability")}
+          {(isManagedEventType || isChildrenManagedEventType) && shouldLockIndicator("schedule")}
         </label>
-        {isPending && <SelectSkeletonLoader />}
-        {!isPending && (
-          <Controller
-            name="schedule"
-            render={({ field }) => {
-              return (
-                <Select
-                  placeholder={t("select")}
-                  options={options}
-                  isDisabled={shouldLockDisableProps("availability").disabled}
-                  isSearchable={false}
-                  onChange={(selected) => {
-                    field.onChange(selected?.value || null);
-                    if (selected?.value) setValue("availability", selected, { shouldDirty: true });
-                  }}
-                  className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-                  value={availabilityValue}
-                  components={{ Option, SingleValue }}
-                  isMulti={false}
-                />
-              );
-            }}
-          />
-        )}
+        <Controller
+          name="schedule"
+          render={({ field: { onChange } }) => {
+            return (
+              <Select
+                placeholder={t("select")}
+                options={options}
+                isDisabled={shouldLockDisableProps("schedule").disabled}
+                isSearchable={false}
+                onChange={(selected) => {
+                  console.log("Firing");
+                  console.log(selected);
+                  if (selected) onChange(selected.value);
+                }}
+                className="block w-full min-w-0 flex-1 rounded-sm text-sm"
+                value={availabilityValue}
+                components={{ Option, SingleValue }}
+                isMulti={false}
+              />
+            );
+          }}
+        />
       </div>
       {availabilityValue?.value !== 0 ? (
         <EventTypeScheduleDetails
@@ -283,25 +279,19 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
 const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
-  const { setValue } = useFormContext<FormValues>();
+
+  const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
+    Boolean(eventType.schedule)
+  );
+
   return (
-    <Controller
-      name="metadata.config.useHostSchedulesForTeamEvent"
-      render={({ field: { value, onChange } }) => (
-        <SettingsToggle
-          checked={!value}
-          onCheckedChange={(checked) => {
-            onChange(!checked);
-            if (!checked) {
-              setValue("schedule", null, { shouldDirty: true });
-            }
-          }}
-          title={t("choose_common_schedule_team_event")}
-          description={t("choose_common_schedule_team_event_description")}>
-          <EventTypeSchedule eventType={eventType} />
-        </SettingsToggle>
-      )}
-    />
+    <SettingsToggle
+      checked={useHostSchedulesForTeamEvent}
+      onCheckedChange={setUseHostSchedulesForTeamEvent}
+      title={t("choose_common_schedule_team_event")}
+      description={t("choose_common_schedule_team_event_description")}>
+      <EventTypeSchedule eventType={eventType} />
+    </SettingsToggle>
   );
 };
 
