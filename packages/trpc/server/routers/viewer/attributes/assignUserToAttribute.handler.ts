@@ -1,3 +1,4 @@
+import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -90,8 +91,6 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  // Find the memebrship for the user
-
   const membership = await prisma.membership.findFirst({
     where: {
       userId: input.userId,
@@ -106,60 +105,79 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const promises: Promise<void>[] = [];
+  const promises: Promise<{ id: string }>[] = [];
 
-  filteredAttributes.map((attribute) => {
+  filteredAttributes.map(async (attribute) => {
     if (attribute.value && (!attribute.options || attribute.options.length === 0)) {
       const valueAsString = String(attribute.value);
-      const transaction = prisma.$transaction(async (trx) => {
-        const attributeOption = await trx.attributeOption.create({
-          data: {
-            value: valueAsString,
-            slug: slugify(valueAsString),
+
+      // Clean up any existing assignments for this attribute - we don't want to keep old assignments as these fields only have ONE value
+      await prisma.attributeToUser.deleteMany({
+        where: {
+          memberId: membership.id,
+          attributeOption: {
             attribute: {
-              connect: {
-                id: attribute.id,
-              },
+              id: attribute.id,
             },
           },
-        });
+        },
+      });
 
-        // Delete any existing assignments for this attribute
-        await trx.attributeToUser.deleteMany({
-          where: {
-            attributeOptionId: attributeOption.id,
+      const attributeOption = prisma.attributeOption.create({
+        data: {
+          value: valueAsString,
+          slug: slugify(valueAsString),
+          attribute: {
+            connect: {
+              id: attribute.id,
+            },
           },
-        });
+          assignedUsers: {
+            create: {
+              memberId: membership.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
 
-        await trx.attributeToUser.create({
+      promises.push(attributeOption);
+    } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
+      const options = attribute.options;
+
+      const selectOptionsToCreate = options?.map(async (option) => {
+        return prisma.attributeToUser.create({
           data: {
             memberId: membership.id,
-            attributeOptionId: attributeOption.id,
+            attributeOptionId: option.value,
+          },
+          select: {
+            id: true,
           },
         });
       });
-      promises.push(transaction);
-    } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
-      const transaction = prisma.$transaction(async (trx) => {
-        const options = attribute.options;
 
-        options?.map(async (option) => {
-          await trx.attributeToUser.create({
-            data: {
-              memberId: membership.id,
-              attributeOptionId: option.value,
-            },
-          });
-        });
-      });
-
-      promises.push(transaction);
+      promises.push(...selectOptionsToCreate);
     }
   });
 
-  Promise.all(promises);
+  try {
+    const results = await Promise.allSettled(promises);
 
-  return 1;
+    if (results.some((result) => result.status === "rejected")) {
+      logger.error(`When assigning attributes to user ${input.userId}, some promises were rejected`, {
+        userId: input.userId,
+        attributes: input.attributes,
+        error: results.filter((result) => result.status === "rejected").map((result) => result.reason),
+      });
+    }
+
+    return results;
+  } catch (error) {
+    throw error; // Re-throw the error for the caller to handle
+  }
 };
 
 export default assignUserToAttributeHandler;
