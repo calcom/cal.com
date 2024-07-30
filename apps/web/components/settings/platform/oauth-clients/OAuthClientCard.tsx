@@ -148,7 +148,7 @@ export const OAuthClientCard = ({
           onClick={() => router.push(`/settings/platform/oauth-clients/${id}/edit`)}>
           Edit
         </Button>
-        <Button variant="destructive" loading={isLoading} disabled={isLoading} onClick={() => onDelete(id)}>
+        <Button color="destructive" loading={isLoading} disabled={isLoading} onClick={() => onDelete(id)}>
           Delete
         </Button>
       </div>
