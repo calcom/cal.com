@@ -427,7 +427,9 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        referenceId: true,
         workflowStep: {
           select: {
             template: true,
@@ -473,6 +475,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         OR: [
           {
             isActiveOnAll: true,
+            teamId: eventType?.teamId,
           },
           {
             activeOn: {
@@ -489,6 +492,14 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
                       teamId: eventType.teamId,
                     },
                   },
+                },
+              ]
+            : []),
+          ...(eventType?.team?.parentId
+            ? [
+                {
+                  isActiveOnAll: true,
+                  teamId: eventType.team.parentId,
                 },
               ]
             : []),
