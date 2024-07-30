@@ -493,7 +493,7 @@ export class UserRepository {
     });
   }
 
-  static async isAdminOfTeamAndParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
     const membershipQuery = {
       members: {
         some: {
