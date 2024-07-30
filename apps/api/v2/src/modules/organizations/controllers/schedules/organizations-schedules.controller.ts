@@ -1,8 +1,10 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { IsAdminAccessGuard } from "@/modules/auth/guards/organizations/is-admin-access.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
@@ -39,7 +41,7 @@ import { SkipTakePagination } from "@calcom/platform-types";
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, IsAdminAccessGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAccessGuard)
 @DocsTags("Organizations Schedules")
 export class OrganizationsSchedulesController {
   constructor(
@@ -48,6 +50,7 @@ export class OrganizationsSchedulesController {
   ) {}
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
   async getOrganizationSchedules(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -64,6 +67,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
   async createUserSchedule(
@@ -79,6 +83,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
   async getUserSchedule(
@@ -94,6 +99,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
   async getUserSchedules(
@@ -108,6 +114,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
   async updateUserSchedule(
@@ -124,6 +131,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)

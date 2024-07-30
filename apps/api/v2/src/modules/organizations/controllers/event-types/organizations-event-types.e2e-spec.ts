@@ -253,13 +253,9 @@ describe("Organizations Event Types Endpoints", () => {
         hosts: [
           {
             userId: teammate1.id,
-            mandatory: true,
-            priority: "high",
           },
           {
             userId: teammate2.id,
-            mandatory: false,
-            priority: "low",
           },
         ],
       };
@@ -432,8 +428,6 @@ describe("Organizations Event Types Endpoints", () => {
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
         {
           userId: teammate1.id,
-          mandatory: true,
-          priority: "medium",
         },
       ];
 
@@ -604,7 +598,9 @@ describe("Organizations Event Types Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(teammate2.email);
       await userRepositoryFixture.deleteByEmail(falseTestUser.email);
       await teamsRepositoryFixture.delete(team.id);
+      await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);
+      await organizationsRepositoryFixture.delete(falseTestOrg.id);
       await app.close();
     });
   });
