@@ -17,17 +17,19 @@ export const organizationScenarios = {
     findUniqueByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
-        OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.mockImplementation((arg) => {
-          if (forInput.email === arg.email) {
-            return org;
+        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
+          (arg) => {
+            if (forInput.email === arg.email) {
+              return org;
+            }
+            const errorMsg = "Mock Error-fakeReturnOrganization: Unhandled input";
+            console.log(errorMsg, { arg, forInput });
+            throw new Error(errorMsg);
           }
-          const errorMsg = "Mock Error-fakeReturnOrganization: Unhandled input";
-          console.log(errorMsg, { arg, forInput });
-          throw new Error(errorMsg);
-        });
+        );
       },
       fakeNoMatch: () => {
-        OrganizationRepository.findUniqueByMatchingAutoAcceptEmail.mockResolvedValue(null);
+        OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockResolvedValue(null);
       },
     },
   } satisfies Partial<Record<keyof OrganizationModule["OrganizationRepository"], unknown>>,

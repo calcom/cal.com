@@ -165,7 +165,7 @@ export class OrganizationRepository {
     });
   }
 
-  static async findUniqueByMatchingAutoAcceptEmail({ email }: { email: string }) {
+  static async findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail({ email }: { email: string }) {
     const emailDomain = email.split("@").at(-1);
     const orgs = await prisma.team.findMany({
       where: {
