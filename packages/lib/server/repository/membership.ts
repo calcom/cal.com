@@ -163,38 +163,13 @@ export class MembershipRepository {
       include: {
         team: {
           include: {
-            members: {
-              select: membershipSelect,
-            },
+            // could slow down the query
+            // members: {
+            //   select: membershipSelect,
+            // },
             parent: {
               select: teamParentSelect,
             },
-            // eventTypes: {
-            //   select: {
-            //     ...eventTypeSelect,
-            //     hashedLink: true,
-            //     users: { select: userSelect },
-            //     children: {
-            //       include: {
-            //         users: { select: userSelect },
-            //       },
-            //     },
-            //     hosts: {
-            //       include: {
-            //         user: { select: userSelect },
-            //       },
-            //     },
-            //   },
-            //   // As required by getByViewHandler - Make it configurable
-            //   orderBy: [
-            //     {
-            //       position: "desc",
-            //     },
-            //     {
-            //       id: "asc",
-            //     },
-            //   ],
-            // },
           },
         },
       },

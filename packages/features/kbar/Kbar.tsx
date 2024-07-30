@@ -16,6 +16,7 @@ import { useMemo } from "react";
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { isMac } from "@calcom/lib/isMac";
+import { trpc } from "@calcom/trpc/react";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { Icon, Tooltip } from "@calcom/ui";
 
@@ -35,19 +36,25 @@ const getApps = Object.values(appStoreMetadata).map(({ name, slug }) => ({
 
 const useEventTypesAction = () => {
   const router = useRouter();
-  // const { data  } = trpc.viewer.eventTypes.getByViewer.useQuery();
-  const data = null;
-  const eventTypeActions = data?.eventTypeGroups?.reduce<Action[]>((acc: Action[], group: EventTypeGroup) => {
-    const item: Action[] = group.eventTypes.map((item) => ({
-      id: `event-type-${item.id}`,
-      name: item.title,
-      section: "event_types_page_title",
-      keywords: "event types",
-      perform: () => router.push(`/event-types/${item.id}`),
-    }));
-    acc.push(...item);
-    return acc;
-  }, []);
+  const { data } = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: 10,
+      group: { teamId: null, parentId: null },
+    },
+    {
+      refetchOnWindowFocus: false,
+      staleTime: 1 * 60 * 60 * 1000,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const eventTypeActions: Action[] = data?.eventTypes?.map((item) => ({
+    id: `event-type-${item.id}`,
+    name: item.title,
+    section: "event_types_page_title",
+    keywords: "event types",
+    perform: () => router.push(`/event-types/${item.id}`),
+  }));
 
   const actions = eventTypeActions?.length ? eventTypeActions : [];
 

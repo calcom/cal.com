@@ -167,7 +167,7 @@ export const getUserEventGroups = async ({ ctx, input }: GetByViewerOptions) => 
               slug,
             },
             metadata: {
-              membershipCount: team.members.length,
+              membershipCount: 0,
               readOnly:
                 membership.role ===
                 (team.parentId

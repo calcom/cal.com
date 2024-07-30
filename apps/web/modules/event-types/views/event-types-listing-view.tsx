@@ -299,15 +299,9 @@ export const EventTypeList = ({
     });
 
     if (previousValue) {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+      utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
         { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
         (data) => {
-          if (!data) {
-            return {
-              pages: [],
-              pageParams: [],
-            };
-          }
           return {
             ...data,
             pages: newOrder,
@@ -422,7 +416,6 @@ export const EventTypeList = ({
   const isManagedEventPrefix = () => {
     return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
-  console.log("pages", pages);
   return (
     <div className="bg-default border-subtle mb-16 flex flex-col overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
@@ -899,7 +892,6 @@ const Main = ({
   eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
   profiles: GetUserEventGroupsResponse["profiles"] | undefined;
 }) => {
-  // const isMobile = useMediaQuery("(max-width: 768px)");
   const searchParams = useCompatSearchParams();
   const { data } = useTypedQuery(querySchema);
 
@@ -920,10 +912,6 @@ const Main = ({
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
 
-  // const isFilteredByOnlyOneItem =
-  //   (filters?.teamIds?.length === 1 || filters?.userIds?.length === 1) && eventTypeGroups.length === 1;
-
-  // const data = denormalizePayload(rawData);
   return (
     <>
       {/* {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
