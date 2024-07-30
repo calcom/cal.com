@@ -98,6 +98,19 @@ export class OrganizationsEventTypesService {
     return this.outputService.getResponseTeamEventType(eventType);
   }
 
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+    const eventType = await this.organizationEventTypesRepository.getTeamEventTypeBySlug(
+      teamId,
+      eventTypeSlug
+    );
+
+    if (!eventType) {
+      return null;
+    }
+
+    return this.outputService.getResponseTeamEventType(eventType);
+  }
+
   async getTeamEventTypes(teamId: number) {
     const eventTypes = await this.organizationEventTypesRepository.getTeamEventTypes(teamId);
 
