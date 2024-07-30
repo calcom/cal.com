@@ -54,7 +54,7 @@ export function EditMemberSheet({ state, dispatch }: { state: State; dispatch: D
       onOpenChange={() => {
         dispatch({ type: "CLOSE_MODAL" });
       }}>
-      <SheetContent position="right" size="default">
+      <SheetContent>
         <div className="flex h-full flex-col">
           <div className="flex-grow">
             <div className="mt-4 flex items-center gap-2">
