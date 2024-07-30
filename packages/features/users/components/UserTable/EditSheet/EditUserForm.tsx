@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -52,7 +52,7 @@ const editSchema = z.object({
   timeZone: z.string(),
   // schedules: z.array(z.string()),
   // teams: z.array(z.string()),
-  attributes: z.array(attributeSchema),
+  attributes: z.array(attributeSchema).optional(),
 });
 
 type EditSchema = z.infer<typeof editSchema>;
@@ -148,11 +148,14 @@ export function EditForm({
         handleSubmit={(values) => {
           setMutationLoading(true);
           console.log(values);
-          assignAttributesMutation.mutate({
-            userId: selectedUser?.id ?? "",
-            // @ts-expect-error they exist but for some reason
-            attributes: values.attributes,
-          });
+          // @ts-expect-error they exist but for some reason
+          if (values.attributes) {
+            assignAttributesMutation.mutate({
+              userId: selectedUser?.id ?? "",
+              // @ts-expect-error they exist but for some reason
+              attributes: values.attributes,
+            });
+          }
           mutation.mutate({
             userId: selectedUser?.id ?? "",
             role: values.role,
@@ -242,6 +245,10 @@ export function EditForm({
 
 type AttributeType = z.infer<typeof attributeSchema>;
 
+type DefaultValueType = {
+  [key: `attributes.${number}`]: AttributeType;
+};
+
 function AttributesList(props: { selectedUserId: number }) {
   const { data: usersAttributes, isPending: usersAttributesPending } =
     trpc.viewer.attributes.getByUserId.useQuery({
@@ -256,6 +263,8 @@ function AttributesList(props: { selectedUserId: number }) {
   // Watch the 'attributes' field from the form context
   const formAttributes = watch("attributes") as AttributeType[];
 
+  console.log({ formAttributes });
+
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
     return attribute
@@ -266,31 +275,33 @@ function AttributesList(props: { selectedUserId: number }) {
       : [];
   };
 
-  useEffect(() => {
-    if (usersAttributes && !usersAttributesPending) {
-      usersAttributes.forEach((attr, index) => {
-        // Find index of this attribute in the enabledAttributes array
-        if (!enabledAttributes) return;
-        const enabledAttrIndex = enabledAttributes.findIndex((enabledAttr) => enabledAttr.id === attr.id);
+  const defaultValues = useMemo<DefaultValueType>(() => {
+    if (!usersAttributes || usersAttributesPending || !enabledAttributes) return {};
 
-        if (attr.type === "MULTI_SELECT") {
-          setValue(`attributes.${enabledAttrIndex}`, {
-            id: attr.id,
-            options: attr.options.map((option) => ({ label: option.value, value: option.id })),
-          });
-        } else if (attr.type === "SINGLE_SELECT") {
-          setValue(`attributes.${enabledAttrIndex}`, {
-            id: attr.id,
-            options: [{ label: attr.options[0]?.value, value: attr.options[0]?.id }],
-          });
-        } else {
-          setValue(`attributes.${enabledAttrIndex}`, {
-            id: attr.id,
-            value: attr.options[0]?.value || "",
-          });
-        }
-      });
-    }
+    return enabledAttributes.reduce<DefaultValueType>((acc, enabledAttr, index) => {
+      const attr = usersAttributes.find((attr) => attr.id === enabledAttr.id);
+      const key = `attributes.${index}` as const;
+
+      if (!attr) {
+        acc[key] = { id: enabledAttr.id };
+      } else if (attr.type === "MULTI_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: attr.options.map((option) => ({ label: option.value, value: option.id })),
+        };
+      } else if (attr.type === "SINGLE_SELECT") {
+        acc[key] = {
+          id: attr.id,
+          options: [{ label: attr.options[0]?.value, value: attr.options[0]?.id }],
+        };
+      } else {
+        acc[key] = {
+          id: attr.id,
+          value: attr.options[0]?.value || "",
+        };
+      }
+      return acc;
+    }, {});
   }, [usersAttributes, usersAttributesPending, enabledAttributes]);
 
   if (!enabledAttributes || !usersAttributes) return null;
@@ -313,7 +324,7 @@ function AttributesList(props: { selectedUserId: number }) {
             name={`attributes.${index}`}
             control={control}
             key={attr.id}
-            defaultValue={{ id: attr.id }}
+            defaultValue={defaultValues[`attributes.${index}`]}
             render={({ field }) => {
               return (
                 <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
