@@ -186,7 +186,13 @@ describe("OAuth Client Users Endpoints", () => {
       const defaultEventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
 
       // note(Lauris): to determine count see default event types created in EventTypesService.createUserDefaultEventTypes
-      expect(defaultEventTypes?.length).toEqual(2);
+      expect(defaultEventTypes?.length).toEqual(4);
+      expect(
+        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
+      ).toBeTruthy();
+      expect(
+        defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
+      ).toBeTruthy();
       expect(
         defaultEventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
       ).toBeTruthy();
@@ -447,12 +453,18 @@ describe("OAuth Client Users Endpoints", () => {
     async function userHasCorrectEventTypes(userId: number) {
       const eventTypes = await eventTypesRepositoryFixture.getAllUserEventTypes(userId);
 
-      expect(eventTypes?.length).toEqual(3);
+      expect(eventTypes?.length).toEqual(5);
 
       // note(Lauris): managed event-types with assignAllTeamMembers: true
       expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
 
       // note(Lauris): default event types
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutes.slug)
+      ).toBeTruthy();
+      expect(
+        eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.sixtyMinutes.slug)
+      ).toBeTruthy();
       expect(
         eventTypes?.find((eventType) => eventType.slug === DEFAULT_EVENT_TYPES.thirtyMinutesVideo.slug)
       ).toBeTruthy();
