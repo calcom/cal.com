@@ -13,7 +13,7 @@ import http from "../../../lib/http";
 export const QUERY_KEY = "use-event-type";
 export type UsePublicEventReturnType = ReturnType<typeof useEventType>;
 
-export const useEventType = (username: string, eventSlug: string) => {
+export const useEventType = (username: string, eventSlug: string, isTeamEvent: boolean | undefined) => {
   const [stateUsername, stateEventSlug] = useBookerStore(
     (state) => [state.username, state.eventSlug],
     shallow
@@ -29,6 +29,10 @@ export const useEventType = (username: string, eventSlug: string) => {
   const event = useQuery({
     queryKey: [QUERY_KEY, stateUsername ?? username, stateEventSlug ?? eventSlug],
     queryFn: async () => {
+      if (isTeamEvent) {
+        return;
+      }
+
       if (isDynamic) {
         return http
           .get<ApiResponse<EventTypeOutput_2024_06_14[]>>(
