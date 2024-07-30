@@ -12,7 +12,7 @@ import {
 } from "class-validator";
 
 import type { Location_2024_06_14, BookingField_2024_06_14 } from "../inputs";
-import { Host } from "../inputs";
+import { Host as TeamEventTypeHostInput } from "../inputs";
 import { RecurringEvent_2024_06_14 } from "../inputs";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
@@ -139,6 +139,11 @@ export class EventTypeOutput_2024_06_14 {
   scheduleId!: number | null;
 }
 
+export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
+  @IsString()
+  name!: string;
+}
+
 export class TeamEventTypeOutput_2024_06_14 {
   @IsInt()
   @DocsProperty({ example: 1 })
@@ -235,9 +240,9 @@ export class TeamEventTypeOutput_2024_06_14 {
   parentEventTypeId?: number | null;
 
   @ValidateNested({ each: true })
-  @Type(() => Host)
+  @Type(() => TeamEventTypeResponseHost)
   @IsArray()
-  hosts!: Host[];
+  hosts!: TeamEventTypeResponseHost[];
 
   @IsBoolean()
   @IsOptional()
