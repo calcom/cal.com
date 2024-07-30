@@ -81,9 +81,6 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     },
   });
 
-  console.log(attributeOptionIds);
-  console.log(attributeOptions);
-
   if (attributeOptions.length !== attributeOptionIds.length) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
@@ -145,7 +142,21 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
 
       promises.push(attributeOption);
     } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
+      // Get tha attribute type for this attribute
+      const attributeType = attributes.find((attr) => attr.id === attribute.id)?.type;
       const options = attribute.options;
+
+      if (attributeType === "SINGLE_SELECT") {
+        prisma.attributeToUser.deleteMany({
+          where: {
+            attributeOption: {
+              attribute: {
+                id: attribute.id,
+              },
+            },
+          },
+        });
+      }
 
       const selectOptionsToCreate = options?.map(async (option) => {
         return prisma.attributeToUser.create({

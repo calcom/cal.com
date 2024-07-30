@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSession } from "next-auth/react";
 import type { Dispatch } from "react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Controller, useForm, useFormContext } from "react-hook-form";
 import { z } from "zod";
 
@@ -251,7 +251,7 @@ function AttributesList(props: { selectedUserId: number }) {
   const enabledAttributes = attributes?.filter((attr) => attr.enabled);
 
   const { t } = useLocale();
-  const { control, watch, getFieldState } = useFormContext();
+  const { control, watch, getFieldState, setValue } = useFormContext();
 
   // Watch the 'attributes' field from the form context
   const formAttributes = watch("attributes") as AttributeType[];
@@ -266,7 +266,34 @@ function AttributesList(props: { selectedUserId: number }) {
       : [];
   };
 
-  if (!enabledAttributes) return null;
+  useEffect(() => {
+    if (usersAttributes && !usersAttributesPending) {
+      usersAttributes.forEach((attr, index) => {
+        // Find index of this attribute in the enabledAttributes array
+        if (!enabledAttributes) return;
+        const enabledAttrIndex = enabledAttributes.findIndex((enabledAttr) => enabledAttr.id === attr.id);
+
+        if (attr.type === "MULTI_SELECT") {
+          setValue(`attributes.${enabledAttrIndex}`, {
+            id: attr.id,
+            options: attr.options.map((option) => ({ label: option.value, value: option.id })),
+          });
+        } else if (attr.type === "SINGLE_SELECT") {
+          setValue(`attributes.${enabledAttrIndex}`, {
+            id: attr.id,
+            options: [{ label: attr.options[0]?.value, value: attr.options[0]?.id }],
+          });
+        } else {
+          setValue(`attributes.${enabledAttrIndex}`, {
+            id: attr.id,
+            value: attr.options[0]?.value || "",
+          });
+        }
+      });
+    }
+  }, [usersAttributes, usersAttributesPending, enabledAttributes]);
+
+  if (!enabledAttributes || !usersAttributes) return null;
   const attributeFieldState = getFieldState("attributes");
 
   return (
@@ -299,10 +326,9 @@ function AttributesList(props: { selectedUserId: number }) {
                       type={attr.type === "TEXT" ? "text" : "number"}
                       value={field.value?.value || ""}
                       onChange={(e) => {
-                        const coersedValue = attr.type === "TEXT" ? e.target.value : Number(e.target.value);
                         field.onChange({
                           id: attr.id,
-                          value: coersedValue,
+                          value: e.target.value,
                         });
                       }}
                     />
