@@ -28,7 +28,10 @@ export const removeMemberHandler = async ({ ctx, input }: RemoveMemberOptions) =
   });
 
   const { memberIds, teamIds, isOrg } = input;
-  const isAdmin = teamIds.every(async (teamId) => await isTeamAdmin(ctx.user.id, teamId));
+
+  const isAdmin = await Promise.all(
+    teamIds.map(async (teamId) => await isTeamAdmin(ctx.user.id, teamId))
+  ).then((results) => results.every((result) => result));
 
   const isOrgAdmin = ctx.user.profile?.organizationId
     ? await isTeamAdmin(ctx.user.id, ctx.user.profile?.organizationId)
