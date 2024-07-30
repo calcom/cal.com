@@ -98,7 +98,14 @@ export function getFieldSchema(field: Field): ZodSchema<unknown> {
   }
 }
 
-export function checkParseQueryValues(field: Field, parsedQuery: Record<string, unknown> | undefined) {
+export function checkParseQueryValues(
+  field: Field,
+  parsedQuery: Record<string, unknown> | undefined
+): {
+  success?: boolean;
+  value?: string[] | string | undefined;
+  ignore?: boolean;
+} {
   if (!parsedQuery || !field) return { ignore: true };
 
   if (!parsedQuery[field.name]) {
@@ -108,7 +115,17 @@ export function checkParseQueryValues(field: Field, parsedQuery: Record<string, 
   const schema = getFieldSchema(field);
   if (!schema) return { ignore: true };
   const parsedResponses = schema.safeParse(parsedQuery[field.name]);
-  return { success: parsedResponses.success, value: parsedResponses?.data };
+  if (parsedResponses.success) {
+    return { success: true, value: parsedResponses.data } as {
+      success: boolean;
+      value: string[] | string | undefined;
+    };
+  } else {
+    return { success: false, value: undefined } as {
+      success: boolean;
+      value: string[] | string | undefined;
+    };
+  }
 }
 
 export function useInitialFormValues({
