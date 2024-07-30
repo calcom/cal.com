@@ -962,6 +962,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
