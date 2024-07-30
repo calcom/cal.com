@@ -407,7 +407,7 @@ model Team {
   // Organization's OAuth clients. Organization has them but a team does not.
   platformOAuthClient    PlatformOAuthClient[]
   // OAuth client used to create team of an organization. Team has it but organization does not.
-  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id])
+  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
   createdByOAuthClientId String?
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
