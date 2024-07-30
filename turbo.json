@@ -22,7 +22,7 @@
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
     "@calcom/trpc#build": {
-      "outputs": ["./routers/types"]
+      "outputs": ["./types"]
     },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
