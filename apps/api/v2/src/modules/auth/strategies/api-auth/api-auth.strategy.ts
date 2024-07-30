@@ -42,7 +42,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
 
       if (bearerToken) {
         const requestOrigin = request.get("Origin");
-        return await this.authenticateApiKey(bearerToken, requestOrigin);
+        return await this.authenticateBearerToken(bearerToken, requestOrigin);
       }
 
       throw new UnauthorizedException(
@@ -89,7 +89,7 @@ export class ApiAuthStrategy extends PassportStrategy(BaseStrategy, "api-auth") 
     return user;
   }
 
-  async authenticateApiKey(authString: string, requestOrigin: string | undefined) {
+  async authenticateBearerToken(authString: string, requestOrigin: string | undefined) {
     try {
       const user = isApiKey(authString, this.config.get<string>("api.apiKeyPrefix") ?? "cal_")
         ? await this.apiKeyStrategy(authString)
