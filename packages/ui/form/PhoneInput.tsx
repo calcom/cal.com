@@ -18,13 +18,14 @@ export type PhoneInputProps = {
 };
 
 function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
-  const defaultCountry = useDefaultCountry();
+  // const defaultCountry = useDefaultCountry();
 
   return (
     <PhoneInput
       {...rest}
       value={value ? value.trim().replace(/^\+?/, "+") : undefined}
-      country={value ? undefined : defaultCountry}
+      // setting default country is commented as its not always accurate - Ref issue #15989
+      // country={value ? undefined : defaultCountry}
       enableSearch
       disableSearchIcon
       inputProps={{
