@@ -153,7 +153,7 @@ const Filter = (props: {
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -217,7 +217,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             />
           </div>
         ))}
