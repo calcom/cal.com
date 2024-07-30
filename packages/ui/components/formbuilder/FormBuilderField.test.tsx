@@ -197,6 +197,11 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
   }
 
   for (const { questionType, label, options } of multiOptionsQuestions) {
+    /*
+    when we get the invalid options from search params. should initialise it in form value with [Option 1, Option 2]
+    example if field options= [Option1 ,Option 2]
+    and search params =  [Option 1, Option 2]
+    */
     test(`should return 'true' when 'disableOnPrefill' is true and there is a match between the URL
        search parameter value and the form value for ${label} (${questionType})(positive case)`, () => {
       const field = {
@@ -227,6 +232,11 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
   }
 
   for (const { questionType, label, options } of multiOptionsQuestions) {
+    /*
+    when we get the invalid options from search params. should initialise it in form value with Option 1
+    example if field options= [Option1 ,Option 2]
+    and search params =  [Option 1, Option 3]
+    */
     test(`should return 'true' when 'disableOnPrefill' is true and there is a mismatch between the URL
        search parameter value and the form value for ${label} (${questionType})(positive negative case)`, () => {
       if (questionType !== "multiemail") {
@@ -259,6 +269,11 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
   }
 
   for (const { questionType, label, options } of multiOptionsQuestions) {
+    /*
+    when we get the invalid options from search params. don't initialise it in form values
+    example if field options= [Option1 ,Option 2]
+    and search params =  Option 3 
+    */
     test(`should return 'false' when 'disableOnPrefill' is true and there is a mismatch between the URL
        search parameter value and the form value for ${label} (${questionType})(negative case)`, () => {
       if (questionType !== "multiemail") {
@@ -291,6 +306,11 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
   }
 
   for (const { questionType, label, options } of multiOptionsQuestions) {
+    /*
+    when we get the invalid options from search params. don't initialise it in form values
+    example if field options= [Option1 ,Option 2]
+    and search params =  [Option 3, Option 4]
+    */
     test(`should return 'false' when 'disableOnPrefill' is true and there is a mismatch between the URL
        search parameter value and the form value for ${label} (${questionType})(negative case 2)`, () => {
       if (questionType === "multiemail") {
