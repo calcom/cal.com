@@ -88,23 +88,26 @@ export class OutputOrganizationsEventTypesService {
   }
 
   async transformHosts(
-    hosts: Host[],
+    databaseHosts: Host[],
     schedulingType: SchedulingType | null
   ): Promise<TeamEventTypeResponseHost[]> {
     if (!schedulingType) return [];
 
     const transformedHosts: TeamEventTypeResponseHost[] = [];
-    for (const host of hosts) {
-      const user = await this.usersRepository.findById(host.userId);
+    const databaseUsers = await this.usersRepository.findByIds(databaseHosts.map((host) => host.userId));
+
+    for (const databaseHost of databaseHosts) {
+      const databaseUser = databaseUsers.find((u) => u.id === databaseHost.userId);
       if (schedulingType === "ROUND_ROBIN") {
+        // note(Lauris): round robin is the only team event where mandatory (isFixed) and priority are used
         transformedHosts.push({
-          userId: host.userId,
-          name: user?.name || "",
-          mandatory: host.isFixed,
-          priority: getPriorityLabel(host.priority || 2),
+          userId: databaseHost.userId,
+          name: databaseUser?.name || "",
+          mandatory: databaseHost.isFixed,
+          priority: getPriorityLabel(databaseHost.priority || 2),
         });
       } else {
-        transformedHosts.push({ userId: host.userId, name: user?.name || "" });
+        transformedHosts.push({ userId: databaseHost.userId, name: databaseUser?.name || "" });
       }
     }
 
