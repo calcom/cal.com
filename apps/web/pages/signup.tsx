@@ -324,7 +324,7 @@ export default function Signup({
             {/* Header */}
             {errors.apiError && (
               <Alert
-                className="mb-2"
+                className="mb-3"
                 severity="error"
                 message={errors.apiError?.message}
                 data-testid="signup-error-message"
