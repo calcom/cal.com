@@ -28,10 +28,11 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
+import { handlePasteRoutingFormOptions } from "../../lib/handlePasteRoutingFormOptions";
 
 export { getServerSideProps };
+export type SelectOption = { placeholder?: string; value: string; id: string };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
-type SelectOption = { placeholder?: string; value: string; id: string };
 
 const PASTE_SPLIT_REGEX = /\n+/;
 export const FieldTypes = [
@@ -199,7 +200,7 @@ function Field({
 
     if (formattedValues.length > 1) {
       event.preventDefault();
-      const updatedOptions = [...options.slice(0, index), ...formattedValues, ...options.slice(index)];
+      const updatedOptions = handlePasteRoutingFormOptions(formattedValues, options, index);
       setOptions(updatedOptions);
     }
   };
