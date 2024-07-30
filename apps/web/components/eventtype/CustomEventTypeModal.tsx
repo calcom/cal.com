@@ -98,10 +98,12 @@ const CustomEventTypeModalForm: FC<CustomEventTypeModalFormProps> = (props) => {
               <p className="text-subtle mb-2 ml-1 font-medium">{t("booking_question_response_variables")}</p>
             )}
             {event.bookingFields &&
-              Object.keys(event.bookingFields).map((bookingfield) => (
-                <div className="mb-2.5 flex font-normal">
+              Object.keys(event.bookingFields).map((bookingfield, index) => (
+                <div key={index} className="mb-2.5 flex font-normal">
                   <p className="text-subtle ml-1 mr-5 w-32">{`{${bookingfield}}`}</p>
-                  <p className="text-emphasis">{event.bookingFields?.[bookingfield]?.toString()}</p>
+                  <p className="text-emphasis capitalize">
+                    {event.bookingFields?.[bookingfield]?.toString()}
+                  </p>
                 </div>
               ))}
           </div>
