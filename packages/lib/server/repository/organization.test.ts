@@ -8,7 +8,7 @@ vi.mock("./teamUtils", () => ({
   getParsedTeam: (org: any) => org,
 }));
 
-describe("Organization.findUniqueByMatchingAutoAcceptEmail", () => {
+describe("Organization.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail", () => {
   beforeEach(async () => {
     vi.resetAllMocks();
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment

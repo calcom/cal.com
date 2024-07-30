@@ -14,7 +14,7 @@ const OrganizationRepository = organizationMock.OrganizationRepository;
 
 export const organizationScenarios = {
   OrganizationRepository: {
-    findUniqueByMatchingAutoAcceptEmail: {
+    findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail: {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       fakeReturnOrganization: (org: any, forInput: any) => {
         OrganizationRepository.findUniqueNonPlatformOrgsByMatchingAutoAcceptEmail.mockImplementation(
