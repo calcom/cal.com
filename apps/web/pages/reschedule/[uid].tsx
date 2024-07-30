@@ -20,7 +20,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   const { uid: bookingUid, seatReferenceUid } = z
     .object({ uid: z.string(), seatReferenceUid: z.string().optional() })
     .parse(context.query);
-
+  const coepFlag = context.query["flag.coep"];
   const { uid, seatReferenceUid: maybeSeatReferenceUid } = await maybeGetBookingUidFromSeat(
     prisma,
     bookingUid
@@ -136,6 +136,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
 
+  // TODO: I think we should just forward all the query params here including coep flag
+  if (coepFlag) {
+    destinationUrl.set("flag.coep", coepFlag as string);
+  }
   return {
     redirect: {
       destination: `/${eventPage}?${destinationUrl.toString()}${
