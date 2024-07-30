@@ -317,16 +317,18 @@ describe("OAuth Client Users Endpoints", () => {
     let organization: Team;
     let team1: Team;
     let team2: Team;
+    let owner: User;
 
     let managedEventType1: EventType;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
+    let profileRepositoryFixture: ProfileRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
 
-    const userEmail = "oauth-client-user@gmail.com";
+    const userEmail = "oauth-client-users-user@gmail.com";
     const userTimeZone = "Europe/Rome";
 
     beforeAll(async () => {
@@ -342,10 +344,32 @@ describe("OAuth Client Users Endpoints", () => {
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
+      profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
         name: "Testy Organization",
         isOrganization: true,
+      });
+
+      owner = await userRepositoryFixture.create({
+        email: userEmail,
+        username: userEmail,
+        organization: { connect: { id: organization.id } },
+      });
+
+      await profileRepositoryFixture.create({
+        uid: `usr-${owner.id}`,
+        username: userEmail,
+        organization: {
+          connect: {
+            id: organization.id,
+          },
+        },
+        user: {
+          connect: {
+            id: owner.id,
+          },
+        },
       });
 
       oAuthClient1 = await createOAuthClient(organization.id);
@@ -513,6 +537,7 @@ describe("OAuth Client Users Endpoints", () => {
     afterAll(async () => {
       await oauthClientRepositoryFixture.delete(oAuthClient1.id);
       await teamRepositoryFixture.delete(organization.id);
+      await userRepositoryFixture.delete(owner.id);
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
       } catch (e) {

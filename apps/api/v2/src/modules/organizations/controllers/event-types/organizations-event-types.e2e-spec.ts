@@ -248,6 +248,8 @@ describe("Organizations Event Types Endpoints", () => {
             options: ["javascript", "python", "cobol"],
           },
         ],
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         schedulingType: "collective",
         hosts: [
           {

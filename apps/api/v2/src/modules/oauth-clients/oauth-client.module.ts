@@ -36,7 +36,6 @@ import { Global, Module } from "@nestjs/common";
   ],
   providers: [
     OAuthClientRepository,
-    OAuthClientCredentialsGuard,
     TokensRepository,
     OAuthFlowService,
     OAuthClientUsersService,
