@@ -248,7 +248,7 @@ export function getOrgConnectionInfo({
   if (team.parentId || isOrg) {
     orgId = team.parentId || team.id;
     if (email.split("@")[1] == orgAutoAcceptDomain) {
-      // We discourage self-served organizations from being able to auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
+      // We discourage self-served organizations from being able to use auto-accept feature by having a barrier of a fixed number of paying teams in the account for creating the organization
       // We can't put restriction of a published organization here because when we move teams during the onboarding of the organization, it isn't published at the moment and we really need those members to be auto-added
       // Further, sensitive operations like member editing and impersonating are disabled by default, unless reviewed by the ADMIN team
       autoAccept = !!orgVerified;
