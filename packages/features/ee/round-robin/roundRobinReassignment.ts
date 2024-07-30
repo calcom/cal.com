@@ -15,7 +15,9 @@ import {
   scheduleEmailReminder,
   deleteScheduledEmailReminder,
 } from "@calcom/features/ee/workflows/lib/reminders/emailReminderManager";
+import { scheduleWorkflowReminders } from "@calcom/features/ee/workflows/lib/reminders/reminderScheduler";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
+import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
 import logger from "@calcom/lib/logger";
 import { getLuckyUser } from "@calcom/lib/server";
 import { getTranslation } from "@calcom/lib/server/i18n";
@@ -470,6 +472,9 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
         trigger: WorkflowTriggerEvents.NEW_EVENT,
         OR: [
           {
+            isActiveOnAll: true,
+          },
+          {
             activeOn: {
               some: {
                 eventTypeId: eventTypeId,
@@ -494,30 +499,18 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
           where: {
             action: WorkflowActions.EMAIL_HOST,
           },
-          select: {
-            template: true,
-          },
         },
       },
     });
-    for (const workflow of newEventWorkflows) {
-      for (let i = 0; i < workflow.steps.length; i++) {
-        await scheduleEmailReminder({
-          evt: {
-            ...evt,
-            eventType,
-          },
-          action: WorkflowActions.EMAIL_HOST,
-          triggerEvent: workflow.trigger,
-          timeSpan: {
-            time: workflow.time,
-            timeUnit: workflow.timeUnit,
-          },
-          sendTo: reassignedRRHost.email,
-          template: workflow.steps[i].template,
-        });
-      }
-    }
+
+    const workflowEventMetadata = { videoCallUrl: getVideoCallUrlFromCalEvent(evt) };
+
+    await scheduleWorkflowReminders({
+      workflows: newEventWorkflows,
+      smsReminderNumber: null,
+      calendarEvent: { ...evt, metadata: workflowEventMetadata, eventType: { slug: eventType.slug } },
+      hideBranding: !!eventType?.owner?.hideBranding,
+    });
   }
 };
 
