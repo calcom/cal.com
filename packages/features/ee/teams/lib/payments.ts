@@ -3,7 +3,13 @@ import { z } from "zod";
 
 import { getStripeCustomerIdFromUserId } from "@calcom/app-store/stripepayment/lib/customer";
 import stripe from "@calcom/app-store/stripepayment/lib/server";
-import { IS_PRODUCTION, MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
+import {
+  IS_PRODUCTION,
+  MINIMUM_NUMBER_OF_ORG_SEATS,
+  ORGANIZATION_MIN_SEATS,
+  ORGANIZATION_SELF_SERVE_PRICE,
+  WEBAPP_URL,
+} from "@calcom/lib/constants";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
@@ -18,9 +24,6 @@ const teamPaymentMetadataSchema = z.object({
   subscriptionItemId: z.string(),
   orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
 });
-
-const DEFAULT_SELF_SERVE_ORG_SEATS = MINIMUM_NUMBER_OF_ORG_SEATS; // Minimum number of seats for an organization 30
-const DEFAULT_SELF_SERVE_ORG_PRICE_PER_SEAT = 3700; // $37.00 per seat
 
 /** Used to prevent double charges for the same team */
 export const checkIfTeamPaymentRequired = async ({ teamId = -1 }) => {
@@ -124,11 +127,7 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (
-      isOrg &&
-      pricePerSeat === DEFAULT_SELF_SERVE_ORG_PRICE_PER_SEAT &&
-      seats < DEFAULT_SELF_SERVE_ORG_SEATS
-    ) {
+    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE && seats < ORGANIZATION_MIN_SEATS) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
