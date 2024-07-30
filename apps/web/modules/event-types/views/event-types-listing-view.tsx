@@ -227,10 +227,6 @@ export const EventTypeList = ({
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       // await utils.viewer.eventTypes.invalidate();
     },
-    onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      utils.viewer.eventTypes.invalidate();
-    },
   });
 
   const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
@@ -262,10 +258,6 @@ export const EventTypeList = ({
       }
       console.error(err.message);
     },
-    onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      // utils.viewer.eventTypes.invalidate();
-    },
   });
 
   // TODO: fix for multiple pages
@@ -285,12 +277,11 @@ export const EventTypeList = ({
         ? pageNo + 1
         : pageNo;
 
-    newOrder[pageNo].eventTypes.splice(index % LIMIT, 1);
-    newOrder[newPageNo].eventTypes.splice(
-      increment === -1 ? 0 : newOrder[newPageNo].eventTypes.length,
-      0,
-      currentPositionEventType
-    );
+    const newIdx = (index + increment) % LIMIT;
+    const newPositionEventType = newOrder[newPageNo].eventTypes[newIdx];
+
+    newOrder[pageNo].eventTypes[index % LIMIT] = newPositionEventType;
+    newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
 
     await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
