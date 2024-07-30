@@ -1,5 +1,3 @@
-import type { OnboardingPageProps } from "@pages/apps/installation/[[...step]]";
-import { STEPS, type TEventType } from "@pages/apps/installation/[[...step]]";
 import type { GetServerSidePropsContext } from "next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { z } from "zod";
@@ -14,6 +12,9 @@ import { CAL_URL } from "@calcom/lib/constants";
 import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import prisma from "@calcom/prisma";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+
+import { STEPS } from "~/apps/installation/lib/steps";
+import type { TEventType, OnboardingPageProps } from "~/apps/installation/lib/types";
 
 const getUser = async (userId: number) => {
   const user = await prisma.user.findUnique({

@@ -1,3 +1,5 @@
+"use client";
+
 import Head from "next/head";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,9 +9,7 @@ import type { z } from "zod";
 
 import checkForMultiplePaymentApps from "@calcom/app-store/_utils/payments/checkForMultiplePaymentApps";
 import useAddAppMutation from "@calcom/app-store/_utils/useAddAppMutation";
-import type { EventTypeAppSettingsComponentProps, EventTypeModel } from "@calcom/app-store/types";
 import type { LocationObject } from "@calcom/core/location";
-import type { LocationFormValues } from "@calcom/features/eventtypes/lib/types";
 import { AppOnboardingSteps } from "@calcom/lib/apps/appOnboardingSteps";
 import { getAppOnboardingUrl } from "@calcom/lib/apps/getAppOnboardingUrl";
 import { WEBAPP_URL } from "@calcom/lib/constants";
@@ -17,40 +17,24 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
-import type { AppMeta } from "@calcom/types/App";
 import { Form, Steps, showToast } from "@calcom/ui";
 
 import { getServerSideProps } from "@lib/apps/installation/getServerSideProps";
 import { HttpError } from "@lib/core/http/error";
 
 import PageWrapper from "@components/PageWrapper";
-import type { PersonalAccountProps, TeamsProp } from "@components/apps/installation/AccountsStepCard";
 import { AccountsStepCard } from "@components/apps/installation/AccountsStepCard";
 import { ConfigureStepCard } from "@components/apps/installation/ConfigureStepCard";
 import { EventTypesStepCard } from "@components/apps/installation/EventTypesStepCard";
 import { StepHeader } from "@components/apps/installation/StepHeader";
 
-export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
-  Pick<
-    EventTypeModel,
-    "metadata" | "schedulingType" | "slug" | "requiresConfirmation" | "position" | "destinationCalendar"
-  > & {
-    selected: boolean;
-    locations: LocationFormValues["locations"];
-    bookingFields?: LocationFormValues["bookingFields"];
-  };
-
-export type TEventTypesForm = {
-  eventTypes: TEventType[];
-};
-
-export const STEPS = [
-  AppOnboardingSteps.ACCOUNTS_STEP,
-  AppOnboardingSteps.EVENT_TYPES_STEP,
-  AppOnboardingSteps.CONFIGURE_STEP,
-] as const;
-
-type StepType = (typeof STEPS)[number];
+import { STEPS } from "~/apps/installation/lib/steps";
+import type {
+  TEventType,
+  TEventTypesForm,
+  OnboardingPageProps,
+  StepType,
+} from "~/apps/installation/lib/types";
 
 type StepObj = Record<
   StepType,
@@ -60,19 +44,6 @@ type StepObj = Record<
     stepNumber: number;
   }
 >;
-
-export type OnboardingPageProps = {
-  appMetadata: AppMeta;
-  step: StepType;
-  teams?: TeamsProp;
-  personalAccount: PersonalAccountProps;
-  eventTypes?: TEventType[];
-  userName: string;
-  credentialId?: number;
-  showEventTypesStep: boolean;
-  isConferencing: boolean;
-  installableOnTeams: boolean;
-};
 
 type TUpdateObject = {
   id: number;

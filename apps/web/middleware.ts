@@ -162,6 +162,10 @@ export const config = {
     "/future/video/:path*",
     "/teams",
     "/future/teams/",
+    "/apps/installation/accounts",
+    "/future/installation/accounts",
+    "/apps/installation/event-types",
+    "/future/apps/installation/event-types",
   ],
 };
 
