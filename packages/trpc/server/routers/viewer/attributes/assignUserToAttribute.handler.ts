@@ -166,24 +166,40 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
         },
       });
     } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
-      // Get tha attribute type for this attribute
-      const attributeType = attributes.find((attr) => attr.id === attribute.id)?.type;
       const options = attribute.options;
 
-      if (attributeType === "SINGLE_SELECT") {
-        prisma.attributeToUser.deleteMany({
-          where: {
-            attributeOption: {
-              attribute: {
-                id: attribute.id,
-              },
+      // Get all users attributes for this attribute
+      await prisma.attributeToUser.findMany({
+        where: {
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
             },
           },
-        });
-      }
+          memberId: membership.id,
+        },
+      });
+
+      // Delete all users attributes for this attribute that are not in the options list
+      await prisma.attributeToUser.deleteMany({
+        where: {
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
+            },
+          },
+          memberId: membership.id,
+          NOT: {
+            id: {
+              in: options.map((option) => option.value),
+            },
+          },
+        },
+      });
 
       options?.map(async (option) => {
-        return await prisma.attributeToUser.upsert({
+        // Assign the attribute option to the user
+        await prisma.attributeToUser.upsert({
           where: {
             memberId_attributeOptionId: {
               memberId: membership.id,
