@@ -9,9 +9,8 @@
   "scripts": {
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "trpc:bake": "yarn trpc:clean && yarn trpc:generate",
-    "trpc:generate": "yarn tsc --project tsconfig.json",
-    "trpc:clean": "rm -rf ./routers/types"
+    "build": "yarn trpc:generate || true",
+    "trpc:generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.15",
