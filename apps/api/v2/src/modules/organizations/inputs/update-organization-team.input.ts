@@ -1,9 +1,9 @@
 import { IsBoolean, IsOptional, IsString, IsUrl, Length } from "class-validator";
 
-export class CreateOrgTeamDto {
+export class UpdateOrgTeamDto {
   @IsString()
   @Length(1)
-  readonly name!: string;
+  readonly name?: string;
 
   @IsOptional()
   @IsString()
@@ -72,8 +72,4 @@ export class CreateOrgTeamDto {
   @IsOptional()
   @IsString()
   readonly weekStart?: string = "Sunday";
-
-  @IsOptional()
-  @IsBoolean()
-  readonly autoAcceptCreator?: boolean = true;
 }
