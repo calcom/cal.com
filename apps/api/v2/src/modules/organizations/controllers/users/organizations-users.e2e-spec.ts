@@ -114,7 +114,7 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
     let profileRepositoryFixture: ProfileRepositoryFixture;
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
 
     const userEmail = "admin1@org.com";

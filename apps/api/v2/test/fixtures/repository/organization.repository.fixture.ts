@@ -4,16 +4,16 @@ import { TestingModule } from "@nestjs/testing";
 import { Prisma, Team } from "@prisma/client";
 
 export class OrganizationRepositoryFixture {
-  private prismaReadClient: PrismaReadService["prisma"];
+  private primaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.prismaReadClient = module.get(PrismaReadService).prisma;
+    this.primaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
   async get(teamId: Team["id"]) {
-    return this.prismaReadClient.team.findFirst({ where: { id: teamId } });
+    return this.primaReadClient.team.findFirst({ where: { id: teamId } });
   }
 
   async create(data: Prisma.TeamCreateInput) {

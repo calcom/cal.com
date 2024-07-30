@@ -111,7 +111,7 @@ describe("Organizations Schedules Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 

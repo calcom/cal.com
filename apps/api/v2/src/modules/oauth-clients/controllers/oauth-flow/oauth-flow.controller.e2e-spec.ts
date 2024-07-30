@@ -15,6 +15,7 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withNextAuth } from "test/utils/withNextAuth";
@@ -56,7 +57,7 @@ describe("OAuthFlow Endpoints", () => {
     let app: INestApplication;
 
     let usersRepositoryFixtures: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
 
     let user: User;

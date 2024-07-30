@@ -211,7 +211,7 @@ describe("Organizations Memberships Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
 
     let org: Team;
