@@ -1,8 +1,10 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetTeam } from "@/modules/auth/decorators/get-team/get-team.decorator";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
@@ -10,7 +12,6 @@ import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organiza
 import {
   OrgMeTeamOutputDto,
   OrgMeTeamsOutputResponseDto,
-  OrgTeamOutputDto,
   OrgTeamOutputResponseDto,
   OrgTeamsOutputResponseDto,
 } from "@/modules/organizations/outputs/organization-team.output";
@@ -32,6 +33,7 @@ import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
 
@@ -39,7 +41,7 @@ import { Team } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/teams",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard)
 @DocsTags("Organizations Teams")
 export class OrganizationsTeamsController {
   constructor(private organizationsTeamsService: OrganizationsTeamsService) {}
@@ -47,6 +49,7 @@ export class OrganizationsTeamsController {
   @Get()
   @ApiOperation({ summary: "Get all the teams of an organization." })
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination
@@ -62,6 +65,7 @@ export class OrganizationsTeamsController {
   @Get("/me")
   @ApiOperation({ summary: "Get the organization's teams user is a member of" })
   @Roles("ORG_MEMBER")
+  @PlatformPlan("ESSENTIALS")
   async getMyTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Query() queryParams: SkipTakePagination,
@@ -88,6 +92,7 @@ export class OrganizationsTeamsController {
 
   @UseGuards(IsTeamInOrg)
   @Roles("TEAM_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/:teamId")
   @ApiOperation({ summary: "Get a team of the organization by ID." })
   async getTeam(@GetTeam() team: Team): Promise<OrgTeamOutputResponseDto> {
@@ -99,6 +104,7 @@ export class OrganizationsTeamsController {
 
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Delete("/:teamId")
   @ApiOperation({ summary: "Delete a team of the organization by ID." })
   async deleteTeam(
@@ -114,6 +120,7 @@ export class OrganizationsTeamsController {
 
   @UseGuards(IsTeamInOrg)
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Patch("/:teamId")
   @ApiOperation({ summary: "Update a team of the organization by ID." })
   async updateTeam(
@@ -130,6 +137,7 @@ export class OrganizationsTeamsController {
 
   @Post()
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @ApiOperation({ summary: "Create a team for an organization." })
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
