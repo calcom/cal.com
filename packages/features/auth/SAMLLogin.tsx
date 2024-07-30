@@ -4,6 +4,7 @@ import { useFormContext } from "react-hook-form";
 import z from "zod";
 
 import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { emailRegex } from "@calcom/lib/emailSchema";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button } from "@calcom/ui";
@@ -15,7 +16,7 @@ interface Props {
 }
 
 const schema = z.object({
-  email: z.string().email({ message: "Please enter a valid email" }),
+  email: z.string().regex(emailRegex, { message: "Please enter a valid email" }),
 });
 
 export function SAMLLogin({ samlTenantID, samlProductID, setErrorMessage }: Props) {
