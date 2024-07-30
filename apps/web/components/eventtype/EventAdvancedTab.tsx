@@ -460,6 +460,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                     return (
                       <div data-testid="add-single-use-link" className="mb-4 flex items-center" key={key}>
                         <TextField
+                          data-testid={`single-use-link-${key}`}
                           containerClassName="w-full"
                           disabled
                           labelSrOnly
@@ -483,6 +484,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                           }
                         />
                         <Button
+                          data-testid={`remove-single-use-link-${key}`}
                           variant="icon"
                           StartIcon="trash-2"
                           color="destructive"
@@ -492,7 +494,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                       </div>
                     );
                   })}
-                <Button color="minimal" StartIcon="plus" onClick={addSingleUseLink}>
+                <Button
+                  color="minimal"
+                  StartIcon="plus"
+                  onClick={addSingleUseLink}
+                  data-testid="add-single-use-link-button">
                   {t("add_a_single_use_link")}
                 </Button>
               </ul>
