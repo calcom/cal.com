@@ -284,10 +284,14 @@ describe("OAuth Client Users Endpoints", () => {
   describe("User team even-types", () => {
     let app: INestApplication;
 
-    let oAuthClient: PlatformOAuthClient;
+    let oAuthClient1: PlatformOAuthClient;
+    let oAuthClient2: PlatformOAuthClient;
+
     let organization: Team;
-    let team: Team;
-    let managedEventType: EventType;
+    let team1: Team;
+    let team2: Team;
+
+    let managedEventType1: EventType;
     let userRepositoryFixture: UserRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
     let teamRepositoryFixture: TeamRepositoryFixture;
@@ -313,20 +317,32 @@ describe("OAuth Client Users Endpoints", () => {
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
 
       organization = await teamRepositoryFixture.create({
-        name: "Test Organization",
+        name: "Testy Organization",
         isOrganization: true,
       });
 
-      team = await teamRepositoryFixture.create({
-        name: "Test org team",
+      oAuthClient1 = await createOAuthClient(organization.id);
+      oAuthClient2 = await createOAuthClient(organization.id);
+
+      team1 = await teamRepositoryFixture.create({
+        name: "Testy org team",
         isOrganization: false,
         parent: { connect: { id: organization.id } },
+        createdByOAuthClient: { connect: { id: oAuthClient1.id } },
       });
 
+      team2 = await teamRepositoryFixture.create({
+        name: "Testy org team 2",
+        isOrganization: false,
+        parent: { connect: { id: organization.id } },
+        createdByOAuthClient: { connect: { id: oAuthClient2.id } },
+      });
+
+      // note(Lauris): team1 team event-types
       await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "COLLECTIVE",
         team: {
-          connect: { id: team.id },
+          connect: { id: team1.id },
         },
         title: "Collective Event Type",
         slug: "collective-event-type",
@@ -336,10 +352,10 @@ describe("OAuth Client Users Endpoints", () => {
         locations: [],
       });
 
-      managedEventType = await eventTypesRepositoryFixture.createTeamEventType({
+      managedEventType1 = await eventTypesRepositoryFixture.createTeamEventType({
         schedulingType: "MANAGED",
         team: {
-          connect: { id: team.id },
+          connect: { id: team1.id },
         },
         title: "Managed Event Type",
         slug: "managed-event-type",
@@ -349,7 +365,32 @@ describe("OAuth Client Users Endpoints", () => {
         locations: [],
       });
 
-      oAuthClient = await createOAuthClient(organization.id);
+      // note(Lauris): team2 team event-types
+      await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "COLLECTIVE",
+        team: {
+          connect: { id: team2.id },
+        },
+        title: "Collective Event Type team 2",
+        slug: "collective-event-type-team-2",
+        length: 30,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
+
+      await eventTypesRepositoryFixture.createTeamEventType({
+        schedulingType: "MANAGED",
+        team: {
+          connect: { id: team2.id },
+        },
+        title: "Managed Event Type team 2",
+        slug: "managed-event-type-team-2",
+        length: 60,
+        assignAllTeamMembers: true,
+        bookingFields: [],
+        locations: [],
+      });
 
       await app.init();
     });
@@ -370,10 +411,10 @@ describe("OAuth Client Users Endpoints", () => {
     it("should be defined", () => {
       expect(oauthClientRepositoryFixture).toBeDefined();
       expect(userRepositoryFixture).toBeDefined();
-      expect(oAuthClient).toBeDefined();
+      expect(oAuthClient1).toBeDefined();
     });
 
-    it(`/POST`, async () => {
+    it(`should create managed user and update team event-types of OAuthClient marked as assignAllTeamMembers: true`, async () => {
       const requestBody: CreateManagedUserInput = {
         email: userEmail,
         timeZone: userTimeZone,
@@ -383,8 +424,8 @@ describe("OAuth Client Users Endpoints", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(`/api/v2/oauth-clients/${oAuthClient.id}/users`)
-        .set("x-cal-secret-key", oAuthClient.secret)
+        .post(`/api/v2/oauth-clients/${oAuthClient1.id}/users`)
+        .set("x-cal-secret-key", oAuthClient1.secret)
         .send(requestBody)
         .expect(201);
 
@@ -400,7 +441,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(responseBody.data).toBeDefined();
 
       await userHasCorrectEventTypes(responseBody.data.user.id);
-      await teamHasCorrectEventTypes(team.id);
+      await teamHasCorrectEventTypes(team1.id);
     });
 
     async function userHasCorrectEventTypes(userId: number) {
@@ -409,7 +450,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(eventTypes?.length).toEqual(3);
 
       // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
 
       // note(Lauris): default event types
       expect(
@@ -426,7 +467,7 @@ describe("OAuth Client Users Endpoints", () => {
       expect(eventTypes?.length).toEqual(2);
 
       // note(Lauris): managed event-types with assignAllTeamMembers: true
-      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType.slug)).toBeTruthy();
+      expect(eventTypes?.find((eventType) => eventType.slug === managedEventType1.slug)).toBeTruthy();
 
       // note(Lauris): check if managed user added to collective event-type hosts given that it has assignAllTeamMembers: true
       const collective = eventTypes?.find((eventType) => eventType.schedulingType === "COLLECTIVE");
@@ -437,7 +478,7 @@ describe("OAuth Client Users Endpoints", () => {
     }
 
     afterAll(async () => {
-      await oauthClientRepositoryFixture.delete(oAuthClient.id);
+      await oauthClientRepositoryFixture.delete(oAuthClient1.id);
       await teamRepositoryFixture.delete(organization.id);
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);

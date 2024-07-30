@@ -4,7 +4,6 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
 
-import { CreateTeamEventTypeInput_2024_06_14 } from "@calcom/platform-types";
 import { Prisma } from "@calcom/prisma/client";
 
 export class EventTypesRepositoryFixture {

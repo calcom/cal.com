@@ -41,6 +41,25 @@ export class OrganizationsTeamsRepository {
     });
   }
 
+  async createPlatformOrgTeam(organizationId: number, oAuthClientId: string, data: CreateOrgTeamDto) {
+    return this.dbRead.prisma.team.create({
+      data: {
+        ...data,
+        parentId: organizationId,
+        createdByOAuthClientId: oAuthClientId,
+      },
+    });
+  }
+
+  async getPlatformOrgTeams(organizationId: number, oAuthClientId: string) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+        createdByOAuthClientId: oAuthClientId,
+      },
+    });
+  }
+
   async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
     return this.dbRead.prisma.team.update({
       data: { ...data },

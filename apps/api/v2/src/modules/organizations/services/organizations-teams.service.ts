@@ -50,10 +50,41 @@ export class OrganizationsTeamsService {
     return team;
   }
 
+  async createPlatformOrgTeam(
+    organizationId: number,
+    oAuthClientId: string,
+    data: CreateOrgTeamDto,
+    user: UserWithProfile
+  ) {
+    const { autoAcceptCreator, ...rest } = data;
+
+    const team = await this.organizationsTeamRepository.createPlatformOrgTeam(
+      organizationId,
+      oAuthClientId,
+      rest
+    );
+
+    if (user.role !== "ADMIN") {
+      await this.membershipsRepository.createMembership(team.id, user.id, "OWNER", !!autoAcceptCreator);
+    }
+    return team;
+  }
+
   async addUserToTeamEvents(userId: number, organizationId: number) {
     const orgTeams = await this.organizationsTeamRepository.findOrgTeams(organizationId);
 
     for (const team of orgTeams) {
+      await updateNewTeamMemberEventTypes(userId, team.id);
+    }
+  }
+
+  async addUserToPlatformTeamEvents(userId: number, organizationId: number, oAuthClientId: string) {
+    const oAuthClientTeams = await this.organizationsTeamRepository.getPlatformOrgTeams(
+      organizationId,
+      oAuthClientId
+    );
+
+    for (const team of oAuthClientTeams) {
       await updateNewTeamMemberEventTypes(userId, team.id);
     }
   }
