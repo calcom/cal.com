@@ -48,15 +48,18 @@ const useEventTypesAction = () => {
     }
   );
 
-  const eventTypeActions: Action[] = data?.pages?.flatMap((page) => {
-    return page?.eventTypes?.map((item) => ({
-      id: `event-type-${item.id}`,
-      name: item.title,
-      section: "event_types_page_title",
-      keywords: "event types",
-      perform: () => router.push(`/event-types/${item.id}`),
-    }));
-  });
+  const eventTypeActions: Action[] =
+    data?.pages?.flatMap((page) => {
+      return (
+        page?.eventTypes?.map((item) => ({
+          id: `event-type-${item.id}`,
+          name: item.title,
+          section: "event_types_page_title",
+          keywords: "event types",
+          perform: () => router.push(`/event-types/${item.id}`),
+        })) ?? []
+      );
+    }) ?? [];
 
   const actions = eventTypeActions?.length ? eventTypeActions : [];
 
