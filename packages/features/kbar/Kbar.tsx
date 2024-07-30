@@ -48,7 +48,7 @@ const useEventTypesAction = () => {
     }
   );
 
-  const eventTypeActions: Action[] = data?.pages?.map((page) => {
+  const eventTypeActions: Action[] = data?.pages?.flatMap((page) => {
     return page?.eventTypes?.map((item) => ({
       id: `event-type-${item.id}`,
       name: item.title,

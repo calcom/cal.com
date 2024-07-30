@@ -65,13 +65,6 @@ type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["ge
 type EventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
 type EventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 
-// interface EventTypeListHeadingProps {
-//   profile: EventTypeGroupProfile;
-//   membershipCount: number;
-//   teamId?: number | null;
-//   bookerUrl: string;
-// }
-
 const LIMIT = 10;
 
 interface EventTypeListProps {
@@ -223,9 +216,8 @@ export const EventTypeList = ({
   const mutation = trpc.viewer.eventTypeOrder.useMutation({
     onError: async (err) => {
       console.error(err.message);
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
       // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      // await utils.viewer.eventTypes.invalidate();
+      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
     },
   });
 
@@ -260,7 +252,6 @@ export const EventTypeList = ({
     },
   });
 
-  // TODO: fix for multiple pages
   async function moveEventType(index: number, increment: 1 | -1) {
     if (!pages) return;
     const newOrder = pages;
@@ -746,66 +737,6 @@ export const EventTypeList = ({
   );
 };
 
-// const EventTypeListHeading = ({
-//   profile,
-//   membershipCount,
-//   teamId,
-//   bookerUrl,
-// }: EventTypeListHeadingProps): JSX.Element => {
-//   const { t } = useLocale();
-//   const router = useRouter();
-
-//   const publishTeamMutation = trpc.viewer.teams.publish.useMutation({
-//     onSuccess(data) {
-//       router.push(data.url);
-//     },
-//     onError: (error) => {
-//       showToast(error.message, "error");
-//     },
-//   });
-
-//   return (
-//     <div className="mb-4 flex items-center space-x-2">
-//       <Avatar
-//         alt={profile.name || ""}
-//         href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-//         imageSrc={profile.image}
-//         size="md"
-//         className="mt-1 inline-flex justify-center"
-//       />
-//       <div>
-//         <Link
-//           href={teamId ? `/settings/teams/${teamId}/profile` : "/settings/my-account/profile"}
-//           className="text-emphasis font-bold">
-//           {profile.name || ""}
-//         </Link>
-//         {membershipCount && teamId && (
-//           <span className="text-subtle relative -top-px me-2 ms-2 text-xs">
-//             <Link href={`/settings/teams/${teamId}/members`}>
-//               <Badge variant="gray">
-//                 <Icon name="users" className="-mt-px mr-1 inline h-3 w-3" />
-//                 {membershipCount}
-//               </Badge>
-//             </Link>
-//           </span>
-//         )}
-//         {profile.slug && (
-//           <Link href={`${bookerUrl}/${profile.slug}`} className="text-subtle block text-xs">
-//             {`${bookerUrl.replace("https://", "").replace("http://", "")}/${profile.slug}`}
-//           </Link>
-//         )}
-//       </div>
-//       {!profile.slug && !!teamId && (
-//         <button onClick={() => publishTeamMutation.mutate({ teamId })}>
-//           <Badge variant="gray" className="-ml-2 mb-1">
-//             {t("upgrade")}
-//           </Badge>
-//         </button>
-//       )}
-//     </div>
-//   );
-// };
-
 const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
   const { t } = useLocale();
 
@@ -905,19 +836,6 @@ const Main = ({
 
   return (
     <>
-      {/* {eventTypeGroups.length > 1 || isFilteredByOnlyOneItem ? (
-        <MobileTeamsTab eventTypeGroups={eventTypeGroups} />
-      ) : (
-        eventTypeGroups.length === 1 && (
-          <EventTypeList
-            types={eventTypeGroups[0]?.eventTypes}
-            group={eventTypeGroups[0]}
-            groupIndex={0}
-            bookerUrl={eventTypeGroups[0].bookerUrl}
-            readOnly={eventTypeGroups[0].metadata.readOnly}
-          />
-        )
-      )} */}
       {eventTypeGroups.length >= 1 && (
         <>
           <HorizontalTabs tabs={tabs} /> <MobileTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
