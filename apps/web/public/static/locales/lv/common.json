@@ -124,5 +124,6 @@
   "already_have_an_account": "Vai jums jau ir konts?",
   "create_account": "Izveidot Kontu",
   "confirm_password": "Apstiprināt paroli",
-  "already_have_account": "Vai jums jau ir konts?"
+  "already_have_account": "Vai jums jau ir konts?",
+  "signing_up_terms": "Turpinot, jūs piekrītat <0>noteikumiem</0> un <1>privātuma politikai<1>",
 }

@@ -2100,5 +2100,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Вас пригласили в команду {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} пригласил(а) вас в команду в `{{teamName}}` в приложении {{appName}}. {{appName}} — это гибкий планировщик событий, с помощью которого пользователи и целые команды могут планировать встречи без утомительной переписки по электронной почте.",
   "privacy": "Конфиденциальность",
+  "signing_up_terms": "Продолжая, вы соглашаетесь с <0>Терминами</0> и <1>Политикой конфиденциальности<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

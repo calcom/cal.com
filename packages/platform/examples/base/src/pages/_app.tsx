@@ -1,14 +1,17 @@
+import type { Data } from "@/pages/api/get-managed-users";
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Poppins } from "next/font/google";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Select from "react-select";
 
 import { CalProvider, BookerEmbed } from "@calcom/atoms";
 import "@calcom/atoms/globals.min.css";
 
 const poppins = Poppins({ subsets: ["latin"], weight: ["400", "800"] });
+type TUser = Data["users"][0];
 
 function generateRandomEmail() {
   const localPartLength = 10;
@@ -30,8 +33,21 @@ export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
   const [username, setUsername] = useState("");
+  const [selectedUser, setSelectedUser] = useState<TUser | null>(null);
+  const [options, setOptions] = useState([]);
+
   const router = useRouter();
   const pathname = usePathname();
+  useEffect(() => {
+    fetch("/api/get-managed-users", {
+      method: "get",
+    }).then(async (res) => {
+      const data = await res.json();
+      setOptions(
+        data.users.map((item: Data["users"][0]) => ({ ...item, value: item.id, label: item.username }))
+      );
+    });
+  }, []);
 
   useEffect(() => {
     const randomEmailOne = generateRandomEmail();
@@ -50,8 +66,19 @@ export default function App({ Component, pageProps }: AppProps) {
       });
     }
   }, []);
+  useEffect(() => {
+    if (!!selectedUser) {
+      setAccessToken(selectedUser.accessToken);
+      setUserEmail(selectedUser.email);
+      setUsername(selectedUser.username);
+    }
+  }, [selectedUser]);
+
   return (
     <div className={`${poppins.className} text-black`}>
+      {options.length > 0 && (
+        <Select defaultValue={selectedUser} onChange={setSelectedUser} options={options} />
+      )}
       <CalProvider
         accessToken={accessToken}
         // eslint-disable-next-line turbo/no-undeclared-env-vars

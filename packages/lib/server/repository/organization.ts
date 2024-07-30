@@ -173,10 +173,16 @@ export class OrganizationRepository {
         isPlatform: false,
         organizationSettings: {
           orgAutoAcceptEmail: emailDomain,
+          isOrganizationVerified: true,
+          isAdminReviewed: true,
         },
       },
     });
     if (orgs.length > 1) {
+      logger.error(
+        "Multiple organizations found with the same auto accept email domain",
+        safeStringify({ orgs, emailDomain })
+      );
       // Detect and fail just in case this situation arises. We should really identify the problem in this case and fix the data.
       throw new Error("Multiple organizations found with the same auto accept email domain");
     }
