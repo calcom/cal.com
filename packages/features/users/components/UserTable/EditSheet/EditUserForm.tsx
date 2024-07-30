@@ -147,7 +147,6 @@ export function EditForm({
         className="flex h-full flex-col"
         handleSubmit={(values) => {
           setMutationLoading(true);
-          console.log(values);
           // @ts-expect-error they exist but for some reason
           if (values.attributes) {
             assignAttributesMutation.mutate({
@@ -166,6 +165,7 @@ export function EditForm({
             bio: values.bio,
             timeZone: values.timeZone,
           });
+          setEditMode(false);
         }}>
         <SheetHeader>
           <div className="flex flex-col gap-2">
@@ -283,7 +283,7 @@ function AttributesList(props: { selectedUserId: number }) {
       const key = `attributes.${index}` as const;
 
       if (!attr) {
-        acc[key] = { id: enabledAttr.id };
+        acc[key] = { id: enabledAttr.id, value: "", options: [] };
       } else if (attr.type === "MULTI_SELECT") {
         acc[key] = {
           id: attr.id,
@@ -326,6 +326,7 @@ function AttributesList(props: { selectedUserId: number }) {
             key={attr.id}
             defaultValue={defaultValues[`attributes.${index}`]}
             render={({ field }) => {
+              console.log(field.value);
               return (
                 <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
@@ -354,7 +355,7 @@ function AttributesList(props: { selectedUserId: number }) {
                       }}
                       label={attr.name}
                       options={getOptionsByAttributeId(attr.id)}
-                      value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.name}
+                      value={attr.type === "MULTI_SELECT" ? field.value?.options : field.value?.options[0]}
                       onChange={(value) => {
                         if (attr.type === "MULTI_SELECT") {
                           field.onChange({

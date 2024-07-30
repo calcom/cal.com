@@ -1,4 +1,3 @@
-import logger from "@calcom/lib/logger";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -14,7 +13,15 @@ type GetOptions = {
   input: ZAssignUserToAttribute;
 };
 
-const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
+function isOrgAdminOrThrow(ctx: GetOptions["ctx"]) {
+  const org = ctx.user.organization;
+  if (!org.isOrgAdmin) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be an admin of the organization to use this feature",
+    });
+  }
+}
 
 const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
@@ -26,12 +33,7 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  if (!org.isOrgAdmin) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be an admin of the organization to modify attributes",
-    });
-  }
+  isOrgAdminOrThrow(ctx);
 
   // TODO: We need to also empty the users assignemnts for IDs that are not in in this filteredAttributes list
   // Filter out attributes that don't have a value or options set
@@ -102,14 +104,16 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  const promises: Promise<{ id: string }>[] = [];
+  // const promises: Promise<{ id: string }>[] = [];
 
   filteredAttributes.map(async (attribute) => {
-    if (attribute.value && (!attribute.options || attribute.options.length === 0)) {
+    console.log(attribute);
+    // TEXT, NUMBER
+    if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
 
-      // Clean up any existing assignments for this attribute - we don't want to keep old assignments as these fields only have ONE value
-      await prisma.attributeToUser.deleteMany({
+      // Check if if it is already the value
+      const existingAttributeOption = await prisma.attributeToUser.findFirst({
         where: {
           memberId: membership.id,
           attributeOption: {
@@ -118,9 +122,31 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
             },
           },
         },
+        select: {
+          id: true,
+          attributeOption: {
+            select: {
+              id: true,
+            },
+          },
+        },
       });
 
-      const attributeOption = prisma.attributeOption.create({
+      if (existingAttributeOption) {
+        // Update the value if it already exists
+        await prisma.attributeOption.update({
+          where: {
+            id: existingAttributeOption.attributeOption.id,
+          },
+          data: {
+            value: valueAsString,
+            slug: slugify(valueAsString),
+          },
+        });
+        return;
+      }
+
+      await prisma.attributeOption.create({
         data: {
           value: valueAsString,
           slug: slugify(valueAsString),
@@ -139,8 +165,6 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
           id: true,
         },
       });
-
-      promises.push(attributeOption);
     } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
       // Get tha attribute type for this attribute
       const attributeType = attributes.find((attr) => attr.id === attribute.id)?.type;
@@ -158,37 +182,42 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
         });
       }
 
-      const selectOptionsToCreate = options?.map(async (option) => {
-        return prisma.attributeToUser.create({
-          data: {
+      options?.map(async (option) => {
+        return await prisma.attributeToUser.upsert({
+          where: {
+            memberId_attributeOptionId: {
+              memberId: membership.id,
+              attributeOptionId: option.value,
+            },
+          },
+          create: {
             memberId: membership.id,
             attributeOptionId: option.value,
           },
+          update: {}, // No update needed if it already exists
           select: {
             id: true,
           },
         });
       });
-
-      promises.push(...selectOptionsToCreate);
     }
   });
 
-  try {
-    const results = await Promise.allSettled(promises);
+  // try {
+  //   const results = await Promise.allSettled(promises);
 
-    if (results.some((result) => result.status === "rejected")) {
-      logger.error(`When assigning attributes to user ${input.userId}, some promises were rejected`, {
-        userId: input.userId,
-        attributes: input.attributes,
-        error: results.filter((result) => result.status === "rejected").map((result) => result.reason),
-      });
-    }
+  //   if (results.some((result) => result.status === "rejected")) {
+  //     logger.error(`When assigning attributes to user ${input.userId}, some promises were rejected`, {
+  //       userId: input.userId,
+  //       attributes: input.attributes,
+  //       error: results.filter((result) => result.status === "rejected").map((result) => result.reason),
+  //     });
+  //   }
 
-    return results;
-  } catch (error) {
-    throw error; // Re-throw the error for the caller to handle
-  }
+  //   return results;
+  // } catch (error) {
+  //   throw error; // Re-throw the error for the caller to handle
+  // }
 };
 
 export default assignUserToAttributeHandler;
