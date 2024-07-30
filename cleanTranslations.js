@@ -11,43 +11,49 @@ const regexTemplateLiteral = /\[`?\$\{t\((['"`])(.*?)\1\)\}\]?/g; // Matches tem
 
 // The keys that we want to keep in the translation files even if they are not used in the code
 const constantString = ["ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS"];
+
+// Helper function to extract keys using a given regex pattern
+const extractKeys = (content, regex) => {
+    const keys = new Set();
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+        let key = match[2];
+        key = key.replace(/[`'"]/g, '').split(/\s*\+\s*/).join('');
+
+        // Check for nested template literals like ${t(...)}
+        const regex = /\$\{t\(([^,)]+)(?:,\s*{[^}]*})?\)\}/g;
+        let nestedMatch;
+        while ((nestedMatch = regex.exec(key)) !== null) {
+            keys.add(nestedMatch[1]);
+        }
+        keys.add(key);
+    }
+    return keys;
+};
+
 /**
  * Scans the given directory for translation keys used in TypeScript and TSX files.
- * @param {string} dir - The directory to scan.
  * @returns {Set} A set of used translation keys.
  */
 const getUsedKeys = (dir) => {
     const usedKeys = new Set();
+
     // Scan for TypeScript and TSX files in the directory
     glob.sync(`${dir}/**/*.{ts,tsx,sql}`).forEach((file) => {
         if (fs.statSync(file).isFile()) {
             const content = fs.readFileSync(file, 'utf8');
 
-            let match;
-            // Match and add simple translation keys to the set
-            while ((match = regex.exec(content)) !== null) {
-                usedKeys.add(match[2]);
-            }
-
-            // Match and add concatenated translation keys to the set
-            while ((match = regexConcatenated.exec(content)) !== null) {
-                let key = match[2];
-                key = key.replace(/[`'"]/g, '').split(/\s*\+\s*/).join('');
-                usedKeys.add(key);
-            }
-
-            // Match and add template literal translation keys to the set
-            while ((match = regexTemplateLiteral.exec(content)) !== null) {
-                let key = match[2];
-                usedKeys.add(key);
-            }
+            // Extract keys from different patterns
+            extractKeys(content, regex).forEach((key) => usedKeys.add(key));
+            extractKeys(content, regexConcatenated).forEach((key) => usedKeys.add(key));
+            extractKeys(content, regexTemplateLiteral).forEach((key) => usedKeys.add(key));
         }
     });
 
-    for (let i = 0; i < constantString.length; i++) {
-        const element = constantString[i];
-        usedKeys.add(element);
+    for (const key of constantString) {
+        usedKeys.add(key);
     }
+
     return usedKeys;
 };
 
