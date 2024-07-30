@@ -62,6 +62,7 @@ describe("roundRobinReassignment test", () => {
     const EventManager = (await import("@calcom/core/EventManager")).default;
 
     const eventManagerSpy = vi.spyOn(EventManager.prototype as any, "reschedule");
+    eventManagerSpy.mockResolvedValue({ referencesToCreate: [] });
 
     const users = testUsers;
     const originalHost = users[0];
