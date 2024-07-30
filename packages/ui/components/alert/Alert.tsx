@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import type { ReactNode } from "react";
-import { forwardRef, useState } from "react";
+import { forwardRef } from "react";
 
 import { Icon, type IconName } from "../..";
 
@@ -19,12 +19,6 @@ export interface AlertProps {
 }
 export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
   const { severity, iconClassName, CustomIcon, customIconColor } = props;
-  const [isVisible, setIsVisible] = useState(true);
-  const handleClose = () => {
-    setIsVisible(false);
-  };
-
-  if (!isVisible) return null;
 
   return (
     <div
@@ -51,7 +45,7 @@ export const Alert = forwardRef<HTMLDivElement, AlertProps>((props, ref) => {
             />
           </div>
         ) : (
-          <div className="flex-shrink-0" onClick={handleClose}>
+          <div className="flex-shrink-0">
             {severity === "error" && (
               <Icon
                 name="circle-x"
