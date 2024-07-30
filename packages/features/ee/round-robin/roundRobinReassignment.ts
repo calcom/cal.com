@@ -427,8 +427,15 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       },
       include: {
         workflowStep: {
-          include: {
-            workflow: true,
+          select: {
+            template: true,
+            workflow: {
+              select: {
+                trigger: true,
+                time: true,
+                timeUnit: true,
+              },
+            },
           },
         },
       },
