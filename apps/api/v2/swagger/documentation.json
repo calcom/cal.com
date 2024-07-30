@@ -6288,9 +6288,12 @@
           "freq"
         ]
       },
-      "Host": {
+      "TeamEventTypeResponseHost": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "userId": {
             "type": "number"
           },
@@ -6304,6 +6307,7 @@
           }
         },
         "required": [
+          "name",
           "userId"
         ]
       },
@@ -6421,7 +6425,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -7389,6 +7393,10 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
@@ -7398,7 +7406,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "organizationId"
         ]
       },
       "GetMeOutput": {

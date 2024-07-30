@@ -6,7 +6,6 @@ import { MembershipsModule } from "@/modules/memberships/memberships.module";
 import { OAuthClientUsersController } from "@/modules/oauth-clients/controllers/oauth-client-users/oauth-client-users.controller";
 import { OAuthClientsController } from "@/modules/oauth-clients/controllers/oauth-clients/oauth-clients.controller";
 import { OAuthFlowController } from "@/modules/oauth-clients/controllers/oauth-flow/oauth-flow.controller";
-import { OAuthClientCredentialsGuard } from "@/modules/oauth-clients/guards/oauth-client-credentials/oauth-client-credentials.guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -44,6 +43,6 @@ import { Global, Module } from "@nestjs/common";
     OrganizationsTeamsService,
   ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
-  exports: [OAuthClientRepository, OAuthClientCredentialsGuard],
+  exports: [OAuthClientRepository],
 })
 export class OAuthClientModule {}
