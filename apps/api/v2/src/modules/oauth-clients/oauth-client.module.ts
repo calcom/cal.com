@@ -10,6 +10,7 @@ import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repo
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
 import { OrganizationsModule } from "@/modules/organizations/organizations.module";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { RedisModule } from "@/modules/redis/redis.module";
 import { StripeModule } from "@/modules/stripe/stripe.module";
@@ -33,7 +34,13 @@ import { Global, Module } from "@nestjs/common";
     BillingModule,
     SchedulesModule_2024_04_15,
   ],
-  providers: [OAuthClientRepository, TokensRepository, OAuthFlowService, OAuthClientUsersService],
+  providers: [
+    OAuthClientRepository,
+    TokensRepository,
+    OAuthFlowService,
+    OAuthClientUsersService,
+    OrganizationsTeamsService,
+  ],
   controllers: [OAuthClientUsersController, OAuthClientsController, OAuthFlowController],
   exports: [OAuthClientRepository],
 })
