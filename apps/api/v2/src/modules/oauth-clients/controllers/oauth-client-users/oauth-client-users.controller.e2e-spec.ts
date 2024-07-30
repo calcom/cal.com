@@ -18,6 +18,7 @@ import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { SchedulesRepositoryFixture } from "test/fixtures/repository/schedules.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -78,8 +79,12 @@ describe("OAuth Client Users Endpoints", () => {
     let teamRepositoryFixture: TeamRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let schedulesRepositoryFixture: SchedulesRepositoryFixture;
+    let profilesRepositoryFixture: ProfileRepositoryFixture;
 
     let postResponseData: CreateUserResponse;
+
+    const platformAdminEmail = "platform-sensei@mail.com";
+    let platformAdmin: User;
 
     const userEmail = "oauth-client-user@gmail.com";
     const userTimeZone = "Europe/Rome";
@@ -98,8 +103,19 @@ describe("OAuth Client Users Endpoints", () => {
       teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       schedulesRepositoryFixture = new SchedulesRepositoryFixture(moduleRef);
+      profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
+
+      platformAdmin = await userRepositoryFixture.create({ email: platformAdminEmail });
+
       organization = await teamRepositoryFixture.create({ name: "organization" });
       oAuthClient = await createOAuthClient(organization.id);
+
+      await profilesRepositoryFixture.create({
+        uid: "asd-asd",
+        username: userEmail,
+        user: { connect: { id: platformAdmin.id } },
+        organization: { connect: { id: organization.id } },
+      });
 
       await app.init();
     });
@@ -274,6 +290,11 @@ describe("OAuth Client Users Endpoints", () => {
       await teamRepositoryFixture.delete(organization.id);
       try {
         await userRepositoryFixture.delete(postResponseData.user.id);
+      } catch (e) {
+        // User might have been deleted by the test
+      }
+      try {
+        await userRepositoryFixture.delete(platformAdmin.id);
       } catch (e) {
         // User might have been deleted by the test
       }
