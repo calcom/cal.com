@@ -8,6 +8,8 @@ import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
 import {
+  OrgMeTeamOutputDto,
+  OrgMeTeamsOutputResponseDto,
   OrgTeamOutputDto,
   OrgTeamOutputResponseDto,
   OrgTeamsOutputResponseDto,
@@ -44,7 +46,6 @@ export class OrganizationsTeamsController {
 
   @Get()
   @ApiOperation({ summary: "Get all the teams of an organization." })
-  @UseGuards()
   @Roles("ORG_ADMIN")
   async getAllTeams(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -55,6 +56,33 @@ export class OrganizationsTeamsController {
     return {
       status: SUCCESS_STATUS,
       data: teams.map((team) => plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" })),
+    };
+  }
+
+  @Get("/me")
+  @ApiOperation({ summary: "Get the organization's teams user is a member of" })
+  @Roles("ORG_MEMBER")
+  async getMyTeams(
+    @Param("orgId", ParseIntPipe) orgId: number,
+    @Query() queryParams: SkipTakePagination,
+    @GetUser() user: UserWithProfile
+  ): Promise<OrgMeTeamsOutputResponseDto> {
+    const { skip, take } = queryParams;
+    const teams = await this.organizationsTeamsService.getPaginatedOrgUserTeams(
+      orgId,
+      user.id,
+      skip ?? 0,
+      take ?? 250
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: teams.map((team) =>
+        plainToClass(
+          OrgMeTeamOutputDto,
+          { ...team, accepted: team.members.find((member) => member.userId === user.id)?.accepted ?? false },
+          { strategy: "excludeAll" }
+        )
+      ),
     };
   }
 
