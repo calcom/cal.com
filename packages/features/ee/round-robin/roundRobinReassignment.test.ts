@@ -147,7 +147,7 @@ describe("roundRobinReassignment test", () => {
         usersApartFromOrganizer: users.slice(1),
       })
     );
-    const workflowReminders = await addWorkflowReminders([
+    await addWorkflowReminders([
       {
         bookingUid: bookingToReassignUid,
         method: WorkflowMethods.EMAIL,
