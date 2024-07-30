@@ -1,13 +1,11 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsNumber, Min, Max, IsOptional } from "class-validator";
+import { IsEnum } from "class-validator";
 import type { Response as BaseResponse } from "express";
 
-import type {
-  ERROR_STATUS,
-  SUCCESS_STATUS,
-  API_ERROR_CODES,
-  REDIRECT_STATUS,
-} from "@calcom/platform-constants";
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import type { API_ERROR_CODES, REDIRECT_STATUS } from "@calcom/platform-constants";
 
 export type ApiSuccessResponse<T> = { status: typeof SUCCESS_STATUS; data: T };
 export type ApiSuccessResponseWithoutData = { status: typeof SUCCESS_STATUS };
@@ -41,6 +39,7 @@ export type ApiResponse<T = undefined> = T extends undefined
 export type ApiResponseMaybeRedirect<T = undefined> = ApiResponse<T> | ApiRedirectResponseType;
 
 export class Pagination {
+  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
@@ -49,6 +48,7 @@ export class Pagination {
   limit?: number;
 
   @Transform(({ value }: { value: string }) => value && parseInt(value))
+  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
   @IsNumber()
   @Min(0)
   @Max(100)
@@ -57,6 +57,7 @@ export class Pagination {
 }
 
 export class SkipTakePagination {
+  @ApiProperty({ required: false, description: "The number of items to return", example: 10 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(1)
@@ -64,9 +65,16 @@ export class SkipTakePagination {
   @IsOptional()
   take?: number;
 
+  @ApiProperty({ required: false, description: "The number of items to skip", example: 0 })
   @Transform(({ value }: { value: string }) => value && parseInt(value))
   @IsNumber()
   @Min(0)
   @IsOptional()
   skip?: number;
+}
+
+export class ApiResponseWithoutData {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 }

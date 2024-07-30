@@ -1,6 +1,7 @@
 import { bootstrap } from "@/app";
 import { AppModule } from "@/app.module";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { OrgMeTeamOutputDto } from "@/modules/organizations/outputs/organization-team.output";
 import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
@@ -135,12 +136,28 @@ describe("Organizations Team Endpoints", () => {
           name: "Team created via API",
         } satisfies CreateOrgTeamDto)
         .expect(201)
-        .then((response) => {
+        .then(async (response) => {
           const responseBody: ApiSuccessResponse<Team> = response.body;
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
           teamCreatedViaApi = responseBody.data;
           expect(teamCreatedViaApi.name).toEqual("Team created via API");
           expect(teamCreatedViaApi.parentId).toEqual(org.id);
+          const membership = await membershipsRepositoryFixture.getUserMembershipByTeamId(
+            user.id,
+            teamCreatedViaApi.id
+          );
+          expect(membership?.role ?? "").toEqual("OWNER");
+        });
+    });
+
+    it("should get all the teams of the authenticated org member", async () => {
+      return request(app.getHttpServer())
+        .get(`/v2/organizations/${org.id}/teams/me`)
+        .expect(200)
+        .then((response) => {
+          const responseBody: ApiSuccessResponse<OrgMeTeamOutputDto[]> = response.body;
+          expect(responseBody.data.find((t) => t.id === teamCreatedViaApi.id)).toBeDefined();
+          expect(responseBody.data.some((t) => t.accepted)).toBeTruthy();
         });
     });
 

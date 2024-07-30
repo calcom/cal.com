@@ -349,7 +349,10 @@ model Profile {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 
+  // A user can have multiple profiles in different organizations
   @@unique([userId, organizationId])
+  // Allow username reuse only across different organizations
+  @@unique([username, organizationId])
   @@index([uid])
   @@index([userId])
   @@index([organizationId])
@@ -574,7 +577,7 @@ model Booking {
   instantMeetingToken   InstantMeetingToken?
   rating                Int?
   ratingFeedback        String?
-  noShowHost            Boolean?
+  noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
 
   @@index([eventTypeId])
@@ -950,10 +953,12 @@ model AIPhoneCallConfiguration {
   id              Int       @id @default(autoincrement())
   eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId     Int
-  generalPrompt   String
+  templateType    String    @default("CUSTOM_TEMPLATE")
+  schedulerName   String?
+  generalPrompt   String?
   yourPhoneNumber String
   numberToCall    String
-  guestName       String
+  guestName       String?
   guestEmail      String?
   guestCompany    String?
   enabled         Boolean   @default(false)
