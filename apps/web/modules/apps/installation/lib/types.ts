@@ -4,6 +4,8 @@ import type { AppMeta } from "@calcom/types/App";
 
 import type { PersonalAccountProps, TeamsProp } from "@components/apps/installation/AccountsStepCard";
 
+import type { STEPS } from "./steps";
+
 export type TEventType = EventTypeAppSettingsComponentProps["eventType"] &
   Pick<
     EventTypeModel,
