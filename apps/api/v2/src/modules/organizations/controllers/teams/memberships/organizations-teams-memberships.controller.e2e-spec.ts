@@ -336,7 +336,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(nonOrgUser.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
-      await organizationsRepositoryFixture.delete(nonOrgTeam.id);
+      await teamsRepositoryFixture.delete(nonOrgTeam.id);
       await app.close();
     });
   });
