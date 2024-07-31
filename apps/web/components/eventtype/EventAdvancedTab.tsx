@@ -136,10 +136,10 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
-  const { activeTheme } = useGetTheme();
+  const { resolvedTheme } = useGetTheme();
   const defaultEventTypeColour =
     eventType.eventTypeColour ||
-    (activeTheme === "dark" ? DEFAULT_DARK_BRAND_COLOR : DEFAULT_LIGHT_BRAND_COLOR);
+    (resolvedTheme === "dark" ? DEFAULT_DARK_BRAND_COLOR : DEFAULT_LIGHT_BRAND_COLOR);
 
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
