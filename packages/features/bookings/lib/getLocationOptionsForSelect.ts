@@ -19,10 +19,10 @@ export default function getLocationsOptionsForSelect(
     .map((location) => {
       const eventLocation = getEventLocationType(location.type);
       const locationString = locationKeyToString(location);
-      const projectName = typeof window !== "undefined" ? window.location.hostname?.split(".")?.[0] : "";
+      const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME || "";
 
       const replaceLocationString = (locationString: string) => {
-        if (projectName.includes("buffer") || projectName.includes("localhost")) {
+        if (projectName === "buffer") {
           const replacementFields = getLocationTranslation("buffer");
           if (replacementFields && replacementFields[locationString]) {
             return replacementFields[locationString];
