@@ -244,6 +244,12 @@ const handleDeleteCredential = async ({
                   seatsPerTimeSlot: true,
                   seatsShowAttendees: true,
                   eventName: true,
+                  team: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
                 },
               },
               uid: true,
@@ -332,6 +338,13 @@ const handleDeleteCredential = async ({
                 cancellationReason: "Payment method removed by organizer",
                 seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
                 seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+                team: !!booking.eventType?.team
+                  ? {
+                      name: booking.eventType.team.name,
+                      id: booking.eventType.team.id,
+                      members: [],
+                    }
+                  : undefined,
               },
               {
                 eventName: booking?.eventType?.eventName,
