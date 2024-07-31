@@ -86,23 +86,25 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
   });
 
   if (verifiedEmail) {
-    if (teamId && !verifiedEmail.teamId) {
-      await prisma.verifiedEmail.update({
-        where: {
-          id: verifiedEmail.id,
-        },
-        data: {
-          teamId,
-        },
-      });
-    } else if (teamId && verifiedEmail.teamId !== teamId) {
-      await prisma.verifiedEmail.create({
-        data: {
-          email,
-          userId,
-          teamId,
-        },
-      });
+    if (teamId) {
+      if (!verifiedEmail.teamId) {
+        await prisma.verifiedEmail.update({
+          where: {
+            id: verifiedEmail.id,
+          },
+          data: {
+            teamId,
+          },
+        });
+      } else if (verifiedEmail.teamId !== teamId) {
+        await prisma.verifiedEmail.create({
+          data: {
+            email,
+            userId,
+            teamId,
+          },
+        });
+      }
     }
     return;
   }
