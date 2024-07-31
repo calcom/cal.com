@@ -26,6 +26,9 @@ function generateRandomEmail() {
   return `${randomLocalPart}@${randomDomain}`;
 }
 
+// note(Lauris): needed because useEffect kicks in twice creating 2 parallel requests
+let seeding = false;
+
 export default function App({ Component, pageProps }: AppProps) {
   const [accessToken, setAccessToken] = useState("");
   const [email, setUserEmail] = useState("");
@@ -47,16 +50,21 @@ export default function App({ Component, pageProps }: AppProps) {
   }, []);
 
   useEffect(() => {
-    const randomEmail = generateRandomEmail();
-    fetch("/api/managed-user", {
-      method: "POST",
-      body: JSON.stringify({ email: randomEmail }),
-    }).then(async (res) => {
-      const data = await res.json();
-      setAccessToken(data.accessToken);
-      setUserEmail(data.email);
-      setUsername(data.username);
-    });
+    const randomEmailOne = generateRandomEmail();
+    const randomEmailTwo = generateRandomEmail();
+    if (!seeding) {
+      seeding = true;
+      fetch("/api/managed-user", {
+        method: "POST",
+
+        body: JSON.stringify({ emails: [randomEmailOne, randomEmailTwo] }),
+      }).then(async (res) => {
+        const data = await res.json();
+        setAccessToken(data.accessToken);
+        setUserEmail(data.email);
+        setUsername(data.username);
+      });
+    }
   }, []);
   useEffect(() => {
     if (!!selectedUser) {
