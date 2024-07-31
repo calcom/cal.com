@@ -6,6 +6,7 @@ import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCr
 import { prisma } from "@calcom/prisma";
 import { AppCategories } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
+import { userMetadata } from "@calcom/prisma/zod-utils";
 
 import { defaultLocations } from "./locations";
 
@@ -52,6 +53,22 @@ export async function getLocationGroupedOptions(
     }
   } else {
     idToSearchObject = { userId: userOrTeamId.userId };
+  }
+
+  let usersDefaultApp: string | undefined;
+
+  if (userOrTeamId.userId) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userOrTeamId.userId,
+      },
+      select: {
+        metadata: true,
+      },
+    });
+    usersDefaultApp = userMetadata.parse(user?.metadata)?.defaultConferencingApp?.appSlug;
+  } else {
+    usersDefaultApp = undefined;
   }
 
   const credentials = await prisma.credential.findMany({
@@ -134,10 +151,24 @@ export async function getLocationGroupedOptions(
   for (const category in apps) {
     const tmp = {
       label: t(category),
-      options: apps[category].map((l) => ({
-        ...l,
-        label: t(l.label),
-      })),
+      options: apps[category].map((l) => {
+        if (
+          userOrTeamId.userId &&
+          category === "conferencing" &&
+          l.slug &&
+          (usersDefaultApp === l.slug || (l.slug === "daily-video" && !usersDefaultApp))
+        ) {
+          return {
+            ...l,
+            label: t("system_default_conferencing_app", { appName: l.label }),
+          };
+        } else {
+          return {
+            ...l,
+            label: t(l.label),
+          };
+        }
+      }),
     };
 
     locations.push(tmp);

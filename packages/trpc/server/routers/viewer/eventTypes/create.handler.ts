@@ -42,9 +42,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
   const isOrgAdmin = !!ctx.user?.organization?.isOrgAdmin;
 
   const locations: EventTypeLocation[] =
-    inputLocations && inputLocations.length !== 0
-      ? inputLocations
-      : await getDefaultLocations(ctx.user, teamId);
+    inputLocations && inputLocations.length !== 0 ? inputLocations : await getDefaultLocations(ctx.user);
 
   const data: Prisma.EventTypeCreateInput = {
     ...rest,

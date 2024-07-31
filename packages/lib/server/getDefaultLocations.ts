@@ -12,10 +12,10 @@ type User = {
   metadata: SessionUser["metadata"];
 };
 
-export async function getDefaultLocations(user: User, teamId?: number | null): Promise<EventTypeLocation[]> {
+export async function getDefaultLocations(user: User): Promise<EventTypeLocation[]> {
   const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
 
-  if (!teamId && defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
+  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
     const credentials = await getUsersCredentials(user);
 
     const foundApp = getApps(credentials, true).filter(
