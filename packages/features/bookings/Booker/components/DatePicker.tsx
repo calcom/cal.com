@@ -50,9 +50,18 @@ export const DatePicker = ({
     const currentMonth = dayjs().startOf("month").format("YYYY-MM");
     const browsingMonth = browsingDate.format("YYYY-MM");
 
-    if (schedule?.data?.slots && nonEmptyScheduleDays.length === 0 && currentMonth === browsingMonth) {
-      onMonthChange(browsingDate.add(1, "month"));
+    // Insufficient data case
+    if (!schedule?.data?.slots) {
+      return;
     }
+
+    // Not meeting the criteria to move to next month
+    // Has to be currentMonth and it must have all days unbookable
+    if (currentMonth != browsingMonth || nonEmptyScheduleDays.length) {
+      return;
+    }
+
+    onMonthChange(browsingDate.add(1, "month"));
   };
 
   moveToNextMonthOnNoAvailability();
