@@ -1,6 +1,7 @@
 import { FieldTypes } from "../pages/form-edit/[...appPages]";
 import type { QueryBuilderUpdatedConfig, RoutingForm } from "../types/types";
 import { InitialConfig } from "./InitialConfig";
+import { getFieldWithOptions } from "./getSerializableForm";
 
 export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
   const fields: Record<
@@ -22,12 +23,10 @@ export function getQueryBuilderConfig(form: RoutingForm, forReporting = false) {
       field = field.routerField;
     }
     if (FieldTypes.map((f) => f.value).includes(field.type)) {
-      const optionValues = field.selectText?.trim().split("\n");
-      const options = optionValues?.map((value) => {
-        const title = value;
+      const options = getFieldWithOptions(field).options?.map((option) => {
         return {
-          value,
-          title,
+          value: option.id || option.value,
+          title: option.value,
         };
       });
 

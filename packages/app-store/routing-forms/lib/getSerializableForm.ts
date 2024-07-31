@@ -1,15 +1,63 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
+import type { zodNonRouterField } from "../zod";
 import type { zodRoutesView, zodFieldsView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
+
+type Field = z.infer<typeof zodNonRouterField>;
+
+export const getFieldWithOptions = (field: Field) => {
+  const legacySelectTextValues = field.selectText;
+  if (field.options) {
+    return {
+      ...field,
+      options: field.options,
+    };
+  } else if (legacySelectTextValues) {
+    const options = legacySelectTextValues.split("\n").map((fieldValue) => ({
+      value: fieldValue,
+      id: null,
+    }));
+    return {
+      ...field,
+      options,
+    };
+  }
+  return {
+    ...field,
+  };
+};
+
+type FieldWithOptionsHavingId<T> = Omit<T, "options"> & { options?: { id: string; value: string }[] };
+export const ensureIdInOptions = <T extends { options?: { id: string | null; value: string }[] }>(
+  field: T
+): FieldWithOptionsHavingId<T> => {
+  const { options, ...fieldWithoutOptions } = field;
+  if (!options) return fieldWithoutOptions;
+
+  const newOptions = options.map((option) => {
+    if (!option.id) {
+      return {
+        ...option,
+        id: uuidv4(),
+      } as { id: string; value: string };
+    }
+    return option as { id: string; value: string };
+  });
+  return {
+    ...fieldWithoutOptions,
+    options: newOptions,
+  };
+};
 
 /**
  * Doesn't have deleted fields by default
@@ -57,7 +105,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-  const finalFields = fields;
+
+  const finalFields = fields.map((field) => ensureIdInOptions(getFieldWithOptions(field)));
+
   let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
     teamMembers = await prisma.user.findMany({

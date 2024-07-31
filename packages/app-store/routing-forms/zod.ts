@@ -6,13 +6,15 @@ export const zodNonRouterField = z.object({
   identifier: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
+  /**
+   * Deprecated in favour of `options`
+   */
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
   options: z
     .array(
       z.object({
-        placeholder: z.string().optional(),
         value: z.string(),
         id: z.string(),
       })

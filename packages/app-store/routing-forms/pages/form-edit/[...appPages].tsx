@@ -1,7 +1,6 @@
 "use client";
 
 import { useAutoAnimate } from "@formkit/auto-animate/react";
-import { useEffect } from "react";
 import type { ClipboardEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { Controller, useFieldArray, useWatch } from "react-hook-form";
@@ -28,13 +27,27 @@ import type { RoutingFormWithResponseCount } from "../../components/SingleForm";
 import SingleForm, {
   getServerSidePropsForSingleFormView as getServerSideProps,
 } from "../../components/SingleForm";
-import { handlePasteRoutingFormOptions } from "../../lib/handlePasteRoutingFormOptions";
 
 export { getServerSideProps };
-export type SelectOption = { placeholder?: string; value: string; id: string };
+type SelectOption = { value: string; id: string };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
-const PASTE_SPLIT_REGEX = /\n+/;
+const replaceArray = <T,>({
+  newArray,
+  currentArray,
+  startingIndex,
+}: {
+  newArray: T[];
+  currentArray: T[];
+  startingIndex: number;
+}) => {
+  const copyOfCurrentArray = [...currentArray];
+  copyOfCurrentArray.splice(startingIndex, newArray.length, ...newArray);
+  return copyOfCurrentArray;
+};
+
+const PASTE_OPTIONS_SEPARATOR_REGEX = /\n+/;
+
 export const FieldTypes = [
   {
     label: "Short Text",
@@ -99,10 +112,10 @@ function Field({
       control: hookForm.control,
       name: `${hookFieldNamespace}.options`,
       defaultValue: [
-        { placeholder: "< 10", value: "", id: uuidv4() },
-        { placeholder: "10-100", value: "", id: uuidv4() },
-        { placeholder: "100-500", value: "", id: uuidv4() },
-        { placeholder: "> 500", value: "", id: uuidv4() },
+        { value: "", id: uuidv4() },
+        { value: "", id: uuidv4() },
+        { value: "", id: uuidv4() },
+        { value: "", id: uuidv4() },
       ],
     }) || [];
 
@@ -112,6 +125,9 @@ function Field({
 
   const handleRemoveOptions = (index: number) => {
     const updatedOptions = options.filter((option, i) => i !== index);
+    if (updatedOptions.length === 0) {
+      return;
+    }
     setOptions(updatedOptions);
   };
 
@@ -119,31 +135,11 @@ function Field({
     setOptions([
       ...options,
       {
-        placeholder: "New Option",
         value: "",
         id: uuidv4(),
       },
     ]);
   };
-
-  useEffect(() => {
-    const optionsValues = hookForm.getValues(`${hookFieldNamespace}.options`);
-    const selectTextValues = hookForm.getValues(`${hookFieldNamespace}.selectText`);
-
-    if (optionsValues && optionsValues.length > 0) {
-      setOptions(optionsValues);
-    } else if (selectTextValues) {
-      const values: SelectOption[] = selectTextValues.split("\n").map((fieldValue) => ({
-        value: fieldValue,
-        placeholder: "",
-        id: uuidv4(),
-      }));
-      setOptions(values);
-
-      hookForm.setValue(`${hookFieldNamespace}.options`, values);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const router = hookForm.getValues(`${hookFieldNamespace}.router`);
   const routerField = hookForm.getValues(`${hookFieldNamespace}.routerField`);
@@ -155,17 +151,6 @@ function Field({
     }));
 
     setOptions(updatedOptions);
-    updateSelectText(updatedOptions);
-  };
-
-  const updateSelectText = (updatedOptions: SelectOption[]) => {
-    hookForm.setValue(
-      `${hookFieldNamespace}.selectText`,
-      updatedOptions
-        .filter((opt) => opt.value)
-        .map((opt) => opt.value)
-        .join("\n")
-    );
   };
 
   const label = useWatch({
@@ -188,22 +173,32 @@ function Field({
       newList[index + increment] = type;
     }
     setOptions(newList);
-    updateSelectText(newList);
   }
 
-  const handlePaste = (event: ClipboardEvent, index: number) => {
+  const handlePaste = (event: ClipboardEvent, optionIndex: number) => {
     const paste = event.clipboardData.getData("text");
-    const formattedValues = paste
-      .split(PASTE_SPLIT_REGEX)
-      .map((value) => ({ placeholder: "", value: value.trim(), id: uuidv4() }))
-      .filter((option) => option.value);
-
-    if (formattedValues.length > 1) {
-      event.preventDefault();
-      const updatedOptions = handlePasteRoutingFormOptions(formattedValues, options, index);
-      setOptions(updatedOptions);
+    const optionsBeingPasted = paste
+      .split(PASTE_OPTIONS_SEPARATOR_REGEX)
+      .map((optionLabel) => optionLabel.trim())
+      .filter((optionLabel) => optionLabel)
+      .map((optionLabel) => ({ value: optionLabel.trim(), id: uuidv4() }));
+    if (optionsBeingPasted.length === 1) {
+      // If there is only one option, we would just let that option be pasted
+      return;
     }
+
+    // Don't allow pasting that value, as we would update the options through state update
+    event.preventDefault();
+
+    const updatedOptions = replaceArray({
+      currentArray: options,
+      newArray: optionsBeingPasted,
+      startingIndex: optionIndex,
+    });
+    setOptions(updatedOptions);
   };
+
+  const optionsPlaceholders = ["< 10", "10 - 100", "100 - 500", "> 500"];
 
   return (
     <div
@@ -321,18 +316,20 @@ function Field({
                         containerClassName="[&>*:first-child]:border [&>*:first-child]:border-default hover:[&>*:first-child]:border-gray-400"
                         className="border-0 focus:ring-0 focus:ring-offset-0"
                         labelSrOnly
-                        placeholder={field?.placeholder?.toString() || ""}
+                        placeholder={optionsPlaceholders[index] || "New Option"}
                         value={field.value}
                         type="text"
                         addOnClassname="bg-transparent border-0"
                         onChange={(e) => handleChange(e, index)}
                         addOnSuffix={
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveOptions(index)}
-                            aria-label={t("remove")}>
-                            <Icon name="x" className="h-4 w-4" />
-                          </button>
+                          options.length > 1 ? (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveOptions(index)}
+                              aria-label={t("remove")}>
+                              <Icon name="x" className="h-4 w-4" />
+                            </button>
+                          ) : null
                         }
                       />
                     </div>
