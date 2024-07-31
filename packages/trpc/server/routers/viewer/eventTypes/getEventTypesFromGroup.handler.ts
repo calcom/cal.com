@@ -5,6 +5,7 @@ import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
