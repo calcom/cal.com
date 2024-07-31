@@ -2,6 +2,7 @@ import type { NextApiRequest } from "next";
 
 import handleNewBooking from "@calcom/features/bookings/lib/handleNewBooking";
 import type { RecurringBookingCreateBody, BookingResponse } from "@calcom/features/bookings/types";
+import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { AppsStatus } from "@calcom/types/Calendar";
 
@@ -18,6 +19,27 @@ export const handleNewRecurringBooking = async (
   const numSlotsToCheckForAvailability = 2;
 
   let thirdPartyRecurringEventId = null;
+
+  for (const booking of data) {
+    const conflictingBookings = await prisma.booking.findMany({
+      where: {
+        OR: [
+          {
+            startTime: {
+              lte: booking.end,
+            },
+            endTime: {
+              gte: booking.start,
+            },
+          },
+        ],
+      },
+    });
+
+    if (conflictingBookings.length > 0) {
+      throw new Error(`The time slot from ${booking.start} - ${booking.end} is already booked.`);
+    }
+  }
 
   // for round robin, the first slot needs to be handled first to define the lucky user
   const firstBooking = data[0];
