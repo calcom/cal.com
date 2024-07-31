@@ -1,6 +1,8 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
+import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
+import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import {
   DeleteManyWebhooksOutputResponseDto,
   WebhookOutputDto,
@@ -26,9 +28,6 @@ import { plainToClass } from "class-transformer";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
-
-import { IsUserEventTypeWebhookGuard } from "../guards/is-user-event-type-webhook-guard";
-import { CreateWebhookInputDto } from "../inputs/create-webhook.input";
 
 @Controller({
   path: "/v2/event-types/:eventTypeId/webhooks",

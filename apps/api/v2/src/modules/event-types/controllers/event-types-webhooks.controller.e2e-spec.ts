@@ -170,7 +170,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .expect(403);
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (PATCH)", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (PATCH)", () => {
     return request(app.getHttpServer())
       .patch(`/v2/event-types/${eventType.id}/webhooks/${webhook.id}`)
       .send({
@@ -182,7 +182,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (PATCH) should fail to patch a webhook for an event-type that does not belong to user", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (PATCH) should fail to patch a webhook for an event-type that does not belong to user", () => {
     return request(app.getHttpServer())
       .patch(`/v2/event-types/${otherEventType.id}/webhooks/${otherWebhook.id}`)
       .send({
@@ -191,7 +191,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .expect(403);
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (GET)", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (GET)", () => {
     return request(app.getHttpServer())
       .get(`/v2/event-types/${eventType.id}/webhooks/${webhook.id}`)
       .expect(200)
@@ -210,17 +210,17 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not exist", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not exist", () => {
     return request(app.getHttpServer()).get(`/v2/event-types/${eventType.id}/webhooks/90284`).expect(404);
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook of an eventType that does not belong to user", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook of an eventType that does not belong to user", () => {
     return request(app.getHttpServer())
       .get(`/v2/event-types/${otherEventType.id}/webhooks/${otherWebhook.id}`)
       .expect(403);
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not belong to the eventType", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (GET) should fail to get a webhook that does not belong to the eventType", () => {
     return request(app.getHttpServer())
       .get(`/v2/event-types/${eventType.id}/webhooks/${otherWebhook.id}`)
       .expect(400);
@@ -238,7 +238,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks (GET)", () => {
+  it("/event-types/:eventTypeId/webhooks (GET)", () => {
     return request(app.getHttpServer())
       .get(`/v2/event-types/${eventType2.id}/webhooks`)
       .expect(200)
@@ -250,7 +250,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (DELETE)", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE)", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${eventType.id}/webhooks/${webhook.id}`)
       .expect(200)
@@ -269,7 +269,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/event-types (DELETE)", () => {
+  it("/event-types/:eventTypeId/webhooks (DELETE)", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${eventType2.id}/webhooks`)
       .expect(200)
@@ -281,13 +281,13 @@ describe("EventTypes WebhooksController (e2e)", () => {
       });
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not exist", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${eventType.id}/webhooks/1234453`)
       .expect(404);
   });
 
-  it("/webhooks/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
+  it("/event-types/:eventTypeId/webhooks/:webhookId (DELETE) shoud fail to delete a webhook that does not belong to user", () => {
     return request(app.getHttpServer())
       .delete(`/v2/event-types/${otherEventType.id}/webhooks/${otherWebhook.id}`)
       .expect(403);
