@@ -14,7 +14,7 @@ import {
   updateEventType,
   EventTypesPublic,
   getEventTypesPublic,
-} from "@calcom/platform-libraries-0.0.21";
+} from "@calcom/platform-libraries-0.0.22";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()

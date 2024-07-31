@@ -9,6 +9,7 @@ import frTranslations from "@calcom/web/public/static/locales/fr/common.json";
 import ptBrTranslations from "@calcom/web/public/static/locales/pt-BR/common.json";
 
 import { AtomsContext } from "../hooks/useAtomsContext";
+import { useMe } from "../hooks/useMe";
 import { useOAuthClient } from "../hooks/useOAuthClient";
 import { useOAuthFlow } from "../hooks/useOAuthFlow";
 import { useTimezone } from "../hooks/useTimezone";
@@ -38,6 +39,7 @@ export function BaseCalProvider({
   onTimezoneChange,
 }: CalProviderProps) {
   const [error, setError] = useState<string>("");
+  const { data: me } = useMe();
 
   const { mutateAsync } = useUpdateUserTimezone();
 
@@ -117,6 +119,7 @@ export function BaseCalProvider({
         isInit: isInit,
         isValidClient: Boolean(!error && clientId && isInit),
         isAuth: Boolean(isInit && !error && clientId && currentAccessToken && http.getAuthorizationHeader()),
+        organizationId: me?.data.organizationId || 0,
         ...translations,
       }}>
       <TooltipProvider>{children}</TooltipProvider>
@@ -134,6 +137,7 @@ export function BaseCalProvider({
         isInit: false,
         isRefreshing: false,
         ...translations,
+        organizationId: 0,
       }}>
       <>
         <TooltipProvider>{children}</TooltipProvider>
