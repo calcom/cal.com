@@ -41,6 +41,7 @@ env:
   SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
+  CAL_SIGNATURE_TOKEN: ${{ secrets.CI_CAL_SIGNATURE_TOKEN }}
 jobs:
   e2e:
     timeout-minutes: 20
