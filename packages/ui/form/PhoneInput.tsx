@@ -1,5 +1,6 @@
-import { isSupportedCountry } from "libphonenumber-js";
+import { isSupportedCountry, parsePhoneNumberFromString } from "libphonenumber-js";
 import { useState, useEffect } from "react";
+import type { CountryData } from "react-phone-input-2";
 import PhoneInput from "react-phone-input-2";
 import "react-phone-input-2/lib/style.css";
 
@@ -18,6 +19,36 @@ export type PhoneInputProps = {
 };
 
 function BasePhoneInput({ name, className = "", onChange, value, ...rest }: PhoneInputProps) {
+  // Type guard to check for CountryData type
+  const isCountryData = (data: CountryData | unknown): data is CountryData => {
+    return (data as CountryData).dialCode !== undefined;
+  };
+
+  // This function prefixes dialing code based on country selection.
+  const onCountryChange = (value: string, data: CountryData | unknown) => {
+    let updatedValue = `+${value}`;
+    const phoneNumber = parsePhoneNumberFromString(updatedValue);
+    const isValidPhoneNumber = !!phoneNumber?.isValid();
+    const parsedDialCode = phoneNumber?.countryCallingCode?.toString();
+
+    const selectedDialCode = isCountryData(data) ? data?.dialCode : undefined;
+
+    // Prefix the dialing code only if input value is not a valid phone number,
+    // i.e. if user has not prefixed a dialing code.
+    if (
+      !!value &&
+      !!selectedDialCode &&
+      value !== selectedDialCode &&
+      !!parsedDialCode &&
+      selectedDialCode !== parsedDialCode &&
+      !isValidPhoneNumber
+    ) {
+      updatedValue = `+${selectedDialCode}${value}`;
+    }
+
+    return updatedValue;
+  };
+
   return (
     <PhoneInput
       {...rest}
@@ -29,8 +60,8 @@ function BasePhoneInput({ name, className = "", onChange, value, ...rest }: Phon
         required: rest.required,
         placeholder: rest.placeholder,
       }}
-      onChange={(value) => {
-        onChange(`+${value}`);
+      onChange={(value, data) => {
+        onChange(onCountryChange(value, data));
       }}
       containerClass={classNames(
         "hover:border-emphasis dark:focus:border-emphasis border-default !bg-default rounded-md border focus-within:outline-none focus-within:ring-2 focus-within:ring-brand-default disabled:cursor-not-allowed",
@@ -52,6 +83,7 @@ function BasePhoneInput({ name, className = "", onChange, value, ...rest }: Phon
         marginLeft: "-4px",
       }}
       dropdownStyle={{ width: "max-content" }}
+      disableCountryGuess={true}
     />
   );
 }
