@@ -378,6 +378,7 @@ const OutOfOfficePage = () => {
 
   const { data } = trpc.viewer.outOfOfficeReasonList.useQuery();
   // TODO: The best solution is we should find the cause of full page flicker
+  // Taling about hydration problem, migrating to appDir might solve the problem automatically
   // which will reset the Modal state, which makes bad UX and fails (superhuman click speed) E2E tests
   const isBeforeFlicker = data?.length === undefined || data.length <= 0;
   return (
