@@ -66,26 +66,17 @@ const format = (date: Date, hour12: boolean) =>
   }).format(new Date(dayjs.utc(date).format("YYYY-MM-DDTHH:mm:ss")));
 
 const EventTypeScheduleDetails = memo(
-  ({
-    isManagedEventType,
-    selectedScheduleValue,
-  }: {
-    isManagedEventType: boolean;
-    selectedScheduleValue: AvailabilityOption | undefined;
-  }) => {
+  ({ isManagedEventType, scheduleId }: { isManagedEventType: boolean; scheduleId: number | null }) => {
     const { data: loggedInUser } = useMeQuery();
     const timeFormat = loggedInUser?.timeFormat;
     const { t, i18n } = useLocale();
-    const { watch } = useFormContext<FormValues>();
 
-    const scheduleId = watch("schedule");
     const { isPending, data: schedule } = trpc.viewer.availability.schedule.get.useQuery(
       {
-        scheduleId:
-          scheduleId || loggedInUser?.defaultScheduleId || selectedScheduleValue?.value || undefined,
+        scheduleId: scheduleId || loggedInUser?.defaultScheduleId || undefined,
         isManagedEventType,
       },
-      { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId || !!selectedScheduleValue }
+      { enabled: !!scheduleId || !!loggedInUser?.defaultScheduleId }
     );
 
     const weekStart = weekStartNum(loggedInUser?.weekStart);
@@ -159,19 +150,23 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
   const formMethods = useFormContext<FormValues>();
   const { shouldLockIndicator, shouldLockDisableProps, isManagedEventType, isChildrenManagedEventType } =
     useLockedFieldsManager({ eventType, translate: t, formMethods });
-  const { watch, getValues, setValue, resetField } = formMethods;
-  const watchSchedule = watch("schedule");
-
-  useEffect(() => {
-    return () => {
-      // cleanup
-      if (!watchSchedule) resetField("schedule");
-      else setValue("schedule", null, { shouldDirty: true });
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const { watch, setValue } = formMethods;
 
   const { data, isPending } = trpc.viewer.availability.list.useQuery(undefined);
+
+  const scheduleId = watch("schedule");
+
+  useEffect(() => {
+    // after data is loaded.
+    if (data && scheduleId !== 0 && !scheduleId) {
+      const newValue = isManagedEventType ? 0 : data.schedules.find((schedule) => schedule.isDefault)?.id;
+      if (!newValue && newValue !== 0) return;
+      setValue("schedule", newValue, {
+        shouldDirty: true,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleId, data]);
 
   if (isPending || !data) {
     return <SelectSkeletonLoader />;
@@ -195,16 +190,11 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
       isManaged: false,
     });
   }
-
   // We are showing a managed event for a member and team owner selected their own schedule, so adding
   // the managed schedule option
-  if (
-    isChildrenManagedEventType &&
-    watchSchedule &&
-    !schedules.find((schedule) => schedule.id === watchSchedule)
-  ) {
+  if (isChildrenManagedEventType && scheduleId && !schedules.find((schedule) => schedule.id === scheduleId)) {
     options.push({
-      value: watchSchedule,
+      value: scheduleId,
       label: eventType.scheduleName ?? t("default_schedule_name"),
       isDefault: false,
       isManaged: false,
@@ -220,19 +210,6 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
     });
   }
 
-  const scheduleId = getValues("schedule");
-  const availabilityValue = options.find((option) =>
-    scheduleId
-      ? option.value === scheduleId
-      : isManagedEventType
-      ? option.value === 0
-      : option.value === schedules.find((schedule) => schedule.isDefault)?.id
-  );
-
-  if (watchSchedule !== availabilityValue?.value) {
-    setValue("schedule", availabilityValue?.value || null, { shouldDirty: true });
-  }
-
   return (
     <div>
       <div className="border-subtle rounded-t-md border p-6">
@@ -242,7 +219,10 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
         </label>
         <Controller
           name="schedule"
-          render={({ field: { onChange } }) => {
+          render={({ field: { onChange, value } }) => {
+            const optionValue: AvailabilityOption | undefined = options.find(
+              (option) => option.value === value
+            );
             return (
               <Select
                 placeholder={t("select")}
@@ -250,12 +230,10 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
                 isDisabled={shouldLockDisableProps("schedule").disabled}
                 isSearchable={false}
                 onChange={(selected) => {
-                  console.log("Firing");
-                  console.log(selected);
                   if (selected) onChange(selected.value);
                 }}
                 className="block w-full min-w-0 flex-1 rounded-sm text-sm"
-                value={availabilityValue}
+                value={optionValue}
                 components={{ Option, SingleValue }}
                 isMulti={false}
               />
@@ -263,9 +241,9 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
           }}
         />
       </div>
-      {availabilityValue?.value !== 0 ? (
+      {scheduleId !== 0 ? (
         <EventTypeScheduleDetails
-          selectedScheduleValue={availabilityValue}
+          scheduleId={scheduleId}
           isManagedEventType={isManagedEventType || isChildrenManagedEventType}
         />
       ) : (
@@ -279,15 +257,23 @@ const EventTypeSchedule = ({ eventType }: { eventType: EventTypeSetup }) => {
 
 const UseCommonScheduleSettingsToggle = ({ eventType }: { eventType: EventTypeSetup }) => {
   const { t } = useLocale();
+  const { setValue, resetField, getFieldState, getValues } = useFormContext<FormValues>();
 
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    Boolean(eventType.schedule)
+    Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
   );
 
   return (
     <SettingsToggle
       checked={useHostSchedulesForTeamEvent}
-      onCheckedChange={setUseHostSchedulesForTeamEvent}
+      onCheckedChange={(checked) => {
+        setUseHostSchedulesForTeamEvent(checked);
+        if (checked) {
+          if (Boolean(eventType.schedule)) resetField("schedule");
+        } else {
+          setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
+        }
+      }}
       title={t("choose_common_schedule_team_event")}
       description={t("choose_common_schedule_team_event_description")}>
       <EventTypeSchedule eventType={eventType} />
