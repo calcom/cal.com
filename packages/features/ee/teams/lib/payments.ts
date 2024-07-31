@@ -6,7 +6,7 @@ import stripe from "@calcom/app-store/stripepayment/lib/server";
 import {
   IS_PRODUCTION,
   MINIMUM_NUMBER_OF_ORG_SEATS,
-  ORGANIZATION_MIN_SEATS,
+  ORGANIZATION_SELF_SERVE_MIN_SEATS,
   ORGANIZATION_SELF_SERVE_PRICE,
   WEBAPP_URL,
 } from "@calcom/lib/constants";
@@ -127,7 +127,11 @@ export const purchaseTeamOrOrgSubscription = async (input: {
   let priceId: string | undefined;
 
   if (pricePerSeat) {
-    if (isOrg && pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE && seats < ORGANIZATION_MIN_SEATS) {
+    if (
+      isOrg &&
+      pricePerSeat === ORGANIZATION_SELF_SERVE_PRICE &&
+      seats === ORGANIZATION_SELF_SERVE_MIN_SEATS
+    ) {
       priceId = fixedPrice as string;
     } else {
       const customPriceObj = await getPriceObject(fixedPrice);
