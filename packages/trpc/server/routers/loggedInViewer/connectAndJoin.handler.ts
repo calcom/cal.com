@@ -128,6 +128,12 @@ export const Handler = async ({ ctx, input }: Options) => {
           metadata: true,
           customInputs: true,
           parentId: true,
+          team: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       },
       location: true,
@@ -202,6 +208,13 @@ export const Handler = async ({ ctx, input }: Options) => {
     requiresConfirmation: false,
     eventTypeId: eventType?.id,
     videoCallData,
+    team: !!updatedBooking.eventType?.team
+      ? {
+          name: updatedBooking.eventType.team.name,
+          id: updatedBooking.eventType.team.id,
+          members: [],
+        }
+      : undefined,
   };
 
   await sendScheduledEmailsAndSMS(
