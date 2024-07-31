@@ -185,7 +185,6 @@ export default function Success(props: PageProps) {
     },
   });
 
-
   useEffect(() => {
     if (noShow) {
       const seedData = { bookingUid: bookingInfo.uid };
@@ -430,7 +429,7 @@ export default function Success(props: PageProps) {
                         className={classNames(
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
-                          "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
+                            "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
                           !giphyImage && !isCancelled && !needsConfirmation ? "bg-success" : "",
                           !giphyImage && !isCancelled && needsConfirmation ? "bg-subtle" : "",
                           isCancelled ? "bg-error" : ""
@@ -454,12 +453,12 @@ export default function Success(props: PageProps) {
                             ? t("booking_submitted_recurring")
                             : t("booking_submitted")
                           : isCancelled
-                            ? seatReferenceUid
-                              ? t("no_longer_attending")
-                              : t("event_cancelled")
-                            : props.recurringBookings
-                              ? t("meeting_is_scheduled_recurring")
-                              : t("meeting_is_scheduled")}
+                          ? seatReferenceUid
+                            ? t("no_longer_attending")
+                            : t("event_cancelled")
+                          : props.recurringBookings
+                          ? t("meeting_is_scheduled_recurring")
+                          : t("meeting_is_scheduled")}
                       </h3>
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
@@ -731,18 +730,21 @@ export default function Success(props: PageProps) {
                                 href={`https://calendar.google.com/calendar/r/eventedit?dates=${date
                                   .utc()
                                   .format("YYYYMMDDTHHmmss[Z]")}/${date
-                                    .add(calculatedDuration, "minute")
-                                    .utc()
-                                    .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${eventType.description
-                                  }${typeof locationVideoCallUrl === "string"
+                                  .add(calculatedDuration, "minute")
+                                  .utc()
+                                  .format("YYYYMMDDTHHmmss[Z]")}&text=${eventName}&details=${
+                                  eventType.description
+                                }${
+                                  typeof locationVideoCallUrl === "string"
                                     ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
                                     : ""
-                                  }${eventType.recurringEvent
+                                }${
+                                  eventType.recurringEvent
                                     ? `&recur=${encodeURIComponent(
-                                      new RRule(eventType.recurringEvent).toString()
-                                    )}`
+                                        new RRule(eventType.recurringEvent).toString()
+                                      )}`
                                     : ""
-                                  }`}
+                                }`}
                                 className="text-default border-subtle h-10 w-10 rounded-sm border px-3 py-2 ltr:mr-2 rtl:ml-2">
                                 <svg
                                   className="-mt-1.5 inline-block h-4 w-4"
@@ -756,13 +758,14 @@ export default function Success(props: PageProps) {
                               <Link
                                 href={
                                   encodeURI(
-                                    `https://outlook.live.com/calendar/0/deeplink/compose?body=${eventType.description
+                                    `https://outlook.live.com/calendar/0/deeplink/compose?body=${
+                                      eventType.description
                                     }&enddt=${date
                                       .add(calculatedDuration, "minute")
                                       .utc()
                                       .format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${date
-                                        .utc()
-                                        .format()}&subject=${eventName}`
+                                      .utc()
+                                      .format()}&subject=${eventName}`
                                   ) +
                                   (locationVideoCallUrl
                                     ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
@@ -782,13 +785,14 @@ export default function Success(props: PageProps) {
                               <Link
                                 href={
                                   encodeURI(
-                                    `https://outlook.office.com/calendar/0/deeplink/compose?body=${eventType.description
+                                    `https://outlook.office.com/calendar/0/deeplink/compose?body=${
+                                      eventType.description
                                     }&enddt=${date
                                       .add(calculatedDuration, "minute")
                                       .utc()
                                       .format()}&path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&startdt=${date
-                                        .utc()
-                                        .format()}&subject=${eventName}`
+                                      .utc()
+                                      .format()}&subject=${eventName}`
                                   ) +
                                   (locationVideoCallUrl
                                     ? `&location=${encodeURIComponent(locationVideoCallUrl)}`
