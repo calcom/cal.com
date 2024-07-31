@@ -22,4 +22,7 @@ export class MeOutput {
 
   @IsString()
   timeZone!: string;
+
+  @IsInt()
+  organizationId!: number | null;
 }
