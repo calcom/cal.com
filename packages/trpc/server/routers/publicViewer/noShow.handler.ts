@@ -1,3 +1,6 @@
+import { z } from "zod";
+
+import { symmetricDecrypt } from "@calcom/lib/crypto";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 
@@ -7,8 +10,24 @@ type NoShowOptions = {
   input: TNoShowInputSchema;
 };
 
+const decryptedSchema = z.object({
+  bookingUid: z.string(),
+  attendees: z
+    .array(
+      z.object({
+        email: z.string(),
+        noShow: z.boolean(),
+      })
+    )
+    .optional(),
+});
+
 export const noShowHandler = async ({ input }: NoShowOptions) => {
-  const { bookingUid, attendees } = input;
+  const { token } = input;
+
+  const { bookingUid, attendees } = decryptedSchema.parse(
+    JSON.parse(symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || ""))
+  );
 
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
