@@ -1,5 +1,12 @@
+import { CalendarsRepository } from "@/ee/calendars/calendars.repository";
+import { DeleteCalendarCredentialsInputBodyDto } from "@/ee/calendars/input/delete-calendar-credentials.input";
 import { GetBusyTimesOutput } from "@/ee/calendars/outputs/busy-times.output";
 import { ConnectedCalendarsOutput } from "@/ee/calendars/outputs/connected-calendars.output";
+import {
+  DeletedCalendarCredentialsOutputResponseDto,
+  DeletedCalendarCredentialsOutputDto,
+} from "@/ee/calendars/outputs/delete-calendar-credentials.output";
+import { AppleCalendarService } from "@/ee/calendars/services/apple-calendar.service";
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { GoogleCalendarService } from "@/ee/calendars/services/gcal.service";
 import { OutlookService } from "@/ee/calendars/services/outlook.service";
@@ -21,13 +28,23 @@ import {
   Headers,
   Redirect,
   BadRequestException,
+  Post,
+  Body,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { User } from "@prisma/client";
+import { plainToClass } from "class-transformer";
 import { Request } from "express";
 import { z } from "zod";
 
 import { APPS_READ } from "@calcom/platform-constants";
-import { SUCCESS_STATUS, CALENDARS, GOOGLE_CALENDAR, OFFICE_365_CALENDAR } from "@calcom/platform-constants";
+import {
+  SUCCESS_STATUS,
+  CALENDARS,
+  GOOGLE_CALENDAR,
+  OFFICE_365_CALENDAR,
+  APPLE_CALENDAR,
+} from "@calcom/platform-constants";
 import { ApiResponse, CalendarBusyTimesInput } from "@calcom/platform-types";
 
 @Controller({
@@ -39,7 +56,9 @@ export class CalendarsController {
   constructor(
     private readonly calendarsService: CalendarsService,
     private readonly outlookService: OutlookService,
-    private readonly googleCalendarService: GoogleCalendarService
+    private readonly googleCalendarService: GoogleCalendarService,
+    private readonly appleCalendarService: AppleCalendarService,
+    private readonly calendarsRepository: CalendarsRepository
   ) {}
 
   @UseGuards(ApiAuthGuard)
@@ -133,6 +152,26 @@ export class CalendarsController {
     }
   }
 
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/credentials")
+  async syncCredentials(
+    @GetUser() user: User,
+    @Param("calendar") calendar: string,
+    @Body() body: { username: string; password: string }
+  ): Promise<{ status: string }> {
+    const { username, password } = body;
+
+    switch (calendar) {
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.save(user.id, user.email, username, password);
+      default:
+        throw new BadRequestException(
+          "Invalid calendar type, available calendars are: ",
+          CALENDARS.join(", ")
+        );
+    }
+  }
+
   @Get("/:calendar/check")
   @HttpCode(HttpStatus.OK)
   @UseGuards(ApiAuthGuard, PermissionsGuard)
@@ -143,11 +182,38 @@ export class CalendarsController {
         return await this.outlookService.check(userId);
       case GOOGLE_CALENDAR:
         return await this.googleCalendarService.check(userId);
+      case APPLE_CALENDAR:
+        return await this.appleCalendarService.check(userId);
       default:
         throw new BadRequestException(
           "Invalid calendar type, available calendars are: ",
           CALENDARS.join(", ")
         );
     }
+  }
+
+  @UseGuards(ApiAuthGuard)
+  @Post("/:calendar/disconnect")
+  @HttpCode(HttpStatus.OK)
+  async deleteCalendarCredentials(
+    @Param("calendar") calendar: string,
+    @Body() body: DeleteCalendarCredentialsInputBodyDto,
+    @GetUser() user: UserWithProfile
+  ): Promise<DeletedCalendarCredentialsOutputResponseDto> {
+    const { id: credentialId } = body;
+    await this.calendarsService.checkCalendarCredentials(credentialId, user.id);
+
+    const { id, type, userId, teamId, appId, invalid } = await this.calendarsRepository.deleteCredentials(
+      credentialId
+    );
+
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(
+        DeletedCalendarCredentialsOutputDto,
+        { id, type, userId, teamId, appId, invalid },
+        { strategy: "excludeAll" }
+      ),
+    };
   }
 }

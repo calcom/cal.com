@@ -13,7 +13,7 @@ import {
 } from "@/ee/event-types/event-types_2024_04_15/outputs/get-event-types.output";
 import { UpdateEventTypeOutput } from "@/ee/event-types/event-types_2024_04_15/outputs/update-event-type.output";
 import { EventTypesService_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/services/event-types.service";
-import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
+import { VERSION_2024_04_15, VERSION_2024_06_11 } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -39,13 +39,13 @@ import {
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { EVENT_TYPE_READ, EVENT_TYPE_WRITE, SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getPublicEvent } from "@calcom/platform-libraries-0.0.2";
-import { getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
+import { getPublicEvent, getEventTypesByViewer } from "@calcom/platform-libraries-0.0.2";
+
 import { PrismaClient } from "@calcom/prisma";
 
 @Controller({
   path: "/v2/event-types",
-  version: VERSION_2024_04_15_VALUE,
+  version: [VERSION_2024_04_15, VERSION_2024_06_11],
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Event types")

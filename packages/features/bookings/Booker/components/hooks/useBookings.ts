@@ -93,7 +93,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
     function refactorMeWithoutEffect() {
       const data = _instantBooking.data;
 
-      if (!data) return;
+      if (!data || !data.booking) return;
       try {
         const locationVideoCallUrl: string | undefined = bookingMetadataSchema.parse(
           data.booking?.metadata || {}
@@ -204,11 +204,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       });
     },
     onError: (err, _, ctx) => {
-      // TODO:
-      // const vercelId = ctx?.meta?.headers?.get("x-vercel-id");
-      // if (vercelId) {
-      //   setResponseVercelIdHeader(vercelId);
-      // }
       bookerFormErrorRef && bookerFormErrorRef.current?.scrollIntoView({ behavior: "smooth" });
     },
   });

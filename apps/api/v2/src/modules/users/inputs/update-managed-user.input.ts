@@ -1,6 +1,8 @@
+import { Locales } from "@/lib/enums/locales";
+import { CapitalizeTimeZone } from "@/lib/inputs/capitalize-timezone";
 import { TimeFormat, WeekDay } from "@/modules/users/inputs/create-managed-user.input";
 import { ApiProperty } from "@nestjs/swagger";
-import { IsIn, IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
+import { IsEnum, IsIn, IsNumber, IsOptional, IsString, IsTimeZone } from "class-validator";
 
 export class UpdateManagedUserInput {
   @IsString()
@@ -31,5 +33,11 @@ export class UpdateManagedUserInput {
 
   @IsTimeZone()
   @IsOptional()
+  @CapitalizeTimeZone()
   timeZone?: string;
+
+  @IsEnum(Locales)
+  @IsOptional()
+  @ApiProperty({ example: Locales.EN, enum: Locales })
+  locale?: Locales;
 }
