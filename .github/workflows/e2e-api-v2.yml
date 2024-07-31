@@ -6,6 +6,7 @@ env:
   API_KEY_PREFIX: ${{ secrets.CI_API_KEY_PREFIX }}
   API_PORT: ${{ vars.CI_API_V2_PORT }}
   CALCOM_LICENSE_KEY: ${{ secrets.CI_CALCOM_LICENSE_KEY }}
+  CAL_SIGNATURE_TOKEN: ${{ secrets.CI_CAL_SIGNATURE_TOKEN }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_READ_URL: ${{ secrets.CI_DATABASE_URL }}
@@ -21,7 +22,6 @@ env:
   STRIPE_API_KEY: ${{ secrets.CI_STRIPE_PRIVATE_KEY }}
   STRIPE_CLIENT_ID: ${{ secrets.CI_STRIPE_CLIENT_ID }}
   STRIPE_WEBHOOK_SECRET: ${{ secrets.CI_STRIPE_WEBHOOK_SECRET }}
-  CAL_SIGNATURE_TOKEN: ${{ secrets.CI_CAL_SIGNATURE_TOKEN }}
 jobs:
   e2e:
     timeout-minutes: 20

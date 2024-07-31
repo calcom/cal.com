@@ -8,6 +8,7 @@ env:
   NODE_OPTIONS: --max-old-space-size=4096
   ALLOWED_HOSTNAMES: ${{ vars.CI_ALLOWED_HOSTNAMES }}
   CALENDSO_ENCRYPTION_KEY: ${{ secrets.CI_CALENDSO_ENCRYPTION_KEY }}
+  CAL_SIGNATURE_TOKEN: ${{ secrets.CI_CAL_SIGNATURE_TOKEN }}
   DAILY_API_KEY: ${{ secrets.CI_DAILY_API_KEY }}
   DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
   DATABASE_DIRECT_URL: ${{ secrets.CI_DATABASE_URL }}
@@ -41,7 +42,6 @@ env:
   SENDGRID_EMAIL: ${{ secrets.CI_SENDGRID_EMAIL }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-  CAL_SIGNATURE_TOKEN: ${{ secrets.CI_CAL_SIGNATURE_TOKEN }}
 jobs:
   e2e:
     timeout-minutes: 20
