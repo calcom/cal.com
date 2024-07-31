@@ -4,6 +4,8 @@ import { getEventLocationType } from "@calcom/app-store/locations";
 import type { useLocale } from "@calcom/lib/hooks/useLocale";
 import notEmpty from "@calcom/lib/notEmpty";
 
+const bufferHostnames = ["meetings.bufferinsurance.com", "buffer-cal-us-east-1-staging.dcsdevelopment.me"];
+
 const getLocationTranslation = (projectName: string) => {
   if (process.env.NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS) {
     return JSON.parse(process.env.NEXT_PUBLIC_PROJECT_VAR_TRANSLATIONS)[projectName];
@@ -19,10 +21,10 @@ export default function getLocationsOptionsForSelect(
     .map((location) => {
       const eventLocation = getEventLocationType(location.type);
       const locationString = locationKeyToString(location);
-      const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME || "";
+      const projectName = typeof window !== "undefined" ? window.location.hostname : "";
 
       const replaceLocationString = (locationString: string) => {
-        if (projectName === "buffer") {
+        if (bufferHostnames.includes(projectName)) {
           const replacementFields = getLocationTranslation("buffer");
           if (replacementFields && replacementFields[locationString]) {
             return replacementFields[locationString];
