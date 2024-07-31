@@ -1,4 +1,5 @@
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 
@@ -11,6 +12,14 @@ export class OrganizationsTeamsRepository {
       where: {
         id: teamId,
         isOrganization: false,
+        parentId: organizationId,
+      },
+    });
+  }
+
+  async findOrgTeams(organizationId: number) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
         parentId: organizationId,
       },
     });
@@ -32,7 +41,26 @@ export class OrganizationsTeamsRepository {
     });
   }
 
-  async updateOrgTeam(organizationId: number, teamId: number, data: CreateOrgTeamDto) {
+  async createPlatformOrgTeam(organizationId: number, oAuthClientId: string, data: CreateOrgTeamDto) {
+    return this.dbRead.prisma.team.create({
+      data: {
+        ...data,
+        parentId: organizationId,
+        createdByOAuthClientId: oAuthClientId,
+      },
+    });
+  }
+
+  async getPlatformOrgTeams(organizationId: number, oAuthClientId: string) {
+    return this.dbRead.prisma.team.findMany({
+      where: {
+        parentId: organizationId,
+        createdByOAuthClientId: oAuthClientId,
+      },
+    });
+  }
+
+  async updateOrgTeam(organizationId: number, teamId: number, data: UpdateOrgTeamDto) {
     return this.dbRead.prisma.team.update({
       data: { ...data },
       where: { id: teamId, parentId: organizationId, isOrganization: false },

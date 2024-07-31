@@ -16,6 +16,18 @@ export class OrganizationsEventTypesRepository {
     });
   }
 
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+    return this.dbRead.prisma.eventType.findUnique({
+      where: {
+        teamId_slug: {
+          teamId,
+          slug: eventTypeSlug,
+        },
+      },
+      include: { users: true, schedule: true, hosts: true },
+    });
+  }
+
   async getTeamEventTypes(teamId: number) {
     return this.dbRead.prisma.eventType.findMany({
       where: {
