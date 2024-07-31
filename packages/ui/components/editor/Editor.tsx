@@ -88,6 +88,7 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  data-testid="editor-input"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
