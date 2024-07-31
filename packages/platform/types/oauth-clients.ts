@@ -46,6 +46,7 @@ export const userSchemaResponse = z.object({
   weekStart: z.string(),
   timeZone: z.string().default("Europe/London"),
   username: z.string(),
+  organizationId: z.number().nullable(),
 });
 
 export type UserResponse = z.infer<typeof userSchemaResponse>;

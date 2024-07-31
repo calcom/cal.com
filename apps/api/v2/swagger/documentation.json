@@ -962,6 +962,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -981,6 +989,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/me": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getMyTeams",
+        "summary": "Get the organization's teams user is a member of",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgMeTeamsOutputResponseDto"
                 }
               }
             }
@@ -1075,7 +1134,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrgTeamDto"
+                "$ref": "#/components/schemas/UpdateOrgTeamDto"
               }
             }
           }
@@ -1160,6 +1219,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -1262,6 +1331,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_06_11"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -2301,6 +2380,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduleInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "",
@@ -5100,6 +5189,29 @@
           "data"
         ]
       },
+      "OrgMeTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "OrgTeamOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -5119,6 +5231,69 @@
           "status",
           "data"
         ]
+      },
+      "UpdateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        }
       },
       "CreateOrgTeamDto": {
         "type": "object",
@@ -5180,6 +5355,10 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true
           }
         },
         "required": [
@@ -5329,6 +5508,57 @@
           "data"
         ]
       },
+      "CreateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        },
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
+      },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
         "properties": {
@@ -5376,6 +5606,52 @@
           "status",
           "data"
         ]
+      },
+      "UpdateScheduleInput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "One-on-one coaching"
+          },
+          "timeZone": {
+            "type": "string",
+            "example": "Europe/Rome"
+          },
+          "availability": {
+            "example": [
+              {
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
+                "startTime": "09:00",
+                "endTime": "10:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleAvailabilityInput_2024_06_11"
+            }
+          },
+          "isDefault": {
+            "type": "boolean",
+            "example": true
+          },
+          "overrides": {
+            "example": [
+              {
+                "date": "2024-05-20",
+                "startTime": "12:00",
+                "endTime": "14:00"
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduleOverrideInput_2024_06_11"
+            }
+          }
+        }
       },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
@@ -6012,9 +6288,12 @@
           "freq"
         ]
       },
-      "Host": {
+      "TeamEventTypeResponseHost": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "userId": {
             "type": "number"
           },
@@ -6028,6 +6307,7 @@
           }
         },
         "required": [
+          "name",
           "userId"
         ]
       },
@@ -6145,7 +6425,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -6467,6 +6747,26 @@
           "userId"
         ]
       },
+      "GetDefaultScheduleOutput_2024_06_11": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "CreateAvailabilityInput_2024_04_15": {
         "type": "object",
         "properties": {
@@ -6764,6 +7064,66 @@
           "data"
         ]
       },
+      "UpdateScheduleInput_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "timeZone": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "schedule": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          },
+          "dateOverrides": {
+            "example": [
+              [],
+              [
+                {
+                  "start": "2022-01-01T00:00:00.000Z",
+                  "end": "2022-01-02T00:00:00.000Z"
+                }
+              ],
+              [],
+              [],
+              [],
+              [],
+              []
+            ],
+            "items": {
+              "type": "array"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "timeZone",
+          "name",
+          "isDefault",
+          "schedule"
+        ]
+      },
       "EventTypeModel_2024_04_15": {
         "type": "object",
         "properties": {
@@ -7033,6 +7393,10 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
@@ -7042,7 +7406,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "organizationId"
         ]
       },
       "GetMeOutput": {

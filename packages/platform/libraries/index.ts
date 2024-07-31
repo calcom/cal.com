@@ -109,3 +109,5 @@ export { CalendarService };
 export { getCalendar };
 
 export { getTranslation };
+
+export { updateNewTeamMemberEventTypes } from "@calcom/lib/server/queries";

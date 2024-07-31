@@ -27,10 +27,6 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -43,7 +39,6 @@ import {
   MeetingTimeInTimezones,
   showToast,
   TableActions,
-  TextAreaField,
   Tooltip,
 } from "@calcom/ui";
 
@@ -75,19 +70,12 @@ function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
-      } else {
-        showToast(t("booking_confirmation_success"), "success");
-      }
+    onSuccess: () => {
+      showToast(t("booking_confirmation_success"), "success");
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -122,7 +110,7 @@ function BookingListItem(booking: BookingItemProps) {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
-      reason: rejectionReason,
+      reason: "",
     };
     /**
      * Only pass down the recurring event id when we need to confirm the entire series, which happens in
@@ -145,9 +133,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "reject",
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      onClick: () => {
-        setRejectionDialogIsOpen(true);
-      },
+      href: `/booking/${booking.uid}?reject=true`,
       icon: "ban",
       disabled: mutation.isPending,
     },
@@ -347,120 +333,80 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
-        <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
-          <div className="flex h-full items-center">
-            {booking.eventType?.eventTypeColour && (
-              <div
-                className="mr-3 h-[70%] w-0.5"
-                style={{ backgroundColor: booking.eventType.eventTypeColour }}
-              />
-            )}
-
-            <Link href={bookingLink}>
-              <div className="cursor-pointer py-4">
-                <div className="text-emphasis text-sm leading-6">{startTime}</div>
-                <div className="text-subtle text-sm">
-                  {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
-                  {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
-                  <MeetingTimeInTimezones
-                    timeFormat={userTimeFormat}
-                    userTimezone={userTimeZone}
-                    startTime={booking.startTime}
-                    endTime={booking.endTime}
-                    attendees={booking.attendees}
+      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
+        <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
+          <Link href={bookingLink}>
+            <div className="cursor-pointer py-4">
+              <div className="text-emphasis text-sm leading-6">{startTime}</div>
+              <div className="text-subtle text-sm">
+                {formatTime(booking.startTime, userTimeFormat, userTimeZone)} -{" "}
+                {formatTime(booking.endTime, userTimeFormat, userTimeZone)}
+                <MeetingTimeInTimezones
+                  timeFormat={userTimeFormat}
+                  userTimezone={userTimeZone}
+                  startTime={booking.startTime}
+                  endTime={booking.endTime}
+                  attendees={booking.attendees}
+                />
+              </div>
+              {!isPending && (
+                <div>
+                  {(provider?.label || locationToDisplay?.startsWith("https://")) &&
+                    locationToDisplay.startsWith("http") && (
+                      <a
+                        href={locationToDisplay}
+                        onClick={(e) => e.stopPropagation()}
+                        target="_blank"
+                        title={locationToDisplay}
+                        rel="noreferrer"
+                        className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
+                        <div className="flex items-center gap-2">
+                          {provider?.iconUrl && (
+                            <img
+                              src={provider.iconUrl}
+                              className="h-4 w-4 rounded-sm"
+                              alt={`${provider?.label} logo`}
+                            />
+                          )}
+                          {provider?.label
+                            ? t("join_event_location", { eventLocationType: provider?.label })
+                            : t("join_meeting")}
+                        </div>
+                      </a>
+                    )}
+                </div>
+              )}
+              {isPending && (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                  {t("unconfirmed")}
+                </Badge>
+              )}
+              {booking.eventType?.team && (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
+                  {booking.eventType.team.name}
+                </Badge>
+              )}
+              {booking.paid && !booking.payment[0] ? (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
+                  {t("error_collecting_card")}
+                </Badge>
+              ) : booking.paid ? (
+                <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
+                  {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
+                </Badge>
+              ) : null}
+              {recurringDates !== undefined && (
+                <div className="text-muted mt-2 text-sm">
+                  <RecurringBookingsTooltip
+                    userTimeFormat={userTimeFormat}
+                    userTimeZone={userTimeZone}
+                    booking={booking}
+                    recurringDates={recurringDates}
                   />
                 </div>
-                {!isPending && (
-                  <div>
-                    {(provider?.label || locationToDisplay?.startsWith("https://")) &&
-                      locationToDisplay.startsWith("http") && (
-                        <a
-                          href={locationToDisplay}
-                          onClick={(e) => e.stopPropagation()}
-                          target="_blank"
-                          title={locationToDisplay}
-                          rel="noreferrer"
-                          className="text-sm leading-6 text-blue-600 hover:underline dark:text-blue-400">
-                          <div className="flex items-center gap-2">
-                            {provider?.iconUrl && (
-                              <img
-                                src={provider.iconUrl}
-                                className="h-4 w-4 rounded-sm"
-                                alt={`${provider?.label} logo`}
-                              />
-                            )}
-                            {provider?.label
-                              ? t("join_event_location", { eventLocationType: provider?.label })
-                              : t("join_meeting")}
-                          </div>
-                        </a>
-                      )}
-                  </div>
-                )}
-                {isPending && (
-                  <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                    {t("unconfirmed")}
-                  </Badge>
-                )}
-                {booking.eventType?.team && (
-                  <Badge className="ltr:mr-2 rtl:ml-2" variant="gray">
-                    {booking.eventType.team.name}
-                  </Badge>
-                )}
-                {booking.paid && !booking.payment[0] ? (
-                  <Badge className="ltr:mr-2 rtl:ml-2" variant="orange">
-                    {t("error_collecting_card")}
-                  </Badge>
-                ) : booking.paid ? (
-                  <Badge className="ltr:mr-2 rtl:ml-2" variant="green" data-testid="paid_badge">
-                    {booking.payment[0].paymentOption === "HOLD" ? t("card_held") : t("paid")}
-                  </Badge>
-                ) : null}
-                {recurringDates !== undefined && (
-                  <div className="text-muted mt-2 text-sm">
-                    <RecurringBookingsTooltip
-                      userTimeFormat={userTimeFormat}
-                      userTimeZone={userTimeZone}
-                      booking={booking}
-                      recurringDates={recurringDates}
-                    />
-                  </div>
-                )}
-              </div>
-            </Link>
-          </div>
+              )}
+            </div>
+          </Link>
         </td>
         <td data-testid="title-and-attendees" className={`w-full px-4${isRejected ? " line-through" : ""}`}>
           <Link href={bookingLink}>
@@ -730,7 +676,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         <button
           data-testid="guest"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <s>
               {name || email} <Icon name="eye-off" className="inline h-4" />
@@ -848,7 +794,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
         <button
           data-testid="more-guests"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
@@ -909,7 +855,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>
