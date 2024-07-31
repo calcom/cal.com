@@ -145,7 +145,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {
-    destinationUrl.set("flag.coep", coepFlag as string);
+    destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
   return {
     redirect: {
