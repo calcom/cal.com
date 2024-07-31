@@ -483,6 +483,8 @@ describe("Organizations Team Endpoints", () => {
 
     let userRepositoryFixture: UserRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
+    let orgRepositoryFixture: OrganizationRepositoryFixture;
+
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let oauthClientRepositoryFixture: OAuthClientRepositoryFixture;
 
@@ -507,13 +509,13 @@ describe("Organizations Team Endpoints", () => {
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-
+      orgRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       user = await userRepositoryFixture.create({
         email: userEmail,
         username: userEmail,
       });
 
-      org = await teamsRepositoryFixture.create({
+      org = await orgRepositoryFixture.create({
         name: "Platform Test Organization",
         isOrganization: true,
       });
