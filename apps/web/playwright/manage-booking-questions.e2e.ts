@@ -832,6 +832,8 @@ test.describe("Text area min and max characters text", () => {
       // wait until the button with data-testid="time" is visible
       await page.locator('[data-testid="time"]').isVisible();
 
+      await page.getByTestId("incrementMonth").click();
+
       // Get first button with data-testid="time"
       const timeButton = page.locator('[data-testid="time"]').first();
       await timeButton.click();
@@ -845,6 +847,8 @@ test.describe("Text area min and max characters text", () => {
 
       // Get button with data-testid="confirm-book-button"
       const submitForm = async () => await page.locator('[data-testid="confirm-book-button"]').click();
+      await page.fill('[name="name"]', "Booker");
+      await page.fill('[name="email"]', "booker@example.com");
       await textAreaWithoutMinMax.fill("1234567890");
       await textAreaWithMin5.fill("1234");
       await textAreaWithMax10.fill("12345678901");
