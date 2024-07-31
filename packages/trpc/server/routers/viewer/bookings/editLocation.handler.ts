@@ -118,8 +118,9 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         },
         data: {
           location,
-          references: {
-            create: updatedResult.referencesToCreate,
+          metadata: {
+            ...(typeof booking.metadata === "object" ? booking.metadata : {}),
+            ...(location.startsWith("http") ? { videoCallUrl: location } : {}),
           },
         },
       });
