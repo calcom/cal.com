@@ -64,6 +64,7 @@ import {
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -79,6 +80,7 @@ const querySchema = z.object({
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  reject: stringToBoolean,
   allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
@@ -109,12 +111,13 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -187,7 +190,7 @@ export default function Success(props: PageProps) {
 
   useEffect(() => {
     if (noShow) {
-      const seedData = { bookingUid: bookingInfo.uid };
+      const seedData = { bookingUid: bookingInfo.uid, noShowHost: true };
       const token = encodeURIComponent(
         symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "")
       );
@@ -213,6 +216,16 @@ export default function Success(props: PageProps) {
       if (_searchParams.get("cancel")) {
         _searchParams.delete("cancel");
       }
+    }
+
+    router.replace(`${pathname}?${_searchParams.toString()}`);
+  }
+
+  function setIsRejectionMode() {
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+
+    if (_searchParams.get("reject")) {
+      _searchParams.delete("reject");
     }
 
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -305,7 +318,7 @@ export default function Success(props: PageProps) {
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
     const titlePrefix = isRoundRobin ? "round_robin_" : "";
-    if (isCancelled) {
+    if (isCancelled || isBookingInPast) {
       return "";
     }
     if (needsConfirmation) {
@@ -349,6 +362,8 @@ export default function Success(props: PageProps) {
 
   const providerName = guessEventLocationType(location)?.label;
   const rescheduleProviderName = guessEventLocationType(rescheduleLocation)?.label;
+  const isBookingInPast = new Date(bookingInfo.endTime) < new Date();
+  const isReschedulable = !isCancelled && !isBookingInPast;
 
   const bookingCancelledEventProps = {
     booking: bookingInfo,
@@ -421,7 +436,7 @@ export default function Success(props: PageProps) {
                           imageSrc={`${bookingInfo.user.avatarUrl}`}
                         />
                       )}
-                      {giphyImage && !needsConfirmation && !isCancelled && (
+                      {giphyImage && !needsConfirmation && isReschedulable && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={giphyImage} className="w-full rounded-lg" alt="Gif from Giphy" />
                       )}
@@ -430,17 +445,19 @@ export default function Success(props: PageProps) {
                           "mx-auto flex h-12 w-12 items-center justify-center rounded-full",
                           isRoundRobin &&
                             "border-cal-bg dark:border-cal-bg-muted absolute bottom-0 right-0 z-10 h-12 w-12 border-8",
-                          !giphyImage && !isCancelled && !needsConfirmation ? "bg-success" : "",
-                          !giphyImage && !isCancelled && needsConfirmation ? "bg-subtle" : "",
-                          isCancelled ? "bg-error" : ""
+                          !giphyImage && isReschedulable && !needsConfirmation ? "bg-success" : "",
+                          !giphyImage && isReschedulable && needsConfirmation ? "bg-subtle" : "",
+                          isCancelled || isBookingInPast ? "bg-error" : ""
                         )}>
-                        {!giphyImage && !needsConfirmation && !isCancelled && (
+                        {!giphyImage && !needsConfirmation && isReschedulable && (
                           <Icon name="check" className="h-5 w-5 text-green-600 dark:text-green-400" />
                         )}
-                        {needsConfirmation && !isCancelled && (
+                        {needsConfirmation && isReschedulable && (
                           <Icon name="calendar" className="text-emphasis h-5 w-5" />
                         )}
-                        {isCancelled && <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />}
+                        {(isCancelled || isBookingInPast) && (
+                          <Icon name="x" className="h-5 w-5 text-red-600 dark:text-red-200" />
+                        )}
                       </div>
                     </div>
                     <div className="mb-8 mt-6 text-center last:mb-0">
@@ -448,7 +465,7 @@ export default function Success(props: PageProps) {
                         className="text-emphasis text-2xl font-semibold leading-6"
                         data-testid={isCancelled ? "cancelled-headline" : ""}
                         id="modal-headline">
-                        {needsConfirmation && !isCancelled
+                        {needsConfirmation && isReschedulable
                           ? props.recurringBookings
                             ? t("booking_submitted_recurring")
                             : t("booking_submitted")
@@ -456,6 +473,8 @@ export default function Success(props: PageProps) {
                           ? seatReferenceUid
                             ? t("no_longer_attending")
                             : t("event_cancelled")
+                          : isBookingInPast
+                          ? t("event_expired")
                           : props.recurringBookings
                           ? t("meeting_is_scheduled_recurring")
                           : t("meeting_is_scheduled")}
@@ -588,6 +607,9 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+
+                        {rescheduledToUid ? <RescheduledToLink rescheduledToUid={rescheduledToUid} /> : null}
+
                         {bookingInfo?.description && (
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
@@ -659,7 +681,8 @@ export default function Success(props: PageProps) {
                     )}
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
-                      !isCancelled &&
+                      isReschedulable &&
+                      !isRejectionMode &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -714,10 +737,23 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {userIsOwner && !isCancelled && isRejectionMode && (
+                      <>
+                        <hr className="border-subtle" />
+                        <RejectBooking
+                          booking={{
+                            id: bookingInfo.id,
+                            uid: bookingInfo?.uid,
+                            recurringEventId: bookingInfo.recurringEventId,
+                          }}
+                          setIsRejectionMode={setIsRejectionMode}
+                        />
+                      </>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&
-                      !isCancelled &&
+                      isReschedulable &&
                       !!calculatedDuration && (
                         <>
                           <hr className="border-subtle mt-8" />
@@ -997,6 +1033,25 @@ export default function Success(props: PageProps) {
     </div>
   );
 }
+
+const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <div className="mt-3 font-medium">{t("rescheduled")}</div>
+      <div className="col-span-2 mb-2 mt-3">
+        <span className="underline">
+          <Link href={`/booking/${rescheduledToUid}`}>
+            <div className="flex items-center gap-1">
+              {t("view_booking")}
+              <Icon name="external-link" className="h-4 w-4" />
+            </div>
+          </Link>
+        </span>
+      </div>
+    </>
+  );
+};
 
 const DisplayLocation = ({
   locationToDisplay,
