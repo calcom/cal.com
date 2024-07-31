@@ -4,7 +4,7 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
-import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/publicViewer/noShow.schema";
+import type { TNoShowSchema } from "@calcom/trpc/server/routers/publicViewer/noShow.handler";
 
 const getResultPayload = async (attendees: { email: string; noShow: boolean }[]) => {
   if (attendees.length === 1) {
@@ -34,7 +34,7 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
-const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowInputSchema) => {
+const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowSchema) => {
   const responsePayload: ResponsePayload = {
     attendees: [],
     noShowHost: false,

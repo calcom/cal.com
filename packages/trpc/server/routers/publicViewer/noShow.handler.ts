@@ -9,6 +9,8 @@ type NoShowOptions = {
   input: TNoShowInputSchema;
 };
 
+export type TNoShowSchema = z.infer<typeof decryptedSchema>;
+
 const decryptedSchema = z
   .object({
     bookingUid: z.string(),
