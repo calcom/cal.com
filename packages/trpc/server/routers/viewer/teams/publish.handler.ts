@@ -1,13 +1,11 @@
 import type { Prisma } from "@prisma/client";
 
-import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
 import { TeamBilling } from "@calcom/ee/billing/teams";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
@@ -55,43 +53,17 @@ const generateCheckoutSession = async ({
   return { url: checkoutSession.url, message: "Payment required to publish team" };
 };
 
-const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) => {
-  if (!ctx.user.profile?.organizationId) throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  if (!isOrganisationAdmin(ctx.user.id, ctx.user?.profile.organizationId))
+async function checkPermissions({ ctx, input }: PublishOptions) {
+  const { profile } = ctx.user;
+  if (profile?.organizationId && !isOrganisationAdmin(ctx.user.id, profile.organizationId))
     throw new TRPCError({ code: "UNAUTHORIZED" });
-
-  // We update the quantity of the parent ID (organization) subscription
-  const teamBilling = await TeamBilling.findAndCreate(input.teamId);
-  await teamBilling.publish();
-
-  const { requestedSlug, ...newMetadata } = metadata;
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
-
-  try {
-    updatedTeam = await prisma.team.update({
-      where: { id: createdTeam.id },
-      data: {
-        slug: requestedSlug,
-        metadata: { ...newMetadata },
-      },
-    });
-  } catch (error) {
-    const { message } = getRequestedSlugError(error, requestedSlug);
-    throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
-  }
-
-  return {
-    url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
-    message: "Team published successfully",
-  };
-};
+  if (!profile?.organizationId && !(await isTeamAdmin(ctx.user.id, input.teamId)))
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+}
 
 export const publishHandler = async ({ ctx, input }: PublishOptions) => {
   const { teamId } = input;
-  if (ctx.user.profile?.organizationId) return publishOrganizationTeamHandler({ ctx, input });
-  if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
+  await checkPermissions({ ctx, input });
 
   try {
     const teamBilling = await TeamBilling.findAndCreate(teamId);
