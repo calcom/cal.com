@@ -1,8 +1,12 @@
-import { z } from "zod";
+import type { Prisma } from "@prisma/client";
+import type { z } from "zod";
 
+import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-billing";
+import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { MINIMUM_NUMBER_OF_ORG_SEATS, WEBAPP_URL } from "@calcom/lib/constants";
 import { getMetadataHelpers } from "@calcom/lib/getMetadataHelpers";
 import logger from "@calcom/lib/logger";
+import { Redirect } from "@calcom/lib/redirect";
 import prisma from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -11,23 +15,17 @@ import type { TeamBilling, TeamBillingInput } from "./team-billing";
 
 const log = logger.getSubLogger({ prefix: ["TeamBilling"] });
 
-const teamPaymentMetadataSchema = z.object({
-  // Redefine paymentId, subscriptionId and subscriptionItemId to ensure that they are present and nonNullable
-  paymentId: z.string(),
-  subscriptionId: z.string(),
-  subscriptionItemId: z.string(),
-  orgSeats: teamMetadataSchema.unwrap().shape.orgSeats,
-});
+const teamPaymentMetadataSchema = teamMetadataSchema.unwrap();
 
 export class InternalTeamBilling implements TeamBilling {
   private _team!: Omit<TeamBillingInput, "metadata"> & {
-    metadata: z.infer<typeof teamPaymentMetadataSchema>;
+    metadata: NonNullable<z.infer<typeof teamPaymentMetadataSchema>>;
   };
   constructor(team: TeamBillingInput) {
     this.team = team;
   }
   set team(team: TeamBillingInput) {
-    const metadata = teamPaymentMetadataSchema.parse(team.metadata);
+    const metadata = teamPaymentMetadataSchema.parse(team.metadata || {});
     this._team = { ...team, metadata };
   }
   get team(): typeof this._team {
@@ -50,6 +48,7 @@ export class InternalTeamBilling implements TeamBilling {
     try {
       const { subscriptionId } = this.team.metadata;
       log.info(`Cancelling subscription ${subscriptionId} for team ${this.team.id}`);
+      if (!subscriptionId) throw Error("missing subscriptionId");
       await billing.handleSubscriptionCancel(subscriptionId);
       await this.downgrade();
       log.info(`Cancelled subscription ${subscriptionId} for team ${this.team.id}`);
@@ -57,9 +56,44 @@ export class InternalTeamBilling implements TeamBilling {
       this.logErrorFromUnknown(error);
     }
   }
+  // New teams are published on creation, this is for backwards compatibility
+  async publish() {
+    const { url } = await this.checkIfTeamPaymentRequired();
+    const teamId = this.team.id;
+    if (url) throw new Redirect(307, url);
+    const requestedSlug = this.team.metadata?.requestedSlug || "";
+    // if payment needed, respond with checkout url
+    const membershipCount = await prisma.membership.count({ where: { teamId } });
+    const owner = await prisma.membership.findFirstOrThrow({
+      where: { teamId, role: "OWNER" },
+      select: {
+        userId: true,
+      },
+    });
+
+    try {
+      const checkoutSession = await purchaseTeamOrOrgSubscription({
+        teamId,
+        seatsUsed: membershipCount,
+        userId: owner.userId,
+        pricePerSeat: null,
+      });
+      if (checkoutSession.url) throw new Redirect(307, checkoutSession.url);
+      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
+      const data: Prisma.TeamUpdateInput = {
+        metadata: mergeMetadata({ requestedSlug: undefined }),
+      };
+      if (requestedSlug) data.slug = requestedSlug;
+      await prisma.team.update({ where: { id: teamId }, data });
+    } catch (error) {
+      if (error instanceof Redirect) throw error;
+      const { message } = getRequestedSlugError(error, requestedSlug);
+      throw Error(message);
+    }
+  }
   async downgrade() {
     try {
-      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema.partial(), this.team.metadata);
+      const { mergeMetadata } = getMetadataHelpers(teamPaymentMetadataSchema, this.team.metadata);
       const metadata = mergeMetadata({
         paymentId: undefined,
         subscriptionId: undefined,
@@ -92,6 +126,8 @@ export class InternalTeamBilling implements TeamBilling {
         );
         return;
       }
+      if (!subscriptionId) throw Error("missing subscriptionId");
+      if (!subscriptionItemId) throw Error("missing subscriptionItemId");
       await billing.handleSubscriptionUpdate({ subscriptionId, subscriptionItemId, membershipCount });
       log.info(`Updated subscription ${subscriptionId} for team ${teamId} to ${membershipCount} seats.`);
     } catch (error) {
@@ -100,13 +136,17 @@ export class InternalTeamBilling implements TeamBilling {
   }
   /** Used to prevent double charges for the same team */
   private checkIfTeamPaymentRequired = async () => {
-    const { paymentId } = this.team.metadata;
+    const { paymentId } = this.team.metadata || {};
     /** If there's no paymentId, we need to pay this team */
-    if (!paymentId) return { url: null };
+    if (!paymentId) return { url: null, paymentId: null, paymentRequired: true };
     /** If there's a pending session but it isn't paid, we need to pay this team */
     const checkoutSessionIsPaid = await billing.checkoutSessionIsPaid(paymentId);
-    if (!checkoutSessionIsPaid) return { url: null };
+    if (!checkoutSessionIsPaid) return { url: null, paymentId, paymentRequired: true };
     /** If the session is already paid we return the upgrade URL so team is updated. */
-    return { url: `${WEBAPP_URL}/api/teams/${this.team.id}/upgrade?session_id=${paymentId}` };
+    return {
+      url: `${WEBAPP_URL}/api/teams/${this.team.id}/upgrade?session_id=${paymentId}`,
+      paymentId,
+      paymentRequired: false,
+    };
   };
 }

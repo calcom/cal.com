@@ -4,9 +4,9 @@ import { getRequestedSlugError } from "@calcom/app-store/stripepayment/lib/team-
 import { TeamBilling } from "@calcom/ee/billing/teams";
 import { purchaseTeamOrOrgSubscription } from "@calcom/features/ee/teams/lib/payments";
 import { IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
+import { Redirect } from "@calcom/lib/redirect";
 import { isOrganisationAdmin } from "@calcom/lib/server/queries/organisations";
 import { isTeamAdmin } from "@calcom/lib/server/queries/teams";
-import { closeComUpdateTeam } from "@calcom/lib/sync/SyncServiceManager";
 import { prisma } from "@calcom/prisma";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -61,29 +61,10 @@ const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) =>
   if (!isOrganisationAdmin(ctx.user.id, ctx.user?.profile.organizationId))
     throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  const createdTeam = await prisma.team.findFirst({
-    where: { id: input.teamId, parentId: ctx.user.profile?.organizationId },
-    include: {
-      parent: {
-        include: {
-          members: true,
-        },
-      },
-    },
-  });
-
-  if (!createdTeam || !createdTeam.parentId)
-    throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
-
-  const metadata = parseMetadataOrThrow(createdTeam.metadata);
-
   // We update the quantity of the parent ID (organization) subscription
-  const teamBilling = await TeamBilling.findAndCreate(createdTeam.parentId);
-  await teamBilling.updateQuantity();
+  const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+  await teamBilling.publish();
 
-  if (!metadata?.requestedSlug) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
-  }
   const { requestedSlug, ...newMetadata } = metadata;
   let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
@@ -107,51 +88,27 @@ const publishOrganizationTeamHandler = async ({ ctx, input }: PublishOptions) =>
 };
 
 export const publishHandler = async ({ ctx, input }: PublishOptions) => {
+  const { teamId } = input;
   if (ctx.user.profile?.organizationId) return publishOrganizationTeamHandler({ ctx, input });
-
-  if (!(await isTeamAdmin(ctx.user.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
-  const { teamId: id } = input;
-
-  const prevTeam = await prisma.team.findFirst({ where: { id }, include: { members: true } });
-
-  if (!prevTeam) throw new TRPCError({ code: "NOT_FOUND", message: "Team not found." });
-
-  const metadata = parseMetadataOrThrow(prevTeam.metadata);
-
-  // if payment needed, respond with checkout url
-  const checkoutSession = await generateCheckoutSession({
-    teamId: prevTeam.id,
-    seats: prevTeam.members.length,
-    userId: ctx.user.id,
-  });
-
-  if (checkoutSession) return checkoutSession;
-
-  if (!metadata?.requestedSlug) {
-    throw new TRPCError({ code: "BAD_REQUEST", message: "Can't publish team without `requestedSlug`" });
-  }
-
-  const { requestedSlug, ...newMetadata } = metadata;
+  if (!(await isTeamAdmin(ctx.user.id, teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
   let updatedTeam: Awaited<ReturnType<typeof prisma.team.update>>;
 
   try {
-    updatedTeam = await prisma.team.update({
-      where: { id },
-      data: {
-        slug: requestedSlug,
-        metadata: { ...newMetadata },
-      },
-    });
+    const teamBilling = await TeamBilling.findAndCreate(teamId);
+    await teamBilling.publish();
   } catch (error) {
-    const { message } = getRequestedSlugError(error, requestedSlug);
+    /** We return the url for client redirect if needed */
+    if (error instanceof Redirect) return { url: error.url };
+    let message = "Unknown Error on publishHandler";
+    if (error instanceof Error) message = error.message;
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message });
   }
 
   // Sync Services: Close.com
-  closeComUpdateTeam(prevTeam, updatedTeam);
+  // closeComUpdateTeam(prevTeam, updatedTeam);
 
   return {
-    url: `${WEBAPP_URL}/settings/teams/${updatedTeam.id}/profile`,
+    url: `${WEBAPP_URL}/settings/teams/${teamId}/profile`,
     message: "Team published successfully",
   };
 };

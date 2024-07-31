@@ -79,6 +79,7 @@ export const generateTeamCheckoutSession = async ({
 };
 
 /**
+ * @deprecated Move over to internal-team-billing
  * Used to generate a checkout session when creating a new org (parent team) or backwards compatibility for old teams
  */
 export const purchaseTeamOrOrgSubscription = async (input: {

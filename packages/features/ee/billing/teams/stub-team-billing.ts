@@ -15,6 +15,9 @@ export class StubTeamBilling implements TeamBilling {
   async cancel() {
     log.info(`Skipping team billing cancellation due team billing being disabled`);
   }
+  async publish() {
+    log.info(`Skipping team billing publish due team billing being disabled`);
+  }
   async downgrade() {
     log.info(`Skipping team billing downgrade due team billing being disabled`);
   }
