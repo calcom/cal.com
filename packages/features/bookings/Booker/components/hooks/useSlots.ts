@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { useEffect } from "react";
 import { shallow } from "zustand/shallow";
 
@@ -7,16 +6,11 @@ import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import { useSlotReservationId } from "@calcom/features/bookings/Booker/useSlotReservationId";
 import type { useEventReturnType } from "@calcom/features/bookings/Booker/utils/event";
 import { MINUTES_TO_BOOK } from "@calcom/lib/constants";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { trpc } from "@calcom/trpc";
 
 export type UseSlotsReturnType = ReturnType<typeof useSlots>;
 
 export const useSlots = (event: useEventReturnType) => {
-  const { data: session } = useSession();
-  const token = encodeURIComponent(
-    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
-  );
   const selectedDuration = useBookerStore((state) => state.selectedDuration);
   const [selectedTimeslot, setSelectedTimeslot] = useBookerStore(
     (state) => [state.selectedTimeslot, state.setSelectedTimeslot],
@@ -39,7 +33,7 @@ export const useSlots = (event: useEventReturnType) => {
 
   const handleRemoveSlot = () => {
     if (event?.data) {
-      removeSelectedSlot.mutate({ uid: slotReservationId, token });
+      removeSelectedSlot.mutate({ uid: slotReservationId });
     }
   };
   const handleReserveSlot = () => {
@@ -51,7 +45,6 @@ export const useSlots = (event: useEventReturnType) => {
           .utc()
           .add(selectedDuration || event.data.length, "minutes")
           .format(),
-        token,
       });
     }
   };

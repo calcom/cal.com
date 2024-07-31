@@ -3,7 +3,6 @@ import z from "zod";
 export const ZEventInputSchema = z.object({
   username: z.string(),
   eventSlug: z.string(),
-  token: z.string(),
   isTeamEvent: z.boolean().optional(),
   org: z.string().nullable(),
   /**

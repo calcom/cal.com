@@ -2,13 +2,11 @@ import type { GetServerSidePropsContext } from "next";
 import { z } from "zod";
 
 import { Booker } from "@calcom/atoms/monorepo";
-import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { getBookerWrapperClasses } from "@calcom/features/bookings/Booker/utils/getBookerWrapperClasses";
 import { BookerSeo } from "@calcom/features/bookings/components/BookerSeo";
 import { getMultipleDurationValue } from "@calcom/features/bookings/lib/get-booking";
 import { getSlugOrRequestedSlug } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 
@@ -63,7 +61,6 @@ Type.isBookingPage = true;
 
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const { slug: teamSlug, type: meetingSlug } = paramsSchema.parse(context.params);
-  const session = await getServerSession(context);
   const { duration: queryDuration } = context.query;
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -87,9 +84,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;
-  const token = encodeURIComponent(
-    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
-  );
 
   const eventData = await ssr.viewer.public.event.fetch({
     username: teamSlug,
@@ -97,7 +91,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     isTeamEvent: true,
     org,
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    token,
   });
 
   if (!eventData || !org) {

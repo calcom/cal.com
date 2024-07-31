@@ -1,5 +1,4 @@
 import { useTimesForSchedule } from "@calcom/features/schedules/lib/use-schedule/useTimesForSchedule";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { trpc } from "@calcom/trpc/react";
 
@@ -43,10 +42,6 @@ export const useSchedule = ({
     prefetchNextMonth,
     selectedDate,
   });
-  const meQuery = trpc.viewer.me.useQuery();
-  const token = encodeURIComponent(
-    symmetricEncrypt(meQuery.data?.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
-  );
 
   return trpc.viewer.public.slots.getSchedule.useQuery(
     {
@@ -65,7 +60,6 @@ export const useSchedule = ({
       duration: duration ? `${duration}` : undefined,
       rescheduleUid,
       orgSlug,
-      token,
       bookerEmail,
     },
     {
@@ -78,7 +72,6 @@ export const useSchedule = ({
       enabled:
         Boolean(username) &&
         Boolean(month) &&
-        !meQuery.isPending &&
         Boolean(timezone) &&
         // Should only wait for one or the other, not both.
         (Boolean(eventSlug) || Boolean(eventId) || eventId === 0),

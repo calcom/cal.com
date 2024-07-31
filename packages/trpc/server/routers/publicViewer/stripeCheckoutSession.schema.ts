@@ -4,7 +4,6 @@ export const ZStripeCheckoutSessionInputSchema = z
   .object({
     stripeCustomerId: z.string().optional(),
     checkoutSessionId: z.string().optional(),
-    token: z.string(),
   })
   .superRefine((arg, ctx) => {
     if (!arg.checkoutSessionId && !arg.stripeCustomerId) {

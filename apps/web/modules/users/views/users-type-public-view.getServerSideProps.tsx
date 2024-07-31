@@ -8,7 +8,6 @@ import { getBookingForReschedule, getBookingForSeatedEvent } from "@calcom/featu
 import type { GetBookingType } from "@calcom/features/bookings/lib/get-booking";
 import { orgDomainConfig } from "@calcom/features/ee/organizations/lib/orgDomains";
 import type { getPublicEvent } from "@calcom/features/eventtypes/lib/getPublicEvent";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { getUsernameList } from "@calcom/lib/defaultEvents";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import slugify from "@calcom/lib/slugify";
@@ -93,9 +92,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
   const session = await getServerSession(context);
   const { user: usernames, type: slug } = paramsSchema.parse(context.params);
   const { rescheduleUid, bookingUid } = context.query;
-  const token = encodeURIComponent(
-    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
-  );
 
   const { ssrInit } = await import("@server/lib/ssr");
   const ssr = await ssrInit(context);
@@ -134,7 +130,6 @@ async function getDynamicGroupPageProps(context: GetServerSidePropsContext) {
     eventSlug: slug,
     org,
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    token,
   });
 
   if (!eventData) {
@@ -184,9 +179,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
   const username = usernames[0];
   const { rescheduleUid, bookingUid } = context.query;
   const { currentOrgDomain, isValidOrgDomain } = orgDomainConfig(context.req, context.params?.orgSlug);
-  const token = encodeURIComponent(
-    symmetricEncrypt(session?.user.email || "Email-less", process.env.CALENDSO_ENCRYPTION_KEY || "")
-  );
 
   const isOrgContext = currentOrgDomain && isValidOrgDomain;
   if (!isOrgContext) {
@@ -223,7 +215,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     eventSlug: slug,
     org,
     fromRedirectOfNonOrgLink: context.query.orgRedirection === "true",
-    token,
   });
 
   if (!eventData) {
