@@ -5,6 +5,7 @@ import {
   BadRequestException,
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -35,21 +36,21 @@ export class IsUserEventTypeWebhookGuard implements CanActivate {
       if (!eventType) {
         throw new NotFoundException(`Event type (${eventTypeId}) not found`);
       }
-      if (eventType.userId !== user.id && !user.isSystemAdmin) {
-        throw new BadRequestException(`User (${user.id}) is not the owner of event type (${eventTypeId})`);
+      if (eventType.userId !== user.id) {
+        throw new ForbiddenException(`User (${user.id}) is not the owner of event type (${eventTypeId})`);
       }
       request.eventType = eventType;
     }
 
     if (webhookId) {
       const webhook = await this.webhooksService.getWebhookById(webhookId);
-      if (!webhook.eventTypeId || webhook.eventTypeId !== parseInt(eventTypeId)) {
-        throw new BadRequestException(
+      if (!webhook.eventTypeId) {
+        throw new BadRequestException(`Webhook (${webhookId}) is not associated with an event type`);
+      }
+      if (webhook.eventTypeId !== parseInt(eventTypeId)) {
+        throw new ForbiddenException(
           `Webhook (${webhookId}) is not associated with event type (${eventTypeId})`
         );
-      }
-      if (webhook.userId !== user.id) {
-        return user.isSystemAdmin;
       }
       request.webhook = webhook;
     }

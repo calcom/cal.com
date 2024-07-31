@@ -11,7 +11,7 @@ import {
 } from "@/modules/webhooks/outputs/webhook.output";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
-import { ApiOperation } from "@nestjs/swagger";
+import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { Webhook } from "@prisma/client";
 import { plainToClass } from "class-transformer";
 
@@ -25,6 +25,7 @@ import { CreateWebhookInputDto } from "../inputs/create-webhook.input";
   version: API_VERSIONS_VALUES,
 })
 @UseGuards(ApiAuthGuard)
+@ApiTags("Users' Webhooks")
 export class WebhooksController {
   constructor(private readonly webhooksService: WebhooksService) {}
 

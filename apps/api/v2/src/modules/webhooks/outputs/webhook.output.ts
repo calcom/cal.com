@@ -17,7 +17,7 @@ export class WebhookOutputDto {
 
   @IsInt()
   @Expose()
-  readonly userId!: number;
+  readonly userId?: number;
 
   @IsInt()
   @Expose()
@@ -65,4 +65,15 @@ export class WebhooksOutputResponseDto {
   @ValidateNested()
   @Type(() => WebhookOutputDto)
   data!: WebhookOutputDto[];
+}
+
+export class DeleteManyWebhooksOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
+
+  @Expose()
+  @ValidateNested()
+  @Type(() => WebhookOutputDto)
+  data!: string;
 }

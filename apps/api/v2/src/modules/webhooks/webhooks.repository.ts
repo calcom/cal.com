@@ -69,4 +69,10 @@ export class WebhooksRepository {
       where: { id: webhookId },
     });
   }
+
+  async deleteAllEventTypeWebhooks(eventTypeId: number) {
+    return this.dbWrite.prisma.webhook.deleteMany({
+      where: { eventTypeId },
+    });
+  }
 }

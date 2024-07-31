@@ -1,7 +1,7 @@
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { ConflictException, Injectable, NotFoundException } from "@nestjs/common";
-import { Webhook } from "@prisma/client";
+import { Webhook, Prisma } from "@prisma/client";
 
 @Injectable()
 export class WebhooksService {
@@ -48,5 +48,9 @@ export class WebhooksService {
 
   async deleteWebhook(webhookId: string): Promise<Webhook> {
     return this.webhooksRepository.deleteWebhook(webhookId);
+  }
+
+  async deleteAllEventTypeWebhooks(eventTypeId: number): Promise<{ count: number }> {
+    return this.webhooksRepository.deleteAllEventTypeWebhooks(eventTypeId);
   }
 }

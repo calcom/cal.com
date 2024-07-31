@@ -17,7 +17,9 @@
             }
           }
         },
-        "tags": ["Health - development only"]
+        "tags": [
+          "Health - development only"
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}/users": {
@@ -55,7 +57,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       },
       "post": {
         "operationId": "OAuthClientUsersController_createUser",
@@ -91,7 +95,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}/users/{userId}": {
@@ -127,7 +133,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientUsersController_updateUser",
@@ -171,7 +179,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientUsersController_deleteUser",
@@ -205,7 +215,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}/users/{userId}/force-refresh": {
@@ -241,7 +253,9 @@
             }
           }
         },
-        "tags": ["Managed users"]
+        "tags": [
+          "Managed users"
+        ]
       }
     },
     "/v2/oauth-clients": {
@@ -272,7 +286,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       },
       "get": {
         "operationId": "OAuthClientsController_getOAuthClients",
@@ -291,7 +307,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}": {
@@ -321,7 +339,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       },
       "patch": {
         "operationId": "OAuthClientsController_updateOAuthClient",
@@ -359,7 +379,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       },
       "delete": {
         "operationId": "OAuthClientsController_deleteOAuthClient",
@@ -387,7 +409,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/oauth-clients/{clientId}/managed-users": {
@@ -427,7 +451,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/oauth/{clientId}/authorize": {
@@ -463,7 +489,9 @@
             "description": "Bad request if the OAuth client is not found, if the redirect URI is invalid, or if the user has already authorized the client."
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/oauth/{clientId}/exchange": {
@@ -514,7 +542,9 @@
             "description": "Bad request if the authorization code is missing, invalid, or if the client ID and secret do not match."
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/oauth/{clientId}/refresh": {
@@ -560,7 +590,9 @@
             }
           }
         },
-        "tags": ["OAuth - development only"]
+        "tags": [
+          "OAuth - development only"
+        ]
       }
     },
     "/v2/event-types": {
@@ -589,7 +621,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       },
       "get": {
         "operationId": "EventTypesController_2024_04_15_getEventTypes",
@@ -606,7 +640,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/v2/event-types/{eventTypeId}": {
@@ -634,7 +670,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       },
       "patch": {
         "operationId": "EventTypesController_2024_04_15_updateEventType",
@@ -670,7 +708,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       },
       "delete": {
         "operationId": "EventTypesController_2024_04_15_deleteEventType",
@@ -696,7 +736,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/v2/selected-calendars": {
@@ -725,7 +767,9 @@
             }
           }
         },
-        "tags": ["Selected-Calendars"]
+        "tags": [
+          "Selected-Calendars"
+        ]
       },
       "delete": {
         "operationId": "SelectedCalendarsController_removeSelectedCalendar",
@@ -767,7 +811,9 @@
             }
           }
         },
-        "tags": ["Selected-Calendars"]
+        "tags": [
+          "Selected-Calendars"
+        ]
       }
     },
     "/v2/event-types/{username}/{eventSlug}/public": {
@@ -820,7 +866,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/v2/event-types/{username}/public": {
@@ -848,7 +896,9 @@
             }
           }
         },
-        "tags": ["Event types"]
+        "tags": [
+          "Event types"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams": {
@@ -897,7 +947,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "post": {
         "operationId": "OrganizationsTeamsController_createTeam",
@@ -934,7 +986,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/me": {
@@ -983,7 +1037,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}": {
@@ -1003,7 +1059,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsTeamsController_deleteTeam",
@@ -1038,7 +1096,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsTeamsController_updateTeam",
@@ -1083,7 +1143,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       }
     },
     "/v2/organizations/{orgId}/schedules": {
@@ -1131,7 +1193,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}/schedules": {
@@ -1159,7 +1223,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       },
       "get": {
         "operationId": "OrganizationsSchedulesController_getUserSchedules",
@@ -1185,7 +1251,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}/schedules/{scheduleId}": {
@@ -1221,7 +1289,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsSchedulesController_updateUserSchedule",
@@ -1255,7 +1325,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsSchedulesController_deleteUserSchedule",
@@ -1289,7 +1361,9 @@
             }
           }
         },
-        "tags": ["Organizations Schedules"]
+        "tags": [
+          "Organizations Schedules"
+        ]
       }
     },
     "/v2/organizations/{orgId}/users": {
@@ -1349,7 +1423,9 @@
             }
           }
         },
-        "tags": ["Organizations Users"]
+        "tags": [
+          "Organizations Users"
+        ]
       },
       "post": {
         "operationId": "OrganizationsUsersController_createOrganizationUser",
@@ -1385,7 +1461,9 @@
             }
           }
         },
-        "tags": ["Organizations Users"]
+        "tags": [
+          "Organizations Users"
+        ]
       }
     },
     "/v2/organizations/{orgId}/users/{userId}": {
@@ -1431,7 +1509,9 @@
             }
           }
         },
-        "tags": ["Organizations Users"]
+        "tags": [
+          "Organizations Users"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsUsersController_deleteOrganizationUser",
@@ -1465,7 +1545,9 @@
             }
           }
         },
-        "tags": ["Organizations Users"]
+        "tags": [
+          "Organizations Users"
+        ]
       }
     },
     "/v2/organizations/{orgId}/memberships": {
@@ -1513,7 +1595,9 @@
             }
           }
         },
-        "tags": ["Organizations Memberships"]
+        "tags": [
+          "Organizations Memberships"
+        ]
       },
       "post": {
         "operationId": "OrganizationsMembershipsController_createMembership",
@@ -1549,7 +1633,9 @@
             }
           }
         },
-        "tags": ["Organizations Memberships"]
+        "tags": [
+          "Organizations Memberships"
+        ]
       }
     },
     "/v2/organizations/{orgId}/memberships/{membershipId}": {
@@ -1568,7 +1654,9 @@
             }
           }
         },
-        "tags": ["Organizations Memberships"]
+        "tags": [
+          "Organizations Memberships"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsMembershipsController_deleteMembership",
@@ -1602,7 +1690,9 @@
             }
           }
         },
-        "tags": ["Organizations Memberships"]
+        "tags": [
+          "Organizations Memberships"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsMembershipsController_updateMembership",
@@ -1646,7 +1736,9 @@
             }
           }
         },
-        "tags": ["Organizations Memberships"]
+        "tags": [
+          "Organizations Memberships"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types": {
@@ -1692,7 +1784,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       },
       "get": {
         "operationId": "OrganizationsEventTypesController_getTeamEventTypes",
@@ -1718,7 +1812,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/event-types/{eventTypeId}": {
@@ -1754,7 +1850,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsEventTypesController_updateTeamEventType",
@@ -1798,7 +1896,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsEventTypesController_deleteTeamEventType",
@@ -1832,7 +1932,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/event-types": {
@@ -1880,7 +1982,9 @@
             }
           }
         },
-        "tags": ["Organizations Event Types"]
+        "tags": [
+          "Organizations Event Types"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships": {
@@ -1937,7 +2041,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "post": {
         "operationId": "OrganizationsTeamsMembershipsController_createOrgTeamMembership",
@@ -1982,7 +2088,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       }
     },
     "/v2/organizations/{orgId}/teams/{teamId}/memberships/{membershipId}": {
@@ -2027,7 +2135,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "delete": {
         "operationId": "OrganizationsTeamsMembershipsController_deleteOrgTeamMembership",
@@ -2070,7 +2180,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       },
       "patch": {
         "operationId": "OrganizationsTeamsMembershipsController_updateOrgTeamMembership",
@@ -2123,7 +2235,9 @@
             }
           }
         },
-        "tags": ["Organizations Teams"]
+        "tags": [
+          "Organizations Teams"
+        ]
       }
     },
     "/v2/schedules": {
@@ -2152,7 +2266,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       },
       "get": {
         "operationId": "SchedulesController_2024_04_15_getSchedules",
@@ -2169,7 +2285,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/v2/schedules/default": {
@@ -2188,7 +2306,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/v2/schedules/{scheduleId}": {
@@ -2216,7 +2336,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       },
       "patch": {
         "operationId": "SchedulesController_2024_04_15_updateSchedule",
@@ -2242,7 +2364,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       },
       "delete": {
         "operationId": "SchedulesController_2024_04_15_deleteSchedule",
@@ -2268,7 +2392,9 @@
             }
           }
         },
-        "tags": ["Schedules"]
+        "tags": [
+          "Schedules"
+        ]
       }
     },
     "/v2/gcal/oauth/auth-url": {
@@ -2296,7 +2422,9 @@
             }
           }
         },
-        "tags": ["Google Calendar"]
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/v2/gcal/oauth/save": {
@@ -2332,7 +2460,9 @@
             }
           }
         },
-        "tags": ["Google Calendar"]
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/v2/gcal/check": {
@@ -2351,7 +2481,9 @@
             }
           }
         },
-        "tags": ["Google Calendar"]
+        "tags": [
+          "Google Calendar"
+        ]
       }
     },
     "/v2/provider/{clientId}": {
@@ -2379,7 +2511,9 @@
             }
           }
         },
-        "tags": ["Cal provider"]
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/v2/provider/{clientId}/access-token": {
@@ -2407,7 +2541,9 @@
             }
           }
         },
-        "tags": ["Cal provider"]
+        "tags": [
+          "Cal provider"
+        ]
       }
     },
     "/v2/me": {
@@ -2426,7 +2562,9 @@
             }
           }
         },
-        "tags": ["Me"]
+        "tags": [
+          "Me"
+        ]
       },
       "patch": {
         "operationId": "MeController_updateMe",
@@ -2453,7 +2591,9 @@
             }
           }
         },
-        "tags": ["Me"]
+        "tags": [
+          "Me"
+        ]
       }
     },
     "/v2/calendars/busy-times": {
@@ -2472,7 +2612,9 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars": {
@@ -2491,7 +2633,9 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars/{calendar}/connect": {
@@ -2527,7 +2671,9 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars/{calendar}/save": {
@@ -2564,7 +2710,9 @@
             "description": ""
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars/{calendar}/credentials": {
@@ -2585,7 +2733,9 @@
             "description": ""
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars/{calendar}/check": {
@@ -2613,7 +2763,9 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/calendars/{calendar}/disconnect": {
@@ -2651,7 +2803,9 @@
             }
           }
         },
-        "tags": ["Calendars"]
+        "tags": [
+          "Calendars"
+        ]
       }
     },
     "/v2/bookings": {
@@ -2679,7 +2833,13 @@
             "required": true,
             "in": "query",
             "schema": {
-              "enum": ["upcoming", "recurring", "past", "cancelled", "unconfirmed"],
+              "enum": [
+                "upcoming",
+                "recurring",
+                "past",
+                "cancelled",
+                "unconfirmed"
+              ],
               "type": "string"
             }
           }
@@ -2696,7 +2856,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       },
       "post": {
         "operationId": "BookingsController_createBooking",
@@ -2732,7 +2894,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/{bookingUid}": {
@@ -2760,7 +2924,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/reschedule": {
@@ -2788,7 +2954,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/{bookingId}/cancel": {
@@ -2834,7 +3002,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/{bookingUid}/mark-no-show": {
@@ -2872,7 +3042,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/recurring": {
@@ -2913,7 +3085,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/bookings/instant": {
@@ -2951,7 +3125,9 @@
             }
           }
         },
-        "tags": ["Bookings"]
+        "tags": [
+          "Bookings"
+        ]
       }
     },
     "/v2/slots/reserve": {
@@ -2980,7 +3156,9 @@
             }
           }
         },
-        "tags": ["Slots"]
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/v2/slots/selected-slot": {
@@ -2999,7 +3177,9 @@
             }
           }
         },
-        "tags": ["Slots"]
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/v2/slots/available": {
@@ -3018,7 +3198,9 @@
             }
           }
         },
-        "tags": ["Slots"]
+        "tags": [
+          "Slots"
+        ]
       }
     },
     "/v2/timezones": {
@@ -3037,7 +3219,9 @@
             }
           }
         },
-        "tags": ["Timezones"]
+        "tags": [
+          "Timezones"
+        ]
       }
     },
     "/v2/webhooks": {
@@ -3066,7 +3250,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
       },
       "get": {
         "operationId": "WebhooksController_getWebhooks",
@@ -3104,7 +3291,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
       }
     },
     "/v2/webhooks/{webhookId}": {
@@ -3132,7 +3322,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
       },
       "get": {
         "operationId": "WebhooksController_getWebhook",
@@ -3149,7 +3342,10 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
       },
       "delete": {
         "operationId": "WebhooksController_deleteWebhook",
@@ -3175,7 +3371,200 @@
               }
             }
           }
-        }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/webhooks": {
+      "post": {
+        "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
+        "summary": "Create a webhook for an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypeWebhooksController_getEventTypeWebhooks",
+        "summary": "Get all webhooks of an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypeWebhooksController_deleteAllEventTypeWebhooks",
+        "summary": "Delete all webhooks of an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "EventTypeWebhooksController_updateEventTypeWebhook",
+        "summary": "Update a webhook of an event-type",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypeWebhooksController_getEventTypeWebhook",
+        "summary": "Get a webhook of an event-type",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypeWebhooksController_deleteEventTypeWebhook",
+        "summary": "Delete a webhook of an event-type",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
       }
     }
   },
@@ -3293,7 +3682,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -3302,7 +3694,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateManagedUserInput": {
         "type": "object",
@@ -3314,13 +3709,24 @@
           "timeFormat": {
             "type": "number",
             "example": 12,
-            "enum": [12, 24],
+            "enum": [
+              12,
+              24
+            ],
             "description": "Must be 12 or 24"
           },
           "weekStart": {
             "type": "string",
             "example": "Monday",
-            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ]
           },
           "timeZone": {
             "type": "string",
@@ -3378,7 +3784,9 @@
             "type": "string"
           }
         },
-        "required": ["email"]
+        "required": [
+          "email"
+        ]
       },
       "CreateManagedUserData": {
         "type": "object",
@@ -3396,7 +3804,12 @@
             "type": "number"
           }
         },
-        "required": ["user", "accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": [
+          "user",
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt"
+        ]
       },
       "CreateManagedUserOutput": {
         "type": "object",
@@ -3404,13 +3817,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/CreateManagedUserData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetManagedUserOutput": {
         "type": "object",
@@ -3418,26 +3837,43 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ManagedUserOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateManagedUserInput": {
         "type": "object",
         "properties": {
           "timeFormat": {
             "type": "number",
-            "enum": [12, 24],
+            "enum": [
+              12,
+              24
+            ],
             "example": 12,
             "description": "Must be 12 or 24"
           },
           "weekStart": {
             "type": "string",
-            "enum": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            "enum": [
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+              "Sunday"
+            ],
             "example": "Monday"
           },
           "locale": {
@@ -3517,7 +3953,11 @@
             "type": "number"
           }
         },
-        "required": ["accessToken", "refreshToken", "accessTokenExpiresAt"]
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "accessTokenExpiresAt"
+        ]
       },
       "KeysResponseDto": {
         "type": "object",
@@ -3525,13 +3965,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/KeysDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOAuthClientInput": {
         "type": "object",
@@ -3549,14 +3995,20 @@
             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib2F1dGgtY2xpZW50Iiwi"
           }
         },
-        "required": ["clientId", "clientSecret"]
+        "required": [
+          "clientId",
+          "clientSecret"
+        ]
       },
       "CreateOAuthClientResponseDto": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
@@ -3571,7 +4023,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "PlatformOAuthClientDto": {
         "type": "object",
@@ -3598,7 +4053,9 @@
             "example": "https://example.com/logo.png"
           },
           "redirectUris": {
-            "example": ["https://example.com/callback"],
+            "example": [
+              "https://example.com/callback"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -3614,7 +4071,15 @@
             "example": "2024-03-23T08:33:21.851Z"
           }
         },
-        "required": ["id", "name", "secret", "permissions", "redirectUris", "organizationId", "createdAt"]
+        "required": [
+          "id",
+          "name",
+          "secret",
+          "permissions",
+          "redirectUris",
+          "organizationId",
+          "createdAt"
+        ]
       },
       "GetOAuthClientsResponseDto": {
         "type": "object",
@@ -3622,7 +4087,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -3631,7 +4099,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetOAuthClientResponseDto": {
         "type": "object",
@@ -3639,13 +4110,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/PlatformOAuthClientDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateOAuthClientInput": {
         "type": "object",
@@ -3684,7 +4161,9 @@
             "type": "string"
           }
         },
-        "required": ["redirectUri"]
+        "required": [
+          "redirectUri"
+        ]
       },
       "ExchangeAuthorizationCodeInput": {
         "type": "object",
@@ -3693,7 +4172,9 @@
             "type": "string"
           }
         },
-        "required": ["clientSecret"]
+        "required": [
+          "clientSecret"
+        ]
       },
       "RefreshTokenInput": {
         "type": "object",
@@ -3702,7 +4183,9 @@
             "type": "string"
           }
         },
-        "required": ["refreshToken"]
+        "required": [
+          "refreshToken"
+        ]
       },
       "CreateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -3720,7 +4203,11 @@
             "example": "Discover the culinary wonders of the Argentina by making the best flan ever!"
           }
         },
-        "required": ["lengthInMinutes", "title", "description"]
+        "required": [
+          "lengthInMinutes",
+          "title",
+          "description"
+        ]
       },
       "EventTypeOutput_2024_06_14": {
         "type": "object",
@@ -3730,28 +4217,39 @@
             "example": 1
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "CreateEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
@@ -3763,14 +4261,20 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetEventTypesOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
@@ -3780,7 +4284,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateEventTypeInput_2024_06_14": {
         "type": "object",
@@ -3791,14 +4298,20 @@
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput_2024_06_14"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteData_2024_06_14": {
         "type": "object",
@@ -3819,21 +4332,32 @@
             "type": "string"
           }
         },
-        "required": ["id", "lengthInMinutes", "title", "slug"]
+        "required": [
+          "id",
+          "lengthInMinutes",
+          "title",
+          "slug"
+        ]
       },
       "DeleteEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
           "status": {
             "type": "string",
-            "enum": ["success", "error"],
+            "enum": [
+              "success",
+              "error"
+            ],
             "example": "success"
           },
           "data": {
             "$ref": "#/components/schemas/DeleteData_2024_06_14"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "SelectedCalendarsInputDto": {
         "type": "object",
@@ -3848,7 +4372,11 @@
             "type": "number"
           }
         },
-        "required": ["integration", "externalId", "credentialId"]
+        "required": [
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
       },
       "SelectedCalendarOutputDto": {
         "type": "object",
@@ -3867,7 +4395,12 @@
             "nullable": true
           }
         },
-        "required": ["userId", "integration", "externalId", "credentialId"]
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
       },
       "SelectedCalendarOutputResponseDto": {
         "type": "object",
@@ -3875,13 +4408,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/SelectedCalendarOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "EventTypeLocation_2024_04_15": {
         "type": "object",
@@ -3895,7 +4434,9 @@
             "example": "https://masterchief.com/argentina/flan/video/9129412"
           }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "CreateEventTypeInput_2024_04_15": {
         "type": "object",
@@ -3943,7 +4484,11 @@
             "minimum": 0
           }
         },
-        "required": ["length", "slug", "title"]
+        "required": [
+          "length",
+          "slug",
+          "title"
+        ]
       },
       "EventTypeOutput": {
         "type": "object",
@@ -3977,7 +4522,14 @@
             }
           }
         },
-        "required": ["id", "length", "slug", "title", "description", "locations"]
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title",
+          "description",
+          "locations"
+        ]
       },
       "CreateEventTypeOutput": {
         "type": "object",
@@ -3985,13 +4537,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Data": {
         "type": "object",
@@ -4000,7 +4558,9 @@
             "$ref": "#/components/schemas/EventTypeOutput"
           }
         },
-        "required": ["eventType"]
+        "required": [
+          "eventType"
+        ]
       },
       "GetEventTypeOutput": {
         "type": "object",
@@ -4008,13 +4568,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/Data"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "EventTypeGroup": {
         "type": "object",
@@ -4026,7 +4592,9 @@
             }
           }
         },
-        "required": ["eventTypes"]
+        "required": [
+          "eventTypes"
+        ]
       },
       "GetEventTypesData": {
         "type": "object",
@@ -4038,7 +4606,9 @@
             }
           }
         },
-        "required": ["eventTypeGroups"]
+        "required": [
+          "eventTypeGroups"
+        ]
       },
       "GetEventTypesOutput": {
         "type": "object",
@@ -4046,13 +4616,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/GetEventTypesData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Location": {
         "type": "object",
@@ -4061,7 +4637,9 @@
             "type": "string"
           }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "Source": {
         "type": "object",
@@ -4076,7 +4654,11 @@
             "type": "string"
           }
         },
-        "required": ["id", "type", "label"]
+        "required": [
+          "id",
+          "type",
+          "label"
+        ]
       },
       "BookingField": {
         "type": "object",
@@ -4115,7 +4697,10 @@
             }
           }
         },
-        "required": ["name", "type"]
+        "required": [
+          "name",
+          "type"
+        ]
       },
       "Organization": {
         "type": "object",
@@ -4134,7 +4719,11 @@
             "type": "object"
           }
         },
-        "required": ["id", "name", "metadata"]
+        "required": [
+          "id",
+          "name",
+          "metadata"
+        ]
       },
       "Profile": {
         "type": "object",
@@ -4187,7 +4776,12 @@
             "type": "object"
           }
         },
-        "required": ["username", "id", "organizationId", "upId"]
+        "required": [
+          "username",
+          "id",
+          "organizationId",
+          "upId"
+        ]
       },
       "Owner": {
         "type": "object",
@@ -4237,7 +4831,15 @@
             "$ref": "#/components/schemas/Profile"
           }
         },
-        "required": ["id", "username", "name", "weekStart", "metadata", "nonProfileUsername", "profile"]
+        "required": [
+          "id",
+          "username",
+          "name",
+          "weekStart",
+          "metadata",
+          "nonProfileUsername",
+          "profile"
+        ]
       },
       "Schedule": {
         "type": "object",
@@ -4250,7 +4852,10 @@
             "nullable": true
           }
         },
-        "required": ["id", "timeZone"]
+        "required": [
+          "id",
+          "timeZone"
+        ]
       },
       "User": {
         "type": "object",
@@ -4280,7 +4885,13 @@
             "type": "string"
           }
         },
-        "required": ["username", "name", "weekStart", "profile", "bookerUrl"]
+        "required": [
+          "username",
+          "name",
+          "weekStart",
+          "profile",
+          "bookerUrl"
+        ]
       },
       "PublicEventTypeOutput": {
         "type": "object",
@@ -4456,7 +5067,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "nullable": true,
@@ -4467,7 +5081,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "PublicEventType": {
         "type": "object",
@@ -4493,7 +5110,12 @@
             "nullable": true
           }
         },
-        "required": ["id", "length", "slug", "title"]
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
       },
       "GetEventTypesPublicOutput": {
         "type": "object",
@@ -4501,7 +5123,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -4510,7 +5135,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Option": {
         "type": "object",
@@ -4522,7 +5150,10 @@
             "type": "string"
           }
         },
-        "required": ["value", "label"]
+        "required": [
+          "value",
+          "label"
+        ]
       },
       "VariantsConfig": {
         "type": "object",
@@ -4531,7 +5162,9 @@
             "type": "object"
           }
         },
-        "required": ["variants"]
+        "required": [
+          "variants"
+        ]
       },
       "View": {
         "type": "object",
@@ -4546,7 +5179,10 @@
             "type": "string"
           }
         },
-        "required": ["id", "label"]
+        "required": [
+          "id",
+          "label"
+        ]
       },
       "BookingField_2024_04_15": {
         "type": "object",
@@ -4620,7 +5256,13 @@
           },
           "editable": {
             "type": "string",
-            "enum": ["system", "system-but-optional", "system-but-hidden", "user", "user-readonly"]
+            "enum": [
+              "system",
+              "system-but-optional",
+              "system-but-hidden",
+              "user",
+              "user-readonly"
+            ]
           },
           "sources": {
             "type": "array",
@@ -4629,7 +5271,10 @@
             }
           }
         },
-        "required": ["type", "name"]
+        "required": [
+          "type",
+          "name"
+        ]
       },
       "UpdateEventTypeInput_2024_04_15": {
         "type": "object",
@@ -4689,13 +5334,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/EventTypeOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteData": {
         "type": "object",
@@ -4717,7 +5368,12 @@
             "example": "Learn the secrets of masterchief!"
           }
         },
-        "required": ["id", "length", "slug", "title"]
+        "required": [
+          "id",
+          "length",
+          "slug",
+          "title"
+        ]
       },
       "DeleteEventTypeOutput": {
         "type": "object",
@@ -4725,13 +5381,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/DeleteData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "OrgTeamOutputDto": {
         "type": "object",
@@ -4804,7 +5466,10 @@
             "default": "Sunday"
           }
         },
-        "required": ["id", "name"]
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "OrgTeamsOutputResponseDto": {
         "type": "object",
@@ -4812,7 +5477,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -4821,7 +5489,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "OrgMeTeamsOutputResponseDto": {
         "type": "object",
@@ -4829,7 +5500,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -4838,7 +5512,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "OrgTeamOutputResponseDto": {
         "type": "object",
@@ -4846,13 +5523,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgTeamOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOrgTeamDto": {
         "type": "object",
@@ -4916,13 +5599,18 @@
             "default": "Sunday"
           }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
       "ScheduleAvailabilityInput_2024_06_11": {
         "type": "object",
         "properties": {
           "days": {
-            "example": ["Monday", "Tuesday"],
+            "example": [
+              "Monday",
+              "Tuesday"
+            ],
             "type": "array",
             "items": {
               "type": "object"
@@ -4939,7 +5627,11 @@
             "example": "10:00"
           }
         },
-        "required": ["days", "startTime", "endTime"]
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "ScheduleOverrideInput_2024_06_11": {
         "type": "object",
@@ -4959,7 +5651,11 @@
             "example": "13:00"
           }
         },
-        "required": ["date", "startTime", "endTime"]
+        "required": [
+          "date",
+          "startTime",
+          "endTime"
+        ]
       },
       "ScheduleOutput_2024_06_11": {
         "type": "object",
@@ -4983,7 +5679,10 @@
           "availability": {
             "example": [
               {
-                "days": ["Monday", "Tuesday"],
+                "days": [
+                  "Monday",
+                  "Tuesday"
+                ],
                 "startTime": "09:00",
                 "endTime": "10:00"
               }
@@ -5011,7 +5710,15 @@
             }
           }
         },
-        "required": ["id", "ownerId", "name", "timeZone", "availability", "isDefault", "overrides"]
+        "required": [
+          "id",
+          "ownerId",
+          "name",
+          "timeZone",
+          "availability",
+          "isDefault",
+          "overrides"
+        ]
       },
       "GetSchedulesOutput_2024_06_11": {
         "type": "object",
@@ -5019,7 +5726,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -5031,7 +5741,10 @@
             "type": "object"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateScheduleOutput_2024_06_11": {
         "type": "object",
@@ -5039,13 +5752,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetScheduleOutput_2024_06_11": {
         "type": "object",
@@ -5053,7 +5772,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "nullable": true,
@@ -5067,7 +5789,10 @@
             "type": "object"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateScheduleOutput_2024_06_11": {
         "type": "object",
@@ -5075,7 +5800,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput_2024_06_11"
@@ -5084,7 +5812,10 @@
             "type": "object"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteScheduleOutput_2024_06_11": {
         "type": "object",
@@ -5092,10 +5823,15 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "GetUserOutput": {
         "type": "object",
@@ -5223,7 +5959,14 @@
             "example": 1
           }
         },
-        "required": ["id", "email", "timeZone", "weekStart", "hideBranding", "createdDate"]
+        "required": [
+          "id",
+          "email",
+          "timeZone",
+          "weekStart",
+          "hideBranding",
+          "createdDate"
+        ]
       },
       "GetOrganizationUsersOutput": {
         "type": "object",
@@ -5231,7 +5974,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -5240,7 +5986,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOrganizationUserInput": {
         "type": "object",
@@ -5324,7 +6073,11 @@
             "default": true
           }
         },
-        "required": ["email", "organizationRole", "autoAccept"]
+        "required": [
+          "email",
+          "organizationRole",
+          "autoAccept"
+        ]
       },
       "GetOrganizationUserOutput": {
         "type": "object",
@@ -5332,13 +6085,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/GetUserOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateOrganizationUserInput": {
         "type": "object",
@@ -5349,7 +6108,11 @@
         "properties": {
           "role": {
             "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "id": {
             "type": "number"
@@ -5367,7 +6130,13 @@
             "type": "boolean"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted"]
+        "required": [
+          "role",
+          "id",
+          "userId",
+          "teamId",
+          "accepted"
+        ]
       },
       "GetAllOrgMemberships": {
         "type": "object",
@@ -5375,13 +6144,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateOrgMembershipDto": {
         "type": "object",
@@ -5389,7 +6164,11 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "userId": {
             "type": "number"
@@ -5403,7 +6182,10 @@
             "default": false
           }
         },
-        "required": ["role", "userId"]
+        "required": [
+          "role",
+          "userId"
+        ]
       },
       "CreateOrgMembershipOutput": {
         "type": "object",
@@ -5411,13 +6193,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetOrgMembership": {
         "type": "object",
@@ -5425,13 +6213,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteOrgMembership": {
         "type": "object",
@@ -5439,13 +6233,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateOrgMembershipDto": {
         "type": "object",
@@ -5453,7 +6253,11 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "accepted": {
             "type": "boolean",
@@ -5471,13 +6275,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "CreateTeamEventTypeInput_2024_06_14": {
         "type": "object",
@@ -5556,7 +6366,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "oneOf": [
@@ -5572,7 +6385,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "RecurringEvent_2024_06_14": {
         "type": "object",
@@ -5589,7 +6405,15 @@
           },
           "freq": {
             "type": "number",
-            "enum": [0, 1, 2, 3, 4, 5, 6]
+            "enum": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
           },
           "until": {
             "format": "date-time",
@@ -5599,7 +6423,11 @@
             "type": "string"
           }
         },
-        "required": ["interval", "count", "freq"]
+        "required": [
+          "interval",
+          "count",
+          "freq"
+        ]
       },
       "Host": {
         "type": "object",
@@ -5616,7 +6444,9 @@
             "default": "medium"
           }
         },
-        "required": ["userId"]
+        "required": [
+          "userId"
+        ]
       },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
@@ -5770,13 +6600,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/TeamEventTypeOutput_2024_06_14"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetTeamEventTypesOutput": {
         "type": "object",
@@ -5784,7 +6620,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -5793,7 +6632,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateTeamEventTypeInput_2024_06_14": {
         "type": "object",
@@ -5869,7 +6711,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "oneOf": [
@@ -5885,7 +6730,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteTeamEventTypeOutput": {
         "type": "object",
@@ -5893,20 +6741,30 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "object"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "OrgTeamMembershipOutputDto": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "id": {
             "type": "number"
@@ -5924,7 +6782,13 @@
             "type": "boolean"
           }
         },
-        "required": ["role", "id", "userId", "teamId", "accepted"]
+        "required": [
+          "role",
+          "id",
+          "userId",
+          "teamId",
+          "accepted"
+        ]
       },
       "OrgTeamMembershipsOutputResponseDto": {
         "type": "object",
@@ -5932,7 +6796,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -5941,7 +6808,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "OrgTeamMembershipOutputResponseDto": {
         "type": "object",
@@ -5949,13 +6819,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/OrgTeamMembershipOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateOrgTeamMembershipDto": {
         "type": "object",
@@ -5963,7 +6839,11 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "accepted": {
             "type": "boolean",
@@ -5981,7 +6861,11 @@
           "role": {
             "type": "string",
             "default": "MEMBER",
-            "enum": ["MEMBER", "OWNER", "ADMIN"]
+            "enum": [
+              "MEMBER",
+              "OWNER",
+              "ADMIN"
+            ]
           },
           "userId": {
             "type": "number"
@@ -5995,13 +6879,19 @@
             "default": false
           }
         },
-        "required": ["role", "userId"]
+        "required": [
+          "role",
+          "userId"
+        ]
       },
       "CreateAvailabilityInput_2024_04_15": {
         "type": "object",
         "properties": {
           "days": {
-            "example": [1, 2],
+            "example": [
+              1,
+              2
+            ],
             "type": "array",
             "items": {
               "type": "number"
@@ -6016,7 +6906,11 @@
             "type": "string"
           }
         },
-        "required": ["days", "startTime", "endTime"]
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "CreateScheduleInput_2024_04_15": {
         "type": "object",
@@ -6037,7 +6931,11 @@
             "type": "boolean"
           }
         },
-        "required": ["name", "timeZone", "isDefault"]
+        "required": [
+          "name",
+          "timeZone",
+          "isDefault"
+        ]
       },
       "WorkingHours": {
         "type": "object",
@@ -6059,7 +6957,11 @@
             "nullable": true
           }
         },
-        "required": ["days", "startTime", "endTime"]
+        "required": [
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "AvailabilityModel": {
         "type": "object",
@@ -6099,7 +7001,12 @@
             "nullable": true
           }
         },
-        "required": ["id", "days", "startTime", "endTime"]
+        "required": [
+          "id",
+          "days",
+          "startTime",
+          "endTime"
+        ]
       },
       "TimeRange": {
         "type": "object",
@@ -6117,7 +7024,10 @@
             "type": "string"
           }
         },
-        "required": ["start", "end"]
+        "required": [
+          "start",
+          "end"
+        ]
       },
       "ScheduleOutput": {
         "type": "object",
@@ -6192,13 +7102,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetDefaultScheduleOutput_2024_04_15": {
         "type": "object",
@@ -6206,7 +7122,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "nullable": true,
@@ -6217,7 +7136,10 @@
             ]
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetScheduleOutput_2024_04_15": {
         "type": "object",
@@ -6225,13 +7147,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetSchedulesOutput_2024_04_15": {
         "type": "object",
@@ -6239,13 +7167,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ScheduleOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "EventTypeModel_2024_04_15": {
         "type": "object",
@@ -6258,7 +7192,9 @@
             "nullable": true
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "AvailabilityModel_2024_04_15": {
         "type": "object",
@@ -6298,7 +7234,10 @@
             "nullable": true
           }
         },
-        "required": ["id", "days"]
+        "required": [
+          "id",
+          "days"
+        ]
       },
       "ScheduleModel_2024_04_15": {
         "type": "object",
@@ -6329,7 +7268,11 @@
             }
           }
         },
-        "required": ["id", "userId", "name"]
+        "required": [
+          "id",
+          "userId",
+          "name"
+        ]
       },
       "UpdatedScheduleOutput_2024_04_15": {
         "type": "object",
@@ -6352,7 +7295,10 @@
             "nullable": true
           }
         },
-        "required": ["schedule", "isDefault"]
+        "required": [
+          "schedule",
+          "isDefault"
+        ]
       },
       "UpdateScheduleOutput_2024_04_15": {
         "type": "object",
@@ -6360,13 +7306,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/UpdatedScheduleOutput_2024_04_15"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteScheduleOutput_2024_04_15": {
         "type": "object",
@@ -6374,10 +7326,15 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "AuthUrlData": {
         "type": "object",
@@ -6386,7 +7343,9 @@
             "type": "string"
           }
         },
-        "required": ["authUrl"]
+        "required": [
+          "authUrl"
+        ]
       },
       "GcalAuthUrlOutput": {
         "type": "object",
@@ -6394,13 +7353,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/AuthUrlData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GcalSaveRedirectOutput": {
         "type": "object",
@@ -6409,7 +7374,9 @@
             "type": "string"
           }
         },
-        "required": ["url"]
+        "required": [
+          "url"
+        ]
       },
       "GcalCheckOutput": {
         "type": "object",
@@ -6417,10 +7384,15 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "ProviderVerifyClientOutput": {
         "type": "object",
@@ -6428,10 +7400,15 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "ProviderVerifyAccessTokenOutput": {
         "type": "object",
@@ -6439,10 +7416,15 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "MeOutput": {
         "type": "object",
@@ -6470,7 +7452,15 @@
             "type": "string"
           }
         },
-        "required": ["id", "username", "email", "timeFormat", "defaultScheduleId", "weekStart", "timeZone"]
+        "required": [
+          "id",
+          "username",
+          "email",
+          "timeFormat",
+          "defaultScheduleId",
+          "weekStart",
+          "timeZone"
+        ]
       },
       "GetMeOutput": {
         "type": "object",
@@ -6478,13 +7468,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "UpdateMeOutput": {
         "type": "object",
@@ -6492,13 +7488,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/MeOutput"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "BusyTimesOutput": {
         "type": "object",
@@ -6516,7 +7518,10 @@
             "nullable": true
           }
         },
-        "required": ["start", "end"]
+        "required": [
+          "start",
+          "end"
+        ]
       },
       "GetBusyTimesOutput": {
         "type": "object",
@@ -6524,7 +7529,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -6533,7 +7541,10 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Integration": {
         "type": "object",
@@ -6638,7 +7649,13 @@
             "type": "number"
           }
         },
-        "required": ["externalId", "primary", "readOnly", "isSelected", "credentialId"]
+        "required": [
+          "externalId",
+          "primary",
+          "readOnly",
+          "isSelected",
+          "credentialId"
+        ]
       },
       "Calendar": {
         "type": "object",
@@ -6669,7 +7686,12 @@
             "type": "number"
           }
         },
-        "required": ["externalId", "readOnly", "isSelected", "credentialId"]
+        "required": [
+          "externalId",
+          "readOnly",
+          "isSelected",
+          "credentialId"
+        ]
       },
       "ConnectedCalendar": {
         "type": "object",
@@ -6690,7 +7712,10 @@
             }
           }
         },
-        "required": ["integration", "credentialId"]
+        "required": [
+          "integration",
+          "credentialId"
+        ]
       },
       "DestinationCalendar": {
         "type": "object",
@@ -6760,7 +7785,10 @@
             "$ref": "#/components/schemas/DestinationCalendar"
           }
         },
-        "required": ["connectedCalendars", "destinationCalendar"]
+        "required": [
+          "connectedCalendars",
+          "destinationCalendar"
+        ]
       },
       "ConnectedCalendarsOutput": {
         "type": "object",
@@ -6768,13 +7796,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/ConnectedCalendarsData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "DeleteCalendarCredentialsInputBodyDto": {
         "type": "object",
@@ -6785,7 +7819,9 @@
             "description": "Credential ID of the calendar to delete, as returned by the /calendars endpoint"
           }
         },
-        "required": ["id"]
+        "required": [
+          "id"
+        ]
       },
       "DeletedCalendarCredentialsOutputDto": {
         "type": "object",
@@ -6813,7 +7849,14 @@
             "nullable": true
           }
         },
-        "required": ["id", "type", "userId", "teamId", "appId", "invalid"]
+        "required": [
+          "id",
+          "type",
+          "userId",
+          "teamId",
+          "appId",
+          "invalid"
+        ]
       },
       "DeletedCalendarCredentialsOutputResponseDto": {
         "type": "object",
@@ -6821,13 +7864,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/DeletedCalendarCredentialsOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Attendee": {
         "type": "object",
@@ -6853,7 +7902,14 @@
             "nullable": true
           }
         },
-        "required": ["id", "email", "name", "timeZone", "locale", "bookingId"]
+        "required": [
+          "id",
+          "email",
+          "name",
+          "timeZone",
+          "locale",
+          "bookingId"
+        ]
       },
       "EventType": {
         "type": "object",
@@ -6891,7 +7947,11 @@
             "nullable": true
           }
         },
-        "required": ["price", "currency", "metadata"]
+        "required": [
+          "price",
+          "currency",
+          "metadata"
+        ]
       },
       "Reference": {
         "type": "object",
@@ -7077,7 +8137,11 @@
             "nullable": true
           }
         },
-        "required": ["bookings", "recurringInfo", "nextCursor"]
+        "required": [
+          "bookings",
+          "recurringInfo",
+          "nextCursor"
+        ]
       },
       "GetBookingsOutput": {
         "type": "object",
@@ -7085,13 +8149,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/GetBookingsData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "GetBookingData": {
         "type": "object",
@@ -7209,13 +8279,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/GetBookingData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "Response": {
         "type": "object",
@@ -7239,7 +8315,11 @@
             "type": "string"
           }
         },
-        "required": ["name", "email", "guests"]
+        "required": [
+          "name",
+          "email",
+          "guests"
+        ]
       },
       "CreateBookingInput": {
         "type": "object",
@@ -7300,7 +8380,15 @@
             "type": "string"
           }
         },
-        "required": ["start", "eventTypeId", "timeZone", "language", "metadata", "hashedLink", "responses"]
+        "required": [
+          "start",
+          "eventTypeId",
+          "timeZone",
+          "language",
+          "metadata",
+          "hashedLink",
+          "responses"
+        ]
       },
       "CancelBookingInput": {
         "type": "object",
@@ -7321,7 +8409,13 @@
             "type": "string"
           }
         },
-        "required": ["id", "uid", "allRemainingBookings", "cancellationReason", "seatReferenceUid"]
+        "required": [
+          "id",
+          "uid",
+          "allRemainingBookings",
+          "cancellationReason",
+          "seatReferenceUid"
+        ]
       },
       "MarkNoShowInput": {
         "type": "object",
@@ -7356,7 +8450,9 @@
             }
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "MarkNoShowOutput": {
         "type": "object",
@@ -7364,13 +8460,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/HandleMarkNoShowData"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "ReserveSlotInput": {
         "type": "object",
@@ -7422,7 +8524,10 @@
             "type": "string"
           }
         },
-        "required": ["eventTriggers", "subscriberUrl"]
+        "required": [
+          "eventTriggers",
+          "subscriberUrl"
+        ]
       },
       "WebhookOutputDto": {
         "type": "object",
@@ -7458,7 +8563,13 @@
             "type": "boolean"
           }
         },
-        "required": ["id", "userId", "payloadTemplate", "eventTriggers", "subscriberUrl", "active"]
+        "required": [
+          "id",
+          "payloadTemplate",
+          "eventTriggers",
+          "subscriberUrl",
+          "active"
+        ]
       },
       "WebhookOutputResponseDto": {
         "type": "object",
@@ -7466,13 +8577,19 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "$ref": "#/components/schemas/WebhookOutputDto"
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
       },
       "WebhooksOutputResponseDto": {
         "type": "object",
@@ -7480,7 +8597,10 @@
           "status": {
             "type": "string",
             "example": "success",
-            "enum": ["success", "error"]
+            "enum": [
+              "success",
+              "error"
+            ]
           },
           "data": {
             "type": "array",
@@ -7489,7 +8609,30 @@
             }
           }
         },
-        "required": ["status", "data"]
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteManyWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       }
     }
   }
