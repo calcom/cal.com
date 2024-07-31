@@ -271,7 +271,7 @@ describe("Organizations Team Endpoints", () => {
         username: userEmail,
       });
 
-      org = await teamsRepositoryFixture.create({
+      org = await organizationsRepositoryFixture.create({
         name: "Test Organization",
         isOrganization: true,
       });
