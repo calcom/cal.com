@@ -741,6 +741,81 @@
         ]
       }
     },
+    "/v2/selected-calendars": {
+      "post": {
+        "operationId": "SelectedCalendarsController_addSelectedCalendar",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelectedCalendarsInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectedCalendarOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Selected-Calendars"
+        ]
+      },
+      "delete": {
+        "operationId": "SelectedCalendarsController_removeSelectedCalendar",
+        "parameters": [
+          {
+            "name": "integration",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "externalId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "credentialId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SelectedCalendarOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Selected-Calendars"
+        ]
+      }
+    },
     "/v2/event-types/{username}/{eventSlug}/public": {
       "get": {
         "operationId": "EventTypesController_2024_04_15_getPublicEventType",
@@ -887,6 +962,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -906,6 +989,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/me": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getMyTeams",
+        "summary": "Get the organization's teams user is a member of",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgMeTeamsOutputResponseDto"
                 }
               }
             }
@@ -1000,7 +1134,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrgTeamDto"
+                "$ref": "#/components/schemas/UpdateOrgTeamDto"
               }
             }
           }
@@ -2672,6 +2806,46 @@
         ]
       }
     },
+    "/v2/calendars/{calendar}/disconnect": {
+      "post": {
+        "operationId": "CalendarsController_deleteCalendarCredentials",
+        "parameters": [
+          {
+            "name": "calendar",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteCalendarCredentialsInputBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeletedCalendarCredentialsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Calendars"
+        ]
+      }
+    },
     "/v2/bookings": {
       "get": {
         "operationId": "BookingsController_getBookings",
@@ -3880,6 +4054,69 @@
           "data"
         ]
       },
+      "SelectedCalendarsInputDto": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "SelectedCalendarOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "SelectedCalendarOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/SelectedCalendarOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "EventTypeLocation_2024_04_15": {
         "type": "object",
         "properties": {
@@ -4952,6 +5189,29 @@
           "data"
         ]
       },
+      "OrgMeTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "OrgTeamOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -4971,6 +5231,69 @@
           "status",
           "data"
         ]
+      },
+      "UpdateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        }
       },
       "CreateOrgTeamDto": {
         "type": "object",
@@ -5032,6 +5355,10 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true
           }
         },
         "required": [
@@ -5961,25 +6288,12 @@
           "freq"
         ]
       },
-      "Schedule_2024_06_14": {
+      "TeamEventTypeResponseHost": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "number"
+          "name": {
+            "type": "string"
           },
-          "timeZone": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "required": [
-          "id",
-          "timeZone"
-        ]
-      },
-      "Host": {
-        "type": "object",
-        "properties": {
           "userId": {
             "type": "number"
           },
@@ -5993,6 +6307,7 @@
           }
         },
         "required": [
+          "name",
           "userId"
         ]
       },
@@ -6091,13 +6406,9 @@
           "isInstantEvent": {
             "type": "boolean"
           },
-          "schedule": {
-            "nullable": true,
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/Schedule_2024_06_14"
-              }
-            ]
+          "scheduleId": {
+            "type": "number",
+            "nullable": true
           },
           "teamId": {
             "type": "number",
@@ -6114,7 +6425,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -6142,7 +6453,7 @@
           "successRedirectUrl",
           "seatsShowAvailabilityCount",
           "isInstantEvent",
-          "schedule",
+          "scheduleId",
           "hosts"
         ]
       },
@@ -7082,6 +7393,10 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
           }
         },
         "required": [
@@ -7091,7 +7406,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "organizationId"
         ]
       },
       "GetMeOutput": {
@@ -7435,6 +7751,74 @@
           },
           "data": {
             "$ref": "#/components/schemas/ConnectedCalendarsData"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteCalendarCredentialsInputBodyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 10,
+            "description": "Credential ID of the calendar to delete, as returned by the /calendars endpoint"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "DeletedCalendarCredentialsOutputDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "type": {
+            "type": "string"
+          },
+          "userId": {
+            "type": "number",
+            "nullable": true
+          },
+          "teamId": {
+            "type": "number",
+            "nullable": true
+          },
+          "appId": {
+            "type": "string",
+            "nullable": true
+          },
+          "invalid": {
+            "type": "boolean",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "userId",
+          "teamId",
+          "appId",
+          "invalid"
+        ]
+      },
+      "DeletedCalendarCredentialsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DeletedCalendarCredentialsOutputDto"
           }
         },
         "required": [

@@ -2,17 +2,19 @@ import { EmailService } from "@/modules/email/email.service";
 import { CreateOrganizationUserInput } from "@/modules/organizations/inputs/create-organization-user.input";
 import { UpdateOrganizationUserInput } from "@/modules/organizations/inputs/update-organization-user.input";
 import { OrganizationsUsersRepository } from "@/modules/organizations/repositories/organizations-users.repository";
+import { OrganizationsTeamsService } from "@/modules/organizations/services/organizations-teams.service";
 import { CreateUserInput } from "@/modules/users/inputs/create-user.input";
 import { Injectable, ConflictException } from "@nestjs/common";
 import { plainToInstance } from "class-transformer";
 
-import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries-0.0.19";
+import { createNewUsersConnectToOrgIfExists } from "@calcom/platform-libraries-0.0.22";
 import { Team } from "@calcom/prisma/client";
 
 @Injectable()
 export class OrganizationsUsersService {
   constructor(
     private readonly organizationsUsersRepository: OrganizationsUsersRepository,
+    private readonly organizationsTeamsService: OrganizationsTeamsService,
     private readonly emailService: EmailService
   ) {}
 
@@ -76,6 +78,8 @@ export class OrganizationsUsersService {
       createdUser.id,
       updateUserBody
     );
+
+    await this.organizationsTeamsService.addUserToTeamEvents(user.id, org.id);
 
     // Need to send email to new user to create password
     await this.emailService.sendSignupToOrganizationEmail({
