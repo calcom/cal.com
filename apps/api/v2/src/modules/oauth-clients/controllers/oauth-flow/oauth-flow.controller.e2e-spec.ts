@@ -84,7 +84,7 @@ describe("OAuthFlow Endpoints", () => {
       await app.init();
 
       oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       usersRepositoryFixtures = new UserRepositoryFixture(moduleRef);
       profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
