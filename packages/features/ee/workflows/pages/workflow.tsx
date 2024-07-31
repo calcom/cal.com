@@ -353,7 +353,7 @@ function WorkflowPage() {
 
               if (
                 step.action === WorkflowActions.EMAIL_ADDRESS &&
-                !verifiedEmails?.find((verifiedEmail) => verifiedEmail.email === step.sendTo)
+                !verifiedEmails?.find((verifiedEmail) => verifiedEmail === step.sendTo)
               ) {
                 isVerified = false;
 
