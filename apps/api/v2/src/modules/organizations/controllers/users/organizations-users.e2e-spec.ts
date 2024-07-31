@@ -350,7 +350,8 @@ describe("Organizations Users Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let teamsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let eventTypesRepositoryFixture: EventTypesRepositoryFixture;
     let membershipFixtures: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -371,7 +372,9 @@ describe("Organizations Users Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
+
       eventTypesRepositoryFixture = new EventTypesRepositoryFixture(moduleRef);
       membershipFixtures = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
@@ -381,7 +384,7 @@ describe("Organizations Users Endpoints", () => {
         isOrganization: true,
       });
 
-      team = await organizationsRepositoryFixture.create({
+      team = await teamsRepositoryFixture.create({
         name: "Test org 4 team",
         isOrganization: false,
         parent: { connect: { id: org.id } },
