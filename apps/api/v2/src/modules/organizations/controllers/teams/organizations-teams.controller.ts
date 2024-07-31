@@ -10,6 +10,7 @@ import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsTeamInOrg } from "@/modules/auth/guards/teams/is-team-in-org.guard";
 import { CreateOrgTeamDto } from "@/modules/organizations/inputs/create-organization-team.input";
+import { UpdateOrgTeamDto } from "@/modules/organizations/inputs/update-organization-team.input";
 import {
   OrgMeTeamOutputDto,
   OrgMeTeamsOutputResponseDto,
@@ -29,11 +30,12 @@ import {
   Patch,
   Post,
   Body,
+  Headers,
 } from "@nestjs/common";
 import { ApiOperation, ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
-import { SUCCESS_STATUS } from "@calcom/platform-constants";
+import { SUCCESS_STATUS, X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import { OrgTeamOutputDto } from "@calcom/platform-types";
 import { SkipTakePagination } from "@calcom/platform-types";
 import { Team } from "@calcom/prisma/client";
@@ -127,7 +129,7 @@ export class OrganizationsTeamsController {
   async updateTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Param("teamId", ParseIntPipe) teamId: number,
-    @Body() body: CreateOrgTeamDto
+    @Body() body: UpdateOrgTeamDto
   ): Promise<OrgTeamOutputResponseDto> {
     const team = await this.organizationsTeamsService.updateOrgTeam(orgId, teamId, body);
     return {
@@ -143,9 +145,13 @@ export class OrganizationsTeamsController {
   async createTeam(
     @Param("orgId", ParseIntPipe) orgId: number,
     @Body() body: CreateOrgTeamDto,
-    @GetUser() user: UserWithProfile
+    @GetUser() user: UserWithProfile,
+    @Headers(X_CAL_CLIENT_ID) oAuthClientId?: string
   ): Promise<OrgTeamOutputResponseDto> {
-    const team = await this.organizationsTeamsService.createOrgTeam(orgId, body, user);
+    const team = oAuthClientId
+      ? await this.organizationsTeamsService.createPlatformOrgTeam(orgId, oAuthClientId, body, user)
+      : await this.organizationsTeamsService.createOrgTeam(orgId, body, user);
+
     return {
       status: SUCCESS_STATUS,
       data: plainToClass(OrgTeamOutputDto, team, { strategy: "excludeAll" }),
