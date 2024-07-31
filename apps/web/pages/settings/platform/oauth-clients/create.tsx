@@ -1,6 +1,7 @@
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
+import { WebhookForm } from "@calcom/features/webhooks/components";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants/permissions";
@@ -74,6 +75,26 @@ export default function CreateOAuthClient() {
               </div>
             </div>
             <OAuthClientForm isPending={isSaving} onSubmit={onSubmit} />
+          </div>
+          <div className="m-2 md:mx-14 md:mx-5">
+            <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
+              <div className="flex w-full flex-col">
+                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
+                  Webhook form
+                </h1>
+                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">Add a webhook to your OAuthClient.</p>
+              </div>
+            </div>
+
+            <WebhookForm
+              onSubmit={() => {
+                console.log("Webhook form submitted");
+              }}
+              onCancel={() => {
+                router.push("/settings/platform/");
+              }}
+              noRoutingFormTriggers={true}
+            />
           </div>
         </Shell>
       </div>

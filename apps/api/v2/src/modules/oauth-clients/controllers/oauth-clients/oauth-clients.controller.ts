@@ -85,6 +85,11 @@ export class OAuthClientsController {
     }
 
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
+
+    if (body.eventTriggers?.length && body.subscriberUrl) {
+      console.log("Creating webhook for client", body.eventTriggers, body.subscriberUrl);
+    }
+
     return {
       status: SUCCESS_STATUS,
       data: {
@@ -114,6 +119,9 @@ export class OAuthClientsController {
     if (!client) {
       throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
+
+    console.log("GET WEBHOOK HERE BY OAUTH CLIENT ID");
+
     return { status: SUCCESS_STATUS, data: client };
   }
 
@@ -145,6 +153,13 @@ export class OAuthClientsController {
   ): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
     const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
+
+    if (!body.subscriberUrl) {
+      console.log("delete webhook for client", body.eventTriggers, body.subscriberUrl);
+    } else if (body.eventTriggers?.length) {
+      console.log("Creating webhook for client", body.eventTriggers, body.subscriberUrl);
+    }
+
     return { status: SUCCESS_STATUS, data: client };
   }
 

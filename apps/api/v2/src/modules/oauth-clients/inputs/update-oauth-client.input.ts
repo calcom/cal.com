@@ -1,4 +1,7 @@
-import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
+
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export class UpdateOAuthClientInput {
   @IsOptional()
@@ -29,4 +32,21 @@ export class UpdateOAuthClientInput {
   @IsOptional()
   @IsBoolean()
   areEmailsEnabled?: boolean;
+
+  @IsEnum(WebhookTriggerEvents)
+  @ApiProperty({
+    description: "List of events that will trigger the webhook",
+    example: [WebhookTriggerEvents["BOOKING_CREATED"], WebhookTriggerEvents["BOOKING_CANCELLED"]],
+    enum: WebhookTriggerEvents,
+  })
+  eventTriggers?: WebhookTriggerEvents;
+
+  @IsUrl()
+  @IsOptional()
+  @ApiProperty({
+    description: "Url to send the webhook to",
+    example: "https://example.com",
+    enum: WebhookTriggerEvents,
+  })
+  subscriberUrl?: string;
 }
