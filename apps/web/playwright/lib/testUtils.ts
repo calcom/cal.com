@@ -1,5 +1,5 @@
-import type { Frame, Page } from "@playwright/test";
 import { expect } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
@@ -352,20 +352,51 @@ export async function fillStripeTestCheckout(page: Page) {
   await page.click(".SubmitButton--complete-Shimmer");
 }
 
+export function goToUrlWithErrorHandling({ page, url }: { page: Page; url: string }) {
+  return new Promise<{ success: boolean; url: string }>(async (resolve) => {
+    const onRequestFailed = (request: PlaywrightRequest) => {
+      const failedToLoadUrl = request.url();
+      console.log("goToUrlWithErrorHandling: Failed to load URL:", failedToLoadUrl);
+      resolve({ success: false, url: failedToLoadUrl });
+    };
+    page.on("requestfailed", onRequestFailed);
+    try {
+      await page.goto(url);
+    } catch (e) {}
+    page.off("requestfailed", onRequestFailed);
+    resolve({ success: true, url: page.url() });
+  });
+}
+
+/**
+ * Within this function's callback if a non-org domain is opened, it is considered an org domain identfied from `orgSlug`
+ */
 export async function doOnOrgDomain(
   { orgSlug, page }: { orgSlug: string | null; page: Page },
-  callback: ({ page }: { page: Page }) => Promise<void>
+  callback: ({
+    page,
+  }: {
+    page: Page;
+    goToUrlWithErrorHandling: (url: string) => ReturnType<typeof goToUrlWithErrorHandling>;
+  }) => Promise<any>
 ) {
   if (!orgSlug) {
     throw new Error("orgSlug is not available");
   }
+
   page.setExtraHTTPHeaders({
     "x-cal-force-slug": orgSlug,
   });
-  await callback({ page });
+  const callbackResult = await callback({
+    page,
+    goToUrlWithErrorHandling: (url: string) => {
+      return goToUrlWithErrorHandling({ page, url });
+    },
+  });
   await page.setExtraHTTPHeaders({
     "x-cal-force-slug": "",
   });
+  return callbackResult;
 }
 
 // When App directory is there, this is the 404 page text. We should work on fixing the 404 page as it changed due to app directory.
