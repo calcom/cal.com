@@ -4,6 +4,7 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -47,14 +48,19 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
         {
           where: {
             teamId: null,
-            // TODO: FIX THIS
-            // schedulingType: { not: SchedulingType.MANAGED },
-            // schedulingType: { in: [SchedulingType.ROUND_ROBIN, SchedulingType.COLLECTIVE, null] },
-            ...(isFilterSet && !!filters?.schedulingTypes
-              ? {
-                  schedulingType: { in: filters.schedulingTypes },
-                }
-              : {}),
+            OR: [
+              {
+                schedulingType: { not: SchedulingType.MANAGED },
+              },
+              {
+                schedulingType: null,
+              },
+              // ...(isFilterSet && !!filters?.schedulingTypes
+              //   ? {
+              //       schedulingType: { in: filters.schedulingTypes },
+              //     }
+              //   : {}),
+            ],
           },
           orderBy: [
             {

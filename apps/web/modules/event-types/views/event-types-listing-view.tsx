@@ -71,7 +71,7 @@ interface EventTypeListProps {
   group: EventTypeGroup;
   readOnly: boolean;
   bookerUrl: string | null;
-  pages: { nextCursor?: number; eventTypes: EventType[] }[] | undefined;
+  pages: { nextCursor: number | undefined; eventTypes: EventType[] }[] | undefined;
   lockedByOrg?: boolean;
 }
 
@@ -103,7 +103,7 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
 
   return (
     <div>
-      {!!activeEventTypeGroup ? (
+      {!!activeEventTypeGroup && (
         <>
           <EventTypeList
             pages={query?.data?.pages}
@@ -121,8 +121,6 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
             </Button>
           </div>
         </>
-      ) : (
-        <CreateFirstEventTypeView slug={activeEventTypeGroup.profile.slug ?? ""} />
       )}
     </div>
   );
@@ -285,16 +283,16 @@ export const EventTypeList = ({
         { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
         (data) => {
           return {
-            ...data,
+            pageParams: data?.pageParams ?? [],
             pages: newOrder,
           };
         }
       );
     }
 
-    mutation.mutate({
-      ids: newOrder.flatMap((page) => page.eventTypes.map((type) => type.id)),
-    });
+    // mutation.mutate({
+    //   ids: newOrder.flatMap((page) => page.eventTypes.map((type) => type.id)),
+    // });
   }
 
   async function deleteEventTypeHandler(id: number) {
