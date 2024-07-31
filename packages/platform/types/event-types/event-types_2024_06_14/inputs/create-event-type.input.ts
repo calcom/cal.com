@@ -1,5 +1,5 @@
 import { ApiProperty as DocsProperty } from "@nestjs/swagger";
-import { Type } from "class-transformer";
+import { Type, Transform } from "class-transformer";
 import {
   IsString,
   IsInt,
@@ -68,6 +68,10 @@ export class CreateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   afterEventBuffer?: number;
+
+  @IsInt()
+  @IsOptional()
+  scheduleId?: number;
 }
 
 export enum HostPriority {
@@ -144,6 +148,18 @@ export class CreateTeamEventTypeInput_2024_06_14 {
   @DocsProperty()
   afterEventBuffer?: number;
 
+  @Transform(({ value }) => {
+    if (value === "collective") {
+      return SchedulingType.COLLECTIVE;
+    }
+    if (value === "roundRobin") {
+      return SchedulingType.ROUND_ROBIN;
+    }
+    if (value === "managed") {
+      return SchedulingType.MANAGED;
+    }
+    return value;
+  })
   @IsEnum(SchedulingType)
   @DocsProperty()
   schedulingType!: keyof typeof SchedulingType;

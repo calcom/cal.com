@@ -1496,7 +1496,6 @@
   "how_long_after": "Hur länge efter händelsens slut?",
   "no_available_slots": "Inga tillgängliga tider",
   "time_available": "Tid tillgänglig",
-  "cant_find_the_right_video_app_visit_our_app_store": "Kan du inte hitta rätt videoapp? Besök vår <1>App Store</1>.",
   "install_new_calendar_app": "Installera ny kalenderapp",
   "make_phone_number_required": "Gör telefonnummer obligatoriskt för att boka händelse",
   "new_event_type_availability": "Tillgänglighet till {{eventTypeTitle}}",
@@ -2100,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Du har blivit inbjuden att gå med i ett {{appName}}-team",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} har bjudit in dig att gå med i sitt team {{teamName}} den {{appName}}. {{appName}} är en händelsejonglerande schemaläggare som du och ditt team kan använda för att planera möten utan att skicka e-post fram och tillbaka.",
   "privacy": "Sekretess",
+  "signing_up_terms": "Genom att fortsätta godkänner du våra <0>användarvillkor</0> och vår <1>integritetspolicy</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
