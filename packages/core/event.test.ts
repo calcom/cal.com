@@ -389,7 +389,7 @@ describe("event tests", () => {
 
   describe("fn: validateCustomEventName", () => {
     it("should be valid when no variables used", () => {
-      expect(event.validateCustomEventName("foo", "error message")).toBe(true);
+      expect(event.validateCustomEventName("foo")).toBe(true);
     });
 
     [
@@ -405,24 +405,24 @@ describe("event tests", () => {
       "Event duration",
     ].forEach((value) => {
       it(`should support {${value}} variable`, () => {
-        expect(event.validateCustomEventName(`foo {${value}} bar`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`foo {${value}} bar`)).toBe(true);
 
-        expect(event.validateCustomEventName(`{${value}} bar`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`{${value}} bar`)).toBe(true);
 
-        expect(event.validateCustomEventName(`foo {${value}}`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`foo {${value}}`)).toBe(true);
       });
     });
 
     it("should support booking field variables", () => {
       expect(
-        event.validateCustomEventName("foo{customField}bar", "error message", {
+        event.validateCustomEventName("foo{customField}bar", {
           customField: true,
         })
       ).toBe(true);
     });
 
-    it("should return error when invalid variable used", () => {
-      expect(event.validateCustomEventName("foo{nonsenseField}bar", "error message")).toBe("error message");
+    it("should return variable when invalid variable used", () => {
+      expect(event.validateCustomEventName("foo{nonsenseField}bar")).toBe("{nonsenseField}");
     });
   });
 });

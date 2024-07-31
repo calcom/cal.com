@@ -102,11 +102,7 @@ export function getEventName(eventNameObj: EventNameObjectType, forAttendeeView 
   return dynamicEventName;
 }
 
-export const validateCustomEventName = (
-  value: string,
-  message: string,
-  bookingFields?: Prisma.JsonObject
-) => {
+export const validateCustomEventName = (value: string, bookingFields?: Prisma.JsonObject) => {
   let customInputVariables: string[] = [];
   if (bookingFields) {
     customInputVariables = Object.keys(bookingFields).map((customInput) => {
@@ -134,7 +130,7 @@ export const validateCustomEventName = (
   if (matches?.length) {
     for (const item of matches) {
       if (!validVariables.includes(item)) {
-        return message;
+        return item;
       }
     }
   }
