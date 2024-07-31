@@ -1,7 +1,9 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { GetMembership } from "@/modules/auth/decorators/get-membership/get-membership.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
 import { IsMembershipInOrg } from "@/modules/auth/guards/memberships/is-membership-in-org.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
@@ -39,12 +41,13 @@ import { Membership } from "@calcom/prisma/client";
   path: "/v2/organizations/:orgId/memberships",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard)
 @DocsTags("Organizations Memberships")
 export class OrganizationsMembershipsController {
   constructor(private organizationsMembershipService: OrganizationsMembershipService) {}
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/")
   @HttpCode(HttpStatus.OK)
   async getAllMemberships(
@@ -66,6 +69,7 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Post("/")
   @HttpCode(HttpStatus.CREATED)
   async createMembership(
@@ -80,6 +84,7 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsMembershipInOrg)
   @Get("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -91,6 +96,7 @@ export class OrganizationsMembershipsController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsMembershipInOrg)
   @Delete("/:membershipId")
   @HttpCode(HttpStatus.OK)
@@ -107,6 +113,7 @@ export class OrganizationsMembershipsController {
 
   @UseGuards(IsMembershipInOrg)
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Patch("/:membershipId")
   @HttpCode(HttpStatus.OK)
   async updateMembership(
