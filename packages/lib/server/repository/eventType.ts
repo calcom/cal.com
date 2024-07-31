@@ -87,15 +87,15 @@ export class EventTypeRepository {
     };
   };
 
-  static async create(data: IEventType) {
+  static async create(data: IEventType, actorUserId?: number) {
     return await prisma.eventType.create({
-      data: this.generateCreateEventTypeData(data),
+      data: { ...this.generateCreateEventTypeData(data), actorUserId: actorUserId ?? null },
     });
   }
 
   static async createMany(data: IEventType[]) {
     return await prisma.eventType.createMany({
-      data: data.map((d) => this.generateCreateEventTypeData(data)),
+      data: data.map((d) => this.generateCreateEventTypeData(d)),
     });
   }
 
