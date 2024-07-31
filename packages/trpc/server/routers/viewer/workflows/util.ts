@@ -85,21 +85,80 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     },
   });
 
-  if (!verifiedEmail) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  if (verifiedEmail) {
+    if (teamId) {
+      if (!verifiedEmail.teamId) {
+        await prisma.verifiedEmail.update({
+          where: {
+            id: verifiedEmail.id,
+          },
+          data: {
+            teamId,
+          },
+        });
+      } else if (verifiedEmail.teamId !== teamId) {
+        await prisma.verifiedEmail.create({
+          data: {
+            email,
+            userId,
+            teamId,
+          },
+        });
+      }
+    }
+    return;
+  }
+
+  const userEmail = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      email,
+    },
+  });
+
+  if (userEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
   }
 
   if (teamId) {
-    if (!verifiedEmail.teamId) {
-      await prisma.verifiedEmail.update({
-        where: {
-          id: verifiedEmail.id,
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
         },
-        data: {
-          teamId,
-        },
-      });
-    } else if (verifiedEmail.teamId !== teamId) {
+      },
+    });
+
+    if (!team) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    }
+
+    const isTeamMember = team.members.some((member) => member.userId === userId);
+
+    if (!isTeamMember) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+    }
+
+    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+
+    if (teamMemberEmail) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -107,8 +166,11 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
           teamId,
         },
       });
+      return;
     }
   }
+
+  throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
 };
 
 export function getSender(

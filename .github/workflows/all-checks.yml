@@ -69,12 +69,6 @@ jobs:
     uses: ./.github/workflows/e2e-embed-react.yml
     secrets: inherit
 
-  analyze:
-    name: Analyze Build
-    needs: [build]
-    uses: ./.github/workflows/nextjs-bundle-analysis.yml
-    secrets: inherit
-
   required:
     needs: [lint, type-check, unit-test, integration-test, build, build-api-v1, build-api-v2, e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     if: always()

@@ -32,7 +32,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
 });
 
 export class EventTypeRepository {
-  static async create(data: IEventType, actorUserId?: number) {
+  private static generateCreateEventTypeData = (eventTypeCreateData: IEventType, actorUserId?: number) => {
     const {
       userId,
       profileId,
@@ -45,46 +45,57 @@ export class EventTypeRepository {
       bookingFields,
       durationLimits,
       ...rest
-    } = data;
-    return await prisma.eventType.create({
-      data: {
-        ...rest,
-        ...(userId ? { owner: { connect: { id: userId } } } : null),
-        ...(profileId
-          ? {
-              profile: {
-                connect: {
-                  id: profileId,
-                },
+    } = eventTypeCreateData;
+
+    return {
+      ...rest,
+      ...(userId ? { owner: { connect: { id: userId } } } : null),
+      ...(profileId
+        ? {
+            profile: {
+              connect: {
+                id: profileId,
               },
-            }
-          : null),
-        ...(teamId ? { team: { connect: { id: teamId } } } : null),
-        ...(parentId ? { parent: { connect: { id: parentId } } } : null),
-        ...(scheduleId ? { schedule: { connect: { id: scheduleId } } } : null),
-        ...(metadata ? { metadata: metadata } : null),
-        ...(bookingLimits
-          ? {
-              bookingLimits,
-            }
-          : null),
-        ...(recurringEvent
-          ? {
-              recurringEvent,
-            }
-          : null),
-        ...(bookingFields
-          ? {
-              bookingFields,
-            }
-          : null),
-        ...(durationLimits
-          ? {
-              durationLimits,
-            }
-          : null),
-        actorUserId: actorUserId ?? null,
-      },
+            },
+          }
+        : null),
+      ...(teamId ? { team: { connect: { id: teamId } } } : null),
+      ...(parentId ? { parent: { connect: { id: parentId } } } : null),
+      ...(scheduleId ? { schedule: { connect: { id: scheduleId } } } : null),
+      ...(metadata ? { metadata: metadata } : null),
+      ...(bookingLimits
+        ? {
+            bookingLimits,
+          }
+        : null),
+      ...(recurringEvent
+        ? {
+            recurringEvent,
+          }
+        : null),
+      ...(bookingFields
+        ? {
+            bookingFields,
+          }
+        : null),
+      ...(durationLimits
+        ? {
+            durationLimits,
+          }
+        : null),
+      actorUserId: actorUserId ?? null,
+    };
+  };
+
+  static async create(data: IEventType) {
+    return await prisma.eventType.create({
+      data: this.generateCreateEventTypeData(data),
+    });
+  }
+
+  static async createMany(data: IEventType[]) {
+    return await prisma.eventType.createMany({
+      data: data.map((d) => this.generateCreateEventTypeData(data)),
     });
   }
 
