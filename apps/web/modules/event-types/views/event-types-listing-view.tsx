@@ -61,6 +61,7 @@ import {
 } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
+import { useInViewObserverWithNullRoot } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
@@ -171,29 +172,31 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
     }
   );
 
-  if (query.isLoading || !query?.data) return null;
+  const buttonInView = useInViewObserverWithNullRoot(() => {
+    if (!query.isFetching && query.hasNextPage && query.status === "success") {
+      query.fetchNextPage();
+    }
+  });
 
   return (
     <div>
       {!!activeEventTypeGroup && (
-        <>
-          <InfiniteEventTypeList
-            pages={query?.data?.pages}
-            group={activeEventTypeGroup}
-            bookerUrl={activeEventTypeGroup.bookerUrl}
-            readOnly={activeEventTypeGroup.metadata.readOnly}
-          />
-          <div className="text-default p-4 text-center">
-            <Button
-              color="minimal"
-              loading={query.isFetchingNextPage}
-              disabled={!query.hasNextPage}
-              onClick={() => query.fetchNextPage()}>
-              {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
-            </Button>
-          </div>
-        </>
+        <InfiniteEventTypeList
+          pages={query?.data?.pages}
+          group={activeEventTypeGroup}
+          bookerUrl={activeEventTypeGroup.bookerUrl}
+          readOnly={activeEventTypeGroup.metadata.readOnly}
+        />
       )}
+      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+        <Button
+          color="minimal"
+          loading={query.isFetchingNextPage}
+          disabled={!query.hasNextPage}
+          onClick={() => query.fetchNextPage()}>
+          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      </div>
     </div>
   );
 };
@@ -980,8 +983,9 @@ export const InfiniteEventTypeList = ({
   const isManagedEventPrefix = () => {
     return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
   };
+
   return (
-    <div className="bg-default border-subtle mb-16 flex flex-col overflow-hidden rounded-md border">
+    <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
       <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
         {pages.map((page, pageIdx) => {
           return page?.eventTypes?.map((type, index) => {
