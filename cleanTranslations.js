@@ -40,7 +40,7 @@ const getUsedKeys = (dir) => {
 
     // Scan for TypeScript and TSX files in the directory
     glob.sync(`${dir}/**/*.{ts,tsx,sql}`).forEach((file) => {
-        if (fs.statSync(file).isFile()) {
+        if (!fs.statSync(file).isFile()) return;
             const content = fs.readFileSync(file, 'utf8');
 
             // Extract keys from different patterns
