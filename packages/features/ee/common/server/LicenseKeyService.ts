@@ -11,7 +11,12 @@ export enum UsageEvent {
   USER = "user",
 }
 
-class LicenseKeyService {
+interface ILicenseKeyService {
+  incrementUsage(usageEvent?: UsageEvent): Promise<any>;
+  checkLicense(): Promise<boolean>;
+}
+
+class LicenseKeyService implements ILicenseKeyService {
   private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
   public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
@@ -23,9 +28,9 @@ class LicenseKeyService {
   }
 
   // Static async factory method
-  public static async create(): Promise<LicenseKeyService> {
+  public static async create(): Promise<ILicenseKeyService> {
     const licenseKey = await getDeploymentKey(prisma);
-    return new LicenseKeyService(licenseKey);
+    return licenseKey ? new LicenseKeyService(licenseKey) : new NoopLicenseKeyService();
   }
 
   private async fetcher({
@@ -91,6 +96,18 @@ class LicenseKeyService {
       console.error("Check license failed:", error);
       return false;
     }
+  }
+}
+
+export class NoopLicenseKeyService implements ILicenseKeyService {
+  async incrementUsage(_usageEvent?: UsageEvent): Promise<any> {
+    // No operation
+    return Promise.resolve();
+  }
+
+  async checkLicense(): Promise<boolean> {
+    // Always return true for NOOP
+    return Promise.resolve(false);
   }
 }
 
