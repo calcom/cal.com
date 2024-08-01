@@ -41,7 +41,6 @@ export function BulkEditDefaultForEventsModal(props: {
         <Form
           form={form}
           handleSubmit={(values) => {
-            console.log({ values });
             props.bulkUpdateFunction(values);
           }}>
           <div className="flex flex-col space-y-2">
