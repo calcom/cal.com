@@ -6,36 +6,12 @@ import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
 import { RoutingFormSettings } from "@calcom/prisma/zod-utils";
 
 import type { SerializableForm, SerializableFormTeamMembers } from "../types/types";
-import type { zodNonRouterField } from "../zod";
 import type { zodRoutesView, zodFieldsView } from "../zod";
 import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
-
-type Field = z.infer<typeof zodNonRouterField>;
-
-export const getFieldWithOptions = (field: Field) => {
-  const legacySelectTextValues = field.selectText;
-  if (field.options) {
-    return {
-      ...field,
-      options: field.options,
-    };
-  } else if (legacySelectTextValues) {
-    const options = legacySelectTextValues.split("\n").map((fieldValue) => ({
-      value: fieldValue,
-      id: null,
-    }));
-    return {
-      ...field,
-      options,
-    };
-  }
-  return {
-    ...field,
-  };
-};
+import { getFieldWithOptions } from "./selectOptions";
 
 type FieldWithOptionsHavingId<T> = Omit<T, "options"> & { options?: { id: string; value: string }[] };
 export const ensureIdInOptions = <T extends { options?: { id: string | null; value: string }[] }>(

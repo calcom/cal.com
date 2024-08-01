@@ -319,8 +319,10 @@ function Field({
                         placeholder={optionsPlaceholders[index] || "New Option"}
                         value={field.value}
                         type="text"
+                        required
                         addOnClassname="bg-transparent border-0"
                         onChange={(e) => handleChange(e, index)}
+                        dataTestid={`${hookFieldNamespace}.options.${index}`}
                         addOnSuffix={
                           options.length > 1 ? (
                             <button

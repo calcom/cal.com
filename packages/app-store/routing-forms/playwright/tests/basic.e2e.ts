@@ -452,8 +452,11 @@ async function addAllTypesOfFieldsAndSaveForm(
       identifier = "firstField";
     }
 
-    if (fieldTypeLabel === "MultiSelect" || fieldTypeLabel === "Select") {
-      await page.fill(`[name="fields.${nth}.selectText"]`, "123\n456\n789");
+    if (fieldTypeLabel === "Multiple Selection" || fieldTypeLabel === "Single Selection") {
+      await page.fill(`[data-testid="fields.${nth}.options.0-input"]`, "123");
+      await page.fill(`[data-testid="fields.${nth}.options.1-input"]`, "456");
+      await page.fill(`[data-testid="fields.${nth}.options.2-input"]`, "789");
+      await page.fill(`[data-testid="fields.${nth}.options.3-input"]`, "10-11-12");
     }
 
     await page.fill(`[name="fields.${nth}.label"]`, label);

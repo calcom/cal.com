@@ -4,6 +4,7 @@ import type { Dispatch, SetStateAction } from "react";
 import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
+import { getOptionsForSelect } from "../lib/selectOptions";
 import transformResponse from "../lib/transformResponse";
 import type { SerializableForm, Response } from "../types/types";
 
@@ -31,14 +32,7 @@ export default function FormInputFields(props: Props) {
         }
         const Component = widget.factory;
 
-        const optionValues = field.selectText?.trim().split("\n");
-        const options = optionValues?.map((value) => {
-          const title = value;
-          return {
-            value,
-            title,
-          };
-        });
+        const options = getOptionsForSelect(field);
         return (
           <div key={field.id} className="mb-4 block flex-col sm:flex ">
             <div className="min-w-48 mb-2 flex-grow">
