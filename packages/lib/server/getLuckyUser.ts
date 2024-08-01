@@ -40,6 +40,7 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
         },
         where: {
           eventTypeId: eventType.id,
+          status: BookingStatus.ACCEPTED,
           attendees: {
             some: {
               noShow: false, // todo: so we don't count the booking only because one of the attendees might be a no show?
@@ -181,6 +182,7 @@ export async function getLuckyUser<
       return { id: host.user.id, email: host.user.email };
     }),
     withoutNoShows: true,
+    onlyAccepted: true,
   });
 
   switch (distributionAlgorithm) {
