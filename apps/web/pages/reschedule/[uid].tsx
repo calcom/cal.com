@@ -4,8 +4,10 @@ import { URLSearchParams } from "url";
 import { z } from "zod";
 
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
+import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
 
@@ -25,6 +27,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     prisma,
     bookingUid
   );
+
   const booking = await prisma.booking.findUnique({
     where: {
       uid,
@@ -41,6 +44,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
           slug: true,
           team: {
             select: {
+              parentId: true,
               slug: true,
             },
           },
@@ -125,24 +129,27 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   const eventType = booking.eventType ? booking.eventType : getDefaultEvent(dynamicEventSlugRef);
 
-  const eventPage = `${
-    eventType.team
-      ? `team/${eventType.team.slug}`
-      : dynamicEventSlugRef
-      ? booking.dynamicGroupSlugRef
-      : booking.user?.username || "rick" /* This shouldn't happen */
-  }/${eventType?.slug}`;
-  const destinationUrl = new URLSearchParams();
+  const enrichedBookingUser = booking.user
+    ? await UserRepository.enrichUserWithItsProfile({ user: booking.user })
+    : null;
 
-  destinationUrl.set("rescheduleUid", seatReferenceUid || bookingUid);
+  const eventUrl = await buildEventUrlFromBooking({
+    eventType,
+    dynamicGroupSlugRef: booking.dynamicGroupSlugRef ?? null,
+    profileEnrichedBookingUser: enrichedBookingUser,
+  });
+
+  const destinationUrlSearchParams = new URLSearchParams();
+
+  destinationUrlSearchParams.set("rescheduleUid", seatReferenceUid || bookingUid);
 
   // TODO: I think we should just forward all the query params here including coep flag
   if (coepFlag) {
-    destinationUrl.set("flag.coep", coepFlag as string);
+    destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
   return {
     redirect: {
-      destination: `/${eventPage}?${destinationUrl.toString()}${
+      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
         eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
       }`,
       permanent: false,
