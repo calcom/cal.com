@@ -1,3 +1,5 @@
+import { type TFunction } from "i18next";
+
 import { WebhookService } from "@calcom/features/webhooks/lib/WebhookService";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { HttpError } from "@calcom/lib/http-error";
@@ -11,7 +13,8 @@ import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInVie
 const buildResultPayload = async (
   bookingUid: string,
   attendeeEmails: string[],
-  inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>
+  inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>,
+  t: TFunction
 ) => {
   const attendees = await updateAttendees(bookingUid, attendeeEmails, inputAttendees);
 
@@ -83,7 +86,7 @@ const handleMarkNoShow = async ({
     if (attendees && attendeeEmails.length > 0) {
       await assertCanAccessBooking(bookingUid, userId);
 
-      const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees);
+      const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees, t);
 
       const { webhooks, bookingId } = await getWebhooksService(bookingUid);
 
