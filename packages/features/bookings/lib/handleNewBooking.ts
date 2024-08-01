@@ -1732,7 +1732,9 @@ async function handler(
       );
     }
 
+    console.log(`handleNewBooking.handler: event before addVideoCallDataToEvent: ${evt}`);
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
+    console.log(`handleNewBooking.handler: event after addVideoCallDataToEvent: ${evt}`);
 
     const newDestinationCalendar = evt.destinationCalendar;
 
@@ -1749,7 +1751,7 @@ async function handler(
     }
 
     const locationSuppliedByUser = location;
-    log.debug("locationSuppliedByUser", location);
+    console.log("locationSuppliedByUser", location);
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
@@ -1758,6 +1760,8 @@ async function handler(
       newDestinationCalendar,
       locationSuppliedByUser
     );
+
+    console.log(`handleNewBooking.handler: event after calling event manager to reschedule: ${evt}`);
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1775,6 +1779,8 @@ async function handler(
     const { metadata: videoMetadata, videoCallUrl: _videoCallUrl } = getVideoCallDetails({
       results,
     });
+
+    console.log(`handleNewBooking.handler: videoMetadata: ${videoMetadata}, _videoCallUrl: ${_videoCallUrl}`);
 
     let metadata: AdditionalInformation = {};
     metadata = videoMetadata;

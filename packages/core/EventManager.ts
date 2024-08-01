@@ -427,6 +427,7 @@ export default class EventManager {
             log.debug("case where user supplies zoom for a non zoom initial meeting");
             evt.location = locationSuppliedByUser;
             result = await this.createVideoEvent(evt);
+            console.log(`EventManager.reschedule: created video event: ${result}`);
             const uid = translator.fromUUID(uuidv5(JSON.stringify(evt), uuidv5.URL));
             result.uid = uid;
             if (result?.createdEvent) {
@@ -434,7 +435,9 @@ export default class EventManager {
               evt.location = result.originalEvent.location;
               result.type = result.createdEvent.type;
             }
+            console.log(`EventManager.reschedule: created video event after adding video url: ${result}`);
           } else {
+            console.log("zoom to zoom rescheduling");
             result = await this.updateVideoEvent(evt, booking);
             const [updatedEvent] = Array.isArray(result.updatedEvent)
               ? result.updatedEvent
