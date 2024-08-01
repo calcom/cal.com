@@ -322,6 +322,7 @@ model User {
 
   OutOfOfficeReasons OutOfOfficeReason[]
   smsLockState       SMSLockState        @default(UNLOCKED)
+  features           Feature[]           @relation("user_features")
 
   @@unique([email])
   @@unique([email, username])
@@ -412,6 +413,7 @@ model Team {
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
+  features               Feature[]               @relation("team_features")
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1118,6 +1120,8 @@ model Feature {
   createdAt   DateTime?    @default(now())
   updatedAt   DateTime?    @default(now()) @updatedAt
   updatedBy   Int?
+  users       User[]       @relation("user_features")
+  teams       Team[]       @relation("team_features")
 
   @@index([enabled])
   @@index([stale])
