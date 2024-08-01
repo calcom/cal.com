@@ -57,7 +57,7 @@ export async function getLocationGroupedOptions(
 
   let usersDefaultApp: string | undefined;
 
-  if (userOrTeamId.userId) {
+  if ("userId" in userOrTeamId) {
     const user = await prisma.user.findUnique({
       where: {
         id: userOrTeamId.userId,
@@ -153,7 +153,7 @@ export async function getLocationGroupedOptions(
       label: t(category),
       options: apps[category].map((l) => {
         if (
-          userOrTeamId.userId &&
+          "userId" in userOrTeamId &&
           category === "conferencing" &&
           l.slug &&
           (usersDefaultApp === l.slug || (l.slug === "daily-video" && !usersDefaultApp))
