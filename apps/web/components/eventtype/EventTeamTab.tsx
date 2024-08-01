@@ -248,7 +248,7 @@ const RoundRobinHosts = ({
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
-          onActive={() =>
+          onActive={() => {
             setValue(
               "hosts",
               teamMembers.map((teamMember) => ({
@@ -259,8 +259,10 @@ const RoundRobinHosts = ({
                 weightAdjustment: 0,
               })),
               { shouldDirty: true }
-            )
-          }
+            );
+            setIsRRWeightsEnabled(false);
+            setValue("isRRWeightsEnabled", false);
+          }}
         />
       </div>
     </div>
