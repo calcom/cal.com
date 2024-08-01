@@ -932,13 +932,14 @@ async function handler(
     name: bookerName,
     email: bookerEmail,
     guests: reqGuests,
-    location,
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
     ...reqBody
   } = bookingData;
+
+  let location = bookingData.location === 'conferencing' ? 'integrations:zoom' : bookingData.location;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -1749,7 +1750,7 @@ async function handler(
     }
 
     const locationSuppliedByUser = location;
-    log.debug("locationSuppliedByUser", location);
+    console.log("locationSuppliedByUser", location);
     const updateManager = await eventManager.reschedule(
       evt,
       originalRescheduledBooking.uid,
