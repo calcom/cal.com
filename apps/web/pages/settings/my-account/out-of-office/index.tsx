@@ -375,6 +375,9 @@ const OutOfOfficePage = () => {
   }, [openModalOnStart]);
 
   const [openModal, setOpenModal] = useState(false);
+
+  // TODO: The best solution is we should find the cause of full page flicker
+  const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
       <Meta
@@ -383,6 +386,7 @@ const OutOfOfficePage = () => {
         borderInShellHeader={false}
         CTA={
           <Button
+            disabled={isPending}
             color="primary"
             className="flex w-20 items-center justify-between px-4"
             onClick={() => setOpenModal(true)}

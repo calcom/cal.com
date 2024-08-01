@@ -27,7 +27,6 @@ test.describe("Out of office", () => {
     await page.getByTestId("notes_input").fill("Demo notes");
     await page.getByTestId("create-entry-ooo-redirect").click();
 
-    await page.waitForSelector(`[data-testid=table-redirect-n-a]`);
     await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
   });
 
@@ -82,7 +81,6 @@ test.describe("Out of office", () => {
     // send request
     await page.getByTestId("create-entry-ooo-redirect").click();
 
-    await page.waitForSelector(`[data-testid=table-redirect-${userTo.username}]`);
     // expect table-redirect-toUserId to be visible
     await expect(page.locator(`data-testid=table-redirect-${userTo.username}`)).toBeVisible();
   });
