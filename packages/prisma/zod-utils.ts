@@ -136,7 +136,6 @@ export const bookingResponses = z
       .optional(),
     smsReminderNumber: z.string().optional(),
     rescheduleReason: z.string().optional(),
-    hostAssignment: z.string().optional(),
   })
   .nullable();
 
@@ -291,7 +290,6 @@ export const bookingCreateSchemaLegacyPropsForApi = z.object({
   location: z.string(),
   smsReminderNumber: z.string().optional().nullable(),
   rescheduleReason: z.string().optional(),
-  hostAssignment: z.string().optional(),
   customInputs: z.array(z.object({ label: z.string(), value: z.union([z.string(), z.boolean()]) })),
 });
 
@@ -656,6 +654,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 };
 
 // All properties that are defined as unlocked based on all managed props

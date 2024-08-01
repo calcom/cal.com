@@ -106,7 +106,6 @@ export const BookEventForm = ({
           locations={eventType.locations}
           rescheduleUid={rescheduleUid || undefined}
           bookingData={bookingData}
-          schedulingType={eventType.schedulingType}
         />
         {(errors.hasFormErrors || errors.hasDataErrors) && (
           <div data-testid="booking-fail">

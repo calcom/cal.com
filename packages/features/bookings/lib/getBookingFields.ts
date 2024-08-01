@@ -262,27 +262,6 @@ export const ensureBookingInputsHaveSystemFields = ({
         },
       ],
     },
-    {
-      defaultLabel: "host_assignment",
-      type: "radio",
-      editable: "system-but-optional",
-      name: "hostAssignment",
-      required: false,
-      options: [
-        {
-          label: "Round-Robin host",
-          value: "",
-        },
-        { label: "Same host", value: "" },
-      ],
-      sources: [
-        {
-          label: "Default",
-          id: "default",
-          type: "default",
-        },
-      ],
-    },
   ];
 
   const missingSystemBeforeFields = [];
