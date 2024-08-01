@@ -106,7 +106,6 @@ export class NoopLicenseKeyService implements ILicenseKeyService {
   }
 
   async checkLicense(): Promise<boolean> {
-    // Always return true for NOOP
     return Promise.resolve(false);
   }
 }
