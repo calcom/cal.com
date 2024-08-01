@@ -42,6 +42,85 @@ import {
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
+const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
+  const formMethods = useFormContext<FormValues>();
+  const { t } = useLocale();
+  const [animateRef] = useAutoAnimate<HTMLUListElement>();
+  return (
+    <Controller
+      name="singleUseLinks"
+      control={formMethods.control}
+      render={({ field: { value, onChange } }) => {
+        if (!value) {
+          value = [];
+        }
+        const addSingleUseLink = () => {
+          const newSingleUseLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
+          value.push(newSingleUseLink);
+          onChange(value);
+        };
+
+        const removeSingleUseLink = (index: number) => {
+          value.splice(index, 1);
+          onChange(value);
+        };
+
+        return (
+          <ul ref={animateRef}>
+            {value &&
+              value.map((val: string, key: number) => {
+                const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
+                return (
+                  <div data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
+                    <TextField
+                      data-testid={`single-use-link-${key}`}
+                      containerClassName="w-full"
+                      disabled
+                      labelSrOnly
+                      type="text"
+                      defaultValue={singleUseURL}
+                      addOnSuffix={
+                        <Tooltip content={t("copy_to_clipboard")}>
+                          <Button
+                            color="minimal"
+                            size="sm"
+                            type="button"
+                            className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                            aria-label="copy link"
+                            onClick={() => {
+                              navigator.clipboard.writeText(singleUseURL);
+                              showToast(t("single_use_link_copied"), "success");
+                            }}>
+                            <Icon name="copy" className="h-4 w-4" />
+                          </Button>
+                        </Tooltip>
+                      }
+                    />
+                    <Button
+                      data-testid={`remove-single-use-link-${key}`}
+                      variant="icon"
+                      StartIcon="trash-2"
+                      color="destructive"
+                      className="border-none"
+                      onClick={() => removeSingleUseLink(key)}
+                    />
+                  </div>
+                );
+              })}
+            <Button
+              color="minimal"
+              StartIcon="plus"
+              onClick={addSingleUseLink}
+              data-testid="add-single-use-link-button">
+              {t("add_a_single_use_link")}
+            </Button>
+          </ul>
+        );
+      }}
+    />
+  );
+};
+
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
@@ -65,8 +144,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
 
   const bookingFields: Prisma.JsonObject = {};
-
-  const [animateRef] = useAutoAnimate<HTMLUListElement>();
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
@@ -429,103 +506,41 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </div>
         )}
       </SettingsToggle>
-      <SettingsToggle
-        labelClassName="text-sm"
-        toggleSwitchAtTheEnd={true}
-        switchContainerClassName={classNames(
-          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-          singleUseLinksVisible && "rounded-b-none"
-        )}
-        childrenClassName="lg:ml-0"
-        data-testid="singleUseLinksCheck"
-        title={t("single_use_links_title")}
-        description={t("single_use_links_description", { appName: APP_NAME })}
-        checked={singleUseLinksVisible}
-        onCheckedChange={(e) => {
-          if (!e) {
-            // Note - This will reset the single-use-links to empty, when it is toggled.
-            // If we need to persist the single-use-links when toggle is turned on and off, then we need to store the links in a state.
-            formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
-          }
-          setSingleUseLinksVisible(e);
-        }}>
-        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-          <Controller
-            name="singleUseLinks"
-            render={({ field: { value, onChange } }) => {
-              const addSingleUseLink = () => {
-                let seed = String(formMethods.getValues("users")[0]?.id ?? team?.id);
-                // Append the last generated link to the seed for more randomized link generation.
-                if (value.length > 0) {
-                  seed = `${seed}:${value[value.length - 1]}`;
+      <Controller
+        name="singleUseLinks"
+        render={() => {
+          return (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                singleUseLinksVisible && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              data-testid="singleUseLinksCheck"
+              title={t("single_use_links_title")}
+              description={t("single_use_links_description", { appName: APP_NAME })}
+              checked={singleUseLinksVisible}
+              onCheckedChange={(e) => {
+                if (!e) {
+                  formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
                 } else {
-                  // If this is the first one then just append a constant string to the seed.
-                  seed = `${seed}:single_use`;
+                  formMethods.setValue(
+                    "singleUseLinks",
+                    [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
+                    { shouldDirty: true }
+                  );
                 }
-                const newSingleUseLink = generateHashedLink(seed);
-                value.push(newSingleUseLink);
-                onChange(value);
-              };
-
-              const removeSingleUseLink = (index: number) => {
-                value.splice(index, 1);
-                onChange(value);
-              };
-              return (
-                <ul ref={animateRef}>
-                  {value &&
-                    value.map((val: string, key: string) => {
-                      const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
-                      return (
-                        <div data-testid="add-single-use-link" className="mb-4 flex items-center" key={key}>
-                          <TextField
-                            data-testid={`single-use-link-${key}`}
-                            containerClassName="w-full"
-                            disabled
-                            labelSrOnly
-                            type="text"
-                            defaultValue={singleUseURL}
-                            addOnSuffix={
-                              <Tooltip content={t("copy_to_clipboard")}>
-                                <Button
-                                  color="minimal"
-                                  size="sm"
-                                  type="button"
-                                  className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                                  aria-label="copy link"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(singleUseURL);
-                                    showToast(t("single_use_link_copied"), "success");
-                                  }}>
-                                  <Icon name="copy" className="h-4 w-4" />
-                                </Button>
-                              </Tooltip>
-                            }
-                          />
-                          <Button
-                            data-testid={`remove-single-use-link-${key}`}
-                            variant="icon"
-                            StartIcon="trash-2"
-                            color="destructive"
-                            className="border-none"
-                            onClick={() => removeSingleUseLink(parseInt(key))}
-                          />
-                        </div>
-                      );
-                    })}
-                  <Button
-                    color="minimal"
-                    StartIcon="plus"
-                    onClick={addSingleUseLink}
-                    data-testid="add-single-use-link-button">
-                    {t("add_a_single_use_link")}
-                  </Button>
-                </ul>
-              );
-            }}
-          />
-        </div>
-      </SettingsToggle>
+                setSingleUseLinksVisible(e);
+              }}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <SingleUseLinksManager team={team} />
+              </div>
+            </SettingsToggle>
+          );
+        }}
+      />
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (

@@ -553,6 +553,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
   const handleSubmit = async (values: FormValues) => {
     const { children } = values;
     const dirtyValues = getDirtyFields(values);
+    console.log("HI-------");
+    console.log(dirtyValues);
     const dirtyFieldExists = Object.keys(dirtyValues).length !== 0;
     const {
       periodDates,
@@ -802,7 +804,12 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
+              updateMutation.mutate({
+                ...filteredPayload,
+                id: eventType.id,
+                hashedLink: values.hashedLink,
+                singleUseLinks: values.singleUseLinks,
+              });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>
