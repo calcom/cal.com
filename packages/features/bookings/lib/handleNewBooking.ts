@@ -1673,7 +1673,6 @@ async function handler(
 
   try {
     if (hasHashedBookingLink && reqBody.hashedLink) {
-      // Get the hashed link to check if this is to be deleted or updated.
       const existingHashedLink = await prisma.hashedLink.findUnique({
         where: {
           link: reqBody.hashedLink,
@@ -1682,7 +1681,6 @@ async function handler(
           destroyOnUse: true,
         },
       });
-      // Delete if it has destroy-on-use flag set.
       if (existingHashedLink && existingHashedLink.destroyOnUse) {
         await prisma.hashedLink.delete({
           where: {
@@ -1690,7 +1688,6 @@ async function handler(
           },
         });
       } else {
-        // Else update.
         await prisma.hashedLink.update({
           where: {
             link: reqBody.hashedLink as string,
