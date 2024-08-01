@@ -38,10 +38,10 @@ import { schemaQueryIdParseInt } from "~/lib/validations/shared/queryIdTransform
  *        description: Authorization information is missing or invalid.
  */
 export async function deleteHandler(req: NextApiRequest) {
-  const { query } = req;
+  const { query, userId } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   await checkPermissions(req);
-  await prisma.eventType.delete({ where: { id } });
+  await prisma.eventType.delete({ where: { id, actorUserId: userId } });
   return { message: `Event Type with id: ${id} deleted successfully` };
 }
 

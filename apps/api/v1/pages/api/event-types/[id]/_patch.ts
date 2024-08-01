@@ -204,7 +204,7 @@ import checkTeamEventEditPermission from "../_utils/checkTeamEventEditPermission
  *        description: Authorization information is missing or invalid.
  */
 export async function patchHandler(req: NextApiRequest) {
-  const { query, body } = req;
+  const { query, body, userId } = req;
   const { id } = schemaQueryIdParseInt.parse(query);
   const {
     hosts = [],
@@ -232,7 +232,7 @@ export async function patchHandler(req: NextApiRequest) {
     };
   }
   await checkPermissions(req, parsedBody);
-  const eventType = await prisma.eventType.update({ where: { id }, data });
+  const eventType = await prisma.eventType.update({ where: { id }, data: { ...data, actorUserId: userId } });
   return { event_type: schemaEventTypeReadPublic.parse(eventType) };
 }
 
