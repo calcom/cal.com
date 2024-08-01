@@ -99,7 +99,7 @@ export const AvailabilitySettingsPlatformWrapper = ({
         handleSubmit={async (data) => {
           atomSchedule.id && handleUpdate(atomSchedule.id, data);
         }}
-        weekStart="Sunday"
+        weekStart={me?.data?.weekStart || "Sunday"}
         timeFormat={timeFormat}
         enableOverrides={enableOverrides}
         isLoading={isLoading}

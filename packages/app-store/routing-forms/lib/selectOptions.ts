@@ -26,7 +26,7 @@ export const getFieldWithOptions = (field: Field) => {
   };
 };
 
-export function getOptionsForSelect(field: Field) {
+export function getUIOptionsForSelect(field: Field) {
   return getFieldWithOptions(field).options?.map((option) => {
     return {
       value: option.id || option.value,
