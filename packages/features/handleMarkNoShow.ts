@@ -7,22 +7,22 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/loggedInViewer/markNoShow.schema";
 
-const getResultPayload = async (
+const buildResultPayload = async (
   bookingUid: string,
   attendeeEmails: string[],
   inputAttendees: NonNullable<TNoShowInputSchema["attendees"]>
 ) => {
-  const attendees = await getAttendees(bookingUid, attendeeEmails, inputAttendees);
+  const attendees = await updateAttendees(bookingUid, attendeeEmails, inputAttendees);
 
   if (attendees.length === 1) {
     const [attendee] = attendees;
     return {
-      messageKey: attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show",
+      message: t(attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show"),
       attendees: [attendee],
     };
   }
   return {
-    messageKey: "no_show_updated",
+    message: t("no_show_updated"),
     attendees: attendees,
   };
 };
@@ -34,17 +34,15 @@ const logFailedResults = (results: PromiseSettledResult<any>[]) => {
   console.error("Failed to update no-show status", failedMessage.join(","));
 };
 
-class ResponsePayloadWrapper {
+class ResponsePayload {
   attendees: { email: string; noShow: boolean }[];
   noShowHost: boolean;
   message: string;
-  messageKey: string | undefined;
 
   constructor() {
     this.attendees = [];
     this.noShowHost = false;
-    this.message = "Failed to update no-show status";
-    this.messageKey = undefined;
+    this.message = "";
   }
 
   setAttendees(attendees: { email: string; noShow: boolean }[]) {
@@ -59,16 +57,11 @@ class ResponsePayloadWrapper {
     this.message = message;
   }
 
-  setMessageKey(messageKey: string | undefined) {
-    this.messageKey = messageKey;
-  }
-
   getPayload() {
     return {
       attendees: this.attendees,
       noShowHost: this.noShowHost,
       message: this.message,
-      messageKey: this.messageKey,
     };
   }
 }
@@ -78,34 +71,31 @@ const handleMarkNoShow = async ({
   attendees,
   noShowHost,
   userId,
-}: TNoShowInputSchema & { userId?: number }) => {
-  const responsePayload = new ResponsePayloadWrapper();
+  locale,
+}: TNoShowInputSchema & { userId?: number; locale?: string }) => {
+  const responsePayload = new ResponsePayload();
+  const t = await getTranslation(locale ?? "en", "common");
 
   try {
     const attendeeEmails = attendees?.map((attendee) => attendee.email) || [];
 
     if (attendees && attendeeEmails.length > 0) {
-      await checkCanAccessBooking(bookingUid, userId);
+      await assertCanAccessBooking(bookingUid, userId);
 
-      const payload = await getResultPayload(bookingUid, attendeeEmails, attendees);
+      const payload = await buildResultPayload(bookingUid, attendeeEmails, attendees);
 
       const { webhooks, bookingId } = await getWebhooksService(bookingUid);
-
-      const t = await getTranslation("en", "common");
-      const message = t(payload.messageKey, { x: payload.attendees[0]?.email || "User" });
 
       await webhooks.sendPayload({
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
         // @ts-expect-error payload is too booking specific, we need to refactor this
-        message,
         bookingUid,
         bookingId,
       });
 
       responsePayload.setAttendees(payload.attendees);
-      responsePayload.setMessage(message);
-      responsePayload.setMessageKey(payload.messageKey);
+      responsePayload.setMessage(payload.message);
     }
 
     if (noShowHost) {
@@ -119,7 +109,7 @@ const handleMarkNoShow = async ({
       });
 
       responsePayload.setNoShowHost(true);
-      responsePayload.setMessage("No-show status updated");
+      responsePayload.setMessage(t("booking_no_show_updated"));
     }
 
     return responsePayload.getPayload();
@@ -131,7 +121,7 @@ const handleMarkNoShow = async ({
   }
 };
 
-const getAttendees = async (
+const updateAttendees = async (
   bookingUid: string,
   attendeeEmails: string[],
   attendees: NonNullable<TNoShowInputSchema["attendees"]>
@@ -208,7 +198,7 @@ const getWebhooksService = async (bookingUid: string) => {
   return { webhooks, bookingId: booking?.id };
 };
 
-const checkCanAccessBooking = async (bookingUid: string, userId?: number) => {
+const assertCanAccessBooking = async (bookingUid: string, userId?: number) => {
   if (!userId) throw new HttpError({ statusCode: 401 });
 
   const booking = await await prisma.booking.findFirst({

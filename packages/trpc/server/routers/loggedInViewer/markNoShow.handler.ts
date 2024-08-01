@@ -13,5 +13,11 @@ type NoShowOptions = {
 export const markNoShow = async ({ ctx, input }: NoShowOptions) => {
   const { bookingUid, attendees, noShowHost } = input;
 
-  return handleMarkNoShow({ bookingUid, attendees, noShowHost, userId: ctx.user.id });
+  return handleMarkNoShow({
+    bookingUid,
+    attendees,
+    noShowHost,
+    userId: ctx.user.id,
+    locale: ctx.user.locale,
+  });
 };
