@@ -932,13 +932,14 @@ async function handler(
     name: bookerName,
     email: bookerEmail,
     guests: reqGuests,
-    location,
     notes: additionalNotes,
     smsReminderNumber,
     rescheduleReason,
     luckyUsers,
     ...reqBody
   } = bookingData;
+
+  let location = bookingData.location === 'conferencing' ? 'integrations:zoom' : bookingData.location;
 
   const loggerWithEventDetails = createLoggerWithEventDetails(eventTypeId, reqBody.user, eventTypeSlug);
 
@@ -1732,9 +1733,9 @@ async function handler(
       );
     }
 
-    console.log(`handleNewBooking.handler: event before addVideoCallDataToEvent: ${evt}`);
+    console.log(`handleNewBooking.handler: event before addVideoCallDataToEvent: ${JSON.stringify(evt)}`);
     evt = addVideoCallDataToEvent(originalRescheduledBooking.references, evt);
-    console.log(`handleNewBooking.handler: event after addVideoCallDataToEvent: ${evt}`);
+    console.log(`handleNewBooking.handler: event after addVideoCallDataToEvent: ${JSON.stringify(evt)}`);
 
     const newDestinationCalendar = evt.destinationCalendar;
 
@@ -1761,7 +1762,7 @@ async function handler(
       locationSuppliedByUser
     );
 
-    console.log(`handleNewBooking.handler: event after calling event manager to reschedule: ${evt}`);
+    console.log(`handleNewBooking.handler: event after calling event manager to reschedule: ${JSON.stringify(evt)}`);
 
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
@@ -1780,7 +1781,7 @@ async function handler(
       results,
     });
 
-    console.log(`handleNewBooking.handler: videoMetadata: ${videoMetadata}, _videoCallUrl: ${_videoCallUrl}`);
+    console.log(`handleNewBooking.handler: videoMetadata: ${JSON.stringify(videoMetadata)}, _videoCallUrl: ${_videoCallUrl}`);
 
     let metadata: AdditionalInformation = {};
     metadata = videoMetadata;
