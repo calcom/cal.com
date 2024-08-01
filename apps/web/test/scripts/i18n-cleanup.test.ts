@@ -141,7 +141,7 @@ describe("i18n Translation Cleanup", () => {
       vi.mocked(fs.writeFileSync).mockImplementation(writeFileSyncMock);
 
       const consoleLogMock = vi.fn();
-      vi.spyOn(console, "log").mockImplementation(consoleLogMock);
+      vi.spyOn(console, "info").mockImplementation(consoleLogMock);
 
       await cleanupTranslations(mockUsedKeys, mockTranslationFiles);
 
