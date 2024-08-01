@@ -426,19 +426,22 @@ function FieldEditDialog({
     defaultValues: dialog.data || {},
     // resolver: zodResolver(fieldSchema),
   });
+  const formFieldType = fieldForm.getValues("type");
+
   useEffect(() => {
-    if (!fieldForm.getValues("type")) {
+    if (!formFieldType) {
       return;
     }
 
     const variantsConfig = getVariantsConfig({
-      type: fieldForm.getValues("type"),
+      type: formFieldType,
       variantsConfig: fieldForm.getValues("variantsConfig"),
     });
 
     // We need to set the variantsConfig in the RHF instead of using a derived value because RHF won't have the variantConfig for the variant that's not rendered yet.
     fieldForm.setValue("variantsConfig", variantsConfig);
   }, [fieldForm]);
+
   const isFieldEditMode = !!dialog.data;
   const fieldType = getCurrentFieldType(fieldForm);
 
@@ -446,6 +449,26 @@ function FieldEditDialog({
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
   const [firstRender, setFirstRender] = useState(true);
+
+  const CheckboxFieldLabel = () => {
+    return (
+      <div className="mt-6">
+        <Label>{t("label")}</Label>
+        <Editor
+          getText={() => md.render(fieldForm.getValues("label") || "")}
+          setText={(value: string) => {
+            fieldForm.setValue("label", turndown(value), { shouldDirty: true });
+            console.log(turndown(value));
+          }}
+          excludedToolbarItems={["blockType", "bold", "italic"]}
+          disableLists
+          firstRender={firstRender}
+          setFirstRender={setFirstRender}
+          placeholder={t(fieldForm.getValues("defaultLabel") || "")}
+        />
+      </div>
+    );
+  };
 
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange} modal={false}>
@@ -469,7 +492,7 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+              value={fieldTypesConfigMap[formFieldType]}
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />
@@ -493,22 +516,8 @@ function FieldEditDialog({
                       label={t("identifier")}
                     />
                     <div>
-                      {fieldForm.getValues("type") === "boolean" ? (
-                        <div className="mt-6">
-                          <Label>{t("label")}</Label>
-                          <Editor
-                            getText={() => md.render(fieldForm.getValues("label") || "")}
-                            setText={(value: string) => {
-                              fieldForm.setValue("label", turndown(value), { shouldDirty: true });
-                              console.log(turndown(value));
-                            }}
-                            excludedToolbarItems={["blockType", "bold", "italic"]}
-                            disableLists
-                            firstRender={firstRender}
-                            setFirstRender={setFirstRender}
-                            placeholder={t(fieldForm.getValues("defaultLabel") || "")}
-                          />
-                        </div>
+                      {formFieldType === "boolean" ? (
+                        <CheckboxFieldLabel />
                       ) : (
                         <InputField
                           {...fieldForm.register("label")}
@@ -694,7 +703,7 @@ function VariantFields({
   if (!variantsConfig) {
     throw new Error("VariantFields component needs variantsConfig");
   }
-  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
+  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[formFieldType]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
     throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
