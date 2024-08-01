@@ -27,6 +27,7 @@ export function BulkEditDefaultForEventsModal(props: {
   });
 
   const eventTypesSelected = form.watch("eventTypeIds");
+  const isButtonDisabled = eventTypesSelected.length === 0;
 
   if (isFetching || !open || !data?.eventTypes) return null;
 
@@ -40,6 +41,7 @@ export function BulkEditDefaultForEventsModal(props: {
         <Form
           form={form}
           handleSubmit={(values) => {
+            console.log({ values });
             props.bulkUpdateFunction(values);
           }}>
           <div className="flex flex-col space-y-2">
@@ -79,7 +81,7 @@ export function BulkEditDefaultForEventsModal(props: {
                 utils.viewer.getUsersDefaultConferencingApp.invalidate();
               }}
             />
-            <Button type="submit" color="primary" loading={props.isPending}>
+            <Button type="submit" color="primary" loading={props.isPending} disabled={isButtonDisabled}>
               {t("update")}
             </Button>
           </DialogFooter>
