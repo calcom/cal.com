@@ -23,4 +23,13 @@ export class TeamRepositoryFixture {
   async delete(teamId: Team["id"]) {
     return this.prismaWriteClient.team.delete({ where: { id: teamId } });
   }
+
+  async getPlatformOrgTeams(organizationId: number, oAuthClientId: string) {
+    return this.primaReadClient.team.findMany({
+      where: {
+        parentId: organizationId,
+        createdByOAuthClientId: oAuthClientId,
+      },
+    });
+  }
 }
