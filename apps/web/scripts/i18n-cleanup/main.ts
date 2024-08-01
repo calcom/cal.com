@@ -16,7 +16,7 @@ const main = async (): Promise<void> => {
   console.info("Scanning source directory:", sourceDir);
   console.info("Scanning translations directory:", translationsDir);
 
-  const sourceFiles = glob.sync(`${sourceDir}/**/*.{ts,tsx,js,jsx}`, {
+  const sourceFiles = glob.sync(`${sourceDir}/**/*.{ts,tsx,js,jsx, sql}`, {
     ignore: ["**/node_modules/**", "**/dist/**", "**/build/**"],
   });
 

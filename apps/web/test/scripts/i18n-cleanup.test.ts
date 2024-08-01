@@ -57,6 +57,7 @@ describe("i18n Translation Cleanup", () => {
         "/mock/src/component2.tsx",
         "/mock/src/component3.tsx",
         "/mock/src/component4.tsx",
+        "/mock/src/query.sql",
         "/mock/src/directory",
       ];
 
@@ -68,6 +69,7 @@ describe("i18n Translation Cleanup", () => {
         "key5",
         "key6",
         "key7",
+        "key_in_sql_file",
         ...KEYS_TO_NOT_REMOVE,
       ]);
 
@@ -90,12 +92,18 @@ describe("i18n Translation Cleanup", () => {
               </div>
             );
           }
+        `).mockReturnValueOnce(`
+          SELECT *
+          FROM users
+          WHERE status = 't("key_in_sql_file")'
         `);
 
       const result = findUsedKeys(mockSourceFiles, mockAllKeys);
 
-      expect(result).toEqual(new Set(["key1", "key2", "key3", "key4", "key5", "key6", "key7"]));
-      expect(fs.readFileSync).toHaveBeenCalledTimes(4);
+      expect(result).toEqual(
+        new Set(["key1", "key2", "key3", "key4", "key5", "key6", "key7", "key_in_sql_file"])
+      );
+      expect(fs.readFileSync).toHaveBeenCalledTimes(5);
     });
   });
 
