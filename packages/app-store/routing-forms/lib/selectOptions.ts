@@ -13,7 +13,7 @@ export const getFieldWithOptions = (field: Field) => {
     };
   } else if (legacySelectTextValues) {
     const options = legacySelectTextValues.split("\n").map((fieldValue) => ({
-      value: fieldValue,
+      label: fieldValue,
       id: null,
     }));
     return {
@@ -29,8 +29,8 @@ export const getFieldWithOptions = (field: Field) => {
 export function getUIOptionsForSelect(field: Field) {
   return getFieldWithOptions(field).options?.map((option) => {
     return {
-      value: option.id || option.value,
-      title: option.value,
+      value: option.id || option.label,
+      title: option.label,
     };
   });
 }

@@ -29,7 +29,7 @@ import SingleForm, {
 } from "../../components/SingleForm";
 
 export { getServerSideProps };
-type SelectOption = { value: string; id: string };
+type SelectOption = { label: string; id: string };
 type HookForm = UseFormReturn<RoutingFormWithResponseCount>;
 
 const replaceArray = <T,>({
@@ -112,10 +112,10 @@ function Field({
       control: hookForm.control,
       name: `${hookFieldNamespace}.options`,
       defaultValue: [
-        { value: "", id: uuidv4() },
-        { value: "", id: uuidv4() },
-        { value: "", id: uuidv4() },
-        { value: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
+        { label: "", id: uuidv4() },
       ],
     }) || [];
 
@@ -135,7 +135,7 @@ function Field({
     setOptions([
       ...options,
       {
-        value: "",
+        label: "",
         id: uuidv4(),
       },
     ]);
@@ -147,7 +147,7 @@ function Field({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, optionIndex: number) => {
     const updatedOptions = options.map((opt, index) => ({
       ...opt,
-      ...(index === optionIndex ? { value: e.target.value } : {}),
+      ...(index === optionIndex ? { label: e.target.value } : {}),
     }));
 
     setOptions(updatedOptions);
@@ -181,7 +181,7 @@ function Field({
       .split(PASTE_OPTIONS_SEPARATOR_REGEX)
       .map((optionLabel) => optionLabel.trim())
       .filter((optionLabel) => optionLabel)
-      .map((optionLabel) => ({ value: optionLabel.trim(), id: uuidv4() }));
+      .map((optionLabel) => ({ label: optionLabel.trim(), id: uuidv4() }));
     if (optionsBeingPasted.length === 1) {
       // If there is only one option, we would just let that option be pasted
       return;
@@ -317,7 +317,7 @@ function Field({
                         className="border-0 focus:ring-0 focus:ring-offset-0"
                         labelSrOnly
                         placeholder={optionsPlaceholders[index] || "New Option"}
-                        value={field.value}
+                        value={field.label}
                         type="text"
                         required
                         addOnClassname="bg-transparent border-0"

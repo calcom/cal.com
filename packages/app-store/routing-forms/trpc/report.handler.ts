@@ -1,3 +1,6 @@
+import type { zodNonRouterField } from "routing-forms/zod";
+import type { z } from "zod";
+
 import logger from "@calcom/lib/logger";
 import type { PrismaClient } from "@calcom/prisma";
 import { TRPCError } from "@calcom/trpc/server";
@@ -13,6 +16,43 @@ interface ReportHandlerOptions {
   };
   input: TReportInputSchema;
 }
+
+type Field = z.infer<typeof zodNonRouterField>;
+
+function ensureStringOrStringArray(value: string | number | string[]): string | string[] {
+  if (typeof value === "string") {
+    return value;
+  } else if (value instanceof Array) {
+    return value.map((v) => v.toString());
+  }
+  return [value.toString()];
+}
+function getLabelsFromOptionIds({
+  options,
+  optionIds,
+}: {
+  options: NonNullable<Field["options"]>;
+  optionIds: string | string[];
+}) {
+  console.log({ optionIds });
+  if (optionIds instanceof Array) {
+    const labels = optionIds.map((optionId) => {
+      const foundOption = options.find((option) => option.id === optionId);
+      if (!foundOption) {
+        return optionId;
+      }
+      return foundOption.label;
+    });
+    return labels;
+  } else {
+    const foundOption = options.find((option) => option.id === optionIds);
+    if (!foundOption) {
+      return [optionIds];
+    }
+    return [foundOption.label];
+  }
+}
+
 export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOptions) => {
   // Can be any prisma `where` clause
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,15 +99,13 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
       if (!r.response) {
         return;
       }
+      console.log({ response: r.response });
       const response = r.response as Response;
       const value = response[field.id]?.value || "";
-      let transformedValue;
-      if (value instanceof Array) {
-        transformedValue = value.join(", ");
-      } else {
-        transformedValue = value;
-      }
-      rowResponses.push(transformedValue);
+      const options = field.options;
+      const optionIds = ensureStringOrStringArray(value);
+      const labels = options ? getLabelsFromOptionIds({ options, optionIds }) : [value];
+      rowResponses.push(labels.join(", "));
     });
   });
   const areThereNoResultsOrLessThanAskedFor = !rows.length || rows.length < take;
