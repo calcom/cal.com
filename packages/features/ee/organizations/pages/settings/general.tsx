@@ -26,6 +26,7 @@ import {
   TimezoneSelect,
 } from "@calcom/ui";
 
+import { AllowSeoIndexingSwitch } from "../components/AllowSeoIndexingSwitch";
 import { LockEventTypeSwitch } from "../components/LockEventTypeSwitch";
 import { NoSlotsNotificationSwitch } from "../components/NoSlotsNotificationSwitch";
 
@@ -87,6 +88,7 @@ const OrgGeneralView = () => {
         localeProp={user?.locale ?? "en"}
       />
 
+      <AllowSeoIndexingSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
       <LockEventTypeSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
       <NoSlotsNotificationSwitch currentOrg={currentOrg} isAdminOrOwner={!!isAdminOrOwner} />
     </LicenseRequired>
