@@ -57,7 +57,7 @@ export const createAProfileForAnExistingUser = async ({
 
   const orgUrl = getOrgFullOrigin(orgSlug);
 
-  if (user.currentUsername) {
+  if (!org.isPlatform && user.currentUsername) {
     log.debug(`Creating redirect for user ${user.currentUsername} to ${orgUrl}/${usernameInOrg}`);
     await prisma.tempOrgRedirect.upsert({
       where: {
