@@ -24,6 +24,21 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
         },
         where: {
           eventTypeId,
+          attendees: {
+            some: {
+              noShow: false,
+            },
+          },
+          // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
+          // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
+          OR: [
+            {
+              noShowHost: false,
+            },
+            {
+              noShowHost: null,
+            },
+          ],
         },
         orderBy: {
           createdAt: "desc",
@@ -53,6 +68,7 @@ async function leastRecentlyBookedUser<T extends Pick<User, "id" | "email">>({
               email: {
                 in: availableUsers.map((user) => user.email),
               },
+              noShow: false,
             },
           },
         },

@@ -28,6 +28,7 @@ export default function Home(props: { calUsername: string; calEmail: string }) {
               redir="http://localhost:4321/calendars"
               className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700"
             />
+            <Connect.AppleCalendar className="h-[40px] bg-gradient-to-r from-[#8A2387] via-[#E94057] to-[#F27121] text-center text-base font-semibold text-transparent text-white hover:bg-orange-700" />
           </div>
         </div>
         <div className="hidden lg:block">

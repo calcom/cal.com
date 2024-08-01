@@ -10,6 +10,7 @@ import WebShell from "@calcom/features/shell/Shell";
 import { availabilityAsString } from "@calcom/lib/availability";
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { sortAvailabilityStrings } from "@calcom/lib/weekstart";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { TimeRange, WorkingHours } from "@calcom/types/schedule";
 import {
@@ -89,6 +90,7 @@ type AvailabilitySettingsProps = {
   isPlatform?: boolean;
   customClassNames?: CustomClassNames;
   disableEditableHeading?: boolean;
+  enableOverrides?: boolean;
 };
 
 const DeleteDialogButton = ({
@@ -234,6 +236,7 @@ export function AvailabilitySettings({
   isPlatform = false,
   customClassNames,
   disableEditableHeading = false,
+  enableOverrides = false,
 }: AvailabilitySettingsProps) {
   const [openSidebar, setOpenSidebar] = useState(false);
   const { t, i18n } = useLocale();
@@ -248,7 +251,6 @@ export function AvailabilitySettings({
   useEffect(() => {
     const subscription = form.watch(
       (value, { name }) => {
-        console.log(name);
         if (!!name && name.split(".")[0] !== "schedule" && name !== "name")
           handleSubmit(value as AvailabilityFormValues);
       },
@@ -290,11 +292,17 @@ export function AvailabilitySettings({
         schedule ? (
           schedule.schedule
             .filter((availability) => !!availability.days.length)
-            .map((availability) => (
-              <span
-                key={availability.startTime.valueOf().toString()}
-                className={cn(customClassNames?.subtitlesClassName)}>
-                {availabilityAsString(availability, { locale: i18n.language, hour12: timeFormat === 12 })}
+            .map((availability) =>
+              availabilityAsString(availability, {
+                locale: i18n.language,
+                hour12: timeFormat === 12,
+              })
+            )
+            // sort the availability strings as per user's weekstart (settings)
+            .sort(sortAvailabilityStrings(i18n.language, weekStart))
+            .map((availabilityString, index) => (
+              <span key={index} className={cn(customClassNames?.subtitlesClassName)}>
+                {availabilityString}
                 <br />
               </span>
             ))
@@ -507,23 +515,17 @@ export function AvailabilitySettings({
                 )}
               </div>
             </div>
-            {!isPlatform ? (
-              <div className="border-subtle my-6 rounded-md border">
-                {schedule?.workingHours && (
-                  <DateOverride
-                    workingHours={schedule.workingHours}
-                    userTimeFormat={timeFormat}
-                    travelSchedules={travelSchedules}
-                    weekStart={
-                      ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
-                        weekStart
-                      ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
-                    }
-                  />
-                )}
-              </div>
-            ) : (
-              <></>
+            {enableOverrides && (
+              <DateOverride
+                workingHours={schedule.workingHours}
+                userTimeFormat={timeFormat}
+                travelSchedules={travelSchedules}
+                weekStart={
+                  ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"].indexOf(
+                    weekStart
+                  ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
+                }
+              />
             )}
           </div>
           <div className="min-w-40 col-span-3 hidden space-y-2 md:block lg:col-span-1">

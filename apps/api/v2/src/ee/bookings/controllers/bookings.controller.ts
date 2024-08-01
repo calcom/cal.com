@@ -1,11 +1,13 @@
 import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
 import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
+import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
 import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
 import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
+import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
-import { AccessTokenGuard } from "@/modules/auth/guards/access-token/access-token.guard";
+import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
 import { BillingService } from "@/modules/billing/services/billing.service";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
@@ -32,20 +34,19 @@ import { Request } from "express";
 import { NextApiRequest } from "next/types";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { BOOKING_READ, SUCCESS_STATUS } from "@calcom/platform-constants";
-import {
-  getAllUserBookings,
-  getBookingInfo,
-  handleCancelBooking,
-  getBookingForReschedule,
-} from "@calcom/platform-libraries-0.0.2";
+import { BOOKING_READ, SUCCESS_STATUS, BOOKING_WRITE } from "@calcom/platform-constants";
 import {
   handleNewBooking,
   BookingResponse,
   HttpError,
   handleNewRecurringBooking,
   handleInstantMeeting,
-} from "@calcom/platform-libraries-0.0.2";
+  handleMarkNoShow,
+  getAllUserBookings,
+  getBookingInfo,
+  handleCancelBooking,
+  getBookingForReschedule,
+} from "@calcom/platform-libraries-0.0.22";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
@@ -89,7 +90,7 @@ export class BookingsController {
   ) {}
 
   @Get("/")
-  @UseGuards(AccessTokenGuard)
+  @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
   @ApiQuery({ name: "filters[status]", enum: Status, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
@@ -149,17 +150,21 @@ export class BookingsController {
     @Req() req: BookingRequest,
     @Body() body: CreateBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const oAuthClientId = clientId?.toString();
-
     const { orgSlug, locationUrl } = body;
     req.headers["x-cal-force-slug"] = orgSlug;
     try {
       const booking = await handleNewBooking(
         await this.createNextApiBookingRequest(req, oAuthClientId, locationUrl)
       );
-
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      if (booking.userId && booking.uid && booking.startTime) {
+        void (await this.billingService.increaseUsageByUserId(booking.userId, {
+          uid: booking.uid,
+          startTime: booking.startTime,
+          fromReschedule: booking.fromReschedule,
+        }));
+      }
       return {
         status: SUCCESS_STATUS,
         data: booking,
@@ -176,14 +181,22 @@ export class BookingsController {
     @Param("bookingId") bookingId: string,
     @Body() _: CancelBookingInput,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
-  ): Promise<ApiResponse> {
+  ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
     if (bookingId) {
       try {
         req.body.id = parseInt(bookingId);
-        await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+        const res = await handleCancelBooking(await this.createNextApiBookingRequest(req, oAuthClientId));
+        if (!res.onlyRemovedAttendee) {
+          void (await this.billingService.cancelUsageByBookingUid(res.bookingUid));
+        }
         return {
           status: SUCCESS_STATUS,
+          data: {
+            bookingId: res.bookingId,
+            bookingUid: res.bookingUid,
+            onlyRemovedAttendee: res.onlyRemovedAttendee,
+          },
         };
       } catch (err) {
         this.handleBookingErrors(err);
@@ -192,6 +205,27 @@ export class BookingsController {
       throw new NotFoundException("Booking ID is required.");
     }
     throw new InternalServerErrorException("Could not cancel booking.");
+  }
+
+  @Post("/:bookingUid/mark-no-show")
+  @Permissions([BOOKING_WRITE])
+  @UseGuards(ApiAuthGuard)
+  async markNoShow(
+    @Body() body: MarkNoShowInput,
+    @Param("bookingUid") bookingUid: string
+  ): Promise<MarkNoShowOutput> {
+    try {
+      const markNoShowResponse = await handleMarkNoShow({
+        bookingUid: bookingUid,
+        attendees: body.attendees,
+        noShowHost: body.noShowHost,
+      });
+
+      return { status: SUCCESS_STATUS, data: markNoShowResponse };
+    } catch (err) {
+      this.handleBookingErrors(err, "no-show");
+    }
+    throw new InternalServerErrorException("Could not mark no show.");
   }
 
   @Post("/recurring")
@@ -206,7 +240,14 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      createdBookings.forEach(async (booking) => {
+        if (booking.userId && booking.uid && booking.startTime) {
+          void (await this.billingService.increaseUsageByUserId(booking.userId, {
+            uid: booking.uid,
+            startTime: booking.startTime,
+          }));
+        }
+      });
 
       return {
         status: SUCCESS_STATUS,
@@ -231,7 +272,15 @@ export class BookingsController {
         await this.createNextApiBookingRequest(req, oAuthClientId)
       );
 
-      void (await this.billingService.increaseUsageByClientId(oAuthClientId!));
+      if (instantMeeting.userId && instantMeeting.bookingUid) {
+        const now = new Date();
+        // add a 10 secondes delay to the usage incrementation to give some time to cancel the booking if needed
+        now.setSeconds(now.getSeconds() + 10);
+        void (await this.billingService.increaseUsageByUserId(instantMeeting.userId, {
+          uid: instantMeeting.bookingUid,
+          startTime: now,
+        }));
+      }
 
       return {
         status: SUCCESS_STATUS,
@@ -287,8 +336,14 @@ export class BookingsController {
     return req as unknown as NextApiRequest & { userId?: number } & OAuthRequestParams;
   }
 
-  private handleBookingErrors(err: Error | HttpError | unknown, type?: "recurring" | `instant`): void {
-    const errMsg = `Error while creating ${type ? type + " " : ""}booking.`;
+  private handleBookingErrors(
+    err: Error | HttpError | unknown,
+    type?: "recurring" | `instant` | "no-show"
+  ): void {
+    const errMsg =
+      type === "no-show"
+        ? `Error while marking no-show.`
+        : `Error while creating ${type ? type + " " : ""}booking.`;
     if (err instanceof HttpError) {
       const httpError = err as HttpError;
       throw new HttpException(httpError?.message ?? errMsg, httpError?.statusCode ?? 500);

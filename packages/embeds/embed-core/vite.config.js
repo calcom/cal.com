@@ -1,3 +1,4 @@
+import basicSsl from "@vitejs/plugin-basic-ssl";
 import EnvironmentPlugin from "vite-plugin-environment";
 
 import viteBaseConfig, { embedCoreEnvVars } from "../vite.config";
@@ -15,7 +16,14 @@ module.exports = defineConfig((configEnv) => {
         EMBED_PUBLIC_VERCEL_URL: embedCoreEnvVars.EMBED_PUBLIC_VERCEL_URL,
         EMBED_PUBLIC_WEBAPP_URL: embedCoreEnvVars.EMBED_PUBLIC_WEBAPP_URL,
       }),
+      ...(process.argv.includes("--https") ? [basicSsl()] : []),
     ],
+    server: {
+      // Helps us to test that embed works with these headers
+      headers: {
+        "Cross-Origin-Embedder-Policy": "require-corp",
+      },
+    },
     build: {
       emptyOutDir: true,
       rollupOptions: {

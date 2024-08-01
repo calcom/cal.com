@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { templateTypeEnum } from "@calcom/features/ee/cal-ai-phone/zod-utils";
 import { _DestinationCalendarModel, _EventTypeModel } from "@calcom/prisma/zod";
 import { customInputSchema, EventTypeMetaDataSchema, stringOrNumber } from "@calcom/prisma/zod-utils";
 import { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
@@ -8,6 +9,7 @@ export const EventTypeUpdateInput = _EventTypeModel
   /** Optional fields */
   .extend({
     isInstantEvent: z.boolean().optional(),
+    instantMeetingExpiryTimeOffsetInSeconds: z.number().optional(),
     aiPhoneCallConfig: z
       .object({
         generalPrompt: z.string(),
@@ -15,9 +17,14 @@ export const EventTypeUpdateInput = _EventTypeModel
         beginMessage: z.string().nullable(),
         yourPhoneNumber: z.string().default(""),
         numberToCall: z.string().default(""),
-        guestName: z.string().default(""),
+        guestName: z
+          .string()
+          .nullable()
+          .optional()
+          .transform((val) => (!!val ? val : undefined)),
         guestEmail: z.string().nullable().default(null),
         guestCompany: z.string().nullable().default(null),
+        templateType: templateTypeEnum,
       })
       .optional(),
     calAiPhoneScript: z.string().optional(),

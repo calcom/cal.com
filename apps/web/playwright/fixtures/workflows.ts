@@ -30,6 +30,7 @@ export function createWorkflowPageFixture(page: Page) {
       await selectEventType("30 min");
     }
     await saveWorkflow();
+    await page.getByTestId("go-back-button").click();
   };
 
   const saveWorkflow = async () => {
@@ -71,7 +72,7 @@ export function createWorkflowPageFixture(page: Page) {
   };
 
   const selectEventType = async (name: string) => {
-    await page.getByText("Select...").click();
+    await page.getByTestId("multi-select-check-boxes").click();
     await page.getByText(name, { exact: true }).click();
   };
 

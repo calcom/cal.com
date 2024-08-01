@@ -34,6 +34,7 @@ export type FormValues = {
   eventName: string;
   slug: string;
   isInstantEvent: boolean;
+  instantMeetingExpiryTimeOffsetInSeconds: number;
   length: number;
   offsetStart: number;
   description: string;
@@ -64,9 +65,11 @@ export type FormValues = {
     beginMessage: string;
     yourPhoneNumber: string;
     numberToCall: string;
-    guestName: string;
-    guestEmail: string;
-    guestCompany: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestCompany?: string;
+    templateType: string;
+    schedulerName?: string;
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -117,3 +120,5 @@ export type FormValues = {
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
 };
+
+export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
