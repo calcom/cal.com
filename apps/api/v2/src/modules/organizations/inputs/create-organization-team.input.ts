@@ -72,4 +72,8 @@ export class CreateOrgTeamDto {
   @IsOptional()
   @IsString()
   readonly weekStart?: string = "Sunday";
+
+  @IsOptional()
+  @IsBoolean()
+  readonly autoAcceptCreator?: boolean = true;
 }

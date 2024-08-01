@@ -79,7 +79,7 @@ export const paymentsRouter = router({
       const attendeesList = await Promise.all(attendeesListPromises);
 
       const evt: CalendarEvent = {
-        type: (booking?.eventType?.title as string) || booking?.title,
+        type: booking?.eventType?.slug as string,
         title: booking.title,
         startTime: dayjs(booking.startTime).format(),
         endTime: dayjs(booking.endTime).format(),

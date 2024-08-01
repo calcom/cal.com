@@ -1581,7 +1581,6 @@
   "how_long_after": "Wie lange nach Ende des Termins?",
   "no_available_slots": "Keine verfügbaren Plätze",
   "time_available": "Zeit verfügbar",
-  "cant_find_the_right_video_app_visit_our_app_store": "Sie können die richtige Video-App nicht finden? Besuchen Sie unseren <1>App Store</1>.",
   "install_new_calendar_app": "Neue Kalender-App installieren",
   "make_phone_number_required": "Telefonnummer für die Buchung des Termins erforderlich machen",
   "new_event_type_availability": "{{eventTypeTitle}} | Verfügbarkeit",
