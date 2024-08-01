@@ -19,10 +19,12 @@ export class BookingRepository {
     users,
     eventTypeId,
     onlyAccepted = false,
+    withoutNoShows = false,
   }: {
     users: { id: number; email: string }[];
     eventTypeId?: number;
     onlyAccepted?: boolean;
+    withoutNoShows?: boolean;
   }) {
     const whereClause: Prisma.BookingWhereInput = {
       OR: [
@@ -32,6 +34,7 @@ export class BookingRepository {
               in: users.map((user) => user.id),
             },
           },
+          ...(withoutNoShows && { OR: [{ noShowHost: false }, { noShowHost: null }] }),
         },
         {
           attendees: {
@@ -51,6 +54,9 @@ export class BookingRepository {
 
     if (onlyAccepted) {
       whereClause.status = BookingStatus.ACCEPTED;
+    }
+
+    if (withoutNoShows) {
     }
 
     const allBookings = await prisma.booking.findMany({

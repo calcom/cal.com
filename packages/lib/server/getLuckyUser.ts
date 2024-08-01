@@ -3,7 +3,6 @@ import type { User } from "@prisma/client";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
-import { BookingStatus } from "@calcom/prisma/enums";
 
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
@@ -41,6 +40,21 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
         },
         where: {
           eventTypeId: eventType.id,
+          attendees: {
+            some: {
+              noShow: false, // todo: so we don't count the booking only because one of the attendees might be a no show?
+            },
+          },
+          // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
+          // https://github.com/calcom/cal.com/pull/15323#discussion_r1687728207
+          OR: [
+            {
+              noShowHost: false,
+            },
+            {
+              noShowHost: null,
+            },
+          ],
         },
         orderBy: {
           createdAt: "desc",
@@ -109,8 +123,6 @@ async function getUsersBasedOnWeights<
     weightAdjustment?: number | null;
   }
 >({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
-  const bookings = allBookings.filter((booking) => booking.status === BookingStatus.ACCEPTED);
-
   // Calculate the total weightAdjustments of all round-robin hosts
   const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
 
@@ -121,12 +133,12 @@ async function getUsersBasedOnWeights<
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     const targetPercentage = (user.weight ?? 100) / totalWeight;
 
-    const userBookings = bookings.filter(
+    const userBookings = allBookings.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
 
-    const targetNumberOfBookings = (bookings.length + allWeightAdjustments) * targetPercentage;
+    const targetNumberOfBookings = (allBookings.length + allWeightAdjustments) * targetPercentage;
     const bookingShortfall = targetNumberOfBookings - (userBookings.length + (user.weightAdjustment ?? 0));
 
     return {
@@ -168,6 +180,7 @@ export async function getLuckyUser<
     users: allRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
+    withoutNoShows: true,
   });
 
   switch (distributionAlgorithm) {
