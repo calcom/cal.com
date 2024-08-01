@@ -703,7 +703,7 @@ function VariantFields({
   if (!variantsConfig) {
     throw new Error("VariantFields component needs variantsConfig");
   }
-  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[formFieldType]?.variantsConfig;
+  const fieldTypeConfigVariantsConfig = fieldTypesConfigMap[fieldForm.getValues("type")]?.variantsConfig;
 
   if (!fieldTypeConfigVariantsConfig) {
     throw new Error("Coniguration Issue: FieldType doesn't have `variantsConfig`");
