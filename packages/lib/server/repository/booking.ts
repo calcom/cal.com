@@ -11,4 +11,48 @@ export class BookingRepository {
       },
     });
   }
+
+  static async findBookingByUidAndUserId({ bookingUid, userId }: { bookingUid: string; userId: number }) {
+    return await prisma.booking.findFirst({
+      where: {
+        uid: bookingUid,
+        OR: [
+          { userId: userId },
+          {
+            eventType: {
+              hosts: {
+                some: {
+                  userId,
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          },
+          {
+            eventType: {
+              team: {
+                members: {
+                  some: {
+                    userId,
+                    accepted: true,
+                    role: {
+                      in: ["ADMIN", "OWNER"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
+    });
+  }
 }
