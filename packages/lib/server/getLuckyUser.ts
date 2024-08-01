@@ -3,6 +3,7 @@ import type { User } from "@prisma/client";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import type { Booking } from "@calcom/prisma/client";
+import { BookingStatus } from "@calcom/prisma/enums";
 
 type PartialBooking = Pick<Booking, "id" | "createdAt" | "userId" | "status"> & {
   attendees: { email: string | null }[];
