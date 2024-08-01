@@ -63,6 +63,7 @@ import {
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -78,6 +79,7 @@ const querySchema = z.object({
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  reject: stringToBoolean,
   allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
@@ -108,12 +110,13 @@ export default function Success(props: PageProps) {
   const routerQuery = useRouterQuery();
   const pathname = usePathname();
   const searchParams = useCompatSearchParams();
-  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug } = props;
+  const { eventType, bookingInfo, requiresLoginToUpdate, orgSlug, rescheduledToUid } = props;
 
   const {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -204,6 +207,16 @@ export default function Success(props: PageProps) {
       if (_searchParams.get("cancel")) {
         _searchParams.delete("cancel");
       }
+    }
+
+    router.replace(`${pathname}?${_searchParams.toString()}`);
+  }
+
+  function setIsRejectionMode() {
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+
+    if (_searchParams.get("reject")) {
+      _searchParams.delete("reject");
     }
 
     router.replace(`${pathname}?${_searchParams.toString()}`);
@@ -585,6 +598,9 @@ export default function Success(props: PageProps) {
                             </div>
                           </>
                         )}
+
+                        {rescheduledToUid ? <RescheduledToLink rescheduledToUid={rescheduledToUid} /> : null}
+
                         {bookingInfo?.description && (
                           <>
                             <div className="mt-9 font-medium">{t("additional_notes")}</div>
@@ -657,6 +673,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
+                      !isRejectionMode &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -711,6 +728,19 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {userIsOwner && !isCancelled && isRejectionMode && (
+                      <>
+                        <hr className="border-subtle" />
+                        <RejectBooking
+                          booking={{
+                            id: bookingInfo.id,
+                            uid: bookingInfo?.uid,
+                            recurringEventId: bookingInfo.recurringEventId,
+                          }}
+                          setIsRejectionMode={setIsRejectionMode}
+                        />
+                      </>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&
@@ -994,6 +1024,25 @@ export default function Success(props: PageProps) {
     </div>
   );
 }
+
+const RescheduledToLink = ({ rescheduledToUid }: { rescheduledToUid: string }) => {
+  const { t } = useLocale();
+  return (
+    <>
+      <div className="mt-3 font-medium">{t("rescheduled")}</div>
+      <div className="col-span-2 mb-2 mt-3">
+        <span className="underline">
+          <Link href={`/booking/${rescheduledToUid}`}>
+            <div className="flex items-center gap-1">
+              {t("view_booking")}
+              <Icon name="external-link" className="h-4 w-4" />
+            </div>
+          </Link>
+        </span>
+      </div>
+    </>
+  );
+};
 
 const DisplayLocation = ({
   locationToDisplay,
