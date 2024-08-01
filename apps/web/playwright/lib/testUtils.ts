@@ -1,11 +1,10 @@
-import { expect } from "@playwright/test";
 import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
+import { expect } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
@@ -15,12 +14,6 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
-import { test } from "./fixtures";
-
-export function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(title, noop);
-}
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
