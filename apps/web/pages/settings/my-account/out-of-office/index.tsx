@@ -376,11 +376,8 @@ const OutOfOfficePage = () => {
 
   const [openModal, setOpenModal] = useState(false);
 
-  const { data } = trpc.viewer.outOfOfficeReasonList.useQuery();
-  // TODO: The best solution is we should find the cause of full page flicker
-  // Taling about hydration problem, migrating to appDir might solve the problem automatically
-  // which will reset the Modal state, which makes bad UX and fails (superhuman click speed) E2E tests
-  const isBeforeFlicker = data?.length === undefined || data.length <= 0;
+  // TODO: The best solution is we should find the cause of full page flicker @see #16001
+  const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
       <Meta
@@ -388,17 +385,14 @@ const OutOfOfficePage = () => {
         description={t("out_of_office_description")}
         borderInShellHeader={false}
         CTA={
-          isBeforeFlicker ? (
-            <SkeletonText className="h-8 w-20" />
-          ) : (
-            <Button
-              color="primary"
-              className="flex w-20 items-center justify-between px-4"
-              onClick={() => setOpenModal(true)}
-              data-testid="add_entry_ooo">
-              <Icon name="plus" size={16} /> {t("add")}
-            </Button>
-          )
+          <Button
+            loading={isPending}
+            color="primary"
+            className="flex w-20 items-center justify-between px-4"
+            onClick={() => setOpenModal(true)}
+            data-testid="add_entry_ooo">
+            <Icon name="plus" size={16} /> {t("add")}
+          </Button>
         }
       />
       <CreateOutOfOfficeEntryModal openModal={openModal} closeModal={() => setOpenModal(false)} />
