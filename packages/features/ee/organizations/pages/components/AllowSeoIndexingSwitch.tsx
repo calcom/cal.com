@@ -1,8 +1,9 @@
 import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { SettingsToggle } from "@calcom/ui";
+import { showToast, SettingsToggle } from "@calcom/ui";
 
 interface GeneralViewProps {
   currentOrg: RouterOutputs["viewer"]["organizations"]["listCurrent"];
@@ -11,6 +12,7 @@ interface GeneralViewProps {
 
 export const AllowSeoIndexingSwitch = ({ currentOrg, isAdminOrOwner }: GeneralViewProps) => {
   const { t } = useLocale();
+  const { reset, getValues } = formMethods;
   const mutation = trpc.viewer.organizations.update.useMutation({
     onSuccess: async () => {
       reset(getValues());
