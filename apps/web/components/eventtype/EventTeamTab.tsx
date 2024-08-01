@@ -207,11 +207,12 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue, getValues } = useFormContext<FormValues>();
+  const { setValue, getValues, control } = useFormContext<FormValues>();
 
-  const [isRRWeightsEnabled, setIsRRWeightsEnabled] = useState<boolean>(
-    getValues("isRRWeightsEnabled") ?? false
-  );
+  const isRRWeightsEnabled = useWatch({
+    control,
+    name: "isRRWeightsEnabled",
+  });
 
   return (
     <div className="rounded-lg ">
@@ -229,7 +230,6 @@ const RoundRobinHosts = ({
               checked={isRRWeightsEnabled}
               onCheckedChange={(active) => {
                 setValue("isRRWeightsEnabled", active, { shouldDirty: true });
-                setIsRRWeightsEnabled(active);
                 const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
 
                 const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
@@ -260,7 +260,6 @@ const RoundRobinHosts = ({
               })),
               { shouldDirty: true }
             );
-            setIsRRWeightsEnabled(false);
             setValue("isRRWeightsEnabled", false);
           }}
         />
