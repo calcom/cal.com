@@ -256,7 +256,7 @@ export async function addWeightAdjustmentToNewHosts({
 
         const proportionalNrOfBookings =
           ((ongoingHostBookings.length + ongoingHostsWeightAdjustment) / ongoingHostsWeights) * host.weight;
-        weightAdjustment = proporationalNrOfBookings - existingBookings.length;
+        weightAdjustment = proportionalNrOfBookings - existingBookings.length;
       }
 
       return {

@@ -125,25 +125,23 @@ export const WeightDialog = (props: IDialog) => {
   const [newWeight, setNewWeight] = useState<number>(100);
 
   const setWeight = () => {
-    if (!!newWeight) {
-      const hosts: Host[] = getValues("hosts");
-      const updatedHosts = hosts
-        .filter((host) => !host.isFixed)
-        .map((host) => {
-          return {
-            ...option,
-            value: host.userId.toString(),
-            priority: host.priority,
-            weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
-            isFixed: false,
-            weightAdjustment: host.weightAdjustment,
-          };
-        });
+    const hosts: Host[] = getValues("hosts");
+    const updatedHosts = hosts
+      .filter((host) => !host.isFixed)
+      .map((host) => {
+        return {
+          ...option,
+          value: host.userId.toString(),
+          priority: host.priority,
+          weight: host.userId === parseInt(option.value, 10) ? newWeight : host.weight,
+          isFixed: false,
+          weightAdjustment: host.weightAdjustment,
+        };
+      });
 
-      const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
+    const sortedHosts = updatedHosts.sort((a, b) => sortHosts(a, b, true));
 
-      onChange(sortedHosts);
-    }
+    onChange(sortedHosts);
     setIsOpenDialog(false);
   };
 
