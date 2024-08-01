@@ -153,6 +153,7 @@ export const WeightDialog = (props: IDialog) => {
           <div className="w-36">
             <TextField
               required
+              min={0}
               label={t("Weight")}
               value={newWeight}
               type="number"
