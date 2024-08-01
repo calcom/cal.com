@@ -71,7 +71,7 @@ const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
               value.map((val: string, key: number) => {
                 const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
                 return (
-                  <div data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
+                  <li data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
                     <TextField
                       data-testid={`single-use-link-${key}`}
                       containerClassName="w-full"
@@ -104,7 +104,7 @@ const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
                       className="border-none"
                       onClick={() => removeSingleUseLink(key)}
                     />
-                  </div>
+                  </li>
                 );
               })}
             <Button
