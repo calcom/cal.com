@@ -85,7 +85,7 @@ class LicenseKeyService {
     try {
       const response = await this.fetcher({ url, options: { mode: "cors" } });
       const data = await response.json();
-      cache.put(url, data.stauts, this.CACHING_TIME);
+      cache.put(url, data.status, this.CACHING_TIME);
       return data.status;
     } catch (error) {
       console.error("Check license failed:", error);
