@@ -376,7 +376,7 @@ const OutOfOfficePage = () => {
 
   const [openModal, setOpenModal] = useState(false);
 
-  // TODO: The best solution is we should find the cause of full page flicker @see #16001
+  // TODO: The best solution is we should find the cause of full page flicker
   const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
