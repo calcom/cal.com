@@ -7,7 +7,9 @@ import { getAllTranslationKeys } from "./getAllTranslationKeys";
 
 export type TranslationValue = string | { one: string; other: string };
 export type TranslationObject = Record<string, TranslationValue>;
-export const KEYS_TO_NOT_REMOVE: readonly string[] = [] as const;
+export const KEYS_TO_NOT_REMOVE: readonly string[] = [
+  "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS",
+] as const;
 
 const main = async (): Promise<void> => {
   const sourceDir = path.resolve("../../../");
