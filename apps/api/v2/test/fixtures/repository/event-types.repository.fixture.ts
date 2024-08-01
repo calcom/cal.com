@@ -7,11 +7,11 @@ import { EventType } from "@prisma/client";
 import { Prisma } from "@calcom/prisma/client";
 
 export class EventTypesRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
