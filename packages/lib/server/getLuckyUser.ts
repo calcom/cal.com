@@ -24,8 +24,8 @@ interface GetLuckyUserParams<T extends PartialUser> {
 async function leastRecentlyBookedUser<T extends PartialUser>({
   availableUsers,
   eventType,
-  allBookings,
-}: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
+  bookingsOfAvailableUsers,
+}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
   // First we get all organizers (fixed host/single round robin user)
   const organizersWithLastCreated = await prisma.user.findMany({
     where: {
@@ -74,7 +74,7 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
     {}
   );
 
-  const attendeeUserIdAndAtCreatedPair = allBookings.reduce(
+  const attendeeUserIdAndAtCreatedPair = bookingsOfAvailableUsers.reduce(
     (aggregate: { [userId: number]: Date }, booking) => {
       availableUsers.forEach((user) => {
         if (aggregate[user.id]) return; // Bookings are ordered DESC, so if the reducer aggregate
@@ -124,7 +124,28 @@ async function getUsersBasedOnWeights<
     weight?: number | null;
     weightAdjustment?: number | null;
   }
->({ availableUsers, allBookings, allRRHosts }: GetLuckyUserParams<T> & { allBookings: PartialBooking[] }) {
+>({
+  availableUsers,
+  bookingsOfAvailableUsers,
+  allRRHosts,
+}: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
+  //get all bookings of all other RR hosts that are not available
+  const availableUserIds = new Set(availableUsers.map((user) => user.id));
+  const notAvailableHosts = allRRHosts.filter((host) => !availableUserIds.has(host.user.id));
+
+  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsOfUsers({
+    users: notAvailableHosts.map((host) => {
+      return {
+        id: host.user.id,
+        email: host.user.email,
+      };
+    }),
+    onlyAccepted: true,
+    withoutNoShows: true,
+  });
+
+  const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
+
   // Calculate the total weightAdjustments of all round-robin hosts
   const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
 
@@ -177,10 +198,10 @@ export async function getLuckyUser<
   }
 
   // all bookings of event type of all rr hosts
-  const allBookings = await BookingRepository.getAllBookingsOfUsers({
+  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsOfUsers({
     eventTypeId: eventType.id,
-    users: allRRHosts.map((host) => {
-      return { id: host.user.id, email: host.user.email };
+    users: availableUsers.map((user) => {
+      return { id: user.id, email: user.email };
     }),
     withoutNoShows: true,
     onlyAccepted: true,
@@ -190,13 +211,16 @@ export async function getLuckyUser<
     case "MAXIMIZE_AVAILABILITY":
       let possibleLuckyUsers = availableUsers;
       if (eventType.isRRWeightsEnabled) {
-        possibleLuckyUsers = await getUsersBasedOnWeights({ ...getLuckyUserParams, allBookings });
+        possibleLuckyUsers = await getUsersBasedOnWeights({
+          ...getLuckyUserParams,
+          bookingsOfAvailableUsers,
+        });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
       return leastRecentlyBookedUser<T>({
         ...getLuckyUserParams,
         availableUsers: highestPriorityUsers,
-        allBookings,
+        bookingsOfAvailableUsers,
       });
   }
 }
