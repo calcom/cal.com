@@ -223,17 +223,16 @@ const RoundRobinHosts = ({
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
         <Controller<FormValues>
           name="isRRWeightsEnabled"
-          render={() => (
+          render={({ field: { value, onChange } }) => (
             <SettingsToggle
               title={t("enable_weights")}
               description={weightDescription}
-              checked={isRRWeightsEnabled}
+              checked={value}
               onCheckedChange={(active) => {
-                setValue("isRRWeightsEnabled", active, { shouldDirty: true });
+                onChange(active);
+
                 const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
-
                 const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-
                 setValue("hosts", sortedRRHosts);
               }}
             />
