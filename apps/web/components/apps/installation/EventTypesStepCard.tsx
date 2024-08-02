@@ -45,7 +45,7 @@ const EventTypeCard: FC<EventTypeCardProps> = ({
       <input
         id={`${id}`}
         checked={selected}
-        className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+        className="bg-default border-default h-4 w-4 shrink-0 cursor-pointer rounded-[4px] border ring-offset-2 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed"
         type="checkbox"
       />
       <label htmlFor={`${id}`} className="cursor-pointer text-sm">
