@@ -236,12 +236,14 @@ export async function addWeightAdjustmentToNewHosts({
     onlyAccepted: true,
   });
 
-  const ongoingHostsWeightAdjustment = ongoingRRHosts.reduce(
-    (sum, host) => sum + (host.weightAdjustment ?? 0),
-    0
+  const { ongoingHostsWeightAdjustment, ongoingHostsWeights } = ongoingRRHosts.reduce(
+    (acc, host) => {
+      acc.ongoingHostsWeightAdjustment += host.weightAdjustment ?? 0;
+      acc.ongoingHostsWeights += host.weight ?? 0;
+      return acc;
+    },
+    { ongoingHostsWeightAdjustment: 0, ongoingHostsWeights: 0 }
   );
-
-  const ongoingHostsWeights = ongoingRRHosts.reduce((sum, host) => sum + (host.weight ?? 0), 0);
 
   const hostsWithWeightAdjustments = await Promise.all(
     hostsWithUserData.map(async (host) => {
