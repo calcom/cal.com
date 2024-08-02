@@ -3253,7 +3253,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
                 }
               }
             }
@@ -3294,7 +3294,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhooksOutputResponseDto"
+                  "$ref": "#/components/schemas/UserWebhooksOutputResponseDto"
                 }
               }
             }
@@ -3325,7 +3325,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
                 }
               }
             }
@@ -3345,7 +3345,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
                 }
               }
             }
@@ -3374,7 +3374,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
                 }
               }
             }
@@ -3415,7 +3415,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
                 }
               }
             }
@@ -3464,7 +3464,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhooksOutputResponseDto"
+                  "$ref": "#/components/schemas/EventTypeWebhooksOutputResponseDto"
                 }
               }
             }
@@ -3524,7 +3524,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
                 }
               }
             }
@@ -3544,7 +3544,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
                 }
               }
             }
@@ -3564,7 +3564,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/WebhookOutputResponseDto"
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
                 }
               }
             }
@@ -8613,16 +8613,13 @@
           "subscriberUrl"
         ]
       },
-      "WebhookOutputDto": {
+      "UserWebhookOutputDto": {
         "type": "object",
         "properties": {
-          "id": {
+          "userId": {
             "type": "number"
           },
-          "appId": {
-            "type": "string"
-          },
-          "userId": {
+          "id": {
             "type": "number"
           },
           "teamId": {
@@ -8648,6 +8645,7 @@
           }
         },
         "required": [
+          "userId",
           "id",
           "payloadTemplate",
           "eventTriggers",
@@ -8655,7 +8653,7 @@
           "active"
         ]
       },
-      "WebhookOutputResponseDto": {
+      "UserWebhookOutputResponseDto": {
         "type": "object",
         "properties": {
           "status": {
@@ -8667,7 +8665,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/WebhookOutputDto"
+            "$ref": "#/components/schemas/UserWebhookOutputDto"
           }
         },
         "required": [
@@ -8675,7 +8673,7 @@
           "data"
         ]
       },
-      "WebhooksOutputResponseDto": {
+      "UserWebhooksOutputResponseDto": {
         "type": "object",
         "properties": {
           "status": {
@@ -8689,7 +8687,87 @@
           "data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/WebhookOutputDto"
+              "$ref": "#/components/schemas/UserWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "eventTypeId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "teamId": {
+            "type": "number"
+          },
+          "payloadTemplate": {
+            "type": "string"
+          },
+          "eventTriggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "eventTypeId",
+          "id",
+          "payloadTemplate",
+          "eventTriggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "EventTypeWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeWebhookOutputDto"
             }
           }
         },

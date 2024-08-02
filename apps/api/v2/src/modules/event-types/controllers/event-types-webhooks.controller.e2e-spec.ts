@@ -6,10 +6,10 @@ import { UsersModule } from "@/modules/users/users.module";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import {
-  DeleteManyWebhooksOutputResponseDto,
-  WebhookOutputResponseDto,
-  WebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/webhook.output";
+  EventTypeWebhookOutputResponseDto,
+  EventTypeWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/event-type-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -34,7 +34,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
   let userRepositoryFixture: UserRepositoryFixture;
   let webhookRepositoryFixture: WebhookRepositoryFixture;
 
-  let webhook: WebhookOutputResponseDto["data"];
+  let webhook: EventTypeWebhookOutputResponseDto["data"];
   let webhook2: Webhook;
   let otherWebhook: Webhook;
 
@@ -127,7 +127,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             eventTypeId: eventType.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies EventTypeWebhookOutputResponseDto);
         webhook = res.body.data;
       });
   });
@@ -153,7 +153,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             eventTypeId: eventType2.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies EventTypeWebhookOutputResponseDto);
         webhook2 = res.body.data;
       });
   });
@@ -206,7 +206,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             eventTypeId: eventType.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies EventTypeWebhookOutputResponseDto);
       });
   });
 
@@ -231,7 +231,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .get(`/v2/event-types/${eventType.id}/webhooks`)
       .expect(200)
       .then((res) => {
-        const responseBody = res.body as WebhooksOutputResponseDto;
+        const responseBody = res.body as EventTypeWebhooksOutputResponseDto;
         responseBody.data.forEach((webhook) => {
           expect(webhook.eventTypeId).toBe(eventType.id);
         });
@@ -243,7 +243,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .get(`/v2/event-types/${eventType2.id}/webhooks`)
       .expect(200)
       .then((res) => {
-        const responseBody = res.body as WebhooksOutputResponseDto;
+        const responseBody = res.body as EventTypeWebhooksOutputResponseDto;
         responseBody.data.forEach((webhook) => {
           expect(webhook.eventTypeId).toBe(eventType2.id);
         });
@@ -265,7 +265,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             eventTypeId: eventType.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies EventTypeWebhookOutputResponseDto);
       });
   });
 

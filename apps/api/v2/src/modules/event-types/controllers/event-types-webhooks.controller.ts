@@ -4,11 +4,11 @@ import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator"
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import {
-  DeleteManyWebhooksOutputResponseDto,
-  WebhookOutputDto,
-  WebhookOutputResponseDto,
-  WebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/webhook.output";
+  EventTypeWebhookOutputResponseDto,
+  EventTypeWebhookOutputDto,
+  EventTypeWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/event-type-webhook.output";
+import { DeleteManyWebhooksOutputResponseDto } from "@/modules/webhooks/outputs/webhook.output";
 import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
@@ -47,9 +47,9 @@ export class EventTypeWebhooksController {
   async createEventTypeWebhook(
     @Body() body: CreateWebhookInputDto,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
-  ): Promise<WebhookOutputResponseDto> {
+  ): Promise<EventTypeWebhookOutputResponseDto> {
     const webhook = await this.eventTypeWebhooksService.createEventTypeWebhook(eventTypeId, body);
-    return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
+    return { status: SUCCESS_STATUS, data: plainToClass(EventTypeWebhookOutputDto, webhook) };
   }
 
   @Patch("/:webhookId")
@@ -57,15 +57,15 @@ export class EventTypeWebhooksController {
   async updateEventTypeWebhook(
     @Body() body: Partial<CreateWebhookInputDto>,
     @Param("webhookId") webhookId: string
-  ): Promise<WebhookOutputResponseDto> {
+  ): Promise<EventTypeWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.updateWebhook(webhookId, body);
-    return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
+    return { status: SUCCESS_STATUS, data: plainToClass(EventTypeWebhookOutputDto, webhook) };
   }
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook of an event-type" })
-  async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<WebhookOutputResponseDto> {
-    return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
+  async getEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
+    return { status: SUCCESS_STATUS, data: plainToClass(EventTypeWebhookOutputDto, webhook) };
   }
 
   @Get("/")
@@ -73,7 +73,7 @@ export class EventTypeWebhooksController {
   async getEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Query() pagination: SkipTakePagination
-  ): Promise<WebhooksOutputResponseDto> {
+  ): Promise<EventTypeWebhooksOutputResponseDto> {
     const webhooks = await this.eventTypeWebhooksService.getEventTypeWebhooksPaginated(
       eventTypeId,
       pagination.skip ?? 0,
@@ -81,15 +81,15 @@ export class EventTypeWebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) => plainToClass(WebhookOutputDto, webhook)),
+      data: webhooks.map((webhook) => plainToClass(EventTypeWebhookOutputDto, webhook)),
     };
   }
 
   @Delete("/:webhookId")
   @ApiOperation({ summary: "Delete a webhook of an event-type" })
-  async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<WebhookOutputResponseDto> {
+  async deleteEventTypeWebhook(@GetWebhook() webhook: Webhook): Promise<EventTypeWebhookOutputResponseDto> {
     await this.webhooksService.deleteWebhook(webhook.id);
-    return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
+    return { status: SUCCESS_STATUS, data: plainToClass(EventTypeWebhookOutputDto, webhook) };
   }
 
   @Delete("/")

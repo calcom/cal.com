@@ -6,9 +6,9 @@ import { UsersModule } from "@/modules/users/users.module";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
 import {
-  WebhookOutputResponseDto,
-  WebhooksOutputResponseDto,
-} from "@/modules/webhooks/outputs/webhook.output";
+  UserWebhookOutputResponseDto,
+  UserWebhooksOutputResponseDto,
+} from "@/modules/webhooks/outputs/user-webhook.output";
 import { INestApplication } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { Test } from "@nestjs/testing";
@@ -28,7 +28,7 @@ describe("WebhooksController (e2e)", () => {
   let userRepositoryFixture: UserRepositoryFixture;
   let webhookRepositoryFixture: WebhookRepositoryFixture;
 
-  let webhook: WebhookOutputResponseDto["data"];
+  let webhook: UserWebhookOutputResponseDto["data"];
   let otherWebhook: Webhook;
 
   beforeAll(async () => {
@@ -92,7 +92,7 @@ describe("WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             userId: user.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies UserWebhookOutputResponseDto);
         webhook = res.body.data;
       });
   });
@@ -136,7 +136,7 @@ describe("WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             userId: user.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies UserWebhookOutputResponseDto);
       });
   });
 
@@ -153,7 +153,7 @@ describe("WebhooksController (e2e)", () => {
       .get("/v2/webhooks")
       .expect(200)
       .then((res) => {
-        const responseBody = res.body as WebhooksOutputResponseDto;
+        const responseBody = res.body as UserWebhooksOutputResponseDto;
         responseBody.data.forEach((webhook) => {
           expect(webhook.userId).toBe(user.id);
         });
@@ -175,7 +175,7 @@ describe("WebhooksController (e2e)", () => {
             payloadTemplate: "string",
             userId: user.id,
           },
-        } satisfies WebhookOutputResponseDto);
+        } satisfies UserWebhookOutputResponseDto);
       });
   });
 
