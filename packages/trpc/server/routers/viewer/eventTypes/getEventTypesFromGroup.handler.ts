@@ -128,20 +128,24 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
-  const filteredEventTypes = mappedEventTypes
-    .filter((eventType) => {
-      const isAChildEvent = eventType.parentId;
-      if (!isAChildEvent) {
-        return true;
-      }
-      // A child event only has one user
-      const childEventAssignee = eventType.users[0];
-      if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
-        return false;
-      }
+  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    if (!isAChildEvent) {
       return true;
-    })
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+    }
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
+      return false;
+    }
+    return true;
+  });
+
+  if (shouldListUserEvents || !teamId) {
+    filteredEventTypes = filteredEventTypes.filter(
+      (evType) => evType.schedulingType !== SchedulingType.MANAGED
+    );
+  }
 
   return {
     eventTypes: filteredEventTypes || [],
