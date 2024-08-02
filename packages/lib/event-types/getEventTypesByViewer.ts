@@ -132,11 +132,14 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
           ),
         }))
       ),
-      teamAdmin:
-        parent?.team?.members
-          .filter((mem) => mem.role === "ADMIN")
-          .map((mem) => mem.user.name)
-          .join(", ") || null,
+      managedBy: {
+        teamId: parent?.team?.id,
+        admins:
+          parent?.team?.members
+            .filter((mem) => mem.role === "ADMIN" && mem.accepted === true)
+            .map((mem) => mem.user?.name || mem.user?.username || mem.user?.email)
+            .filter((name) => !!name) || [],
+      },
     };
   };
 

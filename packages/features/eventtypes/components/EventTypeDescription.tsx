@@ -1,4 +1,5 @@
 import type { Prisma } from "@prisma/client";
+import Link from "next/link";
 import { useMemo } from "react";
 import type { z } from "zod";
 
@@ -19,7 +20,7 @@ export type EventTypeDescriptionProps = {
   > & {
     descriptionAsSafeHTML?: string | null;
     recurringEvent: Prisma.JsonValue;
-    teamAdmin?: string | null;
+    managedBy?: { teamId: number | undefined; admins: string[] };
   };
   className?: string;
   shortenDescription?: boolean;
@@ -40,6 +41,31 @@ export const EventTypeDescription = ({
   );
 
   const paymentAppData = getPaymentAppData(eventType);
+
+  const showManagedBadge = eventType.metadata?.managedEventConfig && !isPublic;
+  const numOfManagedByAdmins = eventType.managedBy?.admins.length || 0;
+  const showManagedByToolTip = showManagedBadge && numOfManagedByAdmins > 0;
+  let managedByToolTipContent = "";
+  let managedByToolTipContentWithLink;
+
+  if (showManagedByToolTip) {
+    managedByToolTipContent = t("managed_by_teamAdmins", {
+      teamAdmins: eventType.managedBy?.admins?.slice(0, 2).join(", "),
+    });
+
+    if (numOfManagedByAdmins > 2 && !!eventType.managedBy?.teamId) {
+      managedByToolTipContentWithLink = (
+        <>
+          {`${managedByToolTipContent} ${t("and")} `}
+          <Link
+            href={`/settings/teams/${eventType.managedBy?.teamId}/members`}
+            className=" text-blue-300 underline">
+            {`${numOfManagedByAdmins - 2} ${t("more")}`}
+          </Link>
+        </>
+      );
+    }
+  }
 
   return (
     <>
@@ -79,21 +105,21 @@ export const EventTypeDescription = ({
               </Badge>
             </li>
           )}
-          {eventType.metadata?.managedEventConfig &&
-            !isPublic &&
-            (!!eventType.teamAdmin ? (
-              <Tooltip content={t("managed_by_teamAdmin", { teamAdmin: eventType.teamAdmin })}>
-                <div>
-                  <Badge variant="gray" startIcon="lock">
-                    {t("managed")}
-                  </Badge>
-                </div>
-              </Tooltip>
-            ) : (
-              <Badge variant="gray" startIcon="lock">
-                {t("managed")}
-              </Badge>
-            ))}
+          {showManagedBadge && !showManagedByToolTip && (
+            <Badge variant="gray" startIcon="lock">
+              {t("managed")}
+            </Badge>
+          )}
+          {showManagedBadge && showManagedByToolTip && (
+            <Tooltip
+              content={numOfManagedByAdmins <= 2 ? managedByToolTipContent : managedByToolTipContentWithLink}>
+              <div>
+                <Badge variant="gray" startIcon="lock">
+                  {t("managed")}
+                </Badge>
+              </div>
+            </Tooltip>
+          )}
           {recurringEvent?.count && recurringEvent.count > 0 && (
             <li className="hidden xl:block" data-testid="repeat-eventtype">
               <Badge variant="gray" startIcon="refresh-cw">

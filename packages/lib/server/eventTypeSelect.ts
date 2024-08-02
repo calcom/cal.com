@@ -54,10 +54,18 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
     select: {
       team: {
         select: {
+          id: true,
           members: {
             select: {
-              user: true,
+              user: {
+                select: {
+                  name: true,
+                  username: true,
+                  email: true,
+                },
+              },
               role: true,
+              accepted: true,
             },
           },
         },
