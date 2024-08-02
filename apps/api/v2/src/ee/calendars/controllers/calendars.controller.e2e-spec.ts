@@ -192,19 +192,19 @@ describe("Platform Calendars Endpoints", () => {
       .expect(200);
   });
 
-  it(`/POST/v2/calendars/${OFFICE_365_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
-    office365Credentials = await credentialsRepositoryFixture.create(
-      OFFICE_365_CALENDAR_TYPE,
+  it(`/POST/v2/calendars/${GOOGLE_CALENDAR}/disconnect: it should respond with a 201 returning back the user deleted calendar credentials`, async () => {
+    googleCalendarCredentials = await credentialsRepositoryFixture.create(
+      GOOGLE_CALENDAR_TYPE,
       {},
       user.id,
-      OFFICE_365_CALENDAR_ID
+      GOOGLE_CALENDAR_ID
     );
     const body = {
-      id: office365Credentials.id,
+      id: googleCalendarCredentials.id,
     };
 
     return request(app.getHttpServer())
-      .post(`/v2/calendars/${OFFICE_365_CALENDAR}/disconnect`)
+      .post(`/v2/calendars/${GOOGLE_CALENDAR}/disconnect`)
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .send(body)
       .expect(201)
