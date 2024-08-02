@@ -44,6 +44,7 @@ const availabilitySchema = z
     duration: z.number().optional(),
     withSource: z.boolean().optional(),
     returnDateOverrides: z.boolean(),
+    considerOnlyFirstSlot: z.boolean().optional(),
   })
   .refine((data) => !!data.username || !!data.userId, "Either username or userId should be filled in.");
 
@@ -215,6 +216,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer?: number;
     duration?: number;
     returnDateOverrides: boolean;
+    considerOnlyFirstSlot?: boolean;
   },
   initialData?: {
     user?: User;
@@ -243,6 +245,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     beforeEventBuffer,
     duration,
     returnDateOverrides,
+    considerOnlyFirstSlot,
   } = availabilitySchema.parse(query);
 
   if (!dateFrom.isValid() || !dateTo.isValid()) {
@@ -413,9 +416,57 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     end: dayjs(busy.end),
   }));
 
-  const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
+  let dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
-  const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
+  let dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
+
+  if (considerOnlyFirstSlot === true) {
+    // Get the date range of the whole day to get the initial time of the day.
+    const { dateRanges: wholeDayDateRange } = buildDateRanges({
+      dateFrom: dayjs(dateFrom).startOf("date"),
+      dateTo: dayjs(dateTo).endOf("date"),
+      availability,
+      timeZone,
+      travelSchedules: isDefaultSchedule
+        ? user.travelSchedules.map((schedule) => {
+            return {
+              startDate: dayjs(schedule.startDate),
+              endDate: schedule.endDate ? dayjs(schedule.endDate) : undefined,
+              timeZone: schedule.timeZone,
+            };
+          })
+        : [],
+      outOfOffice: datesOutOfOffice,
+    });
+
+    // Remove the busy times from whole day date range.
+    const wholeDayDateRangeExcludingBusyTimes = subtract(wholeDayDateRange, formattedBusyTimes);
+
+    if (wholeDayDateRangeExcludingBusyTimes.length > 0) {
+      // Get the first available slot of the day.
+      const firstSlotDateRange = {
+        start: wholeDayDateRangeExcludingBusyTimes[0].start,
+        end: dayjs(wholeDayDateRangeExcludingBusyTimes[0].start).add(
+          dayjs(dateTo).diff(dayjs(dateFrom), "minutes"),
+          "minutes"
+        ),
+      };
+
+      // Check if this first slot is same as any of the slots in the user available ranges.
+      dateRangesInWhichUserIsAvailable = dateRangesInWhichUserIsAvailable.filter((val) => {
+        return val.start.isSame(firstSlotDateRange.start) && val.end.isSame(firstSlotDateRange.end);
+      });
+      dateRangesInWhichUserIsAvailableWithoutOOO = dateRangesInWhichUserIsAvailableWithoutOOO.filter(
+        (val) => {
+          return val.start.isSame(firstSlotDateRange.start) && val.end.isSame(firstSlotDateRange.end);
+        }
+      );
+    } else {
+      // If no first slot is present then it can be assumed that the user is not available.
+      dateRangesInWhichUserIsAvailable = [];
+      dateRangesInWhichUserIsAvailableWithoutOOO = [];
+    }
+  }
 
   log.debug(
     `getWorkingHours took ${endGetWorkingHours - startGetWorkingHours}ms for userId ${userId}`,
