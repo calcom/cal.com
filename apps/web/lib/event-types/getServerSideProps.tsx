@@ -18,7 +18,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     };
   }
 
-  const isInfiniteScrollEnabled = session.user.org?.slug
+  const isInfiniteScrollEnabled = session.user?.org?.slug
     ? ENABLE_INFINITE_EVENT_TYPES_FOR_ORG.includes(session.user.org.slug)
     : false;
 

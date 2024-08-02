@@ -70,6 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
+  isOrganization,
   isInfiniteScrollEnabled,
 }: {
   profileOptions: {
@@ -78,6 +79,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
+  isOrganization: boolean;
   isInfiniteScrollEnabled: boolean;
 }) {
   const utils = trpc.useUtils();
@@ -123,6 +125,7 @@ export default function CreateEventTypeDialog({
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();
       }
+      
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
       showToast(
         t("event_type_created_successfully", {
