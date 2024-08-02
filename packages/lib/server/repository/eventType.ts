@@ -108,7 +108,7 @@ export class EventTypeRepository {
       orderBy,
       where = {},
       cursor,
-      limit = 10,
+      limit,
     }: {
       orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
       where?: Prisma.EventTypeWhereInput;
