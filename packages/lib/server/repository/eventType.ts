@@ -218,7 +218,7 @@ export class EventTypeRepository {
     teamId,
     parentId,
     userId,
-    limit = 10,
+    limit,
     cursor,
     orderBy,
     where = {},
