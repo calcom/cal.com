@@ -6,9 +6,17 @@ import type { MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { Module } from "@nestjs/common";
 
 import { UsersModule } from "./users/users.module";
+import { WebhooksModule } from "./webhooks/webhooks.module";
 
 @Module({
-  imports: [OAuthClientModule, BillingModule, PlatformEndpointsModule, TimezoneModule, UsersModule],
+  imports: [
+    OAuthClientModule,
+    BillingModule,
+    PlatformEndpointsModule,
+    TimezoneModule,
+    UsersModule,
+    WebhooksModule,
+  ],
 })
 export class EndpointsModule implements NestModule {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
