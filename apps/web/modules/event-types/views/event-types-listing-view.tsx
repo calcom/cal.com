@@ -61,7 +61,7 @@ import {
 } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
-import { useInViewObserverWithNullRoot } from "@lib/hooks/useInViewObserver";
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
 import SkeletonLoader from "@components/eventtype/SkeletonLoader";
@@ -172,11 +172,11 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
     }
   );
 
-  const buttonInView = useInViewObserverWithNullRoot(() => {
+  const buttonInView = useInViewObserver(() => {
     if (!query.isFetching && query.hasNextPage && query.status === "success") {
       query.fetchNextPage();
     }
-  });
+  }, null);
 
   return (
     <div>
@@ -298,11 +298,9 @@ export const EventTypeList = ({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.eventTypes.getByViewer.cancel();
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       await utils.viewer.eventTypes.invalidate();
     },
     onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       utils.viewer.eventTypes.invalidate();
     },
   });
@@ -1404,6 +1402,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 const CTA = ({
   profileOptions,
   isOrganization,
+  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -1413,6 +1412,7 @@ const CTA = ({
     slug: string | null;
   }[];
   isOrganization: boolean;
+  isInfiniteScrollEnabled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -1424,7 +1424,11 @@ const CTA = ({
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={() => (
-        <CreateEventTypeDialog profileOptions={profileOptions} isOrganization={isOrganization} />
+        <CreateEventTypeDialog
+          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
+          profileOptions={profileOptions}
+          isOrganization={isOrganization}
+        />
       )}
     />
   );
@@ -1578,6 +1582,8 @@ const InfiniteScrollMain = ({
     avatar: item.profile.image,
   }));
 
+  console.log("tabs", tabs);
+
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
 
@@ -1689,7 +1695,13 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
       beforeCTAactions={
         isInfiniteScrollEnabled ? undefined : <Actions showDivider={profileOptions.length > 0} />
       }
-      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
+      CTA={
+        <CTA
+          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
+          profileOptions={profileOptions}
+          isOrganization={!!user?.organizationId}
+        />
+      }>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."

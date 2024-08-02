@@ -13,5 +13,4 @@ export type AppFlags = {
   "email-verification": boolean;
   "google-workspace-directory": boolean;
   "disable-signup": boolean;
-  "event-types-infinite-scroll": boolean;
 };
