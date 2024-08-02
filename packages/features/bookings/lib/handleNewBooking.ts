@@ -595,14 +595,15 @@ async function handler(
         const freeUsers = luckyUserPool.filter(
           (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
         );
-        const originalBookingUserId = originalRescheduledBooking && originalRescheduledBooking.userId;
+        const originalRescheduledBookingUserId =
+          originalRescheduledBooking && originalRescheduledBooking.userId;
         const isSameRoundRobinHost =
-          !!originalBookingUserId &&
+          !!originalRescheduledBookingUserId &&
           eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
           eventType.rescheduleWithSameRoundRobinHost;
 
         const newLuckyUser = isSameRoundRobinHost
-          ? freeUsers.find((user) => user.id === originalBookingUserId)
+          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
           : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
