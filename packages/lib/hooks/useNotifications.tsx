@@ -88,7 +88,7 @@ export const useNotifications = () => {
       return;
     }
 
-    let subscription;
+    let subscription: PushSubscription;
     try {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
