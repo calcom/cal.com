@@ -18454,6 +18454,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/functions@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@vercel/functions@npm:1.4.0"
+  peerDependencies:
+    "@aws-sdk/credential-provider-web-identity": "*"
+  peerDependenciesMeta:
+    "@aws-sdk/credential-provider-web-identity":
+      optional: true
+  checksum: 0b21baa5b7408b0d476c4b723a34b1d8c068d482d8423c125acb4d043afa74c101947142aaecb59cc28c26748b2cc33b1790f40ea0c5cdcd8d0d43f6420ec1e9
+  languageName: node
+  linkType: hard
+
 "@vercel/og@npm:^0.5.0":
   version: 0.5.0
   resolution: "@vercel/og@npm:0.5.0"
@@ -21382,6 +21394,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.5
     "@types/jsdom": ^21.1.3
     "@types/jsonwebtoken": ^9.0.3
+    "@vercel/functions": ^1.4.0
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1
@@ -27755,8 +27768,8 @@ __metadata:
   linkType: hard
 
 "framer-motion@npm:^11.0.25":
-  version: 11.3.19
-  resolution: "framer-motion@npm:11.3.19"
+  version: 11.3.21
+  resolution: "framer-motion@npm:11.3.21"
   dependencies:
     tslib: ^2.4.0
   peerDependencies:
@@ -27770,7 +27783,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: a9d18fdf37e42f5c638bc7c738646e2ea2e93248c6ff32f2609e042642fac1c9f46b9f726bebe63834527f7f642e1b37f2617f591ccc474a616f4b439476582e
+  checksum: 0726c90c08e0c5b150947412ce06f1552c9af539f1d8d4dd8dce6ef0d36c3f2bf5b8e9dbb9c3e928e275948dfe4e15fdae9fdb8ceaba050a2f97c0f4963446d3
   languageName: node
   linkType: hard
 
