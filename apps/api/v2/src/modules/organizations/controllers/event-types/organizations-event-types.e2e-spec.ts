@@ -10,6 +10,7 @@ import { User } from "@prisma/client";
 import * as request from "supertest";
 import { EventTypesRepositoryFixture } from "test/fixtures/repository/event-types.repository.fixture";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -30,7 +31,7 @@ describe("Organizations Event Types Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let membershipsRepositoryFixture: MembershipRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
@@ -63,7 +64,7 @@ describe("Organizations Event Types Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       membershipsRepositoryFixture = new MembershipRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
@@ -248,17 +249,15 @@ describe("Organizations Event Types Endpoints", () => {
             options: ["javascript", "python", "cobol"],
           },
         ],
-        schedulingType: "COLLECTIVE",
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        schedulingType: "collective",
         hosts: [
           {
             userId: teammate1.id,
-            mandatory: true,
-            priority: "high",
           },
           {
             userId: teammate2.id,
-            mandatory: false,
-            priority: "low",
           },
         ],
       };
@@ -274,6 +273,7 @@ describe("Organizations Event Types Endpoints", () => {
           const data = responseBody.data;
           expect(data.title).toEqual(body.title);
           expect(data.hosts.length).toEqual(2);
+          expect(data.schedulingType).toEqual("COLLECTIVE");
           evaluateHost(body.hosts[0], data.hosts[0]);
           evaluateHost(body.hosts[1], data.hosts[1]);
 
@@ -389,7 +389,6 @@ describe("Organizations Event Types Endpoints", () => {
           expect(responseBody.status).toEqual(SUCCESS_STATUS);
 
           const data = responseBody.data;
-          console.log("asap responseBody.data", JSON.stringify(responseBody.data, null, 2));
           expect(data.length).toEqual(2);
 
           const eventTypeCollective = data.find((eventType) => eventType.schedulingType === "COLLECTIVE");
@@ -431,8 +430,6 @@ describe("Organizations Event Types Endpoints", () => {
       const newHosts: UpdateTeamEventTypeInput_2024_06_14["hosts"] = [
         {
           userId: teammate1.id,
-          mandatory: true,
-          priority: "medium",
         },
       ];
 
@@ -603,7 +600,9 @@ describe("Organizations Event Types Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(teammate2.email);
       await userRepositoryFixture.deleteByEmail(falseTestUser.email);
       await teamsRepositoryFixture.delete(team.id);
+      await teamsRepositoryFixture.delete(falseTestTeam.id);
       await organizationsRepositoryFixture.delete(org.id);
+      await organizationsRepositoryFixture.delete(falseTestOrg.id);
       await app.close();
     });
   });
