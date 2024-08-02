@@ -17,7 +17,6 @@ export class EventTypeWebhooksService {
     return this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
       ...body,
       payloadTemplate: body.payloadTemplate ?? null,
-      active: body.active ?? true,
       secret: body.secret ?? null,
     });
   }

@@ -15,7 +15,6 @@ export class UserWebhooksService {
     return this.webhooksRepository.createUserWebhook(userId, {
       ...body,
       payloadTemplate: body.payloadTemplate ?? null,
-      active: body.active ?? true,
       secret: body.secret ?? null,
     });
   }

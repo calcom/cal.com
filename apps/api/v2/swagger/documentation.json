@@ -8585,6 +8585,11 @@
       "CreateWebhookInputDto": {
         "type": "object",
         "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
           "triggers": {
             "type": "string",
             "example": [
@@ -8614,12 +8619,8 @@
               "RECORDING_TRANSCRIPTION_GENERATED"
             ]
           },
-          "payloadTemplate": {
-            "type": "string"
-          },
           "active": {
-            "type": "boolean",
-            "default": true
+            "type": "boolean"
           },
           "subscriberUrl": {
             "type": "string"
@@ -8630,6 +8631,7 @@
         },
         "required": [
           "triggers",
+          "active",
           "subscriberUrl"
         ]
       },
@@ -8692,6 +8694,11 @@
       "UpdateWebhookInputDto": {
         "type": "object",
         "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
           "triggers": {
             "type": "string",
             "example": [
@@ -8721,12 +8728,8 @@
               "RECORDING_TRANSCRIPTION_GENERATED"
             ]
           },
-          "payloadTemplate": {
-            "type": "string"
-          },
           "active": {
-            "type": "boolean",
-            "default": true
+            "type": "boolean"
           },
           "subscriberUrl": {
             "type": "string"

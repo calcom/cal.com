@@ -5,11 +5,21 @@ import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validato
 export class CreateWebhookInputDto {
   @IsString()
   @IsOptional()
+  @ApiProperty({
+    description:
+      "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+    example: JSON.stringify({
+      content: "A new event has been scheduled",
+      type: "{{type}}",
+      name: "{{title}}",
+      organizer: "{{organizer.name}}",
+      booker: "{{attendees.0.name}}",
+    }),
+  })
   payloadTemplate?: string;
 
   @IsBoolean()
-  @IsOptional()
-  active?: boolean = true;
+  active!: boolean;
 
   @IsString()
   subscriberUrl!: string;
