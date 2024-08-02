@@ -4,7 +4,7 @@ import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIn
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { QueryCell } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { List } from "@calcom/ui";
+import { List, CalendarSettingsComponent } from "@calcom/ui";
 import AppListCard from "@calcom/web/components/AppListCard";
 
 import { useConnectedCalendars } from "../hooks/useConnectedCalendars";
@@ -20,18 +20,19 @@ export const CalendarSettings = () => {
         <QueryCell
           query={query}
           success={({ data }) => {
-            console.log(data.connectedCalendars, "this is the query data".toLocaleUpperCase());
-
-            data.connectedCalendars.map((item) =>
-              console.log(item, "each individual item".toLocaleUpperCase())
-            );
-
             if (!data.connectedCalendars.length) {
               return null;
             }
 
             return (
               <div className="border-subtle mt-6 rounded-lg border">
+                <CalendarSettingsComponent
+                  destinationCalendarId={String(data.destinationCalendar.externalId)}
+                  connectedCalendars={data.connectedCalendars}
+                  onChanged={() => {
+                    console.log("changing");
+                  }}
+                />
                 <div className="border-subtle border-b p-6">
                   <div className="flex items-center justify-between">
                     <div>
@@ -50,7 +51,7 @@ export const CalendarSettings = () => {
                           <AppListCard
                             slug={item.integration.slug}
                             title={item.integration.name}
-                            logo={item.integration.logo}
+                            logo={`http://localhost:3000/app-store${item.integration.logo}`}
                             description={item.primary?.email ?? item.integration.description}
                             className="border-subtle mt-4 rounded-lg border"
                             actions={

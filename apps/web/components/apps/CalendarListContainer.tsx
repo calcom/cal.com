@@ -18,6 +18,7 @@ import {
   showToast,
 } from "@calcom/ui";
 
+// import { CalendarSettingsComponent } from "@calcom/ui";
 import { QueryCell } from "@lib/QueryCell";
 import useRouterQuery from "@lib/hooks/useRouterQuery";
 
@@ -75,7 +76,7 @@ function ConnectedCalendarsList(props: Props) {
     suspense: true,
     refetchOnWindowFocus: false,
   });
-  const { fromOnboarding, isPending } = props;
+  const { fromOnboarding, isPending, onChanged } = props;
   return (
     <QueryCell
       query={query}
@@ -87,6 +88,11 @@ function ConnectedCalendarsList(props: Props) {
 
         return (
           <div className="border-subtle mt-6 rounded-lg border">
+            {/* <CalendarSettingsComponent
+              additionalCalendarSelector={<AdditionalCalendarSelector isPending={isPending} />}
+              onChanged={onChanged}
+              connectedCalendars={data.connectedCalendars}
+            /> */}
             <div className="border-subtle border-b p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -106,8 +112,14 @@ function ConnectedCalendarsList(props: Props) {
             </div>
             <List noBorderTreatment className="p-6 pt-2">
               {data.connectedCalendars.map((item) => (
+                // connected calendar settings component along with needed prop
+                // pass in the fragment as children
+                // start fragment here
                 <Fragment key={item.credentialId}>
                   {item.calendars ? (
+                    // pass this as a children
+                    // pass the whole AppListCard as children or just as actions
+                    // this can be a prop called actions
                     <AppListCard
                       shouldHighlight
                       slug={item.integration.slug}
@@ -142,6 +154,7 @@ function ConnectedCalendarsList(props: Props) {
                                   destination={cal.externalId === props.destinationCalendarId}
                                   credentialId={cal.credentialId}
                                 />
+                                // {actions}
                               ))}
                             </ul>
                           </>
@@ -172,6 +185,7 @@ function ConnectedCalendarsList(props: Props) {
                     />
                   )}
                 </Fragment>
+                // end fragment here
               ))}
             </List>
           </div>

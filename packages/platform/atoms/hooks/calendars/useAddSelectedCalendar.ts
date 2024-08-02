@@ -1,9 +1,10 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
 import http from "../../lib/http";
+import { QUERY_KEY } from "../useConnectedCalendars";
 
 interface IUseAddSelectedCalendar {
   onSuccess?: (res: ApiResponse) => void;
@@ -20,6 +21,7 @@ export const useAddSelectedCalendar = (
     },
   }
 ) => {
+  const queryClient = useQueryClient();
   const newlyAddedCalendarEntry = useMutation<
     ApiResponse<{
       status: string;
@@ -47,6 +49,9 @@ export const useAddSelectedCalendar = (
     },
     onError: (err) => {
       onError?.(err as ApiErrorResponse);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY] });
     },
   });
 

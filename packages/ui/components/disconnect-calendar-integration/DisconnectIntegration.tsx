@@ -32,7 +32,7 @@ export const DisconnectIntegrationComponent = ({
             variant={trashIcon && !label ? "icon" : "button"}
             disabled={isGlobal}
             {...buttonProps}>
-            {label && label}
+            {label}
           </Button>
         </DialogTrigger>
         <ConfirmationDialogContent
