@@ -121,12 +121,12 @@ export default function CreateEventTypeDialog({
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
+      
       if (isInfiniteScrollEnabled) {
         await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate();
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();
       }
-
       showToast(
         t("event_type_created_successfully", {
           eventTypeTitle: eventType.title,

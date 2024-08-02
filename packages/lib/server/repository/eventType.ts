@@ -4,7 +4,6 @@ import { Prisma } from "@prisma/client";
 import logger from "@calcom/lib/logger";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
-import { SchedulingType } from "@calcom/prisma/enums";
 import type { Ensure } from "@calcom/types/utils";
 
 import { TRPCError } from "@trpc/server";
@@ -107,7 +106,7 @@ export class EventTypeRepository {
     {
       orderBy,
       where = {},
-      cursor,
+      cursor: cursorId,
       limit,
     }: {
       orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
@@ -144,6 +143,9 @@ export class EventTypeRepository {
       })
     );
 
+    const cursor = cursorId ? { id: cursorId } : undefined;
+    const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
+
     if (!profileId) {
       // Lookup is by userId
       return await prisma.eventType.findMany({
@@ -152,8 +154,8 @@ export class EventTypeRepository {
           ...where,
         },
         select,
-        cursor: cursor ? { id: cursor } : undefined,
-        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
+        cursor,
+        take,
         orderBy,
       });
     }
@@ -185,8 +187,8 @@ export class EventTypeRepository {
           ...where,
         },
         select,
-        cursor: cursor ? { id: cursor } : undefined,
-        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
+        cursor,
+        take,
         orderBy,
       });
     } else {
@@ -207,8 +209,8 @@ export class EventTypeRepository {
           ...where,
         },
         select,
-        cursor: cursor ? { id: cursor } : undefined,
-        take: limit ? limit + 1 : undefined, // We take +1 as itll be used for the next cursor
+        cursor,
+        take,
         orderBy,
       });
     }
@@ -283,12 +285,9 @@ export class EventTypeRepository {
 
     if (!teamMembership) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-    const isUserMember = teamMembership.role === MembershipRole.MEMBER;
-
     return await prisma.eventType.findMany({
       where: {
         teamId,
-        ...(isUserMember ? { schedulingType: { not: SchedulingType.MANAGED } } : {}),
         ...where,
       },
       select,
