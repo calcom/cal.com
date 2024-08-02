@@ -420,7 +420,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
 
   let dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
 
-  if (considerOnlyFirstSlot === true) {
+  if (considerOnlyFirstSlot === true && dateRangesInWhichUserIsAvailableWithoutOOO.length > 0) {
     // Get the date range of the whole day to get the initial time of the day.
     const { dateRanges: wholeDayDateRange } = buildDateRanges({
       dateFrom: dayjs(dateFrom).startOf("date"),
