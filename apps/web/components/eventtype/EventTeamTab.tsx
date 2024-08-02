@@ -253,7 +253,6 @@ const RescheduleRoundRobinHost = () => {
             description={t("reschedule_with_same_round_robin_host_description")}
             checked={value}
             onCheckedChange={(e) => onChange(e)}
-            data-testid=""
           />
         )}
       />
