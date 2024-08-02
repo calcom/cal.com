@@ -14,6 +14,7 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
+import { loadJSON } from "./loadJSON";
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
@@ -141,7 +142,7 @@ export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: s
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
-  const localeMap = await import(localeModule);
+  const localeMap = loadJSON(localeModule);
   return (message: string) => {
     if (message in localeMap) return localeMap[message];
     throw "No locale found for the given entry message";
