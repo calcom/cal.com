@@ -239,22 +239,25 @@ const RoundRobinHosts = ({
 };
 
 const RescheduleRoundRobinHost = () => {
+  const { t } = useLocale();
   return (
-    <Controller<FormValues>
-      name="rescheduleWithSameRoundRobinHost"
-      render={({ field: { value, onChange } }) => (
-        <SettingsToggle
-          labelClassName="text-sm"
-          toggleSwitchAtTheEnd={true}
-          switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
-          title={t("reschedule_with_same_round_robin_host_title")}
-          description={t("reschedule_with_same_round_robin_host_description")}
-          checked={value}
-          onCheckedChange={(e) => onChange(e)}
-          data-testid=""
-        />
-      )}
-    />
+    <div className="mt-5 rounded-lg">
+      <Controller<FormValues>
+        name="rescheduleWithSameRoundRobinHost"
+        render={({ field: { value, onChange } }) => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+            title={t("reschedule_with_same_round_robin_host_title")}
+            description={t("reschedule_with_same_round_robin_host_description")}
+            checked={value}
+            onCheckedChange={(e) => onChange(e)}
+            data-testid=""
+          />
+        )}
+      />
+    </div>
   );
 };
 
@@ -415,8 +418,8 @@ export const EventTeamTab = ({
     );
   });
   const isManagedEventType = eventType.schedulingType === SchedulingType.MANAGED;
-  const isRoundRobinEventType = eventType.schedulingType === SchedulingType.ROUND_ROBIN;
   const { getValues, setValue } = useFormContext<FormValues>();
+  const isRoundRobinEventType = getValues("schedulingType") === SchedulingType.ROUND_ROBIN;
   const [assignAllTeamMembers, setAssignAllTeamMembers] = useState<boolean>(
     getValues("assignAllTeamMembers") ?? false
   );
