@@ -156,7 +156,7 @@ async function getUsersBasedOnWeights<
   const usersWithBookingShortfalls = availableUsers.map((user) => {
     const targetPercentage = (user.weight ?? 100) / totalWeight;
 
-    const userBookings = allBookings.filter(
+    const userBookings = bookingsOfAvailableUsers.filter(
       (booking) =>
         booking.userId === user.id || booking.attendees.some((attendee) => attendee.email === user.email)
     );
