@@ -11,7 +11,7 @@ type CachedData = {
 };
 
 @Injectable()
-export class IsAdminAccessGuard implements CanActivate {
+export class IsAdminAPIEnabledGuard implements CanActivate {
   constructor(
     private organizationsRepository: OrganizationsRepository,
     private readonly redisService: RedisService
@@ -43,7 +43,7 @@ export class IsAdminAccessGuard implements CanActivate {
       const adminAPIAccessIsEnabledInOrg = await this.organizationsRepository.fetchOrgAdminApiStatus(
         Number(organizationId)
       );
-      if (!adminAPIAccessIsEnabledInOrg) {
+      if (!adminAPIAccessIsEnabledInOrg && !org?.isPlatform) {
         throw new ForbiddenException(
           `Organization does not have Admin API access, please contact https://cal.com/sales to upgrade`
         );
