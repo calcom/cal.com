@@ -11,6 +11,7 @@ import { Test } from "@nestjs/testing";
 import { User } from "@prisma/client";
 import * as request from "supertest";
 import { MembershipRepositoryFixture } from "test/fixtures/repository/membership.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
 import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
@@ -25,7 +26,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
     let app: INestApplication;
 
     let userRepositoryFixture: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let teamsRepositoryFixture: TeamRepositoryFixture;
     let profileRepositoryFixture: ProfileRepositoryFixture;
 
@@ -59,7 +60,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       ).compile();
 
       userRepositoryFixture = new UserRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       teamsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
       profileRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
@@ -335,7 +336,7 @@ describe("Organizations Teams Memberships Endpoints", () => {
       await userRepositoryFixture.deleteByEmail(nonOrgUser.email);
       await userRepositoryFixture.deleteByEmail(user2.email);
       await organizationsRepositoryFixture.delete(org.id);
-      await organizationsRepositoryFixture.delete(nonOrgTeam.id);
+      await teamsRepositoryFixture.delete(nonOrgTeam.id);
       await app.close();
     });
   });
