@@ -126,6 +126,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   });
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
+
   const filteredEventTypes = mappedEventTypes.filter((eventType) => {
     const isAChildEvent = eventType.parentId;
     if (!isAChildEvent) {
@@ -138,6 +139,12 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     }
     return true;
   });
+
+  if (shouldListUserEvents || !teamId) {
+    filteredEventTypes = filteredEventTypes.filter(
+      (evType) => evType.schedulingType !== SchedulingType.MANAGED
+    );
+  }
 
   return {
     eventTypes: filteredEventTypes || [],
