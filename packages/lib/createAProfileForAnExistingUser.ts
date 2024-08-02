@@ -59,7 +59,7 @@ export const createAProfileForAnExistingUser = async ({
 
   if (org.isPlatform) {
     // We don't want redirects for Platform Organizations
-    return;
+    return profile;
   }
 
   if (user.currentUsername) {
