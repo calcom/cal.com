@@ -128,7 +128,7 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 
-  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
+  let filteredEventTypes = mappedEventTypes.filter((eventType) => {
     const isAChildEvent = eventType.parentId;
     if (!isAChildEvent) {
       return true;
