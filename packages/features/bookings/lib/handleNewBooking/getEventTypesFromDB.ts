@@ -57,9 +57,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
-      durationLimitrescheduleWithSameRoundRobinHost: true,
-      s: true,
-
+      durationLimits: true,
+      rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
       parentId: true,
       parent: {
