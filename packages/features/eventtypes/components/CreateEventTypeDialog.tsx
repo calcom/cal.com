@@ -123,7 +123,10 @@ export default function CreateEventTypeDialog({
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
 
       if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate();
+        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+          limit: 10,
+          group: { teamId: null, parendId: null },
+        });
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();
       }
