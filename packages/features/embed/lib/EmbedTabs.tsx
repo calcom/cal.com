@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
-import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
+import { Codes } from "./EmbedCodes";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
@@ -203,20 +203,18 @@ const getEmbedTypeSpecificString = ({
     return frameworkCodes[embedType]({
       calLink,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      theme: uiInstructionStringArg.theme,
       previewState,
       embedCalOrigin,
       namespace,
     });
   } else if (embedType === "floating-popup") {
-    const floatingButtonArg = {
-      calLink,
-      ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
-      ...previewState.floatingPopup,
-    };
     return frameworkCodes[embedType]({
       namespace,
-      floatingButtonArg: JSON.stringify(floatingButtonArg),
+      calLink,
+      embedCalOrigin,
       uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      previewState,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({

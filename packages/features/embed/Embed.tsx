@@ -575,15 +575,24 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
+  const defaultLayout = BookerLayouts.MONTH_VIEW;
+  const defaultConfig = {
+    layout: defaultLayout,
+  };
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
+      config: defaultConfig,
     },
     theme: Theme.auto,
-    layout: BookerLayouts.MONTH_VIEW,
-    floatingPopup: {},
-    elementClick: {},
+    layout: defaultLayout,
+    floatingPopup: {
+      config: defaultConfig,
+    },
+    elementClick: {
+      config: defaultConfig,
+    },
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
@@ -707,11 +716,11 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const FloatingPopupPositionOptions = [
     {
-      value: "bottom-right",
+      value: "bottom-right" as const,
       label: "Bottom right",
     },
     {
-      value: "bottom-left",
+      value: "bottom-left" as const,
       label: "Bottom left",
     },
   ];
@@ -941,6 +950,20 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             setPreviewState((previewState) => {
                               return {
                                 ...previewState,
+                                floatingPopup: {
+                                  ...previewState.floatingPopup,
+                                  config: {
+                                    ...(previewState.floatingPopup.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
+                                elementClick: {
+                                  ...previewState.elementClick,
+                                  config: {
+                                    ...(previewState.elementClick.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
                                 theme: option.value,
                               };
                             });
