@@ -38,7 +38,7 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
     }
 
     const org = await this.organizationsRepository.findById(Number(organizationId));
-    if (org?.isPlatform) canAccess = true;
+
     if (org?.isOrganization && !org?.isPlatform) {
       const adminAPIAccessIsEnabledInOrg = await this.organizationsRepository.fetchOrgAdminApiStatus(
         Number(organizationId)
@@ -48,14 +48,15 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
           `Organization does not have Admin API access, please contact https://cal.com/sales to upgrade`
         );
       }
-      canAccess = true;
-      await this.redisService.redis.set(
+    }
+    canAccess = true;
+    org &&
+      (await this.redisService.redis.set(
         REDIS_CACHE_KEY,
         JSON.stringify({ org: org, canAccess } satisfies CachedData),
         "EX",
         300
-      );
-    }
+      ));
     return canAccess;
   }
 }
