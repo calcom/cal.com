@@ -111,7 +111,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .post(`/v2/event-types/${eventType.id}/webhooks`)
       .send({
         subscriberUrl: "https://example.com",
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
@@ -122,7 +122,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: true,
             payloadTemplate: "string",
             eventTypeId: eventType.id,
@@ -137,7 +137,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .post(`/v2/event-types/${eventType2.id}/webhooks`)
       .send({
         subscriberUrl: "https://example.com",
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
@@ -148,7 +148,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: true,
             payloadTemplate: "string",
             eventTypeId: eventType2.id,
@@ -163,7 +163,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
       .post(`/v2/event-types/${otherEventType.id}/webhooks`)
       .send({
         subscriberUrl: "https://example.com",
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
@@ -201,7 +201,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: false,
             payloadTemplate: "string",
             eventTypeId: eventType.id,
@@ -260,7 +260,7 @@ describe("EventTypes WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: false,
             payloadTemplate: "string",
             eventTypeId: eventType.id,

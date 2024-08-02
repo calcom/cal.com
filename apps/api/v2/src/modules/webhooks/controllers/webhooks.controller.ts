@@ -10,6 +10,8 @@ import {
   UserWebhookOutputResponseDto,
   UserWebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/user-webhook.output";
+import { PartialWebhookInputPipe, WebhookInputPipe } from "@/modules/webhooks/pipes/WebhookInputPipe";
+import { WebhookOutputPipe } from "@/modules/webhooks/pipes/WebhookOutputPipe";
 import { UserWebhooksService } from "@/modules/webhooks/services/user-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import { Controller, Post, Body, UseGuards, Get, Param, Query, Delete, Patch } from "@nestjs/common";
@@ -38,8 +40,16 @@ export class WebhooksController {
     @Body() body: CreateWebhookInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<UserWebhookOutputResponseDto> {
-    const webhook = await this.userWebhooksService.createUserWebhook(user.id, body);
-    return { status: SUCCESS_STATUS, data: plainToClass(UserWebhookOutputDto, webhook) };
+    const webhook = await this.userWebhooksService.createUserWebhook(
+      user.id,
+      new WebhookInputPipe().transform(body)
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
+    };
   }
 
   @Patch("/:webhookId")
@@ -49,15 +59,26 @@ export class WebhooksController {
     @Param("webhookId") webhookId: string,
     @Body() body: Partial<CreateWebhookInputDto>
   ): Promise<UserWebhookOutputResponseDto> {
-    const webhook = await this.webhooksService.updateWebhook(webhookId, body);
-    return { status: SUCCESS_STATUS, data: plainToClass(UserWebhookOutputDto, webhook) };
+    const webhook = await this.webhooksService.updateWebhook(
+      webhookId,
+      new PartialWebhookInputPipe().transform(body)
+    );
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
+    };
   }
 
   @Get("/:webhookId")
   @ApiOperation({ summary: "Get a webhook" })
   @UseGuards(IsUserWebhookGuard)
   async getWebhook(@GetWebhook() webhook: Webhook): Promise<UserWebhookOutputResponseDto> {
-    return { status: SUCCESS_STATUS, data: plainToClass(UserWebhookOutputDto, webhook) };
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook)),
+    };
   }
 
   @Get("/")
@@ -73,7 +94,11 @@ export class WebhooksController {
     );
     return {
       status: SUCCESS_STATUS,
-      data: webhooks.map((webhook) => plainToClass(UserWebhookOutputDto, webhook)),
+      data: webhooks.map((webhook) =>
+        plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+          strategy: "excludeAll",
+        })
+      ),
     };
   }
 
@@ -82,6 +107,11 @@ export class WebhooksController {
   @UseGuards(IsUserWebhookGuard)
   async deleteWebhook(@Param("webhookId") webhookId: string): Promise<UserWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.deleteWebhook(webhookId);
-    return { status: SUCCESS_STATUS, data: plainToClass(UserWebhookOutputDto, webhook) };
+    return {
+      status: SUCCESS_STATUS,
+      data: plainToClass(UserWebhookOutputDto, new WebhookOutputPipe().transform(webhook), {
+        strategy: "excludeAll",
+      }),
+    };
   }
 }

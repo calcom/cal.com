@@ -76,7 +76,7 @@ describe("WebhooksController (e2e)", () => {
       .post("/v2/webhooks")
       .send({
         subscriberUrl: "https://example.com",
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
@@ -87,7 +87,7 @@ describe("WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: true,
             payloadTemplate: "string",
             userId: user.id,
@@ -102,7 +102,7 @@ describe("WebhooksController (e2e)", () => {
       .post("/v2/webhooks")
       .send({
         subscriberUrl: "https://example.com",
-        eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+        triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
         active: true,
         payloadTemplate: "string",
       } satisfies CreateWebhookInputDto)
@@ -131,7 +131,7 @@ describe("WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: false,
             payloadTemplate: "string",
             userId: user.id,
@@ -170,7 +170,7 @@ describe("WebhooksController (e2e)", () => {
           data: {
             id: expect.any(String),
             subscriberUrl: "https://example.com",
-            eventTriggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
+            triggers: ["BOOKING_CREATED", "BOOKING_RESCHEDULED", "BOOKING_CANCELLED"],
             active: false,
             payloadTemplate: "string",
             userId: user.id,

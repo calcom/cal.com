@@ -29,7 +29,7 @@ export class CreateWebhookInputDto {
     enum: WebhookTriggerEvents,
   })
   @IsEnum(WebhookTriggerEvents, { each: true })
-  eventTriggers!: WebhookTriggerEvents[];
+  triggers!: WebhookTriggerEvents[];
 
   @IsString()
   @IsOptional()

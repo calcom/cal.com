@@ -1,4 +1,4 @@
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { PipedInputWebhookType } from "@/modules/webhooks/pipes/WebhookInputPipe";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { ConflictException, Injectable } from "@nestjs/common";
 
@@ -6,7 +6,7 @@ import { ConflictException, Injectable } from "@nestjs/common";
 export class EventTypeWebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
-  async createEventTypeWebhook(eventTypeId: number, body: CreateWebhookInputDto) {
+  async createEventTypeWebhook(eventTypeId: number, body: PipedInputWebhookType) {
     const existingWebhook = await this.webhooksRepository.getEventTypeWebhookByUrl(
       eventTypeId,
       body.subscriberUrl

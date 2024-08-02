@@ -8565,7 +8565,7 @@
       "CreateWebhookInputDto": {
         "type": "object",
         "properties": {
-          "eventTriggers": {
+          "triggers": {
             "type": "string",
             "example": [
               "BOOKING_CREATED",
@@ -8609,7 +8609,7 @@
           }
         },
         "required": [
-          "eventTriggers",
+          "triggers",
           "subscriberUrl"
         ]
       },
@@ -8627,7 +8627,7 @@
           "id": {
             "type": "number"
           },
-          "eventTriggers": {
+          "triggers": {
             "type": "array",
             "items": {
               "type": "object"
@@ -8644,7 +8644,7 @@
           "payloadTemplate",
           "userId",
           "id",
-          "eventTriggers",
+          "triggers",
           "subscriberUrl",
           "active"
         ]
@@ -8706,7 +8706,7 @@
           "id": {
             "type": "number"
           },
-          "eventTriggers": {
+          "triggers": {
             "type": "array",
             "items": {
               "type": "object"
@@ -8723,7 +8723,7 @@
           "payloadTemplate",
           "eventTypeId",
           "id",
-          "eventTriggers",
+          "triggers",
           "subscriberUrl",
           "active"
         ]
