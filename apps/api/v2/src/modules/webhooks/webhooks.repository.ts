@@ -2,28 +2,34 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { Injectable } from "@nestjs/common";
 import { v4 as uuidv4 } from "uuid";
 
+import { Webhook } from "@calcom/prisma/client";
+
 import { PrismaWriteService } from "../prisma/prisma-write.service";
-import { CreateWebhookInputDto } from "./inputs/create-webhook.input";
+
+type WebhookInputData = Pick<
+  Webhook,
+  "payloadTemplate" | "eventTriggers" | "subscriberUrl" | "secret" | "active"
+>;
 
 @Injectable()
 export class WebhooksRepository {
   constructor(private readonly dbRead: PrismaReadService, private readonly dbWrite: PrismaWriteService) {}
 
-  async createUserWebhook(userId: number, data: CreateWebhookInputDto) {
+  async createUserWebhook(userId: number, data: WebhookInputData) {
     const id = uuidv4();
     return this.dbWrite.prisma.webhook.create({
       data: { ...data, id, userId },
     });
   }
 
-  async createEventTypeWebhook(eventTypeId: number, data: CreateWebhookInputDto) {
+  async createEventTypeWebhook(eventTypeId: number, data: WebhookInputData) {
     const id = uuidv4();
     return this.dbWrite.prisma.webhook.create({
       data: { ...data, id, eventTypeId },
     });
   }
 
-  async updateWebhook(webhookId: string, data: Partial<CreateWebhookInputDto>) {
+  async updateWebhook(webhookId: string, data: Partial<WebhookInputData>) {
     return this.dbWrite.prisma.webhook.update({
       where: { id: webhookId },
       data,

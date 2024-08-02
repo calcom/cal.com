@@ -11,7 +11,13 @@ export class UserWebhooksService {
     if (existingWebhook) {
       throw new ConflictException("Webhook with this subscriber url already exists for this user");
     }
-    return this.webhooksRepository.createUserWebhook(userId, body);
+
+    return this.webhooksRepository.createUserWebhook(userId, {
+      ...body,
+      payloadTemplate: body.payloadTemplate ?? null,
+      active: body.active ?? true,
+      secret: body.secret ?? null,
+    });
   }
 
   async getUserWebhooksPaginated(userId: number, skip: number, take: number) {

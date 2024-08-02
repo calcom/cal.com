@@ -14,7 +14,12 @@ export class EventTypeWebhooksService {
     if (existingWebhook) {
       throw new ConflictException("Webhook with this subscriber url already exists for this event type");
     }
-    return this.webhooksRepository.createEventTypeWebhook(eventTypeId, body);
+    return this.webhooksRepository.createEventTypeWebhook(eventTypeId, {
+      ...body,
+      payloadTemplate: body.payloadTemplate ?? null,
+      active: body.active ?? true,
+      secret: body.secret ?? null,
+    });
   }
 
   getEventTypeWebhooksPaginated(eventTypeId: number, skip: number, take: number) {
