@@ -9,6 +9,7 @@ import {
   WebhookOutputResponseDto,
   WebhooksOutputResponseDto,
 } from "@/modules/webhooks/outputs/webhook.output";
+import { EventTypeWebhooksService } from "@/modules/webhooks/services/event-type-webhooks.service";
 import { WebhooksService } from "@/modules/webhooks/services/webhooks.service";
 import {
   Controller,
@@ -36,7 +37,10 @@ import { SkipTakePagination } from "@calcom/platform-types";
 @UseGuards(ApiAuthGuard, IsUserEventTypeWebhookGuard)
 @ApiTags("Users' EventTypes Webhooks")
 export class EventTypeWebhooksController {
-  constructor(private readonly webhooksService: WebhooksService) {}
+  constructor(
+    private readonly webhooksService: WebhooksService,
+    private readonly eventTypeWebhooksService: EventTypeWebhooksService
+  ) {}
 
   @Post("/")
   @ApiOperation({ summary: "Create a webhook for an event-type" })
@@ -44,7 +48,7 @@ export class EventTypeWebhooksController {
     @Body() body: CreateWebhookInputDto,
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<WebhookOutputResponseDto> {
-    const webhook = await this.webhooksService.createEventTypeWebhook(eventTypeId, body);
+    const webhook = await this.eventTypeWebhooksService.createEventTypeWebhook(eventTypeId, body);
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 
@@ -70,7 +74,7 @@ export class EventTypeWebhooksController {
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number,
     @Query() pagination: SkipTakePagination
   ): Promise<WebhooksOutputResponseDto> {
-    const webhooks = await this.webhooksService.getEventTypeWebhooksPaginated(
+    const webhooks = await this.eventTypeWebhooksService.getEventTypeWebhooksPaginated(
       eventTypeId,
       pagination.skip ?? 0,
       pagination.take ?? 250
@@ -93,7 +97,7 @@ export class EventTypeWebhooksController {
   async deleteAllEventTypeWebhooks(
     @Param("eventTypeId", ParseIntPipe) eventTypeId: number
   ): Promise<DeleteManyWebhooksOutputResponseDto> {
-    const data = await this.webhooksService.deleteAllEventTypeWebhooks(eventTypeId);
+    const data = await this.eventTypeWebhooksService.deleteAllEventTypeWebhooks(eventTypeId);
     return { status: SUCCESS_STATUS, data: `${data.count} webhooks deleted` };
   }
 }

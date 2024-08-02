@@ -19,6 +19,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
 import { CreateWebhookInputDto } from "../inputs/create-webhook.input";
+import { UserWebhooksService } from "../services/user-webhooks.service";
 
 @Controller({
   path: "/v2/webhooks",
@@ -27,7 +28,10 @@ import { CreateWebhookInputDto } from "../inputs/create-webhook.input";
 @UseGuards(ApiAuthGuard)
 @ApiTags("Users' Webhooks")
 export class WebhooksController {
-  constructor(private readonly webhooksService: WebhooksService) {}
+  constructor(
+    private readonly webhooksService: WebhooksService,
+    private readonly userWebhooksService: UserWebhooksService
+  ) {}
 
   @Post("/")
   @ApiOperation({ summary: "Create a webhook" })
@@ -35,7 +39,7 @@ export class WebhooksController {
     @Body() body: CreateWebhookInputDto,
     @GetUser() user: UserWithProfile
   ): Promise<WebhookOutputResponseDto> {
-    const webhook = await this.webhooksService.createUserWebhook(user.id, body);
+    const webhook = await this.userWebhooksService.createUserWebhook(user.id, body);
     return { status: SUCCESS_STATUS, data: plainToClass(WebhookOutputDto, webhook) };
   }
 
@@ -63,7 +67,7 @@ export class WebhooksController {
     @GetUser() user: UserWithProfile,
     @Query() query: SkipTakePagination
   ): Promise<WebhooksOutputResponseDto> {
-    const webhooks = await this.webhooksService.getUserWebhooksPaginated(
+    const webhooks = await this.userWebhooksService.getUserWebhooksPaginated(
       user.id,
       query.skip ?? 0,
       query.take ?? 250
