@@ -70,7 +70,7 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
-  isOrganization,
+  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -78,7 +78,7 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
-  isOrganization: boolean;
+  isInfiniteScrollEnabled: boolean;
 }) {
   const utils = trpc.useUtils();
   const { t } = useLocale();
@@ -118,7 +118,11 @@ export default function CreateEventTypeDialog({
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
-      await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate();
+      if (isInfiniteScrollEnabled) {
+        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate();
+      } else {
+        await utils.viewer.eventTypes.getByViewer.invalidate();
+      }
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
       showToast(
         t("event_type_created_successfully", {

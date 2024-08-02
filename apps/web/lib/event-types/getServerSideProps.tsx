@@ -9,10 +9,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   const ssr = await ssrInit(context);
   const session = await getServerSession({ req: context.req, res: context.res });
 
-  const isInfiniteScrollEnabled = session?.user?.org?.slug
-    ? ENABLE_INFINITE_EVENT_TYPES_FOR_ORG.includes(session.user.org.slug)
-    : false;
-
   if (!session) {
     return {
       redirect: {
@@ -21,6 +17,10 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       },
     };
   }
+
+  const isInfiniteScrollEnabled = session.user.org?.slug
+    ? ENABLE_INFINITE_EVENT_TYPES_FOR_ORG.includes(session.user.org.slug)
+    : false;
 
   return { props: { trpcState: ssr.dehydrate(), isInfiniteScrollEnabled } };
 };

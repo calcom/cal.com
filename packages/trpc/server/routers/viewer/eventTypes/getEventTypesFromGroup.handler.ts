@@ -4,7 +4,6 @@ import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
-import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
@@ -127,21 +126,18 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
   });
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
-
-  const filteredEventTypes = mappedEventTypes
-    .filter((eventType) => {
-      const isAChildEvent = eventType.parentId;
-      if (!isAChildEvent) {
-        return true;
-      }
-      // A child event only has one user
-      const childEventAssignee = eventType.users[0];
-      if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
-        return false;
-      }
+  const filteredEventTypes = mappedEventTypes.filter((eventType) => {
+    const isAChildEvent = eventType.parentId;
+    if (!isAChildEvent) {
       return true;
-    })
-    .filter((evType) => evType.schedulingType !== SchedulingType.MANAGED);
+    }
+    // A child event only has one user
+    const childEventAssignee = eventType.users[0];
+    if (!childEventAssignee || childEventAssignee.id != ctx.user.id) {
+      return false;
+    }
+    return true;
+  });
 
   return {
     eventTypes: filteredEventTypes || [],
