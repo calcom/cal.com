@@ -30,7 +30,7 @@ class LicenseKeyService implements ILicenseKeyService {
   // Static async factory method
   public static async create(): Promise<ILicenseKeyService> {
     const licenseKey = await getDeploymentKey(prisma);
-    const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E;
+    const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
     return !useNoop ? new LicenseKeyService(licenseKey) : new NoopLicenseKeyService();
   }
 
