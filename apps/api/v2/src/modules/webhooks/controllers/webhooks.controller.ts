@@ -4,7 +4,7 @@ import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsUserWebhookGuard } from "@/modules/webhooks/guards/is-user-webhook-guard";
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   UserWebhookOutputDto,
   UserWebhookOutputResponseDto,
@@ -57,7 +57,7 @@ export class WebhooksController {
   @UseGuards(IsUserWebhookGuard)
   async updateWebhook(
     @Param("webhookId") webhookId: string,
-    @Body() body: Partial<CreateWebhookInputDto>
+    @Body() body: UpdateWebhookInputDto
   ): Promise<UserWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.updateWebhook(
       webhookId,

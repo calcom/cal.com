@@ -4,7 +4,7 @@ import { PrismaModule } from "@/modules/prisma/prisma.module";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   UserWebhookOutputResponseDto,
   UserWebhooksOutputResponseDto,
@@ -114,7 +114,7 @@ describe("WebhooksController (e2e)", () => {
       .patch(`/v2/webhooks/${webhook.id}`)
       .send({
         active: false,
-      } satisfies Partial<CreateWebhookInputDto>)
+      } satisfies UpdateWebhookInputDto)
       .expect(200)
       .then((res) => {
         expect(res.body.data.active).toBe(false);

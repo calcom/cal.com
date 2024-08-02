@@ -1,4 +1,4 @@
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { WebhooksRepository } from "@/modules/webhooks/webhooks.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
@@ -6,7 +6,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 export class WebhooksService {
   constructor(private readonly webhooksRepository: WebhooksRepository) {}
 
-  async updateWebhook(webhookId: string, body: Partial<CreateWebhookInputDto>) {
+  async updateWebhook(webhookId: string, body: UpdateWebhookInputDto) {
     return this.webhooksRepository.updateWebhook(webhookId, body);
   }
 

@@ -1,4 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, PartialType } from "@nestjs/swagger";
 import { WebhookTriggerEvents } from "@prisma/client";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString } from "class-validator";
 
@@ -35,3 +35,5 @@ export class CreateWebhookInputDto {
   @IsOptional()
   secret?: string;
 }
+
+export class UpdateWebhookInputDto extends PartialType(CreateWebhookInputDto) {}

@@ -1,4 +1,4 @@
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import { PipeTransform, Injectable } from "@nestjs/common";
 
 @Injectable()
@@ -13,7 +13,7 @@ export class WebhookInputPipe implements PipeTransform {
 
 @Injectable()
 export class PartialWebhookInputPipe implements PipeTransform {
-  transform(value: Partial<CreateWebhookInputDto>) {
+  transform(value: UpdateWebhookInputDto) {
     if (value.triggers) {
       const { triggers, ...rest } = value;
       const eventTriggers = triggers;

@@ -2,7 +2,7 @@ import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
 import { GetWebhook } from "@/modules/webhooks/decorators/get-webhook-decorator";
 import { IsUserEventTypeWebhookGuard } from "@/modules/webhooks/guards/is-user-event-type-webhook-guard";
-import { CreateWebhookInputDto } from "@/modules/webhooks/inputs/create-webhook.input";
+import { CreateWebhookInputDto, UpdateWebhookInputDto } from "@/modules/webhooks/inputs/webhook.input";
 import {
   EventTypeWebhookOutputResponseDto,
   EventTypeWebhookOutputDto,
@@ -65,7 +65,7 @@ export class EventTypeWebhooksController {
   @Patch("/:webhookId")
   @ApiOperation({ summary: "Update a webhook of an event-type" })
   async updateEventTypeWebhook(
-    @Body() body: Partial<CreateWebhookInputDto>,
+    @Body() body: UpdateWebhookInputDto,
     @Param("webhookId") webhookId: string
   ): Promise<EventTypeWebhookOutputResponseDto> {
     const webhook = await this.webhooksService.updateWebhook(
