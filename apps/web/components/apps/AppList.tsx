@@ -48,6 +48,7 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
     onSuccess: () => {
       showToast("Default app updated successfully", "success");
       utils.viewer.getUsersDefaultConferencingApp.invalidate();
+      setBulkUpdateModal(true);
     },
     onError: (error) => {
       showToast(`Error: ${error.message}`, "error");
@@ -98,7 +99,6 @@ export const AppList = ({ data, handleDisconnect, variant, listClassName }: AppL
                             updateDefaultAppMutation.mutate({
                               appSlug,
                             });
-                            setBulkUpdateModal(true);
                           }
                         }}>
                         {t("set_as_default")}
