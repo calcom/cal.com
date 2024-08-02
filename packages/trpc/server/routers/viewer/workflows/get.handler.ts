@@ -23,12 +23,14 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       name: true,
       userId: true,
       teamId: true,
+      isActiveOnAll: true,
       team: {
         select: {
           id: true,
           slug: true,
           members: true,
           name: true,
+          isOrganization: true,
         },
       },
       time: true,
@@ -36,6 +38,11 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       activeOn: {
         select: {
           eventType: true,
+        },
+      },
+      activeOnTeams: {
+        select: {
+          team: true,
         },
       },
       trigger: true,
@@ -47,7 +54,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     },
   });
 
-  const isUserAuthorized = await isAuthorized(workflow, prisma, ctx.user.id);
+  const isUserAuthorized = await isAuthorized(workflow, ctx.user.id);
 
   if (!isUserAuthorized) {
     throw new TRPCError({

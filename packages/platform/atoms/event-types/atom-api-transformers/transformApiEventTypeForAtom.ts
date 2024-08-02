@@ -7,7 +7,7 @@ import {
   transformApiEventTypeBookingFields,
 } from "@calcom/lib/event-types/transformers";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import type { EventTypeOutput_2024_06_14 } from "@calcom/platform-types";
+import type { EventTypeOutput_2024_06_14, TeamEventTypeOutput_2024_06_14 } from "@calcom/platform-types";
 import {
   bookerLayoutOptions,
   BookerLayouts,
@@ -86,6 +86,91 @@ export function transformApiEventTypeForAtom(
         organizationId: null,
         userId: user.id,
         upId: `usr-${user.id}`,
+      },
+    })),
+  };
+}
+
+export function transformApiTeamEventTypeForAtom(
+  eventType: TeamEventTypeOutput_2024_06_14,
+  entity: BookerProps["entity"] | undefined
+) {
+  const { lengthInMinutes, locations, hosts, bookingFields, ...rest } = eventType;
+
+  const isDefault = isDefaultEvent(rest.title);
+
+  const defaultEventBookerLayouts = {
+    enabledLayouts: [...bookerLayoutOptions],
+    defaultLayout: BookerLayouts.MONTH_VIEW,
+  };
+  const firstUsersMetadata = userMetadataSchema.parse({});
+  const bookerLayouts = bookerLayoutsSchema.parse(
+    firstUsersMetadata?.defaultBookerLayouts || defaultEventBookerLayouts
+  );
+
+  return {
+    ...rest,
+    length: lengthInMinutes,
+    locations: getLocations(locations),
+    bookingFields: getBookingFields(bookingFields),
+    isDefault,
+    isDynamic: false,
+    profile: {
+      username: "team",
+      name: "team",
+      weekStart: "Sunday",
+      image: "",
+      brandColor: null,
+      darkBrandColor: null,
+      theme: null,
+      bookerLayouts,
+    },
+    entity: entity
+      ? {
+          ...entity,
+          orgSlug: entity.orgSlug || null,
+          teamSlug: entity.teamSlug || null,
+          fromRedirectOfNonOrgLink: true,
+          name: entity.name || null,
+          logoUrl: entity.logoUrl || undefined,
+        }
+      : {
+          fromRedirectOfNonOrgLink: true,
+          considerUnpublished: false,
+          orgSlug: null,
+          teamSlug: null,
+          name: null,
+          logoUrl: undefined,
+        },
+    hosts: hosts.map((host) => ({
+      user: {
+        id: host.userId,
+        avatarUrl: null,
+        name: host.name,
+        username: "",
+        metadata: {},
+        darkBrandColor: null,
+        brandColor: null,
+        theme: null,
+        weekStart: "Sunday",
+      },
+    })),
+    users: hosts.map((host) => ({
+      metadata: undefined,
+      bookerUrl: getBookerBaseUrlSync(null),
+      profile: {
+        username: "",
+        name: host.name,
+        weekStart: "Sunday",
+        image: "",
+        brandColor: null,
+        darkBrandColor: null,
+        theme: null,
+        organization: null,
+        id: host.userId,
+        organizationId: null,
+        userId: host.userId,
+        upId: `usr-${host.userId}`,
       },
     })),
   };

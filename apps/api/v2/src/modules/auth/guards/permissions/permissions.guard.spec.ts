@@ -14,7 +14,20 @@ describe("PermissionsGuard", () => {
 
   beforeEach(async () => {
     reflector = new Reflector();
-    guard = new PermissionsGuard(reflector, createMock<TokensRepository>(), createMock<ConfigService>());
+    guard = new PermissionsGuard(
+      reflector,
+      createMock<TokensRepository>(),
+      createMock<ConfigService>({
+        get: jest.fn().mockImplementation((key: string) => {
+          switch (key) {
+            case "api.apiKeyPrefix":
+              return "cal_";
+            default:
+              return null;
+          }
+        }),
+      })
+    );
   });
 
   it("should be defined", () => {

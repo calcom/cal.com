@@ -96,6 +96,7 @@ const commons = {
   hidden: false,
   userId: 0,
   parentId: null,
+  parent: null,
   owner: null,
   workflows: [],
   users: [user],
@@ -167,3 +168,5 @@ export const getUsernameList = (users: string | string[] | undefined): string[] 
 };
 
 export default defaultEvents;
+
+export type AwaitedGetDefaultEvent = Awaited<ReturnType<typeof getDefaultEvent>>;
