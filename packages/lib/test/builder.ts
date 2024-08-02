@@ -115,7 +115,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingLimits: null,
     durationLimits: null,
     assignAllTeamMembers: false,
-    rescheduleWithSameRoundRobinHost: null,
+    rescheduleWithSameRoundRobinHost: false,
     price: 0,
     currency: "usd",
     slotInterval: null,

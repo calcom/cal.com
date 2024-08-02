@@ -330,7 +330,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
-      rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost || null,
+      rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
