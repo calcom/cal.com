@@ -38,12 +38,12 @@ export class IsAdminAPIEnabledGuard implements CanActivate {
     }
 
     const org = await this.organizationsRepository.findById(Number(organizationId));
-
-    if (org?.isOrganization) {
+    if (org?.isPlatform) canAccess = true;
+    if (org?.isOrganization && !org?.isPlatform) {
       const adminAPIAccessIsEnabledInOrg = await this.organizationsRepository.fetchOrgAdminApiStatus(
         Number(organizationId)
       );
-      if (!adminAPIAccessIsEnabledInOrg && !org?.isPlatform) {
+      if (!adminAPIAccessIsEnabledInOrg) {
         throw new ForbiddenException(
           `Organization does not have Admin API access, please contact https://cal.com/sales to upgrade`
         );
