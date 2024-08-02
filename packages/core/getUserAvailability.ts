@@ -439,11 +439,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       outOfOffice: datesOutOfOffice,
     });
 
-    // Remove the busy times from whole day date range.
     const wholeDayDateRangeExcludingBusyTimes = subtract(wholeDayDateRange, formattedBusyTimes);
 
     if (wholeDayDateRangeExcludingBusyTimes.length > 0) {
-      // Get the first available slot of the day.
       const firstSlotDateRange = {
         start: wholeDayDateRangeExcludingBusyTimes[0].start,
         end: dayjs(wholeDayDateRangeExcludingBusyTimes[0].start).add(
@@ -462,7 +460,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
         }
       );
     } else {
-      // If no first slot is present then it can be assumed that the user is not available.
       dateRangesInWhichUserIsAvailable = [];
       dateRangesInWhichUserIsAvailableWithoutOOO = [];
     }
