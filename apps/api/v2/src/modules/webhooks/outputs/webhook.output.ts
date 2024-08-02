@@ -10,16 +10,6 @@ export class WebhookOutputDto {
   @Expose()
   readonly id!: number;
 
-  @IsInt()
-  @Expose()
-  @IsOptional()
-  readonly teamId?: number;
-
-  @IsInt()
-  @IsOptional()
-  @Expose()
-  readonly eventTypeId?: number;
-
   @IsString()
   @Expose()
   readonly payloadTemplate!: string;
