@@ -548,37 +548,19 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="mt-3 font-medium">{t("where")}</div>
                             <div className="col-span-2 mt-3" data-testid="where">
-                              {!needsConfirmation ? (
-                                <>
-                                  {!rescheduleLocation ||
-                                  locationToDisplay === rescheduleLocationToDisplay ? (
-                                    <DisplayLocation
-                                      locationToDisplay={locationToDisplay}
-                                      providerName={providerName}
-                                    />
-                                  ) : (
-                                    <>
-                                      {!!formerTime && (
-                                        <DisplayLocation
-                                          locationToDisplay={locationToDisplay}
-                                          providerName={providerName}
-                                          className="line-through"
-                                        />
-                                      )}
-                                      <DisplayLocation
-                                        locationToDisplay={rescheduleLocationToDisplay}
-                                        providerName={rescheduleProviderName}
-                                      />
-                                    </>
-                                  )}
-                                </>
-                              ) : (
-                                <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />
-                              )}
+                              <LocationToDisplay
+                                needsConfirmation={needsConfirmation}
+                                unconfirmedBookingLocationMessage={unconfirmedBookingLocationMessage}
+                                locationToDisplay={locationToDisplay}
+                                providerName={providerName}
+                                formerTime={formerTime}
+                                rescheduleLocation={rescheduleLocation}
+                                rescheduleLocationToDisplay={rescheduleLocationToDisplay}
+                                rescheduleProviderName={rescheduleProviderName}
+                              />
                             </div>
                           </>
                         )}
-
                         {props.paymentStatus && (
                           <>
                             <div className="mt-3 font-medium">
@@ -1051,6 +1033,55 @@ const DisplayLocation = ({
 
 Success.isBookingPage = true;
 Success.PageWrapper = PageWrapper;
+
+type LocationToDisplayProps = {
+  locationToDisplay: string;
+  needsConfirmation: boolean;
+  unconfirmedBookingLocationMessage: string;
+  providerName: string | undefined;
+  formerTime: string | undefined;
+  rescheduleLocation: string | undefined;
+  rescheduleLocationToDisplay: string;
+  rescheduleProviderName: string | undefined;
+};
+
+const LocationToDisplay = ({
+  locationToDisplay,
+  needsConfirmation,
+  unconfirmedBookingLocationMessage,
+  providerName,
+  formerTime,
+  rescheduleLocation,
+  rescheduleLocationToDisplay,
+  rescheduleProviderName,
+}: LocationToDisplayProps) => {
+  if (needsConfirmation) {
+    return <DisplayLocation locationToDisplay={unconfirmedBookingLocationMessage} />;
+  }
+
+  return (
+    <>
+      {!rescheduleLocation || locationToDisplay === rescheduleLocationToDisplay ? (
+        <DisplayLocation locationToDisplay={locationToDisplay} providerName={providerName} />
+      ) : (
+        <>
+          {!!formerTime && (
+            <DisplayLocation
+              locationToDisplay={locationToDisplay}
+              providerName={providerName}
+              className="line-through"
+            />
+          )}
+
+          <DisplayLocation
+            locationToDisplay={rescheduleLocationToDisplay}
+            providerName={rescheduleProviderName}
+          />
+        </>
+      )}
+    </>
+  );
+};
 
 type RecurringBookingsProps = {
   eventType: PageProps["eventType"];

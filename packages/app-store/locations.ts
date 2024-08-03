@@ -401,8 +401,11 @@ export function getSuccessPageLocationMessage(
   t: TFunction,
   bookingStatus?: BookingStatus
 ) {
+  // The guessEventLocationType function provides more context here than getEventLocationType, as it allows passing both the location value and type to extract the location.
   const eventLocationType = guessEventLocationType(location);
   let locationToDisplay = location;
+
+  // This block checks for both dynamic and static link-type locations. We don't want to show both typeof links when the meeting is not confirmed.
   if (eventLocationType && !eventLocationType.default) {
     const isConfirmed = bookingStatus === BookingStatus.ACCEPTED;
 
