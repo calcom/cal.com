@@ -60,8 +60,6 @@ const CreateOutOfOfficeEntryModal = ({
     endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
   });
 
-  console.log("dateRange", dateRange);
-
   const { hasTeamPlan } = useHasTeamPlan();
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
