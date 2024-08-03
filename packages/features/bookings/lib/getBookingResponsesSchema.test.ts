@@ -1020,7 +1020,7 @@ describe("validate url type field", () => {
     const parsedResponses = await schema.safeParseAsync({
       email: "test@test.com",
       name: "test",
-      url: "https://8x8.vc/company",
+      url: "www.example.com",
     });
     expect(parsedResponses.success).toBe(false);
     if (parsedResponses.success) {
