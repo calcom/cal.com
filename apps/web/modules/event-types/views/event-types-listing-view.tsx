@@ -952,10 +952,6 @@ export const InfiniteEventTypeList = ({
         showToast(err.message, "error");
       }
     },
-    onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
-      utils.viewer.eventTypes.invalidate();
-    },
   });
 
   const [isNativeShare, setNativeShare] = useState(true);
@@ -1581,8 +1577,6 @@ const InfiniteScrollMain = ({
     href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
     avatar: item.profile.image,
   }));
-
-  console.log("tabs", tabs);
 
   const activeEventTypeGroup =
     eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
