@@ -515,9 +515,6 @@ export const Components: Record<FieldType, Component> = {
   url: {
     propsType: propsTypes.url,
     factory: (props) => {
-      if (!props) {
-        return <div />;
-      }
       return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
     },
   },

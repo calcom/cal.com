@@ -369,6 +369,22 @@ export const fieldTypesSchemaMap: Partial<
       }
     },
   },
+  url: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m }) => {
+      const value = response ?? "";
+      const urlSchema = z.string().url();
+
+      if (!urlSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("url_validation_error"),
+        });
+      }
+    },
+  },
 };
 
 /**
