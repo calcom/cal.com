@@ -57,7 +57,7 @@ export const EventTypeDescription = ({
           {!!eventType.managedBy?.teamId ? (
             <Link
               href={`/settings/teams/${eventType.managedBy?.teamId}/members`}
-              className=" text-blue-300 underline">
+              className="text-blue-500 underline  hover:text-blue-600 focus:outline-none">
               {`${numberOfAdmins - 2} ${t("more")}`}
             </Link>
           ) : (
