@@ -11,6 +11,7 @@ export async function getHandler(req: NextApiRequest) {
   const session = checkSession(req);
   const slug = appConfig.slug;
   const appType = appConfig.type;
+  const returnTo = req.query?.returnTo;
 
   await checkInstalled(slug, session.user.id);
   await createDefaultInstallation({
@@ -20,7 +21,7 @@ export async function getHandler(req: NextApiRequest) {
     key: {},
   });
 
-  return { url: getInstalledAppPath({ variant: "conferencing", slug: "whereby" }) };
+  return { url: returnTo ?? getInstalledAppPath({ variant: "conferencing", slug: "whereby" }) };
 }
 
 export default defaultResponder(getHandler);

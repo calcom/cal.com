@@ -62,5 +62,6 @@ export const ZGetMeetingTokenResponseSchema = z
   .object({
     room_name: z.string(),
     exp: z.number(),
+    enable_recording_ui: z.boolean().optional(),
   })
   .passthrough();
