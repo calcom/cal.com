@@ -55,6 +55,13 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
   }
 
   if (userId) {
+    const user = await prisma.user.findUnique({ where: { id: userId, profiles: { none: {} } } });
+    if (user?.isSMSLockStateReviewedBefore)
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Re-review is not allowed",
+      });
+
     await prisma.user.update({
       where: {
         id: userId,
@@ -65,6 +72,15 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
       },
     });
   } else {
+    const team = await prisma.team.findUnique({
+      where: { id: teamId, parentId: null, isOrganization: false },
+    });
+    if (team?.isSMSLockStateReviewedBefore)
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "Re-review is not allowed",
+      });
+
     await prisma.team.update({
       where: {
         id: teamId,
