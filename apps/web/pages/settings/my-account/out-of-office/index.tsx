@@ -56,9 +56,11 @@ const CreateOutOfOfficeEntryModal = ({
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
   const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: dayjs().startOf("d").toDate(),
-    endDate: dayjs().add(1, "d").endOf("d").toDate(),
+    startDate: dayjs().utc().startOf("d").toDate(),
+    endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
   });
+
+  console.log("dateRange", dateRange);
 
   const { hasTeamPlan } = useHasTeamPlan();
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
@@ -386,7 +388,7 @@ const OutOfOfficePage = () => {
         borderInShellHeader={false}
         CTA={
           <Button
-            disabled={isPending}
+            loading={isPending}
             color="primary"
             className="flex w-20 items-center justify-between px-4"
             onClick={() => setOpenModal(true)}
