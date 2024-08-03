@@ -95,7 +95,7 @@ export const UserForm = ({
       },
       timeZone: defaultValues?.timeZone || "",
       weekStart: {
-        value: defaultValues?.weekStart || weekStartOptions[0].value,
+        value: defaultValues?.weekStart || weekStartOptions[1].value,
         label: nameOfDay(localeProp, defaultValues?.weekStart === "Sunday" ? 0 : 1),
       },
       role: {
