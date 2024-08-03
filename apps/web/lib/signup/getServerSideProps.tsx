@@ -25,7 +25,7 @@ const querySchema = z.object({
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   const prisma = await import("@calcom/prisma").then((mod) => mod.default);
   const emailVerificationEnabled = await getFeatureFlag(prisma, "email-verification");
-  await ssrInit(ctx);
+  const ssr = await ssrInit(ctx);
   const signupDisabled = await getFeatureFlag(prisma, "disable-signup");
 
   const token = z.string().optional().parse(ctx.query.token);
@@ -63,15 +63,18 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   // no token given, treat as a normal signup without verification token
   if (!token) {
     return {
-      props: JSON.parse(
-        JSON.stringify({
-          ...props,
-          prepopulateFormValues: {
-            username: preFillusername || null,
-            email: prefilEmail || null,
-          },
-        })
-      ),
+      props: {
+        trpcState: ssr.dehydrate(),
+        ...JSON.parse(
+          JSON.stringify({
+            ...props,
+            prepopulateFormValues: {
+              username: preFillusername || null,
+              email: prefilEmail || null,
+            },
+          })
+        ),
+      },
     };
   }
 
@@ -186,6 +189,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       orgAutoAcceptEmail: isOrgInviteByLink
         ? tokenTeam?.organizationSettings?.orgAutoAcceptEmail ?? parentOrgSettings?.orgAutoAcceptEmail ?? null
         : null,
+      trpcState: ssr.dehydrate(),
     },
   };
 };
