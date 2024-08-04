@@ -276,13 +276,23 @@ async function postHandler(req: NextApiRequest) {
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
 
-  let data: Prisma.EventTypeCreateArgs["data"] = {
-    ...parsedBody,
-    userId,
-    users: { connect: { id: userId } },
-    bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
-    durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
-  };
+  let data: Prisma.EventTypeCreateArgs["data"];
+  if (!!parsedBody.teamId) {
+    const { userId, ...rest } = parsedBody;
+    data = {
+      ...rest,
+      bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
+      durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    };
+  } else {
+    data = {
+      ...parsedBody,
+      userId,
+      users: { connect: { id: userId } },
+      bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
+      durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
+    };
+  }
 
   await checkPermissions(req);
 
@@ -291,7 +301,7 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && parsedBody.userId) {
+  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
     data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
   }
 
