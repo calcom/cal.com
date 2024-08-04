@@ -32,9 +32,13 @@ const querySchema = z.object({
   id: z.coerce.number(),
   length: z.coerce.number(),
   pageSlug: z.string(),
+  teamId: z.coerce.number().optional().nullable(),
+  parentId: z.coerce.number().optional().nullable(),
 });
 
 const DuplicateDialog = () => {
+  const utils = trpc.useUtils();
+
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
   const router = useRouter();
@@ -68,7 +72,41 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
+      console.log("eventType", eventType);
+
+      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: 10,
+        group: { teamId: defaultValues?.teamId ?? null, parentId: defaultValues?.parentId ?? null },
+      });
+      if (previousValue) {
+        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          {
+            limit: 10,
+            group: { teamId: defaultValues?.teamId ?? null, parentId: defaultValues?.parentId ?? null },
+          },
+          (data) => {
+            if (!data) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
+            }
+
+            const updatedData = { ...data };
+            const pages = updatedData.pages;
+
+            if (pages.length > 0) {
+              pages[pages.length - 1].eventTypes.push(eventType);
+            }
+
+            return updatedData;
+          }
+        );
+      }
+
       await router.replace(`/event-types/${eventType.id}`);
+
       showToast(
         t("event_type_created_successfully", {
           eventTypeTitle: eventType.title,

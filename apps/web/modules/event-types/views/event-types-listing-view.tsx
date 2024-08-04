@@ -386,6 +386,8 @@ export const EventTypeList = ({
     setParamsIfDefined("id", eventType.id);
     setParamsIfDefined("length", eventType.length);
     setParamsIfDefined("pageSlug", group.profile.slug);
+    setParamsIfDefined("teamId", eventType.teamId);
+    setParamsIfDefined("parentId", eventType.parentId);
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
