@@ -1,14 +1,12 @@
 import { hasFilter } from "@calcom/features/filters/lib/hasFilter";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
-import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { mapEventType } from "./util";
 
 type GetByViewerOptions = {
   ctx: {
@@ -98,33 +96,6 @@ export const getEventTypesFromGroup = async ({ ctx, input }: GetByViewerOptions)
     const nextItem = eventTypes.pop();
     nextCursor = nextItem?.id;
   }
-
-  const mapEventType = async (eventType: EventType) => ({
-    ...eventType,
-    safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
-    users: await Promise.all(
-      (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
-        async (u) =>
-          await UserRepository.enrichUserWithItsProfile({
-            user: u,
-          })
-      )
-    ),
-    metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
-    children: await Promise.all(
-      (eventType.children || []).map(async (c) => ({
-        ...c,
-        users: await Promise.all(
-          c.users.map(
-            async (u) =>
-              await UserRepository.enrichUserWithItsProfile({
-                user: u,
-              })
-          )
-        ),
-      }))
-    ),
-  });
 
   const mappedEventTypes = await Promise.all(eventTypes.map(mapEventType));
 

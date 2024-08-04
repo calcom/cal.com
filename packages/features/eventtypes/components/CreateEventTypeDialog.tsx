@@ -120,16 +120,45 @@ export default function CreateEventTypeDialog({
 
   const createMutation = trpc.viewer.eventTypes.create.useMutation({
     onSuccess: async ({ eventType }) => {
-      await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
-
       if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+        await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+        const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
           limit: 10,
-          group: { teamId: null, parendId: null },
+          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
         });
+
+        if (previousValue) {
+          utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+            {
+              limit: 10,
+              group: {
+                teamId: eventType?.teamId ?? null,
+                parentId: eventType?.parentId ?? null,
+              },
+            },
+            (data) => {
+              if (!data) {
+                return {
+                  pages: [],
+                  pageParams: [],
+                };
+              }
+              return {
+                ...data,
+                pages: data.pages.map((page) => ({
+                  ...page,
+                  eventTypes: [...page.eventTypes, eventType],
+                })),
+              };
+            }
+          );
+        }
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();
       }
+
+      await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
+
       showToast(
         t("event_type_created_successfully", {
           eventTypeTitle: eventType.title,

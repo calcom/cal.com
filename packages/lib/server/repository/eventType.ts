@@ -89,9 +89,23 @@ export class EventTypeRepository {
     };
   };
 
-  static async create(data: IEventType) {
+  static async create(data: IEventType, include?: Prisma.EventTypeCreateIncludeInput) {
     return await prisma.eventType.create({
       data: this.generateCreateEventTypeData(data),
+      include: {
+        users: { select: userSelect },
+        children: {
+          include: {
+            users: { select: userSelect },
+          },
+        },
+        hosts: {
+          include: {
+            user: { select: userSelect },
+          },
+        },
+        ...include,
+      },
     });
   }
 

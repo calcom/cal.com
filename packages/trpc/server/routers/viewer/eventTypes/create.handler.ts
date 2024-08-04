@@ -11,6 +11,7 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import type { TCreateInputSchema } from "./create.schema";
+import { mapEventType } from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -108,7 +109,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       ...data,
       profileId: profile.id,
     });
-    return { eventType };
+    return { eventType: await mapEventType(eventType) };
   } catch (e) {
     console.warn(e);
     if (e instanceof PrismaClientKnownRequestError) {
