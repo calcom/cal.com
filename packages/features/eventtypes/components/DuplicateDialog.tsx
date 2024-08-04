@@ -75,6 +75,7 @@ const DuplicateDialog = ({ isInfiniteScrollEnabled = true }: { isInfiniteScrollE
       await router.replace(`/event-types/${eventType.id}`);
 
       if (isInfiniteScrollEnabled) {
+        await utils.viewer.eventTypes.getUserEventGroups.invalidate();
         await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
           limit: 10,
           group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
