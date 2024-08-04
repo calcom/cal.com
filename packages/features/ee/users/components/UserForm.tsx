@@ -95,8 +95,10 @@ export const UserForm = ({
       },
       timeZone: defaultValues?.timeZone || "",
       weekStart: {
-        value: defaultValues?.weekStart || weekStartOptions[1].value,
-        label: nameOfDay(localeProp, defaultValues?.weekStart === "Sunday" ? 0 : 1),
+        value: defaultValues?.weekStart || weekStartOptions[0].value,
+        label:
+          weekStartOptions.find((option) => option.value === defaultValues?.weekStart)?.label ||
+          weekStartOptions[0].label,
       },
       role: {
         value: defaultValues?.role || userRoleOptions[0].value,
