@@ -36,7 +36,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = () => {
+const DuplicateDialog = ({ isInfiniteScrollEnabled = true }: { isInfiniteScrollEnabled?: boolean }) => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();
@@ -72,44 +72,16 @@ const DuplicateDialog = () => {
 
   const duplicateMutation = trpc.viewer.eventTypes.duplicate.useMutation({
     onSuccess: async ({ eventType }) => {
-      console.log("eventType", eventType);
-
-      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
-        limit: 10,
-        group: { teamId: defaultValues?.teamId ?? null, parentId: defaultValues?.parentId ?? null },
-      });
-      if (previousValue) {
-        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-          {
-            limit: 10,
-            group: { teamId: defaultValues?.teamId ?? null, parentId: defaultValues?.parentId ?? null },
-          },
-          (data) => {
-            if (!data) {
-              return {
-                pages: [],
-                pageParams: [],
-              };
-            }
-
-            return {
-              ...data,
-              pages: data.pages.map((page, index) => {
-                if (index === data.pages.length - 1) {
-                  return {
-                    ...page,
-                    eventTypes: [...page.eventTypes, eventType],
-                  };
-                }
-                return page;
-              }),
-            };
-          }
-        );
-      }
-
       await router.replace(`/event-types/${eventType.id}`);
+
+      if (isInfiniteScrollEnabled) {
+        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
+          limit: 10,
+          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
+        });
+      } else {
+        await utils.viewer.eventTypes.getByViewer.invalidate();
+      }
 
       showToast(
         t("event_type_created_successfully", {

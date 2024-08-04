@@ -166,7 +166,7 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
       group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
     },
     {
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
       staleTime: 1 * 60 * 60 * 1000,
       getNextPageParam: (lastPage) => lastPage.nextCursor,
     }
@@ -1593,7 +1593,7 @@ const InfiniteScrollMain = ({
       )}
       {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
       <EventTypeEmbedDialog />
-      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog />}
+      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog isInfiniteScrollEnabled />}
     </>
   );
 };

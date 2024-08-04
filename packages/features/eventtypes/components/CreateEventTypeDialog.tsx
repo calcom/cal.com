@@ -123,44 +123,10 @@ export default function CreateEventTypeDialog({
       await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
 
       if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
-        const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
           limit: 10,
           group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
         });
-
-        if (previousValue) {
-          utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
-            {
-              limit: 10,
-              group: {
-                teamId: eventType?.teamId ?? null,
-                parentId: eventType?.parentId ?? null,
-              },
-            },
-            (data) => {
-              if (!data) {
-                return {
-                  pages: [],
-                  pageParams: [],
-                };
-              }
-
-              return {
-                ...data,
-                pages: data.pages.map((page, index) => {
-                  if (index === data.pages.length - 1) {
-                    return {
-                      ...page,
-                      eventTypes: [...page.eventTypes, eventType],
-                    };
-                  }
-                  return page;
-                }),
-              };
-            }
-          );
-        }
       } else {
         await utils.viewer.eventTypes.getByViewer.invalidate();
       }

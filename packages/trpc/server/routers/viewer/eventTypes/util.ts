@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
