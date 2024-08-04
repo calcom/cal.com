@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { _BookingModel as Booking, _AttendeeModel, _UserModel, _PaymentModel } from "@calcom/prisma/zod";
+import { _AttendeeModel, _BookingModel as Booking, _PaymentModel, _UserModel } from "@calcom/prisma/zod";
 import { extendedBookingCreateBody, iso8601 } from "@calcom/prisma/zod-utils";
 
 import { schemaQueryUserId } from "./shared/queryUserId";
@@ -23,6 +23,7 @@ export const schemaBookingGetParams = z.object({
   dateTo: iso8601.optional(),
   order: z.enum(["asc", "desc"]).default("asc"),
   sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
+  upcoming: z.enum(["true", "false"]).optional(),
 });
 
 const schemaBookingEditParams = z

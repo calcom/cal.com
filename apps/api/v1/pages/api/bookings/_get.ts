@@ -63,6 +63,13 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         schema:
  *          type: string
  *          enum: [createdAt, updatedAt]
+ *       - in: query
+ *         name: upcoming
+ *         required: false
+ *         schema:
+ *          type: string
+ *          enum: [true, false]
+ *          description: Filter for upcoming bookings only
  *     operationId: listBookings
  *     tags:
  *     - bookings
@@ -130,6 +137,7 @@ type GetAdminArgsType = {
   requestedUserIds: number[];
   userId: number;
 };
+
 /**
  * Constructs the WHERE clause for Prisma booking findMany operation.
  *
@@ -137,6 +145,7 @@ type GetAdminArgsType = {
  * @param attendeeEmails - An array of emails provided in the request for filtering bookings by attendee emails, used in case of Admin calls.
  * @param userIds - An array of user IDs to be included in the filter. Defaults to an empty array, and an array of user IDs in case of Admin call containing it.
  * @param userEmails - An array of user emails to be included in the filter if it is an Admin call and contains userId in query parameter. Defaults to an empty array.
+ * @param upcomingOnly - A boolean flag to filter only upcoming bookings.
  *
  * @returns An object that represents the WHERE clause for the findMany/findUnique operation.
  */
@@ -144,11 +153,14 @@ function buildWhereClause(
   userId: number | null,
   attendeeEmails: string[],
   userIds: number[] = [],
-  userEmails: string[] = []
+  userEmails: string[] = [],
+  upcomingOnly: boolean
 ) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
   const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : !!userId ? { userId } : {};
+
   let whereClause = {};
+
   if (filterByAttendeeEmails) {
     whereClause = {
       AND: [
@@ -177,9 +189,15 @@ function buildWhereClause(
     };
   }
 
-  return {
-    ...whereClause,
-  };
+  // Add upcoming filter if requested
+  if (upcomingOnly) {
+    whereClause = {
+      ...whereClause,
+      startTime: { gte: new Date() },
+    };
+  }
+
+  return whereClause;
 }
 
 export async function handler(req: NextApiRequest) {
@@ -189,7 +207,8 @@ export async function handler(req: NextApiRequest) {
     isOrganizationOwnerOrAdmin,
     pagination: { take, skip },
   } = req;
-  const { dateFrom, dateTo, order, sortBy } = schemaBookingGetParams.parse(req.query);
+  const { dateFrom, dateTo, order, sortBy, upcoming } = schemaBookingGetParams.parse(req.query);
+  const upcomingOnly = upcoming === "true";
 
   const args: Prisma.BookingFindManyArgs = {};
   if (req.query.take && req.query.page) {
@@ -222,7 +241,7 @@ export async function handler(req: NextApiRequest) {
         userId,
       };
       const { userId: argUserId, userIds, userEmails } = await handleSystemWideAdminArgs(systemWideAdminArgs);
-      args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
+      args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails, upcomingOnly);
     }
   } else if (isOrganizationOwnerOrAdmin) {
     let requestedUserIds = [userId];
@@ -236,7 +255,7 @@ export async function handler(req: NextApiRequest) {
       userId,
     };
     const { userId: argUserId, userIds, userEmails } = await handleOrgWideAdminArgs(orgWideAdminArgs);
-    args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails);
+    args.where = buildWhereClause(argUserId, attendeeEmails, userIds, userEmails, upcomingOnly);
   } else {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -247,7 +266,7 @@ export async function handler(req: NextApiRequest) {
     if (!user) {
       throw new HttpError({ message: "User not found", statusCode: 404 });
     }
-    args.where = buildWhereClause(userId, attendeeEmails, [], []);
+    args.where = buildWhereClause(userId, attendeeEmails, [], [], upcomingOnly);
   }
 
   if (dateFrom) {
