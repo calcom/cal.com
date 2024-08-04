@@ -16,17 +16,20 @@ type GetOptions = {
 const setSMSLockState = async ({ input }: GetOptions) => {
   const { userId, username, teamId, teamSlug, lock } = input;
   if (userId) {
+    const userToUpdate = await prisma.user.findUnique({ where: { id: userId } });
+    if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+    const userUpdateInput = {
+      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+      ...(userToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
+        ? { smsLockReviewedByAdmin: true }
+        : {}),
+    };
     const updatedUser = await prisma.user.update({
       where: {
         id: userId,
       },
-      data: {
-        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      },
+      data: userUpdateInput,
     });
-    if (!updatedUser) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    }
     return { name: updatedUser.username, locked: lock };
   } else if (username) {
     const userToUpdate = await prisma.user.findFirst({
@@ -35,32 +38,40 @@ const setSMSLockState = async ({ input }: GetOptions) => {
         profiles: { none: {} },
       },
     });
-    if (!userToUpdate) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    }
-    if (userToUpdate) {
-      const updatedUser = await prisma.user.update({
-        where: {
-          id: userToUpdate.id,
-        },
-        data: {
-          smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-        },
-      });
-      return { name: updatedUser.username, locked: lock };
-    }
+    if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
+    const userUpdateInput = {
+      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+      ...(userToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
+        ? { smsLockReviewedByAdmin: true }
+        : {}),
+    };
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        id: userToUpdate.id,
+      },
+      data: userUpdateInput,
+    });
+    return { name: updatedUser.username, locked: lock };
   } else if (teamId) {
+    const teamToUpdate = await prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+    });
+    if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
+    const teamUpdateInput = {
+      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+      ...(teamToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
+        ? { smsLockReviewedByAdmin: true }
+        : {}),
+    };
     const updatedTeam = await prisma.team.update({
       where: {
         id: teamId,
       },
-      data: {
-        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      },
+      data: teamUpdateInput,
     });
-    if (!updatedTeam) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    }
     return { name: updatedTeam.slug, locked: lock };
   } else if (teamSlug) {
     const teamToUpdate = await prisma.team.findFirst({
@@ -69,20 +80,20 @@ const setSMSLockState = async ({ input }: GetOptions) => {
         parentId: null,
       },
     });
-    if (!teamToUpdate) {
-      throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    }
-    if (teamToUpdate) {
-      const updatedTeam = await prisma.team.update({
-        where: {
-          id: teamToUpdate.id,
-        },
-        data: {
-          smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-        },
-      });
-      return { name: updatedTeam.slug, locked: lock };
-    }
+    if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
+    const teamUpdateInput = {
+      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+      ...(teamToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
+        ? { smsLockReviewedByAdmin: true }
+        : {}),
+    };
+    const updatedTeam = await prisma.team.update({
+      where: {
+        id: teamToUpdate.id,
+      },
+      data: teamUpdateInput,
+    });
+    return { name: updatedTeam.slug, locked: lock };
   }
   throw new TRPCError({ code: "BAD_REQUEST", message: "Input data missing" });
 };
