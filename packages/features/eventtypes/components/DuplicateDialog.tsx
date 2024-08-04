@@ -93,14 +93,18 @@ const DuplicateDialog = () => {
               };
             }
 
-            const updatedData = { ...data };
-            const pages = updatedData.pages;
-
-            if (pages.length > 0) {
-              pages[pages.length - 1].eventTypes.push(eventType);
-            }
-
-            return updatedData;
+            return {
+              ...data,
+              pages: data.pages.map((page, index) => {
+                if (index === data.pages.length - 1) {
+                  return {
+                    ...page,
+                    eventTypes: [...page.eventTypes, eventType],
+                  };
+                }
+                return page;
+              }),
+            };
           }
         );
       }
