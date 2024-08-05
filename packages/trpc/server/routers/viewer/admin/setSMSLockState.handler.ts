@@ -18,17 +18,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
   if (userId) {
     const userToUpdate = await prisma.user.findUnique({ where: { id: userId } });
     if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    const userUpdateInput = {
-      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      ...(userToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
-        ? { smsLockReviewedByAdmin: true }
-        : {}),
-    };
     const updatedUser = await prisma.user.update({
       where: {
         id: userId,
       },
-      data: userUpdateInput,
+      data: {
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        smsLockReviewedByAdmin: true,
+      },
     });
     return { name: updatedUser.username, locked: lock };
   } else if (username) {
@@ -39,18 +36,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
       },
     });
     if (!userToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "User not found" });
-    const userUpdateInput = {
-      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      ...(userToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
-        ? { smsLockReviewedByAdmin: true }
-        : {}),
-    };
-
     const updatedUser = await prisma.user.update({
       where: {
         id: userToUpdate.id,
       },
-      data: userUpdateInput,
+      data: {
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        smsLockReviewedByAdmin: true,
+      },
     });
     return { name: updatedUser.username, locked: lock };
   } else if (teamId) {
@@ -60,17 +53,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
       },
     });
     if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    const teamUpdateInput = {
-      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      ...(teamToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
-        ? { smsLockReviewedByAdmin: true }
-        : {}),
-    };
     const updatedTeam = await prisma.team.update({
       where: {
         id: teamId,
       },
-      data: teamUpdateInput,
+      data: {
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        smsLockReviewedByAdmin: true,
+      },
     });
     return { name: updatedTeam.slug, locked: lock };
   } else if (teamSlug) {
@@ -81,17 +71,14 @@ const setSMSLockState = async ({ input }: GetOptions) => {
       },
     });
     if (!teamToUpdate) throw new TRPCError({ code: "BAD_REQUEST", message: "Team not found" });
-    const teamUpdateInput = {
-      smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
-      ...(teamToUpdate.smsLockState === SMSLockState.REVIEW_NEEDED && !lock
-        ? { smsLockReviewedByAdmin: true }
-        : {}),
-    };
     const updatedTeam = await prisma.team.update({
       where: {
         id: teamToUpdate.id,
       },
-      data: teamUpdateInput,
+      data: {
+        smsLockState: lock ? SMSLockState.LOCKED : SMSLockState.UNLOCKED,
+        smsLockReviewedByAdmin: true,
+      },
     });
     return { name: updatedTeam.slug, locked: lock };
   }

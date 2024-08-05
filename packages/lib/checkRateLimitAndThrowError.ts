@@ -56,7 +56,7 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
 
   if (userId) {
     const user = await prisma.user.findUnique({ where: { id: userId, profiles: { none: {} } } });
-    if (status === SMSLockState.REVIEW_NEEDED && user?.smsLockReviewedByAdmin) return;
+    if (user?.smsLockReviewedByAdmin) return;
 
     await prisma.user.update({
       where: {
@@ -71,7 +71,7 @@ async function changeSMSLockState(identifier: string, status: SMSLockState) {
     const team = await prisma.team.findUnique({
       where: { id: teamId, parentId: null, isOrganization: false },
     });
-    if (status === SMSLockState.REVIEW_NEEDED && team?.smsLockReviewedByAdmin) return;
+    if (team?.smsLockReviewedByAdmin) return;
 
     await prisma.team.update({
       where: {
