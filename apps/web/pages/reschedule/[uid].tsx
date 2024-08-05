@@ -23,11 +23,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     uid: bookingUid,
     seatReferenceUid,
     rescheduledBy,
+    /**
+     * This is for the case of request-reschedule where the booking is cancelled
+     */
+    allowRescheduleForCancelledBooking,
   } = z
     .object({
       uid: z.string(),
       seatReferenceUid: z.string().optional(),
       rescheduledBy: z.string().optional(),
+      allowRescheduleForCancelledBooking: z
+        .string()
+        .transform((value) => value === "true")
+        .optional(),
     })
     .parse(context.query);
   const coepFlag = context.query["flag.coep"];
@@ -90,7 +98,10 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
 
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+  if (
+    !allowRescheduleForCancelledBooking &&
+    (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED)
+  ) {
     return {
       redirect: {
         destination: `/booking/${uid}`,
