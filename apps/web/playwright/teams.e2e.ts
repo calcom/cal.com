@@ -321,6 +321,31 @@ testBothFutureAndLegacyRoutes.describe("Teams - NonOrg", (routeVariant) => {
   });
 
   todo("Create a Round Robin with different leastRecentlyBooked hosts");
-  todo("Reschedule a Collective EventType booking");
+  test("Reschedule a Collective EventType booking", async ({ users, page, bookings }) => {
+    const teamMatesObj = [
+      { name: "teammate-1" },
+      { name: "teammate-2" },
+      { name: "teammate-3" },
+      { name: "teammate-4" },
+    ];
+
+    const owner = await users.create(
+      { username: "pro-user", name: "pro-user" },
+      {
+        hasTeam: true,
+        teammates: teamMatesObj,
+        schedulingType: SchedulingType.COLLECTIVE,
+      }
+    );
+
+    const { team } = await owner.getFirstTeamMembership();
+    const eventType = await owner.getFirstTeamEvent(team.id);
+
+    const booking = await bookings.create(owner.id, owner.username, eventType.id);
+    await page.goto(`/reschedule/${booking.uid}`);
+    await selectFirstAvailableTimeSlotNextMonth(page);
+    await page.locator("[data-testid=confirm-reschedule-button]").click();
+    await expect(page.locator("[data-testid=success-page]")).toBeVisible();
+  });
   todo("Reschedule a Round Robin EventType booking");
 });
