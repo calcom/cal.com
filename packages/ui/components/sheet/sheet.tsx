@@ -87,8 +87,8 @@ const SheetContent = React.forwardRef<
 SheetContent.displayName = "SheetContent";
 
 const SheetHeader = React.forwardRef<
-  HTMLDivElement & { showCloseButton?: boolean },
-  React.ComponentPropsWithoutRef<"div">
+  HTMLDivElement,
+  React.ComponentPropsWithoutRef<"div"> & { showCloseButton?: boolean }
 >(({ children, className, showCloseButton = true, ...props }, ref) => {
   return (
     <div ref={ref} className="flex items-start justify-between gap-x-4 pb-2" {...props}>
