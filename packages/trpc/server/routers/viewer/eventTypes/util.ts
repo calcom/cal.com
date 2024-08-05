@@ -1,14 +1,20 @@
 import { z } from "zod";
 
+import { markdownToSafeHTML } from "@calcom/lib/markdownToSafeHTML";
 import { BookingRepository } from "@calcom/lib/server/repository/booking";
+import type { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
+import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, PeriodType } from "@calcom/prisma/enums";
 import type { CustomInputSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
 import authedProcedure from "../../../procedures/authedProcedure";
 import type { EventTypeUpdateInput } from "./types";
+
+type EventType = Awaited<ReturnType<typeof EventTypeRepository.findAllByUpId>>[number];
 
 export const eventOwnerProcedure = authedProcedure
   .input(
@@ -273,3 +279,29 @@ export async function addWeightAdjustmentToNewHosts({
 
   return hostsWithWeightAdjustments;
 }
+export const mapEventType = async (eventType: EventType) => ({
+  ...eventType,
+  safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
+  users: await Promise.all(
+    (!!eventType?.hosts?.length ? eventType?.hosts.map((host) => host.user) : eventType.users).map(
+      async (u) =>
+        await UserRepository.enrichUserWithItsProfile({
+          user: u,
+        })
+    )
+  ),
+  metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+  children: await Promise.all(
+    (eventType.children || []).map(async (c) => ({
+      ...c,
+      users: await Promise.all(
+        c.users.map(
+          async (u) =>
+            await UserRepository.enrichUserWithItsProfile({
+              user: u,
+            })
+        )
+      ),
+    }))
+  ),
+});
