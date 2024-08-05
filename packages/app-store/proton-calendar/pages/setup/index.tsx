@@ -4,10 +4,10 @@ import { useForm } from "react-hook-form";
 import { Toaster } from "react-hot-toast";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Alert, Button, Form, TextField, CheckboxField } from "@calcom/ui";
+import { Alert, Button, Form, TextField } from "@calcom/ui";
 import { Icon } from "@calcom/ui";
 
-export default function ICSFeedSetup() {
+export default function ProtonCalendarSetup() {
   const { t } = useLocale();
   const router = useRouter();
   const form = useForm({
@@ -17,7 +17,6 @@ export default function ICSFeedSetup() {
   const [urls, setUrls] = useState<string[]>([""]);
   const [errorMessage, setErrorMessage] = useState("");
   const [errorActionUrl, setErrorActionUrl] = useState("");
-  const [skipWriting, setSkipWriting] = useState(false); // track if user opts out of writing to any calendar
 
   return (
     <div className="bg-emphasis flex h-screen">
@@ -26,22 +25,22 @@ export default function ICSFeedSetup() {
           <div>
             {/* eslint-disable @next/next/no-img-element */}
             <img
-              src="/api/app-store/ics-feedcalendar/icon.svg"
-              alt="ICS Feed"
+              src="/api/app-store/proton-calendar/icon.svg"
+              alt="Proton Calendar"
               className="h-12 w-12 max-w-2xl"
             />
           </div>
           <div className="flex w-10/12 flex-col">
-            <h1 className="text-default">{t("connect_ics_feed")}</h1>
+            <h1 className="text-default">{t("connect_proton_calendar_ics_feed")}</h1>
             <div className="mt-1 text-sm">{t("credentials_stored_encrypted")}</div>
             <div className="my-2 mt-3">
               <Form
                 form={form}
                 handleSubmit={async (_) => {
                   setErrorMessage("");
-                  const res = await fetch("/api/integrations/ics-feedcalendar/add", {
+                  const res = await fetch("/api/integrations/proton-calendar/add", {
                     method: "POST",
-                    body: JSON.stringify({ urls, skipWriting }),
+                    body: JSON.stringify({ urls }),
                     headers: {
                       "Content-Type": "application/json",
                     },
@@ -69,7 +68,7 @@ export default function ICSFeedSetup() {
                           const newVal = e.target.value as string;
                           setUrls((urls) => urls.map((x, ii) => (ii === i ? newVal : x)));
                         }}
-                        placeholder="https://example.com/calendar.ics"
+                        placeholder="https://example.com/proton-calendar.ics"
                       />
                       {i !== 0 ? (
                         <button
@@ -92,21 +91,11 @@ export default function ICSFeedSetup() {
                   {t("add")} <Icon className="inline" name="plus" size={16} />
                 </button>
 
-                <div className="mt-3 flex items-center">
-                  <CheckboxField
-                    id="skipWriting"
-                    checked={skipWriting}
-                    onChange={(e) => setSkipWriting(e.target.checked)}
-                    className="mr-2"
-                    description={t("skip_writing_to_calendar")}
-                  />
-                </div>
-
                 <Alert
                   className="mt-3"
                   severity="info"
                   title={t("notes")}
-                  message={t("skip_writing_to_calendar_note")}
+                  message={t("proton_calendar_note")}
                 />
 
                 {errorMessage && (

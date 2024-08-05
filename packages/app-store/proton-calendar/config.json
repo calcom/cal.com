@@ -1,15 +1,15 @@
 {
-  "name": "ICS Feed",
-  "title": "ICS Feed",
-  "slug": "ics-feed",
-  "dirName": "ics-feedcalendar",
-  "type": "ics-feed_calendar",
+  "name": "Proton Calendar",
+  "title": "Proton Calendar",
+  "slug": "proton-calendar",
+  "type": "proton_calendar",
   "logo": "icon.svg",
+  "url": "https://proton.me/calendar",
   "variant": "calendar",
   "categories": ["calendar"],
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
-  "description": "Import events from an ICS Feed into Cal.com.",
+  "description": "Import events from a Proton Calendar into Cal.com.",
   "isTemplate": false,
   "__createdUsingCli": true
 }

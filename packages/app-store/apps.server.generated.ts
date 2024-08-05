@@ -56,7 +56,6 @@ export const apiHandlers = {
   plausible: import("./plausible/api"),
   posthog: import("./posthog/api"),
   "proton-calendar": import("./proton-calendar/api"),
-  "proton-calendar-bkp": import("./proton-calendar-bkp/api"),
   qr_code: import("./qr_code/api"),
   raycast: import("./raycast/api"),
   riverside: import("./riverside/api"),

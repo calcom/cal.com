@@ -38,10 +38,10 @@ const applyTravelDuration = (event: ICAL.Event, seconds: number) => {
 
 const CALENDSO_ENCRYPTION_KEY = process.env.CALENDSO_ENCRYPTION_KEY || "";
 
-export default class ICSFeedCalendarService implements Calendar {
+export default class ProtonCalendarICSFeedService implements Calendar {
   private urls: string[] = [];
   private skipWriting = false;
-  protected integrationName = "ics-feed_calendar";
+  protected integrationName = "proton_calendar";
 
   constructor(credential: CredentialPayload) {
     const { urls, skipWriting } = JSON.parse(
@@ -55,14 +55,14 @@ export default class ICSFeedCalendarService implements Calendar {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("createEvent called on read-only ICS feed");
+    throw new Error("createEvent called on read-only Proton Calendar ICS feed");
   }
 
   deleteEvent(_uid: string, _event: CalendarEvent, _externalCalendarId?: string): Promise<unknown> {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("deleteEvent called on read-only ICS feed");
+    throw new Error("deleteEvent called on read-only Proton Calendar ICS feed");
   }
 
   updateEvent(
@@ -73,7 +73,7 @@ export default class ICSFeedCalendarService implements Calendar {
     if (this.skipWriting) {
       return Promise.reject(new Error("Event creation is disabled for this calendar."));
     }
-    throw new Error("updateEvent called on read-only ICS feed");
+    throw new Error("updateEvent called on read-only Proton Calendar ICS feed");
   }
 
   fetchCalendars = async (): Promise<{ url: string; vcalendar: ICAL.Component }[]> => {

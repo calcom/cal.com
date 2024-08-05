@@ -55,7 +55,6 @@ import pipedream_config_json from "./pipedream/config.json";
 import pipedrive_crm_config_json from "./pipedrive-crm/config.json";
 import plausible_config_json from "./plausible/config.json";
 import posthog_config_json from "./posthog/config.json";
-import proton_calendar_bkp_config_json from "./proton-calendar-bkp/config.json";
 import proton_calendar_config_json from "./proton-calendar/config.json";
 import qr_code_config_json from "./qr_code/config.json";
 import raycast_config_json from "./raycast/config.json";
@@ -151,7 +150,6 @@ export const appStoreMetadata = {
   plausible: plausible_config_json,
   posthog: posthog_config_json,
   "proton-calendar": proton_calendar_config_json,
-  "proton-calendar-bkp": proton_calendar_bkp_config_json,
   qr_code: qr_code_config_json,
   raycast: raycast_config_json,
   riverside: riverside_config_json,

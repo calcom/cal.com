@@ -10,7 +10,7 @@ import { CalendarService } from "../lib";
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
-    const { urls, skipWriting } = req.body;
+    const { urls } = req.body;
     // Get user
     const user = await prisma.user.findFirstOrThrow({
       where: {
@@ -24,7 +24,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const data = {
       type: appConfig.type,
-      key: symmetricEncrypt(JSON.stringify({ urls, skipWriting }), process.env.CALENDSO_ENCRYPTION_KEY || ""),
+      key: symmetricEncrypt(
+        JSON.stringify({ urls, skipWriting: true }),
+        process.env.CALENDSO_ENCRYPTION_KEY || ""
+      ),
       userId: user.id,
       teamId: null,
       appId: appConfig.slug,
@@ -47,14 +50,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         data,
       });
     } catch (e) {
-      logger.error("Could not add ICS feeds", e);
-      return res.status(500).json({ message: "Could not add ICS feeds" });
+      logger.error("Could not add Proton Calendar ICS feeds", e);
+      return res.status(500).json({ message: "Could not add Proton Calendar ICS feeds" });
     }
 
-    return res.status(200).json({ url: getInstalledAppPath({ variant: "calendar", slug: "ics-feed" }) });
+    return res
+      .status(200)
+      .json({ url: getInstalledAppPath({ variant: "calendar", slug: "proton-calendar" }) });
   }
 
   if (req.method === "GET") {
-    return res.status(200).json({ url: "/apps/ics-feed/setup" });
+    return res.status(200).json({ url: "/apps/proton-calendar/setup" });
   }
 }
