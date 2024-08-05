@@ -37,6 +37,8 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
       lockEventTypeCreationForUsers: true,
       adminGetsNoSlotsNotification: true,
       isAdminReviewed: true,
+      allowSEOIndexing: true,
+      disableOrgSubdomainURL: true,
     },
   });
 
@@ -54,6 +56,8 @@ export const listHandler = async ({ ctx }: ListHandlerInput) => {
     organizationSettings: {
       lockEventTypeCreationForUsers: organizationSettings?.lockEventTypeCreationForUsers,
       adminGetsNoSlotsNotification: organizationSettings?.adminGetsNoSlotsNotification,
+      allowSEOIndexing: organizationSettings?.allowSEOIndexing,
+      disableOrgSubdomainURL: organizationSettings?.disableOrgSubdomainURL,
     },
     user: {
       role: membership?.role,

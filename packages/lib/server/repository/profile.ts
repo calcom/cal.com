@@ -35,6 +35,22 @@ const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
 });
 
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
+const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsSelect>()({
+  allowSEOIndexing: true,
+  disableOrgSubdomainURL: true,
+});
+const organizationWithSettingsSelect = {
+  id: true,
+  slug: true,
+  name: true,
+  metadata: true,
+  logoUrl: true,
+  calVideoLogo: true,
+  bannerUrl: true,
+  organizationSettings: {
+    select: organizationSettingsSelect,
+  },
+};
 const organizationSelect = {
   id: true,
   slug: true,
@@ -404,7 +420,7 @@ export class ProfileRepository {
           select: userSelect,
         },
         organization: {
-          select: organizationSelect,
+          select: organizationWithSettingsSelect,
         },
       },
     });
