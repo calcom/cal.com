@@ -46,6 +46,7 @@ export class BookingRepository {
           },
         },
       ],
+      ...(withoutNoShows && { attendees: { some: { noShow: false } } }),
     };
 
     if (eventTypeId !== undefined) {
@@ -54,9 +55,6 @@ export class BookingRepository {
 
     if (onlyAccepted) {
       whereClause.status = BookingStatus.ACCEPTED;
-    }
-
-    if (withoutNoShows) {
     }
 
     const allBookings = await prisma.booking.findMany({
