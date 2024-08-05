@@ -18,6 +18,7 @@ const appStore = {
   office365calendar: () => import("./office365calendar"),
   office365video: () => import("./office365video"),
   plausible: () => import("./plausible"),
+  "proton-calendar": () => import("./proton-calendar"),
   paypal: () => import("./paypal"),
   "pipedrive-crm": () => import("./pipedrive-crm"),
   salesforce: () => import("./salesforce"),

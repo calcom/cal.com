@@ -1,15 +1,16 @@
 {
+  "/*": "Don't modify slug - If required, do it using cli edit command",
   "name": "Proton Calendar",
-  "title": "Proton Calendar",
   "slug": "proton-calendar",
-  "type": "proton_calendar",
+  "type": "proton-calendar_calendar",
   "logo": "icon.svg",
   "url": "https://proton.me/calendar",
   "variant": "calendar",
   "categories": ["calendar"],
   "publisher": "Cal.com, Inc.",
   "email": "help@cal.com",
-  "description": "Import events from a Proton Calendar into Cal.com.",
+  "description": "Proton Calendar helps you stay on top of your schedule while encrypting and protecting your data. Available on Web, Android & iOS.",
   "isTemplate": false,
-  "__createdUsingCli": true
+  "__createdUsingCli": true,
+  "__template": "basic"
 }

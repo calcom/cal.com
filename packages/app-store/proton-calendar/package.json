@@ -5,11 +5,7 @@
   "version": "0.0.0",
   "main": "./index.ts",
   "dependencies": {
-    "@calcom/core": "*",
-    "@calcom/lib": "*",
-    "@calcom/prisma": "*",
-    "@calcom/ui": "*",
-    "react-hook-form": "^7.43.3"
+    "@calcom/lib": "*"
   },
   "devDependencies": {
     "@calcom/types": "*"
