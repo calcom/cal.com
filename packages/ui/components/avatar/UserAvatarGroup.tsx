@@ -7,6 +7,7 @@ import { AvatarGroup } from "@calcom/ui";
 type UserAvatarProps = Omit<React.ComponentProps<typeof AvatarGroup>, "items"> & {
   users: (Pick<User, "name" | "username" | "avatarUrl"> & {
     profile: Omit<UserProfile, "upId">;
+    hideTruncatedAvatarsCount?: boolean;
   })[];
 };
 export function UserAvatarGroup(props: UserAvatarProps) {
@@ -22,6 +23,7 @@ export function UserAvatarGroup(props: UserAvatarProps) {
         alt: user.name || "",
         title: user.name || "",
         image: getUserAvatarUrl(user),
+        hideTruncatedAvatarsCount: user.hideTruncatedAvatarsCount,
       }))}
     />
   );
