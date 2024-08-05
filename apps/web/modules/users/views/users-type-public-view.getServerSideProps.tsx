@@ -234,7 +234,8 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     slug,
     trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
-    isSEOIndexable: user?.allowSEOIndexing,
+    isSEOIndexable:
+      user?.profile?.organization?.organizationSettings?.allowSEOIndexing ?? user?.allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,
