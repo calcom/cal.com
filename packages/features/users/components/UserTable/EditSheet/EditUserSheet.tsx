@@ -14,7 +14,7 @@ import { OrganizationBanner } from "./OrganizationBanner";
 import { SheetFooterControls } from "./SheetFooterControls";
 import { useEditMode } from "./store";
 
-function removeProtocol(url) {
+function removeProtocol(url: string) {
   return url.replace(/^(https?:\/\/)/, "");
 }
 
