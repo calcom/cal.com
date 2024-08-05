@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "private": true,
+  "name": "@calcom/proton-calendar",
+  "version": "0.0.0",
+  "main": "./index.ts",
+  "dependencies": {
+    "@calcom/core": "*",
+    "@calcom/lib": "*",
+    "@calcom/prisma": "*",
+    "@calcom/ui": "*",
+    "react-hook-form": "^7.43.3"
+  },
+  "devDependencies": {
+    "@calcom/types": "*"
+  },
+  "description": "Proton Calendar helps you stay on top of your schedule while encrypting and protecting your data. Available on Web, Android & iOS."
+}
