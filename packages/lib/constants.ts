@@ -104,6 +104,10 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
+export const ENABLE_INFINITE_EVENT_TYPES_FOR_ORG = JSON.parse(
+  `[${process.env.ENABLE_INFINITE_EVENT_TYPES_FOR_ORG || ""}]`
+) as string[];
+
 export const ORGANIZATION_MIN_SEATS = 30;
 
 // Needed for emails in E2E
