@@ -294,13 +294,13 @@ async function handler(
     })
   );
 
-  const user = eventType.users.filter((user) => user.id === eventType.userId)[0];
+  const user = eventType.users.find((user) => user.id === eventType.userId);
 
-  const userSchedule = user.schedules.filter(
+  const userSchedule = user?.schedules.find(
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-  )[0];
+  );
 
-  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule.timeZone;
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
   let timeOutOfBounds = false;
   try {
