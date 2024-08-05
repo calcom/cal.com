@@ -32,11 +32,12 @@ export type OrganizerUser = AwaitedLoadUsers[number] & {
 };
 
 export type Invitee = {
-  email: string;
+  email?: string;
   name: string;
   firstName: string;
   lastName: string;
   timeZone: string;
+  phoneNumber?: string;
   language: {
     translate: TFunction;
     locale: string;

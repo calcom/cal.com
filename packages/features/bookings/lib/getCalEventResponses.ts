@@ -58,6 +58,7 @@ export const getCalEventResponses = ({
           isHidden: !!field.hidden,
         };
       }
+
       calEventResponses[field.name] = {
         label,
         value: backwardCompatibleResponses[field.name],

@@ -6,9 +6,10 @@ export const checkIfBookerEmailIsBlocked = async ({
   bookerEmail,
   loggedInUserId,
 }: {
-  bookerEmail: string;
+  bookerEmail?: string;
   loggedInUserId?: number;
 }) => {
+  if (!bookerEmail) return false;
   const baseEmail = extractBaseEmail(bookerEmail);
   const blacklistedGuestEmails = process.env.BLACKLISTED_GUEST_EMAILS
     ? process.env.BLACKLISTED_GUEST_EMAILS.split(",")

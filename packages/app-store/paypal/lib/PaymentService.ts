@@ -105,8 +105,8 @@ export class PaymentService implements IAbstractPaymentService {
   async collectCard(
     payment: Pick<Prisma.PaymentUncheckedCreateInput, "amount" | "currency">,
     bookingId: number,
-    _bookerEmail: string,
-    paymentOption: PaymentOption
+    paymentOption: PaymentOption,
+    _bookerEmail?: string | null
   ): Promise<Payment> {
     // Ensure that the payment service can support the passed payment option
     if (paymentOptionEnum.parse(paymentOption) !== "HOLD") {

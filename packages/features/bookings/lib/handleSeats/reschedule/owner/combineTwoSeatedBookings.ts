@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import { uuid } from "short-uuid";
 
 import type EventManager from "@calcom/core/EventManager";
-import { sendRescheduledEmails } from "@calcom/emails";
+import { sendRescheduledEmailsAndSMS } from "@calcom/emails";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
@@ -136,7 +136,7 @@ const combineTwoSeatedBookings = async (
   if (noEmail !== true && isConfirmedByDefault) {
     // TODO send reschedule emails to attendees of the old booking
     loggerWithEventDetails.debug("Emails: Sending reschedule emails - handleSeats");
-    await sendRescheduledEmails({
+    await sendRescheduledEmailsAndSMS({
       ...copyEvent,
       additionalNotes, // Resets back to the additionalNote input and not the override value
       cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email

@@ -4,7 +4,7 @@ import type { TFunction } from "next-i18next";
 
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { CalendarEvent, Person, VideoCallData } from "@calcom/types/Calendar";
+import type { CalendarEvent, Organizer, Person, VideoCallData } from "@calcom/types/Calendar";
 
 export const buildVideoCallData = (callData?: Partial<VideoCallData>): VideoCallData => {
   return {
@@ -28,6 +28,20 @@ export const buildPerson = (person?: Partial<Person>): Person => {
       translate: ((key: string) => key) as TFunction,
     },
     ...person,
+  };
+};
+
+const buildOrganizer = (): Organizer => {
+  return {
+    name: faker.name.firstName(),
+    email: faker.internet.email(),
+    timeZone: faker.address.timeZone(),
+    username: faker.internet.userName(),
+    id: faker.datatype.number(),
+    language: {
+      locale: faker.random.locale(),
+      translate: ((key: string) => key) as TFunction,
+    },
   };
 };
 
@@ -190,7 +204,7 @@ export const buildCalendarEvent = (
     attendees: [],
     customInputs: {},
     additionalNotes: faker.lorem.paragraph(),
-    organizer: buildPerson(),
+    organizer: buildOrganizer(),
     ...(!omitVideoCallData && { videoCallData: buildVideoCallData() }),
     ...event,
   };

@@ -181,7 +181,7 @@ const _getCurrentSeats = async (
 
   return bookings.map((booking) => {
     const attendees = isTeamEvent
-      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email))
+      ? booking.attendees.filter((attendee) => !hostEmails?.includes(attendee.email ?? ""))
       : booking.attendees;
 
     return {

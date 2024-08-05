@@ -1,6 +1,6 @@
 import EventManager from "@calcom/core/EventManager";
 import dayjs from "@calcom/dayjs";
-import { sendLocationChangeEmails } from "@calcom/emails";
+import { sendLocationChangeEmailsAndSMS } from "@calcom/emails";
 import { parseRecurringEvent } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
@@ -91,6 +91,13 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         : [],
       seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
       seatsShowAttendees: booking.eventType?.seatsShowAttendees,
+      team: !!booking.eventType?.team
+        ? {
+            name: booking.eventType.team.name,
+            id: booking.eventType.team.id,
+            members: [],
+          }
+        : undefined,
     };
 
     const credentials = await getUsersCredentials(ctx.user);
@@ -131,7 +138,7 @@ export const editLocationHandler = async ({ ctx, input }: EditLocationOptions) =
         metadata.entryPoints = results[0].updatedEvent?.entryPoints;
       }
       try {
-        await sendLocationChangeEmails({ ...evt, additionalInformation: metadata });
+        await sendLocationChangeEmailsAndSMS({ ...evt, additionalInformation: metadata });
       } catch (error) {
         console.log("Error sending LocationChangeEmails");
       }

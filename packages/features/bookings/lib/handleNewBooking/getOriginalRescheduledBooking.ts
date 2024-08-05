@@ -18,6 +18,7 @@ export async function getOriginalRescheduledBooking(uid: string, seatsEventType?
           email: true,
           locale: true,
           timeZone: true,
+          phoneNumber: true,
           ...(seatsEventType && { bookingSeat: true, id: true }),
         },
       },

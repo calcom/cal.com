@@ -89,7 +89,7 @@ const processWorkflowStep = async (
       case WorkflowActions.EMAIL_ATTENDEE:
         const attendees = !!emailAttendeeSendToOverride
           ? [emailAttendeeSendToOverride]
-          : evt.attendees?.map((attendee) => attendee.email);
+          : evt.attendees?.map((attendee) => attendee.email).filter((email): email is string => !!email);
 
         sendTo = attendees;
 

@@ -20,13 +20,13 @@ import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
 import { scheduleMandatoryReminder } from "@calcom/ee/workflows/lib/reminders/scheduleMandatoryReminder";
 import {
-  sendAttendeeRequestEmail,
+  sendAttendeeRequestEmailAndSMS,
   sendOrganizerRequestEmail,
-  sendRescheduledEmails,
-  sendRoundRobinCancelledEmails,
-  sendRoundRobinRescheduledEmails,
-  sendRoundRobinScheduledEmails,
-  sendScheduledEmails,
+  sendRescheduledEmailsAndSMS,
+  sendRoundRobinCancelledEmailsAndSMS,
+  sendRoundRobinRescheduledEmailsAndSMS,
+  sendRoundRobinScheduledEmailsAndSMS,
+  sendScheduledEmailsAndSMS,
 } from "@calcom/emails";
 import getICalUID from "@calcom/emails/lib/getICalUID";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
@@ -45,6 +45,7 @@ import {
   scheduleTrigger,
 } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
+import { BOOKED_WITH_SMS_EMAIL } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent, getUsernameList } from "@calcom/lib/defaultEvents";
 import { ErrorCode } from "@calcom/lib/errorCodes";
@@ -215,9 +216,12 @@ async function handler(
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
+
+  const isOrgTeamEvent = !!eventType?.team && !!eventType?.team?.parentId;
+
   eventType = {
     ...eventType,
-    bookingFields: getBookingFieldsWithSystemFields(eventType),
+    bookingFields: getBookingFieldsWithSystemFields({ ...eventType, isOrgTeamEvent }),
   };
 
   const bookingDataSchema = bookingDataSchemaGetter({
@@ -239,6 +243,7 @@ async function handler(
     language,
     appsStatus: reqAppsStatus,
     name: bookerName,
+    attendeePhoneNumber: bookerPhoneNumber,
     email: bookerEmail,
     guests: reqGuests,
     location,
@@ -707,6 +712,7 @@ async function handler(
     {
       email: bookerEmail,
       name: fullName,
+      phoneNumber: bookerPhoneNumber,
       firstName: (typeof bookerName === "object" && bookerName.firstName) || "",
       lastName: (typeof bookerName === "object" && bookerName.lastName) || "",
       timeZone: attendeeTimezone,
@@ -936,6 +942,14 @@ async function handler(
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
 
+  if (isTeamEventType) {
+    evt.team = {
+      members: teamMembers,
+      name: eventType.team?.name || "Nameless",
+      id: eventType.team?.id ?? 0,
+    };
+  }
+
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -948,6 +962,7 @@ async function handler(
       organizerUser,
       originalRescheduledBooking,
       bookerEmail,
+      bookerPhoneNumber,
       tAttendees,
       bookingSeat,
       reqUserId: req.userId,
@@ -994,13 +1009,7 @@ async function handler(
       });
     }
   }
-  if (isTeamEventType) {
-    evt.team = {
-      members: teamMembers,
-      name: eventType.team?.name || "Nameless",
-      id: eventType.team?.id ?? 0,
-    };
-  }
+
   if (reqBody.recurringEventId && eventType.recurringEvent) {
     // Overriding the recurring event configuration count to be the actual number of events booked for
     // the recurring event (equal or less than recurring event configuration count)
@@ -1076,7 +1085,10 @@ async function handler(
 
     if (booking && booking.id && eventType.seatsPerTimeSlot) {
       const currentAttendee = booking.attendees.find(
-        (attendee) => attendee.email === req.body.responses.email
+        (attendee) =>
+          attendee.email === req.body.responses.email ||
+          (req.body.responses.attendeePhoneNumber &&
+            attendee.phoneNumber === req.body.responses.attendeePhoneNumber)
       );
 
       // Save description to bookingSeat
@@ -1292,6 +1304,7 @@ async function handler(
             name: user.name,
             email: user.email,
             timeZone: user.timeZone,
+            phoneNumber: user.phoneNumber,
             language: { translate, locale: user.locale ?? "en" },
           });
         }
@@ -1310,26 +1323,40 @@ async function handler(
             .concat(copyEvent.organizer)
             .concat(copyEvent.attendees) || [];
 
+        const matchOriginalMemberWithNewMember = (originalMember: Person, newMember: Person) => {
+          if (!originalMember.email || originalMember.email === BOOKED_WITH_SMS_EMAIL) {
+            return originalMember.phoneNumber === newMember.phoneNumber;
+          } else if (!newMember.email || newMember.email === BOOKED_WITH_SMS_EMAIL) {
+            return newMember.phoneNumber === originalMember.phoneNumber;
+          }
+          return originalMember.email === newMember.email;
+        };
+
         // scheduled Emails
         const newBookedMembers = newBookingMemberEmails.filter(
           (member) =>
-            !originalBookingMemberEmails.find((originalMember) => originalMember.email === member.email)
+            !originalBookingMemberEmails.find((originalMember) =>
+              matchOriginalMemberWithNewMember(originalMember, member)
+            )
         );
         // cancelled Emails
         const cancelledMembers = originalBookingMemberEmails.filter(
-          (member) => !newBookingMemberEmails.find((newMember) => newMember.email === member.email)
+          (member) =>
+            !newBookingMemberEmails.find((newMember) => matchOriginalMemberWithNewMember(member, newMember))
         );
         // rescheduled Emails
         const rescheduledMembers = newBookingMemberEmails.filter((member) =>
-          originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
+          originalBookingMemberEmails.find((orignalMember) =>
+            matchOriginalMemberWithNewMember(orignalMember, member)
+          )
         );
 
-        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
-        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
-        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+        sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers);
+        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers);
+        sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await sendRescheduledEmails({
+        await sendRescheduledEmailsAndSMS({
           ...copyEvent,
           additionalInformation: metadata,
           additionalNotes, // Resets back to the additionalNote input and not the override value
@@ -1462,7 +1489,7 @@ async function handler(
           })
         );
 
-        await sendScheduledEmails(
+        await sendScheduledEmailsAndSMS(
           {
             ...evt,
             additionalInformation: metadata,
@@ -1501,7 +1528,7 @@ async function handler(
       })
     );
     await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0]);
   }
 
   if (booking.location?.startsWith("http")) {
@@ -1571,7 +1598,8 @@ async function handler(
       eventTypePaymentAppCredential as IEventTypePaymentCredentialType,
       booking,
       fullName,
-      bookerEmail
+      bookerEmail,
+      bookerPhoneNumber
     );
     const subscriberOptionsPaymentInitiated: GetSubscriberOptions = {
       userId: triggerForUser ? organizerUser.id : null,

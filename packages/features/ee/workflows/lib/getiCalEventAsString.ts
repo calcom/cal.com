@@ -52,7 +52,7 @@ export function getiCalEventAsString(
     attendees: [
       {
         name: booking.attendees[0].name,
-        email: booking.attendees[0].email,
+        email: booking.attendees[0].email ?? undefined,
         partstat: "ACCEPTED",
         role: "REQ-PARTICIPANT",
         rsvp: true,

@@ -11,7 +11,7 @@ export type VariablesType = {
   attendeeName?: string;
   attendeeFirstName?: string;
   attendeeLastName?: string;
-  attendeeEmail?: string;
+  attendeeEmail?: string | null;
   eventDate?: Dayjs;
   eventEndTime?: Dayjs;
   timeZone?: string;

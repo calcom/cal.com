@@ -47,7 +47,17 @@ export const bookingsProcedure = authedProcedure
       },
       include: {
         attendees: true,
-        eventType: true,
+        eventType: {
+          include: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                parentId: true,
+              },
+            },
+          },
+        },
         destinationCalendar: true,
         references: true,
         user: {
@@ -66,7 +76,11 @@ export const bookingsProcedure = authedProcedure
 
 export type BookingsProcedureContext = {
   booking: Booking & {
-    eventType: EventType | null;
+    eventType:
+      | (EventType & {
+          team?: { id: number; name: string; parentId?: number | null } | null;
+        })
+      | null;
     destinationCalendar: DestinationCalendar | null;
     user:
       | (User & {

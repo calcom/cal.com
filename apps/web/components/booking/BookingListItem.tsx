@@ -266,7 +266,7 @@ function BookingListItem(booking: BookingItemProps) {
     const urlSearchParams = new URLSearchParams({
       allRemainingBookings: isTabRecurring.toString(),
     });
-    if (booking.attendees[0]) urlSearchParams.set("email", booking.attendees[0].email);
+    if (booking.attendees[0].email) urlSearchParams.set("email", booking.attendees[0].email);
     return `/booking/${booking.uid}?${urlSearchParams.toString()}`;
   };
 
@@ -629,7 +629,7 @@ const FirstAttendee = ({
 
 type AttendeeProps = {
   name?: string;
-  email: string;
+  email: string | null;
   id: number;
   noShow: boolean;
 };
@@ -703,6 +703,10 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
             StartIcon={isCopied ? "clipboard-check" : "clipboard"}
             onClick={(e) => {
               e.preventDefault();
+              if (!email) {
+                console.warn("Disabled due to missing email");
+                return;
+              }
               copyToClipboard(email);
               setOpenDropdown(false);
               showToast(t("email_copied"), "success");
@@ -716,9 +720,13 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               <DropdownItem
                 data-testid="unmark-no-show"
                 onClick={(e) => {
+                  e.preventDefault();
+                  if (!email) {
+                    console.warn("Disabled due to missing email");
+                    return;
+                  }
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
-                  e.preventDefault();
                 }}
                 StartIcon="eye">
                 {t("unmark_as_no_show")}
@@ -727,9 +735,13 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
               <DropdownItem
                 data-testid="mark-no-show"
                 onClick={(e) => {
+                  e.preventDefault();
+                  if (!email) {
+                    console.warn("Disabled due to missing email");
+                    return;
+                  }
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: true, email }, bookingUid });
-                  e.preventDefault();
                 }}
                 StartIcon="eye-off">
                 {t("mark_as_no_show")}
@@ -781,7 +793,11 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
   });
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
-    const filteredData = data.attendees.slice(1);
+    const filteredData = data.attendees
+      .slice(1)
+      .filter(
+        (attendee): attendee is AttendeeProps & { email: string } => typeof attendee.email === "string"
+      );
     noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
   };
@@ -868,7 +884,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
               StartIcon={selectedEmail === guest.email ? "circle-check" : undefined}
               onClick={(e) => {
                 e.preventDefault();
-                setSelectedEmail(guest.email);
+                setSelectedEmail(guest?.email ?? "");
               }}>
               <span className={`${selectedEmail !== guest.email ? "pl-6" : ""}`}>{guest.email}</span>
             </DropdownItem>
