@@ -215,7 +215,6 @@ async function handler(
     !req.body.eventTypeId && !!req.body.eventTypeSlug
       ? getDefaultEvent(req.body.eventTypeSlug)
       : await getEventTypesFromDB(req.body.eventTypeId);
-
   eventType = {
     ...eventType,
     bookingFields: getBookingFieldsWithSystemFields(eventType),
@@ -259,7 +258,6 @@ async function handler(
   }
 
   const fullName = getFullName(bookerName);
-
   // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
@@ -296,6 +294,8 @@ async function handler(
     })
   );
 
+  const eventTimeZone = eventType.schedule?.timeZone ?? null;
+
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(
@@ -306,7 +306,8 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
       eventType.minimumBookingNotice
     );
@@ -429,7 +430,7 @@ async function handler(
         startAsDate,
         eventType.id,
         rescheduleUid,
-        eventType.schedule?.timeZone
+        eventTimeZone
       );
     }
     if (eventType.durationLimits) {
@@ -1116,7 +1117,7 @@ async function handler(
 
   // After polling videoBusyTimes, credentials might have been changed due to refreshment, so query them again.
   const credentials = await refreshCredentials(allCredentials);
-  const eventManager = new EventManager({ ...organizerUser, credentials });
+  const eventManager = new EventManager({ ...organizerUser, credentials }, eventType?.metadata?.apps);
 
   let videoCallUrl;
 
@@ -1153,7 +1154,6 @@ async function handler(
       changedOrganizer,
       previousHostDestinationCalendar
     );
-
     // This gets overridden when updating the event - to check if notes have been hidden or not. We just reset this back
     // to the default description when we are sending the emails.
     evt.description = eventType.description;

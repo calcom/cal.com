@@ -1,4 +1,5 @@
 import type { Workflow } from "@prisma/client";
+import type { z } from "zod";
 
 import { isSMSOrWhatsappAction } from "@calcom/ee/workflows/lib/actionHelperFunctions";
 import { getAllWorkflows } from "@calcom/ee/workflows/lib/getAllWorkflows";
@@ -25,6 +26,7 @@ import { SENDER_ID, SENDER_NAME } from "@calcom/lib/constants";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTeamIdFromEventType } from "@calcom/lib/getTeamIdFromEventType";
 import logger from "@calcom/lib/logger";
+import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import prisma from "@calcom/prisma";
 import type { Prisma, WorkflowStep } from "@calcom/prisma/client";
@@ -39,6 +41,8 @@ import {
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
+
+import type { ZWorkflows } from "./getAllActiveWorkflows.schema";
 
 const log = logger.getSubLogger({ prefix: ["workflow"] });
 
@@ -81,21 +85,80 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
     },
   });
 
-  if (!verifiedEmail) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
+  if (verifiedEmail) {
+    if (teamId) {
+      if (!verifiedEmail.teamId) {
+        await prisma.verifiedEmail.update({
+          where: {
+            id: verifiedEmail.id,
+          },
+          data: {
+            teamId,
+          },
+        });
+      } else if (verifiedEmail.teamId !== teamId) {
+        await prisma.verifiedEmail.create({
+          data: {
+            email,
+            userId,
+            teamId,
+          },
+        });
+      }
+    }
+    return;
+  }
+
+  const userEmail = await prisma.user.findFirst({
+    where: {
+      id: userId,
+      email,
+    },
+  });
+
+  if (userEmail) {
+    await prisma.verifiedEmail.create({
+      data: {
+        email,
+        userId,
+        teamId,
+      },
+    });
+    return;
   }
 
   if (teamId) {
-    if (!verifiedEmail.teamId) {
-      await prisma.verifiedEmail.update({
-        where: {
-          id: verifiedEmail.id,
+    const team = await prisma.team.findFirst({
+      where: {
+        id: teamId,
+      },
+      select: {
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+              },
+            },
+          },
         },
-        data: {
-          teamId,
-        },
-      });
-    } else if (verifiedEmail.teamId !== teamId) {
+      },
+    });
+
+    if (!team) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Team not found" });
+    }
+
+    const isTeamMember = team.members.some((member) => member.userId === userId);
+
+    if (!isTeamMember) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
+    }
+
+    const teamMemberEmail = team.members.filter((member) => member.user.email === email);
+
+    if (teamMemberEmail) {
       await prisma.verifiedEmail.create({
         data: {
           email,
@@ -103,8 +166,11 @@ export const verifyEmailSender = async (email: string, userId: number, teamId: n
           teamId,
         },
       });
+      return;
     }
   }
+
+  throw new TRPCError({ code: "NOT_FOUND", message: "Email not verified" });
 };
 
 export function getSender(
@@ -804,3 +870,11 @@ export async function getAllWorkflowsFromEventType(
 
   return allWorkflows;
 }
+
+export const getEventTypeWorkflows = async (
+  userId: number,
+  eventTypeId: number
+): Promise<z.infer<typeof ZWorkflows>> => {
+  const rawEventType = await EventTypeRepository.findById({ id: eventTypeId, userId });
+  return rawEventType?.workflows;
+};

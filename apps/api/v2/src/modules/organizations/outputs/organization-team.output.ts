@@ -1,107 +1,45 @@
-import { Expose } from "class-transformer";
-import { IsBoolean, IsInt, IsOptional, IsString, IsUrl, Length } from "class-validator";
+import { ApiProperty } from "@nestjs/swagger";
+import { Expose, Type } from "class-transformer";
+import { IsEnum, IsString, ValidateNested } from "class-validator";
 
-export class OrgTeamOutputDto {
-  @IsInt()
-  @Expose()
-  readonly id!: number;
+import { ERROR_STATUS, SUCCESS_STATUS } from "@calcom/platform-constants";
+import { OrgTeamOutputDto } from "@calcom/platform-types";
 
-  @IsInt()
-  @IsOptional()
-  @Expose()
-  readonly parentId?: number;
-
-  @IsString()
-  @Length(1)
-  @Expose()
-  readonly name!: string;
-
-  @IsOptional()
+export class OrgMeTeamOutputDto extends OrgTeamOutputDto {
   @IsString()
   @Expose()
-  readonly slug?: string;
+  readonly accepted!: boolean;
+}
 
-  @IsOptional()
-  @IsUrl()
-  @Expose()
-  readonly logoUrl?: string;
+export class OrgTeamsOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @IsOptional()
-  @IsUrl()
   @Expose()
-  readonly calVideoLogo?: string;
+  @ValidateNested()
+  @Type(() => OrgTeamOutputDto)
+  data!: OrgTeamOutputDto[];
+}
 
-  @IsOptional()
-  @IsUrl()
-  @Expose()
-  readonly appLogo?: string;
+export class OrgMeTeamsOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @IsOptional()
-  @IsUrl()
   @Expose()
-  readonly appIconLogo?: string;
+  @ValidateNested()
+  @Type(() => OrgTeamOutputDto)
+  data!: OrgTeamOutputDto[];
+}
 
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly bio?: string;
+export class OrgTeamOutputResponseDto {
+  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
+  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
+  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
 
-  @IsOptional()
-  @IsBoolean()
   @Expose()
-  readonly hideBranding?: boolean;
-
-  @IsBoolean()
-  @Expose()
-  readonly isOrganization?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @Expose()
-  readonly isPrivate?: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  @Expose()
-  readonly hideBookATeamMember?: boolean = false;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly metadata?: string;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly theme?: string;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly brandColor?: string;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly darkBrandColor?: string;
-
-  @IsOptional()
-  @IsUrl()
-  @Expose()
-  readonly bannerUrl?: string;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly timeFormat?: number;
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly timeZone?: string = "Europe/London";
-
-  @IsOptional()
-  @IsString()
-  @Expose()
-  readonly weekStart?: string = "Sunday";
+  @ValidateNested()
+  @Type(() => OrgTeamOutputDto)
+  data!: OrgTeamOutputDto;
 }

@@ -1503,7 +1503,6 @@
   "how_long_after": "活動結束過後多久？",
   "no_available_slots": "沒有可預約的時段",
   "time_available": "開放時間",
-  "cant_find_the_right_video_app_visit_our_app_store": "找不到合適的視訊應用程式嗎？請造訪我們的<1>應用程式商店</1>。",
   "install_new_calendar_app": "安裝新的行事歷應用程式",
   "make_phone_number_required": "預約活動時需提供電話號碼",
   "new_event_type_availability": "{{eventTypeTitle}} 開放時間",
@@ -2111,5 +2110,6 @@
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} 已邀請您加入對方在 {{appName}} 上的「{{teamName}}」團隊。{{appName}} 為一款活動多功能排程工具，可讓您和團隊無須透過繁複的電子郵件往來，就能輕鬆預定會議。",
   "privacy": "隱私權",
   "team_will_be_under_org": "新的團隊將會在您的組織下。",
+  "signing_up_terms": "继续使用，即表示您同意我们的<0>使用条款</0>和<1>隐私政策</1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ 請在此處新增您的字串 ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
