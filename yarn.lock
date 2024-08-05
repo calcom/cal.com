@@ -4168,7 +4168,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
-    "@calcom/platform-libraries-0.0.21": "npm:@calcom/platform-libraries@0.0.21"
+    "@calcom/platform-libraries-0.0.22": "npm:@calcom/platform-libraries@0.0.22"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -5130,14 +5130,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.21@npm:@calcom/platform-libraries@0.0.21":
-  version: 0.0.21
-  resolution: "@calcom/platform-libraries@npm:0.0.21"
+"@calcom/platform-libraries-0.0.22@npm:@calcom/platform-libraries@0.0.22":
+  version: 0.0.22
+  resolution: "@calcom/platform-libraries@npm:0.0.22"
   dependencies:
     "@calcom/core": "*"
     "@calcom/features": "*"
     "@calcom/lib": "*"
-  checksum: af7ce49f25dd7c3e08e6c2b81b233f855b01f1148ceae3cfd5d039b4faf82b11221e0a4c07a6c2624c9b89ade21ea6810ca0aeb598ef3e9d06f9c5e8265cd3c0
+  checksum: 137238600e8c19e5dcd77f340addb5e1284c5dee46b4dfb20c8fb37808251d1752a6c870120f394093c3d503987820c20a10b9a6f2bd4221fbf9109f71a08d87
   languageName: node
   linkType: hard
 
@@ -9668,11 +9668,11 @@ __metadata:
   linkType: hard
 
 "@mux/mux-player-react@npm:*":
-  version: 2.9.0
-  resolution: "@mux/mux-player-react@npm:2.9.0"
+  version: 2.8.1
+  resolution: "@mux/mux-player-react@npm:2.8.1"
   dependencies:
-    "@mux/mux-player": 2.9.0
-    "@mux/playback-core": 0.25.1
+    "@mux/mux-player": 2.8.1
+    "@mux/playback-core": 0.25.0
     prop-types: ^15.7.2
   peerDependencies:
     "@types/react": ^17.0.0 || ^18 || ^19
@@ -9683,40 +9683,40 @@ __metadata:
       optional: true
     "@types/react-dom":
       optional: true
-  checksum: f1684aa0e9a2889e5a3ffc2e0b1ef3ed0213507ebf7e441e0ab6dc58e835dfed9b7d20a8a5c9343dba6e2f81e276256f3978b055150666520b8c581438fdfd39
+  checksum: b23d4f3c2693eb36b7143f424039529af9424952f305bed0bb6fed137676a8c693f31be43bc9b866ddddacd6c8642da4f9a7fa2be26739e0b307f58eef696a0a
   languageName: node
   linkType: hard
 
-"@mux/mux-player@npm:2.9.0":
-  version: 2.9.0
-  resolution: "@mux/mux-player@npm:2.9.0"
+"@mux/mux-player@npm:2.8.1":
+  version: 2.8.1
+  resolution: "@mux/mux-player@npm:2.8.1"
   dependencies:
-    "@mux/mux-video": 0.20.1
-    "@mux/playback-core": 0.25.1
+    "@mux/mux-video": 0.20.0
+    "@mux/playback-core": 0.25.0
     media-chrome: ~3.2.5
-  checksum: d20375cb9fac7988c6614a8bf24edb320cc58ae9b9213044a6160dd20103f054b6a7d6ce9e9278be11ef83067a4c459b680d041a06b2ac5617a6298857da8f32
+  checksum: 4b71e9936c8e7b08e181e9932e882d1e9f62c114926368db0fe5db408d63f52d80d619d9a3d710c4c26fea5afc0be9f950709d9b099697ed6672b3c04506b5e8
   languageName: node
   linkType: hard
 
-"@mux/mux-video@npm:0.20.1":
-  version: 0.20.1
-  resolution: "@mux/mux-video@npm:0.20.1"
+"@mux/mux-video@npm:0.20.0":
+  version: 0.20.0
+  resolution: "@mux/mux-video@npm:0.20.0"
   dependencies:
-    "@mux/playback-core": 0.25.1
+    "@mux/playback-core": 0.25.0
     castable-video: ~1.0.9
     custom-media-element: ~1.3.1
     media-tracks: ~0.3.2
-  checksum: 1c8030e37f8be1c5a73e64e041fcc9b40d0fc486211275f0e2e35ec0f30f4189ef1e47b5a498303c61646255943361e83e528649d4a9b1a06a47c99a2ccfd261
+  checksum: 2f316a6697ff63dbcc5428216600ced1db14e22c195567c69e826b29b2752b9aeee785f073bc2eef71d7422b696370608d9d081b8e24b5332dfeb57bf0839791
   languageName: node
   linkType: hard
 
-"@mux/playback-core@npm:0.25.1":
-  version: 0.25.1
-  resolution: "@mux/playback-core@npm:0.25.1"
+"@mux/playback-core@npm:0.25.0":
+  version: 0.25.0
+  resolution: "@mux/playback-core@npm:0.25.0"
   dependencies:
     hls.js: ~1.5.11
     mux-embed: ~5.2.0
-  checksum: 377fdf12fc5924c21c65c24d085f03787a3e8027f26402b2d050c3e1a8d8586cdc8c7240fbd5a142c407dc1f14a8baa636a0a24daa740d3d17f93f279cf28758
+  checksum: 37175985f7ec7df0b2f24e9b6e3df9c39f94da81b0f1e59b989dd9d04d9451dae2ea6e06d4208a673e532ea2351c39c2d2ec0e149cde60a9a09b9dbd00ea2866
   languageName: node
   linkType: hard
 
@@ -18861,6 +18861,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vercel/functions@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "@vercel/functions@npm:1.4.0"
+  peerDependencies:
+    "@aws-sdk/credential-provider-web-identity": "*"
+  peerDependenciesMeta:
+    "@aws-sdk/credential-provider-web-identity":
+      optional: true
+  checksum: 0b21baa5b7408b0d476c4b723a34b1d8c068d482d8423c125acb4d043afa74c101947142aaecb59cc28c26748b2cc33b1790f40ea0c5cdcd8d0d43f6420ec1e9
+  languageName: node
+  linkType: hard
+
 "@vercel/og@npm:^0.5.0":
   version: 0.5.0
   resolution: "@vercel/og@npm:0.5.0"
@@ -21806,6 +21818,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.5
     "@types/jsdom": ^21.1.3
     "@types/jsonwebtoken": ^9.0.3
+    "@vercel/functions": ^1.4.0
     c8: ^7.13.0
     checkly: latest
     city-timezones: ^1.2.1
@@ -41465,12 +41478,12 @@ __metadata:
   linkType: hard
 
 "react-parallax-tilt@npm:^1.7.226":
-  version: 1.7.235
-  resolution: "react-parallax-tilt@npm:1.7.235"
+  version: 1.7.234
+  resolution: "react-parallax-tilt@npm:1.7.234"
   peerDependencies:
     react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
     react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 3174054dc0725ed8260d592931fbef3315f6dae636a8f88c15e68be3378d9c391edb75cdf8f48430689f5fe1db09b55e3ae302889b1a9afa68a79cc394aff1ad
+  checksum: a1867f4653824258b872fb11eec6a575d3b1c136e5c54613d97e972c3a1eefd03eb22c0eaec2673af2b173820fccfda4773e6debff95df248f8f3edbb5bae184
   languageName: node
   linkType: hard
 
