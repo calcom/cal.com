@@ -19,7 +19,7 @@ export const getMainDomainOrgRedirect = (req: IncomingMessage | undefined) => {
   }
   log.debug(`Looking for redirect from`, originalUrl.toString());
 
-  const newHostName = `${domains[0]},${domains.at(-1)}`;
+  const newHostName = `${domains[0]}.${domains.at(-1)}`;
   originalUrl.hostname = newHostName;
 
   originalUrl.searchParams.append("orgRedirection", "true");
