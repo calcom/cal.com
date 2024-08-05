@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { browserSupportsWebAuthn, startAuthentication } from "@simplewebauthn/browser";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -40,6 +41,9 @@ interface LoginValues {
 
 const GoogleIcon = () => (
   <img className="text-subtle mr-2 h-4 w-4 dark:invert" src="/google-icon.svg" alt="" />
+);
+const PasskeyIcon = () => (
+  <img src="/passkey.svg" alt="passkey" className="text-subtle mr-2 h-4 w-4 dark:invert" />
 );
 export default function Login({
   csrfToken,
@@ -141,6 +145,37 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
     </Button>
   );
 
+  const { mutateAsync: createPasskeySigninOptions } = trpc.viewer.passkey.createSignInOptions.useMutation();
+
+  const onSignInWithPasskey = async () => {
+    if (!browserSupportsWebAuthn()) {
+      setErrorMessage(t("passkeys_not_supported"));
+      return;
+    }
+    try {
+      const options = await createPasskeySigninOptions();
+
+      if (options) {
+        const credential = await startAuthentication(options);
+
+        const result = await signIn("webauthn", {
+          credential: JSON.stringify(credential),
+          callbackUrl,
+          redirect: false,
+        });
+
+        if (!result?.url) {
+          setErrorMessage(t("invalid_credentials"));
+          return;
+        } else {
+          window.location.href = result.url;
+        }
+      }
+    } catch (err) {
+      setErrorMessage(t("something_went_wrong_please_reload"));
+    }
+  };
+
   const onSubmit = async (values: LoginValues) => {
     setErrorMessage(null);
     telemetry.event(telemetryEventTypes.login, collectPageParameters());
@@ -238,7 +273,7 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
+              <hr className="border-subtle my-8" />
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -256,6 +291,17 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                     {t("signin_with_google")}
                   </Button>
                 )}
+                <Button
+                  color="secondary"
+                  className="flex w-full justify-center"
+                  disabled={formState.isSubmitting}
+                  CustomStartIcon={<PasskeyIcon />}
+                  onClick={async (e) => {
+                    e.preventDefault();
+                    onSignInWithPasskey();
+                  }}>
+                  {t("signin_with_passkey")}
+                </Button>
                 {displaySSOLogin && (
                   <SAMLLogin
                     samlTenantID={samlTenantID}

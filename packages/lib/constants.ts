@@ -175,6 +175,9 @@ export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
   : `https://app.cal.com/sparkles.svg`;
 
+export const PASSKEY_TIMEOUT = 60000;
+export const MAXIMUM_PASSKEYS = 50;
+
 export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/start-recording.svg`
   : `https://app.cal.com/start-recording.svg`;
