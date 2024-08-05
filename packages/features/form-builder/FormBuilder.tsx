@@ -42,6 +42,10 @@ type RhfFormFields = RhfForm["fields"];
 
 type RhfFormField = RhfFormFields[number];
 
+function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
+  return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+}
+
 /**
  * It works with a react-hook-form only.
  * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
@@ -434,7 +438,7 @@ function FieldEditDialog({
     fieldForm.setValue("variantsConfig", variantsConfig);
   }, [fieldForm]);
   const isFieldEditMode = !!dialog.data;
-  const fieldType = fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+  const fieldType = getCurrentFieldType(fieldForm);
 
   const variantsConfig = fieldForm.watch("variantsConfig");
 
@@ -498,6 +502,7 @@ function FieldEditDialog({
                       containerClassName="mt-6"
                       label={t("label")}
                     />
+
                     {fieldType?.isTextType ? (
                       <InputField
                         {...fieldForm.register("placeholder")}
@@ -514,6 +519,11 @@ function FieldEditDialog({
                         }}
                       />
                     ) : null}
+
+                    {!!fieldType?.supportsLengthCheck ? (
+                      <FieldWithLengthCheckSupport containerClassName="mt-6" fieldForm={fieldForm} />
+                    ) : null}
+
                     <Controller
                       name="required"
                       control={fieldForm.control}
@@ -552,6 +562,64 @@ function FieldEditDialog({
         </Form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function FieldWithLengthCheckSupport({
+  fieldForm,
+  containerClassName = "",
+  className,
+  ...rest
+}: {
+  fieldForm: UseFormReturn<RhfFormField>;
+  containerClassName?: string;
+} & React.HTMLAttributes<HTMLDivElement>) {
+  const { t } = useLocale();
+  const fieldType = getCurrentFieldType(fieldForm);
+  if (!fieldType.supportsLengthCheck) {
+    return null;
+  }
+  const supportsLengthCheck = fieldType.supportsLengthCheck;
+  const maxAllowedMaxLength = supportsLengthCheck.maxLength;
+
+  return (
+    <div className={classNames("grid grid-cols-2 gap-4", className)} {...rest}>
+      <InputField
+        {...fieldForm.register("minLength", {
+          valueAsNumber: true,
+        })}
+        defaultValue={0}
+        containerClassName={containerClassName}
+        label={t("min_characters")}
+        type="number"
+        onChange={(e) => {
+          fieldForm.setValue("minLength", parseInt(e.target.value ?? 0));
+          // Ensure that maxLength field adjusts its restrictions
+          fieldForm.trigger("maxLength");
+        }}
+        min={0}
+        max={fieldForm.getValues("maxLength") || maxAllowedMaxLength}
+      />
+      <InputField
+        {...fieldForm.register("maxLength", {
+          valueAsNumber: true,
+        })}
+        defaultValue={maxAllowedMaxLength}
+        containerClassName={containerClassName}
+        label={t("max_characters")}
+        type="number"
+        onChange={(e) => {
+          if (!supportsLengthCheck) {
+            return;
+          }
+          fieldForm.setValue("maxLength", parseInt(e.target.value ?? maxAllowedMaxLength));
+          // Ensure that minLength field adjusts its restrictions
+          fieldForm.trigger("minLength");
+        }}
+        min={fieldForm.getValues("minLength") || 0}
+        max={maxAllowedMaxLength}
+      />
+    </div>
   );
 }
 
