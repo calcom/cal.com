@@ -1,5 +1,3 @@
-import type { VerifiedEmail } from "@prisma/client";
-
 import { prisma } from "@calcom/prisma";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
@@ -17,7 +15,7 @@ type GetVerifiedEmailsOptions = {
 export const getVerifiedEmailsHandler = async ({ ctx, input }: GetVerifiedEmailsOptions) => {
   const { user } = ctx;
   const { teamId } = input;
-  let verifiedEmails: VerifiedEmail[] = [];
+  let verifiedEmails: string[] = [user.email];
 
   if (teamId) {
     const team = await prisma.team.findFirst({
@@ -48,19 +46,16 @@ export const getVerifiedEmailsHandler = async ({ ctx, input }: GetVerifiedEmails
       throw new TRPCError({ code: "FORBIDDEN", message: "You are not a member of this team" });
     }
 
-    verifiedEmails = team.members.map((member) => ({
-      email: member.user.email,
-      userId: user.id,
-      teamId,
-      id: member.user.id,
-    }));
+    verifiedEmails = verifiedEmails.concat(team.members.map((member) => member.user.email));
   }
 
-  const emails = await prisma.verifiedEmail.findMany({
-    where: {
-      OR: [{ userId: user.id }, { teamId: input.teamId }],
-    },
-  });
+  const emails = (
+    await prisma.verifiedEmail.findMany({
+      where: {
+        OR: [{ userId: user.id }, { teamId: input.teamId }],
+      },
+    })
+  ).map((verifiedEmail) => verifiedEmail.email);
 
   verifiedEmails = verifiedEmails.concat(emails);
 
