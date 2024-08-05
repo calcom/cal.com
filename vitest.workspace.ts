@@ -108,7 +108,7 @@ const workspaces = packagedEmbedTestsOnly
           name: "@calcom/features",
           include: ["packages/features/**/*.{test,spec}.tsx"],
           environment: "jsdom",
-          setupFiles: ["setupVitest.ts"],
+          setupFiles: ["setupVitest.ts", "packages/ui/components/test-setup.ts"],
         },
       },
 
