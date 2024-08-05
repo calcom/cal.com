@@ -294,7 +294,13 @@ async function handler(
     })
   );
 
-  const eventTimeZone = eventType.schedule?.timeZone ?? null;
+  const user = eventType.users.filter((user) => user.id === eventType.userId)[0];
+
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
+  )[0];
+
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule.timeZone;
 
   let timeOutOfBounds = false;
   try {
@@ -325,10 +331,14 @@ async function handler(
   if (timeOutOfBounds) {
     const error = {
       errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
+      message: `EventType '${
+        eventType.eventName ? eventType.eventName : eventType.title
+      }' cannot be booked at this time.`,
     };
     loggerWithEventDetails.warn({
-      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
+      message: `NewBooking: EventType '${
+        eventType.eventName ? eventType.eventName : eventType.title
+      }' cannot be booked at this time.`,
     });
     throw new HttpError({ statusCode: 400, message: error.message });
   }
