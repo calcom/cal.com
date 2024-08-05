@@ -10,7 +10,7 @@ import {
   regex,
   regexConcatenated,
   getFiles,
-} from "../../scripts/cleanTranslationsfuns";
+} from "../../../../cleanTranslations";
 
 vi.mock("fs-extra");
 vi.mock("glob");
