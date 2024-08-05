@@ -1425,7 +1425,6 @@ const CTA = ({
         <CreateEventTypeDialog
           isInfiniteScrollEnabled={isInfiniteScrollEnabled}
           profileOptions={profileOptions}
-          isOrganization={isOrganization}
         />
       )}
     />

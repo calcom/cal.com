@@ -36,7 +36,7 @@ const querySchema = z.object({
   parentId: z.coerce.number().optional().nullable(),
 });
 
-const DuplicateDialog = ({ isInfiniteScrollEnabled = true }: { isInfiniteScrollEnabled?: boolean }) => {
+const DuplicateDialog = ({ isInfiniteScrollEnabled }: { isInfiniteScrollEnabled?: boolean }) => {
   const utils = trpc.useUtils();
 
   const searchParams = useCompatSearchParams();

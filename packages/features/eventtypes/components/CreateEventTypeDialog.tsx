@@ -70,7 +70,6 @@ const querySchema = z.object({
 
 export default function CreateEventTypeDialog({
   profileOptions,
-  isOrganization,
   isInfiniteScrollEnabled,
 }: {
   profileOptions: {
@@ -79,7 +78,6 @@ export default function CreateEventTypeDialog({
     image: string | undefined;
     membershipRole: MembershipRole | null | undefined;
   }[];
-  isOrganization: boolean;
   isInfiniteScrollEnabled: boolean;
 }) {
   const utils = trpc.useUtils();
