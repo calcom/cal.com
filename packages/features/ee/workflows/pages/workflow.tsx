@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { WorkflowStep } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useSession } from "next-auth/react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -129,33 +129,34 @@ function WorkflowPage() {
     teamId: workflow?.team?.id,
   });
 
-  const { data: eventTypeGroups, isPending: isPendingEventTypes } =
-    trpc.viewer.eventTypes.getByViewer.useQuery();
+  // const { data: eventTypeGroups, isPending: isPendingEventTypes } =
+  //   trpc.viewer.eventTypes.getByViewer.useQuery();
 
   const { data: otherTeams, isPending: isPendingTeams } = trpc.viewer.organizations.listOtherTeams.useQuery();
   const isOrg = workflow?.team?.isOrganization ?? false;
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: _isPendingEventTypes } = trpc.viewer.eventTypes.getEventTypeOptions.useQuery(
-    { teamId, isOrg, isMixedEventType, selectedOptions },
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getEventTypeOptions.useQuery(
+    { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
   console.log("trpc.viewer.eventTypes.getEventTypeOptions", data);
+  console.log("selectedOptions", selectedOptions);
 
-  const profileTeamsOptions =
-    isOrg && eventTypeGroups
-      ? eventTypeGroups?.profiles
-          .filter((profile) => !!profile.teamId)
-          .map((profile) => {
-            return {
-              value: String(profile.teamId) || "",
-              label: profile.name || profile.slug || "",
-            };
-          })
-      : [];
+  // const profileTeamsOptions =
+  //   isOrg && eventTypeGroups
+  //     ? eventTypeGroups?.profiles
+  //         .filter((profile) => !!profile.teamId)
+  //         .map((profile) => {
+  //           return {
+  //             value: String(profile.teamId) || "",
+  //             label: profile.name || profile.slug || "",
+  //           };
+  //         })
+  //     : [];
 
-  // const profileTeamsOptions = isOrg && data?.profilesTeamsOptions ? profilesTeamsOptions : [];
+  const profileTeamsOptions = isOrg && data?.profilesTeamsOptions ? profilesTeamsOptions : [];
 
   const otherTeamsOptions = otherTeams
     ? otherTeams.map((team) => {
@@ -168,35 +169,33 @@ function WorkflowPage() {
 
   const teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
 
-  const eventTypeOptions = useMemo(
-    () =>
-      eventTypeGroups?.eventTypeGroups.reduce((options, group) => {
-        /** don't show team event types for user workflow */
-        if (!teamId && group.teamId) return options;
-        /** only show correct team event types for team workflows */
-        if (teamId && teamId !== group.teamId) return options;
-        return [
-          ...options,
-          ...group.eventTypes
-            .filter(
-              (evType) =>
-                !evType.metadata?.managedEventConfig ||
-                !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
-                !!teamId
-            )
-            .map((eventType) => ({
-              value: String(eventType.id),
-              label: `${eventType.title} ${
-                eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
-              }`,
-            })),
-        ];
-      }, [] as Option[]) || [],
-    [eventTypeGroups]
-  );
-  // const allEventTypeOptions = data?.allEventTypeOptions ?? [];
-
-  let allEventTypeOptions = eventTypeOptions;
+  // const eventTypeOptions = useMemo(
+  //   () =>
+  //     eventTypeGroups?.eventTypeGroups.reduce((options, group) => {
+  //       /** don't show team event types for user workflow */
+  //       if (!teamId && group.teamId) return options;
+  //       /** only show correct team event types for team workflows */
+  //       if (teamId && teamId !== group.teamId) return options;
+  //       return [
+  //         ...options,
+  //         ...group.eventTypes
+  //           .filter(
+  //             (evType) =>
+  //               !evType.metadata?.managedEventConfig ||
+  //               !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+  //               !!teamId
+  //           )
+  //           .map((eventType) => ({
+  //             value: String(eventType.id),
+  //             label: `${eventType.title} ${
+  //               eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+  //             }`,
+  //           })),
+  //       ];
+  //     }, [] as Option[]) || [],
+  //   [eventTypeGroups]
+  // );
+  let allEventTypeOptions = data?.allEventTypeOptions ?? [];
   const distinctEventTypes = new Set();
 
   if (!teamId && isMixedEventType) {
@@ -207,7 +206,8 @@ function WorkflowPage() {
       return !duplicate;
     });
   }
-  console.log("allEventTypeOptions", allEventTypeOptions);
+
+  // console.log("allEventTypeOptions", allEventTypeOptions);
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;

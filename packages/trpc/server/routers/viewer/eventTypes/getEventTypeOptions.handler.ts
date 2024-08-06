@@ -32,8 +32,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
   const user = ctx.user;
   const teamId = input?.teamId;
   const isOrg = input?.isOrg;
-  const selectedOptions = input?.selectedOptions;
-  const isMixedEventType = input?.isMixedEventType;
 
   const userProfile = ctx.user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
@@ -90,9 +88,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     membershipRole: membership.role,
   }));
 
-  console.log("profileMemberships", profileMemberships);
-  console.log("teamMemberships", teamMemberships);
-
   type EventTypeGroup = {
     teamId?: number | null;
     parentId?: number | null;
@@ -136,7 +131,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
           return true;
         })
         .map(async (membership) => {
-          console.log("membership", membership);
           const orgMembership = teamMemberships.find(
             (teamM) => teamM.teamId === membership.team.parentId
           )?.membershipRole;
@@ -202,11 +196,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
       };
     });
 
-  const filterDistinctEventTypes = !teamId && isMixedEventType;
-
-  const distinctEventTypes = new Set();
-  if (filterDistinctEventTypes) selectedOptions?.forEach((option) => distinctEventTypes.add(option.value));
-
   const allEventTypeOptions =
     eventTypeGroups.reduce((options, group) => {
       //       /** don't show team event types for user workflow */
@@ -217,14 +206,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
       return [
         ...options,
         ...group.eventTypes
-          .filter((evType) => {
-            if (!filterDistinctEventTypes) return true;
-
-            const val = String(evType.id);
-            const duplicate = distinctEventTypes.has(val);
-            distinctEventTypes.add(val);
-            return !duplicate;
-          })
           .filter(
             (evType) =>
               !evType.metadata?.managedEventConfig ||
@@ -238,7 +219,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
             }`,
           })),
       ];
-    }, (filterDistinctEventTypes ? selectedOptions ?? [] : []) as Option[]) || [];
+    }, [] as Option[]) || [];
 
   return {
     allEventTypeOptions,

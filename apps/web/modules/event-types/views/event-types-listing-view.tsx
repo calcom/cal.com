@@ -1631,9 +1631,6 @@ const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
     enabled: isInfiniteScrollEnabled,
   });
 
-  const query = trpc.viewer.eventTypes.getEventTypeOptions.useQuery();
-  console.log("trpc.viewer.eventTypes.getEventTypeOptions", query);
-
   useEffect(() => {
     if (searchParams?.get("openIntercom") === "true") {
       open();
