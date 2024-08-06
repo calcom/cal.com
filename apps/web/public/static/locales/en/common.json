@@ -70,6 +70,7 @@
   "meeting_awaiting_payment": "Your meeting is awaiting payment",
   "dark_theme_contrast_error": "Dark Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible.",
   "light_theme_contrast_error": "Light Theme color doesn't pass contrast check. We recommend you change this colour so your buttons will be more visible.",
+  "event_type_color_contrast_error": "Event type color doesn't pass contrast check. We recommend you change this color so your color will be more visible.",
   "payment_not_created_error": "Payment could not be created",
   "couldnt_charge_card_error": "Could not charge card for Payment",
   "no_available_users_found_error": "No available users found. Could you try another time slot?",

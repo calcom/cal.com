@@ -22,6 +22,7 @@ import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import type { Prisma } from "@calcom/prisma/client";
@@ -52,6 +53,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
+  const [colourError, setColourError] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [eventTypeColourVisible, setEventTypeColourVisible] = useState(
@@ -570,9 +572,21 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <ColorPicker
                 defaultValue={defaultEventTypeColour}
                 onChange={(value) => {
-                  formMethods.setValue("eventTypeColour", value, { shouldDirty: true });
+                  try {
+                    checkWCAGContrastColor("#ffffff", value);
+                    checkWCAGContrastColor("#101010", value);
+                    formMethods.setValue("eventTypeColour", value, { shouldDirty: true });
+                    setColourError(false);
+                  } catch (err) {
+                    setColourError(true);
+                  }
                 }}
               />
+              {colourError ? (
+                <div className="mt-4">
+                  <Alert severity="warning" message={t("event_type_color_contrast_error")} />
+                </div>
+              ) : null}
             </div>
           </SettingsToggle>
         )}
