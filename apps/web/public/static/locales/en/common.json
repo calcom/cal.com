@@ -2514,6 +2514,7 @@
   "add_attributes": "Add attributes",
   "add_attributes_description": "Add attributes to your team members",
   "new_option": "New option",
+  "update_profile":"Update member",
   "attribute_updated_successfully": "Attribute updated successfully",
   "grant_admin_api": "Grant Admin API Access",
   "revoke_admin_api": "Revoke Admin API Access",

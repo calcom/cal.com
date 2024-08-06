@@ -1,5 +1,5 @@
 import prisma from "@calcom/prisma";
-import { AttributeType } from "@calcom/prisma/enums";
+import type { AttributeType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
 
@@ -54,6 +54,11 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
       member: {
         id: membership.id,
       },
+      attributeOption: {
+        attribute: {
+          enabled: true,
+        },
+      },
     },
     select: {
       attributeOption: {
@@ -96,8 +101,6 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
 
     return acc;
   }, []);
-
-  console.log("groupedAttributes", groupedAttributes);
 
   return groupedAttributes;
 };

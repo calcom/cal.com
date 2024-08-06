@@ -24,6 +24,8 @@ import {
   SheetBody,
   SheetFooter,
   Button,
+  Divider,
+  SheetTitle,
 } from "@calcom/ui";
 
 import type { Action } from "../UserListTable";
@@ -168,7 +170,9 @@ export function EditForm({
           setEditMode(false);
         }}>
         <SheetHeader>
-          <div className="flex flex-col gap-2">
+          <SheetTitle>{t("update_profile")}</SheetTitle>
+
+          <div className="mt-6 flex flex-col gap-2">
             <Controller
               control={form.control}
               name="avatar"
@@ -189,14 +193,6 @@ export function EditForm({
                 </div>
               )}
             />
-            <div className="space-between flex flex-col leading-none">
-              <span className="text-emphasis text-lg font-semibold">
-                {selectedUser?.name ?? "Nameless User"}
-              </span>
-              <p className="subtle text-sm font-normal">
-                {domainUrl}/{selectedUser?.username}
-              </p>
-            </div>
           </div>
         </SheetHeader>
         <SheetBody className="mt-6 flex h-full flex-col space-y-3">
@@ -204,7 +200,7 @@ export function EditForm({
           <TextField label={t("name")} {...form.register("name")} />
           <TextField label={t("email")} {...form.register("email")} />
 
-          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-52" />
+          <TextAreaField label={t("bio")} {...form.register("bio")} className="min-h-24" />
           <div>
             <Label>{t("role")}</Label>
             <ToggleGroup
@@ -217,10 +213,11 @@ export function EditForm({
               }}
             />
           </div>
-          <div>
+          <div className="mb-4">
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
+          <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>
@@ -262,8 +259,6 @@ function AttributesList(props: { selectedUserId: number }) {
 
   // Watch the 'attributes' field from the form context
   const formAttributes = watch("attributes") as AttributeType[];
-
-  console.log({ formAttributes });
 
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
@@ -308,12 +303,9 @@ function AttributesList(props: { selectedUserId: number }) {
   const attributeFieldState = getFieldState("attributes");
 
   return (
-    <div className="flex flex-col">
-      <div className="bg-subtle flex flex-col gap-3 rounded-lg p-4">
-        <Label className="text-emphasis mb-2 block text-sm font-medium leading-none">{t("attributes")}</Label>
-        <p className="text-subtle mb-2 block text-sm font-medium leading-none">
-          {t("attributes_leave_empty_to_hide")}
-        </p>
+    <div className="mt-4 flex flex-col overflow-visible">
+      <div className="flex flex-col gap-3 rounded-lg">
+        <label className="text-subtle mb-2 text-sm font-medium leading-none ">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
@@ -326,7 +318,6 @@ function AttributesList(props: { selectedUserId: number }) {
             key={attr.id}
             defaultValue={defaultValues[`attributes.${index}`]}
             render={({ field }) => {
-              console.log(field.value);
               return (
                 <div className="flex w-full items-center justify-center gap-2" key={attr.id}>
                   {["TEXT", "NUMBER"].includes(attr.type) && (
