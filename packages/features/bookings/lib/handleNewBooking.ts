@@ -326,17 +326,13 @@ async function handler(
     }
   }
 
-  if (timeOutOfBounds) {
+if (timeOutOfBounds) {
     const error = {
       errorCode: "BookingTimeOutOfBounds",
-      message: `EventType '${
-        eventType.eventName ? eventType.eventName : eventType.title
-      }' cannot be booked at this time.`,
+      message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
     };
     loggerWithEventDetails.warn({
-      message: `NewBooking: EventType '${
-        eventType.eventName ? eventType.eventName : eventType.title
-      }' cannot be booked at this time.`,
+      message: `NewBooking: EventType '${eventType.eventName}' cannot be booked at this time.`,
     });
     throw new HttpError({ statusCode: 400, message: error.message });
   }
