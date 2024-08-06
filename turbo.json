@@ -21,6 +21,9 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
+    "@calcom/trpc#build": {
+      "outputs": ["./types"]
+    },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
@@ -285,6 +288,7 @@
     "EMAIL_SERVER_PORT",
     "EMAIL_SERVER_USER",
     "EMAIL_SERVER",
+    "ENABLE_INFINITE_EVENT_TYPES_FOR_ORG",
     "EXCHANGE_DEFAULT_EWS_URL",
     "FORMBRICKS_FEEDBACK_SURVEY_ID",
     "AVATARAPI_USERNAME",

@@ -11,7 +11,12 @@ export enum UsageEvent {
   USER = "user",
 }
 
-class LicenseKeyService {
+interface ILicenseKeyService {
+  incrementUsage(usageEvent?: UsageEvent): Promise<any>;
+  checkLicense(): Promise<boolean>;
+}
+
+class LicenseKeyService implements ILicenseKeyService {
   private readonly baseUrl = CALCOM_PRIVATE_API_ROUTE;
   private readonly licenseKey: string;
   public readonly CACHING_TIME = 86_400_000; // 24 hours in milliseconds
@@ -23,9 +28,10 @@ class LicenseKeyService {
   }
 
   // Static async factory method
-  public static async create(): Promise<LicenseKeyService> {
+  public static async create(): Promise<ILicenseKeyService> {
     const licenseKey = await getDeploymentKey(prisma);
-    return new LicenseKeyService(licenseKey);
+    const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
+    return !useNoop ? new LicenseKeyService(licenseKey) : new NoopLicenseKeyService();
   }
 
   private async fetcher({
@@ -85,12 +91,23 @@ class LicenseKeyService {
     try {
       const response = await this.fetcher({ url, options: { mode: "cors" } });
       const data = await response.json();
-      cache.put(url, data.stauts, this.CACHING_TIME);
+      cache.put(url, data.status, this.CACHING_TIME);
       return data.status;
     } catch (error) {
       console.error("Check license failed:", error);
       return false;
     }
+  }
+}
+
+export class NoopLicenseKeyService implements ILicenseKeyService {
+  async incrementUsage(_usageEvent?: UsageEvent): Promise<any> {
+    // No operation
+    return Promise.resolve();
+  }
+
+  async checkLicense(): Promise<boolean> {
+    return Promise.resolve(process.env.NEXT_PUBLIC_IS_E2E === "1");
   }
 }
 
