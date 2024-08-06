@@ -494,6 +494,32 @@ export class UserRepository {
     });
   }
 
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        id: teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
+  }
+
   static async getUserAdminTeams(userId: number): Promise<number[]> {
     const user = await prisma.user.findFirst({
       where: {

@@ -180,6 +180,7 @@ export async function getBookings({
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
         eventTypeColour: true,
+        schedulingType: true,
         team: {
           select: {
             id: true,
@@ -191,6 +192,7 @@ export async function getBookings({
     },
     status: true,
     paid: true,
+
     payment: {
       select: {
         paymentOption: true,
