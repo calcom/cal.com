@@ -8,6 +8,7 @@ import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
 import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
+import { ZGetEventTypeOptionsSchema } from "./getEventTypeOptions.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
@@ -16,6 +17,7 @@ type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
   getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
   getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
+  getEventTypeOptions?: typeof import("./getEventTypeOptions.handler").getEventTypeOptions;
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
   create?: typeof import("./create.handler").createHandler;
@@ -103,6 +105,30 @@ export const eventTypesRouter = router({
 
       return result;
     }),
+
+  getEventTypeOptions: authedProcedure.input(ZGetEventTypeOptionsSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getEventTypeOptions) {
+      UNSTABLE_HANDLER_CACHE.getEventTypeOptions = await import("./getEventTypeOptions.handler").then(
+        (mod) => mod.getEventTypeOptions
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getEventTypeOptions) {
+      throw new Error("Failed to load handler");
+    }
+
+    const timer = logP(`getEventTypeOptions(${ctx.user.id})`);
+
+    const result = await UNSTABLE_HANDLER_CACHE.getEventTypeOptions({
+      ctx,
+      input,
+    });
+
+    timer();
+
+    return result;
+  }),
 
   list: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {

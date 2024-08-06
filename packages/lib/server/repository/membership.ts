@@ -132,6 +132,72 @@ export class MembershipRepository {
     });
   }
 
+  static async findAllByUpIdIncludeMinimalEventTypes(
+    { upId }: { upId: string },
+    { where, skipEventTypes = false }: { where?: Prisma.MembershipWhereInput; skipEventTypes?: boolean } = {}
+  ) {
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    let prismaWhere;
+    if (lookupTarget.type === LookupTarget.Profile) {
+      /**
+       * TODO: When we add profileId to membership, we lookup by profileId
+       * If the profile is movedFromUser, we lookup all memberships without profileId as well.
+       */
+      const profile = await ProfileRepository.findById(lookupTarget.id);
+      if (!profile) {
+        return [];
+      }
+      prismaWhere = {
+        userId: profile.user.id,
+        ...where,
+      };
+    } else {
+      prismaWhere = {
+        userId: lookupTarget.id,
+        ...where,
+      };
+    }
+
+    log.debug(
+      "findAllByUpIdIncludeMinimalEventTypes",
+      safeStringify({
+        prismaWhere,
+      })
+    );
+
+    return await prisma.membership.findMany({
+      where: prismaWhere,
+      include: {
+        team: {
+          include: {
+            parent: {
+              select: teamParentSelect,
+            },
+            ...(!skipEventTypes
+              ? {
+                  eventTypes: {
+                    select: {
+                      ...eventTypeSelect,
+                      hashedLink: true,
+                      children: true,
+                    },
+                    orderBy: [
+                      {
+                        position: "desc",
+                      },
+                      {
+                        id: "asc",
+                      },
+                    ],
+                  },
+                }
+              : {}),
+          },
+        },
+      },
+    });
+  }
+
   static async findAllByUpIdIncludeTeam(
     { upId }: { upId: string },
     { where }: { where?: Prisma.MembershipWhereInput } = {}

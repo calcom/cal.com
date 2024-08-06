@@ -137,6 +137,12 @@ function WorkflowPage() {
 
   const teamId = workflow?.teamId ?? undefined;
 
+  const { data, isPending: _isPendingEventTypes } = trpc.viewer.eventTypes.getEventTypeOptions.useQuery(
+    { teamId, isOrg, isMixedEventType, selectedOptions },
+    { enabled: !isPendingWorkflow }
+  );
+  console.log("trpc.viewer.eventTypes.getEventTypeOptions", data);
+
   const profileTeamsOptions =
     isOrg && eventTypeGroups
       ? eventTypeGroups?.profiles
@@ -148,6 +154,8 @@ function WorkflowPage() {
             };
           })
       : [];
+
+  // const profileTeamsOptions = isOrg && data?.profilesTeamsOptions ? profilesTeamsOptions : [];
 
   const otherTeamsOptions = otherTeams
     ? otherTeams.map((team) => {
@@ -186,6 +194,7 @@ function WorkflowPage() {
       }, [] as Option[]) || [],
     [eventTypeGroups]
   );
+  // const allEventTypeOptions = data?.allEventTypeOptions ?? [];
 
   let allEventTypeOptions = eventTypeOptions;
   const distinctEventTypes = new Set();
@@ -198,7 +207,7 @@ function WorkflowPage() {
       return !duplicate;
     });
   }
-
+  console.log("allEventTypeOptions", allEventTypeOptions);
   const readOnly =
     workflow?.team?.members?.find((member) => member.userId === session.data?.user.id)?.role ===
     MembershipRole.MEMBER;
