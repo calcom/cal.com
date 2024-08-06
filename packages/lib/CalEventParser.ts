@@ -260,9 +260,13 @@ export const getRescheduleLink = (calEvent: CalendarEvent, attendee?: Person): s
     return getPlatformRescheduleLink(calEvent, Uid, seatUid);
   }
 
-  return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}${
-    attendee ? `?rescheduledBy=${attendee.email}` : ""
-  }`;
+  const rescheduleLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
+
+  if (attendee) {
+    rescheduleLink.searchParams.append("rescheduledBy", attendee.email);
+  }
+
+  return rescheduleLink.toString();
 };
 
 export const getRichDescription = (
