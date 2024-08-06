@@ -8,5 +8,5 @@
     "emitDeclarationOnly": true,
     "declarationMap": false,
     "outFile": "types/router.d.ts"
-  },
+  }
 }
