@@ -1469,7 +1469,7 @@ model AttributeToUser {
   member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
   memberId Int
 
-  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id])
+  attributeOption   AttributeOption @relation(fields: [attributeOptionId], references: [id], onDelete: Cascade)
   attributeOptionId String
 
   @@unique([memberId, attributeOptionId])
