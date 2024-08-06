@@ -494,26 +494,56 @@ export class UserRepository {
     });
   }
 
-  static async getUserAdminTeams(userId: number): Promise<number[]> {
-    const user = await prisma.user.findFirst({
+  static async getUserAdminTeams(userId: number) {
+    return prisma.user.findFirst({
       where: {
         id: userId,
       },
       select: {
+        id: true,
+        avatarUrl: true,
+        name: true,
+        username: true,
         teams: {
           where: {
             accepted: true,
-            role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+            OR: [
+              {
+                role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+              },
+              {
+                team: {
+                  parent: {
+                    members: {
+                      some: {
+                        id: userId,
+                        role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+                      },
+                    },
+                  },
+                },
+              },
+            ],
           },
-          select: { teamId: true },
+          select: {
+            team: {
+              select: {
+                id: true,
+                name: true,
+                logoUrl: true,
+                isOrganization: true,
+                parent: {
+                  select: {
+                    logoUrl: true,
+                    name: true,
+                    id: true,
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
-
-    const teamIds = [];
-    for (const team of user?.teams || []) {
-      teamIds.push(team.teamId);
-    }
-    return teamIds;
   }
 }
