@@ -1,10 +1,11 @@
-import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { expect } from "@playwright/test";
+import type { Frame, Page, Request as PlaywrightRequest } from "@playwright/test";
 import { createHash } from "crypto";
 import EventEmitter from "events";
 import type { IncomingMessage, ServerResponse } from "http";
 import { createServer } from "http";
 // eslint-disable-next-line no-restricted-imports
+import { noop } from "lodash";
 import type { Messages } from "mailhog";
 import { totp } from "otplib";
 
@@ -14,7 +15,12 @@ import type { IntervalLimit } from "@calcom/types/Calendar";
 
 import type { createEmailsFixture } from "../fixtures/emails";
 import type { Fixtures } from "./fixtures";
-import { loadJSON } from "./loadJSON";
+import { test } from "./fixtures";
+
+export function todo(title: string) {
+  // eslint-disable-next-line playwright/no-skipped-test
+  test.skip(title, noop);
+}
 
 type Request = IncomingMessage & { body?: unknown };
 type RequestHandlerOptions = { req: Request; res: ServerResponse };
@@ -142,7 +148,7 @@ export const bookTimeSlot = async (page: Page, opts?: { name?: string; email?: s
 // Provide an standalone localize utility not managed by next-i18n
 export async function localize(locale: string) {
   const localeModule = `../../public/static/locales/${locale}/common.json`;
-  const localeMap = loadJSON(localeModule);
+  const localeMap = await import(localeModule);
   return (message: string) => {
     if (message in localeMap) return localeMap[message];
     throw "No locale found for the given entry message";

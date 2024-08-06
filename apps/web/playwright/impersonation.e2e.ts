@@ -5,7 +5,7 @@ import { test } from "./lib/fixtures";
 test.describe.configure({ mode: "parallel" });
 
 test.describe("Users can impersonate", async () => {
-  test.afterEach(async ({ users }) => {
+  test.afterAll(async ({ users }) => {
     await users.deleteAll();
   });
   test("App Admin can impersonate users with impersonation enabled", async ({ page, users }) => {

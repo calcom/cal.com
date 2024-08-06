@@ -1,7 +1,5 @@
 import type { Page } from "@playwright/test";
 import { test as base } from "@playwright/test";
-// eslint-disable-next-line no-restricted-imports
-import { noop } from "lodash";
 
 import prisma from "@calcom/prisma";
 
@@ -119,8 +117,3 @@ export const test = base.extend<Fixtures>({
     await use(webhooks);
   },
 });
-
-export function todo(title: string) {
-  // eslint-disable-next-line playwright/no-skipped-test
-  test.skip(title, noop);
-}

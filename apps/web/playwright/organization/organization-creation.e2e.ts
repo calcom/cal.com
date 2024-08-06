@@ -90,7 +90,7 @@ export async function expectEmailVerificationEmailToBeSent(
   return expectEmailWithSubject(page, emails, userEmail, subject);
 }
 
-test.afterEach(({ users, orgs }) => {
+test.afterAll(({ users, orgs }) => {
   users.deleteAll();
   orgs.deleteAll();
 });

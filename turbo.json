@@ -21,9 +21,6 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
-    "@calcom/trpc#build": {
-      "outputs": ["./types"]
-    },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],

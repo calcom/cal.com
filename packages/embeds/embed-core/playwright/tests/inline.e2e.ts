@@ -1,12 +1,13 @@
 import { expect } from "@playwright/test";
 
-import { test, todo } from "@calcom/web/playwright/lib/fixtures";
+import { test } from "@calcom/web/playwright/lib/fixtures";
 
 import {
   assertNoRequestIsBlocked,
   bookFirstEvent,
   deleteAllBookingsByEmail,
   getEmbedIframe,
+  todo,
 } from "../lib/testUtils";
 
 test.describe("Inline Iframe", () => {

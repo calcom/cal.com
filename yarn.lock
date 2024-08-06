@@ -4827,7 +4827,6 @@ __metadata:
     "@trpc/react-query": 11.0.0-next-beta.222
     "@trpc/server": 11.0.0-next-beta.222
     superjson: 1.9.1
-    typescript: ^4.9.4
     zod: ^3.22.4
   languageName: unknown
   linkType: soft

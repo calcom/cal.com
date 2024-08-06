@@ -6,7 +6,7 @@ import { randomString } from "@calcom/lib/random";
 import { SchedulingType } from "@calcom/prisma/client";
 import type { Schedule, TimeRange } from "@calcom/types/schedule";
 
-import { test, todo } from "./lib/fixtures";
+import { test } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookFirstEvent,
@@ -15,6 +15,7 @@ import {
   selectFirstAvailableTimeSlotNextMonth,
   testEmail,
   testName,
+  todo,
 } from "./lib/testUtils";
 
 const freeUserObj = { name: `Free-user-${randomString(3)}` };

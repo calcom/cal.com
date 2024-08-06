@@ -336,7 +336,7 @@ export function UserListTable() {
             });
           }
         }}
-        data-testid="user-list-data-table"
+        data-testId="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
