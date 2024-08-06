@@ -172,11 +172,18 @@ async function getUsersBasedOnWeights<
 
   // Find users with the highest booking shortfall
   const maxShortfall = Math.max(...usersWithBookingShortfalls.map((user) => user.bookingShortfall));
-  const userIdsWithMaxShortfall = new Set(
-    usersWithBookingShortfalls.filter((user) => user.bookingShortfall === maxShortfall).map((user) => user.id)
+  const usersWithMaxShortfall = usersWithBookingShortfalls.filter(
+    (user) => user.bookingShortfall === maxShortfall
   );
 
-  return availableUsers.filter((user) => userIdsWithMaxShortfall.has(user.id));
+  // ff more user's were found, find users with highest weights
+  const maxWeight = Math.max(...usersWithMaxShortfall.map((user) => user.weight ?? 100));
+
+  const userIdsWithMaxShortfallAndWeight = new Set(
+    usersWithMaxShortfall.filter((user) => user.weight === maxWeight).map((user) => user.id)
+  );
+
+  return availableUsers.filter((user) => userIdsWithMaxShortfallAndWeight.has(user.id));
 }
 
 // TODO: Configure distributionAlgorithm from the event type configuration
@@ -197,7 +204,6 @@ export async function getLuckyUser<
     return availableUsers[0];
   }
 
-  // all bookings of event type of all rr hosts
   const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
@@ -215,6 +221,7 @@ export async function getLuckyUser<
         });
       }
       const highestPriorityUsers = getUsersWithHighestPriority({ availableUsers: possibleLuckyUsers });
+
       return leastRecentlyBookedUser<T>({
         ...getLuckyUserParams,
         availableUsers: highestPriorityUsers,
