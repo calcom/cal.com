@@ -83,7 +83,7 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.1",
-    "@playwright/test": "^1.31.2",
+    "@playwright/test": "^1.45.3",
     "@snaplet/copycat": "^4.1.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@types/jsdom": "^21.1.3",
