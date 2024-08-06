@@ -21,6 +21,7 @@ import { safeStringify } from "@calcom/lib/safeStringify";
 import prisma from "@calcom/prisma";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
 import { createdEventSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { AdditionalInformation, CalendarEvent, NewCalendarEventType } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 import type { Event } from "@calcom/types/Event";
@@ -42,6 +43,13 @@ export const isDedicatedIntegration = (location: string): boolean => {
 
 interface HasId {
   id: number;
+}
+
+// The options should have the slug of the apps the option is enabled for
+interface AppOptions {
+  crm: {
+    skipContactCreation: string[];
+  };
 }
 
 const latestCredentialFirst = <T extends HasId>(a: T, b: T) => {
@@ -92,13 +100,14 @@ export default class EventManager {
   calendarCredentials: CredentialPayload[];
   videoCredentials: CredentialPayload[];
   crmCredentials: CredentialPayload[];
+  appOptions: AppOptions;
 
   /**
    * Takes an array of credentials and initializes a new instance of the EventManager.
    *
    * @param user
    */
-  constructor(user: EventManagerUser) {
+  constructor(user: EventManagerUser, eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
     log.silly("Initializing EventManager", safeStringify({ user: getPiiFreeUser(user) }));
     const appCredentials = getApps(user.credentials, true).flatMap((app) =>
       app.credentials.map((creds) => ({ ...creds, appName: app.name }))
@@ -122,6 +131,8 @@ export default class EventManager {
     this.crmCredentials = appCredentials.filter(
       (cred) => cred.type.endsWith("_crm") || cred.type.endsWith("_other_calendar")
     );
+
+    this.appOptions = this.generateAppOptions(eventTypeAppMetadata);
   }
 
   /**
@@ -951,7 +962,8 @@ export default class EventManager {
       const crm = new CrmManager(credential);
 
       let success = true;
-      const createdEvent = await crm.createEvent(event).catch((error) => {
+      const skipContactCreation = this.appOptions.crm.skipContactCreation.includes(credential.appId || "");
+      const createdEvent = await crm.createEvent(event, skipContactCreation).catch((error) => {
         success = false;
         log.warn(`Error creating crm event for ${credential.type}`, error);
       });
@@ -1007,5 +1019,22 @@ export default class EventManager {
       const crm = new CrmManager(credential);
       await crm.deleteEvent(reference.uid);
     }
+  }
+
+  private generateAppOptions(eventTypeAppMetadata?: z.infer<typeof EventTypeAppMetadataSchema>) {
+    const appOptions: AppOptions = {
+      crm: {
+        skipContactCreation: [],
+      },
+    };
+
+    if (eventTypeAppMetadata) {
+      for (const key in eventTypeAppMetadata) {
+        const app = eventTypeAppMetadata[key as keyof typeof eventTypeAppMetadata];
+        if (app?.skipContactCreation) appOptions.crm.skipContactCreation.push(key);
+      }
+    }
+
+    return appOptions;
   }
 }
