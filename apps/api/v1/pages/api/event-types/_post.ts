@@ -275,24 +275,57 @@ async function postHandler(req: NextApiRequest) {
     children: _,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
+  if (parsedBody.teamId && parsedBody.parentId) {
+    //parentId and teamId can't be used together as parentId is present only for child event types of a managed event
+    //teamId is used for event types belonging to a team
+    //child events of a team event do not have teamId , they are identified via parentId
+    //throw error to avoid unexpected behaviour
+    throw new HttpError({
+      statusCode: 400,
+      message: "`parentId` and `teamId` both cannot be present in the request",
+    });
+  }
+  if (parsedBody.teamId && parsedBody.userId) {
+    //team event is not associated with an owner or user
+    throw new HttpError({
+      statusCode: 400,
+      message: "`teamId` and `userId` both cannot be present in the request",
+    });
+  }
+  if (!parsedBody.teamId && parsedBody.schedulingType) {
+    //schedulingType is applicable only for team events
+    throw new HttpError({
+      statusCode: 400,
+      message: "schedulingType is applicable only for team events",
+    });
+  }
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId,
-    users: { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
+  if (!parsedBody.teamId) {
+    //connect user if eventtype doesn't belong to a team
+    data = {
+      ...data,
+      userId,
+      users: { connect: { id: userId } },
+    };
+  }
+
   await checkPermissions(req);
 
-  if (parsedBody.parentId) {
+  //user with admin or owner role on team can create child event types
+  if (parsedBody.parentId && !isSystemWideAdmin) {
     await checkParentEventOwnership(req);
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && parsedBody.userId) {
-    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
+  //checks for owner/admin role on team have been verified above if parentId is present
+  if ((isSystemWideAdmin || parsedBody.parentId) && parsedBody.userId) {
+    data = { ...parsedBody, userId: parsedBody.userId, users: { connect: { id: parsedBody.userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
@@ -311,10 +344,37 @@ async function postHandler(req: NextApiRequest) {
 }
 
 async function checkPermissions(req: NextApiRequest) {
-  const { isSystemWideAdmin } = req;
+  const { isSystemWideAdmin, isOrganizationOwnerOrAdmin, userId } = req;
   const body = schemaEventTypeCreateBodyParams.parse(req.body);
-  /* Non-admin users can only create event types for themselves */
-  if (!isSystemWideAdmin && body.userId)
+
+  // If user is in an organization & they are not admin & they are not creating an event on a teamID
+  // Check if evenTypes are locked.
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      organizationId: true,
+    },
+  });
+  if (user && user.organizationId && !isOrganizationOwnerOrAdmin && !body.teamId) {
+    const orgSettings = await prisma.organizationSettings.findUnique({
+      where: {
+        organizationId: user.organizationId,
+      },
+      select: {
+        lockEventTypeCreationForUsers: true,
+      },
+    });
+
+    const orgHasLockedEventTypes = !!orgSettings?.lockEventTypeCreationForUsers;
+    if (orgHasLockedEventTypes) {
+      throw new HttpError({
+        statusCode: 401,
+        message: "ADMIN required , organization has locked eventType creation",
+      });
+    }
+  }
+  /* Non-admin users can only create event types for themselves excluding managed event types*/
+  if (!isSystemWideAdmin && body.userId && !body.parentId)
     throw new HttpError({
       statusCode: 401,
       message: "ADMIN required for `userId`",
