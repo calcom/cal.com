@@ -15,16 +15,12 @@ export class BookingRepository {
     });
   }
 
-  static async getAllBookingsOfUsers({
+  static async getAllBookingsForRoundRobin({
     users,
     eventTypeId,
-    onlyAccepted = false,
-    withoutNoShows = false,
   }: {
     users: { id: number; email: string }[];
-    eventTypeId?: number;
-    onlyAccepted?: boolean;
-    withoutNoShows?: boolean;
+    eventTypeId: number;
   }) {
     const whereClause: Prisma.BookingWhereInput = {
       OR: [
@@ -34,7 +30,14 @@ export class BookingRepository {
               in: users.map((user) => user.id),
             },
           },
-          ...(withoutNoShows && { OR: [{ noShowHost: false }, { noShowHost: null }] }),
+          OR: [
+            {
+              noShowHost: false,
+            },
+            {
+              noShowHost: null,
+            },
+          ],
         },
         {
           attendees: {
@@ -46,16 +49,10 @@ export class BookingRepository {
           },
         },
       ],
-      ...(withoutNoShows && { attendees: { some: { noShow: false } } }),
+      attendees: { some: { noShow: false } },
+      status: BookingStatus.ACCEPTED,
+      eventTypeId,
     };
-
-    if (eventTypeId !== undefined) {
-      whereClause.eventTypeId = eventTypeId;
-    }
-
-    if (onlyAccepted) {
-      whereClause.status = BookingStatus.ACCEPTED;
-    }
 
     const allBookings = await prisma.booking.findMany({
       where: whereClause,

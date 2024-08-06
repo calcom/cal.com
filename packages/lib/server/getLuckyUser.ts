@@ -44,7 +44,7 @@ async function leastRecentlyBookedUser<T extends PartialUser>({
           status: BookingStatus.ACCEPTED,
           attendees: {
             some: {
-              noShow: false, // todo: so we don't count the booking only because one of the attendees might be a no show?
+              noShow: false,
             },
           },
           // not:true won't match null, thus we need to do an OR with null case separately(for bookings that might have null value for `noShowHost` as earlier it didn't have default false)
@@ -128,20 +128,20 @@ async function getUsersBasedOnWeights<
   availableUsers,
   bookingsOfAvailableUsers,
   allRRHosts,
+  eventType,
 }: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
   const notAvailableHosts = allRRHosts.filter((host) => !availableUserIds.has(host.user.id));
 
-  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsOfUsers({
+  const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
+    eventTypeId: eventType.id,
     users: notAvailableHosts.map((host) => {
       return {
         id: host.user.id,
         email: host.user.email,
       };
     }),
-    onlyAccepted: true,
-    withoutNoShows: true,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
@@ -198,13 +198,11 @@ export async function getLuckyUser<
   }
 
   // all bookings of event type of all rr hosts
-  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsOfUsers({
+  const bookingsOfAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
     users: availableUsers.map((user) => {
       return { id: user.id, email: user.email };
     }),
-    withoutNoShows: true,
-    onlyAccepted: true,
   });
 
   switch (distributionAlgorithm) {

@@ -234,12 +234,11 @@ export async function addWeightAdjustmentToNewHosts({
     }));
   }
 
-  const ongoingHostBookings = await BookingRepository.getAllBookingsOfUsers({
+  const ongoingHostBookings = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId,
     users: ongoingRRHosts.map((host) => {
       return { id: host.user.id, email: host.user.email };
     }),
-    onlyAccepted: true,
   });
 
   const { ongoingHostsWeightAdjustment, ongoingHostsWeights } = ongoingRRHosts.reduce(
@@ -256,10 +255,9 @@ export async function addWeightAdjustmentToNewHosts({
       let weightAdjustment = !host.isFixed ? host.weightAdjustment : 0;
       if (host.isNewRRHost) {
         // host can already have bookings, if they ever was assigned before
-        const existingBookings = await BookingRepository.getAllBookingsOfUsers({
+        const existingBookings = await BookingRepository.getAllBookingsForRoundRobin({
           eventTypeId,
           users: [{ id: host.user.id, email: host.user.email }],
-          onlyAccepted: true,
         });
 
         const proportionalNrOfBookings =
