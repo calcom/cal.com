@@ -297,6 +297,7 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
       ...evt,
       smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+      cancelledBy: user.email,
     }).catch((e) => {
       log.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
