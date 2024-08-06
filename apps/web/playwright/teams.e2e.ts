@@ -4,14 +4,13 @@ import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
 import { prisma } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import { testBothFutureAndLegacyRoutes } from "./lib/future-legacy-routes";
 import {
   bookTimeSlot,
   fillStripeTestCheckout,
   selectFirstAvailableTimeSlotNextMonth,
   testName,
-  todo,
 } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
