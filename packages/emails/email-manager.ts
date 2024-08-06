@@ -6,6 +6,8 @@ import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
 import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
+import logger from "@calcom/lib/logger";
+import { safeStringify } from "@calcom/lib/safeStringify";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import type { MonthlyDigestEmailData } from "./src/templates/MonthlyDigestEmail";
@@ -280,6 +282,14 @@ export const sendCancelledEmails = async (
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
+  const calEventLength = calendarEvent.length;
+  if (typeof calEventLength !== "number") {
+    logger.error(
+      "`calEventLength` is not a number",
+      safeStringify({ calEventLength, calEventTitle: calEvent.title, bookingId: calEvent.bookingId })
+    );
+  }
+  const eventDuration = calEventLength as number;
 
   if (calendarEvent.team?.members) {
     for (const teamMember of calendarEvent.team.members) {
@@ -302,6 +312,7 @@ export const sendCancelledEmails = async (
                 attendeeName: attendee.name,
                 host: calendarEvent.organizer.name,
                 eventType: calendarEvent.type,
+                eventDuration,
                 ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
                 ...(calendarEvent.location && { location: calendarEvent.location }),
               }),

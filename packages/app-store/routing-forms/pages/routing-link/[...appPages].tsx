@@ -13,6 +13,7 @@ import useGetBrandingColours from "@calcom/lib/getBrandColours";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useTheme from "@calcom/lib/hooks/useTheme";
+import { navigateInTopWindow } from "@calcom/lib/navigateInTopWindow";
 import { trpc } from "@calcom/trpc/react";
 import type { inferSSRProps } from "@calcom/types/inferSSRProps";
 import { Button, showToast, useCalcomTheme } from "@calcom/ui";
@@ -115,7 +116,7 @@ function RoutingForm({ form, profile, ...restProps }: Props) {
           })
         );
       } else if (decidedAction.type === "externalRedirectUrl") {
-        window.parent.location.href = `${decidedAction.value}?${allURLSearchParams}`;
+        navigateInTopWindow(`${decidedAction.value}?${allURLSearchParams}`);
       }
       // We don't want to show this message as it doesn't look good in Embed.
       // showToast("Form submitted successfully! Redirecting now ...", "success");

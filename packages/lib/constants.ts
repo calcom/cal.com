@@ -104,6 +104,10 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
+export const ENABLE_INFINITE_EVENT_TYPES_FOR_ORG = JSON.parse(
+  `[${process.env.ENABLE_INFINITE_EVENT_TYPES_FOR_ORG || ""}]`
+) as string[];
+
 export const ORGANIZATION_MIN_SEATS = 30;
 
 // Needed for emails in E2E
@@ -153,6 +157,9 @@ export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
 export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
+
+export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 /**
  * The maximum number of days we should check for if we don't find all required bookable days
  * Counter start from current day and we would like to not go beyond 2 months(max days possible) from current day.

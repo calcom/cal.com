@@ -2,6 +2,7 @@ import type { Webhook } from "@prisma/client";
 import { createHmac } from "crypto";
 import { compile } from "handlebars";
 
+import type { TGetTranscriptAccessLink } from "@calcom/app-store/dailyvideo/zod";
 import { getHumanReadableLocationValue } from "@calcom/app-store/locations";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
@@ -36,7 +37,15 @@ export type BookingNoShowUpdatedPayload = {
   attendees: { email: string; noShow: boolean }[];
 };
 
+export type TranscriptionGeneratedPayload = {
+  downloadLinks?: {
+    transcription: TGetTranscriptAccessLink["transcription"];
+    recording: string;
+  };
+};
+
 export type WebhookDataType = CalendarEvent &
+  TranscriptionGeneratedPayload &
   // BookingNoShowUpdatedPayload & // This breaks all other webhooks
   EventTypeInfo & {
     metadata?: { [key: string]: string | number | boolean | null };

@@ -1,11 +1,16 @@
 import { appStoreMetadata } from "@calcom/app-store/appStoreMetaData";
 import { getAppFromSlug } from "@calcom/app-store/utils";
-import type { UserAdminTeams } from "@calcom/features/ee/teams/lib/getUserAdminTeams";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
+import type { UserAdminTeams } from "@calcom/lib/server/repository/user";
 import prisma, { safeAppSelect, safeCredentialSelect } from "@calcom/prisma";
 import { userMetadata } from "@calcom/prisma/zod-utils";
 import type { AppFrontendPayload as App } from "@calcom/types/App";
 import type { CredentialFrontendPayload as Credential } from "@calcom/types/Credential";
+
+export type TDependencyData = {
+  name?: string;
+  installed?: boolean;
+}[];
 
 /**
  * Get App metdata either using dirName or slug
@@ -58,19 +63,13 @@ export async function getAppRegistry() {
 
 export async function getAppRegistryWithCredentials(userId: number, userAdminTeams: UserAdminTeams = []) {
   // Get teamIds to grab existing credentials
-  const teamIds = [];
-  for (const team of userAdminTeams) {
-    if (!team.isUser) {
-      teamIds.push(team.id);
-    }
-  }
 
   const dbApps = await prisma.app.findMany({
     where: { enabled: true },
     select: {
       ...safeAppSelect,
       credentials: {
-        where: { OR: [{ userId }, { teamId: { in: teamIds } }] },
+        where: { OR: [{ userId }, { teamId: { in: userAdminTeams } }] },
         select: safeCredentialSelect,
       },
     },
@@ -102,10 +101,7 @@ export async function getAppRegistryWithCredentials(userId: number, userAdminTea
     /* This is now handled from the DB */
     // if (!app.installed) return apps;
     app.createdAt = dbapp.createdAt.toISOString();
-    let dependencyData: {
-      name?: string;
-      installed?: boolean;
-    }[] = [];
+    let dependencyData: TDependencyData = [];
     if (app.dependencies) {
       dependencyData = app.dependencies.map((dependency) => {
         const dependencyInstalled = dbApps.some(
