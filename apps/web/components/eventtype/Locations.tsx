@@ -243,12 +243,19 @@ const Locations: React.FC<LocationsProps> = ({
                         eventLocationType.organizerInputType ||
                         !validLocations?.find((location) => location.type === newLocationType);
 
+                      const shouldUpdateLink =
+                        eventLocationType?.organizerInputType === "text" &&
+                        eventLocationType.defaultValueVariable === "link";
+
                       if (canAddLocation) {
                         updateLocationField(index, {
                           type: newLocationType,
                           ...(e.credentialId && {
                             credentialId: e.credentialId,
                             teamName: e.teamName ?? undefined,
+                          }),
+                          ...(shouldUpdateLink && {
+                            link: "",
                           }),
                         });
                       } else {
