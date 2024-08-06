@@ -222,6 +222,7 @@ export const Components: Record<FieldType, Component> = {
             props.setValue(val);
           }}
           {...props}
+          disabled={props.readOnly}
         />
       );
     },
@@ -363,9 +364,10 @@ export const Components: Record<FieldType, Component> = {
   },
   radio: {
     propsType: propsTypes.radio,
-    factory: ({ setValue, name, value, options }) => {
+    factory: ({ setValue, name, value, options, readOnly }) => {
       return (
         <Group
+          disabled={readOnly}
           value={value}
           onValueChange={(e) => {
             setValue(e);

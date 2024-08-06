@@ -177,6 +177,10 @@ export class BookingField_2024_04_15 {
   @ValidateNested({ each: true })
   @Type(() => Source)
   sources?: Source[];
+
+  @IsOptional()
+  @IsBoolean()
+  disableOnPrefill?: boolean;
 }
 
 export class RecurringEvent_2024_04_15 {

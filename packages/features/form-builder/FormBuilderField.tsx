@@ -5,6 +5,7 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
@@ -42,6 +43,65 @@ type ValueProps =
       setValue: (value: boolean) => void;
     };
 
+export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
+  const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
+  return name;
+};
+
+function toArray(value: string[] | string): string[] {
+  return Array.isArray(value) ? value : [value];
+}
+
+function intersected(arr1: string[], arr2: string[]): boolean {
+  return !!arr1.find((value) => arr2.find((innerValue) => innerValue?.toString() == value?.toString()));
+}
+
+function isEqual(searchParamValue: string | string[], formValue: string[] | string): boolean {
+  if (typeof formValue === "string") {
+    return searchParamValue?.toString() == formValue?.toString();
+  }
+
+  const formValueToArray = toArray(formValue as string | string[]);
+  const urlValueToArray = toArray(searchParamValue);
+
+  return intersected(formValueToArray, urlValueToArray);
+}
+
+//why entire field is paased here. we might need to validated the value based on the field type and options.
+export const useShouldBeDisabledDueToPrefill = (field: RhfFormField): boolean => {
+  const { getValues, formState } = useFormContext();
+  const searchParams = useRouterQuery();
+  //TO DO:currently formValues were defaulted to search params values even the form input value is empty. need to fix that
+  const formValues = getValues()?.responses || {};
+
+  // Get the value of a specific field
+  const errorMessage = (formState?.errors?.responses?.message || "") as string;
+  const fieldNameThatHasError = getFieldNameFromErrorMessage(errorMessage);
+  // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
+  if (fieldNameThatHasError === field?.name) {
+    return false;
+  }
+
+  const fieldValueInForm = formValues[field.name];
+
+  if (!fieldValueInForm && fieldValueInForm !== 0) {
+    // handling the zero number case
+    return false;
+  }
+
+  if (!field.disableOnPrefill || !searchParams) {
+    return false;
+  }
+  const searchParamValue = searchParams[field.name];
+
+  //normal text,number,boolean,single select validations
+  if (searchParamValue == fieldValueInForm?.toString()) {
+    return true;
+  }
+
+  return isEqual(searchParamValue, fieldValueInForm);
+};
+
 export const FormBuilderField = ({
   field,
   readOnly,
@@ -55,6 +115,7 @@ export const FormBuilderField = ({
   const { control, formState } = useFormContext();
 
   const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
+  const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
@@ -68,7 +129,7 @@ export const FormBuilderField = ({
               <ComponentForField
                 field={{ ...field, label, placeholder, hidden }}
                 value={value}
-                readOnly={readOnly}
+                readOnly={readOnly || shouldBeDisabled}
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
@@ -79,7 +140,7 @@ export const FormBuilderField = ({
                 render={({ message }: { message: string | undefined }) => {
                   message = message || "";
                   // If the error comes due to parsing the `responses` object(which can have error for any field), we need to identify the field that has the error from the message
-                  const name = message.replace(/\{([^}]+)\}.*/, "$1");
+                  const name = getFieldNameFromErrorMessage(message);
                   const isResponsesErrorForThisField = name === field.name;
                   // If the error comes for the specific property of responses(Possible for system fields), then also we would go ahead and show the error
                   if (!isResponsesErrorForThisField && !error) {
