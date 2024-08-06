@@ -1,5 +1,6 @@
 import authedProcedure from "../../procedures/authedProcedure";
 import { importHandler, router } from "../../trpc";
+import { ZAddNotificationsSubscriptionInputSchema } from "./addNotificationsSubscription.schema";
 import { ZAddSecondaryEmailInputSchema } from "./addSecondaryEmail.schema";
 import { ZAppByIdInputSchema } from "./appById.schema";
 import { ZAppCredentialsByTypeInputSchema } from "./appCredentialsByType.schema";
@@ -15,6 +16,7 @@ import { ZLocationOptionsInputSchema } from "./locationOptions.schema";
 import { ZOutOfOfficeInputSchema, ZOutOfOfficeDelete } from "./outOfOffice.schema";
 import { me } from "./procedures/me";
 import { teamsAndUserProfilesQuery } from "./procedures/teamsAndUserProfilesQuery";
+import { ZRemoveNotificationsSubscriptionInputSchema } from "./removeNotificationsSubscription.schema";
 import { ZRoutingFormOrderInputSchema } from "./routingFormOrder.schema";
 import { ZSetDestinationCalendarInputSchema } from "./setDestinationCalendar.schema";
 import { ZSubmitFeedbackInputSchema } from "./submitFeedback.schema";
@@ -58,6 +60,8 @@ type AppsRouterHandlerCache = {
   addSecondaryEmail?: typeof import("./addSecondaryEmail.handler").addSecondaryEmailHandler;
   getTravelSchedules?: typeof import("./getTravelSchedules.handler").getTravelSchedulesHandler;
   outOfOfficeReasonList?: typeof import("./outOfOfficeReasons.handler").outOfOfficeReasonList;
+  addNotificationsSubscription?: typeof import("./addNotificationsSubscription.handler").addNotificationsSubscriptionHandler;
+  removeNotificationsSubscription?: typeof import("./removeNotificationsSubscription.handler").removeNotificationsSubscriptionHandler;
 };
 
 const UNSTABLE_HANDLER_CACHE: AppsRouterHandlerCache = {};
@@ -497,4 +501,36 @@ export const loggedInViewerRouter = router({
 
     return UNSTABLE_HANDLER_CACHE.outOfOfficeReasonList();
   }),
+  addNotificationsSubscription: authedProcedure
+    .input(ZAddNotificationsSubscriptionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.addNotificationsSubscription) {
+        UNSTABLE_HANDLER_CACHE.addNotificationsSubscription = (
+          await import("./addNotificationsSubscription.handler")
+        ).addNotificationsSubscriptionHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.addNotificationsSubscription) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.addNotificationsSubscription({ ctx, input });
+    }),
+  removeNotificationsSubscription: authedProcedure
+    .input(ZRemoveNotificationsSubscriptionInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription) {
+        UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription = (
+          await import("./removeNotificationsSubscription.handler")
+        ).removeNotificationsSubscriptionHandler;
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription) {
+        throw new Error("Failed to load handler");
+      }
+
+      return UNSTABLE_HANDLER_CACHE.removeNotificationsSubscription({ ctx, input });
+    }),
 });

@@ -18,9 +18,11 @@
     "react-select": "^5.7.0",
     "react-sticky-box": "^2.0.4",
     "react-virtual": "^2.10.4",
+    "web-push": "^3.6.7",
     "zustand": "^4.3.2"
   },
   "devDependencies": {
-    "@testing-library/react-hooks": "^8.0.1"
+    "@testing-library/react-hooks": "^8.0.1",
+    "@types/web-push": "^3.6.3"
   }
 }
