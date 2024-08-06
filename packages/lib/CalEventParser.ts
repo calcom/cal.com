@@ -217,7 +217,7 @@ export const getPlatformCancelLink = (
   return "";
 };
 
-export const getCancelLink = (calEvent: CalendarEvent, attendee: Person): string => {
+export const getCancelLink = (calEvent: CalendarEvent, attendee?: Person): string => {
   const Uid = getUid(calEvent);
   const seatReferenceUid = getSeatReferenceId(calEvent);
   if (calEvent.platformClientId) {
@@ -227,7 +227,9 @@ export const getCancelLink = (calEvent: CalendarEvent, attendee: Person): string
   const cancelLink = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/booking/${Uid}`);
   cancelLink.searchParams.append("cancel", "true");
   cancelLink.searchParams.append("allRemainingBookings", String(!!calEvent.recurringEvent));
-  cancelLink.searchParams.append("cancelledBy", attendee.email);
+  if (attendee) {
+    cancelLink.searchParams.append("cancelledBy", attendee.email);
+  }
   if (seatReferenceUid) cancelLink.searchParams.append("seatReferenceUid", seatReferenceUid);
   return cancelLink.toString();
 };
@@ -250,7 +252,7 @@ export const getPlatformRescheduleLink = (
   return "";
 };
 
-export const getRescheduleLink = (calEvent: CalendarEvent, attendee: Person): string => {
+export const getRescheduleLink = (calEvent: CalendarEvent, attendee?: Person): string => {
   const Uid = getUid(calEvent);
   const seatUid = getSeatReferenceId(calEvent);
 
@@ -258,8 +260,8 @@ export const getRescheduleLink = (calEvent: CalendarEvent, attendee: Person): st
     return getPlatformRescheduleLink(calEvent, Uid, seatUid);
   }
 
-  return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}?rescheduledBy=${
-    attendee.email
+  return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}${
+    attendee ? `?rescheduledBy=${attendee.email}` : ""
   }`;
 };
 
