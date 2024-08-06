@@ -29,9 +29,8 @@ CREATE TABLE "Attribute" (
 -- CreateTable
 CREATE TABLE "AttributeToUser" (
     "id" TEXT NOT NULL,
-    "attributeId" TEXT NOT NULL,
     "memberId" INTEGER NOT NULL,
-    "options" TEXT[],
+    "attributeOptionId" TEXT NOT NULL,
 
     CONSTRAINT "AttributeToUser_pkey" PRIMARY KEY ("id")
 );
@@ -42,6 +41,9 @@ CREATE UNIQUE INDEX "AttributeOption_attributeId_value_key" ON "AttributeOption"
 -- CreateIndex
 CREATE UNIQUE INDEX "Attribute_slug_key" ON "Attribute"("slug");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "AttributeToUser_memberId_attributeOptionId_key" ON "AttributeToUser"("memberId", "attributeOptionId");
+
 -- AddForeignKey
 ALTER TABLE "AttributeOption" ADD CONSTRAINT "AttributeOption_attributeId_fkey" FOREIGN KEY ("attributeId") REFERENCES "Attribute"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -49,7 +51,7 @@ ALTER TABLE "AttributeOption" ADD CONSTRAINT "AttributeOption_attributeId_fkey" 
 ALTER TABLE "Attribute" ADD CONSTRAINT "Attribute_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AttributeToUser" ADD CONSTRAINT "AttributeToUser_attributeId_fkey" FOREIGN KEY ("attributeId") REFERENCES "Attribute"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AttributeToUser" ADD CONSTRAINT "AttributeToUser_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Membership"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AttributeToUser" ADD CONSTRAINT "AttributeToUser_memberId_fkey" FOREIGN KEY ("memberId") REFERENCES "Membership"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "AttributeToUser" ADD CONSTRAINT "AttributeToUser_attributeOptionId_fkey" FOREIGN KEY ("attributeOptionId") REFERENCES "AttributeOption"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
