@@ -294,7 +294,11 @@ async function handler(
     })
   );
 
-  const eventTimeZone = eventType.schedule?.timeZone ?? null;
+  const user = eventType.users.find((user) => user.id === eventType.userId);
+
+  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
+
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
   let timeOutOfBounds = false;
   try {
