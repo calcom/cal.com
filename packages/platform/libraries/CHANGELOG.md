@@ -1,8 +1,3 @@
-## 0.0.23
-Update "createBooking" (packages/features/bookings/lib/handleNewBooking/createBooking.ts) that is used by handleNewBooking (packages/features/bookings/lib/handleNewBooking.ts) to correctly handle metadata of a re-scheduled booking. Previously,
-metadata of original booking was overwriting metadata in the request body of the new booking (rescheduled), but now
-request body overwrites metadata of the original body so that whatever metadata is newest ends up as the metadata of rescheduled booking. However, only common properties are overwritten, if the original booking has a key that re-schedule booking request body metadata does not have, then it will be persisted in the re-scheduled booking.
-
 ## 0.0.22
 Export `updateNewTeamMemberEventTypes` from `"@calcom/lib/server/queries"` so that we can assign newly created organizations
 teams members to event-types that have been marked as "assign all team members"
