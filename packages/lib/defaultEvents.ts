@@ -105,6 +105,7 @@ const commons = {
   bookingFields: [],
   assignAllTeamMembers: false,
   useEventTypeDestinationCalendarEmail: false,
+  differentRoundRobinRecurringHosts: false,
   secondaryEmailId: null,
   secondaryEmail: null,
 };

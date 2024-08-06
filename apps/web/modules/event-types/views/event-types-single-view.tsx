@@ -343,6 +343,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
+      differentRoundRobinRecurringHosts: eventType.differentRoundRobinRecurringHosts,
     };
   }, [eventType, periodDates, metadata]);
   const formMethods = useForm<FormValues>({

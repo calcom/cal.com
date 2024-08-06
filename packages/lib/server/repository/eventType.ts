@@ -340,6 +340,7 @@ export class EventTypeRepository {
       lockTimeZoneToggleOnBookingPage: true,
       requiresConfirmation: true,
       requiresBookerEmailVerification: true,
+      differentRoundRobinRecurringHosts: true,
       recurringEvent: true,
       hideCalendarNotes: true,
       disableGuests: true,

@@ -37,15 +37,16 @@ export function WhenInfo(props: {
   t: TFunction;
   locale: string;
   timeFormat: TimeFormat;
+  isOrganizer?: boolean;
 }) {
-  const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat } = props;
+  const { timeZone, t, calEvent: { recurringEvent } = {}, locale, timeFormat, isOrganizer } = props;
 
-  function getRecipientStart(format: string) {
-    return dayjs(props.calEvent.startTime).tz(timeZone).locale(locale).format(format);
+  function getRecipientStart(format: string, time: string) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
   }
 
-  function getRecipientEnd(format: string) {
-    return dayjs(props.calEvent.endTime).tz(timeZone).locale(locale).format(format);
+  function getRecipientEnd(format: string, time: string) {
+    return dayjs(time).tz(timeZone).locale(locale).format(format);
   }
 
   const recurringInfo = getRecurringWhen({
@@ -53,18 +54,36 @@ export function WhenInfo(props: {
     attendee: props.calEvent.attendees[0],
   });
 
+  const hideInfo = props.calEvent.differentRoundRobinRecurringHosts && isOrganizer;
+
   return (
     <div>
       <Info
-        label={`${t("when")} ${recurringInfo !== "" ? ` - ${recurringInfo}` : ""}`}
+        label={`${t("when")} ${recurringInfo !== "" && !hideInfo ? ` - ${recurringInfo}` : ""}`}
         lineThrough={
           !!props.calEvent.cancellationReason && !props.calEvent.cancellationReason.includes("$RCH$")
         }
         description={
           <span data-testid="when">
             {recurringEvent?.count ? `${t("starting")} ` : ""}
-            {getRecipientStart(`dddd, LL | ${timeFormat}`)} - {getRecipientEnd(timeFormat)}{" "}
-            <span style={{ color: "#4B5563" }}>({timeZone})</span>
+            {props.calEvent.differentRoundRobinRecurringHosts && isOrganizer ? (
+              <>
+                {props.calEvent.multiTimes?.map((time) => (
+                  <>
+                    {getRecipientStart(`dddd, LL | ${timeFormat}`, time.startTime)} -{" "}
+                    {getRecipientEnd(timeFormat, time.endTime)}{" "}
+                    <span style={{ color: "#4B5563" }}>({timeZone})</span>
+                    <br />
+                  </>
+                ))}
+              </>
+            ) : (
+              <>
+                {getRecipientStart(`dddd, LL | ${timeFormat}`, props.calEvent.startTime)} -{" "}
+                {getRecipientEnd(timeFormat, props.calEvent.endTime)}{" "}
+                <span style={{ color: "#4B5563" }}>({timeZone})</span>
+              </>
+            )}
           </span>
         }
         withSpacer

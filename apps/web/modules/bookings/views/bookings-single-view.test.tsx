@@ -16,6 +16,7 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
     eventType: {
       id: 1,
       title: "Event Title",
+      differentRoundRobinRecurringHosts: false,
       description: "",
       locations: null,
       length: 15,
@@ -33,7 +34,9 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       currency: "usd",
       successRedirectUrl: null,
       customInputs: [],
-      team: null,
+      team: {
+        logoUrl: "/avatar.svg",
+      },
       workflows: [],
       hosts: [],
       users: [],

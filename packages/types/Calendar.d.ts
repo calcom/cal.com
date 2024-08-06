@@ -173,6 +173,10 @@ export interface CalendarEvent {
     members: TeamMember[];
     id: number;
   };
+  multiTimes?: {
+    startTime: string;
+    endTime: string;
+  }[];
   location?: string | null;
   conferenceCredentialId?: number;
   conferenceData?: ConferenceData;
@@ -187,6 +191,7 @@ export interface CalendarEvent {
   cancellationReason?: string | null;
   rejectionReason?: string | null;
   hideCalendarNotes?: boolean;
+  differentRoundRobinRecurringHosts?: boolean;
   recurrence?: string;
   recurringEvent?: RecurringEvent | null;
   eventTypeId?: number | null;

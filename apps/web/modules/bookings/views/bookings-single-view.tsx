@@ -249,6 +249,7 @@ export default function Success(props: PageProps) {
   const needsConfirmation = bookingInfo.status === BookingStatus.PENDING && eventType.requiresConfirmation;
   const userIsOwner = !!(session?.user?.id && eventType.owner?.id === session.user.id);
   const isLoggedIn = session?.user;
+  const isOrganizer = !!(session?.user?.id && bookingInfo.user?.id === session.user.id);
   const isCancelled =
     status === "CANCELLED" ||
     status === "REJECTED" ||
@@ -309,7 +310,10 @@ export default function Success(props: PageProps) {
 
   function getTitle(): string {
     const titleSuffix = props.recurringBookings ? "_recurring" : "";
-    const titlePrefix = isRoundRobin ? "round_robin_" : "";
+    let titlePrefix = isRoundRobin ? "round_robin_" : "";
+    if (eventType.differentRoundRobinRecurringHosts) {
+      titlePrefix = `diff_hosts_${titlePrefix}`;
+    }
     if (isCancelled || isBookingInPast) {
       return "";
     }
@@ -420,13 +424,23 @@ export default function Success(props: PageProps) {
                   <>
                     <div
                       className={classNames(isRoundRobin && "min-w-32 min-h-24 relative mx-auto h-24 w-32")}>
-                      {isRoundRobin && bookingInfo.user && (
+                      {eventType.differentRoundRobinRecurringHosts ? (
                         <Avatar
                           className="mx-auto flex items-center justify-center"
-                          alt={bookingInfo.user.name || bookingInfo.user.email}
+                          alt={eventType.team?.name || "Nameless Team"}
                           size="xl"
-                          imageSrc={`${bookingInfo.user.avatarUrl}`}
+                          imageSrc={`${eventType.team?.logoUrl}`}
                         />
+                      ) : (
+                        isRoundRobin &&
+                        bookingInfo.user && (
+                          <Avatar
+                            className="mx-auto flex items-center justify-center"
+                            alt={bookingInfo.user.name || bookingInfo.user.email}
+                            size="xl"
+                            imageSrc={`${bookingInfo.user.avatarUrl}`}
+                          />
+                        )
                       )}
                       {giphyImage && !needsConfirmation && isReschedulable && (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -499,7 +513,9 @@ export default function Success(props: PageProps) {
                         )}
                         <div className="font-medium">{t("what")}</div>
                         <div className="col-span-2 mb-6 last:mb-0" data-testid="booking-title">
-                          {isRoundRobin ? bookingInfo.title : eventName}
+                          {(isRoundRobin && !eventType.differentRoundRobinRecurringHosts) || isOrganizer
+                            ? bookingInfo.title
+                            : eventName}
                         </div>
                         <div className="font-medium">{t("when")}</div>
                         <div className="col-span-2 mb-6 last:mb-0">
@@ -532,18 +548,29 @@ export default function Success(props: PageProps) {
                           <>
                             <div className="font-medium">{t("who")}</div>
                             <div className="col-span-2 last:mb-0">
-                              {bookingInfo?.user && (
-                                <div className="mb-3">
-                                  <div>
-                                    <span data-testid="booking-host-name" className="mr-2">
-                                      {bookingInfo.user.name}
-                                    </span>
-                                    <Badge variant="blue">{t("Host")}</Badge>
-                                  </div>
-                                  <p className="text-default">
-                                    {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
-                                  </p>
+                              {eventType.differentRoundRobinRecurringHosts ? (
+                                <div>
+                                  <span className="mr-2">
+                                    {t("members_of_team", {
+                                      teamName: eventType.team?.name || "Team",
+                                    })}
+                                  </span>
+                                  <Badge variant="blue">{t("Host")}</Badge>
                                 </div>
+                              ) : (
+                                bookingInfo?.user && (
+                                  <div className="mb-3">
+                                    <div>
+                                      <span data-testid="booking-host-name" className="mr-2">
+                                        {bookingInfo.user.name}
+                                      </span>
+                                      <Badge variant="blue">{t("Host")}</Badge>
+                                    </div>
+                                    <p className="text-default">
+                                      {bookingInfo?.userPrimaryEmail ?? bookingInfo.user.email}
+                                    </p>
+                                  </div>
+                                )
                               )}
                               {bookingInfo?.attendees.map((attendee) => (
                                 <div key={attendee.name + attendee.email} className="mb-3 last:mb-0">

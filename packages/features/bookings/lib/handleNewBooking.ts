@@ -554,7 +554,11 @@ async function handler(
       }
     }
 
-    if (!req.body.allRecurringDates || req.body.isFirstRecurringSlot) {
+    if (
+      !req.body.allRecurringDates ||
+      req.body.isFirstRecurringSlot ||
+      eventType.differentRoundRobinRecurringHosts
+    ) {
       const availableUsers = await ensureAvailableUsers(
         eventTypeWithUsers,
         {
@@ -604,7 +608,11 @@ async function handler(
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
-        if (req.body.isFirstRecurringSlot && eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+        if (
+          req.body.isFirstRecurringSlot &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+          !eventType.differentRoundRobinRecurringHosts
+        ) {
           // for recurring round robin events check if lucky user is available for next slots
           try {
             for (
@@ -870,6 +878,7 @@ async function handler(
     seatsPerTimeSlot: eventType.seatsPerTimeSlot,
     seatsShowAvailabilityCount: eventType.seatsPerTimeSlot ? eventType.seatsShowAvailabilityCount : true,
     schedulingType: eventType.schedulingType,
+    differentRoundRobinRecurringHosts: eventType.differentRoundRobinRecurringHosts,
     iCalUID,
     iCalSequence,
     platformClientId,
@@ -937,6 +946,7 @@ async function handler(
 
   const workflows = await getAllWorkflowsFromEventType(eventType, organizerUser.id);
 
+  let isHostConfirmationEmailsDisabled = false;
   // For seats, if the booking already exists then we want to add the new attendee to the existing booking
   if (eventType.seatsPerTimeSlot) {
     const newBooking = await handleSeats({
@@ -985,6 +995,9 @@ async function handler(
       return {
         ...bookingResponse,
         ...luckyUserResponse,
+        differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+        hostEmailDisabled: isHostConfirmationEmailsDisabled,
+        type: eventType.slug,
       };
     } else {
       // Rescheduling logic for the original seated event was handled in handleSeats
@@ -1440,7 +1453,6 @@ async function handler(
         }
       }
       if (noEmail !== true) {
-        let isHostConfirmationEmailsDisabled = false;
         let isAttendeeConfirmationEmailDisabled = false;
 
         isHostConfirmationEmailsDisabled =
@@ -1471,7 +1483,7 @@ async function handler(
             customInputs,
           },
           eventNameObject,
-          isHostConfirmationEmailsDisabled,
+          isHostConfirmationEmailsDisabled || eventType.differentRoundRobinRecurringHosts,
           isAttendeeConfirmationEmailDisabled
         );
       }
@@ -1608,6 +1620,9 @@ async function handler(
       paymentRequired: true,
       paymentUid: payment?.uid,
       paymentId: payment?.id,
+      differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+      hostEmailDisabled: isHostConfirmationEmailsDisabled,
+      type: eventType.slug,
     };
   }
 
@@ -1754,6 +1769,9 @@ async function handler(
     ...luckyUserResponse,
     references: referencesToCreate,
     seatReferenceUid: evt.attendeeSeatId,
+    differentRoundRobinRecurringHosts: evt.differentRoundRobinRecurringHosts,
+    hostEmailDisabled: isHostConfirmationEmailsDisabled,
+    type: eventType.slug,
   };
 }
 

@@ -56,7 +56,7 @@ export const BaseScheduledEmail = (
       title={t(
         props.title
           ? props.title
-          : props.calEvent.recurringEvent?.count
+          : props.calEvent.recurringEvent?.count || props.calEvent.differentRoundRobinRecurringHosts
           ? "your_event_has_been_scheduled_recurring"
           : "your_event_has_been_scheduled"
       )}
@@ -81,8 +81,15 @@ export const BaseScheduledEmail = (
       )}
       <Info label={t("rejection_reason")} description={props.calEvent.rejectionReason} withSpacer />
       <Info label={t("what")} description={props.calEvent.title} withSpacer />
-      <WhenInfo timeFormat={timeFormat} calEvent={props.calEvent} t={t} timeZone={timeZone} locale={locale} />
-      <WhoInfo calEvent={props.calEvent} t={t} />
+      <WhenInfo
+        timeFormat={timeFormat}
+        isOrganizer={props.isOrganizer}
+        calEvent={props.calEvent}
+        t={t}
+        timeZone={timeZone}
+        locale={locale}
+      />
+      <WhoInfo calEvent={props.calEvent} t={t} isOrganizer={!!props.isOrganizer} />
       <LocationInfo calEvent={props.calEvent} t={t} />
       <Info label={t("description")} description={props.calEvent.description} withSpacer formatted />
       <Info label={t("additional_notes")} description={props.calEvent.additionalNotes} withSpacer />

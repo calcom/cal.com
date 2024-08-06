@@ -261,7 +261,7 @@ export default class GoogleCalendarService implements Calendar {
       payload["location"] = getLocation(formattedCalEvent);
     }
 
-    if (formattedCalEvent.recurringEvent) {
+    if (formattedCalEvent.recurringEvent && !formattedCalEvent.differentRoundRobinRecurringHosts) {
       const rule = new RRule({
         freq: formattedCalEvent.recurringEvent.freq,
         interval: formattedCalEvent.recurringEvent.interval,

@@ -48,6 +48,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       minimumBookingNotice: true,
       userId: true,
       price: true,
+      differentRoundRobinRecurringHosts: true,
       currency: true,
       metadata: true,
       destinationCalendar: true,

@@ -15,21 +15,35 @@ const PersonInfo = ({ name = "", email = "", role = "" }) => (
   </div>
 );
 
-export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
+export function WhoInfo(props: { calEvent: CalendarEvent; t: TFunction; isOrganizer: boolean }) {
   const { t } = props;
   return (
     <Info
       label={t("who")}
       description={
         <>
-          <PersonInfo
-            name={props.calEvent.organizer.name}
-            role={t("organizer")}
-            email={props.calEvent.organizer.email}
-          />
-          {props.calEvent.team?.members.map((member) => (
-            <PersonInfo key={member.name} name={member.name} role={t("team_member")} email={member.email} />
-          ))}
+          {props.calEvent.differentRoundRobinRecurringHosts && !props.isOrganizer ? (
+            <PersonInfo
+              name={t("members_of_team", { teamName: props.calEvent.team?.name })}
+              role={t("organizer")}
+            />
+          ) : (
+            <>
+              <PersonInfo
+                name={props.calEvent.organizer.name}
+                role={t("organizer")}
+                email={props.calEvent.organizer.email}
+              />
+              {props.calEvent.team?.members.map((member) => (
+                <PersonInfo
+                  key={member.name}
+                  name={member.name}
+                  role={t("team_member")}
+                  email={member.email}
+                />
+              ))}
+            </>
+          )}
           {props.calEvent.attendees.map((attendee) => (
             <PersonInfo
               key={attendee.id || attendee.name}
