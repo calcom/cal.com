@@ -24,7 +24,6 @@ import {
   SheetBody,
   SheetFooter,
   Button,
-  Divider,
   SheetTitle,
 } from "@calcom/ui";
 
@@ -217,7 +216,6 @@ export function EditForm({
             <Label>{t("timezone")}</Label>
             <TimezoneSelect value={watchTimezone ?? "America/Los_Angeles"} />
           </div>
-          <Divider />
           <AttributesList selectedUserId={selectedUser?.id} />
         </SheetBody>
         <SheetFooter>

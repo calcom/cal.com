@@ -94,7 +94,6 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
                       icon="calendar"
                     />
                   </div>
-                  <hr />
                   {usersAttributes && usersAttributes?.length > 0 && (
                     <div className="mt-4 flex flex-col">
                       <h3 className="text-emphasis mb-5 text-base font-semibold">{t("attributes")}</h3>
