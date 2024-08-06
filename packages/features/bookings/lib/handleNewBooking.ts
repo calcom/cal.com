@@ -326,7 +326,7 @@ async function handler(
     }
   }
 
-if (timeOutOfBounds) {
+  if (timeOutOfBounds) {
     const error = {
       errorCode: "BookingTimeOutOfBounds",
       message: `EventType '${eventType.eventName}' cannot be booked at this time.`,
