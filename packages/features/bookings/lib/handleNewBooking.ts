@@ -296,9 +296,7 @@ async function handler(
 
   const user = eventType.users.find((user) => user.id === eventType.userId);
 
-  const userSchedule = user?.schedules.find(
-    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-  );
+  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
 
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
