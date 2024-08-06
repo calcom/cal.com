@@ -112,7 +112,7 @@ export function DataTable<TData, TValue>({
         onSearch={onSearch}
         tableCTA={tableCTA}
       />
-      <div ref={tableContainerRef} onScroll={onScroll} data-testId={rest["data-testid"] ?? "data-table"}>
+      <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
         <Table data-testid="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
