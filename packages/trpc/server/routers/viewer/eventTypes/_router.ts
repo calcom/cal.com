@@ -7,13 +7,15 @@ import { router } from "../../../trpc";
 import { ZCreateInputSchema } from "./create.schema";
 import { ZDeleteInputSchema } from "./delete.schema";
 import { ZDuplicateInputSchema } from "./duplicate.schema";
-import { ZEventTypeInputSchema } from "./getByViewer.schema";
+import { ZEventTypeInputSchema, ZGetEventTypesFromGroupSchema } from "./getByViewer.schema";
 import { get } from "./procedures/get";
 import { ZUpdateInputSchema } from "./update.schema";
 import { eventOwnerProcedure } from "./util";
 
 type BookingsRouterHandlerCache = {
   getByViewer?: typeof import("./getByViewer.handler").getByViewerHandler;
+  getUserEventGroups?: typeof import("./getUserEventGroups.handler").getUserEventGroups;
+  getEventTypesFromGroup?: typeof import("./getEventTypesFromGroup.handler").getEventTypesFromGroup;
   list?: typeof import("./list.handler").listHandler;
   listWithTeam?: typeof import("./listWithTeam.handler").listWithTeamHandler;
   create?: typeof import("./create.handler").createHandler;
@@ -52,6 +54,55 @@ export const eventTypesRouter = router({
 
     return result;
   }),
+  getUserEventGroups: authedProcedure.input(ZEventTypeInputSchema).query(async ({ ctx, input }) => {
+    if (!UNSTABLE_HANDLER_CACHE.getUserEventGroups) {
+      UNSTABLE_HANDLER_CACHE.getUserEventGroups = await import("./getUserEventGroups.handler").then(
+        (mod) => mod.getUserEventGroups
+      );
+    }
+
+    // Unreachable code but required for type safety
+    if (!UNSTABLE_HANDLER_CACHE.getUserEventGroups) {
+      throw new Error("Failed to load handler");
+    }
+
+    const timer = logP(`getUserEventGroups(${ctx.user.id})`);
+
+    const result = await UNSTABLE_HANDLER_CACHE.getUserEventGroups({
+      ctx,
+      input,
+    });
+
+    timer();
+
+    return result;
+  }),
+
+  getEventTypesFromGroup: authedProcedure
+    .input(ZGetEventTypesFromGroupSchema)
+    .query(async ({ ctx, input }) => {
+      if (!UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup) {
+        UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup = await import("./getEventTypesFromGroup.handler").then(
+          (mod) => mod.getEventTypesFromGroup
+        );
+      }
+
+      // Unreachable code but required for type safety
+      if (!UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup) {
+        throw new Error("Failed to load handler");
+      }
+
+      const timer = logP(`getEventTypesFromGroup(${ctx.user.id})`);
+
+      const result = await UNSTABLE_HANDLER_CACHE.getEventTypesFromGroup({
+        ctx,
+        input,
+      });
+
+      timer();
+
+      return result;
+    }),
 
   list: authedProcedure.query(async ({ ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.list) {
