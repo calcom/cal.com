@@ -155,11 +155,19 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
   if (coepFlag) {
     destinationUrlSearchParams.set("flag.coep", coepFlag as string);
   }
+
+  const currentUserEmail = session?.user.email ? session?.user.email : rescheduledBy;
+
+  if (currentUserEmail) {
+    destinationUrlSearchParams.set("rescheduledBy", currentUserEmail);
+  }
+
+  if (eventType.seatsPerTimeSlot) {
+    destinationUrlSearchParams.set("bookingUid", "null");
+  }
   return {
     redirect: {
-      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}${
-        eventType.seatsPerTimeSlot ? "&bookingUid=null" : ""
-      }${rescheduledBy ? `&rescheduledBy=${rescheduledBy}` : ""}`,
+      destination: `${eventUrl}?${destinationUrlSearchParams.toString()}`,
       permanent: false,
     },
   };
