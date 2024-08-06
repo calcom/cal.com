@@ -119,6 +119,7 @@ export const getEventTypesByViewer = async (user: User, filters?: Filters, forRo
         )
       ),
       metadata: eventType.metadata ? EventTypeMetaDataSchema.parse(eventType.metadata) : null,
+      parent: eventType.parent,
       children: await Promise.all(
         (eventType.children || []).map(async (c) => ({
           ...c,
