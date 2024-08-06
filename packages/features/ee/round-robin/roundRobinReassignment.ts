@@ -234,6 +234,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       host: organizer.name || "Nameless",
       location: bookingLocation || "integrations:daily",
       bookingFields: { ...responses },
+      eventDuration: eventType.length,
       t: organizerT,
     };
 
