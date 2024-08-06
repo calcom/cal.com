@@ -5,7 +5,7 @@ import prisma from "@calcom/prisma";
 
 import { test } from "../../lib/fixtures";
 
-test.afterAll(({ users }) => {
+test.afterEach(({ users }) => {
   users.deleteAll();
 });
 
