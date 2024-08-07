@@ -63,6 +63,7 @@ import {
 } from "@calcom/ui";
 import PageWrapper from "@calcom/web/components/PageWrapper";
 import CancelBooking from "@calcom/web/components/booking/CancelBooking";
+import RejectBooking from "@calcom/web/components/booking/RejectBooking";
 import EventReservationSchema from "@calcom/web/components/schemas/EventReservationSchema";
 import { timeZone } from "@calcom/web/lib/clock";
 
@@ -78,6 +79,7 @@ const querySchema = z.object({
   email: z.string().optional(),
   eventTypeSlug: z.string().optional(),
   cancel: stringToBoolean,
+  reject: stringToBoolean,
   allRemainingBookings: stringToBoolean,
   changes: stringToBoolean,
   reschedule: stringToBoolean,
@@ -114,6 +116,7 @@ export default function Success(props: PageProps) {
     allRemainingBookings,
     isSuccessBookingPage,
     cancel: isCancellationMode,
+    reject: isRejectionMode,
     formerTime,
     email,
     seatReferenceUid,
@@ -175,7 +178,7 @@ export default function Success(props: PageProps) {
     },
   });
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const hostNoShowMutation = trpc.viewer.public.markHostAsNoShow.useMutation({
     onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
     },
@@ -186,7 +189,7 @@ export default function Success(props: PageProps) {
 
   useEffect(() => {
     if (noShow) {
-      noShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
+      hostNoShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -209,6 +212,16 @@ export default function Success(props: PageProps) {
     router.replace(`${pathname}?${_searchParams.toString()}`);
   }
 
+  function setIsRejectionMode() {
+    const _searchParams = new URLSearchParams(searchParams ?? undefined);
+
+    if (_searchParams.get("reject")) {
+      _searchParams.delete("reject");
+    }
+
+    router.replace(`${pathname}?${_searchParams.toString()}`);
+  }
+
   let evtName = eventType.eventName;
   if (eventType.isDynamic && bookingInfo.responses?.title) {
     evtName = bookingInfo.responses.title as string;
@@ -220,6 +233,7 @@ export default function Success(props: PageProps) {
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
+    eventDuration: eventType.length,
     t,
   };
 
@@ -660,6 +674,7 @@ export default function Success(props: PageProps) {
                     {!requiresLoginToUpdate &&
                       (!needsConfirmation || !userIsOwner) &&
                       isReschedulable &&
+                      !isRejectionMode &&
                       (!isCancellationMode ? (
                         <>
                           <hr className="border-subtle mb-8" />
@@ -714,6 +729,19 @@ export default function Success(props: PageProps) {
                           />
                         </>
                       ))}
+                    {userIsOwner && !isCancelled && isRejectionMode && (
+                      <>
+                        <hr className="border-subtle" />
+                        <RejectBooking
+                          booking={{
+                            id: bookingInfo.id,
+                            uid: bookingInfo?.uid,
+                            recurringEventId: bookingInfo.recurringEventId,
+                          }}
+                          setIsRejectionMode={setIsRejectionMode}
+                        />
+                      </>
+                    )}
                     {userIsOwner &&
                       !needsConfirmation &&
                       !isCancellationMode &&

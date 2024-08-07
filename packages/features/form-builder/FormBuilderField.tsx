@@ -234,6 +234,8 @@ export const ComponentForField = ({
       <WithLabel field={field} readOnly={readOnly}>
         <componentConfig.factory
           placeholder={field.placeholder}
+          minLength={field.minLength}
+          maxLength={field.maxLength}
           name={field.name}
           label={field.label}
           readOnly={readOnly}

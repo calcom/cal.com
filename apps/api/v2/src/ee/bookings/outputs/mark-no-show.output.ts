@@ -20,10 +20,6 @@ class HandleMarkNoShowData {
   @IsOptional()
   noShowHost?: boolean;
 
-  @IsString()
-  @IsOptional()
-  messageKey?: string;
-
   @ValidateNested()
   @Type(() => Attendee)
   @IsArray()
