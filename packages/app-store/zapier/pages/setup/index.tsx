@@ -1,3 +1,4 @@
+import AppNotInstalledMessage from "_components/AppNotInstalledMessage";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
@@ -135,14 +136,7 @@ export default function ZapierSetup(props: IZapierSetupProps) {
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>{t("install_zapier_app")}</div>
-          <div className="mt-3">
-            <Link href="/apps/zapier" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="zapier" />
       )}
       <Toaster position="bottom-right" />
     </div>

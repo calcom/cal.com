@@ -1,4 +1,4 @@
-import Link from "next/link";
+import AppNotInstalledMessage from "_components/AppNotInstalledMessage";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
@@ -154,14 +154,7 @@ export default function PayPalSetup() {
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>Paypal</div>
-          <div className="mt-3">
-            <Link href="/apps/paypal" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="paypal" />
       )}
       <Toaster position="bottom-right" />
     </div>

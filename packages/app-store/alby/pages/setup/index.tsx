@@ -1,4 +1,5 @@
 import { auth, Client, webln } from "@getalby/sdk";
+import AppNotInstalledMessage from "_components/AppNotInstalledMessage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useCallback, useEffect } from "react";
@@ -179,14 +180,7 @@ function AlbySetupPage(props: IAlbySetupProps) {
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>Alby</div>
-          <div className="mt-3">
-            <Link href="/apps/alby" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="alby" />
       )}
       <Toaster position="bottom-right" />
     </div>
