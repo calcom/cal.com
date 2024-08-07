@@ -1,3 +1,5 @@
+import type { Brand } from "@calcom/types/utils";
+
 import type { tabs } from "../lib/EmbedTabs";
 import type { useEmbedTypes } from "../lib/hooks";
 
@@ -6,23 +8,33 @@ type EmbedConfig = {
   layout?: BookerLayouts;
   theme?: Theme;
 };
+
 export type PreviewState = {
-  inline: {
-    width: string;
-    height: string;
-    config?: EmbedConfig;
-  };
+  inline: Brand<
+    {
+      width: string;
+      height: string;
+      config?: EmbedConfig;
+    },
+    "inline"
+  >;
   theme: Theme;
-  floatingPopup: {
-    config?: EmbedConfig;
-    hideButtonIcon?: boolean;
-    buttonPosition?: "bottom-left" | "bottom-right";
-    buttonColor?: string;
-    buttonTextColor?: string;
-  };
-  elementClick: {
-    config?: EmbedConfig;
-  };
+  floatingPopup: Brand<
+    {
+      config?: EmbedConfig;
+      hideButtonIcon?: boolean;
+      buttonPosition?: "bottom-left" | "bottom-right";
+      buttonColor?: string;
+      buttonTextColor?: string;
+    },
+    "floating-popup"
+  >;
+  elementClick: Brand<
+    {
+      config?: EmbedConfig;
+    },
+    "element-click"
+  >;
   palette: {
     brandColor: string;
   };

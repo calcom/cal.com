@@ -575,24 +575,23 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
 
   const [isEmbedCustomizationOpen, setIsEmbedCustomizationOpen] = useState(true);
   const [isBookingCustomizationOpen, setIsBookingCustomizationOpen] = useState(true);
-  const defaultLayout = BookerLayouts.MONTH_VIEW;
   const defaultConfig = {
-    layout: defaultLayout,
+    layout: BookerLayouts.MONTH_VIEW,
   };
   const [previewState, setPreviewState] = useState<PreviewState>({
     inline: {
       width: "100%",
       height: "100%",
       config: defaultConfig,
-    },
+    } as PreviewState["inline"],
     theme: Theme.auto,
-    layout: defaultLayout,
+    layout: defaultConfig.layout,
     floatingPopup: {
       config: defaultConfig,
-    },
+    } as PreviewState["floatingPopup"],
     elementClick: {
       config: defaultConfig,
-    },
+    } as PreviewState["elementClick"],
     hideEventTypeDetails: false,
     palette: {
       brandColor: "#000000",
@@ -950,6 +949,13 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                             setPreviewState((previewState) => {
                               return {
                                 ...previewState,
+                                inline: {
+                                  ...previewState.inline,
+                                  config: {
+                                    ...(previewState.inline.config ?? {}),
+                                    theme: option.value,
+                                  },
+                                },
                                 floatingPopup: {
                                   ...previewState.floatingPopup,
                                   config: {
@@ -1028,6 +1034,7 @@ const EmbedTypeCodeAndPreviewDialogContent = ({
                               return {
                                 ...previewState,
                                 floatingPopup: {
+                                  ...previewState.floatingPopup,
                                   config,
                                 },
                                 layout: option.value,

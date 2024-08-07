@@ -199,30 +199,28 @@ const getEmbedTypeSpecificString = ({
   if (!frameworkCodes[embedType]) {
     throw new Error(`Code not available for framework:${embedFramework} and embedType:${embedType}`);
   }
+
+  const codeGeneratorInput = {
+    calLink,
+    uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+    embedCalOrigin,
+    namespace,
+  };
+
   if (embedType === "inline") {
     return frameworkCodes[embedType]({
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      theme: uiInstructionStringArg.theme,
-      previewState,
-      embedCalOrigin,
-      namespace,
+      ...codeGeneratorInput,
+      previewState: previewState.inline,
     });
   } else if (embedType === "floating-popup") {
     return frameworkCodes[embedType]({
-      namespace,
-      calLink,
-      embedCalOrigin,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
+      ...codeGeneratorInput,
+      previewState: previewState.floatingPopup,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
-      namespace,
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
-      embedCalOrigin,
+      ...codeGeneratorInput,
+      previewState: previewState.elementClick,
     });
   }
   return "";

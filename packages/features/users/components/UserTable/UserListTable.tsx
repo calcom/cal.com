@@ -327,16 +327,16 @@ export function UserListTable() {
           const user = row.original;
           const canEdit = adminOrOwner;
           if (canEdit) {
-            dispatch({
-              type: "EDIT_USER_SHEET",
-              payload: {
-                showModal: true,
-                user,
-              },
-            });
+            // dispatch({
+            //   type: "EDIT_USER_SHEET",
+            //   payload: {
+            //     showModal: true,
+            //     user,
+            //   },
+            // });
           }
         }}
-        data-testId="user-list-data-table"
+        data-testid="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
