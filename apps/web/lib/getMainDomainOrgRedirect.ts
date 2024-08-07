@@ -22,12 +22,9 @@ export const getMainDomainOrgRedirect = (req: IncomingMessage | undefined) => {
   const newHostName = `${domains[0]}.${domains.at(-1)}`;
   originalUrl.hostname = newHostName;
 
-  originalUrl.searchParams.append("orgRedirection", "true");
-  log.debug(`Suggesting redirect to`, originalUrl.toString());
-
   return {
     redirect: {
-      permanent: false,
+      permanent: true,
       destination: originalUrl.toString(),
     },
   } as const;

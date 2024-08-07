@@ -2529,6 +2529,6 @@
   "booking_question_response_variables": "Booking question response variables",
   "managed_by_teamAdmins": "Managed by {{teamAdmins}}",
   "disable_org_url_label": "Disable Organization URL and redirect",
-  "disable_org_url_description": "Hide your deal.cal.com subdomain and redirect to deal.com instead.",
+  "disable_org_url_description": "Hide your acme.cal.com subdomain and redirect to acme.com instead.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
