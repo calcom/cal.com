@@ -62,6 +62,8 @@ class LicenseKeyService implements ILicenseKeyService {
       ...options,
       headers: headers,
       body: JSON.stringify(body),
+      // In case of hang, abort the operation after 2 seconds
+      signal: AbortSignal.timeout(2000),
     });
   }
 
