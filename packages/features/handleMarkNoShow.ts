@@ -6,6 +6,8 @@ import { prisma } from "@calcom/prisma";
 import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { TNoShowInputSchema } from "@calcom/trpc/server/routers/publicViewer/noShow.schema";
 
+import type { BookingNoShowUpdatedPayload } from "./webhooks/lib/sendPayload";
+
 const getResultPayload = async (attendees: { email: string; noShow: boolean }[]) => {
   if (attendees.length === 1) {
     const [attendee] = attendees;
@@ -115,14 +117,15 @@ const handleMarkNoShow = async ({ bookingUid, attendees, noShowHost }: TNoShowIn
       const t = await getTranslation("en", "common");
       const message = t(payload.messageKey, { x: payload.attendees[0]?.email || "User" });
 
-      await webhooks.sendPayload({
+      const webhookPayload: BookingNoShowUpdatedPayload = {
         ...payload,
         /** We send webhook message pre-translated, on client we already handle this */
-        // @ts-expect-error payload is too booking specific, we need to refactor this
         message,
         bookingUid,
         bookingId: booking?.id,
-      });
+      };
+
+      await webhooks.sendPayload(webhookPayload);
 
       responsePayload["attendees"] = payload.attendees;
       responsePayload["message"] = message;

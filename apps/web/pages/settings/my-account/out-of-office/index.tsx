@@ -124,7 +124,7 @@ const CreateOutOfOfficeEntryModal = ({
             setSelectedMember(null);
           })}>
           <div className="px-1">
-            <DialogHeader title={t("create_an_out_of_office")} />
+            <DialogHeader title={t("ooo_create_entry_modal")} />
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
@@ -367,7 +367,7 @@ const OutOfOfficePage = () => {
   const { t } = useLocale();
 
   const params = useSearchParams();
-  const openModalOnStart = !!params?.get("om");
+  const openModalOnStart = !!params?.get("open");
   useEffect(() => {
     if (openModalOnStart) {
       setOpenModal(true);

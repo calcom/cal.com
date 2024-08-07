@@ -11,6 +11,7 @@ import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventR
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import { deleteWebhookScheduledTriggers } from "@calcom/features/webhooks/lib/scheduleTrigger";
 import sendPayload from "@calcom/features/webhooks/lib/sendOrSchedulePayload";
+import type { EventPayloadType } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
@@ -289,15 +290,18 @@ export const requestRescheduleHandler = async ({ ctx, input }: RequestReschedule
     userId,
     eventTypeId: bookingToReschedule.eventTypeId as number,
     triggerEvent: eventTrigger,
-    teamId,
+    teamId: teamId ? [teamId] : null,
     orgId,
   };
   const webhooks = await getWebhooks(subscriberOptions);
+
+  const payload: EventPayloadType = {
+    ...evt,
+    smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
+  };
+
   const promises = webhooks.map((webhook) =>
-    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, {
-      ...evt,
-      smsReminderNumber: bookingToReschedule.smsReminderNumber || undefined,
-    }).catch((e) => {
+    sendPayload(webhook.secret, eventTrigger, new Date().toISOString(), webhook, payload).catch((e) => {
       log.error(
         `Error executing webhook for event: ${eventTrigger}, URL: ${webhook.subscriberUrl}, bookingId: ${evt.bookingId}, bookingUid: ${evt.uid}`,
         safeStringify(e)
