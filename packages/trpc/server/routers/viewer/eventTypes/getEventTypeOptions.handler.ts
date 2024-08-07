@@ -222,10 +222,10 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
         ...options,
         ...(group?.eventTypes
           ?.filter((evType) => {
-            const metadata = EventTypeMetaDataSchema.safeParse(evType.metadata);
+            const metadata = EventTypeMetaDataSchema.parse(evType.metadata);
             return (
-              !metadata?.data?.managedEventConfig ||
-              !!metadata?.data?.managedEventConfig.unlockedFields?.workflows ||
+              !metadata?.managedEventConfig ||
+              !!metadata?.managedEventConfig.unlockedFields?.workflows ||
               !!teamId
             );
           })
