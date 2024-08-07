@@ -1,4 +1,12 @@
 {
   "extends": "@calcom/tsconfig/react-library.json",
-  "include": ["client", "next", "react", "server"]
+  "include": ["client", "next", "react", "server"],
+  "compilerOptions": {
+    "isolatedModules": false,
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "declarationMap": false,
+    "outFile": "types/router.d.ts"
+  }
 }
