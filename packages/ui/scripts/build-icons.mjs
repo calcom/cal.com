@@ -2,7 +2,10 @@ import { $ } from "execa";
 import fsExtra from "fs-extra";
 import { glob } from "glob";
 import { parse } from "node-html-parser";
+import fs from "node:fs";
 import * as path from "node:path";
+
+import { lucideIconList } from "../components/icon/icon-list.mjs";
 
 const cwd = process.cwd();
 const inputDir = path.join(cwd, "svg-icons");
@@ -22,7 +25,11 @@ const logVerbose = shouldVerboseLog ? console.log : () => {};
 if (files.length === 0) {
   console.log(`No SVG files found in ${inputDirRelative}`);
 } else {
-  await generateIconFiles();
+  const areAllIconsPresent = await checkAllIconsPresent();
+
+  if (areAllIconsPresent) {
+    await generateIconFiles();
+  }
 }
 
 async function generateIconFiles() {
@@ -129,4 +136,51 @@ async function writeIfChanged(filepath, newContent) {
   await fsExtra.writeFile(filepath, newContent, "utf8");
   await $`prettier --write ${filepath} --ignore-unknown`;
   return true;
+}
+
+/**
+ * Get SVG filenames from the directory
+ */
+function getSvgFilenames(dirPath) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(dirPath, (err, files) => {
+      if (err) {
+        return reject(err);
+      }
+      const svgFiles = files
+        .filter((file) => path.extname(file) === ".svg")
+        .map((file) => path.basename(file, ".svg"));
+      resolve(svgFiles);
+    });
+  });
+}
+
+/**
+ * find missing SVG files
+ */
+function findMissingFiles(actualFiles, expectedFiles) {
+  return expectedFiles.filter((file) => !actualFiles.includes(file));
+}
+
+/**
+ * check wether all the icons in the lucide icon list are present in the svg-icons directory
+ */
+async function checkAllIconsPresent() {
+  try {
+    const actualSvgFiles = await getSvgFilenames(inputDir);
+    const missingFiles = findMissingFiles(actualSvgFiles, lucideIconList);
+
+    if (missingFiles.length > 0) {
+      console.log("Missing SVG files:", missingFiles);
+      console.log("run command 'yarn generate-icons' to re-add the missing icons");
+
+      return false;
+    } else {
+      console.log("All SVG files are present.");
+      return true;
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    return false;
+  }
 }
