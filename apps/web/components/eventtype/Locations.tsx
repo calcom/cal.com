@@ -243,12 +243,19 @@ const Locations: React.FC<LocationsProps> = ({
                         eventLocationType.organizerInputType ||
                         !validLocations?.find((location) => location.type === newLocationType);
 
+                      const shouldUpdateLink =
+                        eventLocationType?.organizerInputType === "text" &&
+                        eventLocationType.defaultValueVariable === "link";
+
                       if (canAddLocation) {
                         updateLocationField(index, {
                           type: newLocationType,
                           ...(e.credentialId && {
                             credentialId: e.credentialId,
                             teamName: e.teamName ?? undefined,
+                          }),
+                          ...(shouldUpdateLink && {
+                            link: "",
                           }),
                         });
                       } else {
@@ -431,9 +438,9 @@ const Locations: React.FC<LocationsProps> = ({
       </ul>
       {props.showAppStoreLink && (
         <p className="text-default mt-2 text-sm">
-          <Trans i18nKey="cant_find_the_right_video_app_visit_our_app_store">
-            Can&apos;t find the right video app? Visit our
-            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/video">
+          <Trans i18nKey="cant_find_the_right_conferencing_app_visit_our_app_store">
+            Can&apos;t find the right conferencing app? Visit our
+            <Link className="cursor-pointer text-blue-500 underline" href="/apps/categories/conferencing">
               App Store
             </Link>
             .
