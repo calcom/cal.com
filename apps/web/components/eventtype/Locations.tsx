@@ -98,49 +98,6 @@ const Locations: React.FC<LocationsProps> = ({
     name: "locations",
   });
 
-  // Updates 'location' booking field's required and hidden properties, based on the locations selected.
-  const updateLocationBookingField = () => {
-    const existingBookingFields = getValues("bookingFields");
-    const findLocation = existingBookingFields.findIndex((field) => field.name === "location");
-    if (findLocation >= 0) {
-      let hidden = existingBookingFields[findLocation].hidden;
-      let required = existingBookingFields[findLocation].required;
-
-      const locations = getValues("locations");
-      const numOfLocationOptions = locations.length;
-
-      if (numOfLocationOptions === 0) {
-        hidden = true;
-        required = false;
-      } else if (numOfLocationOptions === 1) {
-        if (locations[0].type === "attendeeInPerson") {
-          hidden = false;
-          required = true;
-        } else if (locations[0].type.includes("integrations")) {
-          hidden = true;
-          required = false;
-        }
-      } else {
-        hidden = false;
-        required = false;
-      }
-
-      existingBookingFields[findLocation] = {
-        ...existingBookingFields[findLocation],
-        hidden,
-        required,
-      };
-      setValue("bookingFields", existingBookingFields, {
-        shouldDirty: true,
-      });
-    }
-  };
-
-  useEffect(() => {
-    // To update 'location' booking field on any - append, remove, update operation on locationFields.
-    updateLocationBookingField();
-  }, [locationFields]);
-
   const locationOptions = props.locationOptions.map((locationOption) => {
     const options = locationOption.options.filter((option) => {
       // Skip "Organizer's Default App" for non-team members
