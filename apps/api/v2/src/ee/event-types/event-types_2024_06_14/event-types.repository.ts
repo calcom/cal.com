@@ -13,7 +13,18 @@ import type { PrismaClient } from "@calcom/prisma";
 
 type InputEventTransformed = Omit<
   CreateEventTypeInput_2024_06_14,
-  "lengthInMinutes" | "locations" | "bookingFields"
+  | "lengthInMinutes"
+  | "locations"
+  | "bookingFields"
+  | "bookingLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "durationLimits"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 > & {
   length: number;
   slug: string;

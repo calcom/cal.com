@@ -49,6 +49,19 @@ export class EventTypesService_2024_06_14 {
       },
     });
 
+    await updateEventType({
+      input: {
+        id: eventTypeCreated.id,
+        ...bodyTransformed,
+      },
+      ctx: {
+        user: eventTypeUser,
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        prisma: this.dbWrite.prisma,
+      },
+    });
+
     const eventType = await this.eventTypesRepository.getEventTypeById(eventTypeCreated.id);
 
     if (!eventType) {
@@ -95,13 +108,16 @@ export class EventTypesService_2024_06_14 {
       ? await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId)
       : false;
     const profileId = user.movedToProfile?.id || null;
+    const selectedCalendars = await this.selectedCalendarsRepository.getUserSelectedCalendars(user.id);
     return {
       id: user.id,
       role: user.role,
+      username: user.username,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },
       metadata: user.metadata,
+      selectedCalendars,
     };
   }
 

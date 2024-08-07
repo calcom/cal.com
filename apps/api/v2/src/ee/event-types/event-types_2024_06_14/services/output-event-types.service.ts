@@ -10,6 +10,12 @@ import {
   TransformedLocationsSchema,
   BookingFieldsSchema,
 } from "@calcom/platform-libraries-0.0.22";
+import {
+  parseBookingLimit,
+  getResponseEventTypeIntervalLimits,
+  getResponseEventTypeFutureBookingLimits,
+} from "@calcom/platform-libraries-1.2.3";
+import { TransformFutureBookingsLimitSchema_2024_06_14 } from "@calcom/platform-types";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -42,6 +48,15 @@ type Input = Pick<
   | "metadata"
   | "users"
   | "scheduleId"
+  | "bookingLimits"
+  | "durationLimits"
+  | "onlyShowFirstAvailableSlot"
+  | "offsetStart"
+  | "periodType"
+  | "periodDays"
+  | "periodCountCalendarDays"
+  | "periodStartDate"
+  | "periodEndDate"
 >;
 
 @Injectable()
@@ -69,6 +84,8 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAvailabilityCount,
       isInstantEvent,
       scheduleId,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
@@ -76,6 +93,15 @@ export class OutputEventTypesService_2024_06_14 {
     const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users);
+    const bookingLimits = this.transformIntervalLimits(databaseEventType.bookingLimits);
+    const durationLimits = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const bookingWindow = this.transformBookingWindow({
+      periodType: databaseEventType.periodType,
+      periodDays: databaseEventType.periodDays,
+      periodCountCalendarDays: databaseEventType.periodCountCalendarDays,
+      periodStartDate: databaseEventType.periodStartDate,
+      periodEndDate: databaseEventType.periodEndDate,
+    } as TransformFutureBookingsLimitSchema_2024_06_14);
 
     return {
       id,
@@ -105,6 +131,11 @@ export class OutputEventTypesService_2024_06_14 {
       isInstantEvent,
       users,
       scheduleId,
+      bookingLimits,
+      durationLimits,
+      onlyShowFirstAvailableSlot,
+      offsetStart,
+      bookingWindow,
     };
   }
 
@@ -142,5 +173,14 @@ export class OutputEventTypesService_2024_06_14 {
         metadata: metadata || {},
       };
     });
+  }
+
+  transformIntervalLimits(bookingLimits: any) {
+    const bookingLimitsParsed = parseBookingLimit(bookingLimits);
+    return getResponseEventTypeIntervalLimits(bookingLimitsParsed);
+  }
+
+  transformBookingWindow(bookingLimits: TransformFutureBookingsLimitSchema_2024_06_14) {
+    return getResponseEventTypeFutureBookingLimits(bookingLimits);
   }
 }
