@@ -369,7 +369,7 @@ export default function Success(props: PageProps) {
 
   const isRecurringBooking = props.recurringBookings;
   const needsConfirmationAndReschedulable = needsConfirmation && isReschedulable;
-  const isAttendingCancelledEvent = isCancelled && seatReferenceUid;
+  const isNotAttendingCancelledEvent = isCancelled && seatReferenceUid;
   const isEventCancelled = isCancelled && !seatReferenceUid;
   const isPastBooking = isBookingInPast;
 
@@ -378,7 +378,7 @@ export default function Success(props: PageProps) {
       return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
     }
 
-    if (isAttendingCancelledEvent) {
+    if (isNotAttendingCancelledEvent) {
       return t("no_longer_attending");
     }
 
