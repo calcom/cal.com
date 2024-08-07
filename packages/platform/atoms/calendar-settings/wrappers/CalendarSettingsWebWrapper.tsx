@@ -46,8 +46,6 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
                 />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
-                    console.log(connectedCalendar.calendars, "each calendars of connected calendar");
-
                     return (
                       <ConnectedCalendarSettings
                         key={connectedCalendar.credentialId}

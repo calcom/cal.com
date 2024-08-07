@@ -4,7 +4,6 @@ import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { classNames } from "@calcom/lib";
 import { Icon } from "@calcom/ui";
 
-// the switch can be children
 export function CalendarSwitchComponent(
   props: ICalendarSwitchProps & {
     isLoading: boolean;
