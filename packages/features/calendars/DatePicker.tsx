@@ -291,8 +291,6 @@ const Days = ({
         </div>
       ))}
 
-      {isBookingInPast && <ReschedulingNotPossibleOverlay />}
-
       {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
@@ -374,13 +372,11 @@ const DatePicker = ({
             <Button
               className={classNames(
                 `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
-                isBookingInPast && `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
                 `${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
-              disabled={isBookingInPast}
               variant="icon"
               StartIcon="chevron-right"
             />
@@ -406,13 +402,13 @@ const DatePicker = ({
             datePickerDateActive: customClassNames?.datePickerDatesActive,
           }}
           weekStart={weekStart}
-          selected={!isBookingInPast ? selected : null}
+          selected={selected}
           {...passThroughProps}
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
-          slots={!isBookingInPast ? slots : {}}
-          includedDates={!isBookingInPast ? includedDates : []}
+          slots={slots}
+          includedDates={includedDates}
           isBookingInPast={isBookingInPast}
         />
       </div>
