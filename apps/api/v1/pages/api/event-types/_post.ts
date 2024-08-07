@@ -278,8 +278,8 @@ async function postHandler(req: NextApiRequest) {
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId,
-    users: { connect: { id: userId } },
+    userId: !!parsedBody.teamId ? null : userId,
+    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
@@ -291,7 +291,7 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  if (isSystemWideAdmin && parsedBody.userId) {
+  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
     data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
   }
 
