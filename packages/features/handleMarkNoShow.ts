@@ -21,7 +21,9 @@ const buildResultPayload = async (
   if (attendees.length === 1) {
     const [attendee] = attendees;
     return {
-      message: t(attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show"),
+      message: t(attendee.noShow ? "x_marked_as_no_show" : "x_unmarked_as_no_show", {
+        x: attendee.email ?? "User",
+      }),
       attendees: [attendee],
     };
   }
