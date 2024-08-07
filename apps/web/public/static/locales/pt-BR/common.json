@@ -1130,7 +1130,7 @@
   "zapier_setup_instructions": "<0>Entre na conta do Zapier e crie um novo Zap.</0><1>Selecione {{appName}} como seu app de gatilho. Escolha também um evento de gatilho.</1><2>Escolha sua conta e insira sua chave de API única.</2><3>Teste seu gatilho.</3><4>Tudo pronto!</4>",
   "make_setup_instructions": "<0>Vá para <1><0>Vincular convite do Make</0></1> e instale o aplicativo do Cal.com.</0><1>Entre na conta do Make e crie um novo Cenário.</1><2>Selecione Cal.com como seu aplicativo de gatilho. Escolha também um evento de gatilho.</2><3>Escolha sua conta e insira sua chave de API única.</3><4>Teste seu gatilho.</4><5>Tudo pronto!</5>",
   "install_zapier_app": "Instale primeiro o app do Zapier na loja de apps.",
-  "install_make_app": "Instale primeiro o aplicativo do Make na loja de aplicativos.",
+  "install_make_app": "Desculpe, este aplicativo não está instalado em sua conta. Visite nossa loja de aplicativos para explorar e descobrir este e outros ótimos aplicativos.",
   "connect_apple_server": "Conectar com o servidor da Apple",
   "calendar_url": "URL do calendário",
   "apple_server_generate_password": "Gerar uma senha específica de app para usar com o {{appName}} em",

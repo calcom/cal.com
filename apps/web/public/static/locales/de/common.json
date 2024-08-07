@@ -1134,7 +1134,7 @@
   "zapier_setup_instructions": "<0>Loggen Sie sich in Ihr Zapier-Konto ein und erstelle einen neuen Zap.</0><1>Wählen Sie Cal.com als ihre Trigger-App aus. Wählen Sie auch ein Auslöserereignis.</0><1>Wählen Sie ihr Konto aus und geben dann ihren eindeutigen API-Key ein.</2><3>Testen Sie den Trigger.</3><4>Alles fertig!</4>",
   "make_setup_instructions": "<0>Gehen Sie zu: <1><0>Make-Einladungs-Link</0></1>und installieren Sie die Cal.com-App.</0><1> Loggen Sie sich in Ihr Make-Konto ein und erstellen Sie ein neues Szenario.</1><2>Wählen Sie Cal.com als ihre Auslöser-App aus. Wählen Sie auch ein Auslöserereignis aus.</2><3>Wählen Sie ihr Konto aus und geben Sie dann Ihren eindeutigen API-Key ein.</3><4>Probierne Sie den Auslöser aus.</4><5>Und fertig!</5>",
   "install_zapier_app": "Bitte installieren Sie zuerst die Zapier-App im App Store.",
-  "install_make_app": "Bitte installieren Sie zuerst die Make-App im App Store.",
+  "install_make_app": "Leider ist diese App nicht in Ihrem Konto installiert. Bitte besuchen Sie unseren App Store, um diese und andere tolle Apps zu erkunden und zu entdecken.",
   "connect_apple_server": "Mit Apple-Server verbinden",
   "calendar_url": "Kalender-URL",
   "apple_server_generate_password": "Generieren Sie ein App-spezifisches Passwort für {{appName}} unter",

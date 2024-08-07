@@ -1065,7 +1065,7 @@
   "zapier_setup_instructions": "<0>Logga in på ditt Zapier-konto och skapa en ny Zap.</0><1>Välj {{appName}} som din Trigger-app. Välj också en Trigger-händelse. /1><2>Välj ditt konto och ange sedan din unika API-nyckel.</2><3>Testa din Trigger.</3><4>Du är klar!</4>",
   "make_setup_instructions": "<0>Gå till <1><0>Skapa inbjudningslänk</0></1> och installera Cal.com-appen.</0><1>Logga in på ditt Make-konto och skapa ett nytt Scenario.</1><2>Välj Cal.com som din Trigger-app. Välj också en triggerhändelse.</2><3>Välj ditt konto och ange sedan din unika API-nyckel.</3><4>Testa din trigger.</4><5>Du är redo!</5>",
   "install_zapier_app": "Installera först Zapier-appen i appbutiken.",
-  "install_make_app": "Installera först Make-appen i appbutiken.",
+  "install_make_app": "Tyvärr, den här appen är inte installerad på ditt konto. Besök vår appbutik för att utforska och upptäcka denna och andra fantastiska appar.",
   "connect_apple_server": "Anslut till Apple Server",
   "calendar_url": "Kalender-URL",
   "apple_server_generate_password": "Skapa ett appspecifikt lösenord som du kan använda med {{appName}} på",

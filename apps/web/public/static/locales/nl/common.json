@@ -1065,7 +1065,7 @@
   "zapier_setup_instructions": "<0>Meld u aan op uw Zapier-account en maak een nieuwe Zap.</0><1>Selecteer {{appName}} als uw activatie-app. Kies ook een activatiegebeurtenis.</1><2>Kies uw account en voer vervolgens uw unieke API-sleutel in.</2><3>Test uw activatie.</3><4>U bent er klaar voor!</4>",
   "make_setup_instructions": "<0>Ga naar <1><0>Make-uitnodigingslink</0></1> en installeer de Cal.com-app.</0><1>Log in bij uw Make-account en maak een nieuw scenario.</1><2>Selecteer Cal.com als uw activatie-app. Kies ook een activatiegebeurtenis.</2><3>Kies uw account en voer uw unieke API-sleutel in.</3><4>Test uw activatie.</4><5>U bent er klaar voor!</5>",
   "install_zapier_app": "Installeer eerst de Zapier-app in de App Store.",
-  "install_make_app": "Installeer eerst de Make-app uit de appstore.",
+  "install_make_app": "Sorry, deze app is niet op uw account geïnstalleerd. Bezoek onze app store om deze en andere geweldige apps te verkennen en ontdekken.",
   "connect_apple_server": "Verbinding maken met Apple Server",
   "calendar_url": "Agenda-URL",
   "apple_server_generate_password": "Genereer een appspecifiek wachtwoord voor gebruik met {{appName}} op",

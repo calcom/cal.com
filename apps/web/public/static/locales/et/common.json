@@ -1137,7 +1137,7 @@
   "zapier_setup_instructions": "<0>Logige sisse oma Zapieri kontole ja looge uus Zap.</0><1>Valige oma Triggeri rakenduseks Cal.com. Valige ka Triggeri sündmus.</1><2>Valige oma konto ja seejärel sisestage teie unikaalne API võti.</2><3>Testige oma päästikut.</3><4>Olete valmis!</4>",
   "make_setup_instructions": "<0>Avage <1><0>Tee kutse link</0></1> ja installige Cal.com-i rakendus.</0><1>Logige sisse oma Make kontole ja looge uus stsenaarium.< /1><2>Valige oma Triggeri rakenduseks Cal.com. Valige ka Triggeri sündmus.</2><3>Valige oma konto ja sisestage kordumatu API võti.</3><4>Testige oma Triggerit. </4><5>Olete valmis!</5>",
   "install_zapier_app": "Palun installige esmalt rakenduste poest Zapieri rakendus.",
-  "install_make_app": "Palun esmalt installige rakendus Make App rakenduste poest.",
+  "install_make_app": "Kahjuks pole seda rakendust teie kontole installitud. Selle ja teiste suurepäraste rakenduste uurimiseks ja avastamiseks külastage meie rakenduste poodi.",
   "connect_apple_server": "Ühenda Apple Serveriga",
   "calendar_url": "Kalendri URL",
   "apple_server_generate_password": "Loo rakendusepõhine parool, mida rakendusega {{appName}} kasutada",

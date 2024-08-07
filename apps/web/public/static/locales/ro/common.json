@@ -1065,7 +1065,7 @@
   "zapier_setup_instructions": "<0>Conectează-te la contul Zapier și creează un Zap nou.</0><1>Selectează Cal.com ca aplicație Trigger. Alege și un eveniment Trigger.</1><2>Alege contul, apoi introdu cheia API unică.</2><3>Testează Trigger-ul.</3><4>Ai terminat!</4>",
   "make_setup_instructions": "<0>Mergeți la <1><0>linkul de invitație Make</0></1> și instalați aplicația Cal.com.</0><1>Conectați-vă la contul dvs. Make și creați un scenariu nou.</1><2>Selectați Cal.com ca aplicație declanșatoare. De asemenea, alegeți un eveniment de declanșare.</2><3>Selectați contul dvs. și introduceți cheia dvs. API unică.</3><4>Testați declanșatorul.</4><5>Sunteți gata!</5>",
   "install_zapier_app": "Instalați mai întâi aplicația Zapier din App Store.",
-  "install_make_app": "Instalați mai întâi aplicația Make din App Store.",
+  "install_make_app": "Ne pare rău, această aplicație nu este instalată în contul dvs. Vă rugăm să vizitați magazinul nostru de aplicații pentru a explora și descoperi aceasta și alte aplicații grozave.",
   "connect_apple_server": "Conectați-vă la serverul Apple",
   "calendar_url": "URL calendar",
   "apple_server_generate_password": "Generați o parolă specifică aplicației, pe care o veți utiliza cu {{appName}} la",
