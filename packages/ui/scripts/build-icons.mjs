@@ -7,7 +7,7 @@ import * as path from "node:path";
 const cwd = process.cwd();
 const inputDir = path.join(cwd, "svg-icons");
 const inputDirRelative = path.relative(cwd, inputDir);
-const outputDir = path.join(cwd, "../components", "icon");
+const outputDir = path.join(cwd, "components", "icon");
 await fsExtra.ensureDir(outputDir);
 
 const files = glob

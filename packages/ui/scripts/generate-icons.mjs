@@ -1,6 +1,6 @@
 import { $ } from "execa";
 
-// 81 icons
+// 82 icons
 const iconList = [
   "x",
   "circle-alert",
@@ -49,6 +49,7 @@ const iconList = [
   "file-text",
   "shuffle",
   "circle-check",
+  "circle-check-big",
   "download",
   "sunrise",
   "sunset",
