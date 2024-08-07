@@ -211,6 +211,7 @@ export class BookingsController {
   @Permissions([BOOKING_WRITE])
   @UseGuards(ApiAuthGuard)
   async markNoShow(
+    @GetUser("id") userId: number,
     @Body() body: MarkNoShowInput,
     @Param("bookingUid") bookingUid: string
   ): Promise<MarkNoShowOutput> {
@@ -219,6 +220,7 @@ export class BookingsController {
         bookingUid: bookingUid,
         attendees: body.attendees,
         noShowHost: body.noShowHost,
+        userId,
       });
 
       return { status: SUCCESS_STATUS, data: markNoShowResponse };
