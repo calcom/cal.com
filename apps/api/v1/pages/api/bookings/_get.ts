@@ -69,7 +69,7 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         schema:
  *          type: string
  *          enum: [upcoming]
- *          description: Filter bookings by status, it wil ocerwrite dateFrom and dateTo filters
+ *          description: Filter bookings by status, it will overwrite dateFrom and dateTo filters
  *       - in: query
  *         name: dateFrom
  *         required: false
