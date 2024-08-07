@@ -63,6 +63,25 @@ import { schemaQuerySingleOrMultipleUserIds } from "~/lib/validations/shared/que
  *         schema:
  *          type: string
  *          enum: [createdAt, updatedAt]
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         schema:
+ *          type: string
+ *          enum: [upcoming]
+ *          description: Filter bookings by status, it will overwrite dateFrom and dateTo filters
+ *       - in: query
+ *         name: dateFrom
+ *         required: false
+ *         schema:
+ *          type: string
+ *          description: ISO 8601 date string to filter bookings by start time
+ *       - in: query
+ *         name: dateTo
+ *         required: false
+ *         schema:
+ *          type: string
+ *          description: ISO 8601 date string to filter bookings by end time
  *     operationId: listBookings
  *     tags:
  *     - bookings
@@ -130,6 +149,7 @@ type GetAdminArgsType = {
   requestedUserIds: number[];
   userId: number;
 };
+
 /**
  * Constructs the WHERE clause for Prisma booking findMany operation.
  *
@@ -148,7 +168,9 @@ function buildWhereClause(
 ) {
   const filterByAttendeeEmails = attendeeEmails.length > 0;
   const userFilter = userIds.length > 0 ? { userId: { in: userIds } } : !!userId ? { userId } : {};
+
   let whereClause = {};
+
   if (filterByAttendeeEmails) {
     whereClause = {
       AND: [
@@ -177,9 +199,7 @@ function buildWhereClause(
     };
   }
 
-  return {
-    ...whereClause,
-  };
+  return whereClause;
 }
 
 export async function handler(req: NextApiRequest) {
@@ -189,7 +209,7 @@ export async function handler(req: NextApiRequest) {
     isOrganizationOwnerOrAdmin,
     pagination: { take, skip },
   } = req;
-  const { dateFrom, dateTo, order, sortBy } = schemaBookingGetParams.parse(req.query);
+  const { dateFrom, dateTo, order, sortBy, status } = schemaBookingGetParams.parse(req.query);
 
   const args: Prisma.BookingFindManyArgs = {};
   if (req.query.take && req.query.page) {
@@ -273,6 +293,19 @@ export async function handler(req: NextApiRequest) {
     args.orderBy = {
       createdAt: order,
     };
+  }
+
+  if (status) {
+    switch (status) {
+      case "upcoming":
+        args.where = {
+          ...args.where,
+          startTime: { gte: new Date().toISOString() },
+        };
+        break;
+      default:
+        throw new HttpError({ message: "Invalid status", statusCode: 400 });
+    }
   }
 
   const data = await prisma.booking.findMany(args);

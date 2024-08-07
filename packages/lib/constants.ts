@@ -104,11 +104,15 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
+export const ORGANIZATION_SELF_SERVE_MIN_SEATS =
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || 30;
+export const ORGANIZATION_SELF_SERVE_PRICE = process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE || 3700;
+
+export const ORGANIZATION_MIN_SEATS = 30;
+
 export const ENABLE_INFINITE_EVENT_TYPES_FOR_ORG = JSON.parse(
   `[${process.env.ENABLE_INFINITE_EVENT_TYPES_FOR_ORG || ""}]`
 ) as string[];
-
-export const ORGANIZATION_MIN_SEATS = 30;
 
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
