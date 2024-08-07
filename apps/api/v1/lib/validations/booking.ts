@@ -23,8 +23,10 @@ export const schemaBookingGetParams = z.object({
   dateTo: iso8601.optional(),
   order: z.enum(["asc", "desc"]).default("asc"),
   sortBy: z.enum(["createdAt", "updatedAt"]).optional(),
-  upcoming: z.enum(["true", "false"]).optional(),
+  status: z.enum(["upcoming"]).optional(),
 });
+
+export type Status = z.infer<typeof schemaBookingGetParams>["status"];
 
 const schemaBookingEditParams = z
   .object({
