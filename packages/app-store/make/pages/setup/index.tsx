@@ -133,6 +133,7 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
           </div>
         </div>
       ) : (
+        // Updated UI changes
         <div className="flex h-full w-full flex-col  items-center justify-center rounded-md bg-white p-10  text-black">
           <div className="flex w-1/3 flex-col items-center rounded-lg border border-[#E5E7EB] p-10 shadow-md">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
