@@ -23,6 +23,11 @@ type GetEventTypeOptions = {
   input: TGetEventTypeOptionsSchema;
 };
 
+type Option = {
+  value: string;
+  label: string;
+};
+
 export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getEventTypeOptions:${ctx.user.id}`,
@@ -196,7 +201,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
       };
     });
 
-  const allEventTypeOptions =
+  const eventTypeOptions =
     eventTypeGroups.reduce((options, group) => {
       //       /** don't show team event types for user workflow */
       if (!teamId && group.teamId) return options;
@@ -222,7 +227,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     }, [] as Option[]) || [];
 
   return {
-    allEventTypeOptions,
+    eventTypeOptions,
     profilesTeamsOptions,
   };
 };

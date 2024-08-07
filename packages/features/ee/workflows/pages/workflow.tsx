@@ -195,11 +195,11 @@ function WorkflowPage() {
   //     }, [] as Option[]) || [],
   //   [eventTypeGroups]
   // );
-  let allEventTypeOptions = data?.allEventTypeOptions ?? [];
+  let allEventTypeOptions = data?.eventTypeOptions ?? [];
   const distinctEventTypes = new Set();
 
   if (!teamId && isMixedEventType) {
-    allEventTypeOptions = [...eventTypeOptions, ...selectedOptions];
+    allEventTypeOptions = [...data?.eventTypeOptions, ...selectedOptions];
     allEventTypeOptions = allEventTypeOptions.filter((option) => {
       const duplicate = distinctEventTypes.has(option.value);
       distinctEventTypes.add(option.value);
