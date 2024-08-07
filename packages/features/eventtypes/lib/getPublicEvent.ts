@@ -95,7 +95,6 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   successRedirectUrl: true,
   forwardParamsSuccessRedirect: true,
-  autofillPrevResponse: true,
   workflows: {
     include: {
       workflow: {

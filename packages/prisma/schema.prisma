@@ -131,13 +131,13 @@ model EventType {
   /// @zod.custom(imports.intervalLimitsType)
   bookingLimits                           Json?
   /// @zod.custom(imports.intervalLimitsType)
-  durationLimits                       Json?
-  isInstantEvent                       Boolean                   @default(false)
+  durationLimits                          Json?
+  isInstantEvent                          Boolean                   @default(false)
   instantMeetingExpiryTimeOffsetInSeconds Int                       @default(90)
-  assignAllTeamMembers                 Boolean                   @default(false)
-  useEventTypeDestinationCalendarEmail Boolean                   @default(false)
-  aiPhoneCallConfig                    AIPhoneCallConfiguration?
-  autofillPrevResponse                 Boolean                   @default(false)
+  assignAllTeamMembers                    Boolean                   @default(false)
+  useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
+  aiPhoneCallConfig                       AIPhoneCallConfiguration?
+
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
 
