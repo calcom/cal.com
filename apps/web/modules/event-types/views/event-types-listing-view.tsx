@@ -105,6 +105,7 @@ interface InfiniteEventTypeListProps {
   bookerUrl: string | null;
   pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
   lockedByOrg?: boolean;
+  isPending?: boolean;
 }
 
 interface EventTypeListProps {
@@ -186,6 +187,7 @@ const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
           group={activeEventTypeGroup}
           bookerUrl={activeEventTypeGroup.bookerUrl}
           readOnly={activeEventTypeGroup.metadata.readOnly}
+          isPending={query.isPending}
         />
       )}
       <div className="text-default p-4 text-center" ref={buttonInView.ref}>
@@ -785,6 +787,7 @@ export const InfiniteEventTypeList = ({
   pages,
   bookerUrl,
   lockedByOrg,
+  isPending,
 }: InfiniteEventTypeListProps): JSX.Element => {
   const { t } = useLocale();
   const router = useRouter();
@@ -965,6 +968,8 @@ export const InfiniteEventTypeList = ({
   }, []);
 
   if (!pages?.[0]?.eventTypes?.length) {
+    if (isPending) return <SkeletonLoader />;
+
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
     ) : !group.profile.eventTypesLockedByOrg ? (
