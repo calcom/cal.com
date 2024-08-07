@@ -1,9 +1,9 @@
-import AppNotInstalledMessage from "_components/AppNotInstalledMessage";
 import { Trans } from "next-i18next";
 import Link from "next/link";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Icon, showToast, Tooltip } from "@calcom/ui";
