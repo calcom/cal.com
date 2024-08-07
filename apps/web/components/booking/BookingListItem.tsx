@@ -669,12 +669,9 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(
-        t("messageKey" in data && data.messageKey ? data.messageKey : data.message, { x: name || email }),
-        "success"
-      );
+      showToast(data.message, "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -780,9 +777,9 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t("messageKey" in data && data.messageKey ? data.messageKey : data.message), "success");
+      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");

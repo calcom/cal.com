@@ -178,7 +178,7 @@ export default function Success(props: PageProps) {
     },
   });
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const hostNoShowMutation = trpc.viewer.public.markHostAsNoShow.useMutation({
     onSuccess: async () => {
       showToast("Thank you, feedback submitted", "success");
     },
@@ -189,7 +189,7 @@ export default function Success(props: PageProps) {
 
   useEffect(() => {
     if (noShow) {
-      noShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
+      hostNoShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
