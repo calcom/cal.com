@@ -236,17 +236,6 @@ export class EventTypeRepository {
     const select = {
       ...eventTypeSelect,
       hashedLink: true,
-      // users: { select: userSelect },
-      // children: {
-      //   include: {
-      //     users: { select: userSelect },
-      //   },
-      // },
-      // hosts: {
-      //   include: {
-      //     user: { select: userSelect },
-      //   },
-      // },
     };
 
     log.debug(

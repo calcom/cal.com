@@ -13,6 +13,7 @@ import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
+import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
 import type { TGetEventTypeOptionsSchema } from "./getEventTypeOptions.schema";
 
 type GetEventTypeOptions = {
@@ -28,6 +29,12 @@ type Option = {
   label: string;
 };
 
+type res = Awaited<
+  ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
+>[number]["team"]["eventTypes"][number];
+
+type EventType = Omit<res, "forwardParamsSuccessRedirect">;
+
 export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) => {
   await checkRateLimitAndThrowError({
     identifier: `eventTypes:getEventTypeOptions:${ctx.user.id}`,
@@ -37,6 +44,9 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
   const user = ctx.user;
   const teamId = input?.teamId;
   const isOrg = input?.isOrg;
+
+  const skipTeamOptions = !isOrg;
+  const skipEventTypes = !!isOrg;
 
   const userProfile = ctx.user.profile;
   const profile = await ProfileRepository.findByUpId(userProfile.upId);
@@ -52,29 +62,34 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
         where: {
           accepted: true,
         },
-        skipEventTypes: !!isOrg,
+        skipEventTypes,
       }
     ),
-    EventTypeRepository.findAllByUpIdWithMinmalData(
-      {
-        upId: userProfile.upId,
-        userId: user.id,
-      },
-      {
-        where: {
-          teamId: null,
-        },
-        orderBy: [
+    teamId
+      ? []
+      : EventTypeRepository.findAllByUpIdWithMinmalData(
           {
-            position: "desc",
+            upId: userProfile.upId,
+            userId: user.id,
           },
           {
-            id: "asc",
-          },
-        ],
-      }
-    ),
+            where: {
+              teamId: null,
+            },
+            orderBy: [
+              {
+                position: "desc",
+              },
+              {
+                id: "asc",
+              },
+            ],
+          }
+        ),
   ]);
+
+  console.log("profileMemberships", JSON.stringify(profileMemberships));
+  console.log("profileEventTypes", JSON.stringify(profileEventTypes));
 
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
@@ -104,7 +119,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
       image: string;
       eventTypesLockedByOrg?: boolean;
     };
-    eventTypes?: any;
+    eventTypes?: EventType[];
   };
 
   let eventTypeGroups: EventTypeGroup[] = [];
@@ -188,18 +203,34 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     )
   );
 
-  const profilesTeamsOptions = eventTypeGroups
-    .map((group) => ({
-      ...group.profile,
-      teamId: group.teamId,
-    }))
-    .filter((profile) => !!profile.teamId)
-    .map((profile) => {
-      return {
-        value: String(profile.teamId) || "",
-        label: profile.name || profile.slug || "",
-      };
-    });
+  let teamOptions: Option[] = [];
+
+  if (!skipTeamOptions) {
+    const profileTeamsOptions = eventTypeGroups
+      .map((group) => ({
+        ...group.profile,
+        teamId: group.teamId,
+      }))
+      .filter((profile) => !!profile.teamId)
+      .map((profile) => {
+        return {
+          value: String(profile.teamId) || "",
+          label: profile.name || profile.slug || "",
+        };
+      });
+
+    const otherTeams = await listOtherTeamHandler({ ctx });
+    const otherTeamsOptions = otherTeams
+      ? otherTeams.map((team) => {
+          return {
+            value: String(team.id) || "",
+            label: team.name || team.slug || "",
+          };
+        })
+      : [];
+
+    teamOptions = profileTeamsOptions.concat(otherTeamsOptions);
+  }
 
   const eventTypeOptions =
     eventTypeGroups.reduce((options, group) => {
@@ -210,25 +241,25 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
 
       return [
         ...options,
-        ...group.eventTypes
-          .filter(
+        ...(group?.eventTypes
+          ?.filter(
             (evType) =>
               !evType.metadata?.managedEventConfig ||
               !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
               !!teamId
           )
-          .map((eventType) => ({
+          ?.map((eventType) => ({
             value: String(eventType.id),
             label: `${eventType.title} ${
-              eventType.children && eventType.children.length ? `(+${eventType.children.length})` : ``
+              eventType?.children && eventType.children.length ? `(+${eventType.children.length})` : ``
             }`,
-          })),
+          })) ?? []),
       ];
     }, [] as Option[]) || [];
 
   return {
     eventTypeOptions,
-    profilesTeamsOptions,
+    teamOptions,
   };
 };
 
