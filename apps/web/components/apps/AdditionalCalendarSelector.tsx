@@ -1,6 +1,7 @@
 import type { FunctionComponent, SVGProps } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { QueryCell } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -11,8 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@calcom/ui";
-
-import { QueryCell } from "@lib/QueryCell";
 
 interface AdditionalCalendarSelectorProps {
   isPending?: boolean;
