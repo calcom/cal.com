@@ -1064,7 +1064,7 @@
   "zapier_setup_instructions": "<0>Přihlaste se ke svému účtu Zapier a vytvořte nový Zap.</0><1>Vyberte Cal.com jako svoji aplikaci Trigger. Také vyberte událost Trigger.</1><2>Vyberte svůj účet a pak zadejte svůj unikátní klíč API.</2><3>Otestujte svůj Trigger.</3><4>Všechno máte nastaveno!</4>",
   "make_setup_instructions": "<0>Přejděte na <1><0>odkaz s pozvánkou pro Make</0></1> a nainstalujte aplikaci Cal.com.</0><1>Přihlaste se ke svému účtu Make a vytvořte nový scénář.</1><2>Jako spouštěcí aplikaci vyberte Cal.com. Dále vyberte událost spouštěče.</2><3>Vyberte svůj účet a následně zadejte svůj unikátní klíč API.</3><4>Otestujte svůj spouštěč.</4><5>Všechno je připraveno!</5>",
   "install_zapier_app": "Nejdřív si z App Store nainstalujte aplikaci Zapier.",
-  "install_make_app": "Litujeme, tato aplikace není ve vašem účtu nainstalována. Navštivte prosím náš obchod s aplikacemi a prozkoumejte a objevte tuto a další skvělé aplikace.",
+  "install_make_app": "Nejprve si nainstalujte aplikaci Make z obchodu s aplikacemi.",
   "connect_apple_server": "Připojit se k serveru Apple",
   "calendar_url": "URL kalendáře",
   "apple_server_generate_password": "Vygenerujte si specifické heslo pro aplikaci {{appName}} na",

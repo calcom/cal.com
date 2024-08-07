@@ -1064,7 +1064,7 @@
   "zapier_setup_instructions": "<0>Zapier hesabınıza giriş yapın ve yeni bir Zap oluşturun.</0><1>Trigger uygulamanız olarak Cal.com'u seçin. Ayrıca bir Trigger etkinliği seçin.</1><2>Hesabınızı seçin ve ardından Benzersiz API Anahtarınızı girin.</2><3>Trigger'ınızı test edin.</3><4>Hazırsınız!</4 >",
   "make_setup_instructions": "<0>Make Davet Bağlantısına</0></1> <0>gidin<1> ve Cal.com uygulamasını yükleyin.<0><1>Make hesabınıza giriş yapın ve yeni bir Senaryo oluşturun.</1><2>Tetikleyici uygulamanız olarak Cal.com'u seçin. Ayrıca bir Tetikleyici etkinliği seçin.</2><3>Hesabınızı seçin ve ardından Benzersiz API Anahtarınızı girin.</3><4>Tetikleyicinizi test edin.</4><5>Hazırsınız!</5>",
   "install_zapier_app": "Lütfen öncelikle App Store'dan Zapier uygulamasını yükleyin.",
-  "install_make_app": "Üzgünüz, bu uygulama hesabınızda yüklü değil. Bu ve diğer harika uygulamaları keşfetmek ve keşfetmek için lütfen uygulama mağazamızı ziyaret edin.",
+  "install_make_app": "Lütfen öncelikle App Store'dan Make uygulamasını yükleyin.",
   "connect_apple_server": "Apple Sunucusuna Bağlanın",
   "calendar_url": "Takvim URL'si",
   "apple_server_generate_password": "Şurada {{appName}} ile kullanmak üzere uygulamaya özel bir şifre oluşturun:",

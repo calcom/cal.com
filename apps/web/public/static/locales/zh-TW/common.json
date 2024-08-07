@@ -1071,7 +1071,7 @@
   "zapier_setup_instructions": "<0>登入您的 Zapier 帳號並建立新的 Zap。</0><1>選取 {{appName}} 作為您的 Trigger 應用程式，也請一併選擇 Trigger 事件。</1><2>選擇您的帳號，然後輸入您的唯一 API 金鑰。</2><3>測試您的 Trigger。</3><4>一切就大功告成了！</4>",
   "make_setup_instructions": "<0>前往 <1><0>Make Invite Link</0></1>，然後安裝 Cal.com 應用程式。</0><1>登入您的 Make 帳號並建立新的 Scenario。</1><2>選取 Cal.com 作為您的 Trigger 應用程式，也請一併選擇 Trigger 事件。</2><3>選擇您的帳號，然後輸入您的唯一 API 金鑰。</3><4>測試您的 Trigger。</4><5>一切就大功告成了！</5>",
   "install_zapier_app": "請先到 App Store 安裝 Zapier 應用程式。",
-  "install_make_app": "抱歉，您的帳戶中未安裝此應用程式。請造訪我們的應用程式商店來探索和發現這款應用程式以及其他出色的應用程式。",
+  "install_make_app": "請先到 App Store 安裝 Make 應用程式。",
   "connect_apple_server": "連結到 Apple 伺服器",
   "calendar_url": "行事曆 URL",
   "apple_server_generate_password": "請前往下列位置產生搭配 {{appName}} 使用的應用程式專用密碼",

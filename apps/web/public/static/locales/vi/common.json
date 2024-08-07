@@ -1067,7 +1067,7 @@
   "zapier_setup_instructions": "<0>Đăng nhập vào tài khoản Zapier của bạn và tạo một Zap mới.</0><1>Chọn {{appName}} làm ứng dụng Trigger của bạn. Đồng thời chọn một sự kiện Trigger.</1><2>Chọn tài khoản của bạn và sau đó điền vào Khoá API đặc trưng.</2><3>Thử nghiệm Trigger của bạn.</3><4>Bạn đã xong!</4>",
   "make_setup_instructions": "<0>Đến <1><0>Liên kết mời Make</0></1> và cài đặt ứng dụng Cal.com.</0><1>Đăng nhập vào tài khoản Make của bạn và tạo một Scenario mới.</1><2>Chọn Cal.com làm ứng dụng Trigger của bạn. Đồng thời chọn một sự kiện Trigger.</2><3>Chọn tài khoản của bạn và sau đó điền vào Khoá API đặc trưng.</3><4>Thử nghiệm Trigger của bạn.</4><5>Bạn đã xong!</5>",
   "install_zapier_app": "Trước tiên hãy cài đặt ứng dụng Zapier trong App Store.",
-  "install_make_app": "Rất tiếc, ứng dụng này chưa được cài đặt trên tài khoản của bạn. Vui lòng truy cập cửa hàng ứng dụng của chúng tôi để khám phá và khám phá ứng dụng này cũng như các ứng dụng tuyệt vời khác.",
+  "install_make_app": "Trước tiên hãy cài đặt ứng dụng Make trong App Store.",
   "connect_apple_server": "Kết nối với Máy chủ Apple",
   "calendar_url": "URL lịch",
   "apple_server_generate_password": "Tạo một mật khẩu chuyên dùng cho ứng dụng để sử dụng với {{appName}} tại",

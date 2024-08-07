@@ -1133,7 +1133,7 @@
   "zapier_setup_instructions": "<0>Connectez-vous à votre compte Zapier et créez un nouveau Zap.</0><1>Sélectionnez Cal.com comme application déclencheur. Choisissez également un événement déclencheur.</1><2>Choisissez votre compte, puis saisissez votre clé API unique.</2><3>Testez votre déclencheur.</3><4>Vous êtes prêt !</4>",
   "make_setup_instructions": "<0>Accédez au <1><0>lien d'invitation Make</0></1> et installez l'application Cal.com.</0><1>Connectez-vous à votre compte Make et créez un nouveau scénario.</1><2>Sélectionnez Cal.com comme application déclencheur. Choisissez également un événement déclencheur.</2><3>Choisissez votre compte, puis saisissez votre clé API unique.</3><4>Testez votre déclencheur.</4><5>Vous êtes prêt !</5>",
   "install_zapier_app": "Veuillez d'abord installer l'application Zapier dans l'App Store.",
-  "install_make_app": "Désolé, cette application n'est pas installée sur votre compte. Veuillez visiter notre boutique d'applications pour explorer et découvrir cette application ainsi que d'autres applications géniales.",
+  "install_make_app": "Veuillez d'abord installer l'application Make dans l'App Store.",
   "connect_apple_server": "Se connecter au serveur d'Apple",
   "calendar_url": "Lien du calendrier",
   "apple_server_generate_password": "Générez un mot de passe pour application à utiliser avec {{appName}} sur",

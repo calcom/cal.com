@@ -139,8 +139,8 @@ export default function MakeSetup({ inviteLink }: InferGetServerSidePropsType<ty
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
               <Icon name="circle-alert" className="h-10 w-10 text-gray-800" />
             </div>
-            <div className="mb-2 mt-4 text-2xl  text-2xl font-bold">App not installed </div>
-            <h2 className="mt-4 text-lg text-[##4B5563] ">{t("install_make_app")}</h2>
+            <div className="mb-2 mt-4 text-2xl  text-2xl font-bold">{t("app_not_installed")}</div>
+            <h2 className="mt-4 text-lg text-[##4B5563] ">{t("visit_our_app_store")}</h2>
 
             <div className="mt-5">
               <Link href="/apps/make" passHref>

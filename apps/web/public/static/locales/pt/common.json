@@ -1133,7 +1133,7 @@
   "zapier_setup_instructions": "<0>Inicie sessão na sua conta Zapier e crie um novo Zap.</0><1>Seleccione {{appName}} como aplicação acionadora. Selecione também um evento acionador.</1><2>Seleccione a sua conta e insira a sua chave de API única.</2><3>Teste o seu accionador.</3><4>Está configurado!</4>",
   "make_setup_instructions": "<0>Aceda a <1><0>Criar ligação de convite</0></1> e instale a aplicação Cal.com.</0><1>Inicie sessão na sua conta Make e crie um novo Cenário.</1><2>Selecione Cal.com como a sua aplicação de Trigger. Escolha também um evento de Trigger.</2><3>Escolha a sua conta e depois introduza a sua Chave da API Única.</3><4>Teste o seu Trigger.</4><5>Está pronto!</5>",
   "install_zapier_app": "Por favor, primeiro instale a aplicação Zapier da App Store.",
-  "install_make_app": "Desculpe, este aplicativo não está instalado em sua conta. Visite nossa loja de aplicativos para explorar e descobrir este e outros ótimos aplicativos.",
+  "install_make_app": "Instale primeiro a aplicação Make na app store.",
   "connect_apple_server": "Ligar a Apple Server",
   "calendar_url": "URL do calendário",
   "apple_server_generate_password": "Crie uma palavra-passe de aplicação específica para utilizar com {{appName}} em",

@@ -1130,7 +1130,7 @@
   "zapier_setup_instructions": "<0>Jelentkezzen be Zapier-fiókjába, és hozzon létre egy új Zap-et.</0><1>Válassza ki a Cal.com-ot Trigger alkalmazásként. Válasszon egy Trigger eseményt is.</1><2>Válassza ki fiókját, majd adja meg egyedi API-kulcsát.</2><3>Tesztelje le a triggert.</3><4>Kész!</4> >",
   "make_setup_instructions": "<0>Lépjen a <1><0>Meghívási link létrehozása</0></1> oldalra, és telepítse a Cal.com alkalmazást.</0><1>Jelentkezzen be Make-fiókjába, és hozzon létre egy új forgatókönyvet.</1><2>Válassza ki a Cal.com-ot Trigger alkalmazásként. Válasszon egy Trigger eseményt is.</2><3>Válassza ki fiókját, majd adja meg egyedi API-kulcsát.</3><4>Tesztelje le a triggert.</4><5>Kész!</5> >",
   "install_zapier_app": "Kérjük, először telepítse a Zapier alkalmazást az alkalmazásboltból.",
-  "install_make_app": "Sajnáljuk, ez az alkalmazás nincs telepítve a fiókjába. Kérjük, látogasson el alkalmazásboltunkba, hogy felfedezze és felfedezze ezt és más nagyszerű alkalmazásokat.",
+  "install_make_app": "Kérjük, először telepítse a Make App alkalmazást az alkalmazásboltból.",
   "connect_apple_server": "Csatlakozzon az Apple Szerverhez",
   "calendar_url": "A naptár URL-je",
   "apple_server_generate_password": "Hozzon létre egy alkalmazásspecifikus jelszót a(z) {{appName}} alkalmazáshoz a következő helyen:",

@@ -1064,7 +1064,7 @@
   "zapier_setup_instructions": "<0>Zaloguj się do swojego konta Zapier i utwórz nowy Zap.</0><1>Wybierz Cal.com jako aplikację wyzwalającą. Wybierz również wydarzenie wyzwalające. </1><2>Wybierz konto, a następnie wprowadź niepowtarzalny klucz interfejsu API.</2><3>Przetestuj wyzwalanie.</3><4>Wszystko gotowe!</4>",
   "make_setup_instructions": "<0>Przejdź do sekcji <1><0>Link z zaproszeniem Make</0></1> i zainstaluj aplikację Cal.com.</0><1><0>Zaloguj się do swojego konta Make i utwórz nowy Scenariusz (Scenario).</1><2>Wybierz Cal.com jako aplikację wyzwalającą. Wybierz również wydarzenie wyzwalające. </2></2>Wybierz konto, a następnie wprowadź niepowtarzalny klucz interfejsu API.</3><4>Przetestuj wyzwalanie.</4><5>Wszystko gotowe!</5>",
   "install_zapier_app": "Najpierw zainstaluj aplikację Zapier pobraną ze sklepu App Store.",
-  "install_make_app": "Przepraszamy, ta aplikacja nie jest zainstalowana na Twoim koncie. Odwiedź nasz sklep z aplikacjami, aby poznać i odkryć tę i inne wspaniałe aplikacje.",
+  "install_make_app": "Najpierw zainstaluj aplikację Make pobraną ze sklepu App Store.",
   "connect_apple_server": "Połącz z serwerem Apple",
   "calendar_url": "Adres URL kalendarza",
   "apple_server_generate_password": "Wygeneruj hasło aplikacji do użycia z {{appName}} w witrynie",
