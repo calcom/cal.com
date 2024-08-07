@@ -22,6 +22,18 @@ function SkeletonLoader() {
 
 export default SkeletonLoader;
 
+export function InfiniteSkeletonLoader() {
+  return (
+    <SkeletonContainer>
+      <ul className="border-subtle bg-default divide-subtle divide-y rounded-md border sm:mx-0 sm:overflow-hidden">
+        <SkeletonItem />
+        <SkeletonItem />
+        <SkeletonItem />
+      </ul>
+    </SkeletonContainer>
+  );
+}
+
 function SkeletonItem() {
   return (
     <li className="group flex w-full items-center justify-between px-4 py-4 sm:px-6">
