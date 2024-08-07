@@ -131,4 +131,48 @@ export class MembershipRepository {
       },
     });
   }
+
+  static async findAllByUpIdIncludeTeam(
+    { upId }: { upId: string },
+    { where }: { where?: Prisma.MembershipWhereInput } = {}
+  ) {
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    let prismaWhere;
+
+    if (lookupTarget.type === LookupTarget.Profile) {
+      /**
+       * TODO: When we add profileId to membership, we lookup by profileId
+       * If the profile is movedFromUser, we lookup all memberships without profileId as well.
+       */
+      const profile = await ProfileRepository.findById(lookupTarget.id);
+      if (!profile) {
+        return [];
+      }
+      prismaWhere = {
+        userId: profile.user.id,
+        ...where,
+      };
+    } else {
+      prismaWhere = {
+        userId: lookupTarget.id,
+        ...where,
+      };
+    }
+    return await prisma.membership.findMany({
+      where: prismaWhere,
+      include: {
+        team: {
+          include: {
+            // could slow down the query
+            // members: {
+            //   select: membershipSelect,
+            // },
+            parent: {
+              select: teamParentSelect,
+            },
+          },
+        },
+      },
+    });
+  }
 }
