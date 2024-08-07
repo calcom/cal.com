@@ -41,7 +41,8 @@
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
-        "NEXT_PUBLIC_API_V2_URL"
+        "NEXT_PUBLIC_API_V2_URL",
+        "BUILD_STANDALONE"
       ]
     },
     "@calcom/web#dx": {
