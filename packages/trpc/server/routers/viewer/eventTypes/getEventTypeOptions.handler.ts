@@ -1,5 +1,4 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getPlaceholderAvatar } from "@calcom/lib/defaultAvatarImage";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -9,6 +8,7 @@ import { ProfileRepository } from "@calcom/lib/server/repository/profile";
 import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
+import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
 import { TRPCError } from "@trpc/server";
 
@@ -33,7 +33,7 @@ type res = Awaited<
   ReturnType<typeof MembershipRepository.findAllByUpIdIncludeMinimalEventTypes>
 >[number]["team"]["eventTypes"][number];
 
-type EventType = Omit<res, "forwardParamsSuccessRedirect">;
+type EventType = Omit<res, "forwardParamsSuccessRedirect"> & { children?: { id: number }[] };
 
 export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) => {
   await checkRateLimitAndThrowError({
@@ -88,9 +88,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
         ),
   ]);
 
-  console.log("profileMemberships", JSON.stringify(profileMemberships));
-  console.log("profileEventTypes", JSON.stringify(profileEventTypes));
-
   if (!profile) {
     throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
   }
@@ -103,20 +100,14 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     },
   }));
 
-  const teamMemberships = profileMemberships.map((membership) => ({
-    teamId: membership.team.id,
-    membershipRole: membership.role,
-  }));
-
   type EventTypeGroup = {
     teamId?: number | null;
     parentId?: number | null;
     bookerUrl: string;
-    membershipRole?: MembershipRole | null;
     profile: {
       slug: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
-      image: string;
+      image?: string;
       eventTypesLockedByOrg?: boolean;
     };
     eventTypes?: EventType[];
@@ -128,7 +119,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
   eventTypeGroups.push({
     teamId: null,
     bookerUrl,
-    membershipRole: null,
     profile: {
       slug: profile.username,
       name: profile.name,
@@ -151,10 +141,6 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
           return true;
         })
         .map(async (membership) => {
-          const orgMembership = teamMemberships.find(
-            (teamM) => teamM.teamId === membership.team.parentId
-          )?.membershipRole;
-
           const team = {
             ...membership.team,
             metadata: teamMetadataSchema.parse(membership.team.metadata),
@@ -177,14 +163,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
             teamId: team.id,
             parentId: team.parentId,
             bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
-            membershipRole:
-              orgMembership && compareMembership(orgMembership, membership.role)
-                ? orgMembership
-                : membership.role,
             profile: {
-              image: team.parent
-                ? getPlaceholderAvatar(team.parent.logoUrl, team.parent.name)
-                : getPlaceholderAvatar(team.logoUrl, team.name),
               name: team.name,
               slug,
             },
@@ -242,12 +221,14 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
       return [
         ...options,
         ...(group?.eventTypes
-          ?.filter(
-            (evType) =>
-              !evType.metadata?.managedEventConfig ||
-              !!evType.metadata?.managedEventConfig.unlockedFields?.workflows ||
+          ?.filter((evType) => {
+            const metadata = EventTypeMetaDataSchema.safeParse(evType.metadata);
+            return (
+              !metadata?.data?.managedEventConfig ||
+              !!metadata?.data?.managedEventConfig.unlockedFields?.workflows ||
               !!teamId
-          )
+            );
+          })
           ?.map((eventType) => ({
             value: String(eventType.id),
             label: `${eventType.title} ${
@@ -262,9 +243,3 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     teamOptions,
   };
 };
-
-export function compareMembership(mship1: MembershipRole, mship2: MembershipRole) {
-  const mshipToNumber = (mship: MembershipRole) =>
-    Object.keys(MembershipRole).findIndex((mmship) => mmship === mship);
-  return mshipToNumber(mship1) > mshipToNumber(mship2);
-}

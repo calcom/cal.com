@@ -86,8 +86,6 @@ function WorkflowPage() {
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
-  console.log("trpc.viewer.eventTypes.getEventTypeOptions", data);
-  console.log("selectedOptions", selectedOptions);
 
   const teamOptions = data?.teamOptions ?? [];
 

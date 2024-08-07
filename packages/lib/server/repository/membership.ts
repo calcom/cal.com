@@ -165,71 +165,46 @@ export class MembershipRepository {
       })
     );
 
-    // const select = Prisma.validator<Prisma.MembershipSelect>()({
-    //   id: true,
-    //   teamId: true,
-    //   userId: true,
-    //   accepted: true,
-    //   role: true,
-    //   disableImpersonation: true,
-    //   team: {
-    //     include: {
-    //       parent: {
-    //         select: teamParentSelect,
-    //       },
-    //       ...(!skipEventTypes
-    //         ? {
-    //             eventTypes: {
-    //               select: {
-    //                 ...eventTypeSelect,
-    //                 hashedLink: true,
-    //                 children: { select: { id: true } },
-    //               },
-    //               orderBy: [
-    //                 {
-    //                   position: "desc",
-    //                 },
-    //                 {
-    //                   id: "asc",
-    //                 },
-    //               ],
-    //             },
-    //           }
-    //         : {}),
-    //     },
-    //   },
-    // });
+    const select = Prisma.validator<Prisma.MembershipSelect>()({
+      id: true,
+      teamId: true,
+      userId: true,
+      accepted: true,
+      role: true,
+      disableImpersonation: true,
+      team: {
+        select: {
+          ...teamParentSelect,
+          isOrganization: true,
+          parent: {
+            select: teamParentSelect,
+          },
+          ...(!skipEventTypes
+            ? {
+                eventTypes: {
+                  select: {
+                    ...eventTypeSelect,
+                    hashedLink: true,
+                    children: { select: { id: true } },
+                  },
+                  orderBy: [
+                    {
+                      position: "desc",
+                    },
+                    {
+                      id: "asc",
+                    },
+                  ],
+                },
+              }
+            : {}),
+        },
+      },
+    });
 
     return await prisma.membership.findMany({
       where: prismaWhere,
-      include: {
-        team: {
-          include: {
-            parent: {
-              select: teamParentSelect,
-            },
-            ...(!skipEventTypes
-              ? {
-                  eventTypes: {
-                    select: {
-                      ...eventTypeSelect,
-                      hashedLink: true,
-                      children: { select: { id: true } },
-                    },
-                    orderBy: [
-                      {
-                        position: "desc",
-                      },
-                      {
-                        id: "asc",
-                      },
-                    ],
-                  },
-                }
-              : {}),
-          },
-        },
-      },
+      select,
     });
   }
 
