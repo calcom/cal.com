@@ -1,4 +1,4 @@
-import LegacyPage, { getStaticProps } from "@pages/workflows/[workflow]";
+import LegacyPage from "@pages/workflows/[workflow]";
 import { withAppDirSsg } from "app/WithAppDirSsg";
 import { _generateMetadata } from "app/_utils";
 import { WithLayout } from "app/layoutHOC";
@@ -6,6 +6,8 @@ import { type GetServerSidePropsContext } from "next";
 import { headers, cookies } from "next/headers";
 
 import { buildLegacyCtx } from "@lib/buildLegacyCtx";
+
+import { getStaticProps } from "~/workflows/workflow-single-view.GetStaticProps";
 
 export const generateMetadata = async ({
   params,
