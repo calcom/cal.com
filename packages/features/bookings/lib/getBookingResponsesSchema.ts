@@ -15,6 +15,11 @@ export const bookingResponsesDbSchema = z.record(dbReadResponseSchema);
 
 const catchAllSchema = bookingResponsesDbSchema;
 
+const ensureValidPhoneNumber = (value: string) => {
+  // + in URL could be replaced with space, so we need to replace it back
+  // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
+  return value.replace(/^ +/, "+");
+};
 export const getBookingResponsesPartialSchema = ({ bookingFields, view }: CommonParams) => {
   const schema = bookingResponses.unwrap().partial().and(catchAllSchema);
 
@@ -89,11 +94,14 @@ function preprocess<T extends z.ZodType>({
           try {
             parsedValue = JSON.parse(value);
           } catch (e) {}
+          const optionsInputs = field.optionsInputs;
+          const optionInputField = optionsInputs?.[parsedValue.value];
+          if (optionInputField && optionInputField.type === "phone") {
+            parsedValue.optionValue = ensureValidPhoneNumber(parsedValue.optionValue);
+          }
           newResponses[field.name] = parsedValue;
         } else if (field.type === "phone") {
-          // + in URL could be replaced with space, so we need to replace it back
-          // Replace the space(s) in the beginning with + as it is supposed to be provided in the beginning only
-          newResponses[field.name] = value.replace(/^ +/, "+");
+          newResponses[field.name] = ensureValidPhoneNumber(value);
         } else {
           newResponses[field.name] = value;
         }

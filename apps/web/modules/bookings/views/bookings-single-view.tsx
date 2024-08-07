@@ -233,6 +233,7 @@ export default function Success(props: PageProps) {
     host: props.profile.name || "Nameless",
     location: location,
     bookingFields: bookingInfo.responses,
+    eventDuration: eventType.length,
     t,
   };
 
