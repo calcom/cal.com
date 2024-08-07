@@ -76,7 +76,9 @@ const CheckedHostField = ({
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
             .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
-              if (option) acc.push({ ...option, priority: host.priority ?? 2, isFixed });
+              if (!option) return acc;
+
+              acc.push({ ...option, priority: host.priority ?? 2, isFixed });
               return acc;
             }, [] as CheckedSelectOption[])}
           controlShouldRenderValue={false}
