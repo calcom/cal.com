@@ -1,7 +1,6 @@
 "use client";
 
 import type { Table } from "@tanstack/react-table";
-import type { LucideIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
@@ -17,7 +16,8 @@ export type FilterableItems = {
   options: {
     label: string;
     value: string;
-    icon?: LucideIcon;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon?: any;
   }[];
 }[];
 

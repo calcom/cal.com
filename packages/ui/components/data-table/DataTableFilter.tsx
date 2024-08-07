@@ -1,5 +1,4 @@
 import type { Column } from "@tanstack/react-table";
-import type { LucideIcon } from "lucide-react";
 
 import { classNames } from "@calcom/lib";
 
@@ -23,7 +22,8 @@ interface DataTableFilter<TData, TValue> {
   options: {
     label: string;
     value: string;
-    icon?: LucideIcon;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon?: any;
   }[];
 }
 export function DataTableFilter<TData, TValue>({ column, title, options }: DataTableFilter<TData, TValue>) {
