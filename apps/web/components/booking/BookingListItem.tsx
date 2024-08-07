@@ -526,6 +526,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {(showViewRecordingsButton || showCheckRecordingButton) && (
             <TableActions actions={showRecordingActions} />
           )}
