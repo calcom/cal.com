@@ -367,7 +367,6 @@ const OutOfOfficeEntriesList = ({
                       variant="icon"
                       StartIcon="pencil"
                       onClick={() => {
-                        console.log("item: ", item);
                         const outOfOfficeEntryData: BookingRedirectForm = {
                           uuid: item.uuid,
                           dateRange: {
