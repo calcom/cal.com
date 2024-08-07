@@ -367,6 +367,32 @@ export default function Success(props: PageProps) {
     eventType,
   };
 
+  const isRecurringBooking = props.recurringBookings;
+  const needsConfirmationAndReschedulable = needsConfirmation && isReschedulable;
+  const isAttendingCancelledEvent = isCancelled && seatReferenceUid;
+  const isEventCancelled = isCancelled && !seatReferenceUid;
+  const isPastBooking = isBookingInPast;
+
+  const successPageHeadline = (() => {
+    if (needsConfirmationAndReschedulable) {
+      return isRecurringBooking ? t("booking_submitted_recurring") : t("booking_submitted");
+    }
+
+    if (isAttendingCancelledEvent) {
+      return t("no_longer_attending");
+    }
+
+    if (isEventCancelled) {
+      return t("event_cancelled");
+    }
+
+    if (isPastBooking) {
+      return t("event_is_in_the_past");
+    }
+
+    return isRecurringBooking ? t("meeting_is_scheduled_recurring") : t("meeting_is_scheduled");
+  })();
+
   return (
     <div className={isEmbed ? "" : "h-screen"} data-testid="success-page">
       {!isEmbed && !isFeedbackMode && (
@@ -455,19 +481,7 @@ export default function Success(props: PageProps) {
                         className="text-emphasis text-2xl font-semibold leading-6"
                         data-testid={isCancelled ? "cancelled-headline" : ""}
                         id="modal-headline">
-                        {needsConfirmation && isReschedulable
-                          ? props.recurringBookings
-                            ? t("booking_submitted_recurring")
-                            : t("booking_submitted")
-                          : isCancelled
-                          ? seatReferenceUid
-                            ? t("no_longer_attending")
-                            : t("event_cancelled")
-                          : isBookingInPast
-                          ? t("event_is_in_the_past")
-                          : props.recurringBookings
-                          ? t("meeting_is_scheduled_recurring")
-                          : t("meeting_is_scheduled")}
+                        {successPageHeadline}
                       </h3>
                       <div className="mt-3">
                         <p className="text-default">{getTitle()}</p>
