@@ -64,7 +64,7 @@ import type { AppProps } from "@lib/app-providers";
 import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import SkeletonLoader, { InfiniteSkeletonLoader } from "@components/eventtype/SkeletonLoader";
 
 type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
 type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
@@ -968,7 +968,7 @@ export const InfiniteEventTypeList = ({
   }, []);
 
   if (!pages?.[0]?.eventTypes?.length) {
-    if (isPending) return <SkeletonLoader />;
+    if (isPending) return <InfiniteSkeletonLoader />;
 
     return group.teamId ? (
       <EmptyEventTypeList group={group} />
@@ -1575,7 +1575,7 @@ const InfiniteScrollMain = ({
   }
 
   if (!eventTypeGroups || !profiles || status === "pending") {
-    return <SkeletonLoader />;
+    return <InfiniteSkeletonLoader />;
   }
 
   const tabs = eventTypeGroups.map((item) => ({
