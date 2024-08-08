@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -58,9 +57,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const bookingFields: Prisma.JsonObject = {};
-  const session = useSession();
-  const hasValidLicense = session.data ? session.data.hasValidLicense : null;
-
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
     user?.theme === "dark" ||
