@@ -26,7 +26,7 @@
   "dependencies": {
     "@calcom/platform-constants": "*",
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2",
-    "@calcom/platform-libraries-0.0.23": "npm:@calcom/platform-libraries@0.0.23",
+    "@calcom/platform-libraries-0.0.26": "npm:@calcom/platform-libraries@0.0.26",
     "@calcom/platform-types": "*",
     "@calcom/platform-utils": "*",
     "@calcom/prisma": "*",
