@@ -194,7 +194,7 @@ export function EditForm({
             />
           </div>
         </SheetHeader>
-        <SheetBody className="mt-6 flex h-full flex-col space-y-3">
+        <SheetBody className="mt-6 flex h-full flex-col space-y-3 px-1">
           <TextField label={t("username")} {...form.register("username")} />
           <TextField label={t("name")} {...form.register("name")} />
           <TextField label={t("email")} {...form.register("email")} />

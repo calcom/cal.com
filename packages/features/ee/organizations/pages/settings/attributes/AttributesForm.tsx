@@ -93,7 +93,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                     StartIcon="x"
                     color="minimal"
                     className="mb-2"
-                    disabled={index === 0}
+                    disabled={index === 0 && fields.length === 1}
                     onClick={() => remove(index)}
                   />
                 </div>
