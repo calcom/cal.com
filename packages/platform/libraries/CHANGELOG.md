@@ -1,3 +1,14 @@
+## 0.0.25
+Refactor "packages/lib/event-types/transformers/api-request.ts" getResponseEventTypeBookingFields - make sure that booking fields with options don't have
+undefines options.
+
+
+## 0.0.24
+Refactor "packages/lib/event-types/transformers/api-request.ts" - we access event-type booking fields in database and then distinguish them as either
+created by the user or system. Then in v2 api "event-types_2024_06_14/services/output-event-types.service.ts" we first parse them and then filter
+out only user fields. This is done because when creating an event-type we only store user passed booking fields, but if someone already had created
+booking-fields using event-types version 2024_04_15, then they contained system fields which is why event-types 2024_06_14 controller was failing.
+
 ## 0.0.23
 Update "createBooking" (packages/features/bookings/lib/handleNewBooking/createBooking.ts) that is used by handleNewBooking (packages/features/bookings/lib/handleNewBooking.ts) to correctly handle metadata of a re-scheduled booking. Previously,
 metadata of original booking was overwriting metadata in the request body of the new booking (rescheduled), but now
