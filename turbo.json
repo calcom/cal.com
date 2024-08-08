@@ -128,11 +128,11 @@
       "outputs": ["dist/**", "build/**"]
     },
     "dev": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store", "^dev"],
       "cache": false
     },
     "dx": {
-      "dependsOn": ["//#env-check:common", "//#env-check:app-store"],
+      "dependsOn": ["//#env-check:common", "//#env-check:app-store", "^dx"],
       "cache": false
     },
     "lint": {

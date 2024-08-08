@@ -10,6 +10,8 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "build": "yarn trpc:generate || true",
+    "dev": "yarn build",
+    "dx": "yarn build",
     "trpc:generate": "yarn tsc --project tsconfig.json"
   },
   "dependencies": {
