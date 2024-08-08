@@ -258,7 +258,6 @@ async function handler(
   }
 
   const fullName = getFullName(bookerName);
-
   // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
@@ -294,6 +293,12 @@ async function handler(
       },
     })
   );
+
+  const user = eventType.users.find((user) => user.id === eventType.userId);
+
+  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
+
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
   let timeOutOfBounds = false;
   let rescheduleUid = reqBody.rescheduleUid;
@@ -335,7 +340,8 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
       effectiveMinimumBookingNotice
     );
@@ -456,7 +462,7 @@ async function handler(
         startAsDate,
         eventType.id,
         rescheduleUid,
-        eventType.schedule?.timeZone
+        eventTimeZone
       );
     }
     if (eventType.durationLimits) {
@@ -695,15 +701,26 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // If location passed is empty , use default location of event
+  // If location of event is not set , use host default
+  if (locationBodyString.trim().length == 0) {
+    if (eventType.locations.length > 0) {
+      locationBodyString = eventType.locations[0].type;
+    } else {
+      locationBodyString = OrganizerDefaultConferencingAppType;
+    }
+  }
   // use host default
-  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-        organizerMetadata?.defaultConferencingApp?.appLink;
+      if (isManagedEventType || isTeamEventType) {
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+          organizerMetadata?.defaultConferencingApp?.appLink;
+      }
     } else {
       locationBodyString = "integrations:daily";
     }
@@ -808,6 +825,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    eventDuration: eventType.length,
     bookingFields: { ...responses },
     t: tOrganizer,
   };
@@ -843,6 +861,12 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
+  //udpate cal event responses with latest location value , later used by webhook
+  if (reqBody.calEventResponses)
+    reqBody.calEventResponses["location"].value = {
+      value: platformBookingLocation ?? bookingLocation,
+      optionValue: "",
+    };
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,

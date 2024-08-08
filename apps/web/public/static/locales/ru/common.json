@@ -206,7 +206,6 @@
   "blog": "Блог",
   "blog_description": "Прочитайте наши последние новости и статьи",
   "join_our_community": "Присоединяйтесь к нашему сообществу",
-  "join_our_discord": "Присоединиться к нашему Discord-сообществу",
   "404_claim_entity_user": "Забронируйте своё имя пользователя и начните планировать встречи",
   "popular_pages": "Популярные страницы",
   "register_now": "Зарегистрироваться",
@@ -1497,7 +1496,6 @@
   "how_long_after": "Спустя какое время после окончания события?",
   "no_available_slots": "Нет доступных интервалов",
   "time_available": "Доступное время",
-  "cant_find_the_right_video_app_visit_our_app_store": "Не удается найти подходящее приложение для просмотра видео? Посетите наш <1>App Store</1>.",
   "install_new_calendar_app": "Установить новое приложение календаря",
   "make_phone_number_required": "Сделать номер телефона обязательным для бронирования",
   "new_event_type_availability": "{{eventTypeTitle}} | Доступность",
@@ -2101,5 +2099,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Вас пригласили в команду {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "{{invitedBy}} пригласил(а) вас в команду в `{{teamName}}` в приложении {{appName}}. {{appName}} — это гибкий планировщик событий, с помощью которого пользователи и целые команды могут планировать встречи без утомительной переписки по электронной почте.",
   "privacy": "Конфиденциальность",
+  "signing_up_terms": "Продолжая, вы соглашаетесь с <0>Терминами</0> и <1>Политикой конфиденциальности<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Добавьте строки выше ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

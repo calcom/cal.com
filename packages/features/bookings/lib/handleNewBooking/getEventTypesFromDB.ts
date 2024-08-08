@@ -24,6 +24,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       slug: true,
+      teamId: true,
       team: {
         select: {
           id: true,

@@ -12,6 +12,7 @@ describe("event tests", () => {
         attendeeName: "example attendee",
         eventType: "example event type",
         host: "example host",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -39,6 +40,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         teamName: "example team name",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -66,6 +68,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "example event name",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -81,6 +84,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "event type: {Event type title}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -96,6 +100,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "scheduler: {Scheduler}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -111,6 +116,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "organiser: {Organiser}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -126,6 +132,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "user: {USER}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -141,6 +148,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "attendee: {ATTENDEE}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -156,6 +164,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "host: {HOST}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -171,6 +180,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "host or attendee: {HOST/ATTENDEE}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -187,6 +197,7 @@ describe("event tests", () => {
           eventType: "example event type",
           host: "example host",
           eventName: "host or attendee: {HOST/ATTENDEE}",
+          eventDuration: 15,
           t: tFunc as TFunction,
         },
         true
@@ -222,6 +233,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "custom field: {customField}",
+        eventDuration: 15,
         bookingFields: {
           customField: {
             value: "example custom field",
@@ -242,6 +254,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "custom field: {customField}",
+        eventDuration: 15,
         bookingFields: {
           customField: {
             value: 808,
@@ -262,6 +275,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "custom field: {customField}",
+        eventDuration: 15,
         bookingFields: {
           customField: {
             value: undefined,
@@ -283,6 +297,7 @@ describe("event tests", () => {
         host: "example host",
         location: "attendeeInPerson",
         eventName: "location: {Location}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -299,6 +314,7 @@ describe("event tests", () => {
         host: "example host",
         location: "attendeeInPerson",
         eventName: "location: {LOCATION}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -314,6 +330,7 @@ describe("event tests", () => {
         eventType: "example event type",
         host: "example host",
         eventName: "location: {Location}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -330,6 +347,7 @@ describe("event tests", () => {
         host: "example host",
         location: "",
         eventName: "location: {Location}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -346,6 +364,7 @@ describe("event tests", () => {
         host: "example host",
         location: "unknownNonsense",
         eventName: "location: {Location}",
+        eventDuration: 15,
         t: tFunc as TFunction,
       });
 
@@ -354,9 +373,23 @@ describe("event tests", () => {
     });
   });
 
+  it("should support templating of event duration", () => {
+    const tFunc = vi.fn(() => "foo");
+
+    const result = event.getEventName({
+      attendeeName: "example attendee",
+      eventType: "example event type",
+      host: "example host",
+      eventName: "event duration: {Event duration}",
+      eventDuration: 15,
+      t: tFunc as TFunction,
+    });
+    expect(result).toBe("event duration: 15 mins");
+  });
+
   describe("fn: validateCustomEventName", () => {
     it("should be valid when no variables used", () => {
-      expect(event.validateCustomEventName("foo", "error message")).toBe(true);
+      expect(event.validateCustomEventName("foo")).toBe(true);
     });
 
     [
@@ -369,26 +402,27 @@ describe("event tests", () => {
       "HOST",
       "ATTENDEE",
       "USER",
+      "Event duration",
     ].forEach((value) => {
       it(`should support {${value}} variable`, () => {
-        expect(event.validateCustomEventName(`foo {${value}} bar`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`foo {${value}} bar`)).toBe(true);
 
-        expect(event.validateCustomEventName(`{${value}} bar`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`{${value}} bar`)).toBe(true);
 
-        expect(event.validateCustomEventName(`foo {${value}}`, "error message")).toBe(true);
+        expect(event.validateCustomEventName(`foo {${value}}`)).toBe(true);
       });
     });
 
     it("should support booking field variables", () => {
       expect(
-        event.validateCustomEventName("foo{customField}bar", "error message", {
+        event.validateCustomEventName("foo{customField}bar", {
           customField: true,
         })
       ).toBe(true);
     });
 
-    it("should return error when invalid variable used", () => {
-      expect(event.validateCustomEventName("foo{nonsenseField}bar", "error message")).toBe("error message");
+    it("should return variable when invalid variable used", () => {
+      expect(event.validateCustomEventName("foo{nonsenseField}bar")).toBe("{nonsenseField}");
     });
   });
 });
