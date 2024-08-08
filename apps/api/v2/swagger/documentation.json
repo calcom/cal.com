@@ -3595,13 +3595,13 @@
         ]
       }
     },
-    "/v2/oauth-clients/{oAuthClientId}/webhooks": {
+    "/v2/oauth-clients/{clientId}/webhooks": {
       "post": {
         "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
         "summary": "Create a webhook for an oAuthClient",
         "parameters": [
           {
-            "name": "oAuthClientId",
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3640,7 +3640,7 @@
         "summary": "Get all webhooks of an oAuthClient",
         "parameters": [
           {
-            "name": "oAuthClientId",
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3689,7 +3689,7 @@
         "summary": "Delete all webhooks of an oAuthClient",
         "parameters": [
           {
-            "name": "oAuthClientId",
+            "name": "clientId",
             "required": true,
             "in": "path",
             "schema": {
@@ -3714,7 +3714,7 @@
         ]
       }
     },
-    "/v2/oauth-clients/{oAuthClientId}/webhooks/{webhookId}": {
+    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
       "patch": {
         "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
         "summary": "Update a webhook of an oAuthClient",
@@ -8789,9 +8789,6 @@
           "noShowHost": {
             "type": "boolean"
           },
-          "messageKey": {
-            "type": "string"
-          },
           "attendees": {
             "type": "array",
             "items": {
@@ -8916,8 +8913,7 @@
           "id",
           "triggers",
           "subscriberUrl",
-          "active",
-          "secret"
+          "active"
         ]
       },
       "UserWebhookOutputResponseDto": {
@@ -9047,8 +9043,7 @@
           "id",
           "triggers",
           "subscriberUrl",
-          "active",
-          "secret"
+          "active"
         ]
       },
       "EventTypeWebhookOutputResponseDto": {
@@ -9150,8 +9145,7 @@
           "id",
           "triggers",
           "subscriberUrl",
-          "active",
-          "secret"
+          "active"
         ]
       },
       "OAuthClientWebhookOutputResponseDto": {

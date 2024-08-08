@@ -19,7 +19,7 @@ export class IsOAuthClientWebhookGuard implements CanActivate {
       .getRequest<Request & { webhook: Webhook; oAuthClient: PlatformOAuthClient }>();
     const user = request.user as GetUserReturnType;
     const webhookId = request.params.webhookId;
-    const oAuthClientId = request.params.oAuthClientId;
+    const oAuthClientId = request.params.clientId;
 
     if (!user || !webhookId || !oAuthClientId) {
       return false;

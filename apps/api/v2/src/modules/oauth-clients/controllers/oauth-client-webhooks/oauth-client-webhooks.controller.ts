@@ -23,11 +23,13 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { SkipTakePagination } from "@calcom/platform-types";
 
+import { OAuthClientGuard } from "../../guards/oauth-client-guard";
+
 @Controller({
-  path: "/v2/oauth-clients/:oAuthClientId/webhooks",
+  path: "/v2/oauth-clients/:clientId/webhooks",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(NextAuthGuard, OrganizationRolesGuard)
+@UseGuards(NextAuthGuard, OrganizationRolesGuard, OAuthClientGuard)
 @ApiTags("OAuthClients Webhooks")
 export class OAuthClientWebhooksController {
   constructor(
@@ -40,7 +42,7 @@ export class OAuthClientWebhooksController {
   @ApiOperation({ summary: "Create a webhook for an oAuthClient" })
   async createOAuthClientWebhook(
     @Body() body: CreateWebhookInputDto,
-    @Param("oAuthClientId") oAuthClientId: string
+    @Param("clientId") oAuthClientId: string
   ): Promise<OAuthClientWebhookOutputResponseDto> {
     const webhook = await this.oAuthClientWebhooksService.createOAuthClientWebhook(
       oAuthClientId,
@@ -92,7 +94,7 @@ export class OAuthClientWebhooksController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @ApiOperation({ summary: "Get all webhooks of an oAuthClient" })
   async getOAuthClientWebhooks(
-    @Param("oAuthClientId") oAuthClientId: string,
+    @Param("clientId") oAuthClientId: string,
     @Query() pagination: SkipTakePagination
   ): Promise<OAuthClientWebhooksOutputResponseDto> {
     const webhooks = await this.oAuthClientWebhooksService.getOAuthClientWebhooksPaginated(
@@ -130,7 +132,7 @@ export class OAuthClientWebhooksController {
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @ApiOperation({ summary: "Delete all webhooks of an oAuthClient" })
   async deleteAllOAuthClientWebhooks(
-    @Param("oAuthClientId") oAuthClientId: string
+    @Param("clientId") oAuthClientId: string
   ): Promise<DeleteManyWebhooksOutputResponseDto> {
     const data = await this.oAuthClientWebhooksService.deleteAllOAuthClientWebhooks(oAuthClientId);
     return { status: SUCCESS_STATUS, data: `${data.count} webhooks deleted` };
