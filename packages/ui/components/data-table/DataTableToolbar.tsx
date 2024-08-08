@@ -8,6 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 
 import { Button } from "../button";
 import { Input } from "../form";
+import type { IconName } from "../icon/icon-names";
 import { DataTableFilter } from "./DataTableFilter";
 
 export type FilterableItems = {
@@ -16,8 +17,7 @@ export type FilterableItems = {
   options: {
     label: string;
     value: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    icon?: any;
+    icon?: IconName;
   }[];
 }[];
 
