@@ -1496,7 +1496,8 @@ async function handler(
           },
           eventNameObject,
           isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
+          isAttendeeConfirmationEmailDisabled,
+          eventType.metadata
         );
       }
     }

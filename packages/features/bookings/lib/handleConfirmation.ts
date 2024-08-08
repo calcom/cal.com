@@ -111,7 +111,8 @@ export async function handleConfirmation(args: {
         { ...evt, additionalInformation: metadata },
         undefined,
         isHostConfirmationEmailsDisabled,
-        isAttendeeConfirmationEmailDisabled
+        isAttendeeConfirmationEmailDisabled,
+        eventTypeMetadata
       );
     } catch (error) {
       log.error(error);

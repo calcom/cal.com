@@ -210,7 +210,8 @@ export const Handler = async ({ ctx, input }: Options) => {
     },
     undefined,
     false,
-    false
+    false,
+    booking.eventType.metadata
   );
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };

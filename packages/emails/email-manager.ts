@@ -88,12 +88,13 @@ export const sendScheduledEmails = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
-  if (!hostEmailDisabled) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent })));
 
     if (formattedCalEvent.team) {
@@ -105,7 +106,7 @@ export const sendScheduledEmails = async (
     }
   }
 
-  if (!attendeeEmailDisabled) {
+  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...formattedCalEvent.attendees.map((attendee) => {
         return sendEmail(
@@ -241,7 +242,7 @@ export const sendScheduledSeatsEmails = async (
 
   const emailsToSend: Promise<unknown>[] = [];
 
-  if (!hostEmailDisabled) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat })));
 
     if (calendarEvent.team) {
@@ -253,7 +254,7 @@ export const sendScheduledSeatsEmails = async (
     }
   }
 
-  if (!attendeeEmailDisabled) {
+  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       sendEmail(
         () =>
