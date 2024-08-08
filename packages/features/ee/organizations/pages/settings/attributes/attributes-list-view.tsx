@@ -33,6 +33,7 @@ const TypeToLabelMap = {
 
 function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
   const utils = trpc.useUtils();
+  const { t } = useLocale();
   const [isEnabled, setIsEnabled] = useState(attribute.enabled);
   const mutation = trpc.viewer.attributes.toggleActive.useMutation({
     onSuccess: () => {
@@ -71,7 +72,6 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
     deleteMutation.mutate({ id: attribute.id });
   };
 
-  const { t } = useLocale();
   return (
     <ul className="focus-within:border-emphasis flex justify-between p-4" key={attribute.id}>
       <div>
@@ -81,7 +81,7 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
           {attribute.options?.length > 0 && (
             <>
               <span className="text-muted">•</span>
-              <span>{attribute.options.length} options</span>
+              <span>{t("number_of_options", { count: attribute.options.length })}</span>
             </>
           )}
         </p>
@@ -131,7 +131,7 @@ function OrganizationAttributesPage() {
   if (isLoading) {
     return (
       <>
-        <Meta title="Attributes" description="Manage attributes for your team members" />
+        <Meta title={t("attributes")} description={t("attribute_meta_description")} />
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
           <ListSkeleton />
         </div>
@@ -141,7 +141,7 @@ function OrganizationAttributesPage() {
 
   return (
     <>
-      <Meta title="Attributes" description="Manage attributes for your team members" />
+      <Meta title={t("attributes")} description={t("attribute_meta_description")} />
 
       <LicenseRequired>
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">

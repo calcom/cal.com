@@ -76,6 +76,7 @@ function CreateAttributesPage() {
 
 function EditAttributeHeader(props: { isPending: boolean }) {
   const { meta } = useMeta();
+  const { t } = useLocale();
   const formContext = useFormContext<FormValues>();
 
   const watchedTitle = formContext.watch("attrName");
@@ -89,7 +90,7 @@ function EditAttributeHeader(props: { isPending: boolean }) {
             StartIcon="arrow-left"
             color="minimal"
             href="/settings/organizations/attributes">
-            <span className="sr-only">Back to Attributes</span>
+            <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
             <h1 className="text-subtle">{meta.title}</h1>

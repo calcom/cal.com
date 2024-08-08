@@ -2522,6 +2522,8 @@
   "new_option": "New option",
   "update_profile":"Update member",
   "attribute_updated_successfully": "Attribute updated successfully",
+  "attribute_meta_description": "Manage attributes for your team members",
+  "back_to_attributes": "Back to attributes",
   "grant_admin_api": "Grant Admin API Access",
   "revoke_admin_api": "Revoke Admin API Access",
   "apple_connect_atom_label": "Connect Apple Calendar",
@@ -2535,5 +2537,6 @@
   "outlook_connect_atom_loading_label": "Checking Outlook Calendar",
   "booking_question_response_variables": "Booking question response variables",
   "managed_by_teamAdmins": "Managed by {{teamAdmins}}",
+  "number_of_options":"{{count}} options",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
