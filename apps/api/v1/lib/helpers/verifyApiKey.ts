@@ -18,7 +18,7 @@ export const dateNotInPast = function (date: Date) {
 
 // This verifies the apiKey and sets the user if it is valid.
 export const verifyApiKey: NextMiddleware = async (req, res, next) => {
-  const licenseKeyService = await LicenseKeyService.create();
+  const licenseKeyService = await LicenseKeyService.getInstance();
   const hasValidLicense = await licenseKeyService.checkLicense();
 
   if (!hasValidLicense && IS_PRODUCTION) {
