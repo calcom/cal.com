@@ -311,10 +311,11 @@ export class UserRepository {
   }
 
   /**
-   * Use this method if you don't directly has the profileId.
-   * It can happen in two cases:
+   * Use this method instead of `enrichUserWithTheProfile` if you don't directly have the profileId.
+   * It can happen in following cases:
    * 1. While dealing with a User that hasn't been added to any organization yet and thus have no Profile entries.
    * 2. While dealing with a User that has been moved to a Profile i.e. he was invited to an organization when he was an existing user.
+   * 3. We haven't added profileId to all the entities, so they aren't aware of which profile they belong to. So, we still mostly use this function to enrich the user with its profile.
    */
   static async enrichUserWithItsProfile<T extends { id: number; username: string | null }>({
     user,
@@ -491,6 +492,32 @@ export class UserRepository {
           : undefined,
       },
     });
+  }
+
+  static async isAdminOfTeamOrParentOrg({ userId, teamId }: { userId: number; teamId: number }) {
+    const membershipQuery = {
+      members: {
+        some: {
+          userId,
+          role: { in: [MembershipRole.ADMIN, MembershipRole.OWNER] },
+        },
+      },
+    };
+    const teams = await prisma.team.findMany({
+      where: {
+        id: teamId,
+        OR: [
+          membershipQuery,
+          {
+            parent: { ...membershipQuery },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+    return !!teams.length;
   }
 
   static async getUserAdminTeams(userId: number): Promise<number[]> {

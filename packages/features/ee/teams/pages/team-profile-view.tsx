@@ -410,6 +410,7 @@ const TeamProfileForm = ({ team }: TeamProfileFormProps) => {
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         <p className="text-default mt-2 text-sm">{t("team_description")}</p>
