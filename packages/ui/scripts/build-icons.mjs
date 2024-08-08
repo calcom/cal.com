@@ -13,26 +13,19 @@ const inputDir = path.join(cwd, "svg-icons");
 const inputDirRelative = path.relative(cwd, inputDir);
 const typesDir = path.join(cwd, "components", "icon");
 const outputDir = path.join(cwd, "../../", "apps", "web", "public", "icons");
-await fsExtra.ensureDir(outputDir);
-
-const files = glob
-  .sync("**/*.svg", {
-    cwd: inputDir,
-  })
-  .sort((a, b) => a.localeCompare(b));
 
 const shouldVerboseLog = process.argv.includes("--log=verbose");
 const logVerbose = shouldVerboseLog ? console.log : () => {};
 
-if (files.length === 0) {
-  console.log(`No SVG files found in ${inputDirRelative}`);
-} else {
-  await copyIcons();
-  await generateIconFiles();
-  await removeTempDir();
-}
-
 async function generateIconFiles() {
+  const files = glob
+    .sync("**/*.svg", {
+      cwd: inputDir,
+    })
+    .sort((a, b) => a.localeCompare(b));
+
+  await fsExtra.ensureDir(outputDir);
+
   const spriteFilepath = path.join(outputDir, "sprite.svg");
   const typeOutputFilepath = path.join(typesDir, "icon-names.ts");
   const currentSprite = await fsExtra.readFile(spriteFilepath, "utf8").catch(() => "");
@@ -127,3 +120,7 @@ async function writeIfChanged(filepath, newContent) {
   await $`prettier --write ${filepath} --ignore-unknown`;
   return true;
 }
+
+await copyIcons();
+await generateIconFiles();
+await removeTempDir();

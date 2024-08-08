@@ -133,4 +133,6 @@ export const lucideIconList = new Set([
   "book-open-check",
   "calendar-heart",
   "link-2",
+  "chevrons-left",
+  "chevrons-right",
 ]);
