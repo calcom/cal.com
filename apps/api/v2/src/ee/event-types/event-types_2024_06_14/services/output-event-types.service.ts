@@ -9,7 +9,9 @@ import {
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
-} from "@calcom/platform-libraries-0.0.23";
+  SystemField,
+  UserField,
+} from "@calcom/platform-libraries-0.0.25";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -72,7 +74,9 @@ export class OutputEventTypesService_2024_06_14 {
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
-    const bookingFields = this.transformBookingFields(databaseEventType.bookingFields);
+    const bookingFields = databaseEventType.bookingFields
+      ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
+      : [];
     const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users);
@@ -113,9 +117,10 @@ export class OutputEventTypesService_2024_06_14 {
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
-  transformBookingFields(inputBookingFields: any) {
+  transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {
     if (!inputBookingFields) return [];
-    return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
+    const userFields = inputBookingFields.filter((field) => field.editable === "user") as UserField[];
+    return getResponseEventTypeBookingFields(userFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
