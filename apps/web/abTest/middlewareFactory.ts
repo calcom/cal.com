@@ -11,6 +11,7 @@ const ROUTES: [URLPattern, boolean][] = [
   ["/apps/installed/:category", process.env.APP_ROUTER_APPS_INSTALLED_CATEGORY_ENABLED === "1"] as const,
   ["/apps/:slug", process.env.APP_ROUTER_APPS_SLUG_ENABLED === "1"] as const,
   ["/apps/:slug/setup", process.env.APP_ROUTER_APPS_SLUG_SETUP_ENABLED === "1"] as const,
+  ["/apps/installation", process.env.APP_ROUTER_APPS_INSTALLATION_ENABLED === "1"] as const,
   ["/apps/categories", process.env.APP_ROUTER_APPS_CATEGORIES_ENABLED === "1"] as const,
   ["/apps/categories/:category", process.env.APP_ROUTER_APPS_CATEGORIES_CATEGORY_ENABLED === "1"] as const,
   ["/workflows/:path*", process.env.APP_ROUTER_WORKFLOWS_ENABLED === "1"] as const,

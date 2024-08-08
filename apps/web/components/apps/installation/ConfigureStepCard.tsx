@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { TEventType, TEventTypesForm } from "@pages/apps/installation/[[...step]]";
 import { X } from "lucide-react";
 import type { Dispatch, SetStateAction } from "react";
 import type { FC } from "react";
@@ -18,6 +17,7 @@ import { Button, Form } from "@calcom/ui";
 import EventTypeAppSettingsWrapper from "@components/apps/installation/EventTypeAppSettingsWrapper";
 import EventTypeConferencingAppSettings from "@components/apps/installation/EventTypeConferencingAppSettings";
 
+import type { TEventType, TEventTypesForm } from "~/apps/installation/lib/types";
 import { locationsResolver } from "~/event-types/views/event-types-single-view";
 
 export type TFormType = {
