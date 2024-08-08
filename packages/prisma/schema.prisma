@@ -1433,7 +1433,7 @@ enum AttributeType {
 }
 
 model AttributeOption {
-  id            String            @id @default(cuid())
+  id            String            @id @default(uuid())
   attribute     Attribute         @relation(fields: [attributeId], references: [id], onDelete: Cascade)
   attributeId   String
   value         String
@@ -1444,7 +1444,7 @@ model AttributeOption {
 }
 
 model Attribute {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   team   Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
   teamId Int
@@ -1464,7 +1464,7 @@ model Attribute {
 }
 
 model AttributeToUser {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   member   Membership @relation(fields: [memberId], references: [id], onDelete: Cascade)
   memberId Int

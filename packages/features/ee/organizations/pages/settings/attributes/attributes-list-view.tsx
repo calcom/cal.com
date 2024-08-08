@@ -73,8 +73,8 @@ function AttributeItem({ attribute }: { attribute: AttributeItemProps }) {
   return (
     <ul className="focus-within:border-emphasis flex justify-between p-4" key={attribute.id}>
       <div>
-        <h3 className="leadning-none text-sm font-semibold">{attribute.name}</h3>
-        <p className="text-default leadning-none inline-flex items-center gap-1 text-sm font-normal">
+        <h3 className="text-sm font-semibold leading-none">{attribute.name}</h3>
+        <p className="text-default inline-flex items-center gap-1 text-sm font-normal leading-none">
           {TypeToLabelMap[attribute.type]}
           {attribute.options?.length > 0 && (
             <>

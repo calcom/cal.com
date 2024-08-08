@@ -107,12 +107,11 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
   // const promises: Promise<{ id: string }>[] = [];
 
   filteredAttributes.map(async (attribute) => {
-    console.log(attribute);
     // TEXT, NUMBER
     if (attribute.value && !attribute.options) {
       const valueAsString = String(attribute.value);
 
-      // Check if if it is already the value
+      // Check if it is already the value
       const existingAttributeOption = await prisma.attributeToUser.findFirst({
         where: {
           memberId: membership.id,
@@ -219,21 +218,10 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
     }
   });
 
-  // try {
-  //   const results = await Promise.allSettled(promises);
-
-  //   if (results.some((result) => result.status === "rejected")) {
-  //     logger.error(`When assigning attributes to user ${input.userId}, some promises were rejected`, {
-  //       userId: input.userId,
-  //       attributes: input.attributes,
-  //       error: results.filter((result) => result.status === "rejected").map((result) => result.reason),
-  //     });
-  //   }
-
-  //   return results;
-  // } catch (error) {
-  //   throw error; // Re-throw the error for the caller to handle
-  // }
+  return {
+    success: true,
+    message: "Attributes assigned successfully",
+  };
 };
 
 export default assignUserToAttributeHandler;

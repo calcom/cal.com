@@ -255,9 +255,6 @@ function AttributesList(props: { selectedUserId: number }) {
   const { t } = useLocale();
   const { control, watch, getFieldState, setValue } = useFormContext();
 
-  // Watch the 'attributes' field from the form context
-  const formAttributes = watch("attributes") as AttributeType[];
-
   const getOptionsByAttributeId = (attributeId: string) => {
     const attribute = attributes?.find((attr) => attr.id === attributeId);
     return attribute
@@ -303,7 +300,7 @@ function AttributesList(props: { selectedUserId: number }) {
   return (
     <div className="mt-4 flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-subtle mb-2 text-sm font-medium leading-none ">{t("attributes")}</label>
+        <label className="text-subtle mb-2 mt-2 text-sm font-medium leading-none ">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
@@ -322,7 +319,7 @@ function AttributesList(props: { selectedUserId: number }) {
                     <InputField
                       {...field}
                       containerClassName="w-full"
-                      labelClassName="text-subtle mb-1 text-xs font-semibold leading-none"
+                      labelClassName="text-emphasis mb-2 block text-sm font-medium leading-none"
                       label={attr.name}
                       type={attr.type === "TEXT" ? "text" : "number"}
                       value={field.value?.value || ""}
@@ -340,7 +337,7 @@ function AttributesList(props: { selectedUserId: number }) {
                       containerClassName="w-full"
                       isMulti={attr.type === "MULTI_SELECT"}
                       labelProps={{
-                        className: "text-subtle mb-1 text-xs font-semibold leading-none",
+                        className: "text-emphasis mb-2 block text-sm font-medium leading-none",
                       }}
                       label={attr.name}
                       options={getOptionsByAttributeId(attr.id)}

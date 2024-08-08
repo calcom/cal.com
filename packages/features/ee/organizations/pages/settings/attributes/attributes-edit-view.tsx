@@ -32,7 +32,7 @@ function CreateAttributesPage() {
 
   const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
-      showToast("Attribute created successfully", "success");
+      showToast("Attribute edited successfully", "success");
       utils.viewer.attributes.get.invalidate({
         id: id as string,
       });
