@@ -203,6 +203,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       themeBasis: user.username,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
+      isSEOIndexable: org?.organizationSettings?.allowSEOIndexing,
     },
   };
 };

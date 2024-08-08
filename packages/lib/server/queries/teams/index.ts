@@ -100,6 +100,12 @@ export async function getTeamWithMembers(args: {
           isOrganization: true,
           logoUrl: true,
           metadata: true,
+          organizationSettings: {
+            select: {
+              allowSEOIndexing: true,
+              disableOrgSubdomainURL: true,
+            },
+          },
         },
       },
       parentId: true,

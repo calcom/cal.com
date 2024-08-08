@@ -14,6 +14,7 @@ import type { Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
+import { getMainDomainOrgRedirect } from "@lib/getMainDomainOrgRedirect";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -175,6 +176,15 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
+  // If parent is org and based on setting, redirect to main domain org.
+  const disableOrgSubdomainURL = team?.parent?.organizationSettings?.disableOrgSubdomainURL;
+  if (isValidOrgDomain && disableOrgSubdomainURL) {
+    const redirect = getMainDomainOrgRedirect(context.req);
+    if (redirect) {
+      return redirect;
+    }
+  }
+
   return {
     props: {
       team: {
@@ -189,6 +199,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
+      isSEOIndexable: team?.parent?.organizationSettings?.allowSEOIndexing,
     },
   } as const;
 };
