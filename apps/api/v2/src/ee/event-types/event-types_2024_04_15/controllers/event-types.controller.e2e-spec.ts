@@ -35,7 +35,7 @@ import {
   EventTypesPublic,
   eventTypeBookingFields,
   eventTypeLocations,
-} from "@calcom/platform-libraries-0.0.2";
+} from "@calcom/platform-libraries-0.0.23";
 import { ApiSuccessResponse } from "@calcom/platform-types";
 
 describe("Event types Endpoints", () => {

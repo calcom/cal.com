@@ -8,11 +8,9 @@ import { createInstantMeetingWithCalVideo } from "@calcom/core/videoClient";
 import dayjs from "@calcom/dayjs";
 import getBookingDataSchema from "@calcom/features/bookings/lib/getBookingDataSchema";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import {
-  getBookingData,
-  getCustomInputsResponses,
-  getEventTypesFromDB,
-} from "@calcom/features/bookings/lib/handleNewBooking";
+import { getCustomInputsResponses } from "@calcom/features/bookings/lib/handleNewBooking";
+import { getBookingData } from "@calcom/features/bookings/lib/handleNewBooking/getBookingData";
+import { getEventTypesFromDB } from "@calcom/features/bookings/lib/handleNewBooking/getEventTypesFromDB";
 import { getFullName } from "@calcom/features/form-builder/utils";
 import { sendGenericWebhookPayload } from "@calcom/features/webhooks/lib/sendPayload";
 import { isPrismaObjOrUndefined } from "@calcom/lib";
@@ -86,6 +84,15 @@ const handleInstantMeetingWebhookTrigger = async (args: {
     console.error("Error executing webhook", error);
     logger.error("Error while sending webhook", error);
   }
+};
+
+export type HandleInstantMeetingResponse = {
+  message: string;
+  meetingTokenId: number;
+  bookingId: number;
+  bookingUid: string;
+  expires: Date;
+  userId: number | null;
 };
 
 async function handler(req: NextApiRequest) {
@@ -249,8 +256,10 @@ async function handler(req: NextApiRequest) {
     message: "Success",
     meetingTokenId: instantMeetingToken.id,
     bookingId: newBooking.id,
+    bookingUid: newBooking.uid,
     expires: instantMeetingToken.expires,
-  };
+    userId: newBooking.userId,
+  } satisfies HandleInstantMeetingResponse;
 }
 
 export default handler;

@@ -69,6 +69,7 @@ function WorkflowsPage() {
                 isPending={createMutation.isPending}
                 disableMobileButton={true}
                 onlyShowWithNoTeams={true}
+                includeOrg={true}
               />
             ) : null
           }>
@@ -76,13 +77,14 @@ function WorkflowsPage() {
             {queryRes.data?.totalCount ? (
               <div className="flex">
                 <TeamsFilter />
-                <div className="ml-auto">
+                <div className="mb-4 ml-auto">
                   <CreateButtonWithTeamsList
                     subtitle={t("new_workflow_subtitle").toUpperCase()}
                     createFunction={(teamId?: number) => createMutation.mutate({ teamId })}
                     isPending={createMutation.isPending}
                     disableMobileButton={true}
                     onlyShowWithTeams={true}
+                    includeOrg={true}
                   />
                 </div>
               </div>
@@ -151,7 +153,7 @@ const Filter = (props: {
           <input
             id="yourWorkflows"
             type="checkbox"
-            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+            className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             checked={!!checked.userId}
             onChange={(e) => {
               if (e.target.checked) {
@@ -215,7 +217,7 @@ const Filter = (props: {
                   }
                 }
               }}
-              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded "
+              className="text-emphasis focus:ring-emphasis dark:text-muted border-default inline-flex h-4 w-4 place-self-center justify-self-end rounded transition "
             />
           </div>
         ))}

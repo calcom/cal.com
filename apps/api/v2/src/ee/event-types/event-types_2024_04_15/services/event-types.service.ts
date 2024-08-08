@@ -9,8 +9,12 @@ import { SelectedCalendarsRepository } from "@/modules/selected-calendars/select
 import { UserWithProfile, UsersRepository } from "@/modules/users/users.repository";
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.2";
-import { getEventTypesPublic, EventTypesPublic } from "@calcom/platform-libraries-0.0.2";
+import {
+  createEventType,
+  updateEventType,
+  EventTypesPublic,
+  getEventTypesPublic,
+} from "@calcom/platform-libraries-0.0.23";
 import { EventType } from "@calcom/prisma/client";
 
 @Injectable()
@@ -56,6 +60,7 @@ export class EventTypesService_2024_04_15 {
     const profileId = user.movedToProfile?.id || null;
     return {
       id: user.id,
+      role: user.role,
       organizationId: user.organizationId,
       organization: { isOrgAdmin },
       profile: { id: profileId },

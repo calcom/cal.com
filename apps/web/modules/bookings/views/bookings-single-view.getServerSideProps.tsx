@@ -7,6 +7,7 @@ import getBookingInfo from "@calcom/features/bookings/lib/getBookingInfo";
 import { parseRecurringEvent } from "@calcom/lib";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUidFromSeat";
+import { BookingRepository } from "@calcom/lib/server/repository/booking";
 import prisma from "@calcom/prisma";
 import { customInputSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
@@ -70,6 +71,14 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
+  }
+
+  let rescheduledToUid: string | null = null;
+  if (bookingInfo.rescheduled) {
+    const rescheduledTo = await BookingRepository.findFirstBookingByReschedule({
+      originalBookingUid: bookingInfo.uid,
+    });
+    rescheduledToUid = rescheduledTo?.uid ?? null;
   }
 
   const eventTypeRaw = !bookingInfoRaw.eventTypeId
@@ -176,6 +185,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...(tz && { tz }),
       userTimeFormat,
       requiresLoginToUpdate,
+      rescheduledToUid,
     },
   };
 }

@@ -2,7 +2,7 @@ import { WEBSITE_URL, IS_SELF_HOSTED, WEBAPP_URL } from "@calcom/lib/constants";
 
 import type { PreviewState } from "../types";
 import { embedLibUrl } from "./constants";
-import { getApiName } from "./getApiName";
+import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
 
 export const doWeNeedCalOriginProp = (embedCalOrigin: string) => {
@@ -67,7 +67,7 @@ export const Codes = {
 	useEffect(()=>{
 	  (async function () {
 		const cal = await getCalApi(${argumentForGetCalApi ? JSON.stringify(argumentForGetCalApi) : ""});
-		${getApiName({ namespace, mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
+		${getApiNameForReactSnippet({ mainApiName: "cal" })}("floatingButton", ${floatingButtonArg});
 		${uiInstructionCode}
 	  })();
 	}, [])
@@ -119,7 +119,7 @@ export const Codes = {
       previewState: PreviewState;
       namespace: string;
     }) => {
-      return code`${getApiName({ namespace })}("inline", {
+      return code`${getApiNameForVanillaJsSnippet({ namespace, mainApiName: "Cal" })}("inline", {
 	elementOrSelector:"#my-cal-inline",
 	calLink: "${calLink}",
 	layout: "${previewState.layout}"
@@ -137,7 +137,10 @@ export const Codes = {
       uiInstructionCode: string;
       namespace: string;
     }) => {
-      return code`${getApiName({ namespace, mainApiName: "Cal" })}("floatingButton", ${floatingButtonArg});
+      return code`${getApiNameForVanillaJsSnippet({
+        namespace,
+        mainApiName: "Cal",
+      })}("floatingButton", ${floatingButtonArg});
   ${uiInstructionCode}`;
     },
     "element-click": ({

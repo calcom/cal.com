@@ -33,7 +33,8 @@ export const inviteMemberutilsScenarios = {
         if (forInput.teamId === teamId) {
           return fakedVal;
         }
-        throw new Error("Mock Error: Unhandled input");
+        console.log("Mock Error: Unhandled input", { teamId });
+        throw new Error(`Mock Error: Unhandled input. teamId: ${teamId}`);
       });
       return fakedVal;
     },

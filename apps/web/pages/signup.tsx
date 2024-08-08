@@ -123,15 +123,8 @@ function UsernameField({
       });
     }
     checkUsername();
-  }, [
-    debouncedUsername,
-    setPremium,
-    disabled,
-    orgSlug,
-    setUsernameTaken,
-    formState.isSubmitting,
-    formState.isSubmitSuccessful,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedUsername, disabled, orgSlug, formState.isSubmitting, formState.isSubmitSuccessful]);
 
   return (
     <div>
@@ -330,7 +323,12 @@ export default function Signup({
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
             {/* Header */}
             {errors.apiError && (
-              <Alert severity="error" message={errors.apiError?.message} data-testid="signup-error-message" />
+              <Alert
+                className="mb-3"
+                severity="error"
+                message={errors.apiError?.message}
+                data-testid="signup-error-message"
+              />
             )}
             <div className="flex flex-col gap-2">
               <h1 className="font-cal text-[28px] leading-none ">
@@ -435,7 +433,7 @@ export default function Signup({
                 <div className="mt-6">
                   <div className="relative flex items-center">
                     <div className="border-subtle flex-grow border-t" />
-                    <span className="text-subtle leadning-none mx-2 flex-shrink text-sm font-normal ">
+                    <span className="text-subtle mx-2 flex-shrink text-sm font-normal leading-none">
                       {t("or_continue_with")}
                     </span>
                     <div className="border-subtle flex-grow border-t" />

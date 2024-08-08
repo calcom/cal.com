@@ -3,7 +3,7 @@ import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
 
 import { getRichDescription } from "@calcom/lib/CalEventParser";
-import { APP_NAME } from "@calcom/lib/constants";
+import { EMAIL_FROM_NAME } from "@calcom/lib/constants";
 import { TimeFormat } from "@calcom/lib/timeFormat";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
@@ -44,7 +44,7 @@ export default class OrganizerScheduledEmail extends BaseEmail {
         }),
         method: "REQUEST",
       },
-      from: `${APP_NAME} <${this.getMailerOptions().from}>`,
+      from: `${EMAIL_FROM_NAME} <${this.getMailerOptions().from}>`,
       to: toAddresses.join(","),
       replyTo: [this.calEvent.organizer.email, ...this.calEvent.attendees.map(({ email }) => email)],
       subject: `${this.newSeat ? `${this.t("new_attendee")}: ` : ""}${this.calEvent.title}`,
@@ -66,7 +66,11 @@ export default class OrganizerScheduledEmail extends BaseEmail {
   ): string {
     return `
 ${this.t(
-  title || this.calEvent.recurringEvent?.count ? "new_event_scheduled_recurring" : "new_event_scheduled"
+  title
+    ? title
+    : this.calEvent.recurringEvent?.count
+    ? "new_event_scheduled_recurring"
+    : "new_event_scheduled"
 )}
 ${this.t(subtitle)}
 ${extraInfo}

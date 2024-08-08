@@ -1,7 +1,10 @@
 import { SchedulesService_2024_06_11 } from "@/ee/schedules/schedules_2024_06_11/services/schedules.service";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { PlatformPlan } from "@/modules/auth/decorators/billing/platform-plan.decorator";
 import { Roles } from "@/modules/auth/decorators/roles/roles.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
+import { PlatformPlanGuard } from "@/modules/auth/guards/billing/platform-plan.guard";
+import { IsAdminAPIEnabledGuard } from "@/modules/auth/guards/organizations/is-admin-api-enabled.guard";
 import { IsOrgGuard } from "@/modules/auth/guards/organizations/is-org.guard";
 import { RolesGuard } from "@/modules/auth/guards/roles/roles.guard";
 import { IsUserInOrg } from "@/modules/auth/guards/users/is-user-in-org.guard";
@@ -21,8 +24,6 @@ import {
   Query,
 } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
-import { Transform } from "class-transformer";
-import { IsNumber, Min, Max, IsOptional } from "class-validator";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
@@ -34,27 +35,13 @@ import {
   UpdateScheduleInput_2024_06_11,
   UpdateScheduleOutput_2024_06_11,
 } from "@calcom/platform-types";
-
-class SkipTakePagination {
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(1)
-  @Max(250)
-  @IsOptional()
-  take?: number;
-
-  @Transform(({ value }: { value: string }) => value && parseInt(value))
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  skip?: number;
-}
+import { SkipTakePagination } from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/organizations/:orgId",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard)
+@UseGuards(ApiAuthGuard, IsOrgGuard, RolesGuard, PlatformPlanGuard, IsAdminAPIEnabledGuard)
 @DocsTags("Organizations Schedules")
 export class OrganizationsSchedulesController {
   constructor(
@@ -63,6 +50,7 @@ export class OrganizationsSchedulesController {
   ) {}
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @Get("/schedules")
   async getOrganizationSchedules(
     @Param("orgId", ParseIntPipe) orgId: number,
@@ -79,6 +67,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Post("/users/:userId/schedules")
   async createUserSchedule(
@@ -94,6 +83,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules/:scheduleId")
   async getUserSchedule(
@@ -109,6 +99,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Get("/users/:userId/schedules")
   async getUserSchedules(
@@ -123,6 +114,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Patch("/users/:userId/schedules/:scheduleId")
   async updateUserSchedule(
@@ -139,6 +131,7 @@ export class OrganizationsSchedulesController {
   }
 
   @Roles("ORG_ADMIN")
+  @PlatformPlan("ESSENTIALS")
   @UseGuards(IsUserInOrg)
   @Delete("/users/:userId/schedules/:scheduleId")
   @HttpCode(HttpStatus.OK)
