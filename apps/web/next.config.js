@@ -205,7 +205,6 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
