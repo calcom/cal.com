@@ -1,7 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { WebhookTriggerEvents } from "@prisma/client";
 import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
-
-import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 
 export class UpdateOAuthClientInput {
   @IsOptional()

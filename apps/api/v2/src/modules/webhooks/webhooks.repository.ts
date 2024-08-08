@@ -102,4 +102,10 @@ export class WebhooksRepository {
       where: { eventTypeId },
     });
   }
+
+  async deleteAllOAuthClientWebhooks(oAuthClientId: string) {
+    return this.dbWrite.prisma.webhook.deleteMany({
+      where: { platformOAuthClientId: oAuthClientId },
+    });
+  }
 }

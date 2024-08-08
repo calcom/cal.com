@@ -25,4 +25,8 @@ export class OAuthClientWebhooksService {
   async getOAuthClientWebhooksPaginated(platformOAuthClientId: string, skip: number, take: number) {
     return this.webhooksRepository.getOAuthClientWebhooksPaginated(platformOAuthClientId, skip, take);
   }
+
+  async deleteAllOAuthClientWebhooks(platformOAuthClientId: string): Promise<{ count: number }> {
+    return this.webhooksRepository.deleteAllOAuthClientWebhooks(platformOAuthClientId);
+  }
 }

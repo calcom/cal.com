@@ -36,6 +36,10 @@ export class WebhookOutputDto {
   @IsBoolean()
   @Expose()
   readonly active!: boolean;
+
+  @IsString()
+  @Expose()
+  readonly secret?: string;
 }
 
 export class DeleteManyWebhooksOutputResponseDto {

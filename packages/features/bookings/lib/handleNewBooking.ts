@@ -908,6 +908,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1577,6 +1578,7 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
       orgId,
+      oAuthClientId: platformClientId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,

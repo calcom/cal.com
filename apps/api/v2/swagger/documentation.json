@@ -3594,6 +3594,206 @@
           "Users' EventTypes Webhooks"
         ]
       }
+    },
+    "/v2/oauth-clients/{oAuthClientId}/webhooks": {
+      "post": {
+        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
+        "summary": "Create a webhook for an oAuthClient",
+        "parameters": [
+          {
+            "name": "oAuthClientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
+        "summary": "Get all webhooks of an oAuthClient",
+        "parameters": [
+          {
+            "name": "oAuthClientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
+        "summary": "Delete all webhooks of an oAuthClient",
+        "parameters": [
+          {
+            "name": "oAuthClientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{oAuthClientId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
+        "summary": "Update a webhook of an oAuthClient",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
+        "summary": "Get a webhook of an oAuthClient",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
+        "summary": "Delete a webhook of an oAuthClient",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      }
     }
   },
   "info": {
@@ -4155,6 +4355,51 @@
       "UpdateOAuthClientInput": {
         "type": "object",
         "properties": {
+          "eventTriggers": {
+            "type": "string",
+            "description": "List of events that will trigger the webhook",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_CANCELLED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "subscriberUrl": {
+            "type": "string",
+            "description": "Url to send the webhook to",
+            "example": "https://example.com",
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
           "logo": {
             "type": "string"
           },
@@ -8660,6 +8905,9 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
           }
         },
         "required": [
@@ -8668,7 +8916,8 @@
           "id",
           "triggers",
           "subscriberUrl",
-          "active"
+          "active",
+          "secret"
         ]
       },
       "UserWebhookOutputResponseDto": {
@@ -8787,6 +9036,9 @@
           },
           "active": {
             "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
           }
         },
         "required": [
@@ -8795,7 +9047,8 @@
           "id",
           "triggers",
           "subscriberUrl",
-          "active"
+          "active",
+          "secret"
         ]
       },
       "EventTypeWebhookOutputResponseDto": {
@@ -8854,6 +9107,89 @@
           },
           "data": {
             "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OAuthClientWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "oAuthClientId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "oAuthClientId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active",
+          "secret"
+        ]
+      },
+      "OAuthClientWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OAuthClientWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
+            }
           }
         },
         "required": [
