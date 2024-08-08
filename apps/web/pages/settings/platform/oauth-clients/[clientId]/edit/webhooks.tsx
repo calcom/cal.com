@@ -68,11 +68,10 @@ export default function EditOAuthClientWebhooks() {
                         body,
                       });
                       showToast("Webhook updated successfully.", "success");
-                      router.push("/settings/platform/");
-                      return;
+                    } else {
+                      await createWebhook(body);
+                      showToast("Webhook created successfully.", "success");
                     }
-                    await createWebhook(body);
-                    showToast("Webhook created successfully.", "success");
                     await refetchWebhooks();
                     router.push("/settings/platform/");
                   } catch (err) {
