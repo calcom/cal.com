@@ -163,9 +163,6 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
-        if (!!session.data?.user?.org?.id) {
-          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
-        }
         return {
           ...tab,
           name: user?.name || "my_account",
