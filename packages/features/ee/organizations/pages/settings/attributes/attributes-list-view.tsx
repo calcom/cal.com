@@ -20,6 +20,8 @@ import {
   showToast,
 } from "@calcom/ui";
 
+import { ListSkeleton } from "./ListSkeleton";
+
 type AttributeItemProps = RouterOutputs["viewer"]["attributes"]["list"][number];
 
 const TypeToLabelMap = {
@@ -126,7 +128,16 @@ function OrganizationAttributesPage() {
   const { t } = useLocale();
   const { data, isLoading } = trpc.viewer.attributes.list.useQuery();
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) {
+    return (
+      <>
+        <Meta title="Attributes" description="Manage attributes for your team members" />
+        <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
+          <ListSkeleton />
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
