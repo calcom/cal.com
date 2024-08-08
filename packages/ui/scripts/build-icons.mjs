@@ -1,3 +1,5 @@
+// this script is based on https://github.com/epicweb-dev/epic-stack/blob/main/other/build-icons.ts
+//
 import { $ } from "execa";
 import glob from "fast-glob";
 import fsExtra from "fs-extra";

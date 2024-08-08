@@ -32,5 +32,3 @@ export async function copyIcons() {
 export const removeTempDir = async () => {
   await fs.remove(tempDir);
 };
-
-copyIcons();
