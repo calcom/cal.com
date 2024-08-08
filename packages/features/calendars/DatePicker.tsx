@@ -129,16 +129,6 @@ const NoAvailabilityOverlay = ({
   );
 };
 
-const ReschedulingNotPossibleOverlay = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-2/3 -translate-x-1/2 -translate-y-1/2 transform break-all rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis font-medium">{t("rescheduling_not_possible")}</h4>
-    </div>
-  );
-};
-
 const Days = ({
   minDate,
   excludedDates = [],

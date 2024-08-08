@@ -515,7 +515,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
