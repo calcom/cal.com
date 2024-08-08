@@ -14,14 +14,14 @@ import { TRPCError } from "@trpc/server";
 
 import type { TrpcSessionUser } from "../../../trpc";
 import { listOtherTeamHandler } from "../organizations/listOtherTeams.handler";
-import type { TGetEventTypeOptionsSchema } from "./getEventTypeOptions.schema";
+import type { TGetTeamAndEventTypeOptionsSchema } from "./getTeamAndEventTypeOptions.schema";
 
-type GetEventTypeOptions = {
+type GetTeamAndEventTypeOptions = {
   ctx: {
     user: NonNullable<TrpcSessionUser>;
     prisma: PrismaClient;
   };
-  input: TGetEventTypeOptionsSchema;
+  input: TGetTeamAndEventTypeOptionsSchema;
 };
 
 type Option = {
@@ -35,9 +35,9 @@ type res = Awaited<
 
 type EventType = Omit<res, "forwardParamsSuccessRedirect"> & { children?: { id: number }[] };
 
-export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) => {
+export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEventTypeOptions) => {
   await checkRateLimitAndThrowError({
-    identifier: `eventTypes:getEventTypeOptions:${ctx.user.id}`,
+    identifier: `eventTypes:getTeamAndEventTypeOptions.handler:${ctx.user.id}`,
     rateLimitingType: "common",
   });
 

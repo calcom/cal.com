@@ -82,7 +82,7 @@ function WorkflowPage() {
 
   const teamId = workflow?.teamId ?? undefined;
 
-  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getEventTypeOptions.useQuery(
+  const { data, isPending: isPendingEventTypes } = trpc.viewer.eventTypes.getTeamAndEventTypeOptions.useQuery(
     { teamId, isOrg },
     { enabled: !isPendingWorkflow }
   );
