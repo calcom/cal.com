@@ -412,7 +412,7 @@ model Team {
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
-  attribute              Attribute[]
+  attributes             Attribute[]
 
   @@unique([slug, parentId])
   @@index([parentId])
