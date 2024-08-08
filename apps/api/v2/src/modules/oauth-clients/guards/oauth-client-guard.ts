@@ -1,16 +1,25 @@
 import { GetUserReturnType } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from "@nestjs/common";
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+  NotFoundException,
+} from "@nestjs/common";
+import { Request } from "express";
 
 @Injectable()
 export class OAuthClientGuard implements CanActivate {
   constructor(private oAuthClientRepository: OAuthClientRepository) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request & { user: GetUserReturnType }>();
     const user: GetUserReturnType = request.user;
     const organizationId = user?.movedToProfile?.organizationId || user?.organizationId;
-    const oAuthClientId = request.clientId;
+    const oAuthClientId = request.params.clientId;
+
+    console.log("OAuthClientGuard -> canActivate -> user", user, organizationId, oAuthClientId);
 
     if (!oAuthClientId) {
       throw new ForbiddenException("No OAuth client associated with the request.");
@@ -22,6 +31,16 @@ export class OAuthClientGuard implements CanActivate {
 
     const oAuthClient = await this.oAuthClientRepository.getOAuthClient(oAuthClientId);
 
-    return Boolean(user.isSystemAdmin || (oAuthClient && oAuthClient.organizationId === organizationId));
+    console.log(
+      "OAuthClientGuard -> canActivate -> oAuthClient",
+      oAuthClient?.organizationId,
+      organizationId
+    );
+
+    if (!oAuthClient) {
+      throw new NotFoundException("OAuth client not found.");
+    }
+
+    return Boolean(user.isSystemAdmin || oAuthClient.organizationId === organizationId);
   }
 }
