@@ -9,6 +9,7 @@ import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-cli
 import { CreateOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/CreateOAuthClientResponse.dto";
 import { GetOAuthClientResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientResponse.dto";
 import { GetOAuthClientsResponseDto } from "@/modules/oauth-clients/controllers/oauth-clients/responses/GetOAuthClientsResponse.dto";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { UpdateOAuthClientInput } from "@/modules/oauth-clients/inputs/update-oauth-client.input";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OrganizationsRepository } from "@/modules/organizations/organizations.repository";
@@ -109,6 +110,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async getOAuthClientById(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     const client = await this.oauthClientRepository.getOAuthClient(clientId);
     if (!client) {
@@ -122,6 +124,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER, MembershipRole.MEMBER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async getOAuthClientManagedUsersById(
     @Param("clientId") clientId: string,
     @Query() queryParams: Pagination
@@ -140,6 +143,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async updateOAuthClient(
     @Param("clientId") clientId: string,
     @Body() body: UpdateOAuthClientInput
@@ -154,6 +158,7 @@ export class OAuthClientsController {
   @HttpCode(HttpStatus.OK)
   @MembershipRoles([MembershipRole.ADMIN, MembershipRole.OWNER])
   @DocsOperation({ description: AUTH_DOCUMENTATION })
+  @UseGuards(OAuthClientGuard)
   async deleteOAuthClient(@Param("clientId") clientId: string): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`Deleting OAuth Client with ID: ${clientId}`);
     const client = await this.oauthClientRepository.deleteOAuthClient(clientId);
