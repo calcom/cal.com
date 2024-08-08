@@ -29,7 +29,7 @@ describe("Verify API key", () => {
   let service: LicenseKeyService;
 
   beforeEach(async () => {
-    service = await LicenseKeyService.getInstance();
+    service = await LicenseKeyService.create();
 
     vi.spyOn(service, "checkLicense");
   });
