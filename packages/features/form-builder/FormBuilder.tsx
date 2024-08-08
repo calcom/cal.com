@@ -44,13 +44,6 @@ function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
   return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
 
-function isRequiredField(field: RhfFormField) {
-  // 'location' must be shown as required in the UI(but at backend it is not required because not specifying it defaults to CalVideo)
-  // So, handle it in UI only instead of updating bookingFields config in getBookingFields
-  // TODO: FormBuilder must not be made aware of BookingFields, so move this "location" check to outside FormBuilder where the component is used.
-  return field.name === "location" ? true : field.required;
-}
-
 /**
  * It works with a react-hook-form only.
  * `formProp` specifies the name of the property in the react-hook-form that has the fields. This is where fields would be updated.
@@ -63,6 +56,7 @@ export const FormBuilder = function FormBuilder({
   disabled,
   LockedIcon,
   dataStore,
+  shouldConsiderRequired,
 }: {
   formProp: string;
   title: string;
@@ -74,8 +68,15 @@ export const FormBuilder = function FormBuilder({
    * A readonly dataStore that is used to lookup the options for the fields. It works in conjunction with the field.getOptionAt property which acts as the key in options
    */
   dataStore: {
-    options: Record<string, { label: string; value: string; inputPlaceholder?: string }[]>;
+    options: Record<
+      string,
+      {
+        source: { label: string };
+        value: { label: string; value: string; inputPlaceholder?: string }[];
+      }
+    >;
   };
+  shouldConsiderRequired?: (field: RhfFormField) => boolean;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -127,12 +128,13 @@ export const FormBuilder = function FormBuilder({
           {fields.map((field, index) => {
             let options = field.options ?? null;
             const sources = [...(field.sources || [])];
-            const isRequired = isRequiredField(field);
+            const isRequired = shouldConsiderRequired ? shouldConsiderRequired(field) : field.required;
             if (!options && field.getOptionsAt) {
-              options = dataStore.options[field.getOptionsAt as keyof typeof dataStore] ?? [];
-              // TODO: The dataStore should itself provide the label directly
-              // This is important because FormBuilder isn't aware of what a location is. It is a generic Form Builder
-              const sourceLabel = field.getOptionsAt === "locations" ? "Location" : field.getOptionsAt;
+              const {
+                source: { label: sourceLabel },
+                value,
+              } = dataStore.options[field.getOptionsAt as keyof typeof dataStore] ?? [];
+              options = value;
               options.forEach((option) => {
                 sources.push({
                   id: option.value,
@@ -417,10 +419,12 @@ function FieldEditDialog({
   dialog,
   onOpenChange,
   handleSubmit,
+  shouldConsiderRequired,
 }: {
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
+  shouldConsiderRequired?: (field: RhfFormField) => boolean;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -527,7 +531,9 @@ function FieldEditDialog({
                       name="required"
                       control={fieldForm.control}
                       render={({ field: { onChange } }) => {
-                        const isRequired = isRequiredField(fieldForm.getValues());
+                        const isRequired = shouldConsiderRequired
+                          ? shouldConsiderRequired(fieldForm.getValues())
+                          : fieldForm.getValues("required");
                         return (
                           <BooleanToggleGroupField
                             data-testid="field-required"
