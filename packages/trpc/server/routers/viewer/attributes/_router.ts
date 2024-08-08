@@ -1,4 +1,4 @@
-import authedProcedure from "../../../procedures/authedProcedure";
+import authedProcedure, { authedOrgAdminProcedure } from "../../../procedures/authedProcedure";
 import { router, importHandler } from "../../../trpc";
 import { assignUserToAttributeSchema } from "./assignUserToAttribute.schema";
 import { createAttributeSchema } from "./create.schema";
@@ -26,24 +26,24 @@ export const attributesRouter = router({
     return handler({ ctx, input });
   }),
   // Mutations
-  create: authedProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
+  create: authedOrgAdminProcedure.input(createAttributeSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("create"), () => import("./create.handler"));
     return handler({ ctx, input });
   }),
-  edit: authedProcedure.input(editAttributeSchema).mutation(async ({ ctx, input }) => {
+  edit: authedOrgAdminProcedure.input(editAttributeSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("edit"), () => import("./edit.handler"));
     return handler({ ctx, input });
   }),
-  delete: authedProcedure.input(deleteAttributeSchema).mutation(async ({ ctx, input }) => {
+  delete: authedOrgAdminProcedure.input(deleteAttributeSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("delete"), () => import("./delete.handler"));
     return handler({ ctx, input });
   }),
-  toggleActive: authedProcedure.input(toggleActiveSchema).mutation(async ({ ctx, input }) => {
+  toggleActive: authedOrgAdminProcedure.input(toggleActiveSchema).mutation(async ({ ctx, input }) => {
     const handler = await importHandler(namespaced("toggleActive"), () => import("./toggleActive.handler"));
     return handler({ ctx, input });
   }),
 
-  assignUserToAttribute: authedProcedure
+  assignUserToAttribute: authedOrgAdminProcedure
     .input(assignUserToAttributeSchema)
     .mutation(async ({ ctx, input }) => {
       const handler = await importHandler(

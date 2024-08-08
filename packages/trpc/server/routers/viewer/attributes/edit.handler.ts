@@ -13,8 +13,6 @@ type GetOptions = {
   input: ZEditAttributeSchema;
 };
 
-const typesWithOptions = ["SINGLE_SELECT", "MULTI_SELECT"];
-
 const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
@@ -22,13 +20,6 @@ const editAttributesHandler = async ({ input, ctx }: GetOptions) => {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You need to be apart of an organization to use this feature",
-    });
-  }
-
-  if (!org.isOrgAdmin) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be an admin of the organization to modify attributes",
     });
   }
 

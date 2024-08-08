@@ -13,16 +13,6 @@ type GetOptions = {
   input: ZAssignUserToAttribute;
 };
 
-function isOrgAdminOrThrow(ctx: GetOptions["ctx"]) {
-  const org = ctx.user.organization;
-  if (!org.isOrgAdmin) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be an admin of the organization to use this feature",
-    });
-  }
-}
-
 const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
@@ -32,8 +22,6 @@ const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
       message: "You need to be apart of an organization to use this feature",
     });
   }
-
-  isOrgAdminOrThrow(ctx);
 
   // TODO: We need to also empty the users assignemnts for IDs that are not in in this filteredAttributes list
   // Filter out attributes that don't have a value or options set

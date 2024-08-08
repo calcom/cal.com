@@ -22,13 +22,6 @@ const deleteAttributeHandler = async ({ input, ctx }: DeleteOptions) => {
     });
   }
 
-  if (!org.isOrgAdmin) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be an admin of the organization to modify attributes",
-    });
-  }
-
   const attribute = await prisma.attribute.delete({
     where: {
       teamId: org.id,

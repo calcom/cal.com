@@ -22,13 +22,6 @@ const toggleActiveHandler = async ({ input, ctx }: GetOptions) => {
     });
   }
 
-  if (!org.isOrgAdmin) {
-    throw new TRPCError({
-      code: "UNAUTHORIZED",
-      message: "You need to be an admin of the organization to modify attributes",
-    });
-  }
-
   // Ensure that this users org owns the attribute
   const attribute = await prisma.attribute.findUnique({
     where: {
