@@ -46,7 +46,7 @@ import {
   getBookingInfo,
   handleCancelBooking,
   getBookingForReschedule,
-} from "@calcom/platform-libraries-0.0.25";
+} from "@calcom/platform-libraries-0.0.26";
 import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";

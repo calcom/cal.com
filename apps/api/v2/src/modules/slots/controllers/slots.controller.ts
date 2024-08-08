@@ -5,8 +5,8 @@ import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Response as ExpressResponse, Request as ExpressRequest } from "express";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
-import { getAvailableSlots } from "@calcom/platform-libraries-0.0.25";
-import type { AvailableSlotsType } from "@calcom/platform-libraries-0.0.25";
+import { getAvailableSlots } from "@calcom/platform-libraries-0.0.26";
+import type { AvailableSlotsType } from "@calcom/platform-libraries-0.0.26";
 import { RemoveSelectedSlotInput, ReserveSlotInput } from "@calcom/platform-types";
 import { ApiResponse, GetAvailableSlotsInput } from "@calcom/platform-types";
 

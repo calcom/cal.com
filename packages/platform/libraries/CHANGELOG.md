@@ -1,3 +1,7 @@
+## 0.0.26
+Update `packages/app-store/office365calendar/lib/CalendarService.ts` "translateEvent" content so that in microsoft outlook calendar event the description
+has newlines instead of being all in 1 line.
+
 ## 0.0.25
 Refactor "packages/lib/event-types/transformers/api-request.ts" getResponseEventTypeBookingFields - make sure that booking fields with options don't have
 undefines options.
