@@ -176,7 +176,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  // If parent is org and based on setting, redirect to main domain org.
   const disableOrgSubdomainURL = team?.parent?.organizationSettings?.disableOrgSubdomainURL;
   if (isValidOrgDomain && disableOrgSubdomainURL) {
     const redirect = getMainDomainOrgRedirect(context.req);

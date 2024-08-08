@@ -10,7 +10,7 @@ export const getMainDomainOrgRedirect = (req: IncomingMessage | undefined) => {
   }
 
   const protocol = WEBAPP_URL.startsWith("https://") ? "https" : "http";
-  const originalUrl = new URL(`${protocol}://${req.headers.host}`);
+  const originalUrl = new URL(req.url!, `${protocol}://${req.headers.host}`);
 
   const domains = originalUrl.hostname.split(".");
 
