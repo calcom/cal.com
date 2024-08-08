@@ -1,8 +1,8 @@
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 
+import AppNotInstalledMessage from "@calcom/app-store/_components/AppNotInstalledMessage";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc";
 import { Button, showToast, TextField } from "@calcom/ui";
@@ -154,14 +154,7 @@ export default function PayPalSetup() {
           </div>
         </div>
       ) : (
-        <div className="ml-5 mt-5">
-          <div>Paypal</div>
-          <div className="mt-3">
-            <Link href="/apps/paypal" passHref={true} legacyBehavior>
-              <Button>{t("go_to_app_store")}</Button>
-            </Link>
-          </div>
-        </div>
+        <AppNotInstalledMessage appName="paypal" />
       )}
       <Toaster position="bottom-right" />
     </div>
