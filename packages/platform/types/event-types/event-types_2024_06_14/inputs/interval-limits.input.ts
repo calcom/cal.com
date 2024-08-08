@@ -10,20 +10,20 @@ export class IntervalLimits_2024_06_14 {
   @IsOptional()
   @IsInt()
   @Min(1)
-  day!: number;
+  day?: number;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  week!: number;
+  week?: number;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  month!: number;
+  month?: number;
 
   @IsOptional()
   @IsInt()
   @Min(1)
-  year!: number;
+  year?: number;
 }
