@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { signInWithPasskey } from "@teamhanko/passkeys-next-auth-provider/client";
 import classNames from "classnames";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
@@ -25,6 +26,7 @@ import type { WithNonceProps } from "@lib/withNonce";
 import AddToHomescreen from "@components/AddToHomescreen";
 import PageWrapper from "@components/PageWrapper";
 import BackupCode from "@components/auth/BackupCode";
+import PasskeyIcon from "@components/auth/PasskeyIcon";
 import TwoFactor from "@components/auth/TwoFactor";
 import AuthContainer from "@components/ui/AuthContainer";
 
@@ -44,6 +46,7 @@ const GoogleIcon = () => (
 export default function Login({
   csrfToken,
   isGoogleLoginEnabled,
+  isPasskeyLoginEnabled,
   isSAMLLoginEnabled,
   samlTenantID,
   samlProductID,
@@ -238,7 +241,9 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
           </form>
           {!twoFactorRequired && (
             <>
-              {(isGoogleLoginEnabled || displaySSOLogin) && <hr className="border-subtle my-8" />}
+              {(isGoogleLoginEnabled || displaySSOLogin || isPasskeyLoginEnabled) && (
+                <hr className="border-subtle my-8" />
+              )}
               <div className="space-y-3">
                 {isGoogleLoginEnabled && (
                   <Button
@@ -254,6 +259,32 @@ inferSSRProps<typeof getServerSideProps> & WithNonceProps<{}>) {
                       });
                     }}>
                     {t("signin_with_google")}
+                  </Button>
+                )}
+                {isPasskeyLoginEnabled && (
+                  <Button
+                    color="secondary"
+                    className="w-full justify-center"
+                    disabled={formState.isSubmitting}
+                    CustomStartIcon={<PasskeyIcon className="ltr:-ml-1 ltr:mr-2 rtl:-mr-1 rtl:ml-2" />}
+                    onClick={async (e) => {
+                      e.preventDefault();
+
+                      const tenantId = process.env.NEXT_PUBLIC_HANKO_PASSKEYS_TENANT_ID;
+                      if (!tenantId) {
+                        // This should never happen, as HANKO_PASSKEYS_TENANT_ID should always be set when passkey login is enabled
+                        // see /apps/web/server/lib/constants.ts
+                        console.error("Hanko Passkeys tenant ID not configured");
+                        setErrorMessage(t("passkey_login_failed"));
+                        return;
+                      }
+
+                      await signInWithPasskey({ tenantId }).catch((err) => {
+                        console.error("Error signing in with passkey", err);
+                        setErrorMessage(t("passkey_login_failed"));
+                      });
+                    }}>
+                    {t("signin_with_passkey")}
                   </Button>
                 )}
                 {displaySSOLogin && (
