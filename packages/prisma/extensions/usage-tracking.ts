@@ -17,7 +17,7 @@ export function usageTrackingExtention() {
     query: {
       booking: {
         async create({ args, query }) {
-          waitUntil(incrementUsage(UsageEvent.USER));
+          waitUntil(incrementUsage(UsageEvent.BOOKING));
           return query(args);
         },
       },

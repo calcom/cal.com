@@ -66,16 +66,15 @@ export default function CloseComSetup() {
                 form={form}
                 handleSubmit={async (values) => {
                   const { returnTo } = query;
-                  const res = await fetch(
-                    `/api/integrations/closecom/add${returnTo ? `?returnTo=${returnTo}` : ""}`,
-                    {
-                      method: "POST",
-                      body: JSON.stringify(values),
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                    }
-                  );
+                  const url = new URL("/api/integrations/closecom/add");
+                  if (returnTo) url.searchParams.append("returnTo", `${returnTo}`);
+                  const res = await fetch(url.href, {
+                    method: "POST",
+                    body: JSON.stringify(values),
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  });
                   const json = await res.json();
 
                   if (res.ok) {
