@@ -19,8 +19,6 @@ export class OAuthClientGuard implements CanActivate {
     const organizationId = user?.movedToProfile?.organizationId || user?.organizationId;
     const oAuthClientId = request.params.clientId;
 
-    console.log("OAuthClientGuard -> canActivate -> user", user, organizationId, oAuthClientId);
-
     if (!oAuthClientId) {
       throw new ForbiddenException("No OAuth client associated with the request.");
     }
@@ -30,12 +28,6 @@ export class OAuthClientGuard implements CanActivate {
     }
 
     const oAuthClient = await this.oAuthClientRepository.getOAuthClient(oAuthClientId);
-
-    console.log(
-      "OAuthClientGuard -> canActivate -> oAuthClient",
-      oAuthClient?.organizationId,
-      organizationId
-    );
 
     if (!oAuthClient) {
       throw new NotFoundException("OAuth client not found.");
