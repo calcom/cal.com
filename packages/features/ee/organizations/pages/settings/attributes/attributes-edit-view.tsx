@@ -9,7 +9,7 @@ import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequir
 import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
-import { Meta, Button, useMeta, Divider, showToast } from "@calcom/ui";
+import { Meta, Button, useMeta, showToast } from "@calcom/ui";
 
 import { AttributeForm } from "./AttributesForm";
 
@@ -104,7 +104,6 @@ function EditAttributeHeader(props: { isPending: boolean }) {
           Save
         </Button>
       </div>
-      <Divider className="mb-6" />
     </>
   );
 }
