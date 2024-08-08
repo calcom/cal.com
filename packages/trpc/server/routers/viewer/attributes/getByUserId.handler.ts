@@ -24,7 +24,7 @@ type GroupedAttribute = {
   }[];
 };
 
-const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
+const getByUserIdHandler = async ({ input, ctx }: GetOptions) => {
   const org = ctx.user.organization;
 
   if (!org.id) {
@@ -105,4 +105,4 @@ const createAttributesHandler = async ({ input, ctx }: GetOptions) => {
   return groupedAttributes;
 };
 
-export default createAttributesHandler;
+export default getByUserIdHandler;

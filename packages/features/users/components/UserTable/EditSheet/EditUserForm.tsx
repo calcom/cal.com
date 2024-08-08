@@ -194,7 +194,8 @@ export function EditForm({
             />
           </div>
         </SheetHeader>
-        <SheetBody className="mt-6 flex h-full flex-col space-y-3 px-1">
+        <SheetBody className="mt-4 flex h-full flex-col space-y-3 px-1">
+          <label className="text-emphasis mb-1 text-base font-semibold">{t("profile")}</label>
           <TextField label={t("username")} {...form.register("username")} />
           <TextField label={t("name")} {...form.register("name")} />
           <TextField label={t("email")} {...form.register("email")} />
@@ -298,9 +299,9 @@ function AttributesList(props: { selectedUserId: number }) {
   const attributeFieldState = getFieldState("attributes");
 
   return (
-    <div className="mt-4 flex flex-col overflow-visible">
+    <div className="mt-10 flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-subtle mb-2 mt-2 text-sm font-medium leading-none ">{t("attributes")}</label>
+        <label className="text-emphasis mb-1 text-base font-semibold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}
