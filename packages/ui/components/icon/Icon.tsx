@@ -1,17 +1,18 @@
 import { type SVGProps } from "react";
 
 import type { IconName } from "./icon-names";
-import spriteHref from "./sprite.svg";
 
 function Icon({
   name,
+  size,
   ...props
 }: SVGProps<SVGSVGElement> & {
   name: IconName;
+  size?: number | string;
 }) {
   return (
-    <svg {...props} aria-hidden>
-      <use href={`${spriteHref}#${name}`} />
+    <svg height={size} width={size} {...props} aria-hidden>
+      <use href={`/icons/sprite.svg#${name}`} />
     </svg>
   );
 }

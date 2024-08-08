@@ -445,6 +445,10 @@ const nextConfig = {
           source: "/avatar.svg",
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
+        {
+          source: "/icons/sprite.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
       ],
       ...(isOrganizationsEnabled
         ? [
