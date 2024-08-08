@@ -1737,13 +1737,15 @@ async function handler(
 
   const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
-  await scheduleMandatoryReminder(
-    evtWithMetadata,
-    workflows,
-    !isConfirmedByDefault,
-    !!eventType.owner?.hideBranding,
-    evt.attendeeSeatId
-  );
+  if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
+      workflows,
+      !isConfirmedByDefault,
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId
+    );
+  }
 
   try {
     await scheduleWorkflowReminders({

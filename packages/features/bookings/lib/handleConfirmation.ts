@@ -256,13 +256,15 @@ export async function handleConfirmation(args: {
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
 
-      await scheduleMandatoryReminder(
-        evtOfBooking,
-        workflows,
-        false,
-        !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
-      );
+      if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+        await scheduleMandatoryReminder(
+          evtOfBooking,
+          workflows,
+          false,
+          !!updatedBookings[index].eventType?.owner?.hideBranding,
+          evt.attendeeSeatId
+        );
+      }
 
       await scheduleWorkflowReminders({
         workflows,
