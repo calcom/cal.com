@@ -25,6 +25,7 @@ import {
   EventTypeOutput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 
 describe("Event types Endpoints", () => {
   describe("Not authenticated", () => {
@@ -212,6 +213,21 @@ describe("Event types Endpoints", () => {
           },
         ],
         scheduleId: firstSchedule.id,
+        bookingLimits: {
+          day: 2,
+          week: 5,
+        },
+        onlyShowFirstAvailableSlot: true,
+        durationLimits: {
+          day: 60,
+          week: 100,
+        },
+        offsetStart: 30,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays,
+          value: 30,
+          rolling: true,
+        },
       };
 
       return request(app.getHttpServer())
@@ -230,7 +246,11 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingFields).toEqual(body.bookingFields);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
-
+          expect(createdEventType.bookingLimits).toEqual(body.bookingLimits);
+          expect(createdEventType.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(createdEventType.durationLimits).toEqual(body.durationLimits);
+          expect(createdEventType.offsetStart).toEqual(body.offsetStart);
+          expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           eventType = responseBody.data;
         });
     });

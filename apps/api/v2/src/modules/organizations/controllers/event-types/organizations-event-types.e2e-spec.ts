@@ -24,6 +24,7 @@ import {
   TeamEventTypeOutput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
 import { Team } from "@calcom/prisma/client";
 
 describe("Organizations Event Types Endpoints", () => {
@@ -260,6 +261,21 @@ describe("Organizations Event Types Endpoints", () => {
             userId: teammate2.id,
           },
         ],
+        bookingLimits: {
+          day: 2,
+          week: 5,
+        },
+        onlyShowFirstAvailableSlot: true,
+        durationLimits: {
+          day: 60,
+          week: 100,
+        },
+        offsetStart: 30,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.calendarDays,
+          value: 30,
+          rolling: true,
+        },
       };
 
       return request(app.getHttpServer())
@@ -276,6 +292,11 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.schedulingType).toEqual("COLLECTIVE");
           evaluateHost(body.hosts[0], data.hosts[0]);
           evaluateHost(body.hosts[1], data.hosts[1]);
+          expect(data.bookingLimits).toEqual(body.bookingLimits);
+          expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(data.durationLimits).toEqual(body.durationLimits);
+          expect(data.offsetStart).toEqual(body.offsetStart);
+          expect(data.bookingWindow).toEqual(body.bookingWindow);
 
           collectiveEventType = responseBody.data;
         });
