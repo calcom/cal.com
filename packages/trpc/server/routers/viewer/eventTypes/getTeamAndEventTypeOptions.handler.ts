@@ -1,7 +1,4 @@
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
-import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
-import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
@@ -103,9 +100,9 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
   type EventTypeGroup = {
     teamId?: number | null;
     parentId?: number | null;
-    bookerUrl: string;
+    bookerUrl?: string;
     profile: {
-      slug: (typeof profile)["username"] | null;
+      slug?: (typeof profile)["username"] | null;
       name: (typeof profile)["name"];
       image?: string;
       eventTypesLockedByOrg?: boolean;
@@ -114,17 +111,12 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
   };
 
   let eventTypeGroups: EventTypeGroup[] = [];
-  const bookerUrl = await getBookerBaseUrl(profile.organizationId ?? null);
 
   eventTypeGroups.push({
     teamId: null,
-    bookerUrl,
     profile: {
       slug: profile.username,
       name: profile.name,
-      image: getUserAvatarUrl({
-        avatarUrl: profile.avatarUrl,
-      }),
       eventTypesLockedByOrg: parentOrgHasLockedEventTypes,
     },
     eventTypes: profileEventTypes,
@@ -146,26 +138,12 @@ export const getTeamAndEventTypeOptions = async ({ ctx, input }: GetTeamAndEvent
             metadata: teamMetadataSchema.parse(membership.team.metadata),
           };
 
-          const slug = null;
-
-          // if (forRoutingForms) {
-          //   // For Routing form we want to ensure that after migration of team to an org, the URL remains same for the team
-          //   // Once we solve this https://github.com/calcom/cal.com/issues/12399, we can remove this conditional change in slug
-          //   slug = `team/${team.slug}`;
-          // } else {
-          //   // In an Org, a team can be accessed without /team prefix as well as with /team prefix
-          //   slug = team.slug ? (!team.parentId ? `team/${team.slug}` : `${team.slug}`) : null;
-          // }
-
           const eventTypes = team.eventTypes;
-          const teamParentMetadata = team.parent ? teamMetadataSchema.parse(team.parent.metadata) : null;
           return {
             teamId: team.id,
             parentId: team.parentId,
-            bookerUrl: getBookerBaseUrlSync(team.parent?.slug ?? teamParentMetadata?.requestedSlug ?? null),
             profile: {
               name: team.name,
-              slug,
             },
             eventTypes: eventTypes
               ?.filter((evType) => {
