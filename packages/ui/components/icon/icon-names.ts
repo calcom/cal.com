@@ -5,6 +5,7 @@ export type IconName =
   | "arrow-down"
   | "arrow-left"
   | "arrow-right"
+  | "arrow-up-right"
   | "arrow-up"
   | "asterisk"
   | "at-sign"

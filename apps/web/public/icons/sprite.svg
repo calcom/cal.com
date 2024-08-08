@@ -17,6 +17,10 @@
   <path d="M5 12h14" ></path>
   <path d="m12 5 7 7-7 7" ></path>
 </symbol>
+<symbol class="lucide lucide-arrow-up-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="arrow-up-right">
+  <path d="M7 7h10v10" ></path>
+  <path d="M7 17 17 7" ></path>
+</symbol>
 <symbol class="lucide lucide-arrow-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="arrow-up">
   <path d="m5 12 7-7 7 7" ></path>
   <path d="M12 19V5" ></path>
