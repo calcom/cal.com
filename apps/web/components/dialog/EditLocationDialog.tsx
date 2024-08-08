@@ -102,7 +102,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
     phone: z.string().optional().nullable(),
     locationAddress: z.string().optional(),
     credentialId: z.number().optional(),
-    teamName: z.string().optional(),
+    teamName: z.string().nullable(),
     locationLink: z
       .string()
       .optional()
@@ -358,7 +358,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
                                 locationFormMethods.setValue("locationType", val.value);
                                 if (typeof val.credentialId === "number" && val.credentialId >= 0) {
                                   locationFormMethods.setValue("credentialId", val.credentialId);
-                                  locationFormMethods.setValue("teamName", val.teamName ?? "");
+                                  locationFormMethods.setValue("teamName", val.teamName);
                                 }
 
                                 locationFormMethods.unregister([
