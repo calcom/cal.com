@@ -6640,6 +6640,27 @@
           "userId"
         ]
       },
+      "IntervalLimits_2024_06_14": {
+        "type": "object",
+        "properties": {
+          "day": {
+            "type": "number",
+            "minimum": 1
+          },
+          "week": {
+            "type": "number",
+            "minimum": 1
+          },
+          "month": {
+            "type": "number",
+            "minimum": 1
+          },
+          "year": {
+            "type": "number",
+            "minimum": 1
+          }
+        }
+      },
       "TeamEventTypeOutput_2024_06_14": {
         "type": "object",
         "properties": {
@@ -6759,6 +6780,22 @@
           },
           "assignAllTeamMembers": {
             "type": "boolean"
+          },
+          "bookingLimits": {
+            "$ref": "#/components/schemas/IntervalLimits_2024_06_14"
+          },
+          "onlyShowFirstAvailableSlot": {
+            "type": "boolean"
+          },
+          "durationLimits": {
+            "$ref": "#/components/schemas/IntervalLimits_2024_06_14"
+          },
+          "bookingWindow": {
+            "type": "object"
+          },
+          "offsetStart": {
+            "type": "number",
+            "minimum": 1
           }
         },
         "required": [

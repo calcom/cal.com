@@ -52,7 +52,7 @@ export class OrganizationsEventTypesService {
     return await this.updateTeamEventType(
       eventTypeCreated.id,
       teamId,
-      { hosts: body.hosts, assignAllTeamMembers },
+      { hosts: body.hosts, assignAllTeamMembers, ...rest },
       user
     );
   }

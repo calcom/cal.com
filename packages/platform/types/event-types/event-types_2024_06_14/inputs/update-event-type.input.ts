@@ -4,7 +4,9 @@ import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } 
 
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-window.input";
 import { Host } from "./create-event-type.input";
+import { IntervalLimits_2024_06_14 } from "./interval-limits.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 
@@ -58,6 +60,27 @@ export class UpdateEventTypeInput_2024_06_14 {
   @IsInt()
   @IsOptional()
   scheduleId?: number;
+
+  @IsOptional()
+  @Type(() => IntervalLimits_2024_06_14)
+  bookingLimits?: IntervalLimits_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => IntervalLimits_2024_06_14)
+  durationLimits?: IntervalLimits_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
 }
 export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
@@ -128,4 +151,25 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   @IsOptional()
   @DocsProperty()
   assignAllTeamMembers?: boolean;
+
+  @IsOptional()
+  @Type(() => IntervalLimits_2024_06_14)
+  bookingLimits?: IntervalLimits_2024_06_14;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyShowFirstAvailableSlot?: boolean;
+
+  @IsOptional()
+  @Type(() => IntervalLimits_2024_06_14)
+  durationLimits?: IntervalLimits_2024_06_14;
+
+  @IsOptional()
+  @ValidateBookingWindow()
+  bookingWindow?: BookingWindow_2024_06_14;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  offsetStart?: number;
 }

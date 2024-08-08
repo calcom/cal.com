@@ -44,7 +44,16 @@ export class InputEventTypesService_2024_06_14 {
   }
 
   transformInputUpdateEventType(inputEventType: UpdateEventTypeInput_2024_06_14) {
-    const { lengthInMinutes, locations, bookingFields, scheduleId, ...rest } = inputEventType;
+    const {
+      lengthInMinutes,
+      locations,
+      bookingFields,
+      scheduleId,
+      bookingLimits,
+      durationLimits,
+      bookingWindow,
+      ...rest
+    } = inputEventType;
 
     const eventType = {
       ...rest,
@@ -52,6 +61,9 @@ export class InputEventTypesService_2024_06_14 {
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
       schedule: scheduleId,
+      bookingLimits: bookingLimits ? this.transformInputIntervalLimits(bookingLimits) : undefined,
+      durationLimits: durationLimits ? this.transformInputIntervalLimits(durationLimits) : undefined,
+      ...(bookingWindow ? this.transformInputBookingWindow(bookingWindow) : {}),
     };
 
     return eventType;
@@ -71,7 +83,6 @@ export class InputEventTypesService_2024_06_14 {
 
   transformInputBookingWindow(inputBookingWindow: CreateEventTypeInput_2024_06_14["bookingWindow"]) {
     const res = transformApiEventTypeFutureBookingLimits(inputBookingWindow);
-    console.log("bbookingWindowookingWindow-ip: ", res);
     return !!res ? res : {};
   }
 }
