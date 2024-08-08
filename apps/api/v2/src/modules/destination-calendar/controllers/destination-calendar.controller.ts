@@ -24,7 +24,7 @@ export class DestinationCalendarController {
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
-  async addSelectedCalendar(
+  async updateDestinationCalendar(
     @Body() input: DestinationCalendarInputBodyDto,
     @GetUser() user: UserWithProfile
   ): Promise<DestinationCalendarOutputResponseDto> {
