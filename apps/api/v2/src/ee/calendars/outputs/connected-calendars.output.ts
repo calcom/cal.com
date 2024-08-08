@@ -105,7 +105,7 @@ class Primary {
   credentialId!: number;
 }
 
-export class Calendar {
+class Calendar {
   @IsEmail()
   externalId!: string;
 
@@ -135,7 +135,7 @@ export class Calendar {
   credentialId!: number;
 }
 
-export class ConnectedCalendar {
+class ConnectedCalendar {
   @ValidateNested()
   @IsObject()
   integration!: Integration;
