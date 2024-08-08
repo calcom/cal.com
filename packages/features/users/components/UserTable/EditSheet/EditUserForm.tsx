@@ -299,9 +299,9 @@ function AttributesList(props: { selectedUserId: number }) {
   const attributeFieldState = getFieldState("attributes");
 
   return (
-    <div className="mt-10 flex flex-col overflow-visible">
+    <div className="flex flex-col overflow-visible">
       <div className="flex flex-col gap-3 rounded-lg">
-        <label className="text-emphasis mb-1 text-base font-semibold">{t("attributes")}</label>
+        <label className="text-emphasis mb-1 mt-6 text-base font-semibold">{t("attributes")}</label>
         {attributeFieldState.error && (
           <p className="text-error mb-2 block text-sm font-medium leading-none">
             {JSON.stringify(attributeFieldState.error)}

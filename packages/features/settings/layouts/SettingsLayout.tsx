@@ -83,11 +83,6 @@ const tabs: VerticalTabItemProps[] = [
         name: "privacy",
         href: "/settings/organizations/privacy",
       },
-      // These are only available if the attributes feature is enabled and is enabled in useTabs (Leaving here for readability of all links)
-      // {
-      //   name: "attributes",
-      //   href: "/settings/organizations/attributes",
-      // },
       {
         name: "billing",
         href: "/settings/organizations/billing",
@@ -153,8 +148,6 @@ const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "di
 const useTabs = () => {
   const session = useSession();
   const { data: user } = trpc.viewer.me.useQuery({ includePasswordAdded: true });
-  // const enabledFlags = useFlags();
-  // console.log("enabledFlags", enabledFlags);
   const orgBranding = useOrgBranding();
   const isAdmin = session.data?.user.role === UserPermissionRole.ADMIN;
   const isOrgAdminOrOwner =
