@@ -67,7 +67,7 @@ export const getEventTypeOptions = async ({ ctx, input }: GetEventTypeOptions) =
     ),
     teamId
       ? []
-      : EventTypeRepository.findAllByUpIdWithMinmalData(
+      : EventTypeRepository.findAllByUpIdWithMinimalData(
           {
             upId: userProfile.upId,
             userId: user.id,

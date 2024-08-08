@@ -216,7 +216,7 @@ export class EventTypeRepository {
     }
   }
 
-  static async findAllByUpIdWithMinmalData(
+  static async findAllByUpIdWithMinimalData(
     { upId, userId }: { upId: string; userId: number },
     {
       orderBy,
@@ -239,7 +239,7 @@ export class EventTypeRepository {
     };
 
     log.debug(
-      "findAllByUpIdWithMinmalData",
+      "findAllByUpIdWithMinimalData",
       safeStringify({
         upId,
         orderBy,
