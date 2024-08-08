@@ -571,32 +571,32 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         />
       )}
       {team?.parentId && (
-        <Controller
-          name="metadata.disableStandardEmails.all.attendee"
-          render={({ field: { value, onChange } }) => {
-            return (
+        <>
+          <Controller
+            name="metadata.disableStandardEmails.all.attendee"
+            render={({ field: { value, onChange } }) => {
+              return (
+                <>
+                  <DisableAllEmailsSetting
+                    checked={value}
+                    onCheckedChange={onChange}
+                    recipient="attendees"
+                    t={t}
+                  />
+                </>
+              );
+            }}
+          />
+          <Controller
+            name="metadata.disableStandardEmails.all.host"
+            defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+            render={({ field: { value, onChange } }) => (
               <>
-                <DisableAllEmailsSetting
-                  checked={value}
-                  onCheckedChange={onChange}
-                  recipient="attendees"
-                  t={t}
-                />
+                <DisableAllEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
               </>
-            );
-          }}
-        />
-      )}
-      {team?.parentId && (
-        <Controller
-          name="metadata.disableStandardEmails.all.host"
-          defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
-          render={({ field: { value, onChange } }) => (
-            <>
-              <DisableAllEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
-            </>
-          )}
-        />
+            )}
+          />
+        </>
       )}
       {showEventNameTip && (
         <CustomEventTypeModal
