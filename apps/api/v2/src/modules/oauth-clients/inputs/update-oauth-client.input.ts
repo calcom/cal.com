@@ -1,6 +1,4 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { WebhookTriggerEvents } from "@prisma/client";
-import { IsArray, IsBoolean, IsEnum, IsOptional, IsString, IsUrl } from "class-validator";
+import { IsArray, IsBoolean, IsOptional, IsString } from "class-validator";
 
 export class UpdateOAuthClientInput {
   @IsOptional()
