@@ -1,5 +1,4 @@
-import { cancelTeamSubscriptionFromStripe } from "@calcom/features/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { TeamBilling } from "@calcom/features/ee/billing/teams";
 import { deleteDomain } from "@calcom/lib/domainManager/organization";
 import { isTeamOwner } from "@calcom/lib/server/queries/teams";
 import { closeComDeleteTeam } from "@calcom/lib/sync/SyncServiceManager";
@@ -21,7 +20,8 @@ type DeleteOptions = {
 export const deleteHandler = async ({ ctx, input }: DeleteOptions) => {
   if (!(await isTeamOwner(ctx.user?.id, input.teamId))) throw new TRPCError({ code: "UNAUTHORIZED" });
 
-  if (IS_TEAM_BILLING_ENABLED) await cancelTeamSubscriptionFromStripe(input.teamId);
+  const teamBilling = await TeamBilling.findAndCreate(input.teamId);
+  await teamBilling.cancel();
 
   try {
     await deleteWorkflowRemindersOfRemovedTeam(input.teamId);

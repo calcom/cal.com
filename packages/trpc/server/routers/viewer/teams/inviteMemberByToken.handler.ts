@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { updateQuantitySubscriptionFromStripe } from "@calcom/ee/teams/lib/payments";
-import { IS_TEAM_BILLING_ENABLED } from "@calcom/lib/constants";
+import { TeamBilling } from "@calcom/ee/billing/teams";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import { TRPCError } from "@calcom/trpc/server";
@@ -60,7 +59,8 @@ export const inviteMemberByTokenHandler = async ({ ctx, input }: InviteMemberByT
     } else throw e;
   }
 
-  if (IS_TEAM_BILLING_ENABLED) await updateQuantitySubscriptionFromStripe(verificationToken.teamId);
+  const teamBilling = await TeamBilling.findAndCreate(verificationToken.teamId);
+  await teamBilling.updateQuantity();
 
   return verificationToken.team.name;
 };
