@@ -603,7 +603,8 @@ async function handler(
           availableUsers: luckyUserPool.filter(
             (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
           ),
-          eventTypeId: eventType.id,
+          allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+          eventType,
         });
         if (!newLuckyUser) {
           break; // prevent infinite loop

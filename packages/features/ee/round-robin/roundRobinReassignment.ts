@@ -87,7 +87,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
-    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2 }));
+    : eventType.users.map((user) => ({
+        user,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        weightAdjustment: 0,
+      }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -129,8 +135,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
-    eventTypeId: eventTypeId,
+    eventType: {
+      id: eventTypeId,
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+    },
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
   });
+
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
