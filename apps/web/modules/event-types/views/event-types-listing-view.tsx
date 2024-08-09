@@ -238,40 +238,46 @@ const Item = ({
     </div>
   );
 
-  return readOnly ? (
-    <div className="flex-1 overflow-hidden pr-4 text-sm">
-      {content()}
-      <EventTypeDescription eventType={type} shortenDescription />
-    </div>
-  ) : (
-    <Link
-      href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 overflow-hidden pr-4 text-sm"
-      title={type.title}>
-      <div>
-        <span
-          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-          data-testid={`event-type-title-${type.id}`}>
-          {type.title}
-        </span>
-        {group.profile.slug ? (
-          <small
-            className="text-subtle hidden font-normal leading-4 sm:inline"
-            data-testid={`event-type-slug-${type.id}`}>
-            {`/${group.profile.slug}/${type.slug}`}
-          </small>
-        ) : null}
-        {readOnly && (
-          <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
-            {t("readonly")}
-          </Badge>
+  return (
+    <div className="relative flex-1 overflow-hidden pr-4 text-sm">
+      {type.eventTypeColour && (
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: type.eventTypeColour }} />
+      )}
+      <div className="ml-3">
+        {readOnly ? (
+          <div>
+            {content()}
+            <EventTypeDescription eventType={type} shortenDescription />
+          </div>
+        ) : (
+          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
+            <div>
+              <span
+                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                data-testid={`event-type-title-${type.id}`}>
+                {type.title}
+              </span>
+              {group.profile.slug ? (
+                <small
+                  className="text-subtle hidden font-normal leading-4 sm:inline"
+                  data-testid={`event-type-slug-${type.id}`}>
+                  {`/${group.profile.slug}/${type.slug}`}
+                </small>
+              ) : null}
+              {readOnly && (
+                <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
+                  {t("readonly")}
+                </Badge>
+              )}
+            </div>
+            <EventTypeDescription
+              eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
+              shortenDescription
+            />
+          </Link>
         )}
       </div>
-      <EventTypeDescription
-        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
-        shortenDescription
-      />
-    </Link>
+    </div>
   );
 };
 
@@ -470,7 +476,7 @@ export const EventTypeList = ({
           return (
             <li key={type.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
-                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden py-4 pl-2 pr-4 sm:pl-3 sm:pr-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}

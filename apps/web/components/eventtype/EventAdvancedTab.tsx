@@ -19,9 +19,12 @@ import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
+import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
+import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import type { Prisma } from "@calcom/prisma/client";
 import { trpc } from "@calcom/trpc/react";
 import {
@@ -37,6 +40,7 @@ import {
   TextField,
   Tooltip,
   showToast,
+  ColorPicker,
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
@@ -49,8 +53,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
+  const [colourError, setColourError] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
+  const [eventTypeColourVisible, setEventTypeColourVisible] = useState(
+    !!formMethods.getValues("eventTypeColour")
+  );
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
@@ -127,9 +135,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
+  const eventTypeColourLocked = shouldLockDisableProps("eventTypeColour");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
+  const { resolvedTheme } = useGetTheme();
+  const defaultEventTypeColour =
+    eventType.eventTypeColour ||
+    (resolvedTheme === "dark" ? DEFAULT_DARK_BRAND_COLOR : DEFAULT_LIGHT_BRAND_COLOR);
+
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
 
@@ -531,6 +545,50 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             onCheckedChange={(e) => onChange(e)}
             data-testid="lock-timezone-toggle"
           />
+        )}
+      />
+      <Controller
+        name="eventTypeColour"
+        render={() => (
+          <SettingsToggle
+            labelClassName="text-sm"
+            toggleSwitchAtTheEnd={true}
+            switchContainerClassName={classNames(
+              "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+              eventTypeColourVisible && "rounded-b-none"
+            )}
+            title={t("event_type_colour")}
+            {...eventTypeColourLocked}
+            description={t("event_type_colour_description")}
+            checked={eventTypeColourVisible}
+            onCheckedChange={(e) => {
+              formMethods.setValue("eventTypeColour", e ? defaultEventTypeColour : null, {
+                shouldDirty: true,
+              });
+              setEventTypeColourVisible(e);
+            }}
+            childrenClassName="lg:ml-0">
+            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+              <ColorPicker
+                defaultValue={defaultEventTypeColour}
+                onChange={(value) => {
+                  try {
+                    checkWCAGContrastColor("#ffffff", value);
+                    checkWCAGContrastColor("#101010", value);
+                    formMethods.setValue("eventTypeColour", value, { shouldDirty: true });
+                    setColourError(false);
+                  } catch (err) {
+                    setColourError(true);
+                  }
+                }}
+              />
+              {colourError ? (
+                <div className="mt-4">
+                  <Alert severity="warning" message={t("event_type_color_contrast_error")} />
+                </div>
+              ) : null}
+            </div>
+          </SettingsToggle>
         )}
       />
       {allowDisablingAttendeeConfirmationEmails(workflows) && (

@@ -50,6 +50,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   secondaryEmailId: true,
   bookingLimits: true,
   durationLimits: true,
+  eventTypeColour: true,
   parent: {
     select: {
       team: {
