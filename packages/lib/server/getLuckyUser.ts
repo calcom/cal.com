@@ -146,11 +146,15 @@ async function getUsersBasedOnWeights<
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
 
-  // Calculate the total weightAdjustments of all round-robin hosts
-  const allWeightAdjustments = allRRHosts.reduce((sum, host) => sum + (host.weightAdjustment ?? 0), 0);
-
-  // Calculate the total weight of all round-robin hosts
-  const totalWeight = allRRHosts.reduce((sum, host) => sum + (host.weight ?? 100), 0);
+  // Calculate the total weightAdjustments and weight of all round-robin hosts
+  const { allWeightAdjustments, totalWeight } = allRRHosts.reduce(
+    (acc, host) => {
+      acc.allWeightAdjustments += host.weightAdjustment ?? 0;
+      acc.totalWeight += host.weight ?? 100;
+      return acc;
+    },
+    { allWeightAdjustments: 0, totalWeight: 0 }
+  );
 
   // Calculate booking shortfall for each available user
   const usersWithBookingShortfalls = availableUsers.map((user) => {
