@@ -238,7 +238,7 @@ export const EditLocationDialog = (props: ISetLocationDialog) => {
             <Icon name="map-pin" className="text-emphasis h-6 w-6" />
           </div>
           <div className="w-full">
-            <div className="mt-3 text-center sm:mt-0 sm:text-left">
+            <div className="mt-3 text-left sm:mt-0">
               <h3 className="text-emphasis text-lg font-medium leading-6" id="modal-title">
                 {t("edit_location")}
               </h3>
