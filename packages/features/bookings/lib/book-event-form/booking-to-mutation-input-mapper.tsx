@@ -14,6 +14,7 @@ export type BookingOptions = {
   timeZone: string;
   language: string;
   rescheduleUid: string | undefined;
+  rescheduledBy: string | undefined;
   username: string;
   metadata?: Record<string, string>;
   bookingUid?: string;
@@ -31,6 +32,7 @@ export const mapBookingToMutationInput = ({
   timeZone,
   language,
   rescheduleUid,
+  rescheduledBy,
   username,
   metadata,
   bookingUid,
@@ -52,6 +54,7 @@ export const mapBookingToMutationInput = ({
     timeZone: timeZone,
     language: language,
     rescheduleUid,
+    rescheduledBy,
     metadata: metadata || {},
     hasHashedBookingLink: hashedLink ? true : false,
     bookingUid,

@@ -25,6 +25,7 @@ type StoreInitializeType = {
   bookingData?: GetBookingType | null | undefined;
   verifiedEmail?: string | null;
   rescheduleUid?: string | null;
+  rescheduledBy?: string | null;
   seatReferenceUid?: string;
   durationConfig?: number[] | null;
   org?: string | null;
@@ -111,11 +112,12 @@ export type BookerStore = {
   dayCount: number | null;
   setDayCount: (dayCount: number | null) => void;
   /**
-   * If booking is being rescheduled or it has seats, it receives a rescheduleUid or bookingUid
+   * If booking is being rescheduled or it has seats, it receives a rescheduleUid with rescheduledBy or bookingUid
    * the current booking details are passed in. The `bookingData`
    * object is something that's fetched server side.
    */
   rescheduleUid: string | null;
+  rescheduledBy: string | null;
   bookingUid: string | null;
   bookingData: GetBookingType | null;
   setBookingData: (bookingData: GetBookingType | null | undefined) => void;
@@ -205,6 +207,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
   username: null,
   eventSlug: null,
   eventId: null,
+  rescheduledBy: null,
   verifiedEmail: null,
   setVerifiedEmail: (email: string | null) => {
     set({ verifiedEmail: email });
@@ -240,6 +243,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
     month,
     eventId,
     rescheduleUid = null,
+    rescheduledBy = null,
     bookingUid = null,
     bookingData = null,
     layout,
@@ -258,7 +262,8 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       get().rescheduleUid === rescheduleUid &&
       get().bookingUid === bookingUid &&
       get().bookingData?.responses.email === bookingData?.responses.email &&
-      get().layout === layout
+      get().layout === layout &&
+      get().rescheduledBy === rescheduledBy
     )
       return;
     set({
@@ -267,6 +272,7 @@ export const useBookerStore = create<BookerStore>((set, get) => ({
       eventId,
       org,
       rescheduleUid,
+      rescheduledBy,
       bookingUid,
       bookingData,
       layout: layout || BookerLayouts.MONTH_VIEW,
@@ -356,6 +362,7 @@ export const useInitializeBookerStore = ({
   month,
   eventId,
   rescheduleUid = null,
+  rescheduledBy = null,
   bookingData = null,
   verifiedEmail = null,
   layout,
@@ -372,6 +379,7 @@ export const useInitializeBookerStore = ({
       month,
       eventId,
       rescheduleUid,
+      rescheduledBy,
       bookingData,
       layout,
       isTeamEvent,
@@ -388,6 +396,7 @@ export const useInitializeBookerStore = ({
     month,
     eventId,
     rescheduleUid,
+    rescheduledBy,
     bookingData,
     layout,
     isTeamEvent,

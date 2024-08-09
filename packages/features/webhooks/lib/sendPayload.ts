@@ -60,6 +60,8 @@ export type WebhookDataType = CalendarEvent &
     createdAt: string;
     downloadLink?: string;
     paymentId?: number;
+    rescheduledBy?: string;
+    cancelledBy?: string;
     paymentData?: Payment;
   };
 
