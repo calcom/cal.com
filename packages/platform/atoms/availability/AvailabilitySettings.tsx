@@ -61,7 +61,7 @@ export type CustomClassNames = {
     timeRanges?: string;
     labelAndSwitchContainer?: string;
   };
-  overridesModalClassName?: string;
+  overridesModalClassNames?: string;
 };
 
 export type Availability = Pick<Schedule, "days" | "startTime" | "endTime">;
@@ -153,13 +153,13 @@ const DateOverride = ({
   userTimeFormat,
   travelSchedules,
   weekStart,
-  overridesModalClassName,
+  overridesModalClassNames,
 }: {
   workingHours: WorkingHours[];
   userTimeFormat: number | null;
   travelSchedules?: RouterOutputs["viewer"]["getTravelSchedules"];
   weekStart: 0 | 1 | 2 | 3 | 4 | 5 | 6;
-  overridesModalClassName?: string;
+  overridesModalClassNames?: string;
 }) => {
   const { append, replace, fields } = useFieldArray<AvailabilityFormValues, "dateOverrides">({
     name: "dateOverrides",
@@ -189,7 +189,7 @@ const DateOverride = ({
           travelSchedules={travelSchedules}
         />
         <DateOverrideInputDialog
-          className={overridesModalClassName}
+          className={overridesModalClassNames}
           workingHours={workingHours}
           excludedDates={excludedDates}
           onChange={(ranges) => ranges.forEach((range) => append({ ranges: [range] }))}
@@ -529,7 +529,7 @@ export function AvailabilitySettings({
                     weekStart
                   ) as 0 | 1 | 2 | 3 | 4 | 5 | 6
                 }
-                overridesModalClassName={customClassNames?.overridesModalClassName}
+                overridesModalClassNames={customClassNames?.overridesModalClassNames}
               />
             )}
           </div>
