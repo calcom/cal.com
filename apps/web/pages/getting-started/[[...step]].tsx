@@ -2,7 +2,7 @@
 
 import { signOut } from "next-auth/react";
 import Head from "next/head";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { z } from "zod";
 
@@ -49,7 +49,7 @@ const stepRouteSchema = z.object({
 const OnboardingPage = () => {
   const pathname = usePathname();
   const params = useParamsWithFallback();
-
+  const searchParams = useSearchParams();
   const router = useRouter();
   const [user] = trpc.viewer.me.useSuspenseQuery();
   const { t } = useLocale();
@@ -61,6 +61,8 @@ const OnboardingPage = () => {
 
   const currentStep = result.success ? result.data.step[0] : INITIAL_STEP;
   const from = result.success ? result.data.from : "";
+  const callbackBookerUrl = searchParams?.get("callbackUrl");
+  const isOverlayUser = currentStep === "connected-calendar" && !!callbackBookerUrl;
   const headers = [
     {
       title: `${t("welcome_to_cal_header", { appName: APP_NAME })}`,
@@ -137,14 +139,24 @@ const OnboardingPage = () => {
                   </p>
                 ))}
               </header>
-              <Steps maxSteps={steps.length} currentStep={currentStepIndex + 1} navigateToStep={goToIndex} />
+              {!isOverlayUser && (
+                <Steps
+                  maxSteps={steps.length}
+                  currentStep={currentStepIndex + 1}
+                  navigateToStep={goToIndex}
+                />
+              )}
             </div>
             <StepCard>
               <Suspense fallback={<Icon name="loader" />}>
                 {currentStep === "user-settings" && (
                   <UserSettings nextStep={() => goToIndex(1)} hideUsername={from === "signup"} />
                 )}
-                {currentStep === "connected-calendar" && <ConnectedCalendars nextStep={() => goToIndex(2)} />}
+                {currentStep === "connected-calendar" && (
+                  <ConnectedCalendars
+                    nextStep={isOverlayUser ? () => router.push(callbackBookerUrl) : () => goToIndex(2)}
+                  />
+                )}
 
                 {currentStep === "connected-video" && <ConnectedVideoStep nextStep={() => goToIndex(3)} />}
 
@@ -158,7 +170,7 @@ const OnboardingPage = () => {
               </Suspense>
             </StepCard>
 
-            {headers[currentStepIndex]?.skipText && (
+            {!isOverlayUser && headers[currentStepIndex]?.skipText && (
               <div className="flex w-full flex-row justify-center">
                 <Button
                   color="minimal"

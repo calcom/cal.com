@@ -1,3 +1,5 @@
+import { useSearchParams } from "next/navigation";
+
 import classNames from "@calcom/lib/classNames";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
@@ -14,12 +16,15 @@ interface IConnectCalendarsProps {
 
 const ConnectedCalendars = (props: IConnectCalendarsProps) => {
   const { nextStep } = props;
+  const searchParams = useSearchParams();
+  const callbackBookerUrl = searchParams?.get("callbackUrl");
   const queryConnectedCalendars = trpc.viewer.connectedCalendars.useQuery({ onboarding: true });
   const { t } = useLocale();
   const queryIntegrations = trpc.viewer.integrations.useQuery({
     variant: "calendar",
     onlyInstalled: false,
     sortByMostPopular: true,
+    appId: callbackBookerUrl ? "google-calendar" : undefined,
   });
 
   const firstCalendar = queryConnectedCalendars.data?.connectedCalendars.find(

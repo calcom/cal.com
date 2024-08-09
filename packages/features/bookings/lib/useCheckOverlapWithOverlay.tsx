@@ -22,6 +22,7 @@ export function useCheckOverlapWithOverlay({
 
   let overlappingTimeStart: string | null = null;
   let overlappingTimeEnd: string | null = null;
+  let overlayEventTitle: string | null = null;
 
   const isOverlapping =
     overlayBusyDates &&
@@ -37,13 +38,15 @@ export function useCheckOverlapWithOverlay({
 
       overlappingTimeStart = isOverlapping ? getCurrentTime(busyDateStart.toDate()) : null;
       overlappingTimeEnd = isOverlapping ? getCurrentTime(busyDateEnd.toDate()) : null;
+      overlayEventTitle = isOverlapping && busyDate.title ? busyDate.title : "Busy";
 
       return isOverlapping;
     });
 
-  return { isOverlapping, overlappingTimeStart, overlappingTimeEnd } as {
+  return { isOverlapping, overlappingTimeStart, overlappingTimeEnd, overlayEventTitle } as {
     isOverlapping: boolean;
     overlappingTimeStart: string | null;
     overlappingTimeEnd: string | null;
+    overlayEventTitle: string | null;
   };
 }
