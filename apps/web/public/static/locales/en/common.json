@@ -2524,6 +2524,8 @@
   "attribute_updated_successfully": "Attribute updated successfully",
   "attribute_meta_description": "Manage attributes for your team members",
   "back_to_attributes": "Back to attributes",
+  "delete_attribute": "Are you sure you want to delete this option?",
+  "delete_attribute_description":"This option is assigned to {{numberOfUsers}} members. Deleting it will remove it from their profile.",
   "grant_admin_api": "Grant Admin API Access",
   "revoke_admin_api": "Revoke Admin API Access",
   "apple_connect_atom_label": "Connect Apple Calendar",

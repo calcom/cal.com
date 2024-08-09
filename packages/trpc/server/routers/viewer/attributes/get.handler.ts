@@ -37,19 +37,37 @@ const getAttributeHandler = async ({ input, ctx }: GetOptions) => {
         select: {
           id: true,
           value: true,
+          _count: {
+            select: {
+              assignedUsers: true,
+            },
+          },
         },
       },
     },
   });
 
+  const formattedAttribute = {
+    ...attribute,
+    options: attribute?.options.map((option) => {
+      const { _count, ...rest } = option;
+      return {
+        ...rest,
+        assignedUsers: _count?.assignedUsers || 0,
+      };
+    }),
+  };
+
   const attrReturnValue = z.object({
     id: z.string(),
     name: z.string(),
     type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-    options: z.array(z.object({ value: z.string(), id: z.string().optional() })),
+    options: z.array(
+      z.object({ value: z.string(), id: z.string().optional(), assignedUsers: z.number().optional() })
+    ),
   });
 
-  return attrReturnValue.parse(attribute);
+  return attrReturnValue.parse(formattedAttribute);
 };
 
 export default getAttributeHandler;

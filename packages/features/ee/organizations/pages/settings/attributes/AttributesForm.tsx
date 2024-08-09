@@ -1,16 +1,27 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React from "react";
+import React, { useState } from "react";
 import { Controller, useForm, useFieldArray } from "react-hook-form";
 import { z } from "zod";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { Button, Form, SelectField, InputField, Label, Input } from "@calcom/ui";
+import {
+  Button,
+  Form,
+  SelectField,
+  InputField,
+  Label,
+  Input,
+  Dialog,
+  ConfirmationDialogContent,
+} from "@calcom/ui";
 
 const AttributeSchema = z.object({
   attrName: z.string().min(1),
   type: z.enum(["TEXT", "NUMBER", "SINGLE_SELECT", "MULTI_SELECT"]),
-  options: z.array(z.object({ value: z.string(), id: z.string().optional() })),
+  options: z.array(
+    z.object({ value: z.string(), id: z.string().optional(), assignedUsers: z.number().optional() })
+  ),
 });
 
 type FormValues = z.infer<typeof AttributeSchema>;
@@ -30,6 +41,13 @@ interface AttributeFormProps {
 
 export function AttributeForm({ initialValues, onSubmit, header }: AttributeFormProps) {
   const { t } = useLocale();
+  const [deleteOptionDialog, setDeleteOptionDialog] = useState<{
+    id: number | undefined;
+    open: boolean;
+  }>({
+    id: undefined,
+    open: false,
+  });
   const [listRef] = useAutoAnimate<HTMLDivElement>({
     duration: 300,
     easing: "ease-in-out",
@@ -94,7 +112,13 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
                     color="minimal"
                     className="mb-2"
                     disabled={index === 0 && fields.length === 1}
-                    onClick={() => remove(index)}
+                    onClick={() => {
+                      if (field.assignedUsers && field.assignedUsers > 0) {
+                        setDeleteOptionDialog({ id: index, open: true });
+                      } else {
+                        remove(index);
+                      }
+                    }}
                   />
                 </div>
               ))}
@@ -105,6 +129,24 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
           </Button>
         </div>
       )}
+      <Dialog
+        open={deleteOptionDialog.open}
+        onOpenChange={() => setDeleteOptionDialog({ id: undefined, open: false })}>
+        <ConfirmationDialogContent
+          title={t("delete_attribute")}
+          confirmBtnText={t("delete")}
+          onConfirm={() => {
+            remove(deleteOptionDialog.id as number);
+            setDeleteOptionDialog({ id: undefined, open: false });
+          }}
+          loadingText={t("deleting_attribute")}>
+          <>
+            {t("delete_attribute_description", {
+              numberOfUsers: fields[deleteOptionDialog.id as number]?.assignedUsers || 0,
+            })}
+          </>
+        </ConfirmationDialogContent>
+      </Dialog>
     </Form>
   );
 }
