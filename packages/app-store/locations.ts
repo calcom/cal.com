@@ -26,7 +26,14 @@ export type DefaultEventLocationType = {
     | "locationPhoneNumber"
     | "phone"
     | "hostDefault";
-  defaultValueVariable: "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone";
+  defaultValueVariable:
+    | "address"
+    | "attendeeAddress"
+    | "link"
+    | "hostPhoneNumber"
+    | "hostDefault"
+    | "phone"
+    | "anyLocation";
 } & (
   | {
       organizerInputType: "phone" | "text" | null;
@@ -35,7 +42,7 @@ export type DefaultEventLocationType = {
       attendeeInputPlaceholder?: null;
     }
   | {
-      attendeeInputType: "phone" | "attendeeAddress" | null;
+      attendeeInputType: "phone" | "attendeeAddress" | "anyLocation" | null;
       attendeeInputPlaceholder: string;
       organizerInputType?: null;
       organizerInputPlaceholder?: null;
@@ -78,6 +85,7 @@ export enum DefaultEventLocationTypeEnum {
   Link = "link",
   // Same as `OrganizerDefaultConferencingAppType`
   Conferencing = "conferencing",
+  SomewhereElse = "somewhereElse",
 }
 
 export const defaultLocations: DefaultEventLocationType[] = [
@@ -93,6 +101,19 @@ export const defaultLocations: DefaultEventLocationType[] = [
     defaultValueVariable: "attendeeAddress",
     iconUrl: "/map-pin-dark.svg",
     category: "in person",
+  },
+  {
+    default: true,
+    type: DefaultEventLocationTypeEnum.SomewhereElse,
+    label: "somewhere_else",
+    variable: "address",
+    organizerInputType: null,
+    messageForOrganizer: "Cal will ask your invitee to enter any location before scheduling.",
+    attendeeInputType: "anyLocation",
+    attendeeInputPlaceholder: "any_location",
+    defaultValueVariable: "anyLocation",
+    iconUrl: "/message-pin.svg",
+    category: "other",
   },
   {
     default: true,
@@ -163,6 +184,7 @@ const translateAbleKeys = [
   "link_meeting",
   "organizer_phone_number",
   "organizer_default_conferencing_app",
+  "somewhere_else",
 ];
 
 export type LocationObject = {
@@ -171,7 +193,10 @@ export type LocationObject = {
   displayLocationPublicly?: boolean;
   credentialId?: number;
 } & Partial<
-  Record<"address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone", string>
+  Record<
+    "address" | "attendeeAddress" | "link" | "hostPhoneNumber" | "hostDefault" | "phone" | "anyLocation",
+    string
+  >
 >;
 
 // integrations:jitsi | 919999999999 | Delhi | https://manual.meeting.link | Around Video
