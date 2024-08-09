@@ -7,13 +7,14 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import type { ITimezone } from "@calcom/ui";
-import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
+import { Avatar, DatePicker, Label, Select, TimezoneSelect, Button } from "@calcom/ui";
 
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
   team?: RouterOutputs["viewer"]["teams"]["get"];
   member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  onExit?: () => void;
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -95,6 +96,9 @@ export default function TeamAvailabilityModal(props: Props) {
                 selectedTimeZone={selectedTimeZone}
               />
             )}
+          </div>
+          <div className="col-span-2 justify-self-end">
+            <Button onClick={props.onExit}>{t("Done")}</Button>
           </div>
         </div>
       </>
