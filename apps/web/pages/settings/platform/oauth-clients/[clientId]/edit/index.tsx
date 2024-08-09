@@ -2,7 +2,6 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
-import { WebhookForm } from "@calcom/features/webhooks/components";
 import { ErrorCode } from "@calcom/lib/errorCodes";
 import { PERMISSIONS_GROUPED_MAP } from "@calcom/platform-constants";
 import { showToast } from "@calcom/ui";
@@ -117,27 +116,6 @@ export default function EditOAuthClient() {
             )}
             {isFetching && <p>Loading...</p>}
             {isError && <p>Something went wrong.</p>}
-          </div>
-
-          <div className="m-2 md:mx-14 md:mx-5">
-            <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
-              <div className="flex w-full flex-col">
-                <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                  Webhook update form
-                </h1>
-                <p className="text-default text-sm ltr:mr-4 rtl:ml-4">Add a webhook to your OAuthClient.</p>
-              </div>
-            </div>
-
-            <WebhookForm
-              onSubmit={() => {
-                console.log("Webhook form submitted");
-              }}
-              onCancel={() => {
-                router.push("/settings/platform/");
-              }}
-              noRoutingFormTriggers={true}
-            />
           </div>
         </Shell>
       </div>
