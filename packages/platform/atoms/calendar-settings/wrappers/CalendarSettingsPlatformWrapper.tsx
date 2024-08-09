@@ -45,6 +45,7 @@ export const CalendarSettingsPlatformWrapper = () => {
                     if (!!connectedCalendar.calendars) {
                       return (
                         <AppListCard
+                          key={`list-${connectedCalendar.credentialId}-${connectedCalendar.integration.slug}`}
                           shouldHighlight
                           slug={connectedCalendar.integration.slug}
                           title={connectedCalendar.integration.name}
