@@ -54,7 +54,7 @@ const WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2: Record<string, WebhookTriggerEve
 const WebhookForm = (props: {
   webhook?: WebhookFormData;
   apps?: (keyof typeof WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2)[];
-  overrideTriggerOptions?: WebhookTriggerEventOptions;
+  overrideTriggerOptions?: WebhookTriggerEventOptions[];
   onSubmit: (event: WebhookFormSubmitData) => void;
   onCancel?: () => void;
   noRoutingFormTriggers: boolean;
