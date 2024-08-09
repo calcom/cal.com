@@ -6,7 +6,7 @@ import {
   DestinationCalendarsOutputDto,
   DestinationCalendarsOutputResponseDto,
 } from "@/modules/destination-calendars/outputs/destination-calendars.output";
-import { DestinationCalendarService } from "@/modules/destination-calendars/services/destination-calendars.service";
+import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -19,8 +19,8 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
   version: API_VERSIONS_VALUES,
 })
 @DocsTags("Destination-Calendars")
-export class DestinationCalendarController {
-  constructor(private readonly destinationCalendarService: DestinationCalendarService) {}
+export class DestinationCalendarsController {
+  constructor(private readonly destinationCalendarService: DestinationCalendarsService) {}
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
