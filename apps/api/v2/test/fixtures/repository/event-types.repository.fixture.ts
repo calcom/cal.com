@@ -3,6 +3,7 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
+import { connect } from "http2";
 
 import { Prisma } from "@calcom/prisma/client";
 
@@ -34,14 +35,15 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async create(
-    data: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">,
-    userId: number
-  ) {
+  async create(data: Prisma.EventTypeCreateInput, userId: number) {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
-        userId,
+        owner: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }
