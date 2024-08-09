@@ -259,7 +259,8 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             },
           }}
           shouldConsiderRequired={(field: BookingField) => {
-            return field.name === "location" ? true : !!field.required;
+            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+            return field.name === "location" ? true : field.required;
           }}
         />
       </div>

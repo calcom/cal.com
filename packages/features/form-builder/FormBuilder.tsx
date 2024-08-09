@@ -76,7 +76,11 @@ export const FormBuilder = function FormBuilder({
       }
     >;
   };
-  shouldConsiderRequired?: (field: RhfFormField) => boolean;
+  /**
+   * This is kind of a hack to allow certain fields to be just shown as required when they might not be required in a strict sense
+   * e.g. Location field has a default value at backend so API can send no location but formBuilder in UI doesn't allow it.
+   */
+  shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
 }) {
   // I would have liked to give Form Builder it's own Form but nested Forms aren't something that browsers support.
   // So, this would reuse the same Form as the parent form.
@@ -322,6 +326,7 @@ export const FormBuilder = function FormBuilder({
               data: null,
             });
           }}
+          shouldConsiderRequired={shouldConsiderRequired}
         />
       )}
     </div>
@@ -424,7 +429,7 @@ function FieldEditDialog({
   dialog: { isOpen: boolean; fieldIndex: number; data: RhfFormField | null };
   onOpenChange: (isOpen: boolean) => void;
   handleSubmit: SubmitHandler<RhfFormField>;
-  shouldConsiderRequired?: (field: RhfFormField) => boolean;
+  shouldConsiderRequired?: (field: RhfFormField) => boolean | undefined;
 }) {
   const { t } = useLocale();
   const fieldForm = useForm<RhfFormField>({
@@ -530,10 +535,10 @@ function FieldEditDialog({
                     <Controller
                       name="required"
                       control={fieldForm.control}
-                      render={({ field: { onChange } }) => {
+                      render={({ field: { value, onChange } }) => {
                         const isRequired = shouldConsiderRequired
                           ? shouldConsiderRequired(fieldForm.getValues())
-                          : fieldForm.getValues("required");
+                          : value;
                         return (
                           <BooleanToggleGroupField
                             data-testid="field-required"
