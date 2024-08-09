@@ -5,7 +5,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/repositori
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable } from "@nestjs/common";
 
-import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries-0.0.22";
+import { updateNewTeamMemberEventTypes } from "@calcom/platform-libraries-0.0.26";
 
 @Injectable()
 export class OrganizationsTeamsService {

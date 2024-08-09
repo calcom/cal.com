@@ -1,17 +1,20 @@
-// find all lucide icons at https://lucide.dev/
-// github https://github.com/lucide-icons/lucide
-import type { LucideProps } from "lucide-react";
-import { memo } from "react";
+import { type SVGProps } from "react";
 
-import IconDev from "./IconDev";
-import type { IconName } from "./dynamicIconImports";
+import type { IconName } from "./icon-names";
 
-interface IconProps extends Omit<LucideProps, "ref"> {
+function Icon({
+  name,
+  size,
+  ...props
+}: SVGProps<SVGSVGElement> & {
   name: IconName;
+  size?: number | string;
+}) {
+  return (
+    <svg height={size} width={size} {...props} aria-hidden>
+      <use href={`/icons/sprite.svg#${name}`} />
+    </svg>
+  );
 }
-
-const Icon = memo((props: IconProps) => <IconDev {...props} />);
-
-Icon.displayName = "Icon";
-
+export { IconName };
 export default Icon;

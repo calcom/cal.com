@@ -8,7 +8,6 @@
     ".": "./index.tsx",
     "./components/toast": "./components/toast/index.tsx",
     "./components/icon": "./components/icon/index.ts",
-    "./components/icon/Discord": "./components/icon/Discord.tsx",
     "./components/icon/SatSymbol": "./components/icon/SatSymbol.tsx",
     "./components/icon/Spinner": "./components/icon/Spinner.tsx",
     "./components/unpublished-entity/UnpublishedEntity": "./components/unpublished-entity/index.ts",
@@ -21,7 +20,8 @@
     "type-check": "tsc --pretty --noEmit",
     "type-check:ci": "tsc-absolute --pretty --noEmit",
     "lint:fix": "eslint . --fix",
-    "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json"
+    "lint:report": "eslint . --format json --output-file ../../lint-results/ui.json",
+    "build:icons": "node ./scripts/build-icons.mjs"
   },
   "dependencies": {
     "@calcom/lib": "*",
@@ -42,13 +42,11 @@
     "cmk": "^0.1.1",
     "date-fns": "^3.6.0",
     "downshift": "^6.1.9",
-    "lucide-react": "^0.364.0",
     "next": "^13.5.4",
     "next-seo": "^6.0.0",
     "react": "^18.2.0",
     "react-colorful": "^5.6.0",
     "react-day-picker": "^8.10.1",
-    "react-feather": "^2.0.10",
     "react-hook-form": "^7.43.3",
     "react-select": "^5.7.0",
     "react-virtual": "^2.10.4"
@@ -58,6 +56,11 @@
     "@calcom/tsconfig": "*",
     "@types/react": "18.0.26",
     "@types/react-dom": "^18.0.9",
+    "execa": "^9.3.0",
+    "fast-glob": "^3.3.2",
+    "fs-extra": "^11.2.0",
+    "lucide-static": "^0.424.0",
+    "node-html-parser": "^6.1.13",
     "typescript": "^4.9.4"
   }
 }
