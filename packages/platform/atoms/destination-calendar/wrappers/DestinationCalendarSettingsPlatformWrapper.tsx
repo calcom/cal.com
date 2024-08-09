@@ -21,7 +21,6 @@ export const DestinationCalendarSettingsPlatformWrapper = () => {
         hidePlaceholder
         hideAdvancedText
         onChange={async ({ externalId, integration }) => {
-          console.log("changing values now", externalId, "external id", integration, "integration");
           await updateDestinationCalendars({ integration, externalId });
         }}
         isPending={isUpdatingCalendar}
