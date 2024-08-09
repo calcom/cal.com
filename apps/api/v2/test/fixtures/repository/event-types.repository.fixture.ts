@@ -3,7 +3,6 @@ import { PrismaReadService } from "@/modules/prisma/prisma-read.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { TestingModule } from "@nestjs/testing";
 import { EventType } from "@prisma/client";
-import { connect } from "http2";
 
 import { Prisma } from "@calcom/prisma/client";
 
