@@ -63,7 +63,9 @@ const WebhookForm = (props: {
   const { apps = [], selectOnlyInstantMeetingOption = false, overrideTriggerOptions } = props;
   const { t } = useLocale();
 
-  const triggerOptions = overrideTriggerOptions ?? [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
+  const triggerOptions = overrideTriggerOptions
+    ? [...overrideTriggerOptions]
+    : [...WEBHOOK_TRIGGER_EVENTS_GROUPED_BY_APP_V2["core"]];
   if (apps) {
     for (const app of apps) {
       if (app === "routing-forms" && props.noRoutingFormTriggers) continue;
