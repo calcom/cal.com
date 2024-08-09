@@ -1,17 +1,18 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 
-import { useConnectedCalendars } from "@calcom/atoms";
+import { useConnectedCalendars, DestinationCalendarSettings } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export default function Calendars(props: { calUsername: string; calEmail: string }) {
-  const { isLoading, data: calendars } = useConnectedCalendars();
+  const { isLoading, data: calendars } = useConnectedCalendars({});
   const connectedCalendars = calendars?.connectedCalendars ?? [];
   const destinationCalendar = calendars?.destinationCalendar ?? {};
   return (
     <main className={`flex min-h-screen flex-col ${inter.className}`}>
       <Navbar username={props.calUsername} />
+      <DestinationCalendarSettings />
       <div className="p-4">
         {!!connectedCalendars?.length ? (
           <h1 className="my-4 text-lg font-bold">Your Connected Calendars</h1>
