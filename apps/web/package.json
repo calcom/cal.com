@@ -19,7 +19,8 @@
     "lint:fix": "eslint . --ext .ts,.js,.tsx,.jsx --fix",
     "lint:report": "eslint . --format json --output-file ../../lint-results/web.json",
     "check-changed-files": "ts-node scripts/ts-check-changed-files.ts",
-    "translate-locales": "ts-node scripts/check-missing-translations.ts"
+    "translate-locales": "ts-node scripts/check-missing-translations.ts",
+    "clean-translations": "ts-node scripts/cleanTranslations.ts"
   },
   "engines": {
     "node": "18",
