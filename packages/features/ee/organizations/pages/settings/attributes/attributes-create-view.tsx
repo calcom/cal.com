@@ -75,7 +75,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
             <span className="sr-only">{t("back_to_attributes")}</span>
           </Button>
           <div className="font-cal text-cal flex space-x-1 text-xl font-semibold leading-none">
-            <h1 className="text-subtle">{meta.title}</h1>
+            <h1 className="text-emphasis">{meta.title}</h1>
             {watchedTitle && (
               <>
                 <span className="text-subtle">/</span> <span className="text-emphasis">{watchedTitle}</span>
@@ -90,7 +90,6 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
     </>
   );
 }
-
 function getLayout(page: React.ReactElement) {
   return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }

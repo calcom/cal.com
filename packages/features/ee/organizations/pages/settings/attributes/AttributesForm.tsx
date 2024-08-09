@@ -54,7 +54,7 @@ export function AttributeForm({ initialValues, onSubmit, header }: AttributeForm
   return (
     <Form
       form={form}
-      className="mt-6 flex flex-col space-y-4 lg:space-y-6"
+      className="flex flex-col space-y-4 lg:space-y-6"
       handleSubmit={(values) => {
         onSubmit({
           ...values,

@@ -3,7 +3,7 @@
 import { useState } from "react";
 
 import LicenseRequired from "@calcom/features/ee/common/components/LicenseRequired";
-import { getLayout } from "@calcom/features/settings/layouts/SettingsLayout";
+import SettingsLayout from "@calcom/features/settings/layouts/SettingsLayout";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   Icon,
   showToast,
+  useMeta,
 } from "@calcom/ui";
 
 import { ListSkeleton } from "./ListSkeleton";
@@ -142,7 +143,7 @@ function OrganizationAttributesPage() {
   return (
     <>
       <Meta title={t("attributes")} description={t("attribute_meta_description")} />
-
+      <ListAttributeHeader />
       <LicenseRequired>
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
           {data && data?.length > 0 ? (
@@ -186,6 +187,27 @@ function OrganizationAttributesPage() {
       </LicenseRequired>
     </>
   );
+}
+
+function ListAttributeHeader(props: { isPending: boolean }) {
+  const { meta } = useMeta();
+
+  return (
+    <>
+      <div className="min-h-6 mb-6 mt-6 flex flex-grow items-center justify-between lg:mt-12">
+        <div className="flex items-center gap-4 ">
+          <div className="flex flex-col space-y-1 ">
+            <h1 className="text-emphasis font-cal text-xl font-semibold leading-none">{meta.title}</h1>
+            <p className="text-subtle text-sm">{meta.description}</p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function getLayout(page: React.ReactElement) {
+  return <SettingsLayout hideHeader>{page}</SettingsLayout>;
 }
 
 OrganizationAttributesPage.getLayout = getLayout;
