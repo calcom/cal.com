@@ -75,7 +75,7 @@ export default function TeamList(props: Props) {
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),
-                      "data-testId": "setup_your_org_action_button",
+                      "data-testid": "setup_your_org_action_button",
                     }}
                   />
                   <Card
