@@ -8,7 +8,7 @@ export const DestinationCalendarSettings = (props: DestinationCalendarProps) => 
   const { t } = useLocale();
 
   return (
-    <div>
+    <div className="border-subtle mb-6 mt-8 rounded-lg border">
       <DestinationCalendarSettingsHeading />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">

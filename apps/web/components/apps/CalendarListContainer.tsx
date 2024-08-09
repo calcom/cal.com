@@ -220,9 +220,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
               <>
                 {heading && (
                   <>
-                    <div className="border-subtle mb-6 mt-8 rounded-lg border">
-                      <DestinationCalendarSettingsWebWrapper />
-                    </div>
+                    <DestinationCalendarSettingsWebWrapper />
                     <ConnectedCalendarsList
                       onChanged={onChanged}
                       fromOnboarding={fromOnboarding}
