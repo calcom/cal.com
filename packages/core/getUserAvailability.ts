@@ -409,8 +409,8 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
+    start: dayjs(busy.start).tz(timeZone),
+    end: dayjs(busy.end).tz(timeZone),
   }));
 
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
