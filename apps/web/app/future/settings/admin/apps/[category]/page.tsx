@@ -1,5 +1,6 @@
-import Page from "@pages/settings/admin/apps/[category]";
 import { _generateMetadata } from "app/_utils";
+
+import AdminAppsView from "~/settings/admin/apps/admin-apps-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -7,4 +8,4 @@ export const generateMetadata = async () =>
     (t) => t("admin_apps_description")
   );
 
-export default Page;
+export default AdminAppsView;
