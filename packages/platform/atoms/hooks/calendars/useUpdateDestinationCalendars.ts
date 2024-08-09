@@ -6,13 +6,13 @@ import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 import http from "../../lib/http";
 import { QUERY_KEY } from "../useConnectedCalendars";
 
-interface IUseUpdateDestinationCalendar {
+interface IUseUpdateDestinationCalendars {
   onSuccess?: (res: ApiResponse) => void;
   onError?: (err: ApiErrorResponse | Error) => void;
 }
 
-export const useUpdateDestinationCalendar = (
-  { onSuccess, onError }: IUseUpdateDestinationCalendar = {
+export const useUpdateDestinationCalendars = (
+  { onSuccess, onError }: IUseUpdateDestinationCalendars = {
     onSuccess: () => {
       return;
     },
@@ -36,7 +36,7 @@ export const useUpdateDestinationCalendar = (
     { integration: string; externalId: string }
   >({
     mutationFn: (data) => {
-      return http.post(`/destination-calendar`, data).then((res) => {
+      return http.post(`/destination-calendars`, data).then((res) => {
         return res.data;
       });
     },

@@ -1,11 +1,12 @@
-import { useUpdateDestinationCalendar } from "../../hooks/calendars/useUpdateDestinationCalendar";
+import { useUpdateDestinationCalendars } from "../../hooks/calendars/useUpdateDestinationCalendars";
 import { useConnectedCalendars } from "../../hooks/useConnectedCalendars";
 import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { DestinationCalendarSettings } from "../DestinationCalendar";
 
 export const DestinationCalendarSettingsPlatformWrapper = () => {
   const calendars = useConnectedCalendars({});
-  const { mutate: updateDestinationCalendar, isPending: isUpdatingCalendar } = useUpdateDestinationCalendar();
+  const { mutate: updateDestinationCalendars, isPending: isUpdatingCalendar } =
+    useUpdateDestinationCalendars();
 
   if (!calendars.data?.connectedCalendars) {
     return null;
@@ -21,7 +22,7 @@ export const DestinationCalendarSettingsPlatformWrapper = () => {
         hideAdvancedText
         onChange={async ({ externalId, integration }) => {
           console.log("changing values now", externalId, "external id", integration, "integration");
-          await updateDestinationCalendar({ integration, externalId });
+          await updateDestinationCalendars({ integration, externalId });
         }}
         isPending={isUpdatingCalendar}
       />

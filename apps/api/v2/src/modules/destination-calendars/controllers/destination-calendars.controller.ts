@@ -20,7 +20,7 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 })
 @DocsTags("Destination-Calendars")
 export class DestinationCalendarsController {
-  constructor(private readonly destinationCalendarService: DestinationCalendarsService) {}
+  constructor(private readonly destinationCalendarsService: DestinationCalendarsService) {}
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
@@ -29,7 +29,7 @@ export class DestinationCalendarsController {
     @GetUser() user: UserWithProfile
   ): Promise<DestinationCalendarsOutputResponseDto> {
     const { integration, externalId } = input;
-    const updatedDestinationCalendar = await this.destinationCalendarService.updateDestinationCalendars(
+    const updatedDestinationCalendar = await this.destinationCalendarsService.updateDestinationCalendars(
       integration,
       externalId,
       user.id
