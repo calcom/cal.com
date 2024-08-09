@@ -296,7 +296,12 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      hashedLink: eventType.hashedLink?.link || undefined,
+      hashedLink:
+        eventType.hashedLink.find((link) => {
+          return link.destroyOnUse === false;
+        })?.link || undefined,
+      singleUseLinks:
+        eventType.hashedLink.filter((link) => link.destroyOnUse === true).map((link) => link.link) || [],
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -532,6 +537,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
@@ -795,7 +802,12 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
             }, {});
 
             if (dirtyFieldExists) {
-              updateMutation.mutate({ ...filteredPayload, id: eventType.id, hashedLink: values.hashedLink });
+              updateMutation.mutate({
+                ...filteredPayload,
+                id: eventType.id,
+                hashedLink: values.hashedLink,
+                singleUseLinks: values.singleUseLinks,
+              });
             }
           }}>
           <div ref={animationParentRef}>{tabMap[tabName]}</div>

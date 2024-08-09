@@ -24,7 +24,7 @@ interface handleChildrenEventTypesProps {
     workflows?: { workflowId: number }[];
   } | null;
   hashedLink: string | undefined;
-  connectedLink: { id: number } | null;
+  connectedLink: { id: number; link: string; destroyOnUse: boolean } | null;
   children:
     | {
         hidden: boolean;
@@ -153,7 +153,11 @@ export default async function handleChildrenEventTypes({
         ? { create: { link: generateHashedLink(userId) } }
         : undefined
       : connectedLink
-      ? { delete: true }
+      ? {
+          delete: {
+            link: generateHashedLink(userId),
+          },
+        }
       : undefined;
   };
 

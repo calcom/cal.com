@@ -1,3 +1,4 @@
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
 import { useEffect, useState } from "react";
@@ -41,6 +42,85 @@ import {
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
 
+const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
+  const formMethods = useFormContext<FormValues>();
+  const { t } = useLocale();
+  const [animateRef] = useAutoAnimate<HTMLUListElement>();
+  return (
+    <Controller
+      name="singleUseLinks"
+      control={formMethods.control}
+      render={({ field: { value, onChange } }) => {
+        if (!value) {
+          value = [];
+        }
+        const addSingleUseLink = () => {
+          const newSingleUseLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
+          value.push(newSingleUseLink);
+          onChange(value);
+        };
+
+        const removeSingleUseLink = (index: number) => {
+          value.splice(index, 1);
+          onChange(value);
+        };
+
+        return (
+          <ul ref={animateRef}>
+            {value &&
+              value.map((val: string, key: number) => {
+                const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
+                return (
+                  <li data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
+                    <TextField
+                      data-testid={`single-use-link-${key}`}
+                      containerClassName="w-full"
+                      disabled
+                      labelSrOnly
+                      type="text"
+                      defaultValue={singleUseURL}
+                      addOnSuffix={
+                        <Tooltip content={t("copy_to_clipboard")}>
+                          <Button
+                            color="minimal"
+                            size="sm"
+                            type="button"
+                            className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
+                            aria-label="copy link"
+                            onClick={() => {
+                              navigator.clipboard.writeText(singleUseURL);
+                              showToast(t("single_use_link_copied"), "success");
+                            }}>
+                            <Icon name="copy" className="h-4 w-4" />
+                          </Button>
+                        </Tooltip>
+                      }
+                    />
+                    <Button
+                      data-testid={`remove-single-use-link-${key}`}
+                      variant="icon"
+                      StartIcon="trash-2"
+                      color="destructive"
+                      className="border-none"
+                      onClick={() => removeSingleUseLink(key)}
+                    />
+                  </li>
+                );
+              })}
+            <Button
+              color="minimal"
+              StartIcon="plus"
+              onClick={addSingleUseLink}
+              data-testid="add-single-use-link-button">
+              {t("add_a_single_use_link")}
+            </Button>
+          </ul>
+        );
+      }}
+    />
+  );
+};
+
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
 export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, "eventType" | "team">) => {
@@ -50,11 +130,19 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
+  const [singleUseLinksVisible, setSingleUseLinksVisible] = useState(
+    !!formMethods.getValues("singleUseLinks") && formMethods.getValues("singleUseLinks")?.length !== 0
+  );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
-  const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
+  const [hashedUrl, setHashedUrl] = useState(
+    eventType.hashedLink.find((link) => {
+      return link.destroyOnUse === false;
+    })?.link
+  );
+
   const bookingFields: Prisma.JsonObject = {};
 
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
@@ -91,7 +179,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formMethods.getValues("users"), hashedUrl, team?.id]);
+  }, [eventType.hashedLink, formMethods.getValues("users"), hashedUrl, team?.id]);
 
   const toggleGuests = (enabled: boolean) => {
     const bookingFields = formMethods.getValues("bookingFields");
@@ -419,6 +507,41 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </div>
         )}
       </SettingsToggle>
+      <Controller
+        name="singleUseLinks"
+        render={() => {
+          return (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName={classNames(
+                "border-subtle rounded-lg border py-6 px-4 sm:px-6",
+                singleUseLinksVisible && "rounded-b-none"
+              )}
+              childrenClassName="lg:ml-0"
+              data-testid="singleUseLinksCheck"
+              title={t("single_use_links_title")}
+              description={t("single_use_links_description", { appName: APP_NAME })}
+              checked={singleUseLinksVisible}
+              onCheckedChange={(e) => {
+                if (!e) {
+                  formMethods.setValue("singleUseLinks", [], { shouldDirty: true });
+                } else {
+                  formMethods.setValue(
+                    "singleUseLinks",
+                    [generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id)],
+                    { shouldDirty: true }
+                  );
+                }
+                setSingleUseLinksVisible(e);
+              }}>
+              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                <SingleUseLinksManager team={team} />
+              </div>
+            </SettingsToggle>
+          );
+        }}
+      />
       <Controller
         name="seatsPerTimeSlotEnabled"
         render={({ field: { value, onChange } }) => (

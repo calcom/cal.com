@@ -1698,15 +1698,31 @@ async function handler(
   const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
 
   try {
-    if (hasHashedBookingLink) {
-      await prisma.hashedLink.update({
+    if (hasHashedBookingLink && reqBody.hashedLink) {
+      const existingHashedLink = await prisma.hashedLink.findUnique({
         where: {
-          link: reqBody.hashedLink as string,
+          link: reqBody.hashedLink,
         },
-        data: {
-          link: hashedUid,
+        select: {
+          destroyOnUse: true,
         },
       });
+      if (existingHashedLink && existingHashedLink.destroyOnUse) {
+        await prisma.hashedLink.delete({
+          where: {
+            link: reqBody.hashedLink as string,
+          },
+        });
+      } else {
+        await prisma.hashedLink.update({
+          where: {
+            link: reqBody.hashedLink as string,
+          },
+          data: {
+            link: hashedUid,
+          },
+        });
+      }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));
