@@ -13,6 +13,8 @@ import type { AppProps } from "@lib/app-providers";
 import AppProviders from "@lib/app-providers";
 import { seoConfig } from "@lib/config/next-seo.config";
 
+import { GoogleTagManagerComponent } from "@components/GTM";
+
 export interface CalPageWrapper {
   (props?: AppProps): JSX.Element;
   PageWrapper?: AppProps["Component"]["PageWrapper"];
@@ -93,6 +95,7 @@ function PageWrapper(props: AppProps) {
           <Component {...pageProps} err={err} />
         )
       )}
+      <GoogleTagManagerComponent />
     </AppProviders>
   );
 }
