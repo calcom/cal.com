@@ -198,95 +198,98 @@ function RollingLimitRadioItem({
   );
 }
 
-const MinimumBookingNoticeInput = React.forwardRef<
-  HTMLInputElement,
-  Omit<UseFormRegisterReturn<"minimumBookingNotice">, "ref">
->(function MinimumBookingNoticeInput({ ...passThroughProps }, ref) {
-  const { t } = useLocale();
-  const { setValue, getValues } = useFormContext<FormValues>();
-  const durationTypeOptions: {
-    value: DurationType;
-    label: string;
-  }[] = [
-    {
-      label: t("minutes"),
-      value: "minutes",
-    },
-    {
-      label: t("hours"),
-      value: "hours",
-    },
-    {
-      label: t("days"),
-      value: "days",
-    },
-  ];
+type MinimumNoticeInputProps =
+  | UseFormRegisterReturn<"minimumBookingNotice">
+  | UseFormRegisterReturn<"minimumUpdateNotice">;
 
-  const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
-    type: DurationType;
-    value: number;
-  }>({
-    type: findDurationType(getValues(passThroughProps.name)),
-    value: convertToNewDurationType(
-      "minutes",
-      findDurationType(getValues(passThroughProps.name)),
-      getValues(passThroughProps.name)
-    ),
-  });
-  // keep hidden field in sync with minimumBookingNoticeDisplayValues
-  useEffect(() => {
-    setValue(
-      passThroughProps.name,
-      convertToNewDurationType(
-        minimumBookingNoticeDisplayValues.type,
+const MinimumNoticeInput = React.forwardRef<HTMLInputElement, Omit<MinimumNoticeInputProps, "ref">>(
+  function MinimumNoticeInput({ ...passThroughProps }, ref) {
+    const { t } = useLocale();
+    const { setValue, getValues } = useFormContext<FormValues>();
+    const durationTypeOptions: {
+      value: DurationType;
+      label: string;
+    }[] = [
+      {
+        label: t("minutes"),
+        value: "minutes",
+      },
+      {
+        label: t("hours"),
+        value: "hours",
+      },
+      {
+        label: t("days"),
+        value: "days",
+      },
+    ];
+
+    const [minimumBookingNoticeDisplayValues, setMinimumBookingNoticeDisplayValues] = useState<{
+      type: DurationType;
+      value: number;
+    }>({
+      type: findDurationType(getValues(passThroughProps.name)),
+      value: convertToNewDurationType(
         "minutes",
-        minimumBookingNoticeDisplayValues.value
+        findDurationType(getValues(passThroughProps.name)),
+        getValues(passThroughProps.name)
       ),
-      { shouldDirty: true }
-    );
-  }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
+    });
+    // keep hidden field in sync with minimumBookingNoticeDisplayValues
+    useEffect(() => {
+      setValue(
+        passThroughProps.name,
+        convertToNewDurationType(
+          minimumBookingNoticeDisplayValues.type,
+          "minutes",
+          minimumBookingNoticeDisplayValues.value
+        ),
+        { shouldDirty: true }
+      );
+    }, [minimumBookingNoticeDisplayValues, setValue, passThroughProps.name]);
 
-  return (
-    <div className="flex items-end justify-end">
-      <div className="w-1/2 md:w-full">
-        <InputField
-          required
-          disabled={passThroughProps.disabled}
-          defaultValue={minimumBookingNoticeDisplayValues.value}
-          onChange={(e) =>
-            setMinimumBookingNoticeDisplayValues({
-              ...minimumBookingNoticeDisplayValues,
-              value: parseInt(e.target.value || "0", 10),
-            })
-          }
-          label={t("minimum_booking_notice")}
-          type="number"
-          placeholder="0"
-          min={0}
-          className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
+    return (
+      <div className="flex items-end justify-end">
+        <div className="w-1/2 md:w-full">
+          <InputField
+            required
+            disabled={passThroughProps.disabled}
+            defaultValue={minimumBookingNoticeDisplayValues.value}
+            onChange={(e) =>
+              setMinimumBookingNoticeDisplayValues({
+                ...minimumBookingNoticeDisplayValues,
+                value: parseInt(e.target.value || "0", 10),
+              })
+            }
+            label={t("minimum_booking_notice")}
+            type="number"
+            placeholder="0"
+            min={0}
+            className="mb-0 h-9 rounded-[4px] ltr:mr-2 rtl:ml-2"
+          />
+          <input type="hidden" ref={ref} {...passThroughProps} />
+        </div>
+        <Select
+          isSearchable={false}
+          isDisabled={passThroughProps.disabled}
+          className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
+          defaultValue={durationTypeOptions.find(
+            (option) => option.value === minimumBookingNoticeDisplayValues.type
+          )}
+          onChange={(input) => {
+            if (input) {
+              setMinimumBookingNoticeDisplayValues({
+                ...minimumBookingNoticeDisplayValues,
+                type: input.value,
+              });
+            }
+          }}
+          options={durationTypeOptions}
         />
-        <input type="hidden" ref={ref} {...passThroughProps} />
       </div>
-      <Select
-        isSearchable={false}
-        isDisabled={passThroughProps.disabled}
-        className="mb-0 ml-2 h-9 w-full capitalize md:min-w-[150px] md:max-w-[200px]"
-        defaultValue={durationTypeOptions.find(
-          (option) => option.value === minimumBookingNoticeDisplayValues.type
-        )}
-        onChange={(input) => {
-          if (input) {
-            setMinimumBookingNoticeDisplayValues({
-              ...minimumBookingNoticeDisplayValues,
-              type: input.value,
-            });
-          }
-        }}
-        options={durationTypeOptions}
-      />
-    </div>
-  );
-});
+    );
+  }
+);
 
 export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventType">) => {
   const { t, i18n } = useLocale();
@@ -299,12 +302,16 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
   });
 
   const bookingLimitsLocked = shouldLockDisableProps("bookingLimits");
+  const minimumUpdateNoticeLocked = shouldLockDisableProps("minimumUpdateNotice");
   const durationLimitsLocked = shouldLockDisableProps("durationLimits");
   const onlyFirstAvailableSlotLocked = shouldLockDisableProps("onlyShowFirstAvailableSlot");
   const periodTypeLocked = shouldLockDisableProps("periodType");
   const offsetStartLockedProps = shouldLockDisableProps("offsetStart");
 
   const [offsetToggle, setOffsetToggle] = useState(formMethods.getValues("offsetStart") > 0);
+  const [minimumUpdateNoticeToggle, setMinimumUpdateNoticeToggle] = useState(
+    formMethods.getValues("minimumUpdateNotice") > 0
+  );
 
   // Preview how the offset will affect start times
   const watchOffsetStartValue = formMethods.watch("offsetStart");
@@ -391,7 +398,7 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
               {t("minimum_booking_notice")}
               {shouldLockIndicator("minimumBookingNotice")}
             </Label>
-            <MinimumBookingNoticeInput
+            <MinimumNoticeInput
               disabled={shouldLockDisableProps("minimumBookingNotice").disabled}
               {...formMethods.register("minimumBookingNotice")}
             />
@@ -436,6 +443,34 @@ export const EventLimitsTab = ({ eventType }: Pick<EventTypeSetupProps, "eventTy
           </div>
         </div>
       </div>
+      <SettingsToggle
+        labelClassName="text-sm"
+        toggleSwitchAtTheEnd={true}
+        switchContainerClassName={classNames(
+          "border-subtle mt-6 rounded-lg border py-6 px-4 sm:px-6",
+          minimumUpdateNoticeToggle && "rounded-b-none"
+        )}
+        childrenClassName="lg:ml-0"
+        title={t("minimum_update_notice")}
+        description={t("minimum_update_notice_description")}
+        {...minimumUpdateNoticeLocked}
+        checked={minimumUpdateNoticeToggle}
+        onCheckedChange={(active) => {
+          setMinimumUpdateNoticeToggle(active);
+          if (!active) {
+            formMethods.setValue("minimumUpdateNotice", 0, { shouldDirty: true });
+          }
+        }}>
+        <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+          <div className="max-w-80">
+            <Label htmlFor="minimumUpdateNotice">{t("minimum_booking_notice")}</Label>
+            <MinimumNoticeInput
+              disabled={shouldLockDisableProps("minimumUpdateNotice").disabled}
+              {...formMethods.register("minimumUpdateNotice", { setValueAs: (value) => Number(value) })}
+            />
+          </div>
+        </div>
+      </SettingsToggle>
       <Controller
         name="bookingLimits"
         render={({ field: { value } }) => {

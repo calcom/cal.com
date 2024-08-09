@@ -104,6 +104,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     disableGuests: false,
     hideCalendarNotes: false,
     minimumBookingNotice: 120,
+    minimumUpdateNotice: 0,
     beforeEventBuffer: 0,
     afterEventBuffer: 0,
     onlyShowFirstAvailableSlot: false,

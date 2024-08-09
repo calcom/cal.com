@@ -1,8 +1,10 @@
 // page can be a server component
+import utc from "dayjs/plugin/utc";
 import type { GetServerSidePropsContext } from "next";
 import { URLSearchParams } from "url";
 import { z } from "zod";
 
+import dayjs from "@calcom/dayjs";
 import { getServerSession } from "@calcom/features/auth/lib/getServerSession";
 import { buildEventUrlFromBooking } from "@calcom/lib/bookings/buildEventUrlFromBooking";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
@@ -10,6 +12,8 @@ import { maybeGetBookingUidFromSeat } from "@calcom/lib/server/maybeGetBookingUi
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import prisma, { bookingMinimalSelect } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/client";
+
+dayjs.extend(utc);
 
 export default function Type() {
   // Just redirect to the schedule page to reschedule it.
@@ -36,6 +40,7 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
       ...bookingMinimalSelect,
       eventType: {
         select: {
+          minimumUpdateNotice: true,
           users: {
             select: {
               username: true,
@@ -80,9 +85,20 @@ export async function getServerSideProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  const rescheduleDate = dayjs().utc(true);
+  const reschduleEndDate = dayjs(booking.startTime).subtract(
+    booking.eventType?.minimumUpdateNotice || 0,
+    "minute"
+  );
+  const canReschdule = rescheduleDate.isBefore(reschduleEndDate);
+
   // If booking is already CANCELLED or REJECTED, we can't reschedule this booking. Take the user to the booking page which would show it's correct status and other details.
   // A booking that has been rescheduled to a new booking will also have a status of CANCELLED
-  if (booking.status === BookingStatus.CANCELLED || booking.status === BookingStatus.REJECTED) {
+  if (
+    booking.status === BookingStatus.CANCELLED ||
+    booking.status === BookingStatus.REJECTED ||
+    !canReschdule
+  ) {
     return {
       redirect: {
         destination: `/booking/${uid}`,

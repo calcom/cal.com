@@ -48,6 +48,7 @@ const getUserBooking = async (uid: string) => {
           slug: true,
           timeZone: true,
           schedulingType: true,
+          minimumUpdateNotice: true,
         },
       },
       seatsReferences: {
