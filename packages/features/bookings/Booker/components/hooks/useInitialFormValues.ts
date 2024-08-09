@@ -21,6 +21,7 @@ type UseInitialFormValuesProps = {
     guests: string[];
     name: string | null;
   };
+  prevResponse?: Record<string, string>;
 };
 
 export function useInitialFormValues({
@@ -33,6 +34,7 @@ export function useInitialFormValues({
   hasSession,
   extraOptions,
   prefillFormParams,
+  prevResponse,
 }: UseInitialFormValuesProps) {
   const [initialValues, setDefaultValues] = useState<{
     responses?: Partial<z.infer<ReturnType<typeof getBookingResponsesSchema>>>;
@@ -53,6 +55,7 @@ export function useInitialFormValues({
       const querySchema = getBookingResponsesPartialSchema({
         bookingFields: eventType.bookingFields,
         view: rescheduleUid ? "reschedule" : "booking",
+        prevResponse,
       });
 
       const parsedQuery = await querySchema.parseAsync({

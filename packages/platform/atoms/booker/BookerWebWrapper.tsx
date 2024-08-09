@@ -21,6 +21,7 @@ import { useBrandColors } from "@calcom/features/bookings/Booker/utils/use-brand
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
 import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { localStorage } from "@calcom/lib/webstorage";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
 type BookerWebWrapperAtomProps = BookerProps;
@@ -81,6 +82,8 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     };
   }, [searchParams, firstNameQueryParam, lastNameQueryParam]);
 
+  const prevResponse = JSON.parse(localStorage.getItem(`prevEventTypeResp`) ?? "{}");
+
   const bookerForm = useBookingForm({
     event: event.data,
     sessionEmail: session?.user.email,
@@ -89,6 +92,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     hasSession,
     extraOptions: routerQuery,
     prefillFormParams,
+    prevResponse,
   });
   const calendars = useCalendars({ hasSession });
   const verifyEmail = useVerifyEmail({
