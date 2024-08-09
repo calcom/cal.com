@@ -249,7 +249,7 @@ export const getPlatformRescheduleLink = (
   return "";
 };
 
-export const getRescheduleLink = (calEvent: CalendarEvent): string => {
+export const getRescheduleLink = (calEvent: CalendarEvent, forExpiredBooking?: boolean): string => {
   const Uid = getUid(calEvent);
   const seatUid = getSeatReferenceId(calEvent);
 
@@ -257,7 +257,11 @@ export const getRescheduleLink = (calEvent: CalendarEvent): string => {
     return getPlatformRescheduleLink(calEvent, Uid, seatUid);
   }
 
-  return `${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`;
+  const url = new URL(`${calEvent.bookerUrl ?? WEBAPP_URL}/reschedule/${seatUid ? seatUid : Uid}`);
+  if (forExpiredBooking) {
+    url.searchParams.append("forExpiredBooking", "true");
+  }
+  return url.toString();
 };
 
 export const getRichDescription = (
