@@ -29,6 +29,7 @@ import {
   TableRow,
   TextArea,
   UpgradeTeamsBadge,
+  Tooltip,
 } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
@@ -39,73 +40,82 @@ export type BookingRedirectForm = {
   toTeamUserId: number | null;
   reasonId: number;
   notes?: string;
+  uuid?: string | null;
 };
 
-const CreateOutOfOfficeEntryModal = ({
+const CreateOrEditOutOfOfficeEntryModal = ({
   openModal,
   closeModal,
+  currentlyEditingOutOfOfficeEntry,
 }: {
   openModal: boolean;
   closeModal: () => void;
+  currentlyEditingOutOfOfficeEntry: BookingRedirectForm | null;
 }) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
 
-  const [selectedReason, setSelectedReason] = useState<{ label: string; value: number } | null>(null);
-  const [profileRedirect, setProfileRedirect] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
-
-  const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: dayjs().startOf("d").toDate(),
-    endDate: dayjs().add(1, "d").endOf("d").toDate(),
-  });
-
-  const { hasTeamPlan } = useHasTeamPlan();
   const { data: listMembers } = trpc.viewer.teams.listMembers.useQuery({});
   const me = useMeQuery();
   const memberListOptions: {
-    value: number | null;
+    value: number;
     label: string;
   }[] =
     listMembers
       ?.filter((member) => me?.data?.id !== member.id)
       .map((member) => ({
-        value: member.id || null,
+        value: member.id,
         label: member.name || "",
       })) || [];
 
-  const { handleSubmit, setValue, control, register } = useForm<BookingRedirectForm>({
-    defaultValues: {
-      dateRange: {
-        startDate: dateRange.startDate,
-        endDate: dateRange.endDate,
-      },
-      offset: dayjs().utcOffset(),
-      toTeamUserId: null,
-      reasonId: 1,
-    },
+  type Option = { value: number; label: string };
+
+  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
+
+  const reasonList = (outOfOfficeReasonList || []).map((reason) => ({
+    label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
+    value: reason.id,
+  }));
+
+  const [profileRedirect, setProfileRedirect] = useState(!!currentlyEditingOutOfOfficeEntry?.toTeamUserId);
+
+  const { hasTeamPlan } = useHasTeamPlan();
+
+  const { handleSubmit, setValue, control, register, reset } = useForm<BookingRedirectForm>({
+    defaultValues: currentlyEditingOutOfOfficeEntry
+      ? currentlyEditingOutOfOfficeEntry
+      : {
+          dateRange: {
+            startDate: dayjs().startOf("d").toDate(),
+            endDate: dayjs().add(1, "d").endOf("d").toDate(),
+          },
+          offset: dayjs().utcOffset(),
+          toTeamUserId: null,
+          reasonId: 1,
+        },
   });
 
-  const createOutOfOfficeEntry = trpc.viewer.outOfOfficeCreate.useMutation({
+  const resetForm = () => {
+    reset();
+    setProfileRedirect(false);
+  };
+
+  const createOrEditOutOfOfficeEntry = trpc.viewer.outOfOfficeCreateOrUpdate.useMutation({
     onSuccess: () => {
-      showToast(t("success_entry_created"), "success");
+      showToast(
+        currentlyEditingOutOfOfficeEntry
+          ? t("success_edited_entry_out_of_office")
+          : t("success_entry_created"),
+        "success"
+      );
       utils.viewer.outOfOfficeEntriesList.invalidate();
-      setProfileRedirect(false);
+      resetForm();
       closeModal();
     },
     onError: (error) => {
       showToast(t(error.message), "error");
     },
   });
-
-  const { data: outOfOfficeReasonList } = trpc.viewer.outOfOfficeReasonList.useQuery();
-
-  const reasonList = [
-    ...(outOfOfficeReasonList || []).map((reason) => ({
-      label: `${reason.emoji} ${reason.userId === null ? t(reason.reason) : reason.reason}`,
-      value: reason.id,
-    })),
-  ];
 
   return (
     <Dialog open={openModal}>
@@ -114,24 +124,23 @@ const CreateOutOfOfficeEntryModal = ({
           event.preventDefault();
         }}>
         <form
-          id="create-ooo-form"
+          id="create-or-edit-ooo-form"
           className="h-full"
           onSubmit={handleSubmit((data) => {
-            createOutOfOfficeEntry.mutate(data);
-            setValue("toTeamUserId", null);
-            setValue("notes", "");
-            setSelectedReason(null);
-            setSelectedMember(null);
+            createOrEditOutOfOfficeEntry.mutate(data);
           })}>
           <div className="px-1">
-            <DialogHeader title={t("create_an_out_of_office")} />
+            <DialogHeader
+              title={
+                currentlyEditingOutOfOfficeEntry ? t("edit_an_out_of_office") : t("create_an_out_of_office")
+              }
+            />
             <div>
               <p className="text-emphasis mb-1 block text-sm font-medium capitalize">{t("dates")}</p>
               <div>
                 <Controller
                   name="dateRange"
                   control={control}
-                  defaultValue={dateRange}
                   render={({ field: { onChange, value } }) => (
                     <DateRangePicker
                       dates={{ startDate: value.startDate, endDate: value.endDate }}
@@ -148,19 +157,24 @@ const CreateOutOfOfficeEntryModal = ({
             <div className="mt-4 w-full">
               <div className="">
                 <p className="text-emphasis block text-sm font-medium">{t("reason")}</p>
-                <Select
-                  className="mb-0 mt-1 text-white"
-                  name="reason"
-                  data-testid="reason_select"
-                  value={selectedReason}
-                  placeholder={t("ooo_select_reason")}
-                  options={reasonList}
-                  onChange={(selectedOption) => {
-                    if (selectedOption?.value) {
-                      setSelectedReason(selectedOption);
-                      setValue("reasonId", selectedOption?.value);
-                    }
-                  }}
+                <Controller
+                  control={control}
+                  name="reasonId"
+                  render={({ field: { onChange, value } }) => (
+                    <Select<Option>
+                      className="mb-0 mt-1 text-white"
+                      name="reason"
+                      data-testid="reason_select"
+                      value={reasonList.find((reason) => reason.value === value)}
+                      placeholder={t("ooo_select_reason")}
+                      options={reasonList}
+                      onChange={(selectedOption) => {
+                        if (selectedOption?.value) {
+                          onChange(selectedOption.value);
+                        }
+                      }}
+                    />
+                  )}
                 />
               </div>
             </div>
@@ -188,6 +202,9 @@ const CreateOutOfOfficeEntryModal = ({
                   id="profile-redirect-switch"
                   onCheckedChange={(state) => {
                     setProfileRedirect(state);
+                    if (state === false) {
+                      setValue("toTeamUserId", null);
+                    }
                   }}
                   label={hasTeamPlan ? t("redirect_team_enabled") : t("redirect_team_disabled")}
                 />
@@ -202,20 +219,24 @@ const CreateOutOfOfficeEntryModal = ({
                 <div className="mt-4">
                   <div className="h-16">
                     <p className="text-emphasis block text-sm font-medium">{t("team_member")}</p>
-                    <Select
-                      className="mt-1 h-4 text-white"
-                      name="toTeamUsername"
-                      data-testid="team_username_select"
-                      value={selectedMember}
-                      placeholder={t("select_team_member")}
-                      isSearchable
-                      options={memberListOptions}
-                      onChange={(selectedOption) => {
-                        if (selectedOption?.value) {
-                          setSelectedMember(selectedOption);
-                          setValue("toTeamUserId", selectedOption?.value);
-                        }
-                      }}
+                    <Controller
+                      control={control}
+                      name="toTeamUserId"
+                      render={({ field: { onChange, value } }) => (
+                        <Select<Option>
+                          name="toTeamUsername"
+                          data-testid="team_username_select"
+                          value={memberListOptions.find((member) => member.value === value)}
+                          placeholder={t("select_team_member")}
+                          isSearchable
+                          options={memberListOptions}
+                          onChange={(selectedOption) => {
+                            if (selectedOption?.value) {
+                              onChange(selectedOption.value);
+                            }
+                          }}
+                        />
+                      )}
                     />
                   </div>
                 </div>
@@ -225,16 +246,23 @@ const CreateOutOfOfficeEntryModal = ({
         </form>
         <DialogFooter showDivider noSticky>
           <div className="flex">
-            <Button color="minimal" type="button" onClick={() => closeModal()} className="mr-1">
+            <Button
+              color="minimal"
+              type="button"
+              onClick={() => {
+                resetForm();
+                closeModal();
+              }}
+              className="mr-1">
               {t("cancel")}
             </Button>
             <Button
-              form="create-ooo-form"
+              form="create-or-edit-ooo-form"
               color="primary"
               type="submit"
-              disabled={createOutOfOfficeEntry.isPending}
-              data-testid="create-entry-ooo-redirect">
-              {t("create")}
+              disabled={createOrEditOutOfOfficeEntry.isPending}
+              data-testid="create-or-edit-entry-ooo-redirect">
+              {currentlyEditingOutOfOfficeEntry ? t("save") : t("create")}
             </Button>
           </div>
         </DialogFooter>
@@ -243,7 +271,11 @@ const CreateOutOfOfficeEntryModal = ({
   );
 };
 
-const OutOfOfficeEntriesList = () => {
+const OutOfOfficeEntriesList = ({
+  editOutOfOfficeEntry,
+}: {
+  editOutOfOfficeEntry: (entry: BookingRedirectForm) => void;
+}) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const { data, isPending } = trpc.viewer.outOfOfficeEntriesList.useQuery();
@@ -318,23 +350,53 @@ const OutOfOfficeEntriesList = () => {
                     {item.notes && (
                       <p className="px-2">
                         <span className="text-subtle">{t("notes")}: </span>
-                        {item.notes}
+                        <span data-testid={`ooo-entry-note-${item.toUser?.username || "n-a"}`}>
+                          {item.notes}
+                        </span>
                       </p>
                     )}
                   </div>
                 </div>
 
-                <Button
-                  className="self-center rounded-lg border"
-                  type="button"
-                  color="minimal"
-                  variant="icon"
-                  disabled={deleteOutOfOfficeEntryMutation.isPending}
-                  StartIcon="trash-2"
-                  onClick={() => {
-                    deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
-                  }}
-                />
+                <div className="flex flex-row items-center gap-x-2">
+                  <Tooltip content={t("edit") as string}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      StartIcon="pencil"
+                      onClick={() => {
+                        const outOfOfficeEntryData: BookingRedirectForm = {
+                          uuid: item.uuid,
+                          dateRange: {
+                            startDate: dayjs(item.start).startOf("d").toDate(),
+                            endDate: dayjs(item.end).subtract(1, "d").toDate(),
+                          },
+                          offset: dayjs().utcOffset(),
+                          toTeamUserId: item.toUserId,
+                          reasonId: item.reason?.id ?? 1,
+                          notes: item.notes ?? undefined,
+                        };
+                        editOutOfOfficeEntry(outOfOfficeEntryData);
+                      }}
+                      data-testid={`ooo-edit-${item.toUser?.username || "n-a"}`}
+                    />
+                  </Tooltip>
+                  <Tooltip content={t("delete") as string}>
+                    <Button
+                      className="self-center rounded-lg border"
+                      type="button"
+                      color="minimal"
+                      variant="icon"
+                      disabled={deleteOutOfOfficeEntryMutation.isPending}
+                      StartIcon="trash-2"
+                      onClick={() => {
+                        deleteOutOfOfficeEntryMutation.mutate({ outOfOfficeUid: item.uuid });
+                      }}
+                    />
+                  </Tooltip>
+                </div>
               </TableCell>
             </TableRow>
           ))}
@@ -375,6 +437,14 @@ const OutOfOfficePage = () => {
   }, [openModalOnStart]);
 
   const [openModal, setOpenModal] = useState(false);
+  const [currentlyEditingOutOfOfficeEntry, setCurrentlyEditingOutOfOfficeEntry] =
+    useState<BookingRedirectForm | null>(null);
+
+  const editOutOfOfficeEntry = (entry: BookingRedirectForm) => {
+    setCurrentlyEditingOutOfOfficeEntry(entry);
+    setOpenModal(true);
+  };
+
   return (
     <>
       <Meta
@@ -391,8 +461,17 @@ const OutOfOfficePage = () => {
           </Button>
         }
       />
-      <CreateOutOfOfficeEntryModal openModal={openModal} closeModal={() => setOpenModal(false)} />
-      <OutOfOfficeEntriesList />
+      {openModal && (
+        <CreateOrEditOutOfOfficeEntryModal
+          openModal={openModal}
+          closeModal={() => {
+            setOpenModal(false);
+            setCurrentlyEditingOutOfOfficeEntry(null);
+          }}
+          currentlyEditingOutOfOfficeEntry={currentlyEditingOutOfOfficeEntry}
+        />
+      )}
+      <OutOfOfficeEntriesList editOutOfOfficeEntry={editOutOfOfficeEntry} />
     </>
   );
 };
