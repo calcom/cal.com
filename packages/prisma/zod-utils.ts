@@ -80,6 +80,12 @@ export const EventTypeMetaDataSchema = z
     disableSuccessPage: z.boolean().optional(),
     disableStandardEmails: z
       .object({
+        all: z
+          .object({
+            host: z.boolean().optional(),
+            attendee: z.boolean().optional(),
+          })
+          .optional(),
         confirmation: z
           .object({
             host: z.boolean().optional(),
@@ -107,6 +113,8 @@ export const EventTypeMetaDataSchema = z
     bookerLayouts: bookerLayouts.optional(),
   })
   .nullable();
+
+export type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
 
 export const eventTypeBookingFields = formBuilderFieldsSchema;
 export const BookingFieldTypeEnum = eventTypeBookingFields.element.shape.type.Enum;

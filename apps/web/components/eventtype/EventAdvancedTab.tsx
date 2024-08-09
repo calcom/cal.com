@@ -40,6 +40,7 @@ import {
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
+import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -56,7 +57,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   );
   const [hashedUrl, setHashedUrl] = useState(eventType.hashedLink?.link);
   const bookingFields: Prisma.JsonObject = {};
-
   const workflows = eventType.workflows.map((workflowOnEventType) => workflowOnEventType.workflow);
   const selectedThemeIsDark =
     user?.theme === "dark" ||
@@ -569,6 +569,34 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             </>
           )}
         />
+      )}
+      {team?.parentId && (
+        <>
+          <Controller
+            name="metadata.disableStandardEmails.all.attendee"
+            render={({ field: { value, onChange } }) => {
+              return (
+                <>
+                  <DisableAllEmailsSetting
+                    checked={value}
+                    onCheckedChange={onChange}
+                    recipient="attendees"
+                    t={t}
+                  />
+                </>
+              );
+            }}
+          />
+          <Controller
+            name="metadata.disableStandardEmails.all.host"
+            defaultValue={!!formMethods.getValues("seatsPerTimeSlot")}
+            render={({ field: { value, onChange } }) => (
+              <>
+                <DisableAllEmailsSetting checked={value} onCheckedChange={onChange} recipient="hosts" t={t} />
+              </>
+            )}
+          />
+        </>
       )}
       {showEventNameTip && (
         <CustomEventTypeModal

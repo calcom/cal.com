@@ -107,8 +107,8 @@ const handleSetupSuccess = async (event: Stripe.Event) => {
       paid: true,
     });
   } else {
-    await sendOrganizerRequestEmail({ ...evt });
-    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+    await sendOrganizerRequestEmail({ ...evt }, eventType.metadata);
+    await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0], eventType.metadata);
   }
 };
 

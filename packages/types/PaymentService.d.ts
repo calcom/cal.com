@@ -49,7 +49,8 @@ export interface IAbstractPaymentService {
       startTime: { toISOString: () => string };
       uid: string;
     },
-    paymentData: Payment
+    paymentData: Payment,
+    eventTypeMetadata?: EventTypeMetadata
   ): Promise<void>;
   deletePayment(paymentId: Payment["id"]): Promise<boolean>;
   isSetupAlready(): boolean;
