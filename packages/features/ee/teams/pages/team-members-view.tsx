@@ -11,13 +11,19 @@ import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
-import { Button, Meta, showToast, TextField } from "@calcom/ui";
+import {
+  Button,
+  Meta, // showToast,
+  TextField,
+} from "@calcom/ui";
+
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 
 import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
-import MemberInvitationModal from "../components/MemberInvitationModal";
+// import MemberInvitationModal from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
@@ -31,69 +37,117 @@ interface MembersListProps {
 const checkIfExist = (comp: string, query: string) =>
   comp.toLowerCase().replace(/\s+/g, "").includes(query.toLowerCase().replace(/\s+/g, ""));
 
+// function MembersList(props: MembersListProps) {
+//   const { team, isOrgAdminOrOwner } = props;
+//   const { t } = useLocale();
+//   const [query, setQuery] = useState<string>("");
+
+//   const members = team?.members;
+//   const membersList = members
+//     ? members && query === ""
+//       ? members
+//       : members.filter((member) => {
+//           const email = member.email ? checkIfExist(member.email, query) : false;
+//           const username = member.username ? checkIfExist(member.username, query) : false;
+//           const name = member.name ? checkIfExist(member.name, query) : false;
+
+//           return email || username || name;
+//         })
+//     : undefined;
+//   return (
+//     <div className="flex flex-col gap-y-3">
+//       <TextField
+//         type="search"
+//         autoComplete="false"
+//         onChange={(e) => setQuery(e.target.value)}
+//         value={query}
+//         placeholder={`${t("search")}...`}
+//       />
+//       {membersList?.length && team ? (
+//         <ul
+//           className="divide-subtle border-subtle divide-y rounded-md border "
+//           data-testId="team-member-list-container">
+//           {membersList.map((member) => {
+//             return (
+//               <MemberListItem
+//                 key={member.id}
+//                 team={team}
+//                 member={member}
+//                 isOrgAdminOrOwner={isOrgAdminOrOwner}
+//               />
+//             );
+//           })}
+//         </ul>
+//       ) : null}
+//     </div>
+//   );
+// }
+
 function MembersList(props: MembersListProps) {
   const { team, isOrgAdminOrOwner } = props;
   const { t } = useLocale();
-  const [query, setQuery] = useState<string>("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
 
-  const members = team?.members;
-  const membersList = members
-    ? members && query === ""
-      ? members
-      : members.filter((member) => {
-          const email = member.email ? checkIfExist(member.email, query) : false;
-          const username = member.username ? checkIfExist(member.username, query) : false;
-          const name = member.name ? checkIfExist(member.name, query) : false;
+  const { data, isFetching, status, fetchNextPage, isFetchingNextPage, hasNextPage } =
+    trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+      {
+        limit: 10,
+        searchTerm: debouncedSearchTerm,
+        teamId: team?.id,
+      },
+      {
+        enabled: !!team?.id,
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        placeholderData: keepPreviousData,
+        refetchOnWindowFocus: true,
+        staleTime: 1 * 60 * 60 * 1000,
+      }
+    );
 
-          return email || username || name;
-        })
-    : undefined;
+  const buttonInView = useInViewObserver(() => {
+    if (!isFetching && hasNextPage && status === "success") {
+      fetchNextPage();
+    }
+  }, null);
+
   return (
     <div className="flex flex-col gap-y-3">
       <TextField
         type="search"
         autoComplete="false"
-        onChange={(e) => setQuery(e.target.value)}
-        value={query}
+        onChange={(e) => console.log(e.target.value)}
+        value=""
         placeholder={`${t("search")}...`}
       />
-      {membersList?.length && team ? (
+      {data?.pages[0]?.members?.length && team ? (
         <ul
           className="divide-subtle border-subtle divide-y rounded-md border "
           data-testId="team-member-list-container">
-          {membersList.map((member) => {
-            return (
-              <MemberListItem
-                key={member.id}
-                team={team}
-                member={member}
-                isOrgAdminOrOwner={isOrgAdminOrOwner}
-              />
-            );
+          {data.pages?.map((page) => {
+            return page.members.map((member) => {
+              return (
+                <MemberListItem
+                  key={member.id}
+                  team={team}
+                  member={member}
+                  isOrgAdminOrOwner={isOrgAdminOrOwner}
+                />
+              );
+            });
           })}
         </ul>
       ) : null}
+      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+        <Button
+          color="minimal"
+          loading={isFetchingNextPage}
+          disabled={!hasNextPage}
+          onClick={() => fetchNextPage()}>
+          {hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      </div>
     </div>
   );
-}
-
-function _MembersList(props: MembersListProps) {
-  const { team, isOrgAdminOrOwner } = props;
-  const { t } = useLocale();
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
-  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
-    {
-      limit: 10,
-      searchTerm: debouncedSearchTerm,
-      teamId: team.id,
-    },
-    {
-      getNextPageParam: (lastPage) => lastPage.nextCursor,
-      placeholderData: keepPreviousData,
-    }
-  );
-
-  return <div>MembersList</div>;
 }
 
 const MembersView = () => {
@@ -128,17 +182,6 @@ const MembersView = () => {
     data: team,
     isPending: isTeamsLoading,
     error: teamError,
-  } = trpc.viewer.teams.get.useQuery(
-    { teamId },
-    {
-      enabled: !!teamId,
-    }
-  );
-
-  const {
-    data: _team,
-    isPending: _isTeamsLoading,
-    error: _teamError,
   } = trpc.viewer.teams.getTeamWithMinimalData.useQuery(
     { teamId },
     {
@@ -146,7 +189,7 @@ const MembersView = () => {
     }
   );
 
-  console.log("_team", _team);
+  console.log("team", team);
 
   useEffect(
     function refactorMeWithoutEffect() {
@@ -161,14 +204,12 @@ const MembersView = () => {
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
-  const isInviteOpen = !_team?.membership.accepted;
+  const isInviteOpen = !team?.membership.accepted;
 
   const isAdmin =
-    _team &&
-    (_team.membership.role === MembershipRole.OWNER || _team.membership.role === MembershipRole.ADMIN);
+    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
 
   const isOrgAdminOrOwner = org?.role === MembershipRole.OWNER || org?.role === MembershipRole.ADMIN;
-  console.log("team", team);
 
   return (
     <>
@@ -194,17 +235,17 @@ const MembersView = () => {
       {!isPending && (
         <>
           <div>
-            {_team && (
+            {team && (
               <>
                 {isInviteOpen && (
                   <TeamInviteList
                     teams={[
                       {
-                        id: _team.id,
-                        accepted: _team.membership.accepted || false,
-                        name: _team.name,
-                        slug: _team.slug,
-                        role: _team.membership.role,
+                        id: team.id,
+                        accepted: team.membership.accepted || false,
+                        name: team.name,
+                        slug: team.slug,
+                        role: team.membership.role,
                       },
                     ]}
                   />
@@ -212,37 +253,37 @@ const MembersView = () => {
               </>
             )}
 
-            {((_team?.isPrivate && isAdmin) || !_team?.isPrivate || isOrgAdminOrOwner) && (
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
               </>
             )}
 
-            {_team && session.data && (
+            {team && session.data && (
               <DisableTeamImpersonation
-                teamId={_team.id}
+                teamId={team.id}
                 memberId={session.data.user.id}
                 disabled={isInviteOpen}
               />
             )}
 
-            {_team && (isAdmin || isOrgAdminOrOwner) && (
+            {team && (isAdmin || isOrgAdminOrOwner) && (
               <MakeTeamPrivateSwitch
                 isOrg={false}
-                teamId={_team.id}
-                isPrivate={_team.isPrivate}
+                teamId={team.id}
+                isPrivate={team.isPrivate}
                 disabled={isInviteOpen}
               />
             )}
           </div>
-          {showMemberInvitationModal && team && (
+          {/* {showMemberInvitationModal && team && (
             <MemberInvitationModal
               isPending={inviteMemberMutation.isPending}
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
-              teamId={_team.id}
-              token={_team.inviteToken?.token}
+              teamId={team.id}
+              token={team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values, resetFields) => {
                 inviteMemberMutation.mutate(
@@ -286,13 +327,13 @@ const MembersView = () => {
                 setInviteLinkSettingsModal(true);
               }}
             />
-          )}
-          {showInviteLinkSettingsModal && _team?.inviteToken && (
+          )} */}
+          {showInviteLinkSettingsModal && team?.inviteToken && (
             <InviteLinkSettingsModal
               isOpen={showInviteLinkSettingsModal}
-              teamId={_team.id}
-              token={_team.inviteToken.token}
-              expiresInDays={_team.inviteToken.expiresInDays || undefined}
+              teamId={team.id}
+              token={team.inviteToken.token}
+              expiresInDays={team.inviteToken.expiresInDays || undefined}
               onExit={() => {
                 setInviteLinkSettingsModal(false);
                 setShowMemberInvitationModal(true);

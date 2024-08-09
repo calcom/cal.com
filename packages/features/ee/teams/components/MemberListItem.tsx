@@ -78,11 +78,11 @@ export default function MemberListItem(props: Props) {
     },
   });
 
-  const ownersInTeam = () => {
-    const { members } = props.team;
-    const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
-    return owners.length;
-  };
+  // const ownersInTeam = () => {
+  //   const { members } = props.team;
+  //   const owners = members.filter((member) => member["role"] === MembershipRole.OWNER && member["accepted"]);
+  //   return owners.length;
+  // };
 
   const currentUserId = useCurrentUserId();
 
@@ -103,7 +103,7 @@ export default function MemberListItem(props: Props) {
   const editMode =
     (props.team.membership?.role === MembershipRole.OWNER &&
       (props.member.role !== MembershipRole.OWNER ||
-        ownersInTeam() > 1 ||
+        // ownersInTeam() > 1 ||
         props.member.id !== currentUserId)) ||
     (props.team.membership?.role === MembershipRole.ADMIN && props.member.role !== MembershipRole.OWNER) ||
     props.isOrgAdminOrOwner;
