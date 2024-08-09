@@ -113,4 +113,22 @@ export class NoopLicenseKeyService implements ILicenseKeyService {
   }
 }
 
+export class LicenseKeySingleton {
+  private static instance: ILicenseKeyService | null = null;
+
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- Private constructor to prevent direct instantiation
+  private constructor() {}
+
+  public static async getInstance(): Promise<ILicenseKeyService> {
+    if (!LicenseKeySingleton.instance) {
+      const licenseKey = await getDeploymentKey(prisma);
+      const useNoop = !licenseKey || process.env.NEXT_PUBLIC_IS_E2E === "1";
+      LicenseKeySingleton.instance = !useNoop
+        ? await LicenseKeyService.create()
+        : new NoopLicenseKeyService();
+    }
+    return LicenseKeySingleton.instance;
+  }
+}
+
 export default LicenseKeyService;
