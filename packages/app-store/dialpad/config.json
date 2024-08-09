@@ -1,0 +1,25 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Dialpad",
+  "slug": "dialpad",
+  "type": "dialpad_conferencing",
+  "logo": "icon.svg",
+  "url": "https://cal.com/apps/dialpad",
+  "variant": "conferencing",
+  "categories": [
+    "conferencing"
+  ],
+  "publisher": "Anik Dhabal Babu",
+  "email": "adhabal2002@gmail.com",
+  "appData": {
+    "location": {
+      "type": "integrations:{SLUG}_video",
+      "label": "{TITLE}",
+      "linkType": "dynamic"
+    }
+  },
+  "description": "Free video meetings with a built-in Ai assistant",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static"
+}
