@@ -94,7 +94,9 @@ export default function JoinCall(props: PageProps) {
         <meta property="twitter:description" content={t("quick_video_meeting")} />
       </Head>
       <DailyProvider callObject={daily}>
-        <div className="mx-auto" style={{ zIndex: 2, position: "absolute", bottom: 100, width: "100%" }}>
+        <div
+          className="mx-auto hidden sm:block"
+          style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
           <CalAiTranscribe />
         </div>
         <div style={{ zIndex: 2, position: "relative" }}>

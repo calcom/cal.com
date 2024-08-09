@@ -152,9 +152,10 @@ export const CalAiTranscribe = () => {
         id="cal-ai-transcription"
         style={{
           textShadow: "0 0 20px black, 0 0 20px black, 0 0 20px black",
+          backgroundColor: "rgba(0,0,0,0.6)",
         }}
         ref={transcriptRef}
-        className="max-h-full overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
+        className="flex max-h-full justify-center overflow-x-hidden overflow-y-scroll p-2 text-center text-white">
         {transcript
           ? transcript.split("\n").map((line, i) => (
               <Fragment key={`transcript-${i}`}>
