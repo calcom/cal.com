@@ -8,6 +8,10 @@ import { HttpError } from "@calcom/lib/http-error";
 import prisma from "@calcom/prisma";
 import type { AppDeclarativeHandler, AppHandler } from "@calcom/types/AppHandler";
 
+type NextApiRequestWithRequiredNonNullableSession = Omit<NextApiRequest, "session"> & {
+  session: NonNullable<NextApiRequest["session"]>;
+};
+
 const defaultIntegrationAddHandler = async ({
   slug,
   supportsMultipleInstalls,
@@ -19,13 +23,10 @@ const defaultIntegrationAddHandler = async ({
   slug: string;
   supportsMultipleInstalls: boolean;
   appType: string;
-  user?: Session["user"];
+  user: Session["user"];
   teamId?: number;
   createCredential: AppDeclarativeHandler["createCredential"];
 }) => {
-  if (!user?.id) {
-    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
-  }
   if (!supportsMultipleInstalls) {
     const alreadyInstalled = await prisma.credential.findFirst({
       where: {
@@ -43,16 +44,21 @@ const defaultIntegrationAddHandler = async ({
   await createCredential({ user: user, appType, slug, teamId });
 };
 
+// Define a type guard function
+function hasValidSession(req: NextApiRequest): req is NextApiRequestWithRequiredNonNullableSession {
+  return !!req.session?.user?.id;
+}
+
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  // Check that user is authenticated
-  req.session = await getServerSession({ req, res });
-
   const { args, teamId } = req.query;
-
   if (!Array.isArray(args)) {
     return res.status(404).json({ message: `API route not found` });
   }
-
+  // Check that user is authenticated
+  req.session = await getServerSession({ req, res });
+  if (!hasValidSession(req)) {
+    throw new HttpError({ statusCode: 401, message: "You must be logged in to do this" });
+  }
   const [appName, apiEndpoint] = args;
   try {
     /* Absolute path didn't work */
@@ -67,7 +73,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     if (typeof handler === "function") {
       await handler(req, res);
     } else {
-      await defaultIntegrationAddHandler({ user: req.session?.user, teamId: Number(teamId), ...handler });
+      await defaultIntegrationAddHandler({ user: req.session.user, teamId: Number(teamId), ...handler });
       const redirectUrl = handler.redirect?.url ?? undefined;
       res.json({ url: redirectUrl, newTab: handler.redirect?.newTab });
     }
