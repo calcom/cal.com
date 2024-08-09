@@ -1,0 +1,215 @@
+import slugify from "@calcom/lib/slugify";
+import prisma from "@calcom/prisma";
+
+import { TRPCError } from "@trpc/server";
+
+import type { TrpcSessionUser } from "../../../trpc";
+import type { ZAssignUserToAttribute } from "./assignUserToAttribute.schema";
+
+type GetOptions = {
+  ctx: {
+    user: NonNullable<TrpcSessionUser>;
+  };
+  input: ZAssignUserToAttribute;
+};
+
+const assignUserToAttributeHandler = async ({ input, ctx }: GetOptions) => {
+  const org = ctx.user.organization;
+
+  if (!org.id) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You need to be apart of an organization to use this feature",
+    });
+  }
+
+  // TODO: We need to also empty the users assignemnts for IDs that are not in in this filteredAttributes list
+  // Filter out attributes that don't have a value or options set
+  const filteredAttributes = input.attributes.filter((attribute) => attribute.value || attribute.options);
+
+  // Ensure this organization can access these attributes and attribute options
+  const attributes = await prisma.attribute.findMany({
+    where: {
+      id: {
+        in: filteredAttributes.map((attribute) => attribute.id),
+      },
+      teamId: org.id,
+    },
+    select: {
+      id: true,
+      type: true,
+      options: true,
+    },
+  });
+
+  if (attributes.length !== filteredAttributes.length) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You do not have access to these attributes",
+    });
+  }
+
+  const arrayOfAttributeOptionIds = attributes.flatMap(
+    (attribute) => attribute.options?.map((option) => option.id) || []
+  );
+
+  const attributeOptionIds = Array.from(new Set(arrayOfAttributeOptionIds));
+
+  const attributeOptions = await prisma.attributeOption.findMany({
+    where: {
+      id: {
+        in: attributeOptionIds,
+      },
+      attribute: {
+        teamId: org.id,
+      },
+    },
+    select: {
+      id: true,
+      value: true,
+      slug: true,
+    },
+  });
+
+  if (attributeOptions.length !== attributeOptionIds.length) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You do not have access to these attribute options",
+    });
+  }
+
+  const membership = await prisma.membership.findFirst({
+    where: {
+      userId: input.userId,
+      teamId: org.id,
+    },
+  });
+
+  if (!membership) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "This user is not apart of your organization",
+    });
+  }
+
+  // const promises: Promise<{ id: string }>[] = [];
+
+  filteredAttributes.map(async (attribute) => {
+    // TEXT, NUMBER
+    if (attribute.value && !attribute.options) {
+      const valueAsString = String(attribute.value);
+
+      // Check if it is already the value
+      const existingAttributeOption = await prisma.attributeToUser.findFirst({
+        where: {
+          memberId: membership.id,
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+          attributeOption: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      if (existingAttributeOption) {
+        // Update the value if it already exists
+        await prisma.attributeOption.update({
+          where: {
+            id: existingAttributeOption.attributeOption.id,
+          },
+          data: {
+            value: valueAsString,
+            slug: slugify(valueAsString),
+          },
+        });
+        return;
+      }
+
+      await prisma.attributeOption.create({
+        data: {
+          value: valueAsString,
+          slug: slugify(valueAsString),
+          attribute: {
+            connect: {
+              id: attribute.id,
+            },
+          },
+          assignedUsers: {
+            create: {
+              memberId: membership.id,
+            },
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+    } else if (!attribute.value && attribute.options && attribute.options.length > 0) {
+      const options = attribute.options;
+
+      // Get all users attributes for this attribute
+      await prisma.attributeToUser.findMany({
+        where: {
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
+            },
+          },
+          memberId: membership.id,
+        },
+      });
+
+      // Delete all users attributes for this attribute that are not in the options list
+      await prisma.attributeToUser.deleteMany({
+        where: {
+          attributeOption: {
+            attribute: {
+              id: attribute.id,
+            },
+          },
+          memberId: membership.id,
+          NOT: {
+            id: {
+              in: options.map((option) => option.value),
+            },
+          },
+        },
+      });
+
+      options?.map(async (option) => {
+        // Assign the attribute option to the user
+        await prisma.attributeToUser.upsert({
+          where: {
+            memberId_attributeOptionId: {
+              memberId: membership.id,
+              attributeOptionId: option.value,
+            },
+          },
+          create: {
+            memberId: membership.id,
+            attributeOptionId: option.value,
+          },
+          update: {}, // No update needed if it already exists
+          select: {
+            id: true,
+          },
+        });
+      });
+    }
+  });
+
+  return {
+    success: true,
+    message: "Attributes assigned successfully",
+  };
+};
+
+export default assignUserToAttributeHandler;

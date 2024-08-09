@@ -112,9 +112,9 @@ const SheetTitle = React.forwardRef<
     ref={forwardedRef}
     className={classNames(
       // base
-      "text-base font-semibold",
+      "font-sans text-xl font-semibold",
       // text color
-      "text-default",
+      "text-emphasis",
       className
     )}
     {...props}
@@ -138,7 +138,7 @@ const SheetDescription = React.forwardRef<
   return (
     <SheetPrimitives.Description
       ref={forwardedRef}
-      className={classNames("text-default", className)}
+      className={classNames("text-subtle text-sm leading-none", className)}
       {...props}
     />
   );
