@@ -4,7 +4,13 @@ import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSw
 import { QueryCell } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { ButtonProps } from "@calcom/ui";
-import { CalendarSwitchComponent, AppListCard, List, DisconnectIntegrationComponent } from "@calcom/ui";
+import {
+  CalendarSwitchComponent,
+  AppListCard,
+  List,
+  DisconnectIntegrationComponent,
+  Alert,
+} from "@calcom/ui";
 
 import { useAddSelectedCalendar } from "../../hooks/calendars/useAddSelectedCalendar";
 import { useDeleteCalendarCredentials } from "../../hooks/calendars/useDeleteCalendarCredentials";
@@ -14,7 +20,6 @@ import { AtomsWrapper } from "../../src/components/atoms-wrapper";
 import { Switch } from "../../src/components/ui/switch";
 import { useToast } from "../../src/components/ui/use-toast";
 import { CalendarSettings } from "../CalendarSettings";
-import { ConnectedCalendarSettings } from "../ConnectedCalendarSettings";
 
 export const CalendarSettingsPlatformWrapper = () => {
   const { t } = useLocale();
@@ -33,16 +38,21 @@ export const CalendarSettingsPlatformWrapper = () => {
             }
 
             return (
-              <div className="border-subtle mt-6 rounded-lg border">
-                <CalendarSettings>
-                  <CalendarSettingsHeading />
-                  <List noBorderTreatment className="p-6 pt-2">
-                    {data.connectedCalendars.map((connectedCalendar) => {
+              <CalendarSettings>
+                <CalendarSettingsHeading />
+                <List noBorderTreatment className="p-6 pt-2">
+                  {data.connectedCalendars.map((connectedCalendar) => {
+                    if (!!connectedCalendar.calendars) {
                       return (
-                        <ConnectedCalendarSettings
-                          key={connectedCalendar.credentialId}
-                          isConnectedCalendarPresent={!!connectedCalendar.calendars}
-                          errorMessage={<span>{t("calendar_error")}</span>}
+                        <AppListCard
+                          shouldHighlight
+                          slug={connectedCalendar.integration.slug}
+                          title={connectedCalendar.integration.name}
+                          logo={`https://app.cal.com${connectedCalendar.integration.logo}`}
+                          description={
+                            connectedCalendar.primary?.email ?? connectedCalendar.integration.description
+                          }
+                          className="border-subtle mt-4 rounded-lg border"
                           actions={
                             <div className="flex w-32 justify-end">
                               <PlatformDisconnectIntegration
@@ -53,53 +63,50 @@ export const CalendarSettingsPlatformWrapper = () => {
                               />
                             </div>
                           }>
-                          <AppListCard
-                            shouldHighlight
-                            slug={connectedCalendar.integration.slug}
-                            title={connectedCalendar.integration.name}
-                            logo={`https://app.cal.com${connectedCalendar.integration.logo}`}
-                            description={
-                              connectedCalendar.primary?.email ?? connectedCalendar.integration.description
-                            }
-                            className="border-subtle mt-4 rounded-lg border"
-                            actions={
-                              <div className="flex w-32 justify-end">
-                                <PlatformDisconnectIntegration
-                                  credentialId={connectedCalendar.credentialId}
-                                  trashIcon
-                                  buttonProps={{ className: "border border-default" }}
-                                  slug={connectedCalendar.integration.slug}
-                                />
-                              </div>
-                            }>
-                            <div className="border-subtle border-t">
-                              <p className="text-subtle px-5 pt-4 text-sm">
-                                {t("toggle_calendars_conflict")}
-                              </p>
-                              <ul className="space-y-4 px-5 py-4">
-                                {connectedCalendar.calendars?.map((cal) => {
-                                  return (
-                                    <PlatformCalendarSwitch
-                                      key={cal.externalId}
-                                      externalId={cal.externalId}
-                                      title={cal.name || "Nameless calendar"}
-                                      name={cal.name || "Nameless calendar"}
-                                      type={connectedCalendar.integration.type}
-                                      isChecked={cal.isSelected}
-                                      destination={cal.externalId === destinationCalendarId}
-                                      credentialId={cal.credentialId}
-                                    />
-                                  );
-                                })}
-                              </ul>
-                            </div>
-                          </AppListCard>
-                        </ConnectedCalendarSettings>
+                          <div className="border-subtle border-t">
+                            <p className="text-subtle px-5 pt-4 text-sm">{t("toggle_calendars_conflict")}</p>
+                            <ul className="space-y-4 px-5 py-4">
+                              {connectedCalendar.calendars?.map((cal) => {
+                                return (
+                                  <PlatformCalendarSwitch
+                                    key={cal.externalId}
+                                    externalId={cal.externalId}
+                                    title={cal.name || "Nameless calendar"}
+                                    name={cal.name || "Nameless calendar"}
+                                    type={connectedCalendar.integration.type}
+                                    isChecked={cal.isSelected}
+                                    destination={cal.externalId === destinationCalendarId}
+                                    credentialId={cal.credentialId}
+                                  />
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        </AppListCard>
                       );
-                    })}
-                  </List>
-                </CalendarSettings>
-              </div>
+                    }
+                    return (
+                      <Alert
+                        key={`alert-${connectedCalendar.credentialId}`}
+                        severity="warning"
+                        title={t("something_went_wrong")}
+                        message={<span>{t("calendar_error")}</span>}
+                        iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
+                        actions={
+                          <div className="flex w-32 justify-end">
+                            <PlatformDisconnectIntegration
+                              credentialId={connectedCalendar.credentialId}
+                              trashIcon
+                              buttonProps={{ className: "border border-default" }}
+                              slug={connectedCalendar.integration.slug}
+                            />
+                          </div>
+                        }
+                      />
+                    );
+                  })}
+                </List>
+              </CalendarSettings>
             );
           }}
         />

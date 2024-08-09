@@ -6,12 +6,12 @@ import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
 import { QueryCell } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
+import { Alert } from "@calcom/ui";
 import { List } from "@calcom/ui";
 import AppListCard from "@calcom/web/components/AppListCard";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
 import { CalendarSettings } from "../CalendarSettings";
-import { ConnectedCalendarSettings } from "../ConnectedCalendarSettings";
 
 type CalendarSettingsWebWrapperProps = {
   onChanged: () => unknown | Promise<unknown>;
@@ -38,26 +38,25 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
           }
 
           return (
-            <div className="border-subtle mt-6 rounded-lg border">
-              <CalendarSettings>
-                <CalendarSettingsHeading
-                  isConnectedCalendarsPresent={!!data.connectedCalendars.length}
-                  isPending={isPending}
-                />
-                <List noBorderTreatment className="p-6 pt-2">
-                  {data.connectedCalendars.map((connectedCalendar) => {
+            <CalendarSettings>
+              <CalendarSettingsHeading
+                isConnectedCalendarsPresent={!!data.connectedCalendars.length}
+                isPending={isPending}
+              />
+              <List noBorderTreatment className="p-6 pt-2">
+                {data.connectedCalendars.map((connectedCalendar) => {
+                  if (!!connectedCalendar.calendars) {
                     return (
-                      <ConnectedCalendarSettings
-                        key={connectedCalendar.credentialId}
-                        isConnectedCalendarPresent={!!connectedCalendar.calendars}
-                        errorMessage={
-                          <span>
-                            <Link href={`/apps/${connectedCalendar.integration.slug}`}>
-                              {connectedCalendar.integration.name}
-                            </Link>
-                            : {t("calendar_error")}
-                          </span>
+                      <AppListCard
+                        key={`list-${connectedCalendar.credentialId}`}
+                        shouldHighlight
+                        slug={connectedCalendar.integration.slug}
+                        title={connectedCalendar.integration.name}
+                        logo={connectedCalendar.integration.logo}
+                        description={
+                          connectedCalendar.primary?.email ?? connectedCalendar.integration.description
                         }
+                        className="border-subtle mt-4 rounded-lg border"
                         actions={
                           <div className="flex w-32 justify-end">
                             <DisconnectIntegration
@@ -68,55 +67,61 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
                             />
                           </div>
                         }>
-                        <AppListCard
-                          shouldHighlight
-                          slug={connectedCalendar.integration.slug}
-                          title={connectedCalendar.integration.name}
-                          logo={connectedCalendar.integration.logo}
-                          description={
-                            connectedCalendar.primary?.email ?? connectedCalendar.integration.description
-                          }
-                          className="border-subtle mt-4 rounded-lg border"
-                          actions={
-                            <div className="flex w-32 justify-end">
-                              <DisconnectIntegration
-                                credentialId={connectedCalendar.credentialId}
-                                trashIcon
-                                onSuccess={props.onChanged}
-                                buttonProps={{ className: "border border-default" }}
-                              />
-                            </div>
-                          }>
-                          <div className="border-subtle border-t">
-                            {!fromOnboarding && (
-                              <>
-                                <p className="text-subtle px-5 pt-4 text-sm">
-                                  {t("toggle_calendars_conflict")}
-                                </p>
-                                <ul className="space-y-4 px-5 py-4">
-                                  {connectedCalendar.calendars?.map((cal) => (
-                                    <CalendarSwitch
-                                      key={cal.externalId}
-                                      externalId={cal.externalId}
-                                      title={cal.name || "Nameless calendar"}
-                                      name={cal.name || "Nameless calendar"}
-                                      type={connectedCalendar.integration.type}
-                                      isChecked={cal.isSelected}
-                                      destination={cal.externalId === props.destinationCalendarId}
-                                      credentialId={cal.credentialId}
-                                    />
-                                  ))}
-                                </ul>
-                              </>
-                            )}
-                          </div>
-                        </AppListCard>
-                      </ConnectedCalendarSettings>
+                        <div className="border-subtle border-t">
+                          {!fromOnboarding && (
+                            <>
+                              <p className="text-subtle px-5 pt-4 text-sm">
+                                {t("toggle_calendars_conflict")}
+                              </p>
+                              <ul className="space-y-4 px-5 py-4">
+                                {connectedCalendar.calendars?.map((cal) => (
+                                  <CalendarSwitch
+                                    key={cal.externalId}
+                                    externalId={cal.externalId}
+                                    title={cal.name || "Nameless calendar"}
+                                    name={cal.name || "Nameless calendar"}
+                                    type={connectedCalendar.integration.type}
+                                    isChecked={cal.isSelected}
+                                    destination={cal.externalId === props.destinationCalendarId}
+                                    credentialId={cal.credentialId}
+                                  />
+                                ))}
+                              </ul>
+                            </>
+                          )}
+                        </div>
+                      </AppListCard>
                     );
-                  })}
-                </List>
-              </CalendarSettings>
-            </div>
+                  }
+                  return (
+                    <Alert
+                      key={`alert-${connectedCalendar.credentialId}`}
+                      severity="warning"
+                      title={t("something_went_wrong")}
+                      message={
+                        <span>
+                          <Link href={`/apps/${connectedCalendar.integration.slug}`}>
+                            {connectedCalendar.integration.name}
+                          </Link>
+                          : {t("calendar_error")}
+                        </span>
+                      }
+                      iconClassName="h-10 w-10 ml-2 mr-1 mt-0.5"
+                      actions={
+                        <div className="flex w-32 justify-end">
+                          <DisconnectIntegration
+                            credentialId={connectedCalendar.credentialId}
+                            trashIcon
+                            onSuccess={props.onChanged}
+                            buttonProps={{ className: "border border-default" }}
+                          />
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </List>
+            </CalendarSettings>
           );
         }}
       />
