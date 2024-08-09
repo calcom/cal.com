@@ -83,11 +83,9 @@ export const BookingFields = ({
           return null;
         }
 
-        // Attendee location field can be edited during reschedule
         if (field.name === SystemField.Enum.location) {
-          if (locationResponse?.value === "attendeeInPerson" || "phone") {
-            readOnly = false;
-          }
+          // TODO: We need to ensure that location field is properly updated in Booking Success Page, email, calendar, webhook after reschedule
+          readOnly = false;
         }
 
         // Dynamically populate location field options

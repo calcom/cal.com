@@ -26,6 +26,7 @@ export default function getLocationsOptionsForSelect(
         label: translatedLocation || locationString,
         value: type,
         inputPlaceholder: t(eventLocation?.attendeeInputPlaceholder || ""),
+        optionValue: location?.link || location?.address || "",
       };
     })
     .filter(notEmpty);

@@ -56,6 +56,7 @@ export type SelectLikeComponentProps<
         }
       ? TVal["value"]
       : TVal;
+    optionValue?: string;
   }[];
 } & CommonProps<TVal>;
 
