@@ -149,7 +149,7 @@ export const eventTypeLocations = z.array(
     displayLocationPublicly: z.boolean().optional(),
     hostPhoneNumber: z.string().optional(),
     credentialId: z.number().optional(),
-    teamName: z.string().optional(),
+    teamName: z.string().nullable(), // TODO: maybe .nullable() / .nullish()
   })
 );
 
