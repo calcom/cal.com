@@ -78,7 +78,7 @@ const processResult = (
     case "username_exists":
       return {
         statusCode: 418,
-        message: "A user exists with that username",
+        message: "A user exists with that username or email",
       };
     case "is_premium":
       return { statusCode: 402, message: "This is a premium username." };

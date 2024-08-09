@@ -321,15 +321,6 @@ export default function Signup({
           <HeadSeo title={t("sign_up")} description={t("sign_up")} />
           {/* Left side */}
           <div className="ml-auto mr-auto mt-0 flex w-full max-w-xl flex-col px-4 pt-6 sm:px-16 md:px-20 lg:mt-12 2xl:px-28">
-            {/* Header */}
-            {errors.apiError && (
-              <Alert
-                className="mb-3"
-                severity="error"
-                message={errors.apiError?.message}
-                data-testid="signup-error-message"
-              />
-            )}
             <div className="flex flex-col gap-2">
               <h1 className="font-cal text-[28px] leading-none ">
                 {IS_CALCOM ? t("create_your_calcom_account") : t("create_your_account")}
@@ -408,6 +399,14 @@ export default function Signup({
                   onChange={() => handleConsentChange(COOKIE_CONSENT)}
                   description={t("cookie_consent_checkbox")}
                 />
+                {errors.apiError && (
+                  <Alert
+                    className="mb-3"
+                    severity="error"
+                    message={errors.apiError?.message}
+                    data-testid="signup-error-message"
+                  />
+                )}
                 <Button
                   type="submit"
                   className="my-2 w-full justify-center"
