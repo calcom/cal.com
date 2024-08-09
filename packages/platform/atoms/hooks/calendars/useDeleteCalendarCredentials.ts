@@ -38,11 +38,8 @@ export const useDeleteCalendarCredentials = (
   >({
     mutationFn: (data) => {
       const { id, calendar } = data;
-      const body = {
-        id,
-      };
 
-      return http.post(`/calendars/${calendar}/disconnect`, body).then((res) => {
+      return http.post(`/calendars/${calendar}/disconnect/${id}`).then((res) => {
         return res.data;
       });
     },
