@@ -1,3 +1,5 @@
+"use client";
+
 import { Suspense } from "react";
 
 import NoSSR from "@calcom/core/components/NoSSR";

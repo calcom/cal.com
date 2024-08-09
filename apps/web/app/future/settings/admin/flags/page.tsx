@@ -1,5 +1,6 @@
-import Page from "@pages/settings/admin/flags";
 import { _generateMetadata } from "app/_utils";
+
+import FlagListingView from "~/settings/admin/flags/flag-listing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
@@ -7,4 +8,4 @@ export const generateMetadata = async () =>
     () => "Here you can toggle your Cal.com instance features."
   );
 
-export default Page;
+export default FlagListingView;
