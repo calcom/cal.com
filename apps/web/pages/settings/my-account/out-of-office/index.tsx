@@ -56,8 +56,8 @@ const CreateOutOfOfficeEntryModal = ({
   const [selectedMember, setSelectedMember] = useState<{ label: string; value: number | null } | null>(null);
 
   const [dateRange] = useState<{ startDate: Date; endDate: Date }>({
-    startDate: dayjs().startOf("d").toDate(),
-    endDate: dayjs().add(1, "d").endOf("d").toDate(),
+    startDate: dayjs().utc().startOf("d").toDate(),
+    endDate: dayjs().utc().add(1, "d").endOf("d").toDate(),
   });
 
   const { hasTeamPlan } = useHasTeamPlan();
@@ -375,6 +375,9 @@ const OutOfOfficePage = () => {
   }, [openModalOnStart]);
 
   const [openModal, setOpenModal] = useState(false);
+
+  // TODO: The best solution is we should find the cause of full page flicker
+  const { isPending } = trpc.viewer.outOfOfficeReasonList.useQuery();
   return (
     <>
       <Meta
@@ -383,6 +386,7 @@ const OutOfOfficePage = () => {
         borderInShellHeader={false}
         CTA={
           <Button
+            loading={isPending}
             color="primary"
             className="flex w-20 items-center justify-between px-4"
             onClick={() => setOpenModal(true)}
