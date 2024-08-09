@@ -1,0 +1,19 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "Proton Calendar",
+  "slug": "proton-calendar",
+  "type": "proton-calendar_calendar",
+  "logo": "icon.svg",
+  "url": "https://proton.me/calendar",
+  "variant": "calendar",
+  "categories": [
+    "calendar"
+  ],
+  "publisher": "Anik Dhabal Babu",
+  "email": "adhabal2002@gmail.com",
+  "description": "Your calendar is a record of your life. Proton Calendar helps keep it private.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "link-as-an-app",
+  "dependencies": ["google-calendar"]
+}
