@@ -1,8 +1,7 @@
-import { ApiProperty } from "@nestjs/swagger";
 import { Expose, Type } from "class-transformer";
-import { IsInt, IsEnum, ValidateNested } from "class-validator";
+import { IsInt, ValidateNested } from "class-validator";
 
-import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
+import { ApiResponseWithoutData } from "@calcom/platform-types";
 
 import { WebhookOutputDto } from "./webhook.output";
 
@@ -12,24 +11,14 @@ export class OAuthClientWebhookOutputDto extends WebhookOutputDto {
   readonly oAuthClientId!: string;
 }
 
-export class OAuthClientWebhookOutputResponseDto {
-  @Expose()
-  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
-  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
-  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
-
+export class OAuthClientWebhookOutputResponseDto extends ApiResponseWithoutData {
   @Expose()
   @ValidateNested()
   @Type(() => WebhookOutputDto)
   data!: OAuthClientWebhookOutputDto;
 }
 
-export class OAuthClientWebhooksOutputResponseDto {
-  @Expose()
-  @ApiProperty({ example: SUCCESS_STATUS, enum: [SUCCESS_STATUS, ERROR_STATUS] })
-  @IsEnum([SUCCESS_STATUS, ERROR_STATUS])
-  status!: typeof SUCCESS_STATUS | typeof ERROR_STATUS;
-
+export class OAuthClientWebhooksOutputResponseDto extends ApiResponseWithoutData {
   @Expose()
   @ValidateNested()
   @Type(() => WebhookOutputDto)

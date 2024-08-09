@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 
 import Shell from "@calcom/features/shell/Shell";
 import { WebhookForm } from "@calcom/features/webhooks/components";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import { showToast } from "@calcom/ui";
 
 import {
@@ -53,6 +54,21 @@ export default function EditOAuthClientWebhooks() {
 
             {isWebhooksFetched && webhooksStatus === "success" && (
               <WebhookForm
+                overrideTriggerOptions={[
+                  { value: WebhookTriggerEvents.BOOKING_CANCELLED, label: "booking_cancelled" },
+                  { value: WebhookTriggerEvents.BOOKING_CREATED, label: "booking_created" },
+                  { value: WebhookTriggerEvents.BOOKING_REJECTED, label: "booking_rejected" },
+                  { value: WebhookTriggerEvents.BOOKING_REQUESTED, label: "booking_requested" },
+                  { value: WebhookTriggerEvents.BOOKING_RESCHEDULED, label: "booking_rescheduled" },
+                  { value: WebhookTriggerEvents.BOOKING_NO_SHOW_UPDATED, label: "booking_no_show_updated" },
+                  { value: WebhookTriggerEvents.MEETING_ENDED, label: "meeting_ended" },
+                  { value: WebhookTriggerEvents.MEETING_STARTED, label: "meeting_started" },
+                  { value: WebhookTriggerEvents.RECORDING_READY, label: "recording_ready" },
+                  {
+                    value: WebhookTriggerEvents.RECORDING_TRANSCRIPTION_GENERATED,
+                    label: "recording_transcription_generated",
+                  },
+                ]}
                 onSubmit={async (data) => {
                   try {
                     const body = {
