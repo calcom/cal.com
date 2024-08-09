@@ -21,7 +21,7 @@ import { HeadSeo, Icon, UnpublishedEntity, UserAvatar } from "@calcom/ui";
 import { type getServerSideProps } from "./users-public-view.getServerSideProps";
 
 export function UserPage(props: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { users, profile, eventTypes, markdownStrippedBio, entity } = props;
+  const { users, profile, eventTypes, markdownStrippedBio, entity, isOrgSEOIndexable } = props;
 
   const [user] = users; //To be used when we only have a single user, not dynamic group
   useTheme(profile.theme);
@@ -58,6 +58,14 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
 
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
+
+  // if Org allows SEOIndexable then only take user's SEOIndexable settings.
+  const allowSEOIndexing = isOrg
+    ? isOrgSEOIndexable
+      ? profile.allowSEOIndexing
+      : false
+    : profile.allowSEOIndexing;
+
   return (
     <>
       <HeadSeo
@@ -70,8 +78,8 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
           users: [{ username: `${user.username}`, name: `${user.name}` }],
         }}
         nextSeoProps={{
-          noindex: !profile.allowSEOIndexing,
-          nofollow: !profile.allowSEOIndexing,
+          noindex: !allowSEOIndexing,
+          nofollow: !allowSEOIndexing,
         }}
       />
 

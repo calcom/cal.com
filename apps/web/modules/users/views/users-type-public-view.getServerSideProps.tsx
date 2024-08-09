@@ -14,6 +14,7 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
+import { getMainDomainOrgRedirect } from "@lib/getMainDomainOrgRedirect";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
 import { type EmbedProps } from "@lib/withEmbedSsr";
@@ -207,6 +208,14 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  const disableOrgSubdomainURL = user?.profile?.organization?.organizationSettings?.disableOrgSubdomainURL;
+  if (isValidOrgDomain && disableOrgSubdomainURL) {
+    const redirect = getMainDomainOrgRedirect(context.req);
+    if (redirect) {
+      return redirect;
+    }
+  }
+
   const org = isValidOrgDomain ? currentOrgDomain : null;
   // We use this to both prefetch the query on the server,
   // as well as to check if the event exist, so we can show a 404 otherwise.
@@ -223,6 +232,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // if Org allows SEOIndexable then only take user's SEOIndexable settings.
+  const allowSEOIndexing = org
+    ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
+      ? user?.allowSEOIndexing
+      : false
+    : user?.allowSEOIndexing;
+
   const props: Props = {
     eventData: {
       id: eventData.id,
@@ -234,7 +250,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     slug,
     trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
-    isSEOIndexable: user?.allowSEOIndexing,
+    isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,

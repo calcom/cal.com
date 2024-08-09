@@ -432,6 +432,8 @@ model OrganizationSettings {
   isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
   isAdminAPIEnabled             Boolean    @default(false)
+  allowSEOIndexing              Boolean    @default(false)
+  disableOrgSubdomainURL        Boolean    @default(false)
 }
 
 enum MembershipRole {
