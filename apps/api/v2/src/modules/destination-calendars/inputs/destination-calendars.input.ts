@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
 import { IsString } from "class-validator";
 
-export class DestinationCalendarInputBodyDto {
+export class DestinationCalendarsInputBodyDto {
   @IsString()
   @Expose()
   @ApiProperty({

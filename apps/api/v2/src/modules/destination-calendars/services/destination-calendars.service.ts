@@ -1,5 +1,5 @@
 import { CalendarsService } from "@/ee/calendars/services/calendars.service";
-import { DestinationCalendarRepository } from "@/modules/destination-calendar/destination-calendar.repository";
+import { DestinationCalendarRepository } from "@/modules/destination-calendars/destination-calendars.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
 @Injectable()
@@ -9,7 +9,7 @@ export class DestinationCalendarService {
     private readonly destinationCalendarRepository: DestinationCalendarRepository
   ) {}
 
-  async updateDestinationCalendar(integration: string, externalId: string, userId: number) {
+  async updateDestinationCalendars(integration: string, externalId: string, userId: number) {
     const userCalendars = await this.calendarsService.getCalendars(userId);
     const allCalendars = userCalendars.connectedCalendars.map((cal) => cal.calendars ?? []).flat();
     const credentialId = allCalendars.find(

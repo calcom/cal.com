@@ -4,7 +4,7 @@ import { CalendarsService } from "@/ee/calendars/services/calendars.service";
 import { HttpExceptionFilter } from "@/filters/http-exception.filter";
 import { PrismaExceptionFilter } from "@/filters/prisma-exception.filter";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { DestinationCalendarOutputResponseDto } from "@/modules/destination-calendar/outputs/destination-calendar.output";
+import { DestinationCalendarsOutputResponseDto } from "@/modules/destination-calendars/outputs/destination-calendars.output";
 import { TokensModule } from "@/modules/tokens/tokens.module";
 import { UsersModule } from "@/modules/users/users.module";
 import { INestApplication } from "@nestjs/common";
@@ -111,7 +111,7 @@ describe("Platform Destination Calendar Endpoints", () => {
       .send(body)
       .expect(201)
       .then(async (response) => {
-        const responseBody: DestinationCalendarOutputResponseDto = response.body;
+        const responseBody: DestinationCalendarsOutputResponseDto = response.body;
 
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         expect(responseBody.data).toBeDefined();

@@ -1,12 +1,12 @@
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
-import { DestinationCalendarInputBodyDto } from "@/modules/destination-calendar/inputs/destination-calendar.input";
+import { DestinationCalendarsInputBodyDto } from "@/modules/destination-calendars/inputs/destination-calendars.input";
 import {
-  DestinationCalendarOutputDto,
-  DestinationCalendarOutputResponseDto,
-} from "@/modules/destination-calendar/outputs/destination-calendar.output";
-import { DestinationCalendarService } from "@/modules/destination-calendar/services/destination-calendar.service";
+  DestinationCalendarsOutputDto,
+  DestinationCalendarsOutputResponseDto,
+} from "@/modules/destination-calendars/outputs/destination-calendars.output";
+import { DestinationCalendarService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Body, Controller, Post, UseGuards } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
@@ -15,21 +15,21 @@ import { plainToClass } from "class-transformer";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 
 @Controller({
-  path: "/v2/destination-calendar",
+  path: "/v2/destination-calendars",
   version: API_VERSIONS_VALUES,
 })
-@DocsTags("Destination-Calendar")
+@DocsTags("Destination-Calendars")
 export class DestinationCalendarController {
   constructor(private readonly destinationCalendarService: DestinationCalendarService) {}
 
   @Post("/")
   @UseGuards(ApiAuthGuard)
-  async updateDestinationCalendar(
-    @Body() input: DestinationCalendarInputBodyDto,
+  async updateDestinationCalendars(
+    @Body() input: DestinationCalendarsInputBodyDto,
     @GetUser() user: UserWithProfile
-  ): Promise<DestinationCalendarOutputResponseDto> {
+  ): Promise<DestinationCalendarsOutputResponseDto> {
     const { integration, externalId } = input;
-    const updatedDestinationCalendar = await this.destinationCalendarService.updateDestinationCalendar(
+    const updatedDestinationCalendar = await this.destinationCalendarService.updateDestinationCalendars(
       integration,
       externalId,
       user.id
@@ -37,7 +37,7 @@ export class DestinationCalendarController {
 
     return {
       status: SUCCESS_STATUS,
-      data: plainToClass(DestinationCalendarOutputDto, updatedDestinationCalendar, {
+      data: plainToClass(DestinationCalendarsOutputDto, updatedDestinationCalendar, {
         strategy: "excludeAll",
       }),
     };
