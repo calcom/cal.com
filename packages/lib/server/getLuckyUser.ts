@@ -132,16 +132,20 @@ async function getUsersBasedOnWeights<
 }: GetLuckyUserParams<T> & { bookingsOfAvailableUsers: PartialBooking[] }) {
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
-  const notAvailableHosts = allRRHosts.filter((host) => !availableUserIds.has(host.user.id));
+
+  const notAvailableHosts = allRRHosts.reduce((acc, host) => {
+    if (!availableUserIds.has(host.user.id)) {
+      acc.push({
+        id: host.user.id,
+        email: host.user.email,
+      });
+    }
+    return acc;
+  }, []);
 
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
-    users: notAvailableHosts.map((host) => {
-      return {
-        id: host.user.id,
-        email: host.user.email,
-      };
-    }),
+    users: notAvailableHosts,
   });
 
   const allBookings = bookingsOfAvailableUsers.concat(bookingsOfNotAvailableUsers);
