@@ -133,15 +133,24 @@ async function getUsersBasedOnWeights<
   //get all bookings of all other RR hosts that are not available
   const availableUserIds = new Set(availableUsers.map((user) => user.id));
 
-  const notAvailableHosts = allRRHosts.reduce((acc, host) => {
-    if (!availableUserIds.has(host.user.id)) {
-      acc.push({
-        id: host.user.id,
-        email: host.user.email,
-      });
-    }
-    return acc;
-  }, []);
+  const notAvailableHosts = allRRHosts.reduce(
+    (
+      acc: {
+        id: number;
+        email: string;
+      }[],
+      host
+    ) => {
+      if (!availableUserIds.has(host.user.id)) {
+        acc.push({
+          id: host.user.id,
+          email: host.user.email,
+        });
+      }
+      return acc;
+    },
+    []
+  );
 
   const bookingsOfNotAvailableUsers = await BookingRepository.getAllBookingsForRoundRobin({
     eventTypeId: eventType.id,
