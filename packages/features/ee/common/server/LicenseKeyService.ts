@@ -1,6 +1,7 @@
 import * as cache from "memory-cache";
 
 import { CALCOM_PRIVATE_API_ROUTE } from "@calcom/lib/constants";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 import { getDeploymentKey } from "../../deployment/lib/getDeploymentKey";
@@ -44,19 +45,21 @@ class LicenseKeyService implements ILicenseKeyService {
     options?: RequestInit;
   }): Promise<Response> {
     const nonce = generateNonce();
-    const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
-    if (!signatureToken) {
-      throw new Error("CAL_SIGNATURE_TOKEN needs to be set");
-    }
-    const signature = createSignature(body || {}, nonce, signatureToken);
 
     const headers = {
       ...options.headers,
       "Content-Type": "application/json",
       nonce: nonce,
-      signature: signature,
       "x-cal-license-key": this.licenseKey,
-    };
+    } as Record<string, string>;
+
+    const signatureToken = process.env.CAL_SIGNATURE_TOKEN;
+    if (!signatureToken) {
+      logger.warn("CAL_SIGNATURE_TOKEN needs to be set to increment usage.");
+    } else {
+      const signature = createSignature(body || {}, nonce, signatureToken);
+      headers["signature"] = signature;
+    }
 
     return await fetch(url, {
       ...options,
