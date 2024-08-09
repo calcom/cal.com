@@ -221,23 +221,25 @@ const RoundRobinHosts = ({
         <p className="text-subtle max-w-full break-words text-sm leading-tight">{t("round_robin_helper")}</p>
       </div>
       <div className="border-subtle rounded-b-md border border-t-0 px-6 pt-4">
-        <Controller<FormValues>
-          name="isRRWeightsEnabled"
-          render={({ field: { value, onChange } }) => (
-            <SettingsToggle
-              title={t("enable_weights")}
-              description={weightDescription}
-              checked={value}
-              onCheckedChange={(active) => {
-                onChange(active);
+        {!assignAllTeamMembers && (
+          <Controller<FormValues>
+            name="isRRWeightsEnabled"
+            render={({ field: { value, onChange } }) => (
+              <SettingsToggle
+                title={t("enable_weights")}
+                description={weightDescription}
+                checked={value}
+                onCheckedChange={(active) => {
+                  onChange(active);
 
-                const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
-                const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
-                setValue("hosts", sortedRRHosts);
-              }}
-            />
-          )}
-        />
+                  const rrHosts = getValues("hosts").filter((host) => !host.isFixed);
+                  const sortedRRHosts = rrHosts.sort((a, b) => sortHosts(a, b, active));
+                  setValue("hosts", sortedRRHosts);
+                }}
+              />
+            )}
+          />
+        )}
         <AddMembersWithSwitch
           teamMembers={teamMembers}
           value={value}
