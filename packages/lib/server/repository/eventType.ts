@@ -545,6 +545,7 @@ export class EventTypeRepository {
       seatsPerTimeSlot: true,
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
+      seatsMinimumBookingNotice: true,
       webhooks: {
         select: {
           id: true,

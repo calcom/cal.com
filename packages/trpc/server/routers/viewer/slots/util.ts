@@ -17,8 +17,8 @@ import { RESERVED_SUBDOMAINS } from "@calcom/lib/constants";
 import { getUTCOffsetByTimezone } from "@calcom/lib/date-fns";
 import { getDefaultEvent } from "@calcom/lib/defaultEvents";
 import {
-  isTimeOutOfBounds,
   calculatePeriodLimits,
+  isTimeOutOfBounds,
   isTimeViolatingFutureLimit,
 } from "@calcom/lib/isOutOfBounds";
 import logger from "@calcom/lib/logger";
@@ -159,6 +159,7 @@ export async function getEventType(
       id: true,
       slug: true,
       minimumBookingNotice: true,
+      seatsMinimumBookingNotice: true,
       length: true,
       offsetStart: true,
       seatsPerTimeSlot: true,
@@ -418,8 +419,23 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       input.eventTypeId
     }`
   );
+
+  // The effectiveMinimumBookingNotice just makes sure we don't discard slots too early, so we can later decide
+  // which minimumBookingNotice to apply based on if the slot has any attendees or not.
+  let seatsMinimumBookingNoticeActive = false;
+  let effectiveMinimumBookingNotice = eventType.minimumBookingNotice;
+  // not using ternary's here to help TS narrow down the type of effectiveMinimumBookingNotice correctly
+  if (
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsMinimumBookingNotice !== null &&
+    eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice
+  ) {
+    seatsMinimumBookingNoticeActive = true;
+    effectiveMinimumBookingNotice = eventType.seatsMinimumBookingNotice;
+  }
+
   const getStartTime = (startTimeInput: string, timeZone?: string) => {
-    const startTimeMin = dayjs.utc().add(eventType.minimumBookingNotice || 1, "minutes");
+    const startTimeMin = dayjs.utc().add(Math.max(effectiveMinimumBookingNotice, 1), "minutes"); // at least 1 minute
     const startTime = timeZone === "Etc/GMT" ? dayjs.utc(startTimeInput) : dayjs(startTimeInput).tz(timeZone);
 
     return startTimeMin.isAfter(startTime) ? startTimeMin.tz(timeZone) : startTime;
@@ -628,7 +644,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
     eventLength: input.duration || eventType.length,
     offsetStart: eventType.offsetStart,
     dateRanges: aggregatedAvailability,
-    minimumBookingNotice: eventType.minimumBookingNotice,
+    minimumBookingNotice: effectiveMinimumBookingNotice,
     frequency: eventType.slotInterval || input.duration || eventType.length,
     organizerTimeZone: eventTimeZone,
     datesOutOfOffice: !isTeamEvent ? allUsersAvailability[0]?.datesOutOfOffice : undefined,
@@ -789,6 +805,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
       if (foundAFutureLimitViolation && doesRangeStartFromToday(eventType.periodType)) {
         return withinBoundsSlotsMappedToDate;
       }
+
       const filteredSlots = slots.filter((slot) => {
         const isFutureLimitViolationForTheSlot = isTimeViolatingFutureLimit({
           time: slot.time,
@@ -797,18 +814,29 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
         if (isFutureLimitViolationForTheSlot) {
           foundAFutureLimitViolation = true;
         }
-        return (
-          !isFutureLimitViolationForTheSlot &&
-          // TODO: Perf Optmization: Slots calculation logic already seems to consider the minimum booking notice and past booking time and thus there shouldn't be need to filter out slots here.
-          !isTimeOutOfBounds({ time: slot.time, minimumBookingNotice: eventType.minimumBookingNotice })
-        );
+
+        let isOutOfBounds = false;
+        // We must decided for each slot individually based on if the slot has any attendees or not,
+        if (seatsMinimumBookingNoticeActive && slot.attendees && slot.attendees > 0) {
+          isOutOfBounds = isTimeOutOfBounds({
+            time: slot.time,
+            minimumBookingNotice: eventType.seatsMinimumBookingNotice ?? undefined,
+          });
+        } else {
+          // default case for outOfBounds as usual, only if no seats for event type
+          isOutOfBounds = isTimeOutOfBounds({
+            time: slot.time,
+            minimumBookingNotice: eventType.minimumBookingNotice,
+          });
+        }
+
+        return !isFutureLimitViolationForTheSlot && !isOutOfBounds;
       });
 
       if (!filteredSlots.length) {
         // If there are no slots available, we don't set that date, otherwise having an empty slots array makes frontend consider it as an all day OOO case
         return withinBoundsSlotsMappedToDate;
       }
-
       withinBoundsSlotsMappedToDate[date] = filteredSlots;
       return withinBoundsSlotsMappedToDate;
     },

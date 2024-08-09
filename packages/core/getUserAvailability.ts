@@ -157,9 +157,11 @@ const _getCurrentSeats = async (
   const bookings = await prisma.booking.findMany({
     where: {
       eventTypeId: id,
+      // FIXME: This filter previously used to be `startTime: { gte: dateFrom.format(), lte: dateTo.format() }`
+      // this didn't work, but toDate() (native JS Date) works. Need to find out the reason.
       startTime: {
-        gte: dateFrom.format(),
-        lte: dateTo.format(),
+        gte: dateFrom.toDate(),
+        lte: dateTo.toDate(),
       },
       status: BookingStatus.ACCEPTED,
     },

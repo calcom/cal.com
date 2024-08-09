@@ -57,6 +57,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       recurringEvent: true,
       seatsShowAttendees: true,
       seatsShowAvailabilityCount: true,
+      seatsMinimumBookingNotice: true,
       bookingLimits: true,
       durationLimits: true,
       assignAllTeamMembers: true,
