@@ -1144,6 +1144,8 @@
   "make_setup_instructions": "<0>Go to <1><0>Make Invite Link</0></1> and install the Cal.com app.</0><1>Log into your Make account and create a new Scenario.</1><2>Select Cal.com as your Trigger app. Also choose a Trigger event.</2><3>Choose your account and then enter your Unique API Key.</3><4>Test your Trigger.</4><5>You're set!</5>",
   "install_zapier_app": "Please first install the Zapier App in the app store.",
   "install_make_app": "Please first install the Make App in the app store.",
+  "app_not_installed": "App not installed",
+  "visit_our_app_store": "Sorry, this app isn't installed on your account. Please visit our app store to explore and discover this and other great apps.",
   "connect_apple_server": "Connect to Apple Server",
   "calendar_url": "Calendar URL",
   "apple_server_generate_password": "Generate an app specific password to use with {{appName}} at",
@@ -2527,6 +2529,5 @@
   "outlook_connect_atom_already_connected_label": "Connected Outlook Calendar",
   "outlook_connect_atom_loading_label": "Checking Outlook Calendar",
   "booking_question_response_variables": "Booking question response variables",
-  "managed_by_teamAdmins": "Managed by {{teamAdmins}}",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
