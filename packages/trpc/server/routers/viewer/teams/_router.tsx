@@ -9,9 +9,11 @@ import { ZDeleteInviteInputSchema } from "./deleteInvite.schema";
 import { ZGetInputSchema } from "./get.schema";
 import { ZGetMemberAvailabilityInputSchema } from "./getMemberAvailability.schema";
 import { ZGetMembershipbyUserInputSchema } from "./getMembershipbyUser.schema";
+import { ZGetTeamWithMinimalDataSchema } from "./getTeamWithMinimalData.schema";
 import { ZHasEditPermissionForUserSchema } from "./hasEditPermissionForUser.schema";
 import { ZInviteMemberInputSchema } from "./inviteMember/inviteMember.schema";
 import { ZInviteMemberByTokenSchemaInputSchema } from "./inviteMemberByToken.schema";
+import { ZLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
 import { ZGetListSchema } from "./list.schema";
 import { ZListMembersInputSchema } from "./listMembers.schema";
 import { hasTeamPlan } from "./procedures/hasTeamPlan";
@@ -30,6 +32,14 @@ export const viewerTeamsRouter = router({
   // Retrieves team by id
   get: authedProcedure.input(ZGetInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("get"), () => import("./get.handler"));
+    return handler(opts);
+  }),
+  // Returns team
+  getTeamWithMinimalData: authedProcedure.input(ZGetTeamWithMinimalDataSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("getTeamWithMinimalData"),
+      () => import("./getTeamWithMinimalData.handler")
+    );
     return handler(opts);
   }),
   // Returns teams I a member of
@@ -112,6 +122,13 @@ export const viewerTeamsRouter = router({
   }),
   listMembers: authedProcedure.input(ZListMembersInputSchema).query(async (opts) => {
     const handler = await importHandler(namespaced("listMembers"), () => import("./listMembers.handler"));
+    return handler(opts);
+  }),
+  lazyLoadMembers: authedProcedure.input(ZLazyLoadMembersInputSchema).query(async (opts) => {
+    const handler = await importHandler(
+      namespaced("lazyLoadMembers"),
+      () => import("./lazyLoadMembers.handler")
+    );
     return handler(opts);
   }),
   hasTeamPlan,

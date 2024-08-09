@@ -1,5 +1,6 @@
 "use client";
 
+import { keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -76,6 +77,25 @@ function MembersList(props: MembersListProps) {
   );
 }
 
+function _MembersList(props: MembersListProps) {
+  const { team, isOrgAdminOrOwner } = props;
+  const { t } = useLocale();
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+  const { data, isPending, fetchNextPage, isFetching } = trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
+    {
+      limit: 10,
+      searchTerm: debouncedSearchTerm,
+      teamId: team.id,
+    },
+    {
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+      placeholderData: keepPreviousData,
+    }
+  );
+
+  return <div>MembersList</div>;
+}
+
 const MembersView = () => {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
@@ -114,6 +134,20 @@ const MembersView = () => {
       enabled: !!teamId,
     }
   );
+
+  const {
+    data: _team,
+    isPending: _isTeamsLoading,
+    error: _teamError,
+  } = trpc.viewer.teams.getTeamWithMinimalData.useQuery(
+    { teamId },
+    {
+      enabled: !!teamId,
+    }
+  );
+
+  console.log("_team", _team);
+
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {
@@ -127,12 +161,14 @@ const MembersView = () => {
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
-  const isInviteOpen = !team?.membership.accepted;
+  const isInviteOpen = !_team?.membership.accepted;
 
   const isAdmin =
-    team && (team.membership.role === MembershipRole.OWNER || team.membership.role === MembershipRole.ADMIN);
+    _team &&
+    (_team.membership.role === MembershipRole.OWNER || _team.membership.role === MembershipRole.ADMIN);
 
   const isOrgAdminOrOwner = org?.role === MembershipRole.OWNER || org?.role === MembershipRole.ADMIN;
+  console.log("team", team);
 
   return (
     <>
@@ -158,17 +194,17 @@ const MembersView = () => {
       {!isPending && (
         <>
           <div>
-            {team && (
+            {_team && (
               <>
                 {isInviteOpen && (
                   <TeamInviteList
                     teams={[
                       {
-                        id: team.id,
-                        accepted: team.membership.accepted || false,
-                        name: team.name,
-                        slug: team.slug,
-                        role: team.membership.role,
+                        id: _team.id,
+                        accepted: _team.membership.accepted || false,
+                        name: _team.name,
+                        slug: _team.slug,
+                        role: _team.membership.role,
                       },
                     ]}
                   />
@@ -176,25 +212,25 @@ const MembersView = () => {
               </>
             )}
 
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
+            {((_team?.isPrivate && isAdmin) || !_team?.isPrivate || isOrgAdminOrOwner) && (
               <>
                 <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
               </>
             )}
 
-            {team && session.data && (
+            {_team && session.data && (
               <DisableTeamImpersonation
-                teamId={team.id}
+                teamId={_team.id}
                 memberId={session.data.user.id}
                 disabled={isInviteOpen}
               />
             )}
 
-            {team && (isAdmin || isOrgAdminOrOwner) && (
+            {_team && (isAdmin || isOrgAdminOrOwner) && (
               <MakeTeamPrivateSwitch
                 isOrg={false}
-                teamId={team.id}
-                isPrivate={team.isPrivate}
+                teamId={_team.id}
+                isPrivate={_team.isPrivate}
                 disabled={isInviteOpen}
               />
             )}
@@ -205,8 +241,8 @@ const MembersView = () => {
               isOpen={showMemberInvitationModal}
               orgMembers={orgMembersNotInThisTeam}
               members={team.members}
-              teamId={team.id}
-              token={team.inviteToken?.token}
+              teamId={_team.id}
+              token={_team.inviteToken?.token}
               onExit={() => setShowMemberInvitationModal(false)}
               onSubmit={(values, resetFields) => {
                 inviteMemberMutation.mutate(
@@ -251,12 +287,12 @@ const MembersView = () => {
               }}
             />
           )}
-          {showInviteLinkSettingsModal && team?.inviteToken && (
+          {showInviteLinkSettingsModal && _team?.inviteToken && (
             <InviteLinkSettingsModal
               isOpen={showInviteLinkSettingsModal}
-              teamId={team.id}
-              token={team.inviteToken.token}
-              expiresInDays={team.inviteToken.expiresInDays || undefined}
+              teamId={_team.id}
+              token={_team.inviteToken.token}
+              expiresInDays={_team.inviteToken.expiresInDays || undefined}
               onExit={() => {
                 setInviteLinkSettingsModal(false);
                 setShowMemberInvitationModal(true);
