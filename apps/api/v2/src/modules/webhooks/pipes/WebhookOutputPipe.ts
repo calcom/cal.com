@@ -4,13 +4,8 @@ import { Webhook } from "@prisma/client";
 @Injectable()
 export class WebhookOutputPipe implements PipeTransform {
   transform(value: Webhook) {
-    if (value?.eventTriggers) {
-      const { eventTriggers, ...rest } = value;
-      const triggers = eventTriggers;
-      const parsedData = { ...rest, triggers };
-      return parsedData;
-    }
-    return value;
+    const { eventTriggers, platformOAuthClientId, ...rest } = value;
+    return { ...rest, triggers: eventTriggers, oAuthClientId: platformOAuthClientId };
   }
 }
 
