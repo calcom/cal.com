@@ -99,14 +99,14 @@ describe("Platform Destination Calendar Endpoints", () => {
     expect(user).toBeDefined();
   });
 
-  it(`POST /v2/destination-calendar: it should respond with a 201 returning back the user updated destination calendar`, async () => {
+  it(`POST /v2/destination-calendars: it should respond with a 201 returning back the user updated destination calendar`, async () => {
     const body = {
       integration: appleCalendarCredentials.type,
       externalId: "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/",
     };
 
     await request(app.getHttpServer())
-      .post("/v2/destination-calendar")
+      .post("/v2/destination-calendars")
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .send(body)
       .expect(201)
