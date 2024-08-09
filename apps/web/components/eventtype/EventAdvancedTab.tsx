@@ -15,6 +15,7 @@ import {
 } from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { FormBuilder } from "@calcom/features/form-builder/FormBuilder";
+import type { fieldSchema } from "@calcom/features/form-builder/schema";
 import type { EditableSchema } from "@calcom/features/form-builder/schema";
 import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSelector";
 import { classNames } from "@calcom/lib";
@@ -40,6 +41,8 @@ import {
 } from "@calcom/ui";
 
 import RequiresConfirmationController from "./RequiresConfirmationController";
+
+type BookingField = z.infer<typeof fieldSchema>;
 
 const CustomEventTypeModal = dynamic(() => import("@components/eventtype/CustomEventTypeModal"));
 
@@ -143,7 +146,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
       .map((secondaryEmail) => ({ label: secondaryEmail.email, value: secondaryEmail.id })),
   ];
   const selectedSecondaryEmailId = formMethods.getValues("secondaryEmailId") || -1;
-
   return (
     <div className="flex flex-col space-y-4">
       {/**
@@ -249,8 +251,16 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           {...shouldLockDisableProps("bookingFields")}
           dataStore={{
             options: {
-              locations: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+              locations: {
+                // FormBuilder doesn't handle plural for non-english languages. So, use english(Location) only. This is similar to 'Workflow'
+                source: { label: "Location" },
+                value: getLocationsOptionsForSelect(formMethods.getValues("locations") ?? [], t),
+              },
             },
+          }}
+          shouldConsiderRequired={(field: BookingField) => {
+            // Location field has a default value at backend so API can send no location but we don't allow it in UI and thus we want to show it as required to user
+            return field.name === "location" ? true : field.required;
           }}
         />
       </div>
