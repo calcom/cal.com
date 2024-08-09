@@ -249,6 +249,7 @@ const RoundRobinHosts = ({
           automaticAddAllEnabled={true}
           isRRWeightsEnabled={isRRWeightsEnabled}
           isFixed={false}
+          containerClassName={assignAllTeamMembers ? "-mt-4" : ""}
           onActive={() => {
             setValue(
               "hosts",
