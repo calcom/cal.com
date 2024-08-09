@@ -409,10 +409,11 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   });
 
   const formattedBusyTimes = detailedBusyTimes.map((busy) => ({
-    start: dayjs(busy.start),
-    end: dayjs(busy.end),
+    start: dayjs(busy.start).tz(timeZone),
+    end: dayjs(busy.end).tz(timeZone),
   }));
 
+  //INFO  formattedBusyTimes need to be in the same tz as dateRanges to subtract correctly.
   const dateRangesInWhichUserIsAvailable = subtract(dateRanges, formattedBusyTimes);
 
   const dateRangesInWhichUserIsAvailableWithoutOOO = subtract(oooExcludedDateRanges, formattedBusyTimes);
@@ -569,10 +570,43 @@ const _getBusyTimesFromLimits = async (
     performance.measure(`checking duration limits took $1'`, "durationLimitsStart", "durationLimitsEnd");
   }
 
+  const busyTimes = limitManager.getBusyTimes().sort((a, b) => (dayjs(a.start).isBefore(b.start) ? -1 : 1));
+
+  if (eventType.seatsPerTimeSlot) {
+    for (let i = 0; i < bookings.length; i++) {
+      const booking = bookings[i];
+
+      if (
+        booking.attendeesCount &&
+        booking.attendeesCount < eventType.seatsPerTimeSlot &&
+        dayjs(booking.start).isBetween(dateFrom, dateTo)
+      ) {
+        for (let j = 0; j < busyTimes.length; j++) {
+          const busyTime = busyTimes[j];
+          if (dayjs(booking.start).add(1, "ms").isBetween(busyTime.start, busyTime.end)) {
+            busyTimes.splice(
+              j,
+              1,
+              {
+                start: busyTime.start,
+                end: dayjs(booking.start).subtract(1, "ms").toISOString(),
+              },
+              {
+                start: dayjs.utc(booking.end).toISOString(),
+                end: busyTime.end,
+              }
+            );
+            break;
+          }
+        }
+      }
+    }
+  }
+
   performance.mark("limitsEnd");
   performance.measure(`checking all limits took $1'`, "limitsStart", "limitsEnd");
 
-  return limitManager.getBusyTimes();
+  return busyTimes;
 };
 
 const getBusyTimesFromBookingLimits = async (

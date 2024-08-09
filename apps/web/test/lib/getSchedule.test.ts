@@ -4,6 +4,7 @@ import {
   getDate,
   getGoogleCalendarCredential,
   createBookingScenario,
+  getMockBookingAttendee,
   createOrganization,
   getOrganizer,
   getScenarioData,
@@ -683,8 +684,8 @@ describe("getSchedule", () => {
 
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          start: `${plus3DateString}T04:00:00.000Z`, // Day 3 9:30 PM IST
+          end: `${plus3DateString}T05:59:59.000Z`, // Day 3 11:30 IST
         },
       ]);
 
@@ -720,8 +721,8 @@ describe("getSchedule", () => {
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus2DateString}T18:30:00.000Z`,
-          endTime: `${plus3DateString}T18:29:59.999Z`,
+          startTime: `${plus2DateString}T18:30:00.000Z`, // Day 3 0 AM IST
+          endTime: `${plus3DateString}T18:29:59.999Z`, // Day 3 23:59 PM IST
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -729,11 +730,11 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithNonCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because 08:00AM slot has a `beforeEventBuffer`
-          `08:00:00.000Z`, // - 8 AM is available because of availability of 06:00 - 07:59
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `04:00:00.000Z`, // 4 AM UTC (9:30 AM IST) is booked
+          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because 8 AM UTC (1:30 PM IST) slot has a `beforeEventBuffer`
+          // `08:00:00.000Z`, // 8 AM UTC (1:30 PM IST) is not available because of slot interval being 60 minutes & in IST current time is 1:30 PM
+          `08:30:00.000Z`, // 8:30 AM UTC (2:00 PM IST)
+          `10:30:00.000Z`, // 10:30 AM UTC (4:00 PM IST)
         ],
         {
           dateString: plus3DateString,
@@ -748,8 +749,8 @@ describe("getSchedule", () => {
 
       CalendarManagerMock.getBusyCalendarTimes.mockResolvedValue([
         {
-          start: `${plus3DateString}T04:00:00.000Z`,
-          end: `${plus3DateString}T05:59:59.000Z`,
+          start: `${plus3DateString}T04:00:00.000Z`, // Day 3 9:30 AM IST
+          end: `${plus3DateString}T05:59:59.000Z`, // Day 3 11:30 AM IST
         },
       ]);
 
@@ -780,8 +781,8 @@ describe("getSchedule", () => {
           {
             userId: 101,
             eventTypeId: 1,
-            startTime: `${plus2DateString}T04:00:00.000Z`,
-            endTime: `${plus2DateString}T05:59:59.000Z`,
+            startTime: `${plus2DateString}T04:00:00.000Z`, // Day 2 9:30 AM IST
+            endTime: `${plus2DateString}T05:59:59.000Z`, // Day 2 11:30 AM IST
             status: "ACCEPTED" as BookingStatus,
           },
         ],
@@ -794,8 +795,8 @@ describe("getSchedule", () => {
         input: {
           eventTypeId: 1,
           eventTypeSlug: "",
-          startTime: `${plus1DateString}T18:30:00.000Z`,
-          endTime: `${plus2DateString}T18:29:59.999Z`,
+          startTime: `${plus1DateString}T18:30:00.000Z`, // Day 2 0 AM IST
+          endTime: `${plus2DateString}T18:29:59.999Z`, // Day 2 23:59 PM IST
           timeZone: Timezones["+5:30"],
           isTeamEvent: false,
         },
@@ -803,11 +804,11 @@ describe("getSchedule", () => {
 
       expect(scheduleForEventOnADayWithCalBooking).toHaveTimeSlots(
         [
-          // `04:00:00.000Z`, // - 4 AM is booked
-          // `06:00:00.000Z`, // - 6 AM is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM slot)
-          // `08:00:00.000Z`, // - 8 AM is not available because of beforeBuffer(120mins) of possible booking at 08:00
-          `10:00:00.000Z`,
-          `12:00:00.000Z`,
+          // `04:00:00.000Z`, // 4 AM UTC (9:30 AM IST) is booked
+          // `06:00:00.000Z`, // 6 AM UTC (11:30 AM IST) is not available because of afterBuffer(120 mins) of the existing booking(4-5:59AM UTC slot)
+          // `08:00:00.000Z`, // 8 AM UTC (1:30 PM IST) is not available because of beforeBuffer(120mins) of possible booking at 10AM UTC slot
+          // `10:00:00.000Z`, // 10:00 AM UTC (3:30 PM IST) is not available because of slot interval being 60 minutes & in IST current time is 3:30 PM
+          `10:30:00.000Z`, // 10:30 AM UTC (4:00 PM IST) is available
         ],
         {
           dateString: plus2DateString,
@@ -1140,6 +1141,300 @@ describe("getSchedule", () => {
         });
       }
       expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23); // 2 booking per day as limit, only one booking on that
+    });
+
+    test("test that booking limit is working correctly for seated event if user is all day available", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 1,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+            seatsPerTimeSlot: 2,
+          },
+          {
+            id: 2,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            bookingLimits: {
+              PER_DAY: 2,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+            seatsPerTimeSlot: 2,
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+6:00"],
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
+          },
+          {
+            userId: 101,
+            eventTypeId: 2,
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailabilityBookingLimitOne = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      const thisUserAvailabilityBookingLimitTwo = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      let availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailabilityBookingLimitOne.slots) {
+        thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(1); // 1 seated booking with remaining slots
+
+      availableSlotsInTz = [];
+      for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
+        thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23);
+    });
+
+    test("test that duration limit is working correctly for seated event if user is all day available", async () => {
+      const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
+      const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
+      const { dateString: plus3DateString } = getDate({ dateIncrement: 3 });
+
+      const scenarioData = {
+        eventTypes: [
+          {
+            id: 1,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            durationLimits: {
+              PER_DAY: 60,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+            seatsPerTimeSlot: 2,
+          },
+          {
+            id: 2,
+            length: 60,
+            beforeEventBuffer: 0,
+            afterEventBuffer: 0,
+            durationLimits: {
+              PER_DAY: 120,
+            },
+            users: [
+              {
+                id: 101,
+              },
+            ],
+            seatsPerTimeSlot: 2,
+          },
+        ],
+        users: [
+          {
+            ...TestData.users.example,
+            id: 101,
+            schedules: [
+              {
+                id: 1,
+                name: "All Day available",
+                availability: [
+                  {
+                    userId: null,
+                    eventTypeId: null,
+                    days: [0, 1, 2, 3, 4, 5, 6],
+                    startTime: new Date("1970-01-01T00:00:00.000Z"),
+                    endTime: new Date("1970-01-01T23:59:59.999Z"),
+                    date: null,
+                  },
+                ],
+                timeZone: Timezones["+6:00"],
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            userId: 101,
+            eventTypeId: 1,
+            startTime: `${plus2DateString}T08:00:00.000Z`,
+            endTime: `${plus2DateString}T09:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
+          },
+          {
+            userId: 101,
+            eventTypeId: 2,
+            startTime: `${plus2DateString}T09:00:00.000Z`,
+            endTime: `${plus2DateString}T10:00:00.000Z`,
+            status: "ACCEPTED" as BookingStatus,
+            attendees: [
+              getMockBookingAttendee({
+                id: 10,
+                name: "Seat 1",
+                email: "seat1@test.com",
+                locale: "en",
+                timeZone: "America/Toronto",
+                bookingSeat: {
+                  referenceUid: "booking-seat-1",
+                  data: {},
+                },
+              }),
+            ],
+          },
+        ],
+      };
+
+      await createBookingScenario(scenarioData);
+
+      const thisUserAvailabilityBookingLimitOne = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      const thisUserAvailabilityBookingLimitTwo = await getSchedule({
+        input: {
+          eventTypeId: 2,
+          eventTypeSlug: "",
+          startTime: `${plus1DateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          timeZone: Timezones["+6:00"],
+          isTeamEvent: false,
+        },
+      });
+
+      let availableSlotsInTz: dayjs.Dayjs[] = [];
+      for (const date in thisUserAvailabilityBookingLimitOne.slots) {
+        thisUserAvailabilityBookingLimitOne.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(1); // 1 seated booking with remaining slots
+
+      availableSlotsInTz = [];
+      for (const date in thisUserAvailabilityBookingLimitTwo.slots) {
+        thisUserAvailabilityBookingLimitTwo.slots[date].forEach((timeObj) => {
+          availableSlotsInTz.push(dayjs(timeObj.time).tz(Timezones["+6:00"]));
+        });
+      }
+      expect(availableSlotsInTz.filter((slot) => slot.format().startsWith(plus2DateString)).length).toBe(23);
     });
   });
 
