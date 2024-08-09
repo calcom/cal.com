@@ -1,92 +1,50 @@
-import classNames from "classnames";
-import { useEffect, useState } from "react";
-import type { OptionProps, SingleValueProps } from "react-select";
-import { components } from "react-select";
+import { useState, useEffect } from "react";
 
+import { SingleValueComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
+import { OptionComponent } from "@calcom/features/calendars/DestinationCalendarSelector";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import type { DestinationCalendar } from "@calcom/prisma/client";
-import { trpc } from "@calcom/trpc/react";
-import { Badge, Icon, Select } from "@calcom/ui";
+import type { ConnectedDestinationCalendars } from "@calcom/platform-libraries";
+import { Badge, Select } from "@calcom/ui";
 
-interface Props {
+import { getPlaceholderContent } from "../lib/getPlaceholderContent";
+
+export type DestinationCalendarProps = {
+  connectedCalendars: ConnectedDestinationCalendars["connectedCalendars"];
+  destinationCalendar: ConnectedDestinationCalendars["destinationCalendar"];
   onChange: (value: { externalId: string; integration: string }) => void;
   isPending?: boolean;
   hidePlaceholder?: boolean;
-  /** The external Id of the connected calendar */
-  destinationCalendar?: DestinationCalendar | null;
   value: string | undefined;
   maxWidth?: number;
   hideAdvancedText?: boolean;
-}
-
-interface Option {
-  label: string;
-  value: string;
-  subtitle: string;
-}
-
-export const SingleValueComponent = ({ ...props }: SingleValueProps<Option>) => {
-  const { label, subtitle } = props.data;
-  return (
-    <components.SingleValue {...props} className="flex space-x-1">
-      <p>{label}</p> <p className=" text-subtle">{subtitle}</p>
-    </components.SingleValue>
-  );
 };
 
-export const OptionComponent = ({ ...props }: OptionProps<Option>) => {
-  const { label } = props.data;
-  return (
-    <components.Option {...props}>
-      <div className="flex">
-        <span className="mr-auto">{label}</span>
-        {props.isSelected && <Icon name="check" className="ml-2 h-4 w-4" />}
-      </div>
-    </components.Option>
-  );
-};
-
-const DestinationCalendarSelector = ({
+export const DestinationCalendarSelector = ({
+  connectedCalendars,
+  destinationCalendar,
   onChange,
   isPending,
   value,
   hidePlaceholder,
   hideAdvancedText,
   maxWidth,
-}: Props): JSX.Element | null => {
+}: DestinationCalendarProps): JSX.Element | null => {
   const { t } = useLocale();
-  const query = trpc.viewer.connectedCalendars.useQuery();
   const [selectedOption, setSelectedOption] = useState<{
     value: string;
     label: string;
     subtitle: string;
   } | null>(null);
 
-  // Extra styles to show prefixed text in react-select
-  const content = (hidePlaceholder = false) => {
-    if (!hidePlaceholder) {
-      return {
-        alignItems: "center",
-        width: "100%",
-        display: "flex",
-        ":before": {
-          content: `'${t("create_events_on")}:'`,
-          display: "block",
-          marginRight: 8,
-        },
-      };
-    }
-    return {};
-  };
-
   useEffect(() => {
-    const selected = query.data?.connectedCalendars
+    const selected = connectedCalendars
       .map((connected) => connected.calendars ?? [])
       .flat()
       .find((cal) => cal.externalId === value);
 
     if (selected) {
-      const selectedIntegration = query.data?.connectedCalendars.find((integration) =>
+      const selectedIntegration = connectedCalendars.find((integration) =>
         integration.calendars?.some((calendar) => calendar.externalId === selected.externalId)
       );
 
@@ -98,13 +56,10 @@ const DestinationCalendarSelector = ({
         })`,
       });
     }
-  }, [query.data?.connectedCalendars]);
+  }, [connectedCalendars]);
 
-  if (!query.data?.connectedCalendars.length) {
-    return null;
-  }
   const options =
-    query.data.connectedCalendars.map((selectedCalendar) => ({
+    connectedCalendars.map((selectedCalendar) => ({
       key: selectedCalendar.credentialId,
       label: `${selectedCalendar.integration.title?.replace(/calendar/i, "")} (${
         selectedCalendar.primary?.integration === "office365_calendar"
@@ -122,8 +77,6 @@ const DestinationCalendarSelector = ({
         })),
     })) ?? [];
 
-  const queryDestinationCalendar = query.data.destinationCalendar;
-
   return (
     <div
       className="relative table w-full table-fixed"
@@ -136,15 +89,21 @@ const DestinationCalendarSelector = ({
           ) : (
             <span className="text-default min-w-0 overflow-hidden truncate whitespace-nowrap">
               <Badge variant="blue">Default</Badge>{" "}
-              {queryDestinationCalendar.name &&
-                `${queryDestinationCalendar.name} (${queryDestinationCalendar?.integrationTitle} - ${queryDestinationCalendar.primaryEmail})`}
+              {destinationCalendar?.primaryEmail &&
+                `${destinationCalendar.name} (${destinationCalendar?.integrationTitle} - ${destinationCalendar.primaryEmail})`}
             </span>
           )
         }
         options={options}
         styles={{
-          placeholder: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
-          singleValue: (styles) => ({ ...styles, ...content(hidePlaceholder) }),
+          placeholder: (styles) => ({
+            ...styles,
+            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
+          }),
+          singleValue: (styles) => ({
+            ...styles,
+            ...getPlaceholderContent(hidePlaceholder, `'${t("create_events_on")}:'`),
+          }),
           control: (defaultStyles) => {
             return {
               ...defaultStyles,
@@ -184,5 +143,3 @@ const DestinationCalendarSelector = ({
     </div>
   );
 };
-
-export default DestinationCalendarSelector;
