@@ -27,6 +27,7 @@ export type CheckedSelectOption = {
   priority?: number;
   isFixed?: boolean;
   disabled?: boolean;
+  defaultScheduleId?: number | null;
 };
 
 export const CheckedTeamSelect = ({
@@ -142,6 +143,7 @@ const PriorityDialog = (props: IPriiorityDialog) => {
             value: host.userId.toString(),
             priority: host.userId === parseInt(option.value, 10) ? newPriority.value : host.priority,
             isFixed: false,
+            scheduleId: host.scheduleId,
           };
         })
         .sort((a, b) => b.priority ?? 2 - a.priority ?? 2);

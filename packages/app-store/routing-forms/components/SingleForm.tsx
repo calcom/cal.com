@@ -364,11 +364,13 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
+                            defaultScheduleId: member.defaultScheduleId,
                           }))}
                           value={sendUpdatesTo.map((userId) => ({
                             isFixed: true,
                             userId: userId,
                             priority: 1,
+                            scheduleId: 1,
                           }))}
                           onChange={(value) => {
                             hookForm.setValue(

@@ -19,12 +19,18 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  scheduleId?: number | null;
+};
 export type TeamMember = {
   value: string;
   label: string;
   avatar: string;
   email: string;
+  defaultScheduleId: number | null;
 };
 
 export type FormValues = {

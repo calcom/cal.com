@@ -127,17 +127,23 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      // if host was already added, retain scheduleId
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </>
@@ -168,17 +174,23 @@ const FixedHosts = ({
               setAssignAllTeamMembers={setAssignAllTeamMembers}
               automaticAddAllEnabled={!isRoundRobinEvent}
               isFixed={true}
-              onActive={() =>
+              onActive={() => {
+                const currentHosts = getValues("hosts");
                 setValue(
                   "hosts",
-                  teamMembers.map((teamMember) => ({
-                    isFixed: true,
-                    userId: parseInt(teamMember.value, 10),
-                    priority: 2,
-                  })),
+                  teamMembers.map((teamMember) => {
+                    const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                    return {
+                      isFixed: true,
+                      userId: parseInt(teamMember.value, 10),
+                      priority: 2,
+                      // if host was already added, retain scheduleId
+                      scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                    };
+                  }),
                   { shouldDirty: true }
-                )
-              }
+                );
+              }}
             />
           </div>
         </SettingsToggle>
@@ -202,7 +214,7 @@ const RoundRobinHosts = ({
 }) => {
   const { t } = useLocale();
 
-  const { setValue } = useFormContext<FormValues>();
+  const { setValue, getValues } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-lg ">
@@ -219,19 +231,25 @@ const RoundRobinHosts = ({
           setAssignAllTeamMembers={setAssignAllTeamMembers}
           automaticAddAllEnabled={true}
           isFixed={false}
-          onActive={() =>
+          onActive={() => {
+            const currentHosts = getValues("hosts");
             setValue(
               "hosts",
               teamMembers
-                .map((teamMember) => ({
-                  isFixed: false,
-                  userId: parseInt(teamMember.value, 10),
-                  priority: 2,
-                }))
+                .map((teamMember) => {
+                  const host = currentHosts.find((host) => host.userId === parseInt(teamMember.value, 10));
+                  return {
+                    isFixed: false,
+                    userId: parseInt(teamMember.value, 10),
+                    priority: 2,
+                    // if host was already added, retain scheduleId
+                    scheduleId: host?.scheduleId || teamMember.defaultScheduleId,
+                  };
+                })
                 .sort((a, b) => b.priority - a.priority),
               { shouldDirty: true }
-            )
-          }
+            );
+          }}
         />
       </div>
     </div>
@@ -310,6 +328,21 @@ const Hosts = ({
     );
   }, [schedulingType, setValue, getValues, submitCount]);
 
+  // To ensure existing host do not loose its scheduleId property, whenever a new host of same type is added.
+  // This is because the host is created from list option in CheckedHostField component.
+  const updatedHosts = (changedHosts: Host[]) => {
+    const existingHosts = getValues("hosts");
+    return changedHosts.map((newValue) => {
+      const existingHost = existingHosts.find((host: Host) => host.userId === newValue.userId);
+      return existingHost
+        ? {
+            ...newValue,
+            scheduleId: existingHost.scheduleId,
+          }
+        : newValue;
+    });
+  };
+
   return (
     <Controller<FormValues>
       name="hosts"
@@ -319,7 +352,9 @@ const Hosts = ({
             <FixedHosts
               teamMembers={teamMembers}
               value={value}
-              onChange={onChange}
+              onChange={(changeValue) => {
+                onChange([...updatedHosts(changeValue)]);
+              }}
               assignAllTeamMembers={assignAllTeamMembers}
               setAssignAllTeamMembers={setAssignAllTeamMembers}
             />
@@ -330,7 +365,7 @@ const Hosts = ({
                 teamMembers={teamMembers}
                 value={value}
                 onChange={(changeValue) => {
-                  onChange([...value.filter((host: Host) => !host.isFixed), ...changeValue]);
+                  onChange([...value.filter((host: Host) => !host.isFixed), ...updatedHosts(changeValue)]);
                 }}
                 assignAllTeamMembers={assignAllTeamMembers}
                 setAssignAllTeamMembers={setAssignAllTeamMembers}
@@ -341,7 +376,7 @@ const Hosts = ({
                 value={value}
                 onChange={(changeValue) => {
                   onChange(
-                    [...value.filter((host: Host) => host.isFixed), ...changeValue].sort(
+                    [...value.filter((host: Host) => host.isFixed), ...updatedHosts(changeValue)].sort(
                       (a, b) => b.priority - a.priority
                     )
                   );

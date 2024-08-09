@@ -30,6 +30,7 @@ export type SerializableFormTeamMembers = {
   name: string | null;
   email: string;
   avatarUrl: string | null;
+  defaultScheduleId: number | null;
 };
 export type SerializableForm<T extends App_RoutingForms_Form> = Omit<
   T,

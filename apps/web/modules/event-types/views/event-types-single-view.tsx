@@ -89,7 +89,12 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  scheduleId?: number | null;
+};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -116,6 +121,7 @@ export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
 export type EventTypeAssignedUsers = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["children"];
 export type EventTypeHosts = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"]["hosts"];
+export type TeamMembers = RouterOutputs["viewer"]["eventTypes"]["get"]["teamMembers"];
 
 export const locationsResolver = (t: TFunction) => {
   return z
@@ -438,7 +444,9 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         destinationCalendar={destinationCalendar}
       />
     ),
-    availability: <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} />,
+    availability: (
+      <EventAvailabilityTab eventType={eventType} isTeamEvent={!!team} teamMembers={teamMembers} />
+    ),
     team: <EventTeamTab teamMembers={teamMembers} team={team} eventType={eventType} />,
     limits: <EventLimitsTab eventType={eventType} />,
     advanced: <EventAdvancedTab eventType={eventType} team={team} />,
