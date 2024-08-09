@@ -232,6 +232,13 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
+  // if Org allows SEOIndexable then only take user's SEOIndexable settings.
+  const allowSEOIndexing = org
+    ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
+      ? user?.allowSEOIndexing
+      : false
+    : user?.allowSEOIndexing;
+
   const props: Props = {
     eventData: {
       id: eventData.id,
@@ -243,7 +250,7 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     slug,
     trpcState: ssr.dehydrate(),
     isBrandingHidden: user?.hideBranding,
-    isSEOIndexable: user?.allowSEOIndexing,
+    isSEOIndexable: allowSEOIndexing,
     themeBasis: username,
     bookingUid: bookingUid ? `${bookingUid}` : null,
     rescheduleUid: null,

@@ -70,6 +70,7 @@ export type UserPageProps = {
     | "currency"
     | "recurringEvent"
   >)[];
+  isOrgSEOIndexable: boolean | undefined;
 } & EmbedProps;
 
 export const getServerSideProps: GetServerSideProps<UserPageProps> = async (context) => {
@@ -203,7 +204,7 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
       themeBasis: user.username,
       trpcState: ssr.dehydrate(),
       markdownStrippedBio,
-      isSEOIndexable: org?.organizationSettings?.allowSEOIndexing,
+      isOrgSEOIndexable: org?.organizationSettings?.allowSEOIndexing,
     },
   };
 };

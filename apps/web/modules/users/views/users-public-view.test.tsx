@@ -47,6 +47,7 @@ function mockedUserPageComponentProps(props: Partial<React.ComponentProps<typeof
       ...(props.entity ?? null),
     },
     eventTypes: [],
+    isOrgSEOIndexable: false,
   } satisfies React.ComponentProps<typeof UserPage>;
 }
 
