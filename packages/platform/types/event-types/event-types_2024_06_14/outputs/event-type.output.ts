@@ -12,7 +12,7 @@ import {
 } from "class-validator";
 
 import type { Location_2024_06_14, BookingField_2024_06_14 } from "../inputs";
-import { Host } from "../inputs";
+import { Host as TeamEventTypeHostInput } from "../inputs";
 import { RecurringEvent_2024_06_14 } from "../inputs";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
@@ -24,14 +24,6 @@ enum SchedulingTypeEnum {
 }
 
 export type SchedulingType = "ROUND_ROBIN" | "COLLECTIVE" | "MANAGED";
-
-class Schedule_2024_06_14 {
-  @IsInt()
-  id!: number;
-
-  @IsString()
-  timeZone!: string | null;
-}
 
 class User_2024_06_14 {
   @IsInt()
@@ -143,7 +135,13 @@ export class EventTypeOutput_2024_06_14 {
 
   users!: User_2024_06_14[];
 
-  schedule!: Schedule_2024_06_14 | null;
+  @IsInt()
+  scheduleId!: number | null;
+}
+
+export class TeamEventTypeResponseHost extends TeamEventTypeHostInput {
+  @IsString()
+  name!: string;
 }
 
 export class TeamEventTypeOutput_2024_06_14 {
@@ -226,7 +224,8 @@ export class TeamEventTypeOutput_2024_06_14 {
   @IsBoolean()
   isInstantEvent!: boolean;
 
-  schedule!: Schedule_2024_06_14 | null;
+  @IsInt()
+  scheduleId!: number | null;
 
   @IsInt()
   @IsOptional()
@@ -241,9 +240,9 @@ export class TeamEventTypeOutput_2024_06_14 {
   parentEventTypeId?: number | null;
 
   @ValidateNested({ each: true })
-  @Type(() => Host)
+  @Type(() => TeamEventTypeResponseHost)
   @IsArray()
-  hosts!: Host[];
+  hosts!: TeamEventTypeResponseHost[];
 
   @IsBoolean()
   @IsOptional()

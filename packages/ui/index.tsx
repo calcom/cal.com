@@ -172,6 +172,7 @@ export { WizardLayoutAppDir } from "./layouts/WizardLayoutAppDir";
 export { DataTable } from "./components/data-table";
 export {
   Sheet,
+  SheetBody,
   SheetClose,
   SheetContent,
   SheetDescription,
@@ -198,4 +199,4 @@ export type { OrgBannerProps } from "./components/organization-banner";
 
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
-export type { IconName } from "./components/icon/dynamicIconImports";
+export type { IconName } from "./components/icon/icon-names";

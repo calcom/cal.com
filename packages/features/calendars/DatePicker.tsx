@@ -133,16 +133,6 @@ const NoAvailabilityOverlay = ({
   );
 };
 
-const ReschedulingNotPossibleOverlay = () => {
-  const { t } = useLocale();
-
-  return (
-    <div className="bg-muted border-subtle absolute left-1/2 top-40 -mt-10 w-2/3 -translate-x-1/2 -translate-y-1/2 transform break-all rounded-md border p-8 shadow-sm">
-      <h4 className="text-emphasis font-medium">{t("rescheduling_not_possible")}</h4>
-    </div>
-  );
-};
-
 const Days = ({
   minDate,
   excludedDates = [],
@@ -295,8 +285,6 @@ const Days = ({
         </div>
       ))}
 
-      {isBookingInPast && <ReschedulingNotPossibleOverlay />}
-
       {!props.isPending && !isBookingInPast && includedDates && includedDates?.length === 0 && (
         <NoAvailabilityOverlay month={month} nextMonthButton={nextMonthButton} />
       )}
@@ -386,13 +374,11 @@ const DatePicker = ({
             <Button
               className={classNames(
                 `group p-1 opacity-70 transition hover:opacity-100 rtl:rotate-180`,
-                isBookingInPast && `disabled:text-bookinglighter hover:bg-background hover:opacity-70`,
                 `${customClassNames?.datePickerToggle}`
               )}
               onClick={() => changeMonth(+1)}
               data-testid="incrementMonth"
               color="minimal"
-              disabled={isBookingInPast}
               variant="icon"
               StartIcon="chevron-right"
             />
@@ -419,13 +405,13 @@ const DatePicker = ({
             datePickerDateActive: customClassNames?.datePickerDatesActive,
           }}
           weekStart={weekStart}
-          selected={!isBookingInPast ? selected : null}
+          selected={selected}
           {...passThroughProps}
           browsingDate={browsingDate}
           month={month}
           nextMonthButton={() => changeMonth(+1)}
-          slots={!isBookingInPast ? slots : {}}
-          includedDates={!isBookingInPast ? includedDates : []}
+          slots={slots}
+          includedDates={includedDates}
           isBookingInPast={isBookingInPast}
         />
       </div>
