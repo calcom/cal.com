@@ -2529,5 +2529,7 @@
   "outlook_connect_atom_already_connected_label": "Connected Outlook Calendar",
   "outlook_connect_atom_loading_label": "Checking Outlook Calendar",
   "booking_question_response_variables": "Booking question response variables",
+  "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
+  "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Add your new strings above here ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
