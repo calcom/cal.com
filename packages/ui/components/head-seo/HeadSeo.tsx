@@ -1,12 +1,15 @@
 import type { NextSeoProps } from "next-seo";
 import { NextSeo } from "next-seo";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import type { AppImageProps, MeetingImageProps } from "@calcom/lib/OgImages";
 import { constructAppImage, constructGenericImage, constructMeetingImage } from "@calcom/lib/OgImages";
 import { APP_NAME, CAL_URL } from "@calcom/lib/constants";
 import { buildCanonical, getSeoImage, seoConfig } from "@calcom/lib/next-seo.config";
 import { truncateOnWord } from "@calcom/lib/text";
+
+import text from "../../../../apps/web/public/static/locales/en/common.json";
 
 export type HeadSeoProps = {
   title: string;
@@ -70,6 +73,10 @@ const buildSeoMeta = (pageProps: {
 
 export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const path = usePathname();
+  const [render, setRender] = useState(false);
+  useEffect(() => {
+    setRender(true);
+  }, []);
 
   // The below code sets the defaultUrl for our canonical tags
   // Get the router's path
@@ -77,8 +84,8 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
   const defaultUrl = buildCanonical({ path, origin: props.origin || CAL_URL });
 
   const {
-    title,
-    description,
+    title: _title,
+    description: _description,
     siteName,
     canonical = defaultUrl,
     nextSeoProps = {},
@@ -86,6 +93,9 @@ export const HeadSeo = (props: HeadSeoProps): JSX.Element => {
     meeting,
     isBrandingHidden,
   } = props;
+
+  const title = render ? _title : text[_title as keyof typeof text] ?? _title;
+  const description = render ? _description : text[_description as keyof typeof text] ?? _description;
 
   const image = getSeoImage("ogImage") + constructGenericImage({ title, description });
   const truncatedDescription = truncateOnWord(description, 158);
