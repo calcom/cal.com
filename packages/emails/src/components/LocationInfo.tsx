@@ -24,8 +24,7 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
   // Because of location being a value here, we can determine the app that generated the location only for Dynamic Link based apps where the value is integrations:*
   // For static link based location apps, the value is that URL itself. So, it is not straightforward to determine the app that generated the location.
   // If we know the App we can always provide the name of the app like we do it for Google Hangout/Google Meet
-
-  if (meetingUrl) {
+  if (meetingUrl && !props.calEvent.requiresConfirmation) {
     return (
       <Info
         label={t("where")}
