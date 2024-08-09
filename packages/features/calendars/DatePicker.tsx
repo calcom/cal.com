@@ -13,6 +13,8 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { weekdayNames } from "@calcom/lib/weekday";
 import { Button, SkeletonText } from "@calcom/ui";
 
+import { getTodaysDateInTimeZone } from "./lib/getTodaysDateInTimeZone";
+
 export type DatePickerProps = {
   /** which day of the week to render the calendar. Usually Sunday (=0) or Monday (=1) - default: Sunday */
   weekStart?: 0 | 1 | 2 | 3 | 4 | 5 | 6;
@@ -51,6 +53,8 @@ export type DatePickerProps = {
       emoji?: string;
     }[]
   >;
+  // Preferred timezone selected on booker page
+  timezone?: string;
 };
 
 export const Day = ({
@@ -161,7 +165,7 @@ const Days = ({
 
   const includedDates = getAvailableDatesInMonth({
     browsingDate: browsingDate.toDate(),
-    minDate,
+    minDate: minDate,
     includedDates: props.includedDates,
   });
 
@@ -297,6 +301,7 @@ const DatePicker = ({
   slots,
   customClassNames,
   includedDates,
+  timezone: selectedTimeZone,
   ...passThroughProps
 }: DatePickerProps &
   Partial<React.ComponentProps<typeof Days>> & {
@@ -309,6 +314,13 @@ const DatePicker = ({
     };
     scrollToTimeSlots?: () => void;
   }) => {
+  // We need to set minDate to today's (or current) date w.r.t selected timezone.
+  // If we just do new Date(), we get browser's current date.
+  // getTodaysDateInTimeZone() function gets today's date w.r.t to selected timezone.
+  // Returned Date will be of type Date (native TS/JS Date type).
+  // As getAvailableDatesInMonth() function requires minDate in TS/JS Date type.
+  const minDate = getTodaysDateInTimeZone(selectedTimeZone);
+
   const browsingDate = passThroughProps.browsingDate || dayjs().startOf("month");
   const { i18n } = useLocale();
   const bookingData = useBookerStore((state) => state.bookingData);
@@ -353,7 +365,7 @@ const DatePicker = ({
                 customClassNames?.datePickerToggle
               )}
               onClick={() => changeMonth(-1)}
-              disabled={!browsingDate.isAfter(dayjs())}
+              disabled={!browsingDate.isAfter(dayjs(minDate))}
               data-testid="decrementMonth"
               color="minimal"
               variant="icon"
@@ -387,6 +399,7 @@ const DatePicker = ({
       </div>
       <div className="relative grid grid-cols-7 grid-rows-6 gap-1 text-center">
         <Days
+          minDate={minDate}
           customClassName={{
             datePickerDate: customClassNames?.datePickersDates,
             datePickerDateActive: customClassNames?.datePickerDatesActive,
