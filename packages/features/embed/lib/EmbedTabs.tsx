@@ -8,7 +8,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { TextArea } from "@calcom/ui";
 
 import type { EmbedFramework, EmbedType, PreviewState } from "../types";
-import { Codes, doWeNeedCalOriginProp } from "./EmbedCodes";
+import { Codes } from "./EmbedCodes";
 import { embedLibUrl, EMBED_PREVIEW_HTML_URL } from "./constants";
 import { getApiNameForReactSnippet, getApiNameForVanillaJsSnippet } from "./getApiName";
 import { getDimension } from "./getDimension";
@@ -199,32 +199,28 @@ const getEmbedTypeSpecificString = ({
   if (!frameworkCodes[embedType]) {
     throw new Error(`Code not available for framework:${embedFramework} and embedType:${embedType}`);
   }
+
+  const codeGeneratorInput = {
+    calLink,
+    uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+    embedCalOrigin,
+    namespace,
+  };
+
   if (embedType === "inline") {
     return frameworkCodes[embedType]({
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
-      embedCalOrigin,
-      namespace,
+      ...codeGeneratorInput,
+      previewState: previewState.inline,
     });
   } else if (embedType === "floating-popup") {
-    const floatingButtonArg = {
-      calLink,
-      ...(doWeNeedCalOriginProp(embedCalOrigin) ? { calOrigin: embedCalOrigin } : null),
-      ...previewState.floatingPopup,
-    };
     return frameworkCodes[embedType]({
-      namespace,
-      floatingButtonArg: JSON.stringify(floatingButtonArg),
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
+      ...codeGeneratorInput,
+      previewState: previewState.floatingPopup,
     });
   } else if (embedType === "element-click") {
     return frameworkCodes[embedType]({
-      namespace,
-      calLink,
-      uiInstructionCode: getEmbedUIInstructionString(uiInstructionStringArg),
-      previewState,
-      embedCalOrigin,
+      ...codeGeneratorInput,
+      previewState: previewState.elementClick,
     });
   }
   return "";
