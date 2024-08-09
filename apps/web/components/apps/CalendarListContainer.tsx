@@ -2,16 +2,15 @@ import Link from "next/link";
 import { Fragment, useEffect } from "react";
 
 import { InstallAppButton } from "@calcom/app-store/components";
+import { DestinationCalendarSettingsWebWrapper } from "@calcom/atoms/monorepo";
 import DisconnectIntegration from "@calcom/features/apps/components/DisconnectIntegration";
 import { CalendarSwitch } from "@calcom/features/calendars/CalendarSwitch";
-import DestinationCalendarSelector from "@calcom/features/calendars/DestinationCalendarSelector";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
   Button,
   EmptyScreen,
-  Label,
   List,
   ShellSubHeading,
   AppSkeletonLoader as SkeletonLoader,
@@ -222,28 +221,7 @@ export function CalendarListContainer(props: { heading?: boolean; fromOnboarding
                 {heading && (
                   <>
                     <div className="border-subtle mb-6 mt-8 rounded-lg border">
-                      <div className="p-6">
-                        <h2 className="text-emphasis mb-1 text-base font-bold leading-5 tracking-wide">
-                          {t("add_to_calendar")}
-                        </h2>
-
-                        <p className="text-subtle text-sm leading-tight">
-                          {t("add_to_calendar_description")}
-                        </p>
-                      </div>
-                      <div className="border-t">
-                        <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">
-                          <div>
-                            <Label className="text-default mb-0 font-medium">{t("add_events_to")}</Label>
-                            <DestinationCalendarSelector
-                              hidePlaceholder
-                              value={data.destinationCalendar?.externalId}
-                              onChange={mutation.mutate}
-                              isPending={mutation.isPending}
-                            />
-                          </div>
-                        </div>
-                      </div>
+                      <DestinationCalendarSettingsWebWrapper />
                     </div>
                     <ConnectedCalendarsList
                       onChanged={onChanged}
