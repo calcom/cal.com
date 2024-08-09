@@ -10,5 +10,6 @@
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
-  "setupFiles": ["<rootDir>/test/setEnvVars.ts"]
+  "setupFiles": ["<rootDir>/test/setEnvVars.ts"],
+  "reporters": ["default", "jest-summarizing-reporter"]
 }

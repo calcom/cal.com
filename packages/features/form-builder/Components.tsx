@@ -71,6 +71,7 @@ type Component =
         } & {
           name?: string;
           required?: boolean;
+          translatedDefaultLabel?: string;
         }
       >(
         props: TProps
@@ -349,7 +350,7 @@ export const Components: Record<FieldType, Component> = {
                     }
                     setValue(newValue);
                   }}
-                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded ltr:mr-2 rtl:ml-2"
+                  className="border-default dark:border-default hover:bg-subtle checked:hover:bg-brand-default checked:bg-brand-default dark:checked:bg-brand-default dark:bg-darkgray-100 dark:hover:bg-subtle dark:checked:hover:bg-brand-default h-4 w-4 cursor-pointer rounded transition ltr:mr-2 rtl:ml-2"
                   value={option.value}
                   checked={value.includes(option.value)}
                 />
@@ -386,7 +387,16 @@ export const Components: Record<FieldType, Component> = {
   },
   radioInput: {
     propsType: propsTypes.radioInput,
-    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
+    factory: function RadioInputWithLabel({
+      name,
+      label,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+      readOnly,
+      translatedDefaultLabel,
+    }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -398,17 +408,24 @@ export const Components: Record<FieldType, Component> = {
 
       const { t } = useLocale();
 
-      const getCleanLabel = (option: { label: string; value: string }): string | JSX.Element => {
-        if (!option.label) {
+      const didUserProvideLabel = (
+        label: string | undefined,
+        translatedDefaultLabel: string | undefined
+      ): label is string => {
+        return label && translatedDefaultLabel ? translatedDefaultLabel !== label : false;
+      };
+
+      const getCleanLabel = (label: string): string | JSX.Element => {
+        if (!label) {
           return "";
         }
 
-        return option.label.search(/^https?:\/\//) !== -1 ? (
-          <a href={option.label} target="_blank">
-            <span className="underline">{option.label}</span>
+        return label.search(/^https?:\/\//) !== -1 ? (
+          <a href={label} target="_blank">
+            <span className="underline">{label}</span>
           </a>
         ) : (
-          option.label
+          label
         );
       };
 
@@ -434,7 +451,9 @@ export const Components: Record<FieldType, Component> = {
                         }}
                         checked={value?.value === option.value}
                       />
-                      <span className="text-emphasis me-2 ms-2 text-sm">{getCleanLabel(option) ?? ""}</span>
+                      <span className="text-emphasis me-2 ms-2 text-sm">
+                        {getCleanLabel(option.label) ?? ""}
+                      </span>
                       <span>
                         {option.value === "phone" && (
                           <InfoBadge content={t("number_in_international_format")} />
@@ -444,10 +463,13 @@ export const Components: Record<FieldType, Component> = {
                   );
                 })
               ) : (
-                // Show option itself as label because there is just one option
+                // Use the only option itself to determine if the field is required or not.
                 <>
                   <Label className="flex">
-                    {options[0].label}
+                    {/* We still want to show the label of the field if it is changed by the user otherwise the best label would be the option label */}
+                    {getCleanLabel(
+                      didUserProvideLabel(label, translatedDefaultLabel) ? label : options[0].label
+                    )}
                     {!readOnly && optionsInputs[options[0].value]?.required ? (
                       <span className="text-default mb-1 ml-1 text-sm font-medium">*</span>
                     ) : null}
@@ -510,6 +532,12 @@ export const Components: Record<FieldType, Component> = {
           />
         </div>
       );
+    },
+  },
+  url: {
+    propsType: propsTypes.url,
+    factory: (props) => {
+      return <Widgets.TextWidget type="url" noLabel={true} {...props} />;
     },
   },
 } as const;

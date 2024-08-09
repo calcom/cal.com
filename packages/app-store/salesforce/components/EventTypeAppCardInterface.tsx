@@ -17,6 +17,7 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
   const { getAppData, setAppData, disabled } = useAppContextWithSchema<typeof appDataSchema>();
   const { enabled, updateEnabled } = useIsAppEnabled(app);
   const isRoundRobinLeadSkipEnabled = getAppData("roundRobinLeadSkip");
+  const isSkipContactCreationEnabled = getAppData("skipContactCreation");
   const { t } = useLocale();
 
   return (
@@ -30,24 +31,34 @@ const EventTypeAppCard: EventTypeAppCardComponent = function EventTypeAppCard({ 
       switchChecked={enabled}
       hideSettingsIcon>
       <>
-        {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
-          <div>
-            <Switch
-              label={t("skip_rr_assignment_label")}
-              labelOnLeading
-              checked={isRoundRobinLeadSkipEnabled}
-              onCheckedChange={(checked) => {
-                setAppData("roundRobinLeadSkip", checked);
-                if (checked) {
-                  // temporary solution, enabled should always be already set
-                  setAppData("enabled", checked);
-                }
-              }}
-            />
-            <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
-          </div>
-        ) : null}
+        <div>
+          <Switch
+            label={t("skip_contact_creation", { appName: "Salesforce" })}
+            labelOnLeading
+            checked={isSkipContactCreationEnabled}
+            onCheckedChange={(checked) => {
+              setAppData("skipContactCreation", checked);
+            }}
+          />
+        </div>
       </>
+      {eventType.schedulingType === SchedulingType.ROUND_ROBIN ? (
+        <div className="mt-4">
+          <Switch
+            label={t("skip_rr_assignment_label")}
+            labelOnLeading
+            checked={isRoundRobinLeadSkipEnabled}
+            onCheckedChange={(checked) => {
+              setAppData("roundRobinLeadSkip", checked);
+              if (checked) {
+                // temporary solution, enabled should always be already set
+                setAppData("enabled", checked);
+              }
+            }}
+          />
+          <Alert className="mt-2" severity="neutral" title={t("skip_rr_description")} />
+        </div>
+      ) : null}
     </AppCard>
   );
 };
