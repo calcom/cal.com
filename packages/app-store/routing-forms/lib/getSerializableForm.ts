@@ -1,4 +1,5 @@
 import type { App_RoutingForms_Form } from "@prisma/client";
+import { v4 as uuidv4 } from "uuid";
 import type { z } from "zod";
 
 import { entityPrismaWhereClause } from "@calcom/lib/entityPermissionUtils";
@@ -10,6 +11,29 @@ import { zodFields, zodRoutes } from "../zod";
 import getConnectedForms from "./getConnectedForms";
 import isRouter from "./isRouter";
 import isRouterLinkedField from "./isRouterLinkedField";
+import { getFieldWithOptions } from "./selectOptions";
+
+type FieldWithOptionsHavingId<T> = Omit<T, "options"> & { options?: { id: string; value: string }[] };
+export const ensureIdInOptions = <T extends { options?: { id: string | null; value: string }[] }>(
+  field: T
+): FieldWithOptionsHavingId<T> => {
+  const { options, ...fieldWithoutOptions } = field;
+  if (!options) return fieldWithoutOptions;
+
+  const newOptions = options.map((option) => {
+    if (!option.id) {
+      return {
+        ...option,
+        id: uuidv4(),
+      } as { id: string; value: string };
+    }
+    return option as { id: string; value: string };
+  });
+  return {
+    ...fieldWithoutOptions,
+    options: newOptions,
+  };
+};
 
 /**
  * Doesn't have deleted fields by default
@@ -57,7 +81,9 @@ export async function getSerializableForm<TForm extends App_RoutingForms_Form>({
     name: f.name,
     description: f.description,
   }));
-  const finalFields = fields;
+
+  const finalFields = fields.map((field) => ensureIdInOptions(getFieldWithOptions(field)));
+
   let teamMembers: SerializableFormTeamMembers[] = [];
   if (form.teamId) {
     teamMembers = await prisma.user.findMany({

@@ -135,9 +135,26 @@ async function seedAppData() {
         {
           id: "d4292635-9f12-17b1-9153-c3a854649182",
           type: "multiselect",
-          label: "Multi Select",
+          label: "Multi Select(with legacy `selectText`)",
           identifier: "multi",
           selectText: "Option-1\nOption-2",
+          required: false,
+        },
+        {
+          id: "d4292635-9f12-17b1-9153-c3a854649182",
+          type: "multiselect",
+          label: "Multi Select",
+          identifier: "multi",
+          options: [
+            {
+              id: "d1234635-9f12-17b1-9153-c3a854649182",
+              label: "Option-1",
+            },
+            {
+              id: "d1235635-9f12-17b1-9153-c3a854649182",
+              label: "Option-2",
+            },
+          ],
           required: false,
         },
       ],

@@ -397,9 +397,26 @@ export const createUsersFixture = (
               {
                 id: "d4292635-9f12-17b1-9153-c3a854649182",
                 type: "multiselect",
-                label: "Multi Select",
+                label: "Multi Select(with Legacy `selectText`)",
                 identifier: "multi",
                 selectText: "Option-1\nOption-2",
+                required: false,
+              },
+              {
+                id: "d4292635-9f12-17b1-9153-c3a854649182",
+                type: "multiselect",
+                label: "Multi Select",
+                identifier: "multi",
+                options: [
+                  {
+                    id: "d1292635-9f12-17b1-9153-c3a854649182",
+                    value: "Option-1",
+                  },
+                  {
+                    id: "d1302635-9f12-17b1-9153-c3a854649182",
+                    value: "Option-2",
+                  },
+                ],
                 required: false,
               },
             ],

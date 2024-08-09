@@ -6,9 +6,20 @@ export const zodNonRouterField = z.object({
   identifier: z.string().optional(),
   placeholder: z.string().optional(),
   type: z.string(),
+  /**
+   * Deprecated in favour of `options`
+   */
   selectText: z.string().optional(),
   required: z.boolean().optional(),
   deleted: z.boolean().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        id: z.string(),
+      })
+    )
+    .optional(),
 });
 
 export const zodRouterField = zodNonRouterField.extend({
