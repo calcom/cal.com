@@ -95,7 +95,7 @@ export default function JoinCall(props: PageProps) {
       </Head>
       <DailyProvider callObject={daily}>
         <div
-          className="mx-auto"
+          className="mx-auto hidden sm:block"
           style={{ zIndex: 2, left: "30%", position: "absolute", bottom: 100, width: "auto" }}>
           <CalAiTranscribe />
         </div>
