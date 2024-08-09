@@ -37,8 +37,7 @@ import {
   ApiOperation as DocsOperation,
   ApiCreatedResponse as DocsCreatedResponse,
 } from "@nestjs/swagger";
-import { MembershipRole } from "@prisma/client";
-import { User } from "@prisma/client";
+import { User, MembershipRole } from "@prisma/client";
 
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import { CreateOAuthClientInput } from "@calcom/platform-types";
@@ -86,6 +85,7 @@ export class OAuthClientsController {
     }
 
     const { id, secret } = await this.oauthClientRepository.createOAuthClient(organizationId, body);
+
     return {
       status: SUCCESS_STATUS,
       data: {
@@ -116,6 +116,7 @@ export class OAuthClientsController {
     if (!client) {
       throw new NotFoundException(`OAuth client with ID ${clientId} not found`);
     }
+
     return { status: SUCCESS_STATUS, data: client };
   }
 
@@ -149,6 +150,7 @@ export class OAuthClientsController {
   ): Promise<GetOAuthClientResponseDto> {
     this.logger.log(`For client ${clientId} updating OAuth Client with data: ${JSON.stringify(body)}`);
     const client = await this.oauthClientRepository.updateOAuthClient(clientId, body);
+
     return { status: SUCCESS_STATUS, data: client };
   }
 
