@@ -297,7 +297,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       length: eventType.length,
       hidden: eventType.hidden,
       hashedLink: eventType.hashedLink?.link || undefined,
-      eventTypeColour: eventType.eventTypeColour || null,
+      eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,

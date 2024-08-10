@@ -23,6 +23,7 @@ import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
@@ -213,6 +214,10 @@ const Item = ({
   readOnly: boolean;
 }) => {
   const { t } = useLocale();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const eventTypeColor =
+    type.eventTypeColor && type.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const content = () => (
     <div>
@@ -240,8 +245,8 @@ const Item = ({
 
   return (
     <div className="relative flex-1 overflow-hidden pr-4 text-sm">
-      {type.eventTypeColour && (
-        <div className="absolute h-full w-0.5" style={{ backgroundColor: type.eventTypeColour }} />
+      {eventTypeColor && (
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
       )}
       <div className="ml-3">
         {readOnly ? (

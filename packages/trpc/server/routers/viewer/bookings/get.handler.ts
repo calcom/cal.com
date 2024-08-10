@@ -179,7 +179,7 @@ export async function getBookings({
         metadata: true,
         seatsShowAttendees: true,
         seatsShowAvailabilityCount: true,
-        eventTypeColour: true,
+        eventTypeColor: true,
         schedulingType: true,
         team: {
           select: {

@@ -18,6 +18,7 @@ import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
 import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
@@ -99,6 +100,12 @@ function BookingListItem(booking: BookingItemProps) {
 
   const location = booking.location as ReturnType<typeof getEventLocationValue>;
   const locationVideoCallUrl = bookingMetadataSchema.parse(booking?.metadata || {})?.videoCallUrl;
+
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const eventTypeColor =
+    booking.eventType.eventTypeColor &&
+    booking.eventType.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const locationToDisplay = getSuccessPageLocationMessage(
     locationVideoCallUrl ? locationVideoCallUrl : location,
@@ -357,9 +364,7 @@ function BookingListItem(booking: BookingItemProps) {
       <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
         <td className="hidden align-top ltr:pl-3 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <div className="flex h-full items-center">
-            {booking.eventType?.eventTypeColour && (
-              <div className="h-[70%] w-0.5" style={{ backgroundColor: booking.eventType.eventTypeColour }} />
-            )}
+            {eventTypeColor && <div className="h-[70%] w-0.5" style={{ backgroundColor: eventTypeColor }} />}
             <Link href={bookingLink} className="ml-3">
               <div className="cursor-pointer py-4">
                 <div className="text-emphasis text-sm leading-6">{startTime}</div>

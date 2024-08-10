@@ -24,8 +24,8 @@ import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import type { Prisma } from "@calcom/prisma/client";
+import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -53,11 +53,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [showEventNameTip, setShowEventNameTip] = useState(false);
-  const [colourError, setColourError] = useState(false);
+  const [darkModeError, setDarkModeError] = useState(false);
+  const [lightModeError, setLightModeError] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
-  const [eventTypeColourVisible, setEventTypeColourVisible] = useState(
-    !!formMethods.getValues("eventTypeColour")
+  const [eventTypeColorState, setEventTypeColorState] = useState<z.infer<typeof eventTypeColor>>(
+    eventType.eventTypeColor
   );
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
@@ -135,14 +136,14 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const seatsLocked = shouldLockDisableProps("seatsPerTimeSlotEnabled");
   const requiresBookerEmailVerificationProps = shouldLockDisableProps("requiresBookerEmailVerification");
   const hideCalendarNotesLocked = shouldLockDisableProps("hideCalendarNotes");
-  const eventTypeColourLocked = shouldLockDisableProps("eventTypeColour");
+  const eventTypeColorLocked = shouldLockDisableProps("eventTypeColor");
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
-  const { resolvedTheme } = useGetTheme();
-  const defaultEventTypeColour =
-    eventType.eventTypeColour ||
-    (resolvedTheme === "dark" ? DEFAULT_DARK_BRAND_COLOR : DEFAULT_LIGHT_BRAND_COLOR);
+  const defaultEventTypeColor = eventType.eventTypeColor || {
+    lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
+    darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
+  };
 
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
@@ -548,45 +549,77 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
         )}
       />
       <Controller
-        name="eventTypeColour"
+        name="eventTypeColor"
         render={() => (
           <SettingsToggle
             labelClassName="text-sm"
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              eventTypeColourVisible && "rounded-b-none"
+              eventTypeColorState !== null && "rounded-b-none"
             )}
-            title={t("event_type_colour")}
-            {...eventTypeColourLocked}
-            description={t("event_type_colour_description")}
-            checked={eventTypeColourVisible}
+            title={t("event_type_color")}
+            {...eventTypeColorLocked}
+            description={t("event_type_color_description")}
+            checked={eventTypeColorState !== null}
             onCheckedChange={(e) => {
-              formMethods.setValue("eventTypeColour", e ? defaultEventTypeColour : null, {
+              const value = e ? defaultEventTypeColor : null;
+              formMethods.setValue("eventTypeColor", value, {
                 shouldDirty: true,
               });
-              setEventTypeColourVisible(e);
+              setEventTypeColorState(value);
             }}
             childrenClassName="lg:ml-0">
-            <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-              <ColorPicker
-                defaultValue={defaultEventTypeColour}
-                onChange={(value) => {
-                  try {
-                    checkWCAGContrastColor("#ffffff", value);
-                    checkWCAGContrastColor("#101010", value);
-                    formMethods.setValue("eventTypeColour", value, { shouldDirty: true });
-                    setColourError(false);
-                  } catch (err) {
-                    setColourError(true);
-                  }
-                }}
-              />
-              {colourError ? (
-                <div className="mt-4">
-                  <Alert severity="warning" message={t("event_type_color_contrast_error")} />
-                </div>
-              ) : null}
+            <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
+              <div>
+                <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
+                <ColorPicker
+                  defaultValue={defaultEventTypeColor.lightEventTypeColor}
+                  onChange={(value) => {
+                    if (checkWCAGContrastColor("#ffffff", value)) {
+                      const newVal = {
+                        ...eventTypeColorState,
+                        lightEventTypeColor: value,
+                      };
+                      setLightModeError(false);
+                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                      setEventTypeColorState(newVal);
+                    } else {
+                      setLightModeError(true);
+                    }
+                  }}
+                />
+                {lightModeError ? (
+                  <div className="mt-4">
+                    <Alert severity="warning" message={t("event_type_color_light_theme_contrast_error")} />
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="mt-6 sm:mt-0">
+                <p className="text-default mb-2 block text-sm font-medium">{t("dark_event_type_color")}</p>
+                <ColorPicker
+                  defaultValue={defaultEventTypeColor.darkEventTypeColor}
+                  onChange={(value) => {
+                    if (checkWCAGContrastColor("#101010", value)) {
+                      const newVal = {
+                        ...eventTypeColorState,
+                        darkEventTypeColor: value,
+                      };
+                      setDarkModeError(false);
+                      formMethods.setValue("eventTypeColor", newVal, { shouldDirty: true });
+                      setEventTypeColorState(newVal);
+                    } else {
+                      setDarkModeError(true);
+                    }
+                  }}
+                />
+                {darkModeError ? (
+                  <div className="mt-4">
+                    <Alert severity="warning" message={t("event_type_color_dark_theme_contrast_error")} />
+                  </div>
+                ) : null}
+              </div>
             </div>
           </SettingsToggle>
         )}
