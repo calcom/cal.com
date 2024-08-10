@@ -4,6 +4,7 @@ import type {
   LinkLocation_2024_06_14,
   PhoneLocation_2024_06_14,
   Integration_2024_06_14,
+  BookingField_2024_06_14,
 } from "@calcom/platform-types";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
@@ -71,7 +72,7 @@ function getResponseEventTypeLocations(
 
 function getResponseEventTypeBookingFields(
   transformedBookingFields: ReturnType<typeof transformApiEventTypeBookingFields>
-) {
+): BookingField_2024_06_14[] {
   if (!transformedBookingFields) {
     return [];
   }
@@ -156,7 +157,7 @@ function getResponseEventTypeBookingFields(
           label: field.label,
           required: field.required,
           placeholder: field.placeholder,
-          options: "options" in field ? field.options?.map((option) => option.value) : [],
+          options: field.options ? field.options.map((option) => option.value) : [],
         };
       case "multiselect":
         return {
@@ -164,7 +165,7 @@ function getResponseEventTypeBookingFields(
           slug: field.name,
           label: field.label,
           required: field.required,
-          options: "options" in field ? field.options?.map((option) => option.value) : [],
+          options: field.options ? field.options?.map((option) => option.value) : [],
         };
       case "checkbox":
         return {
@@ -172,7 +173,7 @@ function getResponseEventTypeBookingFields(
           slug: field.name,
           label: field.label,
           required: field.required,
-          options: "options" in field ? field.options?.map((option) => option.value) : [],
+          options: field.options ? field.options?.map((option) => option.value) : [],
         };
       case "radio":
         return {
@@ -180,7 +181,7 @@ function getResponseEventTypeBookingFields(
           slug: field.name,
           label: field.label,
           required: field.required,
-          options: "options" in field ? field.options?.map((option) => option.value) : [],
+          options: field.options ? field.options?.map((option) => option.value) : [],
         };
       default:
         throw new Error(`Unsupported booking field type '${field.type}'.`);
