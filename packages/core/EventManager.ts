@@ -411,6 +411,9 @@ export default class EventManager {
         userId: true,
         attendees: true,
         references: {
+          where: {
+            deleted: null,
+          },
           // NOTE: id field removed from select as we don't require for deletingMany
           // but was giving error on recreate for reschedule, probably because promise.all() didn't finished
           select: {

@@ -16,6 +16,7 @@ import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
+import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -60,6 +61,7 @@ export const appStoreMetadata = {
   ga4: ga4_config_json,
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
+  "horizon-workrooms": horizon_workrooms_config_json,
   huddle01video: huddle01video__metadata_ts,
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
