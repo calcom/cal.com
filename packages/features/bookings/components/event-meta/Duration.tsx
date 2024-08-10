@@ -4,8 +4,9 @@ import { useEffect } from "react";
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type { BookerEvent } from "@calcom/features/bookings/types";
+import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { ToggleGroup } from "@calcom/ui";
+import { useShouldShowArrows, Icon } from "@calcom/ui";
 
 /** Render X mins as X hours or X hours Y mins instead of in minutes once >= 60 minutes */
 export const getDurationFormatted = (mins: number | undefined, t: TFunction) => {
@@ -47,6 +48,20 @@ export const EventDuration = ({
     state.state,
   ]);
 
+  const { ref, calculateScroll, leftVisible, rightVisible } = useShouldShowArrows();
+
+  const handleLeft = () => {
+    if (ref.current) {
+      ref.current.scrollLeft -= 100;
+    }
+  };
+
+  const handleRight = () => {
+    if (ref.current) {
+      ref.current.scrollLeft += 100;
+    }
+  };
+
   const isDynamicEvent = "isDynamic" in event && event.isDynamic;
 
   // Sets initial value of selected duration to the default duration.
@@ -62,17 +77,43 @@ export const EventDuration = ({
   const durations = event?.metadata?.multipleDuration || [15, 30, 60, 90];
 
   return selectedDuration ? (
-    <ToggleGroup
-      className="block"
-      onValueChange={(duration) => setSelectedDuration(Number(duration))}
-      defaultValue={selectedDuration.toString()}
-      options={durations
-        .filter((dur) => state !== "booking" || dur === selectedDuration)
-        .map((duration) => ({
-          value: duration.toString(),
-          label: getDurationFormatted(duration, t),
-          active: selectedDuration === duration ? true : false,
-        }))}
-    />
+    <div className="border-default relative mr-5 flex flex-row items-center justify-between rounded-md border">
+      {leftVisible && (
+        <button onClick={handleLeft} className="absolute bottom-0 left-0 flex">
+          <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
+            <Icon name="chevron-left" className="text-subtle h-4 w-4" />
+          </div>
+          <div className="to-default flex h-9 w-5 bg-gradient-to-l from-transparent" />
+        </button>
+      )}
+      <ul
+        className="bg-default no-scrollbar flex max-w-full items-center gap-0.5 overflow-x-auto rounded-md p-1"
+        onScroll={(e) => calculateScroll(e)}
+        ref={ref}>
+        {durations
+          .filter((dur) => state !== "booking" || dur === selectedDuration)
+          .map((duration, index) => (
+            <li
+              data-testId={`multiple-choice-${duration}mins`}
+              data-active={selectedDuration === duration ? "true" : "false"}
+              key={index}
+              onClick={() => setSelectedDuration(duration)}
+              className={classNames(
+                selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
+                "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"
+              )}>
+              <div className="w-max">{getDurationFormatted(duration, t)}</div>
+            </li>
+          ))}
+      </ul>
+      {rightVisible && (
+        <button onClick={handleRight} className="absolute bottom-0 right-0 flex">
+          <div className="to-default flex h-9 w-5 bg-gradient-to-r from-transparent" />
+          <div className="bg-default flex h-9 w-5 items-center justify-end rounded-md">
+            <Icon name="chevron-right" className="text-subtle h-4 w-4" />
+          </div>
+        </button>
+      )}
+    </div>
   ) : null;
 };

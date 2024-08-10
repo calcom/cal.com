@@ -11,7 +11,6 @@ interface ToggleGroupProps extends Omit<RadixToggleGroup.ToggleGroupSingleProps,
     disabled?: boolean;
     tooltip?: string;
     iconLeft?: ReactNode;
-    active?: boolean;
   }[];
   isFullWidth?: boolean;
 }
@@ -58,7 +57,6 @@ export const ToggleGroup = ({
               disabled={option.disabled}
               value={option.value}
               data-testid={`toggle-group-item-${option.value}`}
-              data-active={option?.active}
               className={classNames(
                 "aria-checked:bg-emphasis relative rounded-[4px] px-3 py-1 text-sm leading-tight transition",
                 option.disabled

@@ -72,23 +72,23 @@ test("dynamic booking info prefilled by query params", async ({ page, users }) =
 
   await page.waitForLoadState("networkidle");
 
-  const toggleGroupItemByDurationTestId = (duration: number) => `toggle-group-item-${duration}`;
+  const listItemByDurationTestId = (duration: number) => `multiple-choice-${duration}mins`;
 
-  let toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
-  let activeState = await toggleGroupItemLocator.getAttribute("data-active");
+  let listItemLocator = await page.getByTestId(listItemByDurationTestId(duration));
+  let activeState = await listItemLocator.getAttribute("data-active");
 
   expect(activeState).toEqual("true");
 
   duration = 30;
   await page.goto(`/${pro.username}+${free.username}?duration=${duration}`);
-  toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(duration));
-  activeState = await toggleGroupItemLocator.getAttribute("data-active");
+  listItemLocator = await page.getByTestId(listItemByDurationTestId(duration));
+  activeState = await listItemLocator.getAttribute("data-active");
 
   expect(activeState).toEqual("true");
 
-  // Check another toggle group item just to ensure its not selected
-  toggleGroupItemLocator = await page.getByTestId(toggleGroupItemByDurationTestId(15));
-  activeState = await toggleGroupItemLocator.getAttribute("data-active");
+  // Check another badge just to ensure its not selected
+  listItemLocator = await page.getByTestId(listItemByDurationTestId(15));
+  activeState = await listItemLocator.getAttribute("data-active");
   expect(activeState).toEqual("false");
 });
 // eslint-disable-next-line playwright/no-skipped-test
