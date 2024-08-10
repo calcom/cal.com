@@ -7,7 +7,9 @@ import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
 import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
+import { WebhookTriggerEvents } from "@calcom/prisma/enums";
 import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { PaymentApp } from "@calcom/types/PaymentService";
 
 import { TRPCError } from "@trpc/server";
 
@@ -24,7 +26,7 @@ export const paymentsRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx;
 
-      const booking = await prisma.booking.findFirst({
+      const booking = await prisma.booking.findFirstOrThrow({
         where: {
           id: input.bookingId,
         },
@@ -44,10 +46,6 @@ export const paymentsRouter = router({
       });
 
       const payment = booking.payment[0];
-
-      if (!booking) {
-        throw new Error("Booking not found");
-      }
 
       if (payment.success) {
         throw new TRPCError({
@@ -77,7 +75,7 @@ export const paymentsRouter = router({
       const attendeesList = await Promise.all(attendeesListPromises);
 
       const evt: CalendarEvent = {
-        type: (booking?.eventType?.title as string) || booking?.title,
+        type: booking?.eventType?.slug as string,
         title: booking.title,
         startTime: dayjs(booking.startTime).format(),
         endTime: dayjs(booking.endTime).format(),
@@ -109,9 +107,11 @@ export const paymentsRouter = router({
         throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid payment credential" });
       }
 
-      const paymentApp = await appStore[paymentCredential?.app?.dirName as keyof typeof appStore];
+      const paymentApp = (await appStore[
+        paymentCredential?.app?.dirName as keyof typeof appStore
+      ]?.()) as PaymentApp | null;
 
-      if (!("lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
+      if (!(paymentApp && paymentApp.lib && "lib" in paymentApp && "PaymentService" in paymentApp.lib)) {
         throw new TRPCError({ code: "BAD_REQUEST", message: "Payment service not found" });
       }
 

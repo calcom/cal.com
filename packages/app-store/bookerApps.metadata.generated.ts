@@ -15,6 +15,7 @@ import fathom_config_json from "./fathom/config.json";
 import ga4_config_json from "./ga4/config.json";
 import { metadata as googlevideo__metadata_ts } from "./googlevideo/_metadata";
 import gtm_config_json from "./gtm/config.json";
+import horizon_workrooms_config_json from "./horizon-workrooms/config.json";
 import { metadata as huddle01video__metadata_ts } from "./huddle01video/_metadata";
 import jelly_config_json from "./jelly/config.json";
 import { metadata as jitsivideo__metadata_ts } from "./jitsivideo/_metadata";
@@ -31,6 +32,7 @@ import salesroom_config_json from "./salesroom/config.json";
 import shimmervideo_config_json from "./shimmervideo/config.json";
 import signal_config_json from "./signal/config.json";
 import sirius_video_config_json from "./sirius_video/config.json";
+import skype_config_json from "./skype/config.json";
 import sylapsvideo_config_json from "./sylapsvideo/config.json";
 import { metadata as tandemvideo__metadata_ts } from "./tandemvideo/_metadata";
 import telegram_config_json from "./telegram/config.json";
@@ -57,6 +59,7 @@ export const appStoreMetadata = {
   ga4: ga4_config_json,
   googlevideo: googlevideo__metadata_ts,
   gtm: gtm_config_json,
+  "horizon-workrooms": horizon_workrooms_config_json,
   huddle01video: huddle01video__metadata_ts,
   jelly: jelly_config_json,
   jitsivideo: jitsivideo__metadata_ts,
@@ -73,6 +76,7 @@ export const appStoreMetadata = {
   shimmervideo: shimmervideo_config_json,
   signal: signal_config_json,
   sirius_video: sirius_video_config_json,
+  skype: skype_config_json,
   sylapsvideo: sylapsvideo_config_json,
   tandemvideo: tandemvideo__metadata_ts,
   telegram: telegram_config_json,

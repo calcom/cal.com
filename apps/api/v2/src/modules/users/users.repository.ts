@@ -77,6 +77,29 @@ export class UsersRepository {
     });
   }
 
+  async findByIdsWithEventTypes(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+      include: {
+        eventTypes: true,
+      },
+    });
+  }
+
+  async findByIds(userIds: number[]) {
+    return this.dbRead.prisma.user.findMany({
+      where: {
+        id: {
+          in: userIds,
+        },
+      },
+    });
+  }
+
   async findByIdWithCalendars(userId: number) {
     return this.dbRead.prisma.user.findUnique({
       where: {
@@ -159,10 +182,6 @@ export class UsersRepository {
     if (userInput.weekStart) {
       userInput.weekStart = userInput.weekStart;
     }
-
-    if (userInput.timeZone) {
-      userInput.timeZone = capitalizeTimezone(userInput.timeZone);
-    }
   }
 
   setDefaultSchedule(userId: number, scheduleId: number) {
@@ -193,18 +212,4 @@ export class UsersRepository {
     });
     return profiles.map((profile) => profile.user);
   }
-}
-
-function capitalizeTimezone(timezone: string) {
-  const segments = timezone.split("/");
-
-  const capitalizedSegments = segments.map((segment) => {
-    return capitalize(segment);
-  });
-
-  return capitalizedSegments.join("/");
-}
-
-function capitalize(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
