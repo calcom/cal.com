@@ -3,7 +3,7 @@
 import PageWrapper from "@components/PageWrapper";
 import { getLayout } from "@components/auth/layouts/AdminLayout";
 
-import OAuthView from "./oAuthView";
+import OAuthView from "~/settings/admin/oauth/oauth-view";
 
 const OAuthPage = () => <OAuthView />;
 
