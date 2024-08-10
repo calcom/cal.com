@@ -5,9 +5,9 @@ import prisma from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 
-import { test } from "./lib/fixtures";
+import { test, todo } from "./lib/fixtures";
 import type { Fixtures } from "./lib/fixtures";
-import { todo, selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
+import { selectFirstAvailableTimeSlotNextMonth } from "./lib/testUtils";
 
 test.describe.configure({ mode: "parallel" });
 test.afterEach(({ users }) => users.deleteAll());
