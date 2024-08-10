@@ -105,7 +105,7 @@ describe("Platform Destination Calendar Endpoints", () => {
       externalId: "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/",
     };
 
-    await request(app.getHttpServer())
+    return await request(app.getHttpServer())
       .post("/v2/destination-calendars")
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .send(body)
