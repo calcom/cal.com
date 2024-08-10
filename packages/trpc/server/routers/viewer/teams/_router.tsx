@@ -24,6 +24,7 @@ import { ZRoundRobinReassignInputSchema } from "./roundRobin/roundRobinReassign.
 import { ZSetInviteExpirationInputSchema } from "./setInviteExpiration.schema";
 import { ZUpdateInputSchema } from "./update.schema";
 import { ZUpdateMembershipInputSchema } from "./updateMembership.schema";
+import { ZValidateUniqueInviteInputSchema } from "./validateUniqueInvite.schema";
 
 const NAMESPACE = "teams";
 const namespaced = (s: string) => `${NAMESPACE}.${s}`;
@@ -176,6 +177,13 @@ export const viewerTeamsRouter = router({
     const handler = await importHandler(
       namespaced("roundRobinReassign"),
       () => import("./roundRobin/roundRobinReassign.handler")
+    );
+    return handler(opts);
+  }),
+  validateUniqueInvite: authedProcedure.input(ZValidateUniqueInviteInputSchema).mutation(async (opts) => {
+    const handler = await importHandler(
+      namespaced("validateUniqueInvite"),
+      () => import("./validateUniqueInvite.handler")
     );
     return handler(opts);
   }),
