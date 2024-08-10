@@ -1,3 +1,5 @@
+"use client";
+
 import type { Team } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
