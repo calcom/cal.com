@@ -6,6 +6,7 @@ import { GetManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-
 import { GetManagedUsersOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/get-managed-users.output";
 import { ManagedUserOutput } from "@/modules/oauth-clients/controllers/oauth-client-users/outputs/managed-user.output";
 import { KeysResponseDto } from "@/modules/oauth-clients/controllers/oauth-flow/responses/KeysResponse.dto";
+import { OAuthClientGuard } from "@/modules/oauth-clients/guards/oauth-client-guard";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthClientUsersService } from "@/modules/oauth-clients/services/oauth-clients-users.service";
 import { TokensRepository } from "@/modules/tokens/tokens.repository";
@@ -37,7 +38,7 @@ import { Pagination } from "@calcom/platform-types";
   path: "/v2/oauth-clients/:clientId/users",
   version: API_VERSIONS_VALUES,
 })
-@UseGuards(ApiAuthGuard)
+@UseGuards(ApiAuthGuard, OAuthClientGuard)
 @DocsTags("Managed users")
 export class OAuthClientUsersController {
   private readonly logger = new Logger("UserController");
