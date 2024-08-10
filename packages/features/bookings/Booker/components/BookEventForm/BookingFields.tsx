@@ -99,6 +99,7 @@ export const BookingFields = ({
 
           // TODO: Instead of `getLocationOptionsForSelect` options should be retrieved from dataStore[field.getOptionsAt]. It would make it agnostic of the `name` of the field.
           const options = getLocationOptionsForSelect(locations, t);
+          console.log({ options });
           options.forEach((option) => {
             const optionInput = optionsInputs[option.value as keyof typeof optionsInputs];
             if (optionInput) {
@@ -132,6 +133,7 @@ export const BookingFields = ({
             };
           });
         }
+        console.log({ field });
 
         return (
           <FormBuilderField className="mb-4" field={{ ...field, hidden }} readOnly={readOnly} key={index} />

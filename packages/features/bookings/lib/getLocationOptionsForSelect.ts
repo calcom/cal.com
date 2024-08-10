@@ -9,6 +9,7 @@ export default function getLocationsOptionsForSelect(
   locations: LocationObject[],
   t: ReturnType<typeof useLocale>["t"]
 ) {
+  console.log({ locations: JSON.stringify(locations) });
   return locations
     .map((location) => {
       const eventLocation = getEventLocationType(location.type);

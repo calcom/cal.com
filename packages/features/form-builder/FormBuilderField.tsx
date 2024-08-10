@@ -58,6 +58,7 @@ export const FormBuilderField = ({
     field,
     t
   );
+  console.log({ hidden, placeholder, label, noLabel, translatedDefaultLabel });
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
