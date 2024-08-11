@@ -1,3 +1,5 @@
+"use client";
+
 import type { ReactNode } from "react";
 
 import { type ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
