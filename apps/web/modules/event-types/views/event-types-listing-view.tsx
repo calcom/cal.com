@@ -17,6 +17,7 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
@@ -216,8 +217,9 @@ const Item = ({
   const { t } = useLocale();
   const { resolvedTheme, forcedTheme } = useGetTheme();
   const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
   const eventTypeColor =
-    type.eventTypeColor && type.eventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
+    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const content = () => (
     <div>

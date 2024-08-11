@@ -25,7 +25,6 @@ import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
-import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -57,9 +56,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [lightModeError, setLightModeError] = useState(false);
   const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
-  const [eventTypeColorState, setEventTypeColorState] = useState<z.infer<typeof eventTypeColor>>(
-    eventType.eventTypeColor
-  );
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
   );
@@ -140,10 +136,15 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const lockTimeZoneToggleOnBookingPageLocked = shouldLockDisableProps("lockTimeZoneToggleOnBookingPage");
 
   const closeEventNameTip = () => setShowEventNameTip(false);
-  const defaultEventTypeColor = eventType.eventTypeColor || {
-    lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
-    darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
-  };
+
+  const [isEventTypeColorChecked, setIsEventTypeColorChecked] = useState(!!eventType.eventTypeColor);
+
+  const [eventTypeColorState, setEventTypeColorState] = useState(
+    eventType.eventTypeColor || {
+      lightEventTypeColor: DEFAULT_LIGHT_BRAND_COLOR,
+      darkEventTypeColor: DEFAULT_DARK_BRAND_COLOR,
+    }
+  );
 
   const displayDestinationCalendarSelector =
     !!connectedCalendarsQuery.data?.connectedCalendars.length && (!team || isChildrenManagedEventType);
@@ -556,25 +557,25 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
             toggleSwitchAtTheEnd={true}
             switchContainerClassName={classNames(
               "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-              eventTypeColorState !== null && "rounded-b-none"
+              isEventTypeColorChecked && "rounded-b-none"
             )}
             title={t("event_type_color")}
             {...eventTypeColorLocked}
             description={t("event_type_color_description")}
-            checked={eventTypeColorState !== null}
+            checked={isEventTypeColorChecked}
             onCheckedChange={(e) => {
-              const value = e ? defaultEventTypeColor : null;
+              const value = e ? eventTypeColorState : null;
               formMethods.setValue("eventTypeColor", value, {
                 shouldDirty: true,
               });
-              setEventTypeColorState(value);
+              setIsEventTypeColorChecked(e);
             }}
             childrenClassName="lg:ml-0">
             <div className="border-subtle flex flex-col gap-6 rounded-b-lg border border-t-0 p-6">
               <div>
                 <p className="text-default mb-2 block text-sm font-medium">{t("light_event_type_color")}</p>
                 <ColorPicker
-                  defaultValue={defaultEventTypeColor.lightEventTypeColor}
+                  defaultValue={eventTypeColorState.lightEventTypeColor}
                   onChange={(value) => {
                     if (checkWCAGContrastColor("#ffffff", value)) {
                       const newVal = {
@@ -599,7 +600,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               <div className="mt-6 sm:mt-0">
                 <p className="text-default mb-2 block text-sm font-medium">{t("dark_event_type_color")}</p>
                 <ColorPicker
-                  defaultValue={defaultEventTypeColor.darkEventTypeColor}
+                  defaultValue={eventTypeColorState.darkEventTypeColor}
                   onChange={(value) => {
                     if (checkWCAGContrastColor("#101010", value)) {
                       const newVal = {
