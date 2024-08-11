@@ -1,4 +1,5 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import type { AuthOptions, Session } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -926,24 +927,43 @@ export const AUTH_OPTIONS: AuthOptions = {
   },
   events: {
     async signIn({ user, isNewUser }) {
-      // if it's a new user, check if there's a dclid cookie set by @dub/analytics
-      // if so, send a lead event to Dub
-      // @see https://d.to/conversions/next-auth
-      if (isNewUser) {
+      /* only run this code if:
+         - it's a hosted cal account
+         - DUB_API_KEY is configured
+         - it's a new user
+      */
+      const hostedCal = Boolean(HOSTED_CAL_FEATURES);
+      if (hostedCal && process.env.DUB_API_KEY && isNewUser) {
         const dclid = cookies().get("dclid")?.value;
-        if (dclid) {
-          // send lead event to Dub
-          await dub.track.lead({
-            clickId: dclid,
-            eventName: "Sign Up",
-            customerId: user.id.toString(),
-            customerName: user.name,
-            customerEmail: user.email,
-            customerAvatar: user.image,
-          });
-          // delete the dclid cookie
-          cookies().delete("dclid");
-        }
+        // here we use waitUntil – meaning this code will run async to not block the main thread
+        waitUntil(
+          Promise.allSettled([
+            // create a new short link for the user
+            // this will be used in the PoweredBy button on the Booking page
+            dub.links.create({
+              domain: "go.cal.com",
+              key: user.username || undefined,
+              url: "https://cal.com?utm_source=embed&utm_medium=powered-by-button",
+              prefix: "/r/", // resulting link will be go.cal.com/r/steven
+              externalId: user.id.toString(), // @see https://d.to/externalId
+              trackConversion: true, // enable conversion tracking @see https://d.to/conversions
+            }),
+            // check if there's a dclid cookie set by @dub/analytics
+            // if so, send a lead event to Dub
+            // @see https://d.to/conversions/next-auth
+            dclid &&
+              dub.track.lead({
+                clickId: dclid,
+                eventName: "Sign Up",
+                customerId: user.id.toString(),
+                customerName: user.name,
+                customerEmail: user.email,
+                customerAvatar: user.avatarUrl,
+              }),
+          ])
+        );
+        // delete the dclid cookie
+        cookies().delete("dclid");
       }
     },
   },
