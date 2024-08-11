@@ -6,6 +6,7 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
@@ -29,6 +30,7 @@ import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
 import { teamMetadataSchema, userMetadata } from "@calcom/prisma/zod-utils";
 
 import { ErrorCode } from "./ErrorCode";
+import { dub } from "./dub";
 import { isPasswordValid } from "./isPasswordValid";
 import CalComAdapter from "./next-auth-custom-adapter";
 import { verifyPassword } from "./verifyPassword";
@@ -920,6 +922,29 @@ export const AUTH_OPTIONS: AuthOptions = {
       // Allows callback URLs on the same domain
       else if (new URL(url).hostname === new URL(WEBAPP_URL).hostname) return url;
       return baseUrl;
+    },
+  },
+  events: {
+    async signIn({ user, isNewUser }) {
+      // if it's a new user, check if there's a dclid cookie set by @dub/analytics
+      // if so, send a lead event to Dub
+      // @see https://d.to/conversions/next-auth
+      if (isNewUser) {
+        const dclid = cookies().get("dclid")?.value;
+        if (dclid) {
+          // send lead event to Dub
+          await dub.track.lead({
+            clickId: dclid,
+            eventName: "Sign Up",
+            customerId: user.id.toString(),
+            customerName: user.name,
+            customerEmail: user.email,
+            customerAvatar: user.image,
+          });
+          // delete the dclid cookie
+          cookies().delete("dclid");
+        }
+      }
     },
   },
 };

@@ -1,3 +1,4 @@
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { TrpcProvider } from "app/_trpc/trpc-provider";
 import { dir } from "i18next";
@@ -273,7 +274,15 @@ const AppProviders = (props: PageWrapperProps) => {
                 isBookingPage={props.isBookingPage || isBookingPage}>
                 <FeatureFlagsProvider>
                   <OrgBrandProvider>
-                    <MetaProvider>{props.children}</MetaProvider>
+                    <MetaProvider>
+                      {props.children}
+                      <DubAnalytics
+                        cookieOptions={{
+                          // here we're using NEXTAUTH_COOKIE_DOMAIN for cross-domain tracking
+                          domain: process.env.NEXTAUTH_COOKIE_DOMAIN,
+                        }}
+                      />
+                    </MetaProvider>
                   </OrgBrandProvider>
                 </FeatureFlagsProvider>
               </CalcomThemeProvider>

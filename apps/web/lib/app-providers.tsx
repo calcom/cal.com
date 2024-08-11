@@ -1,3 +1,4 @@
+import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { dir } from "i18next";
 import type { Session } from "next-auth";
@@ -299,7 +300,15 @@ const AppProviders = (props: AppPropsWithChildren) => {
               router={props.router}>
               <FeatureFlagsProvider>
                 <OrgBrandProvider>
-                  <MetaProvider>{props.children}</MetaProvider>
+                  <MetaProvider>
+                    {props.children}
+                    <DubAnalytics
+                      cookieOptions={{
+                        // here we're using NEXTAUTH_COOKIE_DOMAIN for cross-domain tracking
+                        domain: process.env.NEXTAUTH_COOKIE_DOMAIN,
+                      }}
+                    />
+                  </MetaProvider>
                 </OrgBrandProvider>
               </FeatureFlagsProvider>
             </CalcomThemeProvider>
