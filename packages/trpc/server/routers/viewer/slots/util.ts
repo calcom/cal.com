@@ -175,6 +175,7 @@ export async function getEventType(
       periodEndDate: true,
       onlyShowFirstAvailableSlot: true,
       periodCountCalendarDays: true,
+      rescheduleWithSameRoundRobinHost: true,
       periodDays: true,
       metadata: true,
       schedule: {
@@ -436,7 +437,7 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
 
   let teamMember: string | undefined;
 
-  const hosts =
+  let hosts =
     eventType.hosts?.length && eventType.schedulingType
       ? eventType.hosts
       : eventType.users.map((user) => {
@@ -445,6 +446,25 @@ export async function getAvailableSlots({ input, ctx }: GetScheduleOptions): Pro
             user: user,
           };
         });
+
+  if (
+    input.rescheduleUid &&
+    eventType.rescheduleWithSameRoundRobinHost &&
+    eventType.schedulingType === SchedulingType.ROUND_ROBIN
+  ) {
+    const originalRescheduledBooking = await prisma.booking.findFirst({
+      where: {
+        uid: input.rescheduleUid,
+        status: {
+          in: [BookingStatus.ACCEPTED],
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+    hosts = hosts.filter((host) => host.user.id === originalRescheduledBooking?.userId || 0);
+  }
 
   let usersWithCredentials = hosts.map(({ isFixed, user }) => ({ isFixed, ...user }));
 
