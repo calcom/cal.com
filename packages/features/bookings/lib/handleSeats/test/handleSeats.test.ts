@@ -2414,7 +2414,7 @@ describe("handleSeats", () => {
         await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NotEnoughAvailableSeats);
       });
 
-      test("Not allowed to reschedule to non-available slot", async () => {
+      test("When trying to reschedule in a non-available slot, throw an error", async () => {
         const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
 
         const booker = getBooker({
@@ -2556,10 +2556,7 @@ describe("handleSeats", () => {
 
         req.userId = organizer.id;
 
-        const rescheduledBooking = await handleNewBooking(req);
-
-        // Ensure that the error with message 'no_available_users_found_error' is returned
-        expect(rescheduledBooking?.message).toEqual("no_available_users_found_error");
+        await expect(() => handleNewBooking(req)).rejects.toThrowError(ErrorCode.NoAvailableUsersFound);
       });
     });
 
