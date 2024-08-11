@@ -447,7 +447,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-  const subType = fieldForm.watch("subType");
+  const subType = fieldForm.getValues("subType");
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
@@ -472,7 +472,7 @@ function FieldEditDialog({
               value={
                 fieldTypesConfigMap[
                   fieldForm.getValues("type") === "radioInput" && subType
-                    ? (subType as keyof typeof fieldTypesConfigMap)
+                    ? subType
                     : fieldForm.getValues("type")
                 ]
               }
