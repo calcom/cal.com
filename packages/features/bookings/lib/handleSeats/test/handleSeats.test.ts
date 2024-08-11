@@ -2432,13 +2432,13 @@ describe("handleSeats", () => {
         const firstBookingId = 1;
         const firstBookingUid = "abc123";
         const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
-        const firstBookingStartTime = `${plus1DateString}T14:00:00Z`;
-        const firstBookingEndTime = `${plus1DateString}T14:30:00Z`;
+        const firstBookingStartTime = `${plus1DateString}T04:00:00Z`;
+        const firstBookingEndTime = `${plus1DateString}T04:30:00Z`;
 
         const { dateString: plus2DateString } = getDate({ dateIncrement: 2 });
         // Non-available time slot choosen (7:30PM - 8:00PM IST) while rescheduling
-        const secondBookingStartTime = `${plus2DateString}T04:00:00Z`;
-        const secondBookingEndTime = `${plus2DateString}T04:30:00Z`;
+        const secondBookingStartTime = `${plus2DateString}T14:00:00Z`;
+        const secondBookingEndTime = `${plus2DateString}T14:30:00Z`;
 
         await createBookingScenario(
           getScenarioData({
