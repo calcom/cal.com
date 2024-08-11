@@ -71,7 +71,7 @@ export const AppleConnect: FC<Partial<Omit<OAuthConnectProps, "redir">>> = ({
 
   return (
     <AtomsWrapper>
-      <Dialog open={isDialogOpen}>
+      <Dialog open={isDialogOpen} onOpenChange={() => setIsDialogOpen(false)}>
         <DialogTrigger>
           <Button
             StartIcon="calendar-days"

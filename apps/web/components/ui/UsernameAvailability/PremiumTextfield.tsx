@@ -264,7 +264,7 @@ const PremiumTextfield = (props: ICustomUsernameProps) => {
       {paymentMsg}
       {markAsError && <p className="mt-1 text-xs text-red-500">Username is already taken</p>}
 
-      <Dialog open={openDialogSaveUsername}>
+      <Dialog open={openDialogSaveUsername} onOpenChange={() => setOpenDialogSaveUsername(false)}>
         <DialogContent
           Icon="pencil"
           title={t("confirm_username_change_dialog_title")}

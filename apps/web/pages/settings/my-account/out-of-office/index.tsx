@@ -108,7 +108,7 @@ const CreateOutOfOfficeEntryModal = ({
   ];
 
   return (
-    <Dialog open={openModal}>
+    <Dialog open={openModal} onOpenChange={() => closeModal()}>
       <DialogContent
         onOpenAutoFocus={(event) => {
           event.preventDefault();

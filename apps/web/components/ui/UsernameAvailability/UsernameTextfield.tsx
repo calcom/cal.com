@@ -155,7 +155,7 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
           <ActionButtons />
         </div>
       )}
-      <Dialog open={openDialogSaveUsername}>
+      <Dialog open={openDialogSaveUsername} onOpenChange={() => setOpenDialogSaveUsername(false)}>
         <DialogContent type="confirmation" Icon="pencil" title={t("confirm_username_change_dialog_title")}>
           <div className="flex flex-row">
             <div className="mb-4 w-full pt-1">

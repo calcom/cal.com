@@ -12,7 +12,7 @@ const SecondaryEmailConfirmModal = ({ email, onCancel }: SecondaryEmailConfirmMo
   const { t } = useLocale();
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent
         title={t("confirm_email")}
         description={<Trans i18nKey="confirm_email_description" values={{ email }} />}

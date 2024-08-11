@@ -140,7 +140,7 @@ const EnableTwoFactorModal = ({ onEnable, onCancel }: EnableTwoFactorModalProps)
   }, [form, handleEnableRef, totpCode]);
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent>
         <TwoFactorModalHeader title={t("enable_2fa")} description={setupDescriptions[step]} />
 

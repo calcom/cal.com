@@ -134,6 +134,7 @@ function WebDialog(props: DialogProps) {
           onClose={() => {
             setDialogState(dialogProps.open ? DIALOG_STATE.OPEN : DIALOG_STATE.CLOSED);
             setIsTriggered(false);
+            if (dialogState === DIALOG_STATE.CLOSING) onOpenChange?.(false);
           }}
           onRelease={() => {
             onOpenChange?.(false);

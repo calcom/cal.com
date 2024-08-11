@@ -49,7 +49,7 @@ const SecondaryEmailModal = ({
   }, [formMethods.watch]);
 
   return (
-    <Dialog open={true}>
+    <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent
         title={t("add_email")}
         description={t("add_email_description")}
