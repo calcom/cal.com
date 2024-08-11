@@ -139,7 +139,9 @@ const WithLabel = ({
             <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
               {!readOnly && field.required ? "*" : ""}
             </span>
-            {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
+            {(field.type === "phone" || (field.type === "radioInput" && field.subType === "phone")) && (
+              <InfoBadge content={t("number_in_international_format")} />
+            )}
           </Label>
         </div>
       )}
@@ -159,7 +161,7 @@ export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TF
 
     // If we have only one option and it has an input, we don't show the field label because Option name acts as label.
     // e.g. If it's just Attendee Phone Number option then we don't show `Location` label
-    if (options?.length === 1) {
+    if (options?.length === 1 && !field?.subType) {
       if (!field.optionsInputs) {
         throw new Error("radioInput must have optionsInputs");
       }
@@ -330,6 +332,7 @@ export const ComponentForField = ({
           optionsInputs={field.optionsInputs}
           options={options}
           required={field.required}
+          subType={field?.subType}
         />
       </WithLabel>
     ) : null;

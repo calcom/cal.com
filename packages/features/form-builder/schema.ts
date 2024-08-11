@@ -98,6 +98,11 @@ const baseFieldSchema = z.object({
    * @requires supportsLengthCheck = true
    */
   maxLength: z.number().optional(),
+
+  /**
+   * If the field is of type `radioInput` and there's only one option, then the subType will be taken from the first option.
+   */
+  subType: fieldTypeEnum.optional(),
 });
 
 export const variantsConfigSchema = z.object({

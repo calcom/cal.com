@@ -42,7 +42,12 @@ type RhfFormFields = RhfForm["fields"];
 type RhfFormField = RhfFormFields[number];
 
 function getCurrentFieldType(fieldForm: UseFormReturn<RhfFormField>) {
-  return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
+  // For radioInput type, when there's only one option, the subType takes the first options values
+  const subType = fieldForm.watch("subType");
+  const type = fieldForm.watch("type");
+
+  if (type === "radioInput" && subType) return fieldTypesConfigMap[subType];
+  else return fieldTypesConfigMap[fieldForm.watch("type") || "text"];
 }
 
 /**
@@ -135,7 +140,8 @@ export const FormBuilder = function FormBuilder({
             if (field.hideWhenJustOneOption && (hidden || !options?.length)) {
               return null;
             }
-            let fieldType = fieldTypesConfigMap[field.type];
+
+            let fieldType = fieldTypesConfigMap[field?.subType || field.type];
             let isRequired = field.required;
             // For radioInput type, when there's only one option, the type and required takes the first options values
             if (field.type === "radioInput" && options.length === 1) {
@@ -245,10 +251,9 @@ export const FormBuilder = function FormBuilder({
                       color="secondary"
                       onClick={() => {
                         const fieldToEdit = field;
-                        // For radioInput type, when there's only one option, the type and required takes the only first options values
+                        // For radioInput type, when there's only one option, the subtype and required takes the only first options values
                         if (fieldToEdit.type === "radioInput" && options.length === 1) {
-                          fieldToEdit.type =
-                            fieldToEdit.optionsInputs?.[options[0].value].type || fieldToEdit.type;
+                          fieldToEdit.subType = fieldToEdit.optionsInputs?.[options[0].value].type;
                           fieldToEdit.required =
                             fieldToEdit.optionsInputs?.[options[0].value].required || fieldToEdit.required;
                         }
@@ -442,7 +447,7 @@ function FieldEditDialog({
   const variantsConfig = fieldForm.watch("variantsConfig");
 
   const fieldTypes = Object.values(fieldTypesConfigMap);
-
+  const subType = fieldForm.watch("subType");
   return (
     <Dialog open={dialog.isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-none p-0" data-testid="edit-field-dialog">
@@ -464,7 +469,13 @@ function FieldEditDialog({
                 }
                 fieldForm.setValue("type", value, { shouldDirty: true });
               }}
-              value={fieldTypesConfigMap[fieldForm.getValues("type")]}
+              value={
+                fieldTypesConfigMap[
+                  fieldForm.getValues("type") === "radioInput" && subType
+                    ? (subType as keyof typeof fieldTypesConfigMap)
+                    : fieldForm.getValues("type")
+                ]
+              }
               options={fieldTypes.filter((f) => !f.systemOnly)}
               label={t("input_type")}
             />

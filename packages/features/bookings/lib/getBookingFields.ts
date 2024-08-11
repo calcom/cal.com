@@ -170,6 +170,7 @@ export const ensureBookingInputsHaveSystemFields = ({
       hideWhenJustOneOption: true,
       required: false,
       getOptionsAt: "locations",
+      subType: "",
       optionsInputs: {
         attendeeInPerson: {
           type: "address",

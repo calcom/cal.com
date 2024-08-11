@@ -71,6 +71,7 @@ type Component =
         } & {
           name?: string;
           required?: boolean;
+          subType?: string;
         }
       >(
         props: TProps
@@ -386,7 +387,15 @@ export const Components: Record<FieldType, Component> = {
   },
   radioInput: {
     propsType: propsTypes.radioInput,
-    factory: function RadioInputWithLabel({ name, options, optionsInputs, value, setValue, readOnly }) {
+    factory: function RadioInputWithLabel({
+      name,
+      options,
+      optionsInputs,
+      value,
+      setValue,
+      readOnly,
+      subType,
+    }) {
       useEffect(() => {
         if (!value) {
           setValue({
@@ -416,7 +425,9 @@ export const Components: Record<FieldType, Component> = {
         <div>
           <div>
             <div className="mb-2">
-              {options.length > 1 ? (
+              {subType ? (
+                <></>
+              ) : options.length > 1 ? (
                 options.map((option, i) => {
                   return (
                     <label key={i} className="mb-1 flex items-center">
