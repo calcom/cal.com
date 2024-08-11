@@ -14,7 +14,7 @@ test.describe("Signup Flow Test", async () => {
   test.beforeEach(async ({ features }) => {
     features.reset(); // This resets to the inital state not an empt yarray
   });
-  test.afterAll(async ({ users }) => {
+  test.afterEach(async ({ users }) => {
     await users.deleteAll();
   });
   test("Username is taken", async ({ page, users }) => {
