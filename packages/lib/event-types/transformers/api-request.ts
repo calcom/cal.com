@@ -85,7 +85,7 @@ function transformApiEventTypeBookingFields(
   }
 
   const customBookingFields = inputBookingFields.map((field) => {
-    const commonFields: CommonField = {
+    const commonFields: UserField = {
       name: field.slug,
       type: field.type,
       label: field.label,
@@ -186,7 +186,7 @@ const FieldTypeEnum = z.enum([
   "radioInput",
 ]);
 
-const CommonFieldsSchema = z.object({
+const UserFieldsSchema = z.object({
   name: z.string(),
   type: FieldTypeEnum,
   label: z.string(),
@@ -201,13 +201,21 @@ const CommonFieldsSchema = z.object({
   editable: z.literal("user"),
   required: z.boolean(),
   placeholder: z.string().optional(),
+  options: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string(),
+      })
+    )
+    .optional(),
 });
 
 const SystemFieldsSchema = z.object({
   name: z.string(),
   type: FieldTypeEnum,
   defaultLabel: z.string(),
-  labe: z.string().optional(),
+  label: z.string().optional(),
   editable: z.enum(["system-but-optional", "system"]),
   sources: z.array(
     z.object({
@@ -247,19 +255,9 @@ const SystemFieldsSchema = z.object({
 
 export type SystemField = z.infer<typeof SystemFieldsSchema>;
 
-export type CommonField = z.infer<typeof CommonFieldsSchema>;
+export type UserField = z.infer<typeof UserFieldsSchema>;
 
-const OptionSchema = z.object({
-  label: z.string(),
-  value: z.string(),
-});
-
-const BookingFieldSchema = CommonFieldsSchema.extend({
-  options: z.array(OptionSchema).optional(),
-});
-export type OptionsField = z.infer<typeof BookingFieldSchema>;
-
-export const BookingFieldsSchema = z.array(BookingFieldSchema);
+export const BookingFieldsSchema = z.array(z.union([UserFieldsSchema, SystemFieldsSchema]));
 
 export {
   transformApiEventTypeLocations,

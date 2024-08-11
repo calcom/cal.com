@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import {
   transformApiEventTypeBookingFields,
   transformApiEventTypeLocations,
-} from "@calcom/platform-libraries-0.0.22";
+} from "@calcom/platform-libraries";
 import {
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,

@@ -27,7 +27,7 @@ import {
 } from "@calcom/ui";
 
 import { WORKFLOW_ACTIONS } from "../lib/constants";
-import { onlyLettersNumbersSpaces } from "../pages/workflow";
+import { onlyLettersNumbersSpaces } from "../lib/schema";
 
 interface IAddActionDialog {
   isOpenDialog: boolean;

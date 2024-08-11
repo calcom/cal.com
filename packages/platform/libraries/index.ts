@@ -105,6 +105,8 @@ export {
 } from "@calcom/lib/event-types/transformers";
 
 export { parseBookingLimit } from "@calcom/lib";
+export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
+
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 
