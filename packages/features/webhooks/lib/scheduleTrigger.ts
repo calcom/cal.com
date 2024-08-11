@@ -452,9 +452,9 @@ export async function updateTriggerForExistingBookings(
   if (bookings.length === 0) return;
 
   if (addedEventTriggers.length > 0) {
-    const promise = bookings.map((booking) => {
-      return addedEventTriggers.map(async (triggerEvent) => {
-        const { booking: bookingWithWebhookPayload, evt } = await getBooking(booking.id);
+    const promise = bookings.map(async (booking) => {
+      const { booking: bookingWithWebhookPayload, evt } = await getBooking(booking.id);
+      return addedEventTriggers.map((triggerEvent) => {
         const webhookData = getWebhookPayloadForBooking({
           booking: bookingWithWebhookPayload,
           evt,
