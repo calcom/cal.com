@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
-import { QueryCell } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { ButtonProps } from "@calcom/ui";
 import {
   CalendarSwitchComponent,

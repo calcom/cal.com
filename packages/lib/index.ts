@@ -6,4 +6,3 @@ export * from "./isDurationLimits";
 export * from "./validateIntervalLimitOrder";
 export * from "./schedules";
 export * from "./event-types";
-export { QueryCell } from "@calcom/web/lib/QueryCell";
