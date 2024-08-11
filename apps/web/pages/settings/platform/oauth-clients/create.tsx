@@ -62,7 +62,7 @@ export default function CreateOAuthClient() {
     return (
       <div>
         <Shell title={`OAuth client ${!!clientId ? "updation" : "creation"} form`} isPlatformUser={true}>
-          <div className="m-2 md:mx-14 md:mx-5">
+          <div className="m-2 md:mx-5">
             <div className="border-subtle mx-auto block justify-between rounded-t-lg border px-4 py-6 sm:flex sm:px-6">
               <div className="flex w-full flex-col">
                 <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
