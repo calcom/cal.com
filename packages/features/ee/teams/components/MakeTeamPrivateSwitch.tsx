@@ -25,6 +25,7 @@ const MakeTeamPrivateSwitch = ({
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
+      await utils.viewer.teams.getTeamWithMinimalData.invalidate();
       showToast(t(isOrg ? "your_org_updated_successfully" : "your_team_updated_successfully"), "success");
     },
   });

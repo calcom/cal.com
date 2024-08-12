@@ -147,11 +147,12 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
         value,
       });
     else {
-      if (!props?.members?.length) return true;
-      return !(
-        props?.members.some((member) => member?.username === value) ||
-        props?.members.some((member) => member?.email === value)
-      );
+      if (!props?.members?.length) return { doesInviteExists: true };
+      return {
+        doesInviteExists:
+          props?.members.some((member) => member?.username === value) ||
+          props?.members.some((member) => member?.email === value),
+      };
     }
   };
 
@@ -218,7 +219,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </span>
           ) : null
         }>
-        <div>
+        <div className="h-fit">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
           </Label>
@@ -246,12 +247,8 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
                     // orgs can only invite members by email
                     if (typeof value === "string" && !isEmail(value)) return t("enter_email");
                     if (typeof value === "string") {
-                      if (props.noMembersPropPassed) {
-                        const { doesInviteExists } = await validateUniqueInvite(value);
-                        return !doesInviteExists || t("member_already_invited");
-                      } else {
-                        return validateUniqueInvite(value) || t("member_already_invited");
-                      }
+                      const { doesInviteExists } = await validateUniqueInvite(value);
+                      return !doesInviteExists || t("member_already_invited");
                     }
                   },
                 }}
@@ -473,14 +470,17 @@ export const MemberInvitationModalWithoutMemebers = ({
   showMemberInvitationModal,
   teamId,
   token,
+  onSettingsOpen,
 }: {
   hideInvitationModal: () => void;
   showMemberInvitationModal: boolean;
   teamId: number;
-  token: string | null;
+  token?: string;
+  onSettingsOpen: () => void;
 }) => {
   const searchParams = useCompatSearchParams();
   const { t, i18n } = useLocale();
+  const utils = trpc.useUtils();
 
   const inviteMemberMutation = trpc.viewer.teams.inviteMember.useMutation();
 
@@ -515,8 +515,11 @@ export const MemberInvitationModalWithoutMemebers = ({
           {
             onSuccess: async (data) => {
               await utils.viewer.teams.get.invalidate();
+              await utils.viewer.teams.lazyLoadMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
               hideInvitationModal();
+
+              // TODO: setInfiniteData
 
               if (Array.isArray(data.usernameOrEmail)) {
                 showToast(
@@ -543,7 +546,7 @@ export const MemberInvitationModalWithoutMemebers = ({
       }}
       onSettingsOpen={() => {
         hideInvitationModal();
-        setInviteLinkSettingsModal(true);
+        onSettingsOpen();
       }}
     />
   );

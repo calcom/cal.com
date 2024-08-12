@@ -12,8 +12,8 @@ import { Avatar, DatePicker, Label, Select, TimezoneSelect } from "@calcom/ui";
 import TeamAvailabilityTimes from "./TeamAvailabilityTimes";
 
 interface Props {
-  team?: RouterOutputs["viewer"]["teams"]["get"];
-  member?: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  team?: RouterOutputs["viewer"]["teams"]["getTeamWithMinimalData"];
+  member?: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
 }
 
 export default function TeamAvailabilityModal(props: Props) {
@@ -88,7 +88,7 @@ export default function TeamAvailabilityModal(props: Props) {
           <div className="col-span-1 max-h-[500px]">
             {props.team && props.member && (
               <TeamAvailabilityTimes
-                teamId={props.team.id}
+                teamId={props.team.id ?? 0}
                 memberId={props.member.id}
                 frequency={frequency}
                 selectedDate={selectedDate}

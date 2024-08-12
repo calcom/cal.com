@@ -42,7 +42,7 @@ function MembersList(props: MembersListProps) {
       {
         limit: 10,
         searchTerm: debouncedSearchTerm,
-        teamId: team?.id,
+        teamId: team?.id ?? 0,
       },
       {
         enabled: !!team?.id,
@@ -80,6 +80,7 @@ function MembersList(props: MembersListProps) {
                   team={team}
                   member={member}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
+                  searchTerm={debouncedSearchTerm}
                 />
               );
             });
@@ -107,7 +108,6 @@ const MembersView = () => {
   const session = useSession();
   const org = session?.data?.user.org;
 
-  const utils = trpc.useUtils();
   const params = useParamsWithFallback();
 
   const teamId = Number(params.id);
@@ -199,7 +199,7 @@ const MembersView = () => {
               </>
             )}
 
-            {team && session.data && (
+            {team && team.id && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}
                 memberId={session.data.user.id}
@@ -207,25 +207,26 @@ const MembersView = () => {
               />
             )}
 
-            {team && (isAdmin || isOrgAdminOrOwner) && (
+            {team && team.id && (isAdmin || isOrgAdminOrOwner) && (
               <MakeTeamPrivateSwitch
                 isOrg={false}
                 teamId={team.id}
-                isPrivate={team.isPrivate}
+                isPrivate={team.isPrivate ?? false}
                 disabled={isInviteOpen}
               />
             )}
           </div>
-          {showMemberInvitationModal && team && (
+          {showMemberInvitationModal && team && team.id && (
             <MemberInvitationModalWithoutMemebers
               hideInvitationModal={hideInvitationModal}
               showMemberInvitationModal={showMemberInvitationModal}
               teamId={team.id}
               token={team.inviteToken?.token}
+              onSettingsOpen={() => setInviteLinkSettingsModal(true)}
             />
           )}
 
-          {showInviteLinkSettingsModal && team?.inviteToken && (
+          {showInviteLinkSettingsModal && team?.inviteToken && team.id && (
             <InviteLinkSettingsModal
               isOpen={showInviteLinkSettingsModal}
               teamId={team.id}

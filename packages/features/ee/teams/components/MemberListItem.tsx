@@ -31,9 +31,10 @@ import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
 interface Props {
-  team: RouterOutputs["viewer"]["teams"]["get"];
-  member: RouterOutputs["viewer"]["teams"]["get"]["members"][number];
+  team: RouterOutputs["viewer"]["teams"]["getTeamWithMinimalData"];
+  member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
+  searchTerm: string;
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -57,11 +58,49 @@ export default function MemberListItem(props: Props) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const removeMemberMutation = trpc.viewer.teams.removeMember.useMutation({
+    onMutate: async ({ teamIds }) => {
+      await utils.viewer.teams.lazyLoadMembers.cancel();
+      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+        limit: 10,
+        teamId: teamIds[0],
+        searchTerm: props.searchTerm,
+      });
+
+      if (previousValue) {
+        utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+          {
+            limit: 10,
+            teamId: teamIds[0],
+            searchTerm: props.searchTerm,
+          },
+          (data) => {
+            if (!data) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
+            }
+
+            const memberId = props.member.id;
+
+            return {
+              ...data,
+              pages: data.pages.map((page) => ({
+                ...page,
+                members: page.members.filter((member) => member.id !== memberId),
+              })),
+            };
+          }
+        );
+      }
+      return { previousValue };
+    },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
+
       showToast(t("success"), "success");
     },
     async onError(err) {
@@ -95,7 +134,7 @@ export default function MemberListItem(props: Props) {
 
   const removeMember = () =>
     removeMemberMutation.mutate({
-      teamIds: [props.team?.id],
+      teamIds: [props.team?.id ?? 0],
       memberIds: [props.member.id],
       isOrg: checkIsOrg(props.team),
     });
@@ -251,7 +290,7 @@ export default function MemberListItem(props: Props) {
                           type="button"
                           onClick={() => {
                             resendInvitationMutation.mutate({
-                              teamId: props.team?.id,
+                              teamId: props.team?.id ?? 0,
                               email: props.member.email,
                               language: i18n.language,
                             });
@@ -357,7 +396,7 @@ export default function MemberListItem(props: Props) {
         <MemberChangeRoleModal
           isOpen={showChangeMemberRoleModal}
           currentMember={props.team.membership.role}
-          teamId={props.team?.id}
+          teamId={props.team?.id ?? 0}
           memberId={props.member.id}
           initialRole={props.member.role as MembershipRole}
           onExit={() => setShowChangeMemberRoleModal(false)}

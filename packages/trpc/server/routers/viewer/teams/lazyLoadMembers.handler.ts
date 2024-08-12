@@ -7,6 +7,8 @@ import type { PrismaClient } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
+import { TRPCError } from "@trpc/server";
+
 import type { TLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
 
 type LazyLoadMembersHandlerOptions = {
@@ -59,10 +61,13 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   const { prisma } = ctx;
   const { cursor, limit, teamId, searchTerm } = input;
 
-  const canAccessMembers = await assertCanAccessMembers(ctx, teamId);
+  const canAccessMembers = await checkCanAccessMembers(ctx, teamId);
 
   if (!canAccessMembers) {
-    return { members: [], nextCursor: null };
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "You are not authorized to access this team",
+    });
   }
 
   const teamMembers = await prisma.membership.findMany({
@@ -151,7 +156,7 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   return { members: membersWithApps, nextCursor };
 };
 
-const assertCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], teamId: number) => {
+const checkCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], teamId: number) => {
   const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
   const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
   const orgId = ctx.user.organizationId;
