@@ -12,22 +12,15 @@ export class DestinationCalendarsRepository {
     userId: number,
     primaryEmail: string | null
   ) {
-    return await await this.dbWrite.prisma.destinationCalendar.upsert({
+    return await this.dbWrite.prisma.destinationCalendar.update({
+      data: {
+        integration,
+        externalId,
+        credentialId,
+        primaryEmail,
+      },
       where: {
         userId: userId,
-      },
-      update: {
-        integration,
-        externalId,
-        credentialId,
-        primaryEmail,
-      },
-      create: {
-        userId: userId,
-        integration,
-        externalId,
-        credentialId,
-        primaryEmail,
       },
     });
   }
