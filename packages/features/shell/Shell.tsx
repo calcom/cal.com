@@ -42,6 +42,7 @@ import {
   APP_NAME,
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
+  IS_CALCOM,
   IS_VISUAL_REGRESSION_TESTING,
   JOIN_COMMUNITY,
   ROADMAP,
@@ -944,22 +945,25 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
       },
       icon: "copy",
     },
-    {
-      name: "copy_referral_link",
-      href: "",
-      onClick: (e: { preventDefault: () => void }) => {
-        e.preventDefault();
-        navigator.clipboard.writeText(`https://refer.cal.com/${user?.username}`);
-        showToast(t("link_copied"), "success");
-      },
-      icon: "copy",
-    },
+    IS_CALCOM
+      ? {
+          name: "copy_referral_link",
+          href: "",
+          onClick: (e: { preventDefault: () => void }) => {
+            e.preventDefault();
+            navigator.clipboard.writeText(`https://refer.cal.com/${user?.username}`);
+            showToast(t("link_copied"), "success");
+          },
+          icon: "copy",
+        }
+      : null,
     {
       name: "settings",
       href: user?.org ? `/settings/organizations/profile` : "/settings/my-account/profile",
       icon: "settings",
     },
-  ];
+  ].filter(Boolean) as NavigationItemType[];
+
   return (
     <div className="relative">
       <aside
