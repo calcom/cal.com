@@ -116,10 +116,6 @@ export function deleteScheduledSend(referenceId: string | null) {
   });
 }
 
-function isHTMLElement(node: Node): node is HTMLElement {
-  return node instanceof HTMLElement;
-}
-
 function addHTMLStyles(html?: string) {
   if (!html) {
     return "";
@@ -128,10 +124,8 @@ function addHTMLStyles(html?: string) {
   const document = dom.window.document;
 
   // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
-  const links = document.querySelectorAll("h6 a");
-
-  const htmlLinks = Array.from(links).filter(isHTMLElement);
-  htmlLinks.forEach((link) => {
+  const links = document.querySelectorAll<HTMLElement>("h6 a");
+  links.forEach((link) => {
     link.style.fontSize = "20px";
     link.style.textDecoration = "none";
   });
