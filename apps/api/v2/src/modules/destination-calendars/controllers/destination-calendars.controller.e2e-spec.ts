@@ -17,7 +17,6 @@ import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-cli
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { TokensRepositoryFixture } from "test/fixtures/repository/tokens.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
-import { CalendarsServiceMock } from "test/mocks/calendars-service-mock";
 
 import { APPLE_CALENDAR_TYPE, APPLE_CALENDAR_ID } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
@@ -51,9 +50,6 @@ describe("Platform Destination Calendar Endpoints", () => {
 
       .compile();
 
-    app = moduleRef.createNestApplication();
-    bootstrap(app as NestExpressApplication);
-
     oauthClientRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
     userRepositoryFixture = new UserRepositoryFixture(moduleRef);
     teamRepositoryFixture = new TeamRepositoryFixture(moduleRef);
@@ -71,10 +67,42 @@ describe("Platform Destination Calendar Endpoints", () => {
       user.id,
       APPLE_CALENDAR_ID
     );
+    jest.spyOn(CalendarsService.prototype, "getCalendars").mockReturnValue(
+      Promise.resolve({
+        connectedCalendars: [
+          {
+            integration: {
+              installed: false,
+              type: "apple_calendar",
+              title: "",
+              name: "",
+              description: "",
+              variant: "calendar",
+              slug: "",
+              locationOption: null,
+              categories: ["calendar"],
+              logo: "",
+              publisher: "",
+              url: "",
+              email: "",
+            },
+            calendars: {
+              externalId:
+                "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/",
+              readOnly: false,
+              integration: "apple_calendar",
+              credentialId: appleCalendarCredentials.id,
+              primary: true,
+              email: user.email,
+            },
+            error: { message: "" },
+          },
+        ],
+      })
+    );
+    app = moduleRef.createNestApplication();
+    bootstrap(app as NestExpressApplication);
     await app.init();
-    jest
-      .spyOn(CalendarsService.prototype, "getCalendars")
-      .mockImplementation(CalendarsServiceMock.prototype.getCalendars);
   });
 
   async function createOAuthClient(organizationId: number) {

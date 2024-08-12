@@ -28,10 +28,10 @@ export class DestinationCalendarsService {
       allCalendars.find((cal: Calendar) => cal.primary && cal.credentialId === credentialId)?.email ?? null;
 
     const {
-      id,
       integration: updatedCalendarIntegration,
       externalId: updatedCalendarExternalId,
       credentialId: updatedCalendarCredentialId,
+      userId: updatedCalendarUserId,
     } = await this.destinationCalendarsRepository.updateCalendar(
       integration,
       externalId,
@@ -41,7 +41,7 @@ export class DestinationCalendarsService {
     );
 
     return {
-      userId: id,
+      userId: updatedCalendarUserId,
       integration: updatedCalendarIntegration,
       externalId: updatedCalendarExternalId,
       credentialId: updatedCalendarCredentialId,
