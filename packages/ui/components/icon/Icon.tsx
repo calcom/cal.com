@@ -4,7 +4,7 @@ import type { IconName } from "./icon-names";
 
 function Icon({
   name,
-  size,
+  size = 16,
   ...props
 }: SVGProps<SVGSVGElement> & {
   name: IconName;
