@@ -45,7 +45,7 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
               />
               <List noBorderTreatment className="p-6 pt-2">
                 {data.connectedCalendars.map((connectedCalendar) => {
-                  if (!!connectedCalendar.calendars) {
+                  if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                     return (
                       <AppListCard
                         key={`list-${connectedCalendar.credentialId}`}
