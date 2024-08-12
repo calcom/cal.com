@@ -120,9 +120,7 @@ function addHTMLStyles(html?: string) {
   if (!html) {
     return "";
   }
-  const dom = new JSDOM(html);
-  const document = dom.window.document;
-
+  const { document } = new JSDOM(html).window;
   // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
   const links = document.querySelectorAll<HTMLElement>("h6 a");
   links.forEach((link) => {
