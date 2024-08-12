@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import Page from "@calcom/features/ee/users/pages/users-edit-view";
 import { getLayout } from "@calcom/features/settings/layouts/SettingsLayoutAppDir";
+import prisma from "@calcom/prisma";
 
 const userIdSchema = z.object({ id: z.coerce.number() });
 
@@ -17,14 +18,17 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  // const userId = input.data.id;
-  // const { trpc } = await import("@calcom/trpc");
-  // const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
-  // const { user } = data;
-  // const title = `Editing user: ${user.username}`;
+  const username = await prisma.user.findFirst({
+    where: {
+      id: input.userId,
+    },
+    select: {
+      username: true,
+    },
+  });
 
   return await _generateMetadata(
-    () => "Edit user",
+    () => `Editing user: ${username.username}`,
     () => "Here you can edit a current user."
   );
 };
