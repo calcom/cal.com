@@ -120,9 +120,9 @@ function addHTMLStyles(html?: string) {
   if (!html) {
     return "";
   }
-  const { document } = new JSDOM(html).window;
+  const dom = new JSDOM(html);
   // Select all <a> tags inside <h6> elements --> only used for emojis in rating template
-  const links = document.querySelectorAll<HTMLElement>("h6 a");
+  const links = dom.window.document.querySelectorAll<HTMLElement>("h6 a");
   links.forEach((link) => {
     link.style.fontSize = "20px";
     link.style.textDecoration = "none";
