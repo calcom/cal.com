@@ -263,6 +263,21 @@ describe("Event types Endpoints", () => {
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
+        bookingLimits: {
+          day: 4,
+          week: 10,
+        },
+        onlyShowFirstAvailableSlot: true,
+        durationLimits: {
+          day: 100,
+          week: 200,
+        },
+        offsetStart: 50,
+        bookingWindow: {
+          type: BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays,
+          value: 40,
+          rolling: false,
+        },
       };
 
       return request(app.getHttpServer())
@@ -283,9 +298,19 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
+          expect(updatedEventType.bookingLimits).toEqual(body.bookingLimits);
+          expect(updatedEventType.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
+          expect(updatedEventType.durationLimits).toEqual(body.durationLimits);
+          expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
+          expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
+          eventType.bookingLimits = updatedEventType.bookingLimits;
+          eventType.onlyShowFirstAvailableSlot = updatedEventType.onlyShowFirstAvailableSlot;
+          eventType.durationLimits = updatedEventType.durationLimits;
+          eventType.offsetStart = updatedEventType.offsetStart;
+          eventType.bookingWindow = updatedEventType.bookingWindow;
         });
     });
 
@@ -321,6 +346,11 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
+      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -346,6 +376,11 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -366,6 +401,11 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
+      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
+      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
+      expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });
 
     it(`/GET/:id not existing`, async () => {
