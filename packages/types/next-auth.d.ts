@@ -38,7 +38,7 @@ declare module "next-auth" {
     avatarUrl?: PrismaUser["avatarUrl"];
     role?: PrismaUser["role"] | "INACTIVE_ADMIN";
     locale?: string | null;
-    profile: UserProfile;
+    profile?: UserProfile;
   }
 }
 

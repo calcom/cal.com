@@ -54,6 +54,20 @@ if (!process.env.NEXT_PUBLIC_API_V2_URL) {
   console.error("Please set NEXT_PUBLIC_API_V2_URL");
 }
 
+const getHttpsUrl = (url) => {
+  if (!url) return url;
+  if (url.startsWith("http://")) {
+    return url.replace("http://", "https://");
+  }
+  return url;
+};
+
+if (process.argv.includes("--experimental-https")) {
+  process.env.NEXT_PUBLIC_WEBAPP_URL = getHttpsUrl(process.env.NEXT_PUBLIC_WEBAPP_URL);
+  process.env.NEXTAUTH_URL = getHttpsUrl(process.env.NEXTAUTH_URL);
+  process.env.NEXT_PUBLIC_EMBED_LIB_URL = getHttpsUrl(process.env.NEXT_PUBLIC_EMBED_LIB_URL);
+}
+
 const validJson = (jsonString) => {
   try {
     const o = JSON.parse(jsonString);
@@ -158,7 +172,7 @@ const matcherConfigUserTypeEmbedRoute = {
 
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  output: process.env.BUILD_STANDALONE === "true" ? "standalone" : undefined,
   experimental: {
     // externalize server-side node_modules with size > 1mb, to improve dev mode performance/RAM usage
     serverComponentsExternalPackages: ["next-i18next"],
@@ -191,7 +205,6 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -220,6 +233,13 @@ const nextConfig = {
         })
       );
     }
+
+    config.plugins.push(
+      new webpack.DefinePlugin({
+        __SENTRY_DEBUG__: false,
+        __SENTRY_TRACING__: false,
+      })
+    );
 
     config.plugins.push(
       new CopyWebpackPlugin({
@@ -366,6 +386,13 @@ const nextConfig = {
     };
   },
   async headers() {
+    // This header can be set safely as it ensures the browser will load the resources even when COEP is set.
+    // But this header must be set only on those resources that are safe to be loaded in a cross-origin context e.g. all embeddable pages's resources
+    const CORP_CROSS_ORIGIN_HEADER = {
+      key: "Cross-Origin-Resource-Policy",
+      value: "cross-origin",
+    };
+
     return [
       {
         source: "/auth/:path*",
@@ -398,6 +425,30 @@ const nextConfig = {
           },
         ],
       },
+      {
+        source: "/embed/embed.js",
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      {
+        source: "/:path*/embed",
+        // COEP require-corp header is set conditionally when flag.coep is set to true
+        headers: [CORP_CROSS_ORIGIN_HEADER],
+      },
+      // These resources loads through embed as well, so they need to have CORP_CROSS_ORIGIN_HEADER
+      ...[
+        {
+          source: "/api/avatar/:path*",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+      ],
       ...(isOrganizationsEnabled
         ? [
             {

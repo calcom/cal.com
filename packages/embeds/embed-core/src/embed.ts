@@ -240,6 +240,7 @@ export class Cal {
     const iframe = (this.iframe = document.createElement("iframe"));
     iframe.className = "cal-embed";
     iframe.name = `cal-embed=${this.namespace}`;
+    iframe.title = `Book a call`;
     const config = this.getConfig();
     const { iframeAttrs, ...restQueryObject } = queryObject;
 

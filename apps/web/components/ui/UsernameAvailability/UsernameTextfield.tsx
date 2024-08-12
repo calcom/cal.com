@@ -1,11 +1,12 @@
 import classNames from "classnames";
 // eslint-disable-next-line no-restricted-imports
-import { debounce, noop } from "lodash";
+import { noop } from "lodash";
 import { useSession } from "next-auth/react";
 import type { RefCallback } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { fetchUsername } from "@calcom/lib/fetchUsername";
+import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { TRPCClientErrorLike } from "@calcom/trpc/client";
 import { trpc } from "@calcom/trpc/react";
@@ -41,31 +42,28 @@ const UsernameTextfield = (props: ICustomUsernameProps & Partial<React.Component
   const [markAsError, setMarkAsError] = useState(false);
   const [openDialogSaveUsername, setOpenDialogSaveUsername] = useState(false);
 
-  const debouncedApiCall = useMemo(
-    () =>
-      debounce(async (username) => {
-        // TODO: Support orgSlug
+  // debounce the username input, set the delay to 600ms to be consistent with signup form
+  const debouncedUsername = useDebounce(inputUsernameValue, 600);
+
+  useEffect(() => {
+    async function checkUsername(username: string | undefined) {
+      if (!username) {
+        setUsernameIsAvailable(false);
+        setMarkAsError(false);
+        return;
+      }
+
+      if (currentUsername !== username) {
         const { data } = await fetchUsername(username, null);
         setMarkAsError(!data.available);
         setUsernameIsAvailable(data.available);
-      }, 150),
-    []
-  );
-
-  useEffect(() => {
-    if (!inputUsernameValue) {
-      debouncedApiCall.cancel();
-      setUsernameIsAvailable(false);
-      setMarkAsError(false);
-      return;
+      } else {
+        setUsernameIsAvailable(false);
+      }
     }
 
-    if (currentUsername !== inputUsernameValue) {
-      debouncedApiCall(inputUsernameValue);
-    } else {
-      setUsernameIsAvailable(false);
-    }
-  }, [inputUsernameValue, debouncedApiCall, currentUsername]);
+    checkUsername(debouncedUsername);
+  }, [debouncedUsername, currentUsername]);
 
   const updateUsernameMutation = trpc.viewer.updateProfile.useMutation({
     onSuccess: async () => {
