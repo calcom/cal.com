@@ -641,8 +641,7 @@ const ProfileForm = ({
 
                       {showRemoveAvatarButton && (
                         <Button
-                          color="secondary"
-                          className="hover:bg-red-600"
+                          color="destructive"
                           onClick={() => {
                             onChange(null);
                           }}>
@@ -703,6 +702,7 @@ const ProfileForm = ({
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         {/* // For Non-Cal indentities, we merge the values from DB and the user logging in,
@@ -716,8 +716,8 @@ const ProfileForm = ({
                 <span className="text-default ml-2 text-sm">{user.identityProviderEmail}</span>
               )}
               <div className="flex flex-1 justify-end">
-                <Button color="destructive" onClick={onDisconnect} size="sm">
-                  Disconnect
+                <Button color="destructive" onClick={onDisconnect}>
+                  {t("disconnect")}
                 </Button>
               </div>
             </div>

@@ -19,7 +19,7 @@ import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
 import { useCopy } from "@calcom/lib/hooks/useCopy";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { getEveryFreqFor } from "@calcom/lib/recurringStrings";
-import { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus, SchedulingType } from "@calcom/prisma/enums";
 import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { RouterInputs, RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
@@ -27,10 +27,6 @@ import type { ActionType } from "@calcom/ui";
 import {
   Badge,
   Button,
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
   Dropdown,
   DropdownItem,
   DropdownMenuCheckboxItem,
@@ -43,13 +39,13 @@ import {
   MeetingTimeInTimezones,
   showToast,
   TableActions,
-  TextAreaField,
   Tooltip,
 } from "@calcom/ui";
 
 import { AddGuestsDialog } from "@components/dialog/AddGuestsDialog";
 import { ChargeCardDialog } from "@components/dialog/ChargeCardDialog";
 import { EditLocationDialog } from "@components/dialog/EditLocationDialog";
+import { ReassignDialog } from "@components/dialog/ReassignDialog";
 import { RescheduleDialog } from "@components/dialog/RescheduleDialog";
 
 type BookingListingStatus = RouterInputs["viewer"]["bookings"]["get"]["filters"]["status"];
@@ -76,19 +72,12 @@ function BookingListItem(booking: BookingItemProps) {
     i18n: { language },
   } = useLocale();
   const utils = trpc.useUtils();
-  const [rejectionReason, setRejectionReason] = useState<string>("");
-  const [rejectionDialogIsOpen, setRejectionDialogIsOpen] = useState(false);
   const [chargeCardDialogIsOpen, setChargeCardDialogIsOpen] = useState(false);
   const [viewRecordingsDialogIsOpen, setViewRecordingsDialogIsOpen] = useState<boolean>(false);
   const cardCharged = booking?.payment[0]?.success;
   const mutation = trpc.viewer.bookings.confirm.useMutation({
-    onSuccess: (data) => {
-      if (data?.status === BookingStatus.REJECTED) {
-        setRejectionDialogIsOpen(false);
-        showToast(t("booking_rejection_success"), "success");
-      } else {
-        showToast(t("booking_confirmation_success"), "success");
-      }
+    onSuccess: () => {
+      showToast(t("booking_confirmation_success"), "success");
       utils.viewer.bookings.invalidate();
     },
     onError: () => {
@@ -123,7 +112,7 @@ function BookingListItem(booking: BookingItemProps) {
     let body = {
       bookingId: booking.id,
       confirmed: confirm,
-      reason: rejectionReason,
+      reason: "",
     };
     /**
      * Only pass down the recurring event id when we need to confirm the entire series, which happens in
@@ -146,9 +135,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "reject",
       label: (isTabRecurring || isTabUnconfirmed) && isRecurring ? t("reject_all") : t("reject"),
-      onClick: () => {
-        setRejectionDialogIsOpen(true);
-      },
+      href: `/booking/${booking.uid}?reject=true`,
       icon: "ban",
       disabled: mutation.isPending,
     },
@@ -170,6 +157,53 @@ function BookingListItem(booking: BookingItemProps) {
       : []),
   ];
 
+  const editBookingActions: ActionType[] = [
+    {
+      id: "reschedule",
+      icon: "clock" as const,
+      label: t("reschedule_booking"),
+      href: `${bookerUrl}/reschedule/${booking.uid}${
+        booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
+      }`,
+    },
+    {
+      id: "reschedule_request",
+      icon: "send" as const,
+      iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
+      label: t("send_reschedule_request"),
+      onClick: () => {
+        setIsOpenRescheduleDialog(true);
+      },
+    },
+    {
+      id: "change_location",
+      label: t("edit_location"),
+      onClick: () => {
+        setIsOpenLocationDialog(true);
+      },
+      icon: "map-pin" as const,
+    },
+    {
+      id: "add_members",
+      label: t("additional_guests"),
+      onClick: () => {
+        setIsOpenAddGuestsDialog(true);
+      },
+      icon: "users" as const,
+    },
+  ];
+
+  if (booking.eventType.schedulingType === SchedulingType.ROUND_ROBIN) {
+    editBookingActions.push({
+      id: "reassign ",
+      label: t("reassign"),
+      onClick: () => {
+        setIsOpenReassignDialog(true);
+      },
+      icon: "users" as const,
+    });
+  }
+
   let bookedActions: ActionType[] = [
     {
       id: "cancel",
@@ -185,41 +219,7 @@ function BookingListItem(booking: BookingItemProps) {
     {
       id: "edit_booking",
       label: t("edit"),
-      actions: [
-        {
-          id: "reschedule",
-          icon: "clock" as const,
-          label: t("reschedule_booking"),
-          href: `${bookerUrl}/reschedule/${booking.uid}${
-            booking.seatsReferences.length ? `?seatReferenceUid=${getSeatReferenceUid()}` : ""
-          }`,
-        },
-        {
-          id: "reschedule_request",
-          icon: "send" as const,
-          iconClassName: "rotate-45 w-[16px] -translate-x-0.5 ",
-          label: t("send_reschedule_request"),
-          onClick: () => {
-            setIsOpenRescheduleDialog(true);
-          },
-        },
-        {
-          id: "change_location",
-          label: t("edit_location"),
-          onClick: () => {
-            setIsOpenLocationDialog(true);
-          },
-          icon: "map-pin" as const,
-        },
-        {
-          id: "add_members",
-          label: t("additional_guests"),
-          onClick: () => {
-            setIsOpenAddGuestsDialog(true);
-          },
-          icon: "users" as const,
-        },
-      ],
+      actions: editBookingActions,
     },
   ];
 
@@ -256,6 +256,7 @@ function BookingListItem(booking: BookingItemProps) {
     .locale(language)
     .format(isUpcoming ? "ddd, D MMM" : "D MMMM YYYY");
   const [isOpenRescheduleDialog, setIsOpenRescheduleDialog] = useState(false);
+  const [isOpenReassignDialog, setIsOpenReassignDialog] = useState(false);
   const [isOpenSetLocationDialog, setIsOpenLocationDialog] = useState(false);
   const [isOpenAddGuestsDialog, setIsOpenAddGuestsDialog] = useState(false);
   const setLocationMutation = trpc.viewer.bookings.editLocation.useMutation({
@@ -333,6 +334,12 @@ function BookingListItem(booking: BookingItemProps) {
         setIsOpenDialog={setIsOpenRescheduleDialog}
         bookingUId={booking.uid}
       />
+      <ReassignDialog
+        isOpenDialog={isOpenReassignDialog}
+        setIsOpenDialog={setIsOpenReassignDialog}
+        bookingId={booking.id}
+        teamId={booking.eventType?.team?.id || 0}
+      />
       <EditLocationDialog
         booking={booking}
         saveLocation={saveLocation}
@@ -362,38 +369,7 @@ function BookingListItem(booking: BookingItemProps) {
           timeFormat={userTimeFormat ?? null}
         />
       )}
-      {/* NOTE: Should refactor this dialog component as is being rendered multiple times */}
-      <Dialog open={rejectionDialogIsOpen} onOpenChange={setRejectionDialogIsOpen}>
-        <DialogContent title={t("rejection_reason_title")} description={t("rejection_reason_description")}>
-          <div>
-            <TextAreaField
-              name="rejectionReason"
-              label={
-                <>
-                  {t("rejection_reason")}
-                  <span className="text-subtle font-normal"> (Optional)</span>
-                </>
-              }
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-            />
-          </div>
-
-          <DialogFooter>
-            <DialogClose />
-            <Button
-              disabled={mutation.isPending}
-              data-testid="rejection-confirm"
-              onClick={() => {
-                bookingConfirm(false);
-              }}>
-              {t("rejection_confirmation")}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col sm:flex-row">
+      <tr data-testid="booking-item" className="hover:bg-muted group flex flex-col transition sm:flex-row">
         <td className="hidden align-top ltr:pl-6 rtl:pr-6 sm:table-cell sm:min-w-[12rem]">
           <Link href={bookingLink}>
             <div className="cursor-pointer py-4">
@@ -554,7 +530,7 @@ function BookingListItem(booking: BookingItemProps) {
             </div>
           </Link>
         </td>
-        <td className="flex w-full justify-end py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:pl-0">
+        <td className="flex w-full flex-col flex-wrap items-end justify-end space-x-2 space-y-2 py-4 pl-4 text-right text-sm font-medium ltr:pr-4 rtl:pl-4 sm:flex-row sm:flex-nowrap sm:items-start sm:space-y-0 sm:pl-0">
           {isUpcoming && !isCancelled ? (
             <>
               {isPending && (userId === booking.user?.id || booking.isUserTeamAdminOrOwner) && (
@@ -565,6 +541,7 @@ function BookingListItem(booking: BookingItemProps) {
             </>
           ) : null}
           {isBookingInPast && isPending && !isConfirmed ? <TableActions actions={bookedActions} /> : null}
+          {isBookingInPast && isConfirmed ? <TableActions actions={bookedActions} /> : null}
           {(showViewRecordingsButton || showCheckRecordingButton) && (
             <TableActions actions={showRecordingActions} />
           )}
@@ -707,12 +684,9 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
   const [openDropdown, setOpenDropdown] = useState(false);
   const { copyToClipboard, isCopied } = useCopy();
 
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(
-        t("messageKey" in data && data.messageKey ? data.messageKey : data.message, { x: name || email }),
-        "success"
-      );
+      showToast(data.message, "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -736,7 +710,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
         <button
           data-testid="guest"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500">
           {noShow ? (
             <s>
               {name || email} <Icon name="eye-off" className="inline h-4" />
@@ -818,9 +792,9 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
     };
   });
   const { t } = useLocale();
-  const noShowMutation = trpc.viewer.public.noShow.useMutation({
+  const noShowMutation = trpc.viewer.markNoShow.useMutation({
     onSuccess: async (data) => {
-      showToast(t("messageKey" in data && data.messageKey ? data.messageKey : data.message), "success");
+      showToast(t(data.message), "success");
     },
     onError: (err) => {
       showToast(err.message, "error");
@@ -854,7 +828,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
         <button
           data-testid="more-guests"
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: attendees.length - 1 })}
         </button>
       </DropdownMenuTrigger>
@@ -915,7 +889,7 @@ const GroupedGuests = ({ guests }: { guests: AttendeeProps[] }) => {
       <DropdownMenuTrigger asChild>
         <button
           onClick={(e) => e.stopPropagation()}
-          className="radix-state-open:text-blue-500 hover:text-blue-500 focus:outline-none">
+          className="radix-state-open:text-blue-500 transition hover:text-blue-500 focus:outline-none">
           {t("plus_more", { count: guests.length - 1 })}
         </button>
       </DropdownMenuTrigger>

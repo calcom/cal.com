@@ -43,7 +43,7 @@ const IntegrationsContainer = ({
     calendar: "calendar",
     conferencing: "video",
     automation: "share-2",
-    analytics: "bar-chart",
+    analytics: "chart-bar",
     payment: "credit-card",
     other: "grid-3x3",
     web3: "credit-card", // deprecated

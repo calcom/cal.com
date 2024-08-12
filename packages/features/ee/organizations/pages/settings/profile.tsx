@@ -380,6 +380,7 @@ const OrgProfileForm = ({ defaultValues }: { defaultValues: FormValues }) => {
             disableLists
             firstRender={firstRender}
             setFirstRender={setFirstRender}
+            height="80px"
           />
         </div>
         <p className="text-default mt-2 text-sm">{t("org_description")}</p>

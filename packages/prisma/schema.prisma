@@ -320,8 +320,9 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
-  OutOfOfficeReasons OutOfOfficeReason[]
-  smsLockState       SMSLockState        @default(UNLOCKED)
+  OutOfOfficeReasons     OutOfOfficeReason[]
+  smsLockState           SMSLockState        @default(UNLOCKED)
+  smsLockReviewedByAdmin Boolean             @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -359,55 +360,60 @@ model Profile {
 }
 
 model Team {
-  id                    Int                     @id @default(autoincrement())
+  id                     Int                     @id @default(autoincrement())
   /// @zod.min(1)
-  name                  String
+  name                   String
   /// @zod.min(1)
-  slug                  String?
-  logoUrl               String?
-  calVideoLogo          String?
-  appLogo               String?
-  appIconLogo           String?
-  bio                   String?
-  hideBranding          Boolean                 @default(false)
-  isPrivate             Boolean                 @default(false)
-  hideBookATeamMember   Boolean                 @default(false)
-  members               Membership[]
-  eventTypes            EventType[]
-  workflows             Workflow[]
-  createdAt             DateTime                @default(now())
+  slug                   String?
+  logoUrl                String?
+  calVideoLogo           String?
+  appLogo                String?
+  appIconLogo            String?
+  bio                    String?
+  hideBranding           Boolean                 @default(false)
+  isPrivate              Boolean                 @default(false)
+  hideBookATeamMember    Boolean                 @default(false)
+  members                Membership[]
+  eventTypes             EventType[]
+  workflows              Workflow[]
+  createdAt              DateTime                @default(now())
   /// @zod.custom(imports.teamMetadataSchema)
-  metadata              Json?
-  theme                 String?
-  brandColor            String?
-  darkBrandColor        String?
-  verifiedNumbers       VerifiedNumber[]
-  verifiedEmails        VerifiedEmail[]
-  bannerUrl             String?
-  parentId              Int?
-  parent                Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
-  children              Team[]                  @relation("organization")
-  orgUsers              User[]                  @relation("scope")
-  inviteTokens          VerificationToken[]
-  webhooks              Webhook[]
-  timeFormat            Int?
-  timeZone              String                  @default("Europe/London")
-  weekStart             String                  @default("Sunday")
-  routingForms          App_RoutingForms_Form[]
-  apiKeys               ApiKey[]
-  credentials           Credential[]
-  accessCodes           AccessCode[]
-  isOrganization        Boolean                 @default(false)
-  organizationSettings  OrganizationSettings?
-  instantMeetingTokens  InstantMeetingToken[]
-  orgProfiles           Profile[]
-  pendingPayment        Boolean                 @default(false)
-  dsyncTeamGroupMapping DSyncTeamGroupMapping[]
-  isPlatform            Boolean                 @default(false)
-  platformOAuthClient   PlatformOAuthClient[]
-  smsLockState          SMSLockState            @default(UNLOCKED)
-  platformBilling       PlatformBilling?
-  activeOrgWorkflows    WorkflowsOnTeams[]
+  metadata               Json?
+  theme                  String?
+  brandColor             String?
+  darkBrandColor         String?
+  verifiedNumbers        VerifiedNumber[]
+  verifiedEmails         VerifiedEmail[]
+  bannerUrl              String?
+  parentId               Int?
+  parent                 Team?                   @relation("organization", fields: [parentId], references: [id], onDelete: Cascade)
+  children               Team[]                  @relation("organization")
+  orgUsers               User[]                  @relation("scope")
+  inviteTokens           VerificationToken[]
+  webhooks               Webhook[]
+  timeFormat             Int?
+  timeZone               String                  @default("Europe/London")
+  weekStart              String                  @default("Sunday")
+  routingForms           App_RoutingForms_Form[]
+  apiKeys                ApiKey[]
+  credentials            Credential[]
+  accessCodes            AccessCode[]
+  isOrganization         Boolean                 @default(false)
+  organizationSettings   OrganizationSettings?
+  instantMeetingTokens   InstantMeetingToken[]
+  orgProfiles            Profile[]
+  pendingPayment         Boolean                 @default(false)
+  dsyncTeamGroupMapping  DSyncTeamGroupMapping[]
+  isPlatform             Boolean                 @default(false)
+  // Organization's OAuth clients. Organization has them but a team does not.
+  platformOAuthClient    PlatformOAuthClient[]
+  // OAuth client used to create team of an organization. Team has it but organization does not.
+  createdByOAuthClient   PlatformOAuthClient?    @relation("CreatedByOAuthClient", fields: [createdByOAuthClientId], references: [id], onDelete: Cascade)
+  createdByOAuthClientId String?
+  smsLockState           SMSLockState            @default(UNLOCKED)
+  platformBilling        PlatformBilling?
+  activeOrgWorkflows     WorkflowsOnTeams[]
+  smsLockReviewedByAdmin Boolean                 @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -427,6 +433,7 @@ model OrganizationSettings {
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
   isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
+  isAdminAPIEnabled             Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -577,7 +584,7 @@ model Booking {
   instantMeetingToken   InstantMeetingToken?
   rating                Int?
   ratingFeedback        String?
-  noShowHost            Boolean?
+  noShowHost            Boolean?                   @default(false)
   scheduledTriggers     WebhookScheduledTriggers[]
 
   @@index([eventTypeId])
@@ -722,26 +729,29 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id                String                     @id @unique
-  userId            Int?
-  teamId            Int?
-  eventTypeId       Int?
+  id                    String                     @id @unique
+  userId                Int?
+  teamId                Int?
+  eventTypeId           Int?
+  platformOAuthClientId String?
   /// @zod.url()
-  subscriberUrl     String
-  payloadTemplate   String?
-  createdAt         DateTime                   @default(now())
-  active            Boolean                    @default(true)
-  eventTriggers     WebhookTriggerEvents[]
-  user              User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team              Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  eventType         EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  app               App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId             String?
-  secret            String?
-  platform          Boolean                    @default(false)
-  scheduledTriggers WebhookScheduledTriggers[]
+  subscriberUrl         String
+  payloadTemplate       String?
+  createdAt             DateTime                   @default(now())
+  active                Boolean                    @default(true)
+  eventTriggers         WebhookTriggerEvents[]
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                  Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  platformOAuthClient   PlatformOAuthClient?       @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+  app                   App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId                 String?
+  secret                String?
+  platform              Boolean                    @default(false)
+  scheduledTriggers     WebhookScheduledTriggers[]
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
+  @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
 }
 
 model Impersonations {
@@ -953,10 +963,12 @@ model AIPhoneCallConfiguration {
   id              Int       @id @default(autoincrement())
   eventType       EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
   eventTypeId     Int
-  generalPrompt   String
+  templateType    String    @default("CUSTOM_TEMPLATE")
+  schedulerName   String?
+  generalPrompt   String?
   yourPhoneNumber String
   numberToCall    String
-  guestName       String
+  guestName       String?
   guestEmail      String?
   guestCompany    String?
   enabled         Boolean   @default(false)
@@ -1285,10 +1297,12 @@ model PlatformOAuthClient {
   redirectUris   String[]
   organizationId Int
   organization   Team     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teams          Team[]   @relation("CreatedByOAuthClient")
 
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+  webhook             Webhook[]
 
   bookingRedirectUri           String?
   bookingCancelRedirectUri     String?
