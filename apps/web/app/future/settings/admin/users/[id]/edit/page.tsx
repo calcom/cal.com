@@ -17,14 +17,14 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
     );
   }
 
-  const userId = input.data.id;
-  const { trpc } = await import("@calcom/trpc");
-  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
-  const { user } = data;
-  const title = `Editing user: ${user.username}`;
+  // const userId = input.data.id;
+  // const { trpc } = await import("@calcom/trpc");
+  // const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
+  // const { user } = data;
+  // const title = `Editing user: ${user.username}`;
 
   return await _generateMetadata(
-    () => title,
+    () => "Edit user",
     () => "Here you can edit a current user."
   );
 };
