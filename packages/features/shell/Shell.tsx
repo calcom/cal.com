@@ -658,7 +658,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
@@ -671,7 +671,7 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "bar-chart",
+    icon: "chart-bar",
     target: "_blank",
   },
   {
