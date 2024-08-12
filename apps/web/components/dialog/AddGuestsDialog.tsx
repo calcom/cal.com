@@ -39,8 +39,9 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
       setMultiEmailValue([""]);
       utils.viewer.bookings.invalidate();
     },
-    onError: () => {
-      showToast(t("unable_to_add_guests"), "error");
+    onError: (err) => {
+      const message = `${err.data.code}: ${t(err.message)}`;
+      showToast(message || t("unable_to_add_guests"), "error");
     },
   });
 
@@ -61,7 +62,7 @@ export const AddGuestsDialog = (props: IAddGuestsDialog) => {
       <DialogContent enableOverflow>
         <div className="flex flex-row space-x-3">
           <div className="bg-subtle flex h-10 w-10 flex-shrink-0 justify-center rounded-full ">
-            <Icon name="users" className="m-auto h-6 w-6" />
+            <Icon name="user-plus" className="m-auto h-6 w-6" />
           </div>
           <div className="w-full pt-1">
             <DialogHeader title={t("additional_guests")} />

@@ -189,7 +189,7 @@ function BookingListItem(booking: BookingItemProps) {
       onClick: () => {
         setIsOpenAddGuestsDialog(true);
       },
-      icon: "users" as const,
+      icon: "user-plus" as const,
     },
   ];
 
