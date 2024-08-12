@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { Expose } from "class-transformer";
-import { IsString } from "class-validator";
+import { IsString, IsEnum } from "class-validator";
 
 import {
   APPLE_CALENDAR_TYPE,
@@ -17,6 +17,7 @@ export class DestinationCalendarsInputBodyDto {
     enum: [APPLE_CALENDAR_TYPE, GOOGLE_CALENDAR_TYPE, OFFICE_365_CALENDAR_TYPE],
     required: true,
   })
+  @IsEnum([APPLE_CALENDAR_TYPE, GOOGLE_CALENDAR_TYPE, OFFICE_365_CALENDAR_TYPE])
   readonly integration!:
     | typeof APPLE_CALENDAR_TYPE
     | typeof GOOGLE_CALENDAR_TYPE
