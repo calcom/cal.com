@@ -71,12 +71,21 @@ export class OrganizationsRepository {
     });
   }
 
-  async findOrgTeam(organizationId: number, teamId: number) {
-    return this.dbRead.prisma.team.findUnique({
+  async findPlatformOrgFromUserId(userId: number) {
+    return this.dbRead.prisma.team.findFirstOrThrow({
       where: {
-        id: teamId,
-        isOrganization: false,
-        parentId: organizationId,
+        orgProfiles: {
+          some: {
+            userId: userId,
+          },
+        },
+        isPlatform: true,
+        isOrganization: true,
+      },
+      select: {
+        id: true,
+        isPlatform: true,
+        isOrganization: true,
       },
     });
   }
@@ -85,7 +94,22 @@ export class OrganizationsRepository {
     return this.dbRead.prisma.user.findUnique({
       where: {
         id: userId,
+        profiles: {
+          some: {
+            organizationId,
+          },
+        },
+      },
+    });
+  }
+
+  async fetchOrgAdminApiStatus(organizationId: number) {
+    return this.dbRead.prisma.organizationSettings.findUnique({
+      where: {
         organizationId,
+      },
+      select: {
+        isAdminAPIEnabled: true,
       },
     });
   }

@@ -1,0 +1,31 @@
+## 0.0.26
+Update `packages/app-store/office365calendar/lib/CalendarService.ts` "translateEvent" content so that in microsoft outlook calendar event the description
+has newlines instead of being all in 1 line.
+
+## 0.0.25
+Refactor "packages/lib/event-types/transformers/api-request.ts" getResponseEventTypeBookingFields - make sure that booking fields with options don't have
+undefines options.
+
+
+## 0.0.24
+Refactor "packages/lib/event-types/transformers/api-request.ts" - we access event-type booking fields in database and then distinguish them as either
+created by the user or system. Then in v2 api "event-types_2024_06_14/services/output-event-types.service.ts" we first parse them and then filter
+out only user fields. This is done because when creating an event-type we only store user passed booking fields, but if someone already had created
+booking-fields using event-types version 2024_04_15, then they contained system fields which is why event-types 2024_06_14 controller was failing.
+
+## 0.0.23
+Update "createBooking" (packages/features/bookings/lib/handleNewBooking/createBooking.ts) that is used by handleNewBooking (packages/features/bookings/lib/handleNewBooking.ts) to correctly handle metadata of a re-scheduled booking. Previously,
+metadata of original booking was overwriting metadata in the request body of the new booking (rescheduled), but now
+request body overwrites metadata of the original body so that whatever metadata is newest ends up as the metadata of rescheduled booking. However, only common properties are overwritten, if the original booking has a key that re-schedule booking request body metadata does not have, then it will be persisted in the re-scheduled booking.
+
+## 0.0.22
+Export `updateNewTeamMemberEventTypes` from `"@calcom/lib/server/queries"` so that we can assign newly created organizations
+teams members to event-types that have been marked as "assign all team members"
+
+## 0.0.20
+In event-types create handler (packages/trpc/server/routers/viewer/eventTypes/create.handler.ts) enable passing scheduleId so that when an event type is created it can be connected
+to a specific schedule.
+
+## 0.0.19
+Added - create event type handler was [updated](https://github.com/calcom/cal.com/pull/15774) for system admins not to be required
+to be part of org team when creating event type for team. Update libraries to include these changes.

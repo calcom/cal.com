@@ -4,16 +4,16 @@ import { TestingModule } from "@nestjs/testing";
 import { Booking, User } from "@prisma/client";
 
 export class BookingsRepositoryFixture {
-  private primaReadClient: PrismaReadService["prisma"];
+  private prismaReadClient: PrismaReadService["prisma"];
   private prismaWriteClient: PrismaWriteService["prisma"];
 
   constructor(private readonly module: TestingModule) {
-    this.primaReadClient = module.get(PrismaReadService).prisma;
+    this.prismaReadClient = module.get(PrismaReadService).prisma;
     this.prismaWriteClient = module.get(PrismaWriteService).prisma;
   }
 
   async getById(bookingId: Booking["id"]) {
-    return this.primaReadClient.booking.findFirst({ where: { id: bookingId } });
+    return this.prismaReadClient.booking.findFirst({ where: { id: bookingId } });
   }
 
   async deleteById(bookingId: Booking["id"]) {

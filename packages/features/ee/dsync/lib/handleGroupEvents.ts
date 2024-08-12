@@ -1,11 +1,9 @@
 import type { DirectorySyncEvent, Group } from "@boxyhq/saml-jackson";
 
-import jackson from "@calcom/features/ee/sso/lib/jackson";
 import { createAProfileForAnExistingUser } from "@calcom/lib/createAProfileForAnExistingUser";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { IdentityProvider, MembershipRole } from "@calcom/prisma/enums";
-import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import {
   getTeamOrThrow,
   sendSignupToOrganizationEmail,
@@ -15,7 +13,6 @@ import {
 import createUsersAndConnectToOrg from "./users/createUsersAndConnectToOrg";
 
 const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: number) => {
-  const { dsyncController } = await jackson();
   // Find the group name associated with the event
   const eventData = event.data as Group;
 
@@ -115,7 +112,7 @@ const handleGroupEvents = async (event: DirectorySyncEvent, organizationId: numb
         newUserEmails.map((email) => {
           return sendSignupToOrganizationEmail({
             usernameOrEmail: email,
-            team: { ...group.team, metadata: teamMetadataSchema.parse(group.team.metadata) },
+            team: group.team,
             translation,
             inviterName: org.name,
             teamId: group.teamId,

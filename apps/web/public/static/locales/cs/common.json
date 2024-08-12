@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "Přečtěte si naše nejnovější novinky a články",
   "join_our_community": "Připojte se k naší komunitě",
-  "join_our_discord": "Připojte se k našemu Discordu",
   "404_claim_entity_user": "Nárokujte si své uživatelské jméno a plánujte události",
   "popular_pages": "Oblíbené stránky",
   "register_now": "Zaregistrovat se nyní",
@@ -1496,7 +1495,6 @@
   "how_long_after": "Jak dlouho po ukončení události?",
   "no_available_slots": "Žádné dostupné sloty",
   "time_available": "Dostupný čas",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nemůžete najít správnou video aplikaci? Navštivte náš <1>App Store</1>.",
   "install_new_calendar_app": "Nainstalovat novou aplikaci kalendáře",
   "make_phone_number_required": "Pro rezervaci události vyžadovat telefonní číslo",
   "new_event_type_availability": "Dostupnost pro {{eventTypeTitle}}",
@@ -2100,5 +2098,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Byli jste pozváni do týmu {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "Uživatel {{invitedBy}} vás pozval, abyste se připojili k jeho týmu „{{teamName}}“ v aplikaci {{appName}}. {{appName}} je plánovač událostí, který vám a vašemu týmu umožňuje plánovat schůzky bez e-mailového pingpongu.",
   "privacy": "Ochrana soukromí",
+  "signing_up_terms": "Pokračováním souhlasíte s našimi <0>Podmínkami</0> a <1>Zásadami ochrany osobních údajů</1>.",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Přidejte své nové řetězce nahoru ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }
