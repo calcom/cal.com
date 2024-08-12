@@ -15,7 +15,7 @@ const PoweredByCal = ({ logoOnly, username }: { logoOnly?: boolean; username?: s
     <div className={`p-2 text-center text-xs sm:text-right${isEmbed ? " max-w-3xl" : ""}`}>
       <Link
         // replace the long UTM url with a Dub short link
-        href={username ? `https://go.cal.com/r/${username}` : POWERED_BY_URL}
+        href={username ? `https://refer.cal.com/${username}` : POWERED_BY_URL}
         target="_blank"
         className="text-subtle">
         {!logoOnly && <>{t("powered_by")} </>}

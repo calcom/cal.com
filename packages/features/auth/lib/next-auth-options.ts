@@ -940,14 +940,14 @@ export const AUTH_OPTIONS: AuthOptions = {
           Promise.allSettled([
             // create a new short link for the user
             // this will be used in the PoweredBy button on the Booking page
-            dub.links.create({
-              domain: "go.cal.com",
-              key: user.username || undefined,
-              url: "https://cal.com?utm_source=embed&utm_medium=powered-by-button",
-              prefix: "/r/", // resulting link will be go.cal.com/r/steven
-              externalId: user.id.toString(), // @see https://d.to/externalId
-              trackConversion: true, // enable conversion tracking @see https://d.to/conversions
-            }),
+            user.username &&
+              dub.links.create({
+                domain: "refer.cal.com",
+                key: user.username,
+                url: "https://cal.com?utm_source=embed&utm_medium=powered-by-button",
+                externalId: user.id.toString(), // @see https://d.to/externalId
+                trackConversion: true, // enable conversion tracking @see https://d.to/conversions
+              }),
             // check if there's a dclid cookie set by @dub/analytics
             // if so, send a lead event to Dub
             // @see https://d.to/conversions/next-auth
