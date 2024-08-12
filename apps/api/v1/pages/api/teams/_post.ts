@@ -214,6 +214,7 @@ const generateTeamCheckoutSession = async ({
     metadata: {
       pendingPaymentTeamId,
       ownerId,
+      dubCustomerId: ownerId, // pass the userId during checkout creation for sales conversion tracking: https://d.to/conversions/stripe
     },
   });
 
