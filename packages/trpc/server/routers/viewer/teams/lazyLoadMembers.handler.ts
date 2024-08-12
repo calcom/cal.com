@@ -4,6 +4,7 @@ import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
+import { MembershipRole } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TLazyLoadMembersInputSchema } from "./lazyLoadMembers.schema";
@@ -18,6 +19,7 @@ type LazyLoadMembersHandlerOptions = {
 
 // This should improve performance saving already app data found.
 const appDataMap = new Map();
+
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   username: true,
   email: true,
@@ -57,11 +59,11 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   const { prisma } = ctx;
   const { cursor, limit, teamId, searchTerm } = input;
 
-  const getTotalMembers = await prisma.membership.count({
-    where: {
-      teamId,
-    },
-  });
+  const canAccessMembers = await assertCanAccessMembers(ctx, teamId);
+
+  if (!canAccessMembers) {
+    return { members: [], nextCursor: null };
+  }
 
   const teamMembers = await prisma.membership.findMany({
     where: {
@@ -147,6 +149,41 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   });
 
   return { members: membersWithApps, nextCursor };
+};
+
+const assertCanAccessMembers = async (ctx: LazyLoadMembersHandlerOptions["ctx"], teamId: number) => {
+  const isOrgPrivate = ctx.user.profile?.organization?.isPrivate;
+  const isOrgAdminOrOwner = ctx.user.organization?.isOrgAdmin;
+  const orgId = ctx.user.organizationId;
+  const isTargetingOrg = teamId === ctx.user.organizationId;
+
+  if (isTargetingOrg) {
+    return isOrgPrivate && !isOrgAdminOrOwner;
+  }
+  const team = await ctx.prisma.team.findUnique({
+    where: {
+      id: teamId,
+    },
+  });
+
+  if (isOrgAdminOrOwner && team?.parentId === orgId) {
+    return true;
+  }
+
+  const membership = await ctx.prisma.membership.findFirst({
+    where: {
+      teamId,
+      userId: ctx.user.id,
+    },
+  });
+
+  const isTeamAdminOrOwner =
+    membership?.role === MembershipRole.OWNER || membership?.role === MembershipRole.ADMIN;
+
+  if (team?.isPrivate && !isTeamAdminOrOwner) {
+    return false;
+  }
+  return true;
 };
 
 export default lazyLoadMembersHandler;
