@@ -148,7 +148,7 @@ function OrganizationAttributesPage() {
         <div className="border-subtle bg-default flex flex-col gap-4 rounded-lg border p-6">
           {data && data?.length > 0 ? (
             <>
-              <h2 className="text-emphasis leadning-none text-base font-semibold">{t("custom")}</h2>
+              <h2 className="text-emphasis text-base font-semibold leading-none">{t("custom")}</h2>
               <li className="border-subtle bg-default divide-subtle flex flex-col divide-y rounded-lg border">
                 {data?.map((attribute) => (
                   <AttributeItem attribute={attribute} key={attribute.id} />
