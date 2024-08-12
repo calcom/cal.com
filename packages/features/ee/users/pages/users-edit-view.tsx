@@ -28,8 +28,9 @@ const UsersEditPage = () => {
 const UsersEditView = ({ userId }: { userId: number }) => {
   const pathname = usePathname();
   const router = useRouter();
-  const [data] = trpc.viewer.users.get.useSuspenseQuery({ userId });
-  const { user } = data;
+  const user = null;
+  const { data, isLoading } = trpc.viewer.users.get.useQuery({ userId });
+
   const utils = trpc.useUtils();
   const mutation = trpc.viewer.users.update.useMutation({
     onSuccess: async () => {
@@ -44,23 +45,27 @@ const UsersEditView = ({ userId }: { userId: number }) => {
   });
   return (
     <LicenseRequired>
-      <Meta title={`Editing user: ${user.username}`} description="Here you can edit a current user." />
+      <Meta title={`Editing user: ${data?.user.username}`} description="Here you can edit a current user." />
       <NoSSR>
-        <UserForm
-          key={JSON.stringify(user)}
-          onSubmit={(values) => {
-            const parser = getParserWithGeneric(userBodySchema);
-            const parsedValues = parser(values);
-            const data: Partial<typeof parsedValues & { userId: number }> = {
-              ...parsedValues,
-              userId: user.id,
-            };
-            // Don't send username if it's the same as the current one
-            if (user.username === data.username) delete data.username;
-            mutation.mutate(data);
-          }}
-          defaultValues={user}
-        />
+        {isLoading ? (
+          <p>Loading</p>
+        ) : (
+          <UserForm
+            key={JSON.stringify(data?.user)}
+            onSubmit={(values) => {
+              const parser = getParserWithGeneric(userBodySchema);
+              const parsedValues = parser(values);
+              const data: Partial<typeof parsedValues & { userId: number }> = {
+                ...parsedValues,
+                userId: data.user.id,
+              };
+              // Don't send username if it's the same as the current one
+              if (user.username === data.username) delete data.username;
+              mutation.mutate(data);
+            }}
+            defaultValues={data?.user}
+          />
+        )}
       </NoSSR>
     </LicenseRequired>
   );
