@@ -139,7 +139,7 @@ export class EventTypeOutput_2024_06_14 {
   scheduleId!: number | null;
 
   @IsOptional()
-  bookingLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -147,7 +147,7 @@ export class EventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  durationLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsDuration?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   bookingWindow?: BookingWindow_2024_06_14;
@@ -268,7 +268,7 @@ export class TeamEventTypeOutput_2024_06_14 {
   assignAllTeamMembers?: boolean;
 
   @IsOptional()
-  bookingLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -276,7 +276,7 @@ export class TeamEventTypeOutput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  durationLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsDuration?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   bookingWindow?: BookingWindow_2024_06_14;

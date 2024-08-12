@@ -261,12 +261,12 @@ describe("Organizations Event Types Endpoints", () => {
             userId: teammate2.id,
           },
         ],
-        bookingLimits: {
+        bookingLimitsCount: {
           day: 2,
           week: 5,
         },
         onlyShowFirstAvailableSlot: true,
-        durationLimits: {
+        bookingLimitsDuration: {
           day: 60,
           week: 100,
         },
@@ -292,9 +292,9 @@ describe("Organizations Event Types Endpoints", () => {
           expect(data.schedulingType).toEqual("COLLECTIVE");
           evaluateHost(body.hosts[0], data.hosts[0]);
           evaluateHost(body.hosts[1], data.hosts[1]);
-          expect(data.bookingLimits).toEqual(body.bookingLimits);
+          expect(data.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(data.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
-          expect(data.durationLimits).toEqual(body.durationLimits);
+          expect(data.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(data.offsetStart).toEqual(body.offsetStart);
           expect(data.bookingWindow).toEqual(body.bookingWindow);
 

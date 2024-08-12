@@ -23,7 +23,7 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, bookingLimits, durationLimits, bookingWindow, ...rest } =
+    const { hosts, assignAllTeamMembers, bookingLimitsCount, bookingLimitsDuration, bookingWindow, ...rest } =
       inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
@@ -36,8 +36,8 @@ export class InputOrganizationsEventTypesService {
         ? await this.getAllTeamMembers(teamId, inputEventType.schedulingType)
         : this.transformInputHosts(hosts, inputEventType.schedulingType),
       assignAllTeamMembers,
-      bookingLimits,
-      durationLimits,
+      bookingLimitsCount,
+      bookingLimitsDuration,
       bookingWindow,
       metadata,
     };

@@ -215,12 +215,12 @@ describe("Event types Endpoints", () => {
           },
         ],
         scheduleId: firstSchedule.id,
-        bookingLimits: {
+        bookingLimitsCount: {
           day: 2,
           week: 5,
         },
         onlyShowFirstAvailableSlot: true,
-        durationLimits: {
+        bookingLimitsDuration: {
           day: 60,
           week: 100,
         },
@@ -248,9 +248,9 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingFields).toEqual(body.bookingFields);
           expect(createdEventType.ownerId).toEqual(user.id);
           expect(createdEventType.scheduleId).toEqual(firstSchedule.id);
-          expect(createdEventType.bookingLimits).toEqual(body.bookingLimits);
+          expect(createdEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(createdEventType.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
-          expect(createdEventType.durationLimits).toEqual(body.durationLimits);
+          expect(createdEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
           eventType = responseBody.data;
@@ -263,12 +263,12 @@ describe("Event types Endpoints", () => {
       const body: UpdateEventTypeInput_2024_06_14 = {
         title: newTitle,
         scheduleId: secondSchedule.id,
-        bookingLimits: {
+        bookingLimitsCount: {
           day: 4,
           week: 10,
         },
         onlyShowFirstAvailableSlot: true,
-        durationLimits: {
+        bookingLimitsDuration: {
           day: 100,
           week: 200,
         },
@@ -298,17 +298,17 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookingFields).toEqual(eventType.bookingFields);
           expect(updatedEventType.ownerId).toEqual(user.id);
           expect(updatedEventType.scheduleId).toEqual(secondSchedule.id);
-          expect(updatedEventType.bookingLimits).toEqual(body.bookingLimits);
+          expect(updatedEventType.bookingLimitsCount).toEqual(body.bookingLimitsCount);
           expect(updatedEventType.onlyShowFirstAvailableSlot).toEqual(body.onlyShowFirstAvailableSlot);
-          expect(updatedEventType.durationLimits).toEqual(body.durationLimits);
+          expect(updatedEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
-          eventType.bookingLimits = updatedEventType.bookingLimits;
+          eventType.bookingLimitsCount = updatedEventType.bookingLimitsCount;
           eventType.onlyShowFirstAvailableSlot = updatedEventType.onlyShowFirstAvailableSlot;
-          eventType.durationLimits = updatedEventType.durationLimits;
+          eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
           eventType.offsetStart = updatedEventType.offsetStart;
           eventType.bookingWindow = updatedEventType.bookingWindow;
         });
@@ -346,9 +346,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.locations).toEqual(eventType.locations);
       expect(fetchedEventType.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });
@@ -376,9 +376,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });
@@ -401,9 +401,9 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType?.locations).toEqual(eventType.locations);
       expect(fetchedEventType?.bookingFields).toEqual(eventType.bookingFields);
       expect(fetchedEventType?.ownerId).toEqual(user.id);
-      expect(fetchedEventType.bookingLimits).toEqual(eventType.bookingLimits);
+      expect(fetchedEventType.bookingLimitsCount).toEqual(eventType.bookingLimitsCount);
       expect(fetchedEventType.onlyShowFirstAvailableSlot).toEqual(eventType.onlyShowFirstAvailableSlot);
-      expect(fetchedEventType.durationLimits).toEqual(eventType.durationLimits);
+      expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
     });

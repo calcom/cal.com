@@ -118,7 +118,7 @@ function transformApiEventTypeBookingFields(
 }
 
 function transformApiEventTypeIntervalLimits(
-  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingLimits"]
+  inputBookingLimits: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]
 ) {
   const res: TransformBookingLimitsSchema_2024_06_14 = {};
   inputBookingLimits &&

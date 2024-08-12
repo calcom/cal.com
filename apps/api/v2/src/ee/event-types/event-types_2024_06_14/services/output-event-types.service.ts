@@ -97,8 +97,8 @@ export class OutputEventTypesService_2024_06_14 {
     const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
     const users = this.transformUsers(databaseEventType.users);
-    const bookingLimits = this.transformIntervalLimits(databaseEventType.bookingLimits);
-    const durationLimits = this.transformIntervalLimits(databaseEventType.durationLimits);
+    const bookingLimitsCount = this.transformIntervalLimits(databaseEventType.bookingLimits);
+    const bookingLimitsDuration = this.transformIntervalLimits(databaseEventType.durationLimits);
     const bookingWindow = this.transformBookingWindow({
       periodType: databaseEventType.periodType,
       periodDays: databaseEventType.periodDays,
@@ -135,8 +135,8 @@ export class OutputEventTypesService_2024_06_14 {
       isInstantEvent,
       users,
       scheduleId,
-      bookingLimits,
-      durationLimits,
+      bookingLimitsCount,
+      bookingLimitsDuration,
       onlyShowFirstAvailableSlot,
       offsetStart,
       bookingWindow,

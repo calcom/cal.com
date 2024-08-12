@@ -6981,13 +6981,13 @@
           "assignAllTeamMembers": {
             "type": "boolean"
           },
-          "bookingLimits": {
+          "bookingLimitsCount": {
             "$ref": "#/components/schemas/IntervalLimits_2024_06_14"
           },
           "onlyShowFirstAvailableSlot": {
             "type": "boolean"
           },
-          "durationLimits": {
+          "bookingLimitsDuration": {
             "$ref": "#/components/schemas/IntervalLimits_2024_06_14"
           },
           "bookingWindow": {

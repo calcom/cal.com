@@ -63,7 +63,7 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  bookingLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -71,7 +71,7 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  durationLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsDuration?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @ValidateBookingWindow()
@@ -154,7 +154,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  bookingLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -162,7 +162,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => IntervalLimits_2024_06_14)
-  durationLimits?: IntervalLimits_2024_06_14;
+  bookingLimitsDuration?: IntervalLimits_2024_06_14;
 
   @IsOptional()
   @ValidateBookingWindow()

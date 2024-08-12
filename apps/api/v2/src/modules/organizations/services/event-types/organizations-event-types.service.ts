@@ -41,8 +41,8 @@ export class OrganizationsEventTypesService {
       hosts,
       assignAllTeamMembers,
       locations,
-      bookingLimits,
-      durationLimits,
+      bookingLimitsCount,
+      bookingLimitsDuration,
       bookingWindow,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
@@ -62,8 +62,8 @@ export class OrganizationsEventTypesService {
       {
         hosts: body.hosts,
         assignAllTeamMembers,
-        bookingLimits,
-        durationLimits,
+        bookingLimitsCount,
+        bookingLimitsDuration,
         bookingWindow,
         ...rest,
       },

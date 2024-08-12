@@ -24,8 +24,8 @@ export class InputEventTypesService_2024_06_14 {
       lengthInMinutes,
       locations,
       bookingFields,
-      bookingLimits,
-      durationLimits,
+      bookingLimitsCount,
+      bookingLimitsDuration,
       bookingWindow,
       ...rest
     } = inputEventType;
@@ -35,8 +35,10 @@ export class InputEventTypesService_2024_06_14 {
       length: lengthInMinutes,
       locations: this.transformInputLocations(locations || defaultLocations),
       bookingFields: this.transformInputBookingFields(bookingFields),
-      bookingLimits: bookingLimits ? this.transformInputIntervalLimits(bookingLimits) : undefined,
-      durationLimits: durationLimits ? this.transformInputIntervalLimits(durationLimits) : undefined,
+      bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
+      durationLimits: bookingLimitsDuration
+        ? this.transformInputIntervalLimits(bookingLimitsDuration)
+        : undefined,
       bookingWindow: this.transformInputBookingWindow(bookingWindow),
     };
 
@@ -49,8 +51,8 @@ export class InputEventTypesService_2024_06_14 {
       locations,
       bookingFields,
       scheduleId,
-      bookingLimits,
-      durationLimits,
+      bookingLimitsCount,
+      bookingLimitsDuration,
       bookingWindow,
       ...rest
     } = inputEventType;
@@ -61,8 +63,10 @@ export class InputEventTypesService_2024_06_14 {
       locations: locations ? this.transformInputLocations(locations) : undefined,
       bookingFields: bookingFields ? this.transformInputBookingFields(bookingFields) : undefined,
       schedule: scheduleId,
-      bookingLimits: bookingLimits ? this.transformInputIntervalLimits(bookingLimits) : undefined,
-      durationLimits: durationLimits ? this.transformInputIntervalLimits(durationLimits) : undefined,
+      bookingLimits: bookingLimitsCount ? this.transformInputIntervalLimits(bookingLimitsCount) : undefined,
+      durationLimits: bookingLimitsDuration
+        ? this.transformInputIntervalLimits(bookingLimitsDuration)
+        : undefined,
       bookingWindow: this.transformInputBookingWindow(bookingWindow),
     };
 
@@ -77,7 +81,7 @@ export class InputEventTypesService_2024_06_14 {
     return transformApiEventTypeBookingFields(inputBookingFields);
   }
 
-  transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimits"]) {
+  transformInputIntervalLimits(inputBookingFields: CreateEventTypeInput_2024_06_14["bookingLimitsCount"]) {
     return transformApiEventTypeIntervalLimits(inputBookingFields);
   }
 
