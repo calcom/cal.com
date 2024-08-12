@@ -232,7 +232,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     } as const;
   }
 
-  // if Org allows SEOIndexable then only take user's SEOIndexable settings.
   const allowSEOIndexing = org
     ? user?.profile?.organization?.organizationSettings?.allowSEOIndexing
       ? user?.allowSEOIndexing

@@ -59,7 +59,6 @@ export function UserPage(props: InferGetServerSidePropsType<typeof getServerSide
   const isEventListEmpty = eventTypes.length === 0;
   const isOrg = !!user?.profile?.organization;
 
-  // if Org allows SEOIndexable then only take user's SEOIndexable settings.
   const allowSEOIndexing = isOrg
     ? isOrgSEOIndexable
       ? profile.allowSEOIndexing
