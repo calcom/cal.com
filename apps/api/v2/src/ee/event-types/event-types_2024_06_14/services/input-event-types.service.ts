@@ -37,7 +37,7 @@ export class InputEventTypesService_2024_06_14 {
       bookingFields: this.transformInputBookingFields(bookingFields),
       bookingLimits: bookingLimits ? this.transformInputIntervalLimits(bookingLimits) : undefined,
       durationLimits: durationLimits ? this.transformInputIntervalLimits(durationLimits) : undefined,
-      ...(bookingWindow ? this.transformInputBookingWindow(bookingWindow) : {}),
+      bookingWindow: this.transformInputBookingWindow(bookingWindow),
     };
 
     return eventType;
@@ -63,7 +63,7 @@ export class InputEventTypesService_2024_06_14 {
       schedule: scheduleId,
       bookingLimits: bookingLimits ? this.transformInputIntervalLimits(bookingLimits) : undefined,
       durationLimits: durationLimits ? this.transformInputIntervalLimits(durationLimits) : undefined,
-      ...(bookingWindow ? this.transformInputBookingWindow(bookingWindow) : {}),
+      bookingWindow: this.transformInputBookingWindow(bookingWindow),
     };
 
     return eventType;

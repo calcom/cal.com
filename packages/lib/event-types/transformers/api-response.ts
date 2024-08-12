@@ -204,7 +204,7 @@ function getResponseEventTypeBookingFields(
 function getResponseEventTypeIntervalLimits(
   transformedBookingFields: TransformBookingLimitsSchema_2024_06_14 | null
 ) {
-  if (!!transformedBookingFields) {
+  if (!transformedBookingFields) {
     return undefined;
   }
   const res: { [K in BookingLimitsKeysInputType]?: number } = {};

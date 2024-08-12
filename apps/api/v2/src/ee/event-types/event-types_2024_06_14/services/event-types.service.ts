@@ -38,7 +38,12 @@ export class EventTypesService_2024_06_14 {
   async createUserEventType(user: UserWithProfile, body: CreateEventTypeInput_2024_06_14) {
     await this.checkCanCreateEventType(user.id, body);
     const eventTypeUser = await this.getUserToCreateEvent(user);
-    const bodyTransformed = this.inputEventTypesService.transformInputCreateEventType(body);
+    const {
+      bookingLimits,
+      durationLimits,
+      bookingWindow = {},
+      ...bodyTransformed
+    } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
       input: bodyTransformed,
       ctx: {
@@ -52,6 +57,9 @@ export class EventTypesService_2024_06_14 {
     await updateEventType({
       input: {
         id: eventTypeCreated.id,
+        bookingLimits,
+        durationLimits,
+        ...bookingWindow,
         ...bodyTransformed,
       },
       ctx: {

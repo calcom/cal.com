@@ -36,11 +36,18 @@ export class OrganizationsEventTypesService {
   ) {
     await this.validateHosts(teamId, body.hosts);
     const eventTypeUser = await this.getUserToCreateTeamEvent(user, orgId);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hosts, assignAllTeamMembers, ...rest } =
-      await this.inputService.transformInputCreateTeamEventType(teamId, body);
+    const {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      hosts,
+      assignAllTeamMembers,
+      locations,
+      bookingLimits,
+      durationLimits,
+      bookingWindow,
+      ...rest
+    } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
     const { eventType: eventTypeCreated } = await createEventType({
-      input: { teamId: teamId, ...rest },
+      input: { teamId: teamId, locations, ...rest },
       ctx: {
         user: eventTypeUser,
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -52,7 +59,14 @@ export class OrganizationsEventTypesService {
     return await this.updateTeamEventType(
       eventTypeCreated.id,
       teamId,
-      { hosts: body.hosts, assignAllTeamMembers, ...rest },
+      {
+        hosts: body.hosts,
+        assignAllTeamMembers,
+        bookingLimits,
+        durationLimits,
+        bookingWindow,
+        ...rest,
+      },
       user
     );
   }
