@@ -11,7 +11,7 @@ import {
   BookingFieldsSchema,
   SystemField,
   UserField,
-} from "@calcom/platform-libraries-0.0.26";
+} from "@calcom/platform-libraries";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;

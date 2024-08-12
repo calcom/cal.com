@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { WebhookTriggerEvents } from "@prisma/client";
 import { Expose, Type } from "class-transformer";
-import { IsBoolean, IsEnum, IsInt, IsString, ValidateNested } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsString, ValidateNested, IsArray } from "class-validator";
 
 import { SUCCESS_STATUS, ERROR_STATUS } from "@calcom/platform-constants";
 
@@ -25,7 +25,8 @@ export class WebhookOutputDto {
   })
   readonly payloadTemplate!: string;
 
-  @IsEnum(WebhookTriggerEvents)
+  @IsArray()
+  @IsEnum(WebhookTriggerEvents, { each: true })
   @Expose()
   readonly triggers!: WebhookTriggerEvents[];
 
@@ -36,6 +37,10 @@ export class WebhookOutputDto {
   @IsBoolean()
   @Expose()
   readonly active!: boolean;
+
+  @IsString()
+  @Expose()
+  readonly secret?: string;
 }
 
 export class DeleteManyWebhooksOutputResponseDto {
