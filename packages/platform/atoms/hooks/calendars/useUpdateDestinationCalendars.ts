@@ -36,7 +36,7 @@ export const useUpdateDestinationCalendars = (
     { integration: string; externalId: string }
   >({
     mutationFn: (data) => {
-      return http.post(`/destination-calendars`, data).then((res) => {
+      return http.patch(`/destination-calendars`, data).then((res) => {
         return res.data;
       });
     },
