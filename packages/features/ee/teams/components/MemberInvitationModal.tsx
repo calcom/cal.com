@@ -141,13 +141,13 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   const newMemberFormMethods = useForm<NewMemberForm>();
 
   const validateUniqueInvite = (value: string) => {
-    if (props.noMembersPropPassed)
+    if (props.noMembersPropPassed) {
       return validateUniqueInviteMutation.mutateAsync({
         teamId: props.teamId,
         value,
       });
-    else {
-      if (!props?.members?.length) return { doesInviteExists: true };
+    } else {
+      if (!props?.members?.length) return { doesInviteExists: false };
       return {
         doesInviteExists:
           props?.members.some((member) => member?.username === value) ||

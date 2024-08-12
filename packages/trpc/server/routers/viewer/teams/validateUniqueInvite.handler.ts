@@ -13,27 +13,23 @@ type ValidateUniqueInviteOptions = {
 const validateUniqueInviteHandler = async ({ ctx, input }: ValidateUniqueInviteOptions) => {
   const { teamId, value } = input;
 
-  const team = await prisma.team.findFirst({
+  const membership = await prisma.membership.findFirst({
     where: {
-      id: teamId,
-      members: {
-        some: {
-          user: {
-            OR: [
-              {
-                email: value,
-              },
-              {
-                username: value,
-              },
-            ],
+      teamId,
+      user: {
+        OR: [
+          {
+            email: value,
           },
-        },
+          {
+            username: value,
+          },
+        ],
       },
     },
   });
 
-  return { doesInviteExists: !!team };
+  return { doesInviteExists: !!membership };
 };
 
 export default validateUniqueInviteHandler;
