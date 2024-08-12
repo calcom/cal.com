@@ -15,7 +15,7 @@ export default function EnterprisePage() {
       description: t("branded_subdomain_description"),
     },
     {
-      icon: <Icon name="bar-chart" className="h-5 w-5 text-blue-500" />,
+      icon: <Icon name="chart-bar" className="h-5 w-5 text-blue-500" />,
       title: t("org_insights"),
       description: t("org_insights_description"),
     },
