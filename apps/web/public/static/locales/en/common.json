@@ -2529,6 +2529,8 @@
   "outlook_connect_atom_already_connected_label": "Connected Outlook Calendar",
   "outlook_connect_atom_loading_label": "Checking Outlook Calendar",
   "booking_question_response_variables": "Booking question response variables",
+  "reschedule_with_same_round_robin_host_title": "Reschedule with same Round-Robin host",
+  "reschedule_with_same_round_robin_host_description": "Rescheduled events will be assigned to the same host as initially scheduled",
   "managed_by_teamAdmins": "Managed by {{teamAdmins}}",
   "disable_org_url_label": "Disable Organization URL and redirect",
   "disable_org_url_description": "Hide your acme.cal.com subdomain and redirect to acme.com instead.",
