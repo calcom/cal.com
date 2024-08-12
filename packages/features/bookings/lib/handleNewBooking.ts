@@ -301,6 +301,36 @@ async function handler(
   const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
 
   let timeOutOfBounds = false;
+  let rescheduleUid = reqBody.rescheduleUid;
+  let isFirstSeat = true;
+
+  if (eventType.seatsPerTimeSlot) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        OR: [
+          {
+            uid: rescheduleUid || reqBody.bookingUid,
+          },
+          {
+            eventTypeId: eventType.id,
+            startTime: new Date(dayjs(reqBody.start).utc().format()),
+          },
+        ],
+        status: BookingStatus.ACCEPTED,
+      },
+    });
+
+    if (booking) isFirstSeat = false;
+  }
+
+  const effectiveMinimumBookingNotice =
+    eventType.seatsPerTimeSlot &&
+    eventType.seatsMinimumBookingNotice !== null &&
+    eventType.seatsMinimumBookingNotice < eventType.minimumBookingNotice &&
+    !isFirstSeat
+      ? eventType.seatsMinimumBookingNotice
+      : eventType.minimumBookingNotice;
+
   try {
     timeOutOfBounds = isOutOfBounds(
       reqBody.start,
@@ -313,7 +343,7 @@ async function handler(
         bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
         eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
-      eventType.minimumBookingNotice
+      effectiveMinimumBookingNotice
     );
   } catch (error) {
     loggerWithEventDetails.warn({
@@ -418,8 +448,6 @@ async function handler(
       firstUsersMetadata?.defaultConferencingApp?.appLink;
   }
 
-  let rescheduleUid = reqBody.rescheduleUid;
-
   if (
     Object.prototype.hasOwnProperty.call(eventType, "bookingLimits") ||
     Object.prototype.hasOwnProperty.call(eventType, "durationLimits")
@@ -478,26 +506,6 @@ async function handler(
   }
 
   let luckyUserResponse;
-  let isFirstSeat = true;
-
-  if (eventType.seatsPerTimeSlot) {
-    const booking = await prisma.booking.findFirst({
-      where: {
-        OR: [
-          {
-            uid: rescheduleUid || reqBody.bookingUid,
-          },
-          {
-            eventTypeId: eventType.id,
-            startTime: new Date(dayjs(reqBody.start).utc().format()),
-          },
-        ],
-        status: BookingStatus.ACCEPTED,
-      },
-    });
-
-    if (booking) isFirstSeat = false;
-  }
 
   //checks what users are available
   if (isFirstSeat) {

@@ -16,7 +16,7 @@ import {
 import { describe, vi, test } from "vitest";
 
 import dayjs from "@calcom/dayjs";
-import type { BookingStatus } from "@calcom/prisma/enums";
+import { BookingStatus } from "@calcom/prisma/enums";
 import { getAvailableSlots as getSchedule } from "@calcom/trpc/server/routers/viewer/slots/util";
 
 import { expect } from "./getSchedule/expects";
@@ -1467,6 +1467,286 @@ describe("getSchedule", () => {
         ],
         { dateString: plus2DateString }
       );
+    });
+  });
+  describe("Seat Event with seatsMinimumBookingNotice", () => {
+    test("should include booked events within seatsMinimumBookingNotice for a single day", async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const bookingId = 1;
+      const bookingUid = "abc123";
+
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
+
+      const bookingStartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
+      const bookingEndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-event",
+            length: 60,
+            minimumBookingNotice: 24 * 60,
+            seatsPerTimeSlot: 4,
+            seatsMinimumBookingNotice: 1 * 60,
+            seatsShowAttendees: true,
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: bookingId,
+            uid: bookingUid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: bookingStartTime,
+            endTime: bookingEndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 0 });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T00:00:00.000Z`,
+          endTime: `${todayDateString}T23:59:59.999Z`,
+          isTeamEvent: false,
+        },
+      });
+
+      expect(schedule).toHaveTimeSlots([`06:30:00.000Z`], {
+        dateString: todayDateString,
+      });
+    });
+    test("should include booked events within seatsMinimumBookingNotice for multiple days", async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const booking1Id = 1;
+      const booking1Uid = "abc123";
+      const booking2Id = 2;
+      const booking2Uid = "def123";
+
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
+      const plus3DateString = "2024-06-28";
+      const plus7DateString = "2024-07-02";
+
+      const booking1StartTime = `${todayDateString}T06:30:00.000Z`; // 12:00 IST
+      const booking1EndTime = `${todayDateString}T07:30:00.000Z`; // 13:00 IST
+
+      const booking2StartTime = `${plus3DateString}T06:30:00.000Z`; // 12:00 IST
+      const booking2EndTime = `${plus3DateString}T07:30:00.000Z`; // 13:00 IST
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-event",
+            length: 60,
+            minimumBookingNotice: 60 * 24 * 7, // 7 days
+            seatsPerTimeSlot: 4,
+            seatsMinimumBookingNotice: 1 * 24 * 60, // 1 day
+            seatsShowAttendees: true,
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: booking1Id,
+            uid: booking1Uid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: booking1StartTime,
+            endTime: booking1EndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+          {
+            id: booking2Id,
+            uid: booking2Uid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: booking2StartTime,
+            endTime: booking2EndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 0 });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T00:00:00.000Z`,
+          endTime: `${plus7DateString}T23:59:59.999Z`,
+          isTeamEvent: false,
+        },
+      });
+
+      // should not have any slots for today
+      expect(schedule.slots).not.haveOwnProperty(todayDateString);
+
+      // should have slot for plus3DateString
+      expect(schedule).toHaveTimeSlots([`06:30:00.000Z`], {
+        dateString: plus3DateString,
+      });
+
+      expect(schedule).toHaveTimeSlots(
+        [
+          `04:30:00.000Z`,
+          `05:30:00.000Z`,
+          `06:30:00.000Z`,
+          `07:30:00.000Z`,
+          `08:30:00.000Z`,
+          `09:30:00.000Z`,
+          `10:30:00.000Z`,
+          `11:30:00.000Z`,
+        ],
+        {
+          dateString: plus7DateString,
+        }
+      );
+    });
+    test("should use default minimumBooking notice when seatsMinimumBookingNotice >= minimumBookingNotice", async () => {
+      const organizer = getOrganizer({
+        name: "Organizer",
+        email: "organizer@example.com",
+        id: 101,
+        schedules: [TestData.schedules.IstWorkHours],
+      });
+
+      const bookingId = 1;
+      const bookingUid = "abc123";
+
+      vi.setSystemTime("2024-06-25T05:28:00Z");
+      const todayDateString = "2024-06-25";
+      const plus1DateString = "2024-06-26";
+      const plus2DateString = "2024-06-27";
+      const plus3DateString = "2024-06-28";
+
+      const bookingStartTime = `${plus1DateString}T06:30:00.000Z`; // 12:00 IST
+      const bookingEndTime = `${plus1DateString}T07:30:00.000Z`; // 13:00 IST
+
+      const scenarioData = getScenarioData({
+        eventTypes: [
+          {
+            id: 1,
+            slug: "seated-event",
+            length: 60,
+            minimumBookingNotice: 1 * 24 * 60,
+            seatsPerTimeSlot: 4,
+            seatsMinimumBookingNotice: 2 * 24 * 60, // we want to make sure this is ignored
+            seatsShowAttendees: true,
+            users: [
+              {
+                ...TestData.users.example,
+                id: 101,
+              },
+            ],
+          },
+        ],
+        bookings: [
+          {
+            id: bookingId,
+            uid: bookingUid,
+            eventTypeId: 1,
+            status: BookingStatus.ACCEPTED,
+            startTime: bookingStartTime,
+            endTime: bookingEndTime,
+            attendees: [
+              {
+                email: "seat1@test.com",
+              },
+            ],
+          },
+        ],
+        organizer,
+      });
+
+      await createBookingScenario(scenarioData);
+
+      // Time Travel to the beginning of today after getting all the dates correctly.
+      timeTravelToTheBeginningOfToday({ utcOffsetInHours: 0 });
+
+      const schedule = await getSchedule({
+        input: {
+          eventTypeId: 1,
+          eventTypeSlug: "",
+          startTime: `${todayDateString}T00:00:00.000Z`,
+          endTime: `${plus3DateString}T23:59:59.999Z`,
+          isTeamEvent: false,
+        },
+      });
+
+      const allTimeSlots = [
+        "04:30:00.000Z",
+        "05:30:00.000Z",
+        "06:30:00.000Z",
+        "07:30:00.000Z",
+        "08:30:00.000Z",
+        "09:30:00.000Z",
+        "10:30:00.000Z",
+        "11:30:00.000Z",
+      ];
+
+      // minimumBookingNotice is 1 day, so it should not have any slots for today
+      expect(schedule.slots).not.haveOwnProperty(todayDateString);
+      expect(schedule).toHaveTimeSlots(allTimeSlots, {
+        dateString: plus1DateString,
+      });
+      expect(schedule).toHaveTimeSlots(allTimeSlots, {
+        dateString: plus2DateString,
+      });
+      expect(schedule).toHaveTimeSlots(allTimeSlots, {
+        dateString: plus3DateString,
+      });
     });
   });
 });

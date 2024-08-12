@@ -82,6 +82,7 @@ const commons = {
   seatsPerTimeSlot: null,
   seatsShowAttendees: null,
   seatsShowAvailabilityCount: null,
+  seatsMinimumBookingNotice: null,
   onlyShowFirstAvailableSlot: false,
   id: 0,
   hideCalendarNotes: false,
