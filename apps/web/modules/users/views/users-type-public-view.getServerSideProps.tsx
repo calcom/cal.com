@@ -14,7 +14,6 @@ import slugify from "@calcom/lib/slugify";
 import prisma from "@calcom/prisma";
 import { RedirectType } from "@calcom/prisma/client";
 
-import { getMainDomainOrgRedirect } from "@lib/getMainDomainOrgRedirect";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import { type inferSSRProps } from "@lib/types/inferSSRProps";
 import { type EmbedProps } from "@lib/withEmbedSsr";
@@ -206,14 +205,6 @@ async function getUserPageProps(context: GetServerSidePropsContext) {
     return {
       notFound: true,
     } as const;
-  }
-
-  const disableOrgSubdomainURL = user?.profile?.organization?.organizationSettings?.disableOrgSubdomainURL;
-  if (isValidOrgDomain && disableOrgSubdomainURL) {
-    const redirect = getMainDomainOrgRedirect(context.req);
-    if (redirect) {
-      return redirect;
-    }
   }
 
   const org = isValidOrgDomain ? currentOrgDomain : null;

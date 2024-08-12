@@ -17,7 +17,6 @@ import { RedirectType, type EventType, type User } from "@calcom/prisma/client";
 import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { UserProfile } from "@calcom/types/UserProfile";
 
-import { getMainDomainOrgRedirect } from "@lib/getMainDomainOrgRedirect";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 import type { EmbedProps } from "@lib/withEmbedSsr";
 
@@ -172,14 +171,6 @@ export const getServerSideProps: GetServerSideProps<UserPageProps> = async (cont
 
   const markdownStrippedBio = stripMarkdown(user?.bio || "");
   const org = usersInOrgContext[0].profile.organization;
-
-  const disableOrgSubdomainURL = org?.organizationSettings?.disableOrgSubdomainURL;
-  if (isValidOrgDomain && disableOrgSubdomainURL) {
-    const redirect = getMainDomainOrgRedirect(context.req);
-    if (redirect) {
-      return redirect;
-    }
-  }
 
   return {
     props: {

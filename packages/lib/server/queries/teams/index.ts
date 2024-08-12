@@ -104,6 +104,7 @@ export async function getTeamWithMembers(args: {
             select: {
               allowSEOIndexing: true,
               disableOrgSubdomainURL: true,
+              orgAutoAcceptEmail: true,
             },
           },
         },
@@ -161,6 +162,13 @@ export async function getTeamWithMembers(args: {
           expires: true,
           expiresInDays: true,
           identifier: true,
+        },
+      },
+      organizationSettings: {
+        select: {
+          allowSEOIndexing: true,
+          disableOrgSubdomainURL: true,
+          orgAutoAcceptEmail: true,
         },
       },
     },

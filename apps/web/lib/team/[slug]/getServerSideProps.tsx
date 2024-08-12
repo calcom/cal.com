@@ -32,10 +32,12 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
 
-  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
-    context.req,
-    context.params?.orgSlug ?? context.query?.orgSlug
-  );
+  const redirectDomainSlug = context.query?.redirectDomainSlug;
+
+  const { isValidOrgDomain, currentOrgDomain } = redirectDomainSlug
+    ? { isValidOrgDomain: true, currentOrgDomain: redirectDomainSlug as string }
+    : orgDomainConfig(context.req, context.params?.orgSlug ?? context.query?.orgSlug);
+
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
   // Provided by Rewrite from next.config.js
@@ -176,11 +178,25 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     } as const;
   }
 
-  const disableOrgSubdomainURL = team?.parent?.organizationSettings?.disableOrgSubdomainURL;
-  if (isValidOrgDomain && disableOrgSubdomainURL) {
-    const redirect = getMainDomainOrgRedirect(context.req);
-    if (redirect) {
-      return redirect;
+  const organizationSettings = isOrgContext
+    ? team?.isOrganization
+      ? team?.organizationSettings
+      : team?.parent?.organizationSettings
+    : null;
+  let allowSEOIndexing = false;
+
+  if (!!organizationSettings) {
+    allowSEOIndexing = organizationSettings.allowSEOIndexing;
+
+    if (organizationSettings.disableOrgSubdomainURL) {
+      const redirect = getMainDomainOrgRedirect(
+        context.req,
+        team?.children?.map((team) => team.slug || "").filter((slug) => !!slug),
+        organizationSettings.orgAutoAcceptEmail || ""
+      );
+      if (redirect) {
+        return redirect;
+      }
     }
   }
 
@@ -198,7 +214,7 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
       markdownStrippedBio,
       isValidOrgDomain,
       currentOrgDomain,
-      isSEOIndexable: team?.parent?.organizationSettings?.allowSEOIndexing,
+      isSEOIndexable: allowSEOIndexing,
     },
   } as const;
 };
