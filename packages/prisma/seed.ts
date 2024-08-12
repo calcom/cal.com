@@ -1067,6 +1067,7 @@ async function main() {
         organizationSettings: {
           isOrganizationVerified: true,
           orgAutoAcceptEmail: "acme.com",
+          isAdminAPIEnabled: true,
         },
       },
       members: [

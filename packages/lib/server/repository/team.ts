@@ -162,6 +162,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   metadata: true,
   isOrganization: true,
   organizationSettings: true,
+  isPlatform: true,
 });
 
 export class TeamRepository {
