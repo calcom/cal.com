@@ -990,11 +990,108 @@ describe("getBookingResponsesSchema", () => {
   test.todo("select");
   test.todo("textarea");
   test.todo("number");
-  test.todo("radioInput");
   test.todo("checkbox");
   test.todo("radio");
   test.todo("boolean");
 });
+
+describe("validate radioInput type field", () => {
+  test(`should fail parsing if invalid phone number is provided`, async ({}) => {
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "radioInput",
+          type: "radioInput",
+          required: true,
+          optionsInputs: {
+            phone: {
+              type: "phone",
+            },
+          },
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.safeParseAsync({
+      email: "test@test.com",
+      name: "test",
+      radioInput: JSON.stringify({
+        value: "phone",
+        optionValue: " 9999999999",
+      }),
+    });
+    expect(parsedResponses.success).toBe(false);
+    if (parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+    expect(parsedResponses.error.issues[0]).toEqual(
+      expect.objectContaining({
+        code: "custom",
+        message: `{radioInput}${CUSTOM_PHONE_VALIDATION_ERROR_MSG}`,
+      })
+    );
+  });
+
+  test(`should correctly handle space in the beginning of phone number which could come from a + in prefill URL`, async ({}) => {
+    const schema = getBookingResponsesSchema({
+      bookingFields: [
+        {
+          name: "name",
+          type: "name",
+          required: true,
+        },
+        {
+          name: "email",
+          type: "email",
+          required: true,
+        },
+        {
+          name: "radioInput",
+          type: "radioInput",
+          required: true,
+          optionsInputs: {
+            // A field of type phone
+            randomField: {
+              type: "phone",
+            },
+          },
+        },
+      ] as z.infer<typeof eventTypeBookingFields> & z.BRAND<"HAS_SYSTEM_FIELDS">,
+      view: "ALL_VIEWS",
+    });
+    const parsedResponses = await schema.safeParseAsync({
+      email: "test@test.com",
+      name: "test",
+      radioInput: JSON.stringify({
+        value: "randomField",
+        optionValue: " 919999999999",
+      }),
+    });
+    expect(parsedResponses.success).toBe(true);
+    if (!parsedResponses.success) {
+      throw new Error("Should not reach here");
+    }
+    expect(parsedResponses.data).toEqual({
+      email: "test@test.com",
+      name: "test",
+      radioInput: {
+        value: "randomField",
+        optionValue: "+919999999999",
+      },
+    });
+  });
+});
+
 describe("validate url type field", () => {
   test(`should fail parsing if invalid url provided`, async ({}) => {
     const schema = getBookingResponsesSchema({
