@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+import type { CALENDARS } from "@calcom/platform-constants";
 import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import type { ApiErrorResponse, ApiResponse } from "@calcom/platform-types";
 
@@ -35,7 +36,7 @@ export const useDeleteCalendarCredentials = (
       };
     }>,
     unknown,
-    { id: number; calendar: string }
+    { id: number; calendar: (typeof CALENDARS)[number] }
   >({
     mutationFn: (data) => {
       const { id, calendar } = data;

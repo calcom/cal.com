@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import type { ICalendarSwitchProps } from "@calcom/features/calendars/CalendarSwitch";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
+import type { CALENDARS } from "@calcom/platform-constants";
 import { QueryCell } from "@calcom/trpc/components/QueryCell";
 import type { ButtonProps } from "@calcom/ui";
 import {
@@ -42,7 +43,7 @@ export const CalendarSettingsPlatformWrapper = () => {
                 <CalendarSettingsHeading />
                 <List noBorderTreatment className="p-6 pt-2">
                   {data.connectedCalendars.map((connectedCalendar) => {
-                    if (!!connectedCalendar.calendars) {
+                    if (!!connectedCalendar.calendars && connectedCalendar.calendars.length > 0) {
                       return (
                         <AppListCard
                           key={`list-${connectedCalendar.credentialId}-${connectedCalendar.integration.slug}`}
@@ -142,6 +143,7 @@ const PlatformDisconnectIntegration = (props: {
 }) => {
   const { t } = useLocale();
   const { onSuccess, credentialId, slug } = props;
+
   const [modalOpen, setModalOpen] = useState(false);
   const { toast } = useToast();
   const { mutate: deleteCalendarCredentials } = useDeleteCalendarCredentials({
@@ -165,7 +167,7 @@ const PlatformDisconnectIntegration = (props: {
       onDeletionConfirmation={async () => {
         slug &&
           (await deleteCalendarCredentials({
-            calendar: slug.split("-")[0],
+            calendar: slug.split("-")[0] as unknown as (typeof CALENDARS)[number],
             id: credentialId,
           }));
       }}
