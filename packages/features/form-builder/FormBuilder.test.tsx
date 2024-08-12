@@ -122,7 +122,6 @@ describe("FormBuilder", () => {
             return field.name === "location" ? true : false;
           },
         },
-        // TODO: May be we should get this from getBookingFields directly which tests more practical cases
         formDefaultValues: {
           fields: [getLocationBookingField()],
         },

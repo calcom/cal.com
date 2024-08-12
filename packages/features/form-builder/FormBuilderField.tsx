@@ -58,7 +58,6 @@ export const FormBuilderField = ({
     field,
     t
   );
-  console.log({ hidden, placeholder, label, noLabel, translatedDefaultLabel });
 
   return (
     <div data-fob-field-name={field.name} className={classNames(className, hidden ? "hidden" : "")}>
@@ -126,12 +125,14 @@ const WithLabel = ({
   field,
   children,
   readOnly,
+  htmlFor,
   noLabel = false,
 }: {
   field: Partial<RhfFormField>;
   readOnly: boolean;
   children: React.ReactNode;
   noLabel?: boolean;
+  htmlFor: string;
 }) => {
   const { t } = useLocale();
 
@@ -146,7 +147,7 @@ const WithLabel = ({
           field.type !== "multiemail" &&
           field.label && (
             <div className="mb-2 flex items-center">
-              <Label className="!mb-0 flex">
+              <Label className="!mb-0 flex" htmlFor={htmlFor}>
                 <span>{field.label}</span>
                 <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
                   {!readOnly && field.required ? "*" : ""}
@@ -245,7 +246,7 @@ export const ComponentForField = ({
   }
   if (componentConfig.propsType === "text") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           minLength={field.minLength}
@@ -262,7 +263,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "boolean") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           name={field.name}
           label={field.label}
@@ -277,7 +278,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "textList") {
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -296,7 +297,7 @@ export const ComponentForField = ({
     }
 
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
@@ -314,7 +315,7 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
     return (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -338,7 +339,7 @@ export const ComponentForField = ({
     const options = field.options;
 
     return field.options.length ? (
-      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
+      <WithLabel field={field} htmlFor={field.name} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
