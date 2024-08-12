@@ -127,8 +127,6 @@ const MembersView = () => {
     }
   );
 
-  console.log("team", team);
-
   useEffect(
     function refactorMeWithoutEffect() {
       if (teamError) {

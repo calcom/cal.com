@@ -83,12 +83,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
     currentOrg &&
     (currentOrg.user.role === MembershipRole.OWNER || currentOrg.user.role === MembershipRole.ADMIN);
 
-  const canSeeOrganization = !!(
-    props?.orgMembers &&
-    props.orgMembers?.length > 0 &&
-    currentOrg?.isPrivate &&
-    isOrgAdminOrOwner
-  );
+  const canSeeOrganization = currentOrg?.isPrivate
+    ? isOrgAdminOrOwner
+    : !!(props?.orgMembers && props.orgMembers?.length > 0 && isOrgAdminOrOwner);
 
   const [modalImportMode, setModalInputMode] = useState<ModalMode>(
     canSeeOrganization ? "ORGANIZATION" : "INDIVIDUAL"
@@ -219,7 +216,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
             </span>
           ) : null
         }>
-        <div className="h-fit">
+        <div className="max-h-9">
           <Label className="sr-only" htmlFor="role">
             {t("import_mode")}
           </Label>
@@ -451,7 +448,9 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
               {t("cancel")}
             </Button>
             <Button
-              loading={props.isPending || createInviteMutation.isPending}
+              loading={
+                props.isPending || createInviteMutation.isPending || validateUniqueInviteMutation.isPending
+              }
               type="submit"
               color="primary"
               className="me-2 ms-2"
@@ -518,8 +517,6 @@ export const MemberInvitationModalWithoutMemebers = ({
               await utils.viewer.teams.lazyLoadMembers.invalidate();
               await utils.viewer.organizations.getMembers.invalidate();
               hideInvitationModal();
-
-              // TODO: setInfiniteData
 
               if (Array.isArray(data.usernameOrEmail)) {
                 showToast(
