@@ -457,6 +457,7 @@ export class EventTypeRepository {
       onlyShowFirstAvailableSlot: true,
       durationLimits: true,
       assignAllTeamMembers: true,
+      rescheduleWithSameRoundRobinHost: true,
       successRedirectUrl: true,
       forwardParamsSuccessRedirect: true,
       currency: true,

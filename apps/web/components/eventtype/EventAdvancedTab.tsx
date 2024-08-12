@@ -25,6 +25,7 @@ import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import type { Prisma } from "@calcom/prisma/client";
+import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import {
   Alert,
@@ -92,6 +93,9 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const noShowFeeEnabled =
     formMethods.getValues("metadata")?.apps?.stripe?.enabled === true &&
     formMethods.getValues("metadata")?.apps?.stripe?.paymentOption === "HOLD";
+
+  const isRoundRobinEventType =
+    eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
 
   useEffect(() => {
     !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
@@ -625,6 +629,22 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </SettingsToggle>
         )}
       />
+      {isRoundRobinEventType && (
+        <Controller
+          name="rescheduleWithSameRoundRobinHost"
+          render={({ field: { value, onChange } }) => (
+            <SettingsToggle
+              labelClassName="text-sm"
+              toggleSwitchAtTheEnd={true}
+              switchContainerClassName="border-subtle rounded-lg border py-6 px-4 sm:px-6"
+              title={t("reschedule_with_same_round_robin_host_title")}
+              description={t("reschedule_with_same_round_robin_host_description")}
+              checked={value}
+              onCheckedChange={(e) => onChange(e)}
+            />
+          )}
+        />
+      )}
       {allowDisablingAttendeeConfirmationEmails(workflows) && (
         <Controller
           name="metadata.disableStandardEmails.confirmation.attendee"

@@ -139,6 +139,7 @@ model EventType {
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
   /// @zod.custom(imports.eventTypeColor)
   eventTypeColor                          Json?
+  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
