@@ -205,7 +205,6 @@ const nextConfig = {
     "@calcom/prisma",
     "@calcom/trpc",
     "@calcom/ui",
-    "lucide-react",
   ],
   modularizeImports: {
     "@calcom/features/insights/components": {
@@ -443,6 +442,10 @@ const nextConfig = {
         },
         {
           source: "/avatar.svg",
+          headers: [CORP_CROSS_ORIGIN_HEADER],
+        },
+        {
+          source: "/icons/sprite.svg",
           headers: [CORP_CROSS_ORIGIN_HEADER],
         },
       ],

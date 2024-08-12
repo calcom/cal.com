@@ -34,14 +34,15 @@ export class EventTypesRepositoryFixture {
     });
   }
 
-  async create(
-    data: Pick<CreateEventTypeInput_2024_04_15, "title" | "slug" | "length" | "hidden">,
-    userId: number
-  ) {
+  async create(data: Prisma.EventTypeCreateInput, userId: number) {
     return this.prismaWriteClient.eventType.create({
       data: {
         ...data,
-        userId,
+        owner: {
+          connect: {
+            id: userId,
+          },
+        },
       },
     });
   }

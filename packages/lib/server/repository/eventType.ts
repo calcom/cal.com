@@ -216,6 +216,110 @@ export class EventTypeRepository {
     }
   }
 
+  static async findAllByUpIdWithMinimalData(
+    { upId, userId }: { upId: string; userId: number },
+    {
+      orderBy,
+      where = {},
+      cursor: cursorId,
+      limit,
+    }: {
+      orderBy?: Prisma.EventTypeOrderByWithRelationInput[];
+      where?: Prisma.EventTypeWhereInput;
+      cursor?: number | null;
+      limit?: number | null;
+    } = {}
+  ) {
+    if (!upId) return [];
+    const lookupTarget = ProfileRepository.getLookupTarget(upId);
+    const profileId = lookupTarget.type === LookupTarget.User ? null : lookupTarget.id;
+    const select = {
+      ...eventTypeSelect,
+      hashedLink: true,
+    };
+
+    log.debug(
+      "findAllByUpIdWithMinimalData",
+      safeStringify({
+        upId,
+        orderBy,
+        argumentWhere: where,
+      })
+    );
+
+    const cursor = cursorId ? { id: cursorId } : undefined;
+    const take = limit ? limit + 1 : undefined; // We take +1 as it'll be used for the next cursor
+
+    if (!profileId) {
+      // Lookup is by userId
+      return await prisma.eventType.findMany({
+        where: {
+          userId: lookupTarget.id,
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    }
+
+    const profile = await ProfileRepository.findById(profileId);
+    if (profile?.movedFromUser) {
+      // Because the user has been moved to this profile, we need to get all user events except those that belong to some other profile
+      // This is because those event-types that are created after moving to profile would have profileId but existing event-types would have profileId set to null
+      return await prisma.eventType.findMany({
+        where: {
+          OR: [
+            // Existing events
+            {
+              userId: profile.movedFromUser.id,
+              profileId: null,
+            },
+            // New events
+            {
+              profileId,
+            },
+            // Fetch children event-types by userId because profileId is wrong
+            {
+              userId,
+              parentId: {
+                not: null,
+              },
+            },
+          ],
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    } else {
+      return await prisma.eventType.findMany({
+        where: {
+          OR: [
+            {
+              profileId,
+            },
+            // Fetch children event-types by userId because profileId is wrong
+            {
+              userId: userId,
+              parentId: {
+                not: null,
+              },
+            },
+          ],
+          ...where,
+        },
+        select,
+        cursor,
+        take,
+        orderBy,
+      });
+    }
+  }
+
   static async findTeamEventTypes({
     teamId,
     parentId,

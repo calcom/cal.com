@@ -100,6 +100,8 @@ export {
   BookingFieldsSchema,
 } from "@calcom/lib/event-types/transformers";
 
+export type { SystemField, UserField } from "@calcom/lib/event-types/transformers";
+
 export { parseRecurringEvent } from "@calcom/lib/isRecurringEvent";
 export { dynamicEvent } from "@calcom/lib/defaultEvents";
 

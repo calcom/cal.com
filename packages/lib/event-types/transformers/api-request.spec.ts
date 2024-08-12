@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { BookingField_2024_06_14, Location_2024_06_14 } from "@calcom/platform-types";
 
-import type { CommonField, OptionsField } from "./api-request";
+import type { UserField, OptionsField } from "./api-request";
 import {
   transformApiEventTypeLocations,
   transformApiEventTypeBookingFields,
@@ -90,7 +90,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -125,7 +125,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -160,7 +160,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -195,7 +195,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -230,7 +230,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -265,7 +265,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -300,7 +300,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -408,7 +408,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -514,7 +514,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: CommonField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
