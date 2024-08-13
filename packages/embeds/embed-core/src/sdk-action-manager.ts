@@ -30,6 +30,11 @@ export type EventDataMap = {
     eventTypeId: number | null | undefined;
     status: string | undefined;
     paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
   };
 
   /**
@@ -56,6 +61,11 @@ export type EventDataMap = {
     eventTypeId: number | null | undefined;
     status: string | undefined;
     paymentRequired: boolean;
+    isRecurring: boolean;
+    /**
+     * This is only used for recurring bookings
+     */
+    allBookings?: { startTime: string; endTime: string }[];
   };
   /**
    * @deprecated Use `rescheduleBookingSuccessfulV2` instead. We restrict the data heavily there, only sending what is absolutely needed and keeping it light as well. Plus, more importantly that can be documented well.
