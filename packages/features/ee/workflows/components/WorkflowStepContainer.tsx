@@ -299,6 +299,33 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       value: trigger,
     };
 
+    const editorComponent = ({ isEditable }) => {
+      return (
+        <>
+          <div className="mb-2 flex items-center pb-[1.5px]">
+            <Label className="mb-0 flex-none ">
+              {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+            </Label>
+          </div>
+          <Editor
+            getText={() => {
+              return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+            }}
+            setText={(text: string) => {
+              props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+              props.form.clearErrors();
+            }}
+            variables={DYNAMIC_TEXT_VARIABLES}
+            height="200px"
+            updateTemplate={updateTemplate}
+            firstRender={firstRender}
+            setFirstRender={setFirstRender}
+            editable={isEditable}
+          />
+        </>
+      );
+    };
+
     return (
       <>
         <div className="flex justify-center">
@@ -918,54 +945,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                   </div>
                 )}
-                {!isEmailSubjectNeeded && !isSenderIsNeeded && (
-                  <>
-                    <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="mb-0 flex-none ">
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                    </div>
-                    <Editor
-                      getText={() => {
-                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                      }}
-                      setText={(text: string) => {
-                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                        props.form.clearErrors();
-                      }}
-                      variables={DYNAMIC_TEXT_VARIABLES}
-                      height="200px"
-                      updateTemplate={updateTemplate}
-                      firstRender={firstRender}
-                      setFirstRender={setFirstRender}
-                      editable={false}
-                    />
-                  </>
-                )}
-                {isEmailSubjectNeeded && (
-                  <>
-                    <div className="mb-2 flex items-center pb-[1.5px]">
-                      <Label className="mb-0 flex-none ">
-                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
-                      </Label>
-                    </div>
-                    <Editor
-                      getText={() => {
-                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
-                      }}
-                      setText={(text: string) => {
-                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
-                        props.form.clearErrors();
-                      }}
-                      variables={DYNAMIC_TEXT_VARIABLES}
-                      height="200px"
-                      updateTemplate={updateTemplate}
-                      firstRender={firstRender}
-                      setFirstRender={setFirstRender}
-                      editable={!props.readOnly && !isWhatsappAction(step.action)}
-                    />
-                  </>
-                )}
+                {!isEmailSubjectNeeded && !isSenderIsNeeded && <editorComponent isEditable={false} />}
+                {isEmailSubjectNeeded && <editorComponent isEditable={true} />}
                 {isSenderIsNeeded && (
                   <>
                     <div className="flex items-center">
