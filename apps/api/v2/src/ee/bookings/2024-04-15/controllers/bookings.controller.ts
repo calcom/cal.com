@@ -4,7 +4,7 @@ import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark
 import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
 import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
 import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
-import { API_VERSIONS_VALUES } from "@/lib/api-versions";
+import { VERSION_2024_04_15_VALUE } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
 import { ApiAuthGuard } from "@/modules/auth/guards/api-auth/api-auth.guard";
@@ -79,7 +79,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 
 @Controller({
   path: "/v2/bookings",
-  version: API_VERSIONS_VALUES,
+  version: VERSION_2024_04_15_VALUE,
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
