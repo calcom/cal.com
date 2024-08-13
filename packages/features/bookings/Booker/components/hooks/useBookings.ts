@@ -268,17 +268,6 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
 
-      const eventPayload = {
-        ...getBookingSuccessfulEventPayload({
-          ...booking,
-          isRecurring: true,
-        }),
-        allBookings: bookings.map((booking) => ({
-          startTime: booking.startTime,
-          endTime: booking.endTime,
-        })),
-      };
-
       if (isRescheduling) {
         // NOTE: It is recommended to define the event payload in the argument itself to provide a better type safety.
         sdkActionManager?.fire("rescheduleBookingSuccessfulV2", {
