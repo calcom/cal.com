@@ -20,7 +20,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
 
   const username = await prisma.user.findFirst({
     where: {
-      id: input.userId,
+      id: input.data.id,
     },
     select: {
       username: true,
@@ -28,7 +28,7 @@ export const generateMetadata = async ({ params }: { params: Params }) => {
   });
 
   return await _generateMetadata(
-    () => `Editing user: ${username.username}`,
+    () => `Editing user: ${username?.username}`,
     () => "Here you can edit a current user."
   );
 };
