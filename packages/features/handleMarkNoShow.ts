@@ -151,17 +151,17 @@ const updateAttendees = async (
       email: true,
     },
   });
-  
-        // Filter out attendees that don't have an email address. (TODO: support phone number later)
+
+  // Filter out attendees that don't have an email address. (TODO: support phone number later)
   const allAttendeesMap = allAttendees
-        .filter(
-          (attendee): attendee is { id: number; email: string } =>
-            attendee.email !== null && attendee.email !== BOOKED_WITH_SMS_EMAIL
-        )
-   .reduce((acc, attendee) => {
-          acc[attendee.email] = attendee;
-       return acc;
-   }, {} as Record<string, { id: number; email: string }>);
+    .filter(
+      (attendee): attendee is { id: number; email: string } =>
+        attendee.email !== null && attendee.email !== BOOKED_WITH_SMS_EMAIL
+    )
+    .reduce((acc, attendee) => {
+      acc[attendee.email] = attendee;
+      return acc;
+    }, {} as Record<string, { id: number; email: string }>);
 
   const updatePromises = attendees.map((attendee) => {
     const attendeeToUpdate = allAttendeesMap[attendee.email];

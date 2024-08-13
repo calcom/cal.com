@@ -1781,10 +1781,11 @@ export function getMockBookingReference(
 }
 
 export function getMockBookingAttendee(
-  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email"> & {
+  attendee: Omit<Attendee, "bookingId" | "phoneNumber" | "email" | "noShow"> & {
     bookingSeat?: AttendeeBookingSeatInput;
     phoneNumber?: string | null;
     email?: string | null;
+    noShow?: boolean;
   }
 ) {
   return {
@@ -1795,6 +1796,7 @@ export function getMockBookingAttendee(
     locale: attendee.locale,
     bookingSeat: attendee.bookingSeat || null,
     phoneNumber: attendee.phoneNumber ?? undefined,
+    noShow: attendee.noShow ?? false,
   };
 }
 
