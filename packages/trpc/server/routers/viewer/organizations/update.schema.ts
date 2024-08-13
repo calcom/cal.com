@@ -32,7 +32,7 @@ export const ZUpdateInputSchema = z.object({
   lockEventTypeCreationOptions: z.enum(["DELETE", "HIDE"]).optional(),
   adminGetsNoSlotsNotification: z.boolean().optional(),
   allowSEOIndexing: z.boolean().optional(),
-  disableOrgSubdomainURL: z.boolean().optional(),
+  orgProfileRedirectsToVerifiedDomain: z.boolean().optional(),
 });
 
 export type TUpdateInputSchema = z.infer<typeof ZUpdateInputSchema>;

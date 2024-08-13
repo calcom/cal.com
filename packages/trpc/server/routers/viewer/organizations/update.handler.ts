@@ -46,8 +46,8 @@ const updateOrganizationSettings = async ({
     data.allowSEOIndexing = input.allowSEOIndexing;
   }
 
-  if (input.hasOwnProperty("disableOrgSubdomainURL")) {
-    data.disableOrgSubdomainURL = input.disableOrgSubdomainURL;
+  if (input.hasOwnProperty("orgProfileRedirectsToVerifiedDomain")) {
+    data.orgProfileRedirectsToVerifiedDomain = input.orgProfileRedirectsToVerifiedDomain;
   }
 
   // If no settings values have changed lets skip this update

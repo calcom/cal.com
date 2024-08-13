@@ -103,7 +103,7 @@ export async function getTeamWithMembers(args: {
           organizationSettings: {
             select: {
               allowSEOIndexing: true,
-              disableOrgSubdomainURL: true,
+              orgProfileRedirectsToVerifiedDomain: true,
               orgAutoAcceptEmail: true,
             },
           },
@@ -167,7 +167,7 @@ export async function getTeamWithMembers(args: {
       organizationSettings: {
         select: {
           allowSEOIndexing: true,
-          disableOrgSubdomainURL: true,
+          orgProfileRedirectsToVerifiedDomain: true,
           orgAutoAcceptEmail: true,
         },
       },

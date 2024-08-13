@@ -46,8 +46,8 @@ const OrgAppearanceView = ({
   const [allowSEOIndexingValue, setAllowSEOIndexingValue] = useState(
     currentOrg?.organizationSettings?.allowSEOIndexing ?? false
   );
-  const [disableOrgSubdomainUrlValue, setDisableOrgSubdomainUrlValue] = useState(
-    currentOrg?.organizationSettings?.disableOrgSubdomainURL ?? false
+  const [orgProfileRedirectsToVerifiedDomainValue, setOrgProfileRedirectsToVerifiedDomainValue] = useState(
+    currentOrg?.organizationSettings?.orgProfileRedirectsToVerifiedDomain ?? false
   );
 
   const brandColorsFormMethods = useForm<BrandColorsFormValues>({
@@ -172,10 +172,10 @@ const OrgAppearanceView = ({
         title={t("disable_org_url_label")}
         description={t("disable_org_url_description")}
         disabled={mutation.isPending}
-        checked={disableOrgSubdomainUrlValue}
+        checked={orgProfileRedirectsToVerifiedDomainValue}
         onCheckedChange={(checked) => {
-          setDisableOrgSubdomainUrlValue(checked);
-          mutation.mutate({ disableOrgSubdomainURL: checked });
+          setOrgProfileRedirectsToVerifiedDomainValue(checked);
+          mutation.mutate({ orgProfileRedirectsToVerifiedDomain: checked });
         }}
         switchContainerClassName="mt-6"
       />

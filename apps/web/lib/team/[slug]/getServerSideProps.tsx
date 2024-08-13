@@ -14,7 +14,6 @@ import type { Team } from "@calcom/prisma/client";
 import { RedirectType } from "@calcom/prisma/client";
 import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
-import { getMainDomainOrgRedirect } from "@lib/getMainDomainOrgRedirect";
 import { getTemporaryOrgRedirect } from "@lib/getTemporaryOrgRedirect";
 
 import { ssrInit } from "@server/lib/ssr";
@@ -29,14 +28,22 @@ const getTheLastArrayElement = (value: ReadonlyArray<string> | string | undefine
   return value.at(-1);
 };
 
+function getRedirectToVerifiedDomain({ verifiedDomain }: { verifiedDomain: string }) {
+  return {
+    redirect: {
+      permanent: false,
+      destination: `https://${verifiedDomain}`,
+    },
+  };
+}
+
 export const getServerSideProps = async (context: GetServerSidePropsContext) => {
   const slug = getTheLastArrayElement(context.query.slug) ?? getTheLastArrayElement(context.query.orgSlug);
 
-  const redirectDomainSlug = context.query?.redirectDomainSlug;
-
-  const { isValidOrgDomain, currentOrgDomain } = redirectDomainSlug
-    ? { isValidOrgDomain: true, currentOrgDomain: redirectDomainSlug as string }
-    : orgDomainConfig(context.req, context.params?.orgSlug ?? context.query?.orgSlug);
+  const { isValidOrgDomain, currentOrgDomain } = orgDomainConfig(
+    context.req,
+    context.params?.orgSlug ?? context.query?.orgSlug
+  );
 
   const isOrgContext = isValidOrgDomain && currentOrgDomain;
 
@@ -188,15 +195,12 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   if (!!organizationSettings) {
     allowSEOIndexing = organizationSettings.allowSEOIndexing;
 
-    if (organizationSettings.disableOrgSubdomainURL) {
-      const redirect = getMainDomainOrgRedirect(
-        context.req,
-        team?.children?.map((team) => team.slug || "").filter((slug) => !!slug),
-        organizationSettings.orgAutoAcceptEmail || ""
-      );
-      if (redirect) {
-        return redirect;
-      }
+    if (
+      team?.isOrganization &&
+      organizationSettings.orgProfileRedirectsToVerifiedDomain &&
+      organizationSettings.orgAutoAcceptEmail
+    ) {
+      return getRedirectToVerifiedDomain({ verifiedDomain: organizationSettings.orgAutoAcceptEmail });
     }
   }
 

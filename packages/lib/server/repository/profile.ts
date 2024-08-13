@@ -37,7 +37,7 @@ const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
 const log = logger.getSubLogger({ prefix: ["repository/profile"] });
 const organizationSettingsSelect = Prisma.validator<Prisma.OrganizationSettingsSelect>()({
   allowSEOIndexing: true,
-  disableOrgSubdomainURL: true,
+  orgProfileRedirectsToVerifiedDomain: true,
 });
 const organizationWithSettingsSelect = {
   id: true,
