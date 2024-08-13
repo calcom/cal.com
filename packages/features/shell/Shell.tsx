@@ -34,7 +34,6 @@ import {
   InvalidAppCredentialBanners,
   type InvalidAppCredentialBannersProps,
 } from "@calcom/features/users/components/InvalidAppCredentialsBanner";
-import UserV2OptInBanner from "@calcom/features/users/components/UserV2OptInBanner";
 import VerifyEmailBanner, {
   type VerifyEmailBannerProps,
 } from "@calcom/features/users/components/VerifyEmailBanner";
@@ -44,7 +43,7 @@ import {
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
+  JOIN_COMMUNITY,
   ROADMAP,
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
@@ -83,7 +82,6 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
@@ -257,7 +255,6 @@ const Layout = (props: LayoutProps) => {
       <div className="flex min-h-screen flex-col">
         {banners && !props.isPlatformUser && (
           <div className="sticky top-0 z-10 w-full divide-y divide-black">
-            <UserV2OptInBanner />
             {Object.keys(banners).map((key) => {
               if (key === "teamUpgradeBanner") {
                 const Banner = BannerComponent[key];
@@ -450,7 +447,7 @@ function UserDropdown({ small }: UserDropdownProps) {
               </span>
               <Icon
                 name="chevron-down"
-                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+                className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
                 aria-hidden="true"
               />
             </span>
@@ -509,11 +506,11 @@ function UserDropdown({ small }: UserDropdownProps) {
 
                 <DropdownMenuItem>
                   <DropdownItem
-                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
+                    StartIcon="messages-square"
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
+                    href={JOIN_COMMUNITY}>
+                    {t("join_our_community")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -661,7 +658,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
@@ -674,7 +671,7 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "bar-chart",
+    icon: "chart-bar",
     target: "_blank",
   },
   {
@@ -957,7 +954,10 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
     <div className="relative">
       <aside
         style={!isPlatformUser ? sidebarStylingAttributes : {}}
-        className="bg-muted border-muted fixed left-0 hidden h-full max-h-screen w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3">
+        className={classNames(
+          "bg-muted border-muted fixed left-0 hidden h-full w-14 flex-col overflow-y-auto overflow-x-hidden border-r md:sticky md:flex lg:w-56 lg:px-3",
+          !isPlatformUser && "max-h-screen"
+        )}>
         <div className="flex h-full flex-col justify-between py-3 lg:pt-4">
           <header className="todesktop:-mt-3 todesktop:flex-col-reverse todesktop:[-webkit-app-region:drag] items-center justify-between md:hidden lg:flex">
             {orgBranding ? (
@@ -987,7 +987,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
@@ -1091,6 +1091,7 @@ export function ShellMain(props: LayoutProps) {
               StartIcon="arrow-left"
               aria-label="Go Back"
               className="rounded-md ltr:mr-2 rtl:ml-2"
+              data-testid="go-back-button"
             />
           )}
           {props.heading && (
@@ -1248,7 +1249,7 @@ function ProfileDropdown() {
             </span>
             <Icon
               name="chevron-down"
-              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 rtl:mr-4"
+              className="group-hover:text-subtle text-muted h-4 w-4 flex-shrink-0 transition rtl:mr-4"
               aria-hidden="true"
             />
           </span>

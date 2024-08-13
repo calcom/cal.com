@@ -1,14 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 
-import getAppKeysFromSlug from "@calcom/app-store/_utils/getAppKeysFromSlug";
-import { DailyLocationType } from "@calcom/app-store/locations";
-import getApps from "@calcom/app-store/utils";
-import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
+import { getDefaultLocations } from "@calcom/lib/server";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
 import type { PrismaClient } from "@calcom/prisma";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { EventTypeLocation } from "@calcom/prisma/zod/custom/eventtype";
 
 import { TRPCError } from "@trpc/server";
@@ -19,6 +15,7 @@ import type { TCreateInputSchema } from "./create.schema";
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
   id: SessionUser["id"];
+  role: SessionUser["role"];
   organizationId: SessionUser["organizationId"];
   organization: {
     isOrgAdmin: SessionUser["organization"]["isOrgAdmin"];
@@ -38,7 +35,7 @@ type CreateOptions = {
 };
 
 export const createHandler = async ({ ctx, input }: CreateOptions) => {
-  const { schedulingType, teamId, metadata, locations: inputLocations, ...rest } = input;
+  const { schedulingType, teamId, metadata, locations: inputLocations, scheduleId, ...rest } = input;
 
   const userId = ctx.user.id;
   const isManagedEventType = schedulingType === SchedulingType.MANAGED;
@@ -54,6 +51,7 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     // Only connecting the current user for non-managed event types and non team event types
     users: isManagedEventType || schedulingType ? undefined : { connect: { id: userId } },
     locations,
+    schedule: scheduleId ? { connect: { id: scheduleId } } : undefined,
   };
 
   if (teamId && schedulingType) {
@@ -65,7 +63,12 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
       },
     });
 
-    if (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin)) {
+    const isSystemAdmin = ctx.user.role === "ADMIN";
+
+    if (
+      !isSystemAdmin &&
+      (!hasMembership?.role || !(["ADMIN", "OWNER"].includes(hasMembership.role) || isOrgAdmin))
+    ) {
       console.warn(`User ${userId} does not have permission to create this new event type`);
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
@@ -116,23 +119,3 @@ export const createHandler = async ({ ctx, input }: CreateOptions) => {
     throw new TRPCError({ code: "BAD_REQUEST" });
   }
 };
-
-async function getDefaultLocations(user: User): Promise<EventTypeLocation[]> {
-  const defaultConferencingData = userMetadataSchema.parse(user.metadata)?.defaultConferencingApp;
-  const appKeys = await getAppKeysFromSlug("daily-video");
-
-  if (typeof appKeys.api_key === "string") {
-    return [{ type: DailyLocationType }];
-  }
-
-  if (defaultConferencingData && defaultConferencingData.appSlug !== "daily-video") {
-    const credentials = await getUsersCredentials(user);
-    const foundApp = getApps(credentials, true).filter(
-      (app) => app.slug === defaultConferencingData.appSlug
-    )[0]; // There is only one possible install here so index [0] is the one we are looking for ;
-    const locationType = foundApp?.locationOption?.value ?? DailyLocationType; // Default to Daily if no location type is found
-    return [{ type: locationType, link: defaultConferencingData.appLink }];
-  }
-
-  return [];
-}

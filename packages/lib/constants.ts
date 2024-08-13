@@ -28,6 +28,7 @@ export const SUPPORT_MAIL_ADDRESS = process.env.NEXT_PUBLIC_SUPPORT_MAIL_ADDRESS
 export const COMPANY_NAME = process.env.NEXT_PUBLIC_COMPANY_NAME || "Cal.com, Inc.";
 export const SENDER_ID = process.env.NEXT_PUBLIC_SENDER_ID || "Cal";
 export const SENDER_NAME = process.env.NEXT_PUBLIC_SENDGRID_SENDER_NAME || "Cal.com";
+export const EMAIL_FROM_NAME = process.env.EMAIL_FROM_NAME || APP_NAME;
 
 // This is the URL from which all Cal Links and their assets are served.
 // Use website URL to make links shorter(cal.com and not app.cal.com)
@@ -73,7 +74,7 @@ export const ANDROID_CHROME_ICON_192 = "/android-chrome-192x192.png";
 export const ANDROID_CHROME_ICON_256 = "/android-chrome-256x256.png";
 export const ROADMAP = "https://cal.com/roadmap";
 export const DESKTOP_APP_LINK = "https://cal.com/download";
-export const JOIN_DISCORD = "https://go.cal.com/discord";
+export const JOIN_COMMUNITY = "https://github.com/calcom/cal.com/discussions";
 export const POWERED_BY_URL = `${WEBSITE_URL}/?utm_source=embed&utm_medium=powered-by-button`;
 export const DOCS_URL = "https://cal.com/docs";
 export const DEVELOPER_DOCS = "https://developer.cal.com";
@@ -103,7 +104,15 @@ export const ENABLE_PROFILE_SWITCHER = process.env.NEXT_PUBLIC_ENABLE_PROFILE_SW
 export const ALLOWED_HOSTNAMES = JSON.parse(`[${process.env.ALLOWED_HOSTNAMES || ""}]`) as string[];
 export const RESERVED_SUBDOMAINS = JSON.parse(`[${process.env.RESERVED_SUBDOMAINS || ""}]`) as string[];
 
+export const ORGANIZATION_SELF_SERVE_MIN_SEATS =
+  process.env.NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS || 30;
+export const ORGANIZATION_SELF_SERVE_PRICE = process.env.NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE || 3700;
+
 export const ORGANIZATION_MIN_SEATS = 30;
+
+export const ENABLE_INFINITE_EVENT_TYPES_FOR_ORG = JSON.parse(
+  `[${process.env.ENABLE_INFINITE_EVENT_TYPES_FOR_ORG || ""}]`
+) as string[];
 
 // Needed for emails in E2E
 export const IS_MAILHOG_ENABLED = process.env.E2E_TEST_MAILHOG_ENABLED === "1";
@@ -151,7 +160,10 @@ export const BOOKER_NUMBER_OF_DAYS_TO_LOAD = parseInt(
 export const CLOUDFLARE_SITE_ID = process.env.NEXT_PUBLIC_CLOUDFLARE_SITEKEY;
 export const MINIMUM_NUMBER_OF_ORG_SEATS = 30;
 export const ORG_SELF_SERVE_ENABLED = process.env.NEXT_PUBLIC_ORG_SELF_SERVE_ENABLED === "1";
-export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 2;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE = 0;
+export const ORG_MINIMUM_PUBLISHED_TEAMS_SELF_SERVE_HELPER_DIALOGUE = 2;
+
+export const CALCOM_PRIVATE_API_ROUTE = process.env.CALCOM_PRIVATE_API_ROUTE || "https://goblin.cal.com";
 /**
  * The maximum number of days we should check for if we don't find all required bookable days
  * Counter start from current day and we would like to not go beyond 2 months(max days possible) from current day.
@@ -165,3 +177,11 @@ export const TRANSCRIPTION_STARTED_ICON = IS_PRODUCTION
 export const TRANSCRIPTION_STOPPED_ICON = IS_PRODUCTION
   ? `${WEBAPP_URL}/sparkles.svg`
   : `https://app.cal.com/sparkles.svg`;
+
+export const RECORDING_DEFAULT_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/start-recording.svg`
+  : `https://app.cal.com/start-recording.svg`;
+
+export const RECORDING_IN_PROGRESS_ICON = IS_PRODUCTION
+  ? `${WEBAPP_URL}/stop-recording.svg`
+  : `https://app.cal.com/stop-recording.svg`;

@@ -15,6 +15,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { PlatformOAuthClient, Team, User } from "@prisma/client";
 import * as request from "supertest";
 import { OAuthClientRepositoryFixture } from "test/fixtures/repository/oauth-client.repository.fixture";
+import { OrganizationRepositoryFixture } from "test/fixtures/repository/organization.repository.fixture";
+import { ProfileRepositoryFixture } from "test/fixtures/repository/profiles.repository.fixture";
 import { TeamRepositoryFixture } from "test/fixtures/repository/team.repository.fixture";
 import { UserRepositoryFixture } from "test/fixtures/repository/users.repository.fixture";
 import { withNextAuth } from "test/utils/withNextAuth";
@@ -56,8 +58,9 @@ describe("OAuthFlow Endpoints", () => {
     let app: INestApplication;
 
     let usersRepositoryFixtures: UserRepositoryFixture;
-    let organizationsRepositoryFixture: TeamRepositoryFixture;
+    let organizationsRepositoryFixture: OrganizationRepositoryFixture;
     let oAuthClientsRepositoryFixture: OAuthClientRepositoryFixture;
+    let profilesRepositoryFixture: ProfileRepositoryFixture;
 
     let user: User;
     let organization: Team;
@@ -81,13 +84,22 @@ describe("OAuthFlow Endpoints", () => {
       await app.init();
 
       oAuthClientsRepositoryFixture = new OAuthClientRepositoryFixture(moduleRef);
-      organizationsRepositoryFixture = new TeamRepositoryFixture(moduleRef);
+      organizationsRepositoryFixture = new OrganizationRepositoryFixture(moduleRef);
       usersRepositoryFixtures = new UserRepositoryFixture(moduleRef);
+      profilesRepositoryFixture = new ProfileRepositoryFixture(moduleRef);
 
       user = await usersRepositoryFixtures.create({
         email: userEmail,
       });
+
       organization = await organizationsRepositoryFixture.create({ name: "organization" });
+      await profilesRepositoryFixture.create({
+        uid: "asd-asd",
+        username: userEmail,
+        user: { connect: { id: user.id } },
+        movedFromUser: { connect: { id: user.id } },
+        organization: { connect: { id: organization.id } },
+      });
       oAuthClient = await createOAuthClient(organization.id);
     });
 
@@ -113,7 +125,7 @@ describe("OAuthFlow Endpoints", () => {
         const REDIRECT_STATUS = 302;
 
         const response = await request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/authorize`)
+          .post(`/v2/oauth/${oAuthClient.id}/authorize`)
           .send(body)
           .expect(REDIRECT_STATUS);
 
@@ -133,7 +145,7 @@ describe("OAuthFlow Endpoints", () => {
         };
 
         const response = await request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/exchange`)
+          .post(`/v2/oauth/${oAuthClient.id}/exchange`)
           .set("Authorization", authorizationToken)
           .send(body)
           .expect(200);
@@ -153,7 +165,7 @@ describe("OAuthFlow Endpoints", () => {
         };
 
         return request(app.getHttpServer())
-          .post(`/oauth/${oAuthClient.id}/refresh`)
+          .post(`/v2/oauth/${oAuthClient.id}/refresh`)
           .set("x-cal-secret-key", secretKey)
           .send(body)
           .expect(200)

@@ -14,6 +14,7 @@ import { Avatar, Badge, Button, Checkbox, DataTable } from "@calcom/ui";
 
 import { useOrgBranding } from "../../../ee/organizations/context/provider";
 import { DeleteBulkUsers } from "./BulkActions/DeleteBulkUsers";
+import { EventTypesList } from "./BulkActions/EventTypesList";
 import { TeamListBulkAction } from "./BulkActions/TeamList";
 import { ChangeUserRoleModal } from "./ChangeUserRoleModal";
 import { DeleteMemberModal } from "./DeleteMemberModal";
@@ -322,7 +323,20 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        data-testId="user-list-data-table"
+        onRowMouseclick={(row) => {
+          const user = row.original;
+          const canEdit = adminOrOwner;
+          if (canEdit) {
+            // dispatch({
+            //   type: "EDIT_USER_SHEET",
+            //   payload: {
+            //     showModal: true,
+            //     user,
+            //   },
+            // });
+          }
+        }}
+        data-testid="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {
@@ -337,6 +351,10 @@ export function UserListTable() {
             onClick: () => {
               setDynamicLinkVisible((old) => !old);
             },
+          },
+          {
+            type: "render",
+            render: (table) => <EventTypesList table={table} orgTeams={teams} />,
           },
           {
             type: "render",

@@ -17,6 +17,8 @@ import type { Dispatch, SetStateAction } from "react";
 import { classNames } from "@calcom/lib";
 
 import ExampleTheme from "./ExampleTheme";
+import { VariableNode } from "./nodes/VariableNode";
+import AddVariablesPlugin from "./plugins/AddVariablesPlugin";
 import AutoLinkPlugin from "./plugins/AutoLinkPlugin";
 import ToolbarPlugin from "./plugins/ToolbarPlugin";
 import "./stylesEditor.css";
@@ -60,6 +62,7 @@ const editorConfig = {
     TableRowNode,
     AutoLinkNode,
     LinkNode,
+    VariableNode,
   ],
 };
 
@@ -68,7 +71,7 @@ export const Editor = (props: TextEditorProps) => {
   return (
     <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
-        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 focus-within:ring-2">
+        <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
             setText={props.setText}
@@ -85,6 +88,7 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
+                  data-testid="editor-input"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
@@ -100,6 +104,7 @@ export const Editor = (props: TextEditorProps) => {
             <ListPlugin />
             <LinkPlugin />
             <AutoLinkPlugin />
+            {props?.variables ? <AddVariablesPlugin variables={props.variables} /> : null}
             <HistoryPlugin />
             <MarkdownShortcutPlugin
               transformers={

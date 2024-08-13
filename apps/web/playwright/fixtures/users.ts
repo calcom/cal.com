@@ -91,6 +91,7 @@ const createTeamEventType = async (
     teamEventTitle?: string;
     teamEventSlug?: string;
     teamEventLength?: number;
+    seatsPerTimeSlot?: number;
   }
 ) => {
   return await prisma.eventType.create({
@@ -120,6 +121,7 @@ const createTeamEventType = async (
       title: scenario?.teamEventTitle ?? `${teamEventTitle}-team-id-${team.id}`,
       slug: scenario?.teamEventSlug ?? `${teamEventSlug}-team-id-${team.id}`,
       length: scenario?.teamEventLength ?? 30,
+      seatsPerTimeSlot: scenario?.seatsPerTimeSlot,
     },
   });
 };
@@ -253,6 +255,7 @@ export const createUsersFixture = (
         isDnsSetup?: boolean;
         hasSubteam?: true;
         isUnpublished?: true;
+        seatsPerTimeSlot?: number;
       } = {}
     ) => {
       const _user = await prisma.user.create({
@@ -706,6 +709,13 @@ const createUserFixture = (user: UserWithIncludes, page: Page) => {
     },
     delete: async () => await prisma.user.delete({ where: { id: store.user.id } }),
     confirmPendingPayment: async () => confirmPendingPayment(store.page),
+    getFirstProfile: async () => {
+      return prisma.profile.findFirstOrThrow({
+        where: {
+          userId: user.id,
+        },
+      });
+    },
   };
 };
 
@@ -735,6 +745,7 @@ type CustomUserOpts = Partial<Pick<Prisma.User, CustomUserOptsKeys>> & {
   schedule?: Schedule;
   password?: string | null;
   emailDomain?: string;
+  profileUsername?: string;
 };
 
 // creates the actual user in the db.
@@ -746,11 +757,12 @@ const createUser = (
       })
     | null
 ): PrismaType.UserUncheckedCreateInput => {
+  const suffixToMakeUsernameUnique = `-${workerInfo.workerIndex}-${Date.now()}`;
   // build a unique name for our user
   const uname =
     opts?.useExactUsername && opts?.username
       ? opts.username
-      : `${opts?.username || "user"}-${workerInfo.workerIndex}-${Date.now()}`;
+      : `${opts?.username || "user"}${suffixToMakeUsernameUnique}`;
 
   const emailDomain = opts?.emailDomain || "example.com";
   return {
@@ -769,7 +781,11 @@ const createUser = (
     role: opts?.role ?? "USER",
     twoFactorEnabled: opts?.twoFactorEnabled ?? false,
     disableImpersonation: opts?.disableImpersonation ?? false,
-    ...getOrganizationRelatedProps({ organizationId: opts?.organizationId, role: opts?.roleInOrganization }),
+    ...getOrganizationRelatedProps({
+      organizationId: opts?.organizationId,
+      role: opts?.roleInOrganization,
+      profileUsername: opts?.profileUsername,
+    }),
     schedules:
       opts?.completedOnboarding ?? true
         ? {
@@ -789,9 +805,11 @@ const createUser = (
   function getOrganizationRelatedProps({
     organizationId,
     role,
+    profileUsername,
   }: {
     organizationId: number | null | undefined;
     role: MembershipRole | undefined;
+    profileUsername?: string;
   }) {
     if (!organizationId) {
       return null;
@@ -804,7 +822,7 @@ const createUser = (
       profiles: {
         create: {
           uid: ProfileRepository.generateProfileUid(),
-          username: uname,
+          username: profileUsername ? `${profileUsername}${suffixToMakeUsernameUnique}` : uname,
           organization: {
             connect: {
               id: organizationId,

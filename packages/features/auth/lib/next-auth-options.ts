@@ -7,7 +7,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
 
-import checkLicense from "@calcom/features/ee/common/server/checkLicense";
+import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
 import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/ImpersonationProvider";
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
@@ -281,9 +281,6 @@ if (isSAMLLoginEnabled) {
       const user = await UserRepository.findByEmailAndIncludeProfilesAndPassword({
         email: profile.email || "",
       });
-      if (!user) throw new Error(ErrorCode.UserNotFound);
-
-      const [userProfile] = user.allProfiles;
       return {
         id: profile.id || 0,
         firstName: profile.firstName || "",
@@ -292,7 +289,7 @@ if (isSAMLLoginEnabled) {
         name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim(),
         email_verified: true,
         locale: profile.locale,
-        profile: userProfile,
+        ...(user ? { profile: user.allProfiles[0] } : {}),
       };
     },
     options: {
@@ -622,7 +619,9 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
     async session({ session, token, user }) {
       log.debug("callbacks:session - Session callback called", safeStringify({ session, token, user }));
-      const hasValidLicense = await checkLicense(prisma);
+      const licenseKeyService = await LicenseKeySingleton.getInstance();
+      const hasValidLicense = await licenseKeyService.checkLicense();
+
       const profileId = token.profileId;
       const calendsoSession: Session = {
         ...session,
