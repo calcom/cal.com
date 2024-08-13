@@ -717,33 +717,27 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
             <a href={`mailto:${email}`}>{t("email")}</a>
           </DropdownItem>
         </DropdownMenuItem>
-        <DropdownMenuItem className="focus:outline-none">
-          <DropdownItem
-            StartIcon={isCopied ? "clipboard-check" : "clipboard"}
-            onClick={(e) => {
-              e.preventDefault();
-              if (!email) {
-                console.warn("Disabled due to missing email");
-                return;
-              }
-              copyToClipboard(email);
-              setOpenDropdown(false);
-              showToast(t("email_copied"), "success");
-            }}>
-            {!isCopied ? t("copy") : t("copied")}
-          </DropdownItem>
-        </DropdownMenuItem>
-        {isBookingInPast && (
+        {email && (
+          <DropdownMenuItem className="focus:outline-none">
+            <DropdownItem
+              StartIcon={isCopied ? "clipboard-check" : "clipboard"}
+              onClick={(e) => {
+                e.preventDefault();
+                copyToClipboard(email);
+                setOpenDropdown(false);
+                showToast(t("email_copied"), "success");
+              }}>
+              {!isCopied ? t("copy") : t("copied")}
+            </DropdownItem>
+          </DropdownMenuItem>
+        )}
+        {isBookingInPast && email && (
           <DropdownMenuItem className="focus:outline-none">
             {noShow ? (
               <DropdownItem
                 data-testid="unmark-no-show"
                 onClick={(e) => {
                   e.preventDefault();
-                  if (!email) {
-                    console.warn("Disabled due to missing email");
-                    return;
-                  }
                   setOpenDropdown(false);
                   toggleNoShow({ attendee: { noShow: false, email }, bookingUid });
                 }}
