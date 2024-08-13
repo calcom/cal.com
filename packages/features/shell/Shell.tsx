@@ -658,7 +658,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
@@ -671,7 +671,7 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "bar-chart",
+    icon: "chart-bar",
     target: "_blank",
   },
   {
@@ -987,7 +987,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}

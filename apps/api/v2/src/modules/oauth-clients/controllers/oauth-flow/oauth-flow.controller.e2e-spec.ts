@@ -97,6 +97,7 @@ describe("OAuthFlow Endpoints", () => {
         uid: "asd-asd",
         username: userEmail,
         user: { connect: { id: user.id } },
+        movedFromUser: { connect: { id: user.id } },
         organization: { connect: { id: organization.id } },
       });
       oAuthClient = await createOAuthClient(organization.id);
