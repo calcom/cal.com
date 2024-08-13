@@ -137,6 +137,7 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
