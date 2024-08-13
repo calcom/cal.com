@@ -1,3 +1,5 @@
+"use client";
+
 import { useMemo, useState, useEffect } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 
