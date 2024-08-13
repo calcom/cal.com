@@ -256,7 +256,7 @@ export async function handleConfirmation(args: {
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
 
-      if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+      if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
         await scheduleMandatoryReminder(
           evtOfBooking,
           workflows,

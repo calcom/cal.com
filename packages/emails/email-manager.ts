@@ -236,7 +236,8 @@ export const sendScheduledSeatsEmails = async (
   newSeat: boolean,
   showAttendees: boolean,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
 
@@ -342,17 +343,18 @@ export const sendCancelledEmails = async (
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
+  const calEventLength = calendarEvent.length;
+  const eventDuration = calEventLength as number;
+
+  if (typeof calEventLength !== "number") {
+    logger.error(
+      "`calEventLength` is not a number",
+      safeStringify({ calEventLength, calEventTitle: calEvent.title, bookingId: calEvent.bookingId })
+    );
+  }
 
   if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
-    const calEventLength = calendarEvent.length;
-    if (typeof calEventLength !== "number") {
-      logger.error(
-        "`calEventLength` is not a number",
-        safeStringify({ calEventLength, calEventTitle: calEvent.title, bookingId: calEvent.bookingId })
-      );
-    }
-    const eventDuration = calEventLength as number;
 
     if (calendarEvent.team?.members) {
       for (const teamMember of calendarEvent.team.members) {

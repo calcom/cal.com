@@ -260,7 +260,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   }
 
   if (input.metadata?.disableStandardEmails?.all) {
-    if (!eventType.team.parentId) {
+    if (!eventType?.team?.parentId) {
       input.metadata.disableStandardEmails.all.host = false;
       input.metadata.disableStandardEmails.all.attendee = false;
     }
