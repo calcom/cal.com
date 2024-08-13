@@ -5,7 +5,7 @@ import { OrganizerDefaultConferencingAppType, getLocationValueForDB } from "@cal
 import EventManager from "@calcom/core/EventManager";
 import { getEventName } from "@calcom/core/event";
 import dayjs from "@calcom/dayjs";
-import { sendRoundRobinCancelledEmails, sendRoundRobinScheduledEmails } from "@calcom/emails";
+import { sendRoundRobinCancelledEmailsAndSMS, sendRoundRobinScheduledEmailsAndSMS } from "@calcom/emails";
 import getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { ensureAvailableUsers } from "@calcom/features/bookings/lib/handleNewBooking/ensureAvailableUsers";
@@ -357,7 +357,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
   });
 
   // Send to new RR host
-  await sendRoundRobinScheduledEmails(evt, [
+  await sendRoundRobinScheduledEmailsAndSMS(evt, [
     {
       ...reassignedRRHost,
       name: reassignedRRHost.name || "",
@@ -398,7 +398,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       });
     }
 
-    await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
+    await sendRoundRobinCancelledEmailsAndSMS(cancelledRRHostEvt, [
       {
         ...previousRRHost,
         name: previousRRHost.name || "",
