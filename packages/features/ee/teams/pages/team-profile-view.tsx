@@ -97,7 +97,7 @@ const ProfileView = () => {
     data: team,
     isPending,
     error,
-  } = trpc.viewer.teams.get.useQuery(
+  } = trpc.viewer.teams.getTeamWithMinimalData.useQuery(
     { teamId },
     {
       enabled: !!teamId,
