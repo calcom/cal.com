@@ -1,27 +1,19 @@
 import { symmetricDecrypt } from "@calcom/lib/crypto";
 import { prisma } from "@calcom/prisma";
 
-import { z } from "zod";
-
-import type { TSubmitRatingInputSchema } from "./submitRating.schema";
+import { ZSubmitRatingOptionsSchema } from "./submitRating.schema";
+import type { TCommonInputSchema } from "./types";
 
 type SubmitRatingOptions = {
-  input: TSubmitRatingInputSchema;
+  input: TCommonInputSchema;
 };
 
-const decryptedSchema = z.object({
-  bookingUid: z.string(),
-})
-
-
 export const submitRatingHandler = async ({ input }: SubmitRatingOptions) => {
-  const { rating, comment, token } = input;
+  const { token } = input;
 
-
-  const { bookingUid } = decryptedSchema.parse(JSON.parse(symmetricDecrypt(
-    decodeURIComponent(token),
-    process.env.CALENDSO_ENCRYPTION_KEY || ""
-  )));
+  const { bookingUid, rating, comment } = ZSubmitRatingOptionsSchema.parse(
+    JSON.parse(symmetricDecrypt(decodeURIComponent(token), process.env.CALENDSO_ENCRYPTION_KEY || ""))
+  );
 
   await prisma.booking.update({
     where: {

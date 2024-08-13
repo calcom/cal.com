@@ -13,7 +13,6 @@ import dayjs from "@calcom/dayjs";
 import "@calcom/dayjs/locales";
 import ViewRecordingsDialog from "@calcom/features/ee/video/ViewRecordingsDialog";
 import classNames from "@calcom/lib/classNames";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import { formatTime } from "@calcom/lib/date-fns";
 import getPaymentAppData from "@calcom/lib/getPaymentAppData";
 import { useBookerUrl } from "@calcom/lib/hooks/useBookerUrl";
@@ -686,11 +685,7 @@ const Attendee = (attendeeProps: AttendeeProps & NoShowProps) => {
     attendee: { email: string; noShow: boolean };
     bookingUid: string;
   }) {
-    const seedData = { bookingUid: bookingUid, attendees: [attendee] };
-    const token = encodeURIComponent(
-      symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "")
-    );
-    noShowMutation.mutate({ token });
+    noShowMutation.mutate({ bookingUid, attendees: [attendee] });
     setNoShow(!noShow);
   }
 
@@ -806,11 +801,7 @@ const GroupedAttendees = (groupedAttendeeProps: GroupedAttendeeProps) => {
 
   const onSubmit = (data: { attendees: AttendeeProps[] }) => {
     const filteredData = data.attendees.slice(1);
-    const seedData = { bookingUid: bookingUid, attendees: filteredData };
-    const token = encodeURIComponent(
-      symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "")
-    );
-    noShowMutation.mutate({ token });
+    noShowMutation.mutate({ bookingUid, attendees: filteredData });
     setOpenDropdown(false);
   };
 

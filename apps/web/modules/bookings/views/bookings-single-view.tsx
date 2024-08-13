@@ -32,7 +32,6 @@ import {
   TITLE_FIELD,
 } from "@calcom/features/bookings/lib/SystemField";
 import { APP_NAME } from "@calcom/lib/constants";
-import { symmetricEncrypt } from "@calcom/lib/crypto";
 import {
   formatToLocalizedDate,
   formatToLocalizedTime,
@@ -169,6 +168,26 @@ export default function Success(props: PageProps) {
   const [rateValue, setRateValue] = useState<number>(defaultRating);
   const [isFeedbackSubmitted, setIsFeedbackSubmitted] = useState(false);
 
+  const submitTokenRequest = async (seedData: string) => {
+    try {
+      const res = await fetch("/api/generate-token", {
+        method: "POST",
+        body: seedData,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        showToast(t("unexpected_error_try_again"), "error");
+      }
+      return json.token;
+    } catch (reason) {
+      showToast(t("unexpected_error_try_again"), "error");
+    }
+  };
+
   const mutation = trpc.viewer.public.submitRating.useMutation({
     onSuccess: async () => {
       setIsFeedbackSubmitted(true);
@@ -189,18 +208,22 @@ export default function Success(props: PageProps) {
   });
 
   useEffect(() => {
-    if (noShow) {
-      hostNoShowMutation.mutate({ bookingUid: bookingInfo.uid, noShowHost: true });
-    }
+    const fetchToken = async () => {
+      if (noShow) {
+        const seedData = JSON.stringify({ bookingUid: bookingInfo.uid, noShowHost: true });
+        const token = (await submitTokenRequest(seedData)) as string;
+        hostNoShowMutation.mutate({ token });
+      }
+    };
+
+    fetchToken();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [noShow, bookingInfo.uid]);
 
   const sendFeedback = async (rating: string, comment: string) => {
-    const seedData = { bookingUid: bookingInfo.uid };
-    const token = encodeURIComponent(
-      symmetricEncrypt(JSON.stringify(seedData), process.env.CALENDSO_ENCRYPTION_KEY || "")
-    );
-    mutation.mutate({ rating: rateValue, comment: comment, token });
+    const seedData = JSON.stringify({ bookingUid: bookingInfo.uid, rating: rateValue, comment: comment });
+    const token = (await submitTokenRequest(seedData)) as string;
+    mutation.mutate({ token });
   };
 
   function setIsCancellationMode(value: boolean) {

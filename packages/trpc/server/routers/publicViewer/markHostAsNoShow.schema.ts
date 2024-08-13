@@ -1,8 +1,8 @@
 import { z } from "zod";
 
-export const ZMarkHostAsNoShowInputSchema = z.object({
+export const ZMarkHostAsNoShowOptionsSchema = z.object({
   bookingUid: z.string(),
   noShowHost: z.boolean(),
 });
 
-export type TNoShowInputSchema = z.infer<typeof ZMarkHostAsNoShowInputSchema>;
+export type TNoShowOptionsSchema = z.infer<typeof ZMarkHostAsNoShowOptionsSchema>;
