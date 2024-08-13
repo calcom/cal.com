@@ -20,7 +20,7 @@ import { getLayout } from "../../../settings/layouts/SettingsLayout";
 import DisableTeamImpersonation from "../components/DisableTeamImpersonation";
 import InviteLinkSettingsModal from "../components/InviteLinkSettingsModal";
 import MakeTeamPrivateSwitch from "../components/MakeTeamPrivateSwitch";
-import { MemberInvitationModalWithoutMemebers } from "../components/MemberInvitationModal";
+import { MemberInvitationModalWithoutMembers } from "../components/MemberInvitationModal";
 import MemberListItem from "../components/MemberListItem";
 import TeamInviteList from "../components/TeamInviteList";
 
@@ -191,12 +191,6 @@ const MembersView = () => {
               </>
             )}
 
-            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
-              <>
-                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
-              </>
-            )}
-
             {team && team.id && session.data && (
               <DisableTeamImpersonation
                 teamId={team.id}
@@ -213,9 +207,15 @@ const MembersView = () => {
                 disabled={isInviteOpen}
               />
             )}
+
+            {((team?.isPrivate && isAdmin) || !team?.isPrivate || isOrgAdminOrOwner) && (
+              <>
+                <MembersList team={team} isOrgAdminOrOwner={isOrgAdminOrOwner} />
+              </>
+            )}
           </div>
           {showMemberInvitationModal && team && team.id && (
-            <MemberInvitationModalWithoutMemebers
+            <MemberInvitationModalWithoutMembers
               hideInvitationModal={hideInvitationModal}
               showMemberInvitationModal={showMemberInvitationModal}
               teamId={team.id}

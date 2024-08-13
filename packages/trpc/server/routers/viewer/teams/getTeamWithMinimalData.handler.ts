@@ -14,12 +14,6 @@ type GetTeamWithMinimalDataOptions = {
 };
 
 export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalDataOptions) => {
-  const team = await getMinimalTeam({
-    id: input.teamId,
-    userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
-    isOrgView: input?.isOrg,
-  });
-
   const teamMembership = await prisma.membership.findFirst({
     where: {
       userId: ctx.user.id,
@@ -33,6 +27,12 @@ export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalD
       message: "Team membership not found",
     });
   }
+
+  const team = await getMinimalTeam({
+    id: input.teamId,
+    userId: ctx.user.organization?.isOrgAdmin ? undefined : ctx.user.id,
+    isOrgView: input?.isOrg,
+  });
 
   const membership = {
     role: teamMembership.role,

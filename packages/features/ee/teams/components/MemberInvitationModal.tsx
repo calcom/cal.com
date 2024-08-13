@@ -464,7 +464,7 @@ export default function MemberInvitationModal(props: MemberInvitationModalProps)
   );
 }
 
-export const MemberInvitationModalWithoutMemebers = ({
+export const MemberInvitationModalWithoutMembers = ({
   hideInvitationModal,
   showMemberInvitationModal,
   teamId,
