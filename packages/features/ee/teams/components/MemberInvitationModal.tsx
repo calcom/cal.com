@@ -490,7 +490,7 @@ export const MemberInvitationModalWithoutMembers = ({
         distinctUser: true,
       },
       {
-        enabled: searchParams !== null && !!teamId,
+        enabled: searchParams !== null && !!teamId && !!showMemberInvitationModal,
       }
     );
 
