@@ -360,7 +360,7 @@ function SingleForm({ form, appUrl, Page, enrichedWithUserProfileForm }: SingleF
                         <AddMembersWithSwitch
                           teamMembers={form.teamMembers.map((member) => ({
                             value: member.id.toString(),
-                            label: member.name || "",
+                            label: member.name || member.email,
                             avatar: member.avatarUrl || "",
                             email: member.email,
                             isFixed: true,
