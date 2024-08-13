@@ -130,15 +130,6 @@ export function EditForm({
     },
   });
 
-  const assignAttributesMutation = trpc.viewer.attributes.assignUserToAttribute.useMutation({
-    onSuccess: () => {
-      showToast(t("profile_updated_successfully"), "success");
-    },
-    onError: (error) => {
-      showToast(error.message, "error");
-    },
-  });
-
   const watchTimezone = form.watch("timeZone");
 
   return (
@@ -148,14 +139,6 @@ export function EditForm({
         className="flex h-full flex-col"
         handleSubmit={(values) => {
           setMutationLoading(true);
-          // @ts-expect-error they exist but for some reason
-          if (values.attributes) {
-            assignAttributesMutation.mutate({
-              userId: selectedUser?.id ?? "",
-              // @ts-expect-error they exist but for some reason
-              attributes: values.attributes,
-            });
-          }
           mutation.mutate({
             userId: selectedUser?.id ?? "",
             role: values.role,
@@ -165,6 +148,11 @@ export function EditForm({
             avatar: values.avatar,
             bio: values.bio,
             timeZone: values.timeZone,
+            // @ts-expect-error theyre there in local types but for some reason it errors?
+            attributeOptions: values.attributes
+              ? // @ts-expect-error  same as above
+                { userId: selectedUser?.id ?? "", attributes: values.attributes }
+              : undefined,
           });
           setEditMode(false);
         }}>
