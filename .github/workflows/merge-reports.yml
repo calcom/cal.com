@@ -1,3 +1,4 @@
+# https://playwright.dev/docs/test-sharding#merging-reports-from-multiple-shards
 on:
   workflow_call:
 jobs:
