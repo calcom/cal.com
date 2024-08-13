@@ -1,12 +1,18 @@
 import type { TFunction } from "next-i18next";
 
+import { applyMeetingUrlTemplate, hashAttendee } from "@calcom/app-store/bigbluebutton/lib";
 import { guessEventLocationType } from "@calcom/app-store/locations";
 import { getVideoCallUrlFromCalEvent } from "@calcom/lib/CalEventParser";
-import type { CalendarEvent } from "@calcom/types/Calendar";
+import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import { Info } from "./Info";
 
-export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
+export function LocationInfo(props: {
+  attendee: Person;
+  calEvent: CalendarEvent;
+  isOrganizer?: boolean;
+  t: TFunction;
+}) {
   const { t } = props;
 
   // We would not be able to determine provider name for DefaultEventLocationTypes
@@ -17,6 +23,10 @@ export function LocationInfo(props: { calEvent: CalendarEvent; t: TFunction }) {
 
   if (props.calEvent) {
     meetingUrl = getVideoCallUrlFromCalEvent(props.calEvent) || meetingUrl;
+  }
+
+  if (location === "integrations:bigbluebutton_video") {
+    meetingUrl = applyMeetingUrlTemplate(meetingUrl, hashAttendee(props.attendee), props.isOrganizer);
   }
 
   const isPhone = location?.startsWith("+");

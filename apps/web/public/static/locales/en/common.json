@@ -2251,6 +2251,7 @@
   "edit_users_availability": "Edit user's availability: {{username}}",
   "resend_invitation": "Resend invitation",
   "invitation_resent": "The invitation was resent.",
+  "hash_algorithm": "Hash algorithm",
   "saml_sso": "SAML",
   "add_client": "Add client",
   "copy_client_secret_info": "After copying the secret you won't be able to view it anymore",

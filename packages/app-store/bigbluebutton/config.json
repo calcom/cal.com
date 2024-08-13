@@ -1,0 +1,24 @@
+{
+  "/*": "Don't modify slug - If required, do it using cli edit command",
+  "name": "BigBlueButton™",
+  "slug": "bigbluebutton",
+  "type": "bigbluebutton_video",
+  "logo": "icon.svg",
+  "url": "https://github.com/nicktrn",
+  "variant": "conferencing",
+  "categories": ["conferencing"],
+  "publisher": "nicktrn",
+  "appData": {
+    "location": {
+      "linkType": "dynamic",
+      "type": "integrations:bigbluebutton_video",
+      "label": "BigBlueButton"
+    }
+  },
+  "description": "Turn your meetings into fully-fledged virtual classrooms.",
+  "isTemplate": false,
+  "__createdUsingCli": true,
+  "__template": "event-type-location-video-static",
+  "dirName": "bigbluebutton",
+  "concurrentMeetings": true
+}

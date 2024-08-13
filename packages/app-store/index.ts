@@ -3,6 +3,7 @@ const appStore = {
   alby: () => import("./alby"),
   applecalendar: () => import("./applecalendar"),
   aroundvideo: () => import("./around"),
+  bigbluebuttonvideo: () => import("./bigbluebutton"),
   caldavcalendar: () => import("./caldavcalendar"),
   campsiteconferencing: () => import("./campsite"),
   closecom: () => import("./closecom"),

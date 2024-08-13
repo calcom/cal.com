@@ -544,6 +544,10 @@ following
 7. Set the `BASECAMP3_CLIENT_SECRET` env variable to `{your_domain} ({support_email})`.
    For example, `Cal.com (support@cal.com)`.
 
+### Obtaining BigBlueButton API Endpoint and Secret
+
+[See BigBlueButton Readme](./packages/app-store/bigbluebutton/README.md)
+
 ### Obtaining HubSpot Client ID and Secret
 
 1. Open [HubSpot Developer](https://developer.hubspot.com/) and sign into your account, or create a new one.

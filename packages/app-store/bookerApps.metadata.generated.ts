@@ -3,6 +3,7 @@
     Don't modify this file manually.
 **/
 import around_config_json from "./around/config.json";
+import bigbluebutton_config_json from "./bigbluebutton/config.json";
 import campfire_config_json from "./campfire/config.json";
 import campsite_config_json from "./campsite/config.json";
 import { metadata as dailyvideo__metadata_ts } from "./dailyvideo/_metadata";
@@ -47,6 +48,7 @@ import { metadata as zoomvideo__metadata_ts } from "./zoomvideo/_metadata";
 
 export const appStoreMetadata = {
   around: around_config_json,
+  bigbluebutton: bigbluebutton_config_json,
   campfire: campfire_config_json,
   campsite: campsite_config_json,
   dailyvideo: dailyvideo__metadata_ts,
