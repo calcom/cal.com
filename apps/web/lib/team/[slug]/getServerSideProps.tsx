@@ -79,9 +79,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
     }
   }
 
-  const ssr = await ssrInit(context);
-  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
-
   // Taking care of sub-teams and orgs
   if (
     (!isValidOrgDomain && team?.parent) ||
@@ -90,6 +87,26 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
   ) {
     return { notFound: true } as const;
   }
+
+  const organizationSettings = isOrgContext
+    ? team?.isOrganization
+      ? team?.organizationSettings
+      : team?.parent?.organizationSettings
+    : null;
+  let allowSEOIndexing = false;
+  if (!!organizationSettings) {
+    allowSEOIndexing = organizationSettings.allowSEOIndexing ?? false;
+    if (
+      team?.isOrganization &&
+      organizationSettings.orgProfileRedirectsToVerifiedDomain &&
+      organizationSettings.orgAutoAcceptEmail
+    ) {
+      return getRedirectToVerifiedDomain({ verifiedDomain: organizationSettings.orgAutoAcceptEmail });
+    }
+  }
+
+  const ssr = await ssrInit(context);
+  const metadata = teamMetadataSchema.parse(team?.metadata ?? {});
 
   if (!team) {
     // Because we are fetching by requestedSlug being set, it can either be an organization or a regular team. But it can't be a sub-team i.e.
@@ -183,25 +200,6 @@ export const getServerSideProps = async (context: GetServerSidePropsContext) => 
         trpcState: ssr.dehydrate(),
       },
     } as const;
-  }
-
-  const organizationSettings = isOrgContext
-    ? team?.isOrganization
-      ? team?.organizationSettings
-      : team?.parent?.organizationSettings
-    : null;
-  let allowSEOIndexing = false;
-
-  if (!!organizationSettings) {
-    allowSEOIndexing = organizationSettings.allowSEOIndexing;
-
-    if (
-      team?.isOrganization &&
-      organizationSettings.orgProfileRedirectsToVerifiedDomain &&
-      organizationSettings.orgAutoAcceptEmail
-    ) {
-      return getRedirectToVerifiedDomain({ verifiedDomain: organizationSettings.orgAutoAcceptEmail });
-    }
   }
 
   return {
