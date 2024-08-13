@@ -233,7 +233,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
-      evt.location || "",
+      guessEventLocationType(evt.location)?.label || evt.location || "",
       attendeeName,
       name
     );
@@ -252,6 +252,9 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       noShowUrl: `${evt.bookerUrl}/booking/${evt.uid}?noShow=true`,
     });
   }
+
+  console.log("SOUPTIK---------------");
+  console.log(emailContent);
 
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));

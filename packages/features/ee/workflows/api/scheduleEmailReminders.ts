@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { v4 as uuidv4 } from "uuid";
 
+import { guessEventLocationType } from "@calcom/app-store/locations";
 import dayjs from "@calcom/dayjs";
 import { getCalEventResponses } from "@calcom/features/bookings/lib/getCalEventResponses";
 import { getBookerBaseUrl } from "@calcom/lib/getBookerUrl/server";
@@ -225,7 +226,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             reminder.booking.endTime.toISOString() || "",
             reminder.booking.eventType?.title || "",
             timeZone || "",
-            reminder.booking.location || "",
+            guessEventLocationType(reminder.booking.location)?.label || reminder.booking.location || "",
             attendeeName || "",
             name || "",
             !!reminder.booking.user?.hideBranding
@@ -319,11 +320,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
-          reminder.booking.location || "",
+          guessEventLocationType(reminder.booking.location)?.label || reminder.booking.location || "",
           attendeeName || "",
           name || "",
           !!reminder.booking.user?.hideBranding
         );
+        console.log(emailContent);
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
