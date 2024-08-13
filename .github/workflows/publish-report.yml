@@ -47,7 +47,7 @@ jobs:
               exit 0
             fi
           done
-      - name: Output Report URL as Worfklow Annotation
+      - name: Output Report URL as Workflow Annotation
         id: url
         run: |
           FULL_HTML_REPORT_URL=https://calcom.github.io/cal.com/$HTML_REPORT_URL_PATH
