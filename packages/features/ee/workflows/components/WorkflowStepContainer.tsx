@@ -289,7 +289,6 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
       showToast(message, "error");
     },
   }); */
-
   //trigger
   if (!step) {
     const trigger = form.getValues("trigger");
@@ -919,9 +918,31 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       )}
                   </div>
                 )}
-
-                {step.action !== WorkflowActions.SMS_ATTENDEE &&
-                step.action !== WorkflowActions.SMS_NUMBER ? (
+                {!isEmailSubjectNeeded && !isSenderIsNeeded && (
+                  <>
+                    <div className="mb-2 flex items-center pb-[1.5px]">
+                      <Label className="mb-0 flex-none ">
+                        {isEmailSubjectNeeded ? t("email_body") : t("text_message")}
+                      </Label>
+                    </div>
+                    <Editor
+                      getText={() => {
+                        return props.form.getValues(`steps.${step.stepNumber - 1}.reminderBody`) || "";
+                      }}
+                      setText={(text: string) => {
+                        props.form.setValue(`steps.${step.stepNumber - 1}.reminderBody`, text);
+                        props.form.clearErrors();
+                      }}
+                      variables={DYNAMIC_TEXT_VARIABLES}
+                      height="200px"
+                      updateTemplate={updateTemplate}
+                      firstRender={firstRender}
+                      setFirstRender={setFirstRender}
+                      editable={false}
+                    />
+                  </>
+                )}
+                {isEmailSubjectNeeded && (
                   <>
                     <div className="mb-2 flex items-center pb-[1.5px]">
                       <Label className="mb-0 flex-none ">
@@ -944,7 +965,8 @@ export default function WorkflowStepContainer(props: WorkflowStepProps) {
                       editable={!props.readOnly && !isWhatsappAction(step.action)}
                     />
                   </>
-                ) : (
+                )}
+                {isSenderIsNeeded && (
                   <>
                     <div className="flex items-center">
                       <Label className={classNames("flex-none", props.readOnly ? "mb-2" : "mb-0")}>
