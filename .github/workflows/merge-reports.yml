@@ -1,0 +1,26 @@
+on:
+  workflow_call:
+jobs:
+  merge-reports:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: yarn
+      - name: Download blob reports from GitHub Actions Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+      - name: Merge into HTML Report
+        run: yarn playwright merge-reports --reporter html ./all-blob-reports
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-report--attempt-${{ github.run_number }}-${{ github.run_attempt }}
+          path: playwright-report
+          retention-days: 14
