@@ -225,6 +225,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             reminder.booking.endTime.toISOString() || "",
             reminder.booking.eventType?.title || "",
             timeZone || "",
+            reminder.booking.location || "",
             attendeeName || "",
             name || "",
             !!reminder.booking.user?.hideBranding
@@ -318,6 +319,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           reminder.booking.endTime.toISOString() || "",
           reminder.booking.eventType?.title || "",
           timeZone || "",
+          reminder.booking.location || "",
           attendeeName || "",
           name || "",
           !!reminder.booking.user?.hideBranding

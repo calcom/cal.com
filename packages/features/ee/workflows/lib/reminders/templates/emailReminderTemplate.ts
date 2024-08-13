@@ -11,6 +11,7 @@ const emailReminderTemplate = (
   endTime?: string,
   eventName?: string,
   timeZone?: string,
+  location?: string,
   otherPerson?: string,
   name?: string,
   isBrandingDisabled?: boolean
@@ -24,6 +25,7 @@ const emailReminderTemplate = (
     endTime = "{EVENT_END_TIME}";
     eventName = "{EVENT_NAME}";
     timeZone = "{TIMEZONE}";
+    location = "{LOCATION}";
     otherPerson = action === WorkflowActions.EMAIL_ATTENDEE ? "{ORGANIZER}" : "{ATTENDEE}";
     name = action === WorkflowActions.EMAIL_ATTENDEE ? "{ATTENDEE}" : "{ORGANIZER}";
     eventDate = `{EVENT_DATE_${dateTimeFormat}}`;
@@ -45,11 +47,13 @@ const emailReminderTemplate = (
 
   const attendeeHtml = `<div><strong class="editor-text-bold">Attendees: </strong></div>You & ${otherPerson}<br><br>`;
 
+  const locationHtml = `<div><strong class="editor-text-bold">Location: </strong></div>${location}<br><br>`;
+
   const branding = !isBrandingDisabled && !isEditingMode ? `<br><br>_<br><br>Scheduling by ${APP_NAME}` : "";
 
   const endingHtml = `This reminder was triggered by a Workflow in Cal.${branding}</body>`;
 
-  const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + endingHtml;
+  const emailBody = introHtml + eventHtml + dateTimeHtml + attendeeHtml + locationHtml + endingHtml;
 
   return { emailSubject, emailBody };
 };

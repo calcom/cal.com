@@ -233,6 +233,7 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
       endTime,
       evt.title,
       timeZone,
+      evt.location || "",
       attendeeName,
       name
     );
