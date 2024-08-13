@@ -190,7 +190,7 @@ jobs:
   merge-reports:
     name: Merge reports
     if: ${{ !cancelled() }}
-    needs: [e2e]
+    needs: [e2e, e2e-embed, e2e-embed-react, e2e-app-store]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
