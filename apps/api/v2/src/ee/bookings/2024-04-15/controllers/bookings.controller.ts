@@ -1,9 +1,9 @@
-import { CreateBookingInput } from "@/ee/bookings/inputs/create-booking.input";
-import { CreateRecurringBookingInput } from "@/ee/bookings/inputs/create-recurring-booking.input";
-import { MarkNoShowInput } from "@/ee/bookings/inputs/mark-no-show.input";
-import { GetBookingOutput } from "@/ee/bookings/outputs/get-booking.output";
-import { GetBookingsOutput } from "@/ee/bookings/outputs/get-bookings.output";
-import { MarkNoShowOutput } from "@/ee/bookings/outputs/mark-no-show.output";
+import { CreateBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-booking.input";
+import { CreateRecurringBookingInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/create-recurring-booking.input";
+import { MarkNoShowInput_2024_04_15 } from "@/ee/bookings/2024-04-15/inputs/mark-no-show.input";
+import { GetBookingOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-booking.output";
+import { GetBookingsOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/get-bookings.output";
+import { MarkNoShowOutput_2024_04_15 } from "@/ee/bookings/2024-04-15/outputs/mark-no-show.output";
 import { API_VERSIONS_VALUES } from "@/lib/api-versions";
 import { GetUser } from "@/modules/auth/decorators/get-user/get-user.decorator";
 import { Permissions } from "@/modules/auth/decorators/permissions/permissions.decorator";
@@ -47,7 +47,11 @@ import {
   handleCancelBooking,
   getBookingForReschedule,
 } from "@calcom/platform-libraries";
-import { GetBookingsInput, CancelBookingInput, Status } from "@calcom/platform-types";
+import {
+  GetBookingsInput_2024_04_15,
+  CancelBookingInput_2024_04_15,
+  Status_2024_04_15,
+} from "@calcom/platform-types";
 import { ApiResponse } from "@calcom/platform-types";
 import { PrismaClient } from "@calcom/prisma";
 
@@ -79,7 +83,7 @@ const DEFAULT_PLATFORM_PARAMS = {
 })
 @UseGuards(PermissionsGuard)
 @DocsTags("Bookings")
-export class BookingsController {
+export class BookingsController_2024_04_15 {
   private readonly logger = new Logger("BookingsController");
 
   constructor(
@@ -92,13 +96,13 @@ export class BookingsController {
   @Get("/")
   @UseGuards(ApiAuthGuard)
   @Permissions([BOOKING_READ])
-  @ApiQuery({ name: "filters[status]", enum: Status, required: true })
+  @ApiQuery({ name: "filters[status]", enum: Status_2024_04_15, required: true })
   @ApiQuery({ name: "limit", type: "number", required: false })
   @ApiQuery({ name: "cursor", type: "number", required: false })
   async getBookings(
     @GetUser() user: User,
-    @Query() queryParams: GetBookingsInput
-  ): Promise<GetBookingsOutput> {
+    @Query() queryParams: GetBookingsInput_2024_04_15
+  ): Promise<GetBookingsOutput_2024_04_15> {
     const { filters, cursor, limit } = queryParams;
     const bookings = await getAllUserBookings({
       bookingListingByStatus: filters.status,
@@ -118,7 +122,7 @@ export class BookingsController {
   }
 
   @Get("/:bookingUid")
-  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput> {
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_04_15> {
     const { bookingInfo } = await getBookingInfo(bookingUid);
 
     if (!bookingInfo) {
@@ -148,7 +152,7 @@ export class BookingsController {
   @Post("/")
   async createBooking(
     @Req() req: BookingRequest,
-    @Body() body: CreateBookingInput,
+    @Body() body: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Partial<BookingResponse>>> {
     const oAuthClientId = clientId?.toString();
@@ -179,7 +183,7 @@ export class BookingsController {
   async cancelBooking(
     @Req() req: BookingRequest,
     @Param("bookingId") bookingId: string,
-    @Body() _: CancelBookingInput,
+    @Body() _: CancelBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<{ bookingId: number; bookingUid: string; onlyRemovedAttendee: boolean }>> {
     const oAuthClientId = clientId?.toString();
@@ -212,9 +216,9 @@ export class BookingsController {
   @UseGuards(ApiAuthGuard)
   async markNoShow(
     @GetUser("id") userId: number,
-    @Body() body: MarkNoShowInput,
+    @Body() body: MarkNoShowInput_2024_04_15,
     @Param("bookingUid") bookingUid: string
-  ): Promise<MarkNoShowOutput> {
+  ): Promise<MarkNoShowOutput_2024_04_15> {
     try {
       const markNoShowResponse = await handleMarkNoShow({
         bookingUid: bookingUid,
@@ -233,7 +237,7 @@ export class BookingsController {
   @Post("/recurring")
   async createRecurringBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateRecurringBookingInput[],
+    @Body() _: CreateRecurringBookingInput_2024_04_15[],
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<BookingResponse[]>> {
     const oAuthClientId = clientId?.toString();
@@ -264,7 +268,7 @@ export class BookingsController {
   @Post("/instant")
   async createInstantBooking(
     @Req() req: BookingRequest,
-    @Body() _: CreateBookingInput,
+    @Body() _: CreateBookingInput_2024_04_15,
     @Headers(X_CAL_CLIENT_ID) clientId?: string
   ): Promise<ApiResponse<Awaited<ReturnType<typeof handleInstantMeeting>>>> {
     const oAuthClientId = clientId?.toString();

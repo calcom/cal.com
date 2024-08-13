@@ -3,13 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { SUCCESS_STATUS, V2_ENDPOINTS } from "@calcom/platform-constants";
 import type { getAllUserBookings } from "@calcom/platform-libraries";
 import type { ApiResponse, ApiSuccessResponse } from "@calcom/platform-types";
-import type { GetBookingsInput } from "@calcom/platform-types/bookings";
+import type { GetBookingsInput_2024_04_15 } from "@calcom/platform-types/bookings";
 
 import http from "../lib/http";
 
 export const QUERY_KEY = "user-bookings";
 
-export const useGetBookings = (input: GetBookingsInput) => {
+export const useGetBookings = (input: GetBookingsInput_2024_04_15) => {
   const pathname = `/${V2_ENDPOINTS.bookings}`;
 
   const bookingsQuery = useQuery({

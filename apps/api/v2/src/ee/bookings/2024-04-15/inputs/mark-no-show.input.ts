@@ -9,7 +9,7 @@ class Attendee {
   noShow!: boolean;
 }
 
-export class MarkNoShowInput {
+export class MarkNoShowInput_2024_04_15 {
   @IsBoolean()
   @IsOptional()
   noShowHost?: boolean;

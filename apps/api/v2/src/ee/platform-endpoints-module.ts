@@ -1,4 +1,4 @@
-import { BookingsModule } from "@/ee/bookings/bookings.module";
+import { BookingsModule_2024_04_15 } from "@/ee/bookings/2024-04-15/bookings.module";
 import { CalendarsModule } from "@/ee/calendars/calendars.module";
 import { EventTypesModule_2024_04_15 } from "@/ee/event-types/event-types_2024_04_15/event-types.module";
 import { EventTypesModule_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.module";
@@ -21,7 +21,7 @@ import { Module } from "@nestjs/common";
     EventTypesModule_2024_04_15,
     EventTypesModule_2024_06_14,
     CalendarsModule,
-    BookingsModule,
+    BookingsModule_2024_04_15,
     SlotsModule,
   ],
 })
