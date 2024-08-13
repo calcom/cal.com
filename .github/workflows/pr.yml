@@ -197,6 +197,8 @@ jobs:
   publish-report:
     name: Publish HTML report
     if: ${{ !cancelled() }}
+    permissions:
+      contents: write
     needs: [merge-reports]
     uses: ./.github/workflows/publish-report.yml
     secrets: inherit
