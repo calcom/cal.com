@@ -43,6 +43,7 @@ const organizationSelect = {
   logoUrl: true,
   calVideoLogo: true,
   bannerUrl: true,
+  isPlatform: true,
 };
 
 export enum LookupTarget {
@@ -329,6 +330,9 @@ export class ProfileRepository {
       return null;
     }
     const user = profile.user;
+    if (profile.organization?.isPlatform && !user.isPlatformManaged) {
+      return this.buildPersonalProfileFromUser({ user });
+    }
     return {
       ...profile,
       ...ProfileRepository.getInheritedDataFromUser({ user }),
