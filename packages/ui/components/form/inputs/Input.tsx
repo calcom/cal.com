@@ -48,9 +48,9 @@ export const PasswordField = forwardRef<HTMLInputElement, InputFieldProps>(funct
             type="button"
             onClick={() => toggleIsPasswordVisible()}>
             {isPasswordVisible ? (
-              <Icon name="eye-off" className="h-4 stroke-[2.5px]" />
+              <Icon name="eye-off" className="h-4 w-4 stroke-[2.5px]" />
             ) : (
-              <Icon name="eye" className="h-4 stroke-[2.5px]" />
+              <Icon name="eye" className="h-4 w-4 stroke-[2.5px]" />
             )}
             <span className="sr-only">{textLabel}</span>
           </button>
