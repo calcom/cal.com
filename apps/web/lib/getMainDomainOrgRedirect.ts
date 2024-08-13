@@ -9,12 +9,12 @@ export const getMainDomainOrgRedirect = (
   subTeamSlugs: string[],
   targetHostName: string
 ) => {
-  if (!req) {
+  if (!req || req.url === undefined) {
     return null;
   }
 
   const protocol = WEBAPP_URL.startsWith("https://") ? "https" : "http";
-  const originalUrl = new URL(req.url!, `${protocol}://${req.headers.host}`);
+  const originalUrl = new URL(req.url, `${protocol}://${req.headers.host}`);
 
   if (originalUrl.hostname === targetHostName || targetHostName === "") {
     return null;
