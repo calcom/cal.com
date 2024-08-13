@@ -531,6 +531,7 @@ export const AUTH_OPTIONS: AuthOptions = {
           belongsToActiveTeam,
           // All organizations in the token would be too big to store. It breaks the sessions request.
           // So, we just set the currently switched organization only here.
+          // platform org user don't need profiles nor domains
           org:
             profileOrg && !profileOrg.isPlatform
               ? {
