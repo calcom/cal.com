@@ -116,6 +116,7 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
