@@ -1,12 +1,15 @@
 import type { Payment, Prisma, Booking, PaymentOption } from "@prisma/client";
 
-import type { PaymentService } from "@calcom/app-store/paypal/lib/PaymentService";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 export interface PaymentApp {
   lib?: {
-    PaymentService: typeof PaymentService;
+    PaymentService: PaymentService;
   };
+}
+
+interface PaymentService {
+  new (credentials: { key: Prisma.JsonValue }): IAbstractPaymentService;
 }
 
 export interface IAbstractPaymentService {

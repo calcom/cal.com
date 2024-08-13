@@ -44,6 +44,7 @@ export const getEventTypesFromDB = async (id: number) => {
           organizationId: true,
         },
       },
+      teamId: true,
       owner: {
         select: userSelect,
       },

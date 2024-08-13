@@ -61,7 +61,7 @@ const createTeamsAndMembership = async (userIdOne: number, userIdTwo: number) =>
   return { teamOne, teamTwo };
 };
 
-test.afterAll(async ({ users }) => {
+test.afterEach(async ({ users }) => {
   await users.deleteAll();
 });
 

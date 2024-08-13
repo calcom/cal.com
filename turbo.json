@@ -21,6 +21,9 @@
       "cache": false,
       "dependsOn": ["@calcom/prisma#db-migrate"]
     },
+    "@calcom/trpc#build": {
+      "outputs": ["./types"]
+    },
     "@calcom/web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**"],
@@ -38,7 +41,8 @@
         "STRIPE_PREMIUM_PLAN_PRODUCT_ID",
         "STRIPE_TEAM_MONTHLY_PRICE_ID",
         "STRIPE_ORG_MONTHLY_PRICE_ID",
-        "NEXT_PUBLIC_API_V2_URL"
+        "NEXT_PUBLIC_API_V2_URL",
+        "BUILD_STANDALONE"
       ]
     },
     "@calcom/web#dx": {
@@ -286,6 +290,7 @@
     "EMAIL_SERVER_PORT",
     "EMAIL_SERVER_USER",
     "EMAIL_SERVER",
+    "ENABLE_INFINITE_EVENT_TYPES_FOR_ORG",
     "EXCHANGE_DEFAULT_EWS_URL",
     "FORMBRICKS_FEEDBACK_SURVEY_ID",
     "AVATARAPI_USERNAME",
@@ -334,6 +339,8 @@
     "NEXT_PUBLIC_VERCEL_ENV",
     "NEXT_PUBLIC_VERCEL_BRANCH_URL",
     "NEXT_PUBLIC_GTM_ID",
+    "NEXT_PUBLIC_ORGANIZATIONS_MIN_SELF_SERVE_SEATS",
+    "NEXT_PUBLIC_ORGANIZATIONS_SELF_SERVE_PRICE",
     "NEXT_RUNTIME",
     "NEXTAUTH_COOKIE_DOMAIN",
     "NEXTAUTH_SECRET",

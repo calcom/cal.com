@@ -176,6 +176,7 @@ export interface CalendarEvent {
   endTime: string;
   organizer: Organizer;
   attendees: Attendee[];
+  length?: number | null;
   additionalNotes?: string | null;
   customInputs?: Prisma.JsonObject | null;
   description?: string | null;

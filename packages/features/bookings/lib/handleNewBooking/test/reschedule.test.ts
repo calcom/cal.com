@@ -2175,56 +2175,30 @@ describe("handleNewBooking", () => {
       );
 
       test(
-        "[Event Type with Both Email and Attendee Phone Number as required fields] should send rescheduling emails when round robin is rescheduled to same host",
+        "should reschedule event with same round robin host",
         async ({ emails }) => {
           const handleNewBooking = (await import("@calcom/features/bookings/lib/handleNewBooking")).default;
-          const TEST_ATTENDEE_NUMBER = "+919876543210";
           const booker = getBooker({
             email: "booker@example.com",
             name: "Booker",
-            attendeePhoneNumber: TEST_ATTENDEE_NUMBER,
           });
 
           const roundRobinHost1 = getOrganizer({
             name: "RR Host 1",
             email: "rrhost1@example.com",
             id: 101,
-            schedules: [TestData.schedules.IstMorningShift],
+            schedules: [TestData.schedules.IstWorkHours],
             credentials: [getGoogleCalendarCredential()],
             selectedCalendars: [TestData.selectedCalendars.google],
-            teams: [
-              {
-                membership: {
-                  accepted: true,
-                },
-                team: {
-                  id: 1,
-                  name: "Team 1",
-                  slug: "team-1",
-                },
-              },
-            ],
           });
 
           const roundRobinHost2 = getOrganizer({
             name: "RR Host 2",
             email: "rrhost2@example.com",
             id: 102,
-            schedules: [TestData.schedules.IstEveningShift],
+            schedules: [TestData.schedules.IstWorkHours],
             credentials: [getGoogleCalendarCredential()],
             selectedCalendars: [TestData.selectedCalendars.google],
-            teams: [
-              {
-                membership: {
-                  accepted: true,
-                },
-                team: {
-                  id: 1,
-                  name: "Team 1",
-                  slug: "team-1",
-                },
-              },
-            ],
           });
 
           const { dateString: plus1DateString } = getDate({ dateIncrement: 1 });
@@ -2236,50 +2210,31 @@ describe("handleNewBooking", () => {
                   id: 1,
                   slotInterval: 15,
                   length: 15,
-                  teamId: 1,
-                  users: [
+                  hosts: [
                     {
-                      id: 101,
+                      userId: 101,
+                      isFixed: false,
                     },
                     {
-                      id: 102,
+                      userId: 102,
+                      isFixed: false,
                     },
                   ],
                   schedulingType: SchedulingType.ROUND_ROBIN,
-                  bookingFields: getDefaultBookingFields({
-                    emailField: {
-                      name: "email",
-                      type: "email",
-                      label: "",
-                      hidden: false,
-                      sources: [{ id: "default", type: "default", label: "Default" }],
-                      editable: "system-but-optional",
-                      required: true,
-                      placeholder: "",
-                      defaultLabel: "email_address",
-                    },
-                    bookingFields: [
-                      {
-                        name: "attendeePhoneNumber",
-                        type: "phone",
-                        hidden: false,
-                        sources: [{ id: "default", type: "default", label: "Default" }],
-                        editable: "system-but-optional",
-                        required: true,
-                        defaultLabel: "phone_number",
-                      },
-                    ],
-                  }),
+                  rescheduleWithSameRoundRobinHost: true,
                 },
               ],
               bookings: [
                 {
                   uid: uidOfBookingToBeRescheduled,
                   eventTypeId: 1,
-                  userId: 101,
+                  userId: 102,
                   status: BookingStatus.ACCEPTED,
                   startTime: `${plus1DateString}T05:00:00.000Z`,
                   endTime: `${plus1DateString}T05:15:00.000Z`,
+                  metadata: {
+                    videoCallUrl: "https://existing-daily-video-call-url.example.com",
+                  },
                 },
               ],
               organizer: roundRobinHost1,
@@ -2312,7 +2267,6 @@ describe("handleNewBooking", () => {
               responses: {
                 email: booker.email,
                 name: booker.name,
-                attendeePhoneNumber: booker.attendeePhoneNumber,
                 location: { optionValue: "", value: BookingLocations.CalVideo },
               },
             },
@@ -2349,6 +2303,9 @@ describe("handleNewBooking", () => {
           expect(createdBooking.startTime?.toISOString()).toBe(`${plus1DateString}T04:00:00.000Z`);
           expect(createdBooking.endTime?.toISOString()).toBe(`${plus1DateString}T04:15:00.000Z`);
 
+          // Expect both hosts for the event types to be the same
+          expect(createdBooking.userId).toBe(previousBooking.userId);
+
           await expectBookingInDBToBeRescheduledFromTo({
             from: {
               uid: uidOfBookingToBeRescheduled,
@@ -2362,7 +2319,6 @@ describe("handleNewBooking", () => {
               location: BookingLocations.CalVideo,
               responses: expect.objectContaining({
                 email: booker.email,
-                attendeePhoneNumber: booker.attendeePhoneNumber,
                 name: booker.name,
               }),
             },
@@ -2370,7 +2326,7 @@ describe("handleNewBooking", () => {
 
           expectSuccessfulRoundRobinReschedulingEmails({
             prevOrganizer: roundRobinHost1,
-            newOrganizer: roundRobinHost1, // Round robin host 2 is not available and it will be rescheduled to same user
+            newOrganizer: roundRobinHost1,
             emails,
           });
         },

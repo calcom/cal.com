@@ -122,6 +122,7 @@ const publicEventSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   },
   hidden: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 });
 
 // TODO: Convert it to accept a single parameter with structured data
