@@ -92,7 +92,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.shard }}_${{ strategy.job-total }}
+          name: test-results-${{ github.head_ref || github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: test-results
   publish_report:
     name: Publish HTML Report
@@ -117,7 +117,7 @@ jobs:
       - name: Download zipped HTML report
         uses: actions/download-artifact@v2
         with:
-          name: test-results
+          name: test-results-${{ github.head_ref || github.ref_name }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ env.HTML_REPORT_URL_PATH }}
       - name: Push HTML Report
         timeout-minutes: 3
