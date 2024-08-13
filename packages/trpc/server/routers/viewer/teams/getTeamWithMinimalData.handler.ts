@@ -34,6 +34,13 @@ export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalD
     isOrgView: input?.isOrg,
   });
 
+  if (!team) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Team not found",
+    });
+  }
+
   const membership = {
     role: teamMembership.role,
     accepted: teamMembership.accepted,
