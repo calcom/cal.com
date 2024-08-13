@@ -97,7 +97,6 @@ export default function MemberListItem(props: Props) {
     },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
-      await utils.viewer.teams.invalidate();
       await utils.viewer.eventTypes.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
       await utils.viewer.organizations.getMembers.invalidate();
