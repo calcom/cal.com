@@ -539,6 +539,17 @@ function UserDropdown({ small }: UserDropdownProps) {
                   </DropdownMenuItem>
                 )}
 
+                {isPlatformUser && (
+                  <DropdownMenuItem className="todesktop:hidden hidden lg:flex">
+                    <DropdownItem
+                      StartIcon="blocks"
+                      target="_blank"
+                      rel="noreferrer"
+                      href="/settings/platform">
+                      Platform
+                    </DropdownItem>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem>
