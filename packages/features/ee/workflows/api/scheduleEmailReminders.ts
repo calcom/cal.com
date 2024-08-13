@@ -325,7 +325,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           name || "",
           !!reminder.booking.user?.hideBranding
         );
-        console.log(emailContent);
         if (emailContent.emailSubject.length > 0 && !emailBodyEmpty && sendTo) {
           const batchId = await getBatchId();
 
