@@ -34,8 +34,8 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
     select: {
       team: {
         select: {
-          slug: true,
           id: true,
+          slug: true,
         },
       },
     },
