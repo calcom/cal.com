@@ -4,15 +4,27 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import handleGroupEvents from "@calcom/features/ee/dsync/lib/handleGroupEvents";
 import handleUserEvents from "@calcom/features/ee/dsync/lib/handleUserEvents";
 import jackson from "@calcom/features/ee/sso/lib/jackson";
+import logger from "@calcom/lib/logger";
 import prisma from "@calcom/prisma";
 
 // This is the handler for the SCIM API requests
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const log = logger.getSubLogger({ prefix: ["[scim]"] });
   const { dsyncController } = await jackson();
 
   const { method, query, body } = req;
 
   const [directoryId, path, resourceId] = query.directory as string[];
+
+  let responseBody: object | undefined = undefined;
+
+  if (body) {
+    try {
+      responseBody = JSON.parse(body);
+    } catch (e) {
+      log.error(`Error parsing SCIM event for directoryId ${directoryId} with error: ${e} and body ${body}`);
+    }
+  }
 
   // Handle the SCIM API requests
   const request: DirectorySyncRequest = {
@@ -21,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     resourceId,
     apiSecret: extractAuthToken(req),
     resourceType: path === "Users" ? "users" : "groups",
-    body: body ? JSON.parse(body) : undefined,
+    body: responseBody,
     query: {
       count: req.query.count ? parseInt(req.query.count as string) : undefined,
       startIndex: req.query.startIndex ? parseInt(req.query.startIndex as string) : undefined,

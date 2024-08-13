@@ -115,6 +115,7 @@ export const buildEventType = (eventType?: Partial<EventType>): EventType => {
     bookingLimits: null,
     durationLimits: null,
     assignAllTeamMembers: false,
+    rescheduleWithSameRoundRobinHost: false,
     price: 0,
     currency: "usd",
     slotInterval: null,
@@ -142,6 +143,7 @@ export const buildWebhook = (webhook?: Partial<Webhook>): Webhook => {
     active: true,
     eventTriggers: [],
     teamId: null,
+    platformOAuthClientId: null,
     ...webhook,
     platform: false,
   };

@@ -205,7 +205,6 @@
   "blog": "Blog",
   "blog_description": "Przeczytaj nasze najnowsze wiadomości i artykuły",
   "join_our_community": "Dołącz do naszej społeczności",
-  "join_our_discord": "Dołącz do naszego Discorda",
   "404_claim_entity_user": "Odbierz swoją nazwę użytkownika i harmonogram wydarzeń",
   "popular_pages": "Popularne strony",
   "register_now": "Załóż konto teraz",
@@ -1496,7 +1495,6 @@
   "how_long_after": "Jak długo po zakończeniu wydarzenia?",
   "no_available_slots": "Brak dostępnych przedziałów",
   "time_available": "Dostępny czas",
-  "cant_find_the_right_video_app_visit_our_app_store": "Nie możesz znaleźć właściwej aplikacji wideo? Odwiedź nasz sklep <1>App Store</1>.",
   "install_new_calendar_app": "Zainstaluj nową aplikację kalendarza",
   "make_phone_number_required": "Ustaw wymóg podania numeru telefonu w celu rezerwacji wydarzenia",
   "new_event_type_availability": "{{eventTypeTitle}} – dostępność",
@@ -2100,5 +2098,6 @@
   "email_team_invite|heading|invited_to_regular_team": "Zaproszono Cię do dołączenia do zespołu {{appName}}",
   "email_team_invite|content|invited_to_regular_team": "Użytkownik {{invitedBy}} zaprasza Cię do dołączenia do jego zespołu „{{teamName}}” w aplikacji {{appName}}. Aplikacja {{appName}} to terminarz do planowania wydarzeń, który umożliwi Tobie i Twojemu zespołowi planowanie spotkań bez czasochłonnej wymiany wiadomości e-mail.",
   "privacy": "Prywatność",
+  "signing_up_terms": "Kontynuując, zgadzasz się na <0>Warunki</0> i <1>Politykę prywatności<1>",
   "ADD_NEW_STRINGS_ABOVE_THIS_LINE_TO_PREVENT_MERGE_CONFLICTS": "↑↑↑↑↑↑↑↑↑↑↑↑↑ Dodaj nowe ciągi powyżej ↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑↑"
 }

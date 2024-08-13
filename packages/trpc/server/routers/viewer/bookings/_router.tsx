@@ -75,7 +75,7 @@ export const bookingsRouter = router({
     });
   }),
 
-  confirm: bookingsProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
+  confirm: authedProcedure.input(ZConfirmInputSchema).mutation(async ({ input, ctx }) => {
     if (!UNSTABLE_HANDLER_CACHE.confirm) {
       UNSTABLE_HANDLER_CACHE.confirm = await import("./confirm.handler").then((mod) => mod.confirmHandler);
     }

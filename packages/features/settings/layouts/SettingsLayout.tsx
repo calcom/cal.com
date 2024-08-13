@@ -58,7 +58,6 @@ const tabs: VerticalTabItemProps[] = [
       //
       { name: "webhooks", href: "/settings/developer/webhooks" },
       { name: "api_keys", href: "/settings/developer/api-keys" },
-      // TODO: hide this if they have an organisation
       { name: "admin_api", href: "/settings/organizations/admin-api" },
       // TODO: Add profile level for embeds
       // { name: "embeds", href: "/v2/settings/developer/embeds" },
@@ -83,10 +82,6 @@ const tabs: VerticalTabItemProps[] = [
       {
         name: "privacy",
         href: "/settings/organizations/privacy",
-      },
-      {
-        name: "appearance",
-        href: "/settings/organizations/appearance",
       },
       {
         name: "billing",
@@ -148,7 +143,7 @@ tabs.find((tab) => {
 // The following keys are assigned to admin only
 const adminRequiredKeys = ["admin"];
 const organizationRequiredKeys = ["organization"];
-const organizationAdminKeys = ["privacy", "appearance", "billing", "OAuth Clients", "SSO", "directory_sync"];
+const organizationAdminKeys = ["privacy", "billing", "OAuth Clients", "SSO", "directory_sync"];
 
 const useTabs = () => {
   const session = useSession();
@@ -187,6 +182,9 @@ const useTabs = () => {
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
         );
         return { ...tab, children: filtered };
+      } else if (tab.href === "/settings/developer" && !!orgBranding) {
+        const filtered = tab?.children?.filter((childTab) => childTab.name !== "admin_api");
+        return { ...tab, children: filtered };
       }
       return tab;
     });
@@ -208,7 +206,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"
