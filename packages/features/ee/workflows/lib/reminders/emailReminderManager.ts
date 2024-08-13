@@ -253,9 +253,6 @@ export const scheduleEmailReminder = async (args: scheduleEmailReminderArgs) => 
     });
   }
 
-  console.log("SOUPTIK---------------");
-  console.log(emailContent);
-
   // Allows debugging generated email content without waiting for sendgrid to send emails
   log.debug(`Sending Email for trigger ${triggerEvent}`, JSON.stringify(emailContent));
 
