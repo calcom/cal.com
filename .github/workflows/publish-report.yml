@@ -1,5 +1,7 @@
 on:
   workflow_call:
+permissions:
+  contents: write
 jobs:
   publish-report:
     runs-on: ubuntu-latest
