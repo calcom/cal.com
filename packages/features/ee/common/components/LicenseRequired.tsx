@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import type { AriaRole, ComponentType } from "react";
 import React, { Fragment, useEffect } from "react";

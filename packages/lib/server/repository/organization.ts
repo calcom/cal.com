@@ -4,6 +4,7 @@ import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { prisma } from "@calcom/prisma";
 import { MembershipRole } from "@calcom/prisma/enums";
+import { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 
 import { createAProfileForAnExistingUser } from "../../createAProfileForAnExistingUser";
 import { getParsedTeam } from "./teamUtils";
@@ -191,5 +192,51 @@ export class OrganizationRepository {
       return null;
     }
     return getParsedTeam(org);
+  }
+
+  static async adminFindById({ id }: { id: number }) {
+    const org = await prisma.team.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        metadata: true,
+        isOrganization: true,
+        members: {
+          where: {
+            role: "OWNER",
+          },
+          select: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        organizationSettings: {
+          select: {
+            isOrganizationConfigured: true,
+            isOrganizationVerified: true,
+            orgAutoAcceptEmail: true,
+          },
+        },
+      },
+    });
+
+    if (!org) {
+      throw new Error("Organization not found");
+    }
+
+    const parsedMetadata = teamMetadataSchema.parse(org.metadata);
+    if (!org?.isOrganization) {
+      throw new Error("Organization not found");
+    }
+    return { ...org, metadata: parsedMetadata };
   }
 }

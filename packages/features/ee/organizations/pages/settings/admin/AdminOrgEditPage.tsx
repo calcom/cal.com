@@ -1,3 +1,5 @@
+"use client";
+
 import type { Team } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -46,7 +48,7 @@ type FormValues = {
   organizationSettings: z.infer<typeof orgSettingsSchema>;
 };
 
-const OrgForm = ({
+export const OrgForm = ({
   org,
 }: {
   org: FormValues & {
