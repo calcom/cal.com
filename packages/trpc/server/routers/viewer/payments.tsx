@@ -8,6 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import sendPayload from "@calcom/lib/server/webhooks/sendPayload";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 import type { PaymentApp } from "@calcom/types/PaymentService";
 
@@ -149,7 +150,11 @@ export const paymentsRouter = router({
           })
         );
 
-        await sendNoShowFeeChargedEmail(attendeesListPromises[0], evt);
+        await sendNoShowFeeChargedEmail(
+          attendeesListPromises[0],
+          evt,
+          booking?.eventType?.metadata as EventTypeMetadata
+        );
 
         return paymentData;
       } catch (err) {
