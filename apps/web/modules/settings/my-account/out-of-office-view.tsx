@@ -362,7 +362,7 @@ const OutOfOfficeEntriesList = () => {
   );
 };
 
-const OutOfOfficePage = () => {
+const OutOfOfficeView = () => {
   const { t } = useLocale();
 
   const params = useSearchParams();
@@ -402,4 +402,4 @@ const OutOfOfficePage = () => {
   );
 };
 
-export default OutOfOfficePage;
+export default OutOfOfficeView;

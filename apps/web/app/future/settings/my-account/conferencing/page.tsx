@@ -1,5 +1,6 @@
-import Page from "@pages/settings/my-account/conferencing";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "~/settings/my-account/conferencing-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
