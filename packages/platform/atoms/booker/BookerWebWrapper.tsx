@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession, signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "next/navigation";

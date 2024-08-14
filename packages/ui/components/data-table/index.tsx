@@ -1,3 +1,5 @@
+"use client";
+
 import type {
   ColumnDef,
   ColumnFiltersState,
@@ -113,7 +115,7 @@ export function DataTable<TData, TValue>({
         tableCTA={tableCTA}
       />
       <div ref={tableContainerRef} onScroll={onScroll} data-testid={rest["data-testid"] ?? "data-table"}>
-        <Table data-testId="">
+        <Table data-testid="">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
