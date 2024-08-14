@@ -1,3 +1,5 @@
+"use client";
+
 import { $generateHtmlFromNodes, $generateNodesFromDOM } from "@lexical/html";
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from "@lexical/link";
 import {
