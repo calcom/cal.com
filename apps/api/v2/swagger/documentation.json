@@ -2870,7 +2870,16 @@
             "name": "filters[status]",
             "required": true,
             "in": "query",
-            "schema": {}
+            "schema": {
+              "enum": [
+                "upcoming",
+                "recurring",
+                "past",
+                "cancelled",
+                "unconfirmed"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -2890,34 +2899,15 @@
         ]
       },
       "post": {
-        "operationId": "BookingsController_2024_04_15_createBooking",
-        "parameters": [
-          {
-            "name": "x-cal-client-id",
-            "required": true,
-            "in": "header",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateBookingInput_2024_04_15"
-              }
-            }
-          }
-        },
+        "operationId": "BookingsController_2024_08_13_createBooking",
+        "parameters": [],
         "responses": {
           "201": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/CreateBookingOutput_2024_08_13"
                 }
               }
             }
@@ -3009,6 +2999,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelBookingInput_2024_04_15"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "",
@@ -8882,6 +8882,33 @@
           "responses"
         ]
       },
+      "CancelBookingInput_2024_04_15": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "uid": {
+            "type": "string"
+          },
+          "allRemainingBookings": {
+            "type": "boolean"
+          },
+          "cancellationReason": {
+            "type": "string"
+          },
+          "seatReferenceUid": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "allRemainingBookings",
+          "cancellationReason",
+          "seatReferenceUid"
+        ]
+      },
       "MarkNoShowInput_2024_04_15": {
         "type": "object",
         "properties": {
@@ -8929,6 +8956,30 @@
           },
           "data": {
             "$ref": "#/components/schemas/HandleMarkNoShowData_2024_04_15"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "BookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingOutput_2024_08_13"
           }
         },
         "required": [

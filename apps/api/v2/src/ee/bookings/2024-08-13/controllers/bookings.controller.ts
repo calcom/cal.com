@@ -6,7 +6,11 @@ import { Controller, Post, Logger, Body, Headers, UseGuards } from "@nestjs/comm
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  CreateBookingInput_2024_08_13,
+  CreateBookingInputPipe,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
 
 @Controller({
   path: "/v2/bookings",
@@ -21,9 +25,11 @@ export class BookingsController_2024_08_13 {
 
   @Post("/")
   async createBooking(
-    @Body() body: CreateBookingInput_2024_08_13,
+    @Body(new CreateBookingInputPipe(CreateBookingInput_2024_08_13, RescheduleBookingInput_2024_08_13))
+    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13,
     @Headers(X_CAL_CLIENT_ID) clientId: string | undefined
   ): Promise<CreateBookingOutput_2024_08_13> {
+    console.log("asap body", JSON.stringify(body));
     const booking = await this.bookingsService.createBooking(body, clientId);
 
     return {
