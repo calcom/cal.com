@@ -4133,8 +4133,8 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.27"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
-    "@calcom/platform-libraries-0.0.26": "npm:@calcom/platform-libraries@0.0.26"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -4293,6 +4293,7 @@ __metadata:
     "@calcom/platform-libraries": 0.0.2
     "@radix-ui/react-dialog": ^1.0.4
     "@radix-ui/react-slot": ^1.0.2
+    "@radix-ui/react-switch": ^1.1.0
     "@radix-ui/react-toast": ^1.1.5
     "@rollup/plugin-node-resolve": ^15.0.1
     "@tanstack/react-query": ^5.17.15
@@ -4849,6 +4850,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms":
+  version: 0.0.0-use.local
+  resolution: "@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/hubspot@workspace:packages/app-store/hubspot":
   version: 0.0.0-use.local
   resolution: "@calcom/hubspot@workspace:packages/app-store/hubspot"
@@ -5086,17 +5096,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.26@npm:@calcom/platform-libraries@0.0.26":
-  version: 0.0.26
-  resolution: "@calcom/platform-libraries@npm:0.0.26"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 95b60b6bccfecf1d75f5b37b6e2b48811d6cbdd6ccb8157fa700558f2947adefd1fa26e7ed123f72960ddbf44ead26cce6e6fbd62505d73f5490abcf7c95563d
-  languageName: node
-  linkType: hard
-
 "@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
@@ -5105,6 +5104,17 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.27":
+  version: 0.0.27
+  resolution: "@calcom/platform-libraries@npm:0.0.27"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 516c347b3f71e45879925d31f067035a7c6857dc0f474a726dcb58a7949e1d6906e8e21b18a3a480052088ef742048029509aa74b6bde31b51a13fc6ea00a9f4
   languageName: node
   linkType: hard
 
@@ -12818,6 +12828,31 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-switch@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "@radix-ui/react-switch@npm:1.1.0"
+  dependencies:
+    "@radix-ui/primitive": 1.1.0
+    "@radix-ui/react-compose-refs": 1.1.0
+    "@radix-ui/react-context": 1.1.0
+    "@radix-ui/react-primitive": 2.0.0
+    "@radix-ui/react-use-controllable-state": 1.1.0
+    "@radix-ui/react-use-previous": 1.1.0
+    "@radix-ui/react-use-size": 1.1.0
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: d15ed8714e72cf99ca2650c42e5075181d0a0a4403765e8366c2306452ea304d6f799cbf5d1a472bf8a7967ca8fc080edae8ee99d8cc73c45c88039daefc6dab
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-tabs@npm:^1.0.0":
   version: 1.1.0
   resolution: "@radix-ui/react-tabs@npm:1.1.0"
@@ -13270,6 +13305,21 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 6cc150ad1e9fa85019c225c5a5d50a0af6cdc4653dad0c21b4b40cd2121f36ee076db326c43e6bc91a69766ccff5a84e917d27970176b592577deea3c85a3e26
+  languageName: node
+  linkType: hard
+
+"@radix-ui/react-use-size@npm:1.1.0":
+  version: 1.1.0
+  resolution: "@radix-ui/react-use-size@npm:1.1.0"
+  dependencies:
+    "@radix-ui/react-use-layout-effect": 1.1.0
+  peerDependencies:
+    "@types/react": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 01a11d4c07fc620b8a081e53d7ec8495b19a11e02688f3d9f47cf41a5fe0428d1e52ed60b2bf88dfd447dc2502797b9dad2841097389126dd108530913c4d90d
   languageName: node
   linkType: hard
 
