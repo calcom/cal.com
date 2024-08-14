@@ -189,19 +189,19 @@ jobs:
 
   merge-reports:
     name: Merge reports
-    if: ${{ !cancelled() }}
-    needs: [e2e]
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' }}
+    needs: [check-label, e2e]
     uses: ./.github/workflows/merge-reports.yml
     secrets: inherit
 
   publish-report:
     name: Publish HTML report
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.check-label.outputs.run-e2e == 'true' }}
     permissions:
       contents: write
       issues: write
       pull-requests: write
-    needs: [merge-reports]
+    needs: [check-label, merge-reports]
     uses: ./.github/workflows/publish-report.yml
     secrets: inherit
 
