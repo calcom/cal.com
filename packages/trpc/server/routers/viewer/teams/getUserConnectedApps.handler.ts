@@ -45,7 +45,7 @@ const appDataMap = new Map();
 export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnectedAppsOptions) => {
   const { userIds } = input;
 
-  const credentialsPromises: Promise<Credential>[] = [];
+  const credentialsPromises: Promise<Credential[]>[] = [];
   const userConnectedAppsMap: Record<number, Apps[]> = {};
 
   for (const userId of userIds) {
