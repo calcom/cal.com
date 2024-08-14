@@ -54,11 +54,6 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
           destinationCalendar: true,
         },
       },
-      eventType: {
-        select: {
-          metadata: true,
-        },
-      },
     },
     where: {
       uid: bookingUid,

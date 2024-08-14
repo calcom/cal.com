@@ -165,7 +165,7 @@ export const sendRoundRobinScheduledEmailsAndSMS = async (
 
 export const sendRoundRobinRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  members: Person[],
+  teamMembersAndAttendees: Person[],
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
@@ -353,14 +353,17 @@ export const sendAttendeeRequestEmailAndSMS = async (
   eventTypeMetadata?: EventTypeMetadata
 ) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
-  
+
   const calendarEvent = formatCalEvent(calEvent);
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
   const eventRequestSms = new EventRequestSMS(calendarEvent);
   await eventRequestSms.sendSMSToAttendee(attendee);
 };
 
-export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent, eventTypeMetadata?: EventTypeMetadata) => {
+export const sendDeclinedEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
 
   const calendarEvent = formatCalEvent(calEvent);
