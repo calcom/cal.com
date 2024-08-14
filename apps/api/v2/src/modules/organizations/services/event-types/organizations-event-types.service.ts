@@ -9,7 +9,7 @@ import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
-import { createEventType, updateEventType } from "@calcom/platform-libraries-0.0.19";
+import { createEventType, updateEventType } from "@calcom/platform-libraries";
 import {
   CreateTeamEventTypeInput_2024_06_14,
   UpdateTeamEventTypeInput_2024_06_14,
@@ -90,6 +90,19 @@ export class OrganizationsEventTypesService {
 
   async getTeamEventType(teamId: number, eventTypeId: number) {
     const eventType = await this.organizationEventTypesRepository.getTeamEventType(teamId, eventTypeId);
+
+    if (!eventType) {
+      return null;
+    }
+
+    return this.outputService.getResponseTeamEventType(eventType);
+  }
+
+  async getTeamEventTypeBySlug(teamId: number, eventTypeSlug: string) {
+    const eventType = await this.organizationEventTypesRepository.getTeamEventTypeBySlug(
+      teamId,
+      eventTypeSlug
+    );
 
     if (!eventType) {
       return null;

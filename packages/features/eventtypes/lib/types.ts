@@ -65,9 +65,11 @@ export type FormValues = {
     beginMessage: string;
     yourPhoneNumber: string;
     numberToCall: string;
-    guestName: string;
-    guestEmail: string;
-    guestCompany: string;
+    guestName?: string;
+    guestEmail?: string;
+    guestCompany?: string;
+    templateType: string;
+    schedulerName?: string;
   };
   customInputs: CustomInputParsed[];
   schedule: number | null;
@@ -114,6 +116,7 @@ export type FormValues = {
   multipleDurationEnabled: boolean;
   users: EventTypeSetup["users"];
   assignAllTeamMembers: boolean;
+  rescheduleWithSameRoundRobinHost: boolean;
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;

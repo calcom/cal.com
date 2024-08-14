@@ -22,8 +22,12 @@ import type {
 } from "@calcom/platform-types";
 import { BookerLayouts } from "@calcom/prisma/zod-utils";
 
-import { transformApiEventTypeForAtom } from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
+import {
+  transformApiEventTypeForAtom,
+  transformApiTeamEventTypeForAtom,
+} from "../event-types/atom-api-transformers/transformApiEventTypeForAtom";
 import { useEventType } from "../hooks/event-types/public/useEventType";
+import { useTeamEventType } from "../hooks/event-types/public/useTeamEventType";
 import { useAtomsContext } from "../hooks/useAtomsContext";
 import { useAvailableSlots } from "../hooks/useAvailableSlots";
 import { useCalendarsBusyTimes } from "../hooks/useCalendarsBusyTimes";
@@ -44,7 +48,7 @@ import { AtomsWrapper } from "../src/components/atoms-wrapper";
 export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "entity"> & {
   rescheduleUid?: string;
   bookingUid?: string;
-  username: string | string[];
+  username: string | string[] | undefined;
   entity?: BookerProps["entity"];
   // values for the booking form and booking fields
   defaultFormValues?: {
@@ -68,6 +72,7 @@ export type BookerPlatformWrapperAtomProps = Omit<BookerProps, "username" | "ent
   onDeleteSlotSuccess?: (data: ApiSuccessResponseWithoutData) => void;
   onDeleteSlotError?: (data: ApiErrorResponse) => void;
   locationUrl?: string;
+  teamId?: number;
 };
 
 export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => {
@@ -88,7 +93,10 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
   });
   const queryClient = useQueryClient();
   const username = useMemo(() => {
-    return formatUsername(props.username);
+    if (props.username) {
+      return formatUsername(props.username);
+    }
+    return "";
   }, [props.username]);
 
   setSelectedDuration(props.duration ?? null);
@@ -98,16 +106,45 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
     return getUsernameList(username ?? "").length > 1;
   }, [username]);
 
-  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug);
+  const { isSuccess, isError, isPending, data } = useEventType(username, props.eventSlug, props.isTeamEvent);
+  const {
+    isSuccess: isTeamSuccess,
+    isError: isTeamError,
+    isPending: isTeamPending,
+    data: teamData,
+  } = useTeamEventType(props.teamId, props.eventSlug, props.isTeamEvent);
 
   const event = useMemo(() => {
+    if (props.isTeamEvent) {
+      return {
+        isSuccess: isTeamSuccess,
+        isError: isTeamError,
+        isPending: isTeamPending,
+        data:
+          teamData && teamData.length > 0
+            ? transformApiTeamEventTypeForAtom(teamData[0], props.entity)
+            : undefined,
+      };
+    }
+
     return {
       isSuccess,
       isError,
       isPending,
       data: data && data.length > 0 ? transformApiEventTypeForAtom(data[0], props.entity) : undefined,
     };
-  }, [isSuccess, isError, isPending, data, props.entity]);
+  }, [
+    props.isTeamEvent,
+    props.entity,
+    isSuccess,
+    isError,
+    isPending,
+    data,
+    isTeamSuccess,
+    isTeamError,
+    isTeamPending,
+    teamData,
+  ]);
 
   if (isDynamic && props.duration && event.data) {
     // note(Lauris): Mandatory - In case of "dynamic" event type default event duration returned by the API is 30,
@@ -188,7 +225,7 @@ export const BookerPlatformWrapper = (props: BookerPlatformWrapperAtomProps) => 
       // Should only wait for one or the other, not both.
       (Boolean(eventSlug) || Boolean(event?.data?.id) || event?.data?.id === 0),
     orgSlug: props.entity?.orgSlug ?? undefined,
-    eventTypeSlug: isDynamic ? "dynamic" : undefined,
+    eventTypeSlug: isDynamic ? "dynamic" : eventSlug || "",
   });
 
   const bookerForm = useBookingForm({

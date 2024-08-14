@@ -156,9 +156,6 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
-        if (!!session.data?.user?.org?.id) {
-          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
-        }
         return {
           ...tab,
           name: user?.name || "my_account",
@@ -209,7 +206,7 @@ const BackButtonInSidebar = ({ name }: { name: string }) => {
   return (
     <Link
       href="/"
-      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4"
+      className="hover:bg-subtle todesktop:mt-10 [&[aria-current='page']]:bg-emphasis [&[aria-current='page']]:text-emphasis group-hover:text-default text-emphasis group my-6 flex h-6 max-h-6 w-full flex-row items-center rounded-md px-3 py-2 text-sm font-medium leading-4 transition"
       data-testid={`vertical-tab-${name}`}>
       <Icon
         name="arrow-left"

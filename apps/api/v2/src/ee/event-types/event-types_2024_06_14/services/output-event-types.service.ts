@@ -9,7 +9,9 @@ import {
   parseRecurringEvent,
   TransformedLocationsSchema,
   BookingFieldsSchema,
-} from "@calcom/platform-libraries-0.0.19";
+  SystemField,
+  UserField,
+} from "@calcom/platform-libraries";
 
 type EventTypeRelations = { users: User[]; schedule: Schedule | null };
 type DatabaseEventType = EventType & EventTypeRelations;
@@ -41,7 +43,7 @@ type Input = Pick<
   | "recurringEvent"
   | "metadata"
   | "users"
-  | "schedule"
+  | "scheduleId"
 >;
 
 @Injectable()
@@ -68,13 +70,15 @@ export class OutputEventTypesService_2024_06_14 {
       successRedirectUrl,
       seatsShowAvailabilityCount,
       isInstantEvent,
+      scheduleId,
     } = databaseEventType;
 
     const locations = this.transformLocations(databaseEventType.locations);
-    const bookingFields = this.transformBookingFields(databaseEventType.bookingFields);
+    const bookingFields = databaseEventType.bookingFields
+      ? this.transformBookingFields(BookingFieldsSchema.parse(databaseEventType.bookingFields))
+      : [];
     const recurringEvent = this.transformRecurringEvent(databaseEventType.recurringEvent);
     const metadata = this.transformMetadata(databaseEventType.metadata) || {};
-    const schedule = await this.getSchedule(databaseEventType);
     const users = this.transformUsers(databaseEventType.users);
 
     return {
@@ -104,7 +108,7 @@ export class OutputEventTypesService_2024_06_14 {
       seatsShowAvailabilityCount,
       isInstantEvent,
       users,
-      schedule,
+      scheduleId,
     };
   }
 
@@ -113,9 +117,10 @@ export class OutputEventTypesService_2024_06_14 {
     return getResponseEventTypeLocations(TransformedLocationsSchema.parse(locations));
   }
 
-  transformBookingFields(inputBookingFields: any) {
+  transformBookingFields(inputBookingFields: (SystemField | UserField)[] | null) {
     if (!inputBookingFields) return [];
-    return getResponseEventTypeBookingFields(BookingFieldsSchema.parse(inputBookingFields));
+    const userFields = inputBookingFields.filter((field) => field.editable === "user") as UserField[];
+    return getResponseEventTypeBookingFields(userFields);
   }
 
   transformRecurringEvent(recurringEvent: any) {
@@ -126,10 +131,6 @@ export class OutputEventTypesService_2024_06_14 {
   transformMetadata(metadata: any) {
     if (!metadata) return {};
     return EventTypeMetaDataSchema.parse(metadata);
-  }
-
-  async getSchedule(databaseEventType: Input) {
-    return databaseEventType.schedule || null;
   }
 
   transformUsers(users: User[]) {

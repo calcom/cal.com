@@ -302,6 +302,8 @@ async function postHandler(req: NextApiRequest) {
 
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
+    userId: !!parsedBody.teamId ? null : userId,
+    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
@@ -323,9 +325,8 @@ async function postHandler(req: NextApiRequest) {
     await checkUserMembership(req);
   }
 
-  //checks for owner/admin role on team have been verified above if parentId is present
-  if ((isSystemWideAdmin || parsedBody.parentId) && parsedBody.userId) {
-    data = { ...parsedBody, userId: parsedBody.userId, users: { connect: { id: parsedBody.userId } } };
+  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
+    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
