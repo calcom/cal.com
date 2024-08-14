@@ -66,7 +66,8 @@ export default function CloseComSetup() {
                 form={form}
                 handleSubmit={async (values) => {
                   const { returnTo } = query;
-                  const url = new URL("/api/integrations/closecom/add");
+                  const baseUrl = window.location.origin;
+                  const url = new URL("/api/integrations/closecom/add", baseUrl);
                   if (returnTo) url.searchParams.append("returnTo", `${returnTo}`);
                   const res = await fetch(url.href, {
                     method: "POST",
