@@ -1,4 +1,3 @@
-
 import handleDeleteCredential from "@calcom/features/credentials/handleDeleteCredential";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
