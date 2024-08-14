@@ -598,13 +598,23 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-        const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          // find a lucky user that is not already in the luckyUsers array
-          availableUsers: luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          ),
-          eventTypeId: eventType.id,
-        });
+        const freeUsers = luckyUserPool.filter(
+          (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
+        );
+        const originalRescheduledBookingUserId =
+          originalRescheduledBooking && originalRescheduledBooking.userId;
+        const isSameRoundRobinHost =
+          !!originalRescheduledBookingUserId &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+          eventType.rescheduleWithSameRoundRobinHost;
+
+        const newLuckyUser = isSameRoundRobinHost
+          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
+          : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+              // find a lucky user that is not already in the luckyUsers array
+              availableUsers: freeUsers,
+              eventTypeId: eventType.id,
+            });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
@@ -932,6 +942,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1601,6 +1612,7 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
       orgId,
+      oAuthClientId: platformClientId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,

@@ -8,6 +8,7 @@ export type GetSubscriberOptions = {
   triggerEvent: WebhookTriggerEvents;
   teamId?: number | null;
   orgId?: number | null;
+  oAuthClientId?: string | null;
 };
 
 const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient = defaultPrisma) => {
@@ -15,6 +16,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
   const eventTypeId = options.eventTypeId ?? 0;
   const teamId = options.teamId ?? 0;
   const orgId = options.orgId ?? 0;
+  const oAuthClientId = options.oAuthClientId ?? "";
 
   // if we have userId and teamId it is a managed event type and should trigger for team and user
   const allWebhooks = await prisma.webhook.findMany({
@@ -34,6 +36,7 @@ const getWebhooks = async (options: GetSubscriberOptions, prisma: PrismaClient =
             in: [teamId, orgId],
           },
         },
+        { platformOAuthClientId: oAuthClientId },
       ],
       AND: {
         eventTriggers: {
