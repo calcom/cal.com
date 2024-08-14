@@ -23,14 +23,26 @@ export function EditUserSheet({ state, dispatch }: { state: State; dispatch: Dis
   const { user: selectedUser } = state.editSheet;
   const orgBranding = useOrgBranding();
   const [editMode, setEditMode] = useEditMode((state) => [state.editMode, state.setEditMode], shallow);
-  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery({
-    userId: selectedUser.id,
-  });
+  const { data: loadedUser, isPending } = trpc.viewer.organizations.getUser.useQuery(
+    {
+      // @ts-expect-error we obly enable the query if the user is selected
+      userId: selectedUser.id,
+    },
+    {
+      enabled: !!selectedUser?.id,
+    }
+  );
 
   const { data: usersAttributes, isPending: usersAttributesPending } =
-    trpc.viewer.attributes.getByUserId.useQuery({
-      userId: selectedUser.id,
-    });
+    trpc.viewer.attributes.getByUserId.useQuery(
+      {
+        // @ts-expect-error we obly enable the query if the user is selected
+        userId: selectedUser.id,
+      },
+      {
+        enabled: !!selectedUser?.id,
+      }
+    );
 
   const avatarURL = `${orgBranding?.fullDomain ?? WEBAPP_URL}/${loadedUser?.username}/avatar.png`;
 

@@ -189,7 +189,7 @@ function OrganizationAttributesPage() {
   );
 }
 
-function ListAttributeHeader(props: { isPending: boolean }) {
+function ListAttributeHeader() {
   const { meta } = useMeta();
 
   return (

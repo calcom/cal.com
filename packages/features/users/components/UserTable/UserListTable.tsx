@@ -50,7 +50,7 @@ export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
-  editSheet: Payload & { user: User };
+  editSheet: Payload & { user?: User };
 };
 
 export type Action =
