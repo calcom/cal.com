@@ -25,7 +25,7 @@ export class BookingsService_2024_08_13 {
       throw new Error("Booking was not created");
     }
 
-    const databaseBooking = await this.bookingsRepository.getById(booking.id);
+    const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
     if (!databaseBooking) {
       throw new Error(`Booking with id=${booking.id} was not found in the database`);
     }

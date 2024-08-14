@@ -3,12 +3,17 @@ import {
   IsArray,
   IsDateString,
   IsEmail,
+  IsEnum,
   IsInt,
   IsOptional,
   IsString,
+  IsTimeZone,
   IsUrl,
   ValidateNested,
 } from "class-validator";
+
+import type { BookingLanguageType } from "../inputs/language";
+import { BookingLanguage } from "../inputs/language";
 
 class Attendee {
   @IsString()
@@ -18,6 +23,16 @@ class Attendee {
   @IsEmail()
   @Expose()
   email!: string;
+
+  @IsTimeZone()
+  @Expose()
+  // note(Lauris): setup CapitalizeTimezone
+  timeZone!: string;
+
+  @IsEnum(BookingLanguage)
+  @Expose()
+  @IsOptional()
+  language?: BookingLanguageType;
 }
 
 export class BookingOutput_2024_08_13 {

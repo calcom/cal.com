@@ -14,12 +14,22 @@ export const bookingResponsesSchema = z.object({
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
-  getOutputBooking(databaseBooking: Booking) {
+  getOutputBooking(
+    databaseBooking: Booking & {
+      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    }
+  ) {
     const dateStart = DateTime.fromISO(databaseBooking.startTime.toISOString());
     const dateEnd = DateTime.fromISO(databaseBooking.endTime.toISOString());
     const duration = dateEnd.diff(dateStart, "minutes").minutes;
 
     const bookingResponses = bookingResponsesSchema.parse(databaseBooking.responses);
+    const attendee = databaseBooking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+
+    if (!attendee) {
+      throw new Error("Attendee not found");
+    }
+
     const booking = {
       id: databaseBooking.id,
       start: databaseBooking.startTime,
@@ -27,8 +37,10 @@ export class OutputBookingsService_2024_08_13 {
       duration,
       eventTypeId: databaseBooking.eventTypeId,
       attendee: {
-        name: bookingResponses.name,
-        email: bookingResponses.email,
+        name: attendee.name,
+        email: attendee.email,
+        timeZone: attendee.timeZone,
+        language: attendee.locale,
       },
       guests: bookingResponses.guests,
       meetingUrl: databaseBooking.location,
