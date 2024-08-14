@@ -935,7 +935,6 @@ function SideBar({ bannersHeight, user }: SideBarProps) {
     const publicPageUrl = orgBranding?.slug ? getOrgFullOrigin(orgBranding.slug) : "";
     return publicPageUrl;
   }, [orgBranding?.slug, user?.username, user?.org?.id]);
-  console.log("publicPageUrl", publicPageUrl, orgBranding);
 
   const sidebarStylingAttributes = {
     maxHeight: `calc(100vh - ${bannersHeight}px)`,
