@@ -359,6 +359,7 @@ export const orgSettingsSchema = z
     isOrganizationConfigured: z.boolean().optional(),
     isAdminReviewed: z.boolean().optional(),
     orgAutoAcceptEmail: z.string().optional(),
+    isAdminAPIEnabled: z.boolean().optional(),
   })
   .nullable();
 export type userMetadataType = z.infer<typeof userMetadata>;
@@ -654,6 +655,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
 };
 
 // All properties that are defined as unlocked based on all managed props
