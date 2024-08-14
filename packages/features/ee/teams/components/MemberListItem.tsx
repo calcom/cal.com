@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import useMeQuery from "@calcom/trpc/react/hooks/useMeQuery";
@@ -30,14 +31,19 @@ import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
-type ConnectedAppsType = RouterOutputs["viewer"]["teams"]["getUserConnectedApps"][number]["connectedApps"];
+type ConnectedAppsType = {
+  name: string | null;
+  logo: string | null;
+  externalId: string | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+};
 
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["getTeamWithMinimalData"];
   member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
   searchTerm: string;
-  connectedApps: ConnectedAppsType;
+  connectedApps: ConnectedAppsType[];
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
