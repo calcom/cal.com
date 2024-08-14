@@ -1,4 +1,3 @@
-import type { zodNonRouterField } from "routing-forms/zod";
 import type { z } from "zod";
 
 import logger from "@calcom/lib/logger";
@@ -8,6 +7,7 @@ import { TRPCError } from "@calcom/trpc/server";
 import { jsonLogicToPrisma } from "../jsonLogicToPrisma";
 import { getSerializableForm } from "../lib/getSerializableForm";
 import type { Response } from "../types/types";
+import type { zodNonRouterField } from "../zod";
 import type { TReportInputSchema } from "./report.schema";
 
 interface ReportHandlerOptions {
@@ -19,7 +19,7 @@ interface ReportHandlerOptions {
 
 type Field = z.infer<typeof zodNonRouterField>;
 
-function ensureStringOrStringArray(value: string | number | string[]): string | string[] {
+function ensureStringOrStringArray(value: string | number | (string | number)[]): string | string[] {
   if (typeof value === "string") {
     return value;
   } else if (value instanceof Array) {
@@ -27,6 +27,7 @@ function ensureStringOrStringArray(value: string | number | string[]): string | 
   }
   return [value.toString()];
 }
+
 function getLabelsFromOptionIds({
   options,
   optionIds,
@@ -34,10 +35,11 @@ function getLabelsFromOptionIds({
   options: NonNullable<Field["options"]>;
   optionIds: string | string[];
 }) {
-  console.log({ optionIds });
   if (optionIds instanceof Array) {
     const labels = optionIds.map((optionId) => {
       const foundOption = options.find((option) => option.id === optionId);
+      // It would mean that the optionId is actually a label which is why it isn't matching any option id.
+      // Fallback to optionId which was the case with legacy options
       if (!foundOption) {
         return optionId;
       }
@@ -99,7 +101,6 @@ export const reportHandler = async ({ ctx: { prisma }, input }: ReportHandlerOpt
       if (!r.response) {
         return;
       }
-      console.log({ response: r.response });
       const response = r.response as Response;
       const value = response[field.id]?.value || "";
       const options = field.options;

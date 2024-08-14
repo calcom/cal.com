@@ -16,7 +16,10 @@ export const zodNonRouterField = z.object({
     .array(
       z.object({
         label: z.string(),
-        id: z.string(),
+        // To keep backwards compatibility with the options generated from legacy selectText, we allow saving null as id
+        // It helps in differentiating whether the routing logic should consider the option Label as value or id as value.
+        // This is important for legacy routes which has the option label saved in conditions and it must keep matching with the value of the option
+        id: z.string().or(z.null()),
       })
     )
     .optional(),

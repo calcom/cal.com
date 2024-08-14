@@ -301,6 +301,10 @@ export const createUsersFixture = (
       }
 
       if (scenario.seedRoutingForms) {
+        const option2Uuid = "d1302635-9f12-17b1-9153-c3a854649182";
+        const option1Uuid = "d1292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectLegacyFieldUuid = "d4292635-9f12-17b1-9153-c3a854649182";
+        const multiSelectFieldUuid = "d9892635-9f12-17b1-9153-c3a854649182";
         await prisma.app_RoutingForms_Form.create({
           data: {
             routes: [
@@ -366,6 +370,26 @@ export const createUsersFixture = (
               },
               {
                 id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                action: { type: "customPageMessage", value: "Multiselect(Legacy) chosen" },
+                queryValue: {
+                  id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
+                  type: "group",
+                  children1: {
+                    "b98a8abb-cdef-4012-b456-718262343d27": {
+                      type: "rule",
+                      properties: {
+                        field: multiSelectLegacyFieldUuid,
+                        value: [["Option-2"]],
+                        operator: "multiselect_equals",
+                        valueSrc: ["value"],
+                        valueType: ["multiselect"],
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                id: "bb9ea8b9-0123-4456-b89a-b182623406d8",
                 action: { type: "customPageMessage", value: "Multiselect chosen" },
                 queryValue: {
                   id: "aa8ba8b9-0123-4456-b89a-b182623406d8",
@@ -374,8 +398,8 @@ export const createUsersFixture = (
                     "b98a8abb-cdef-4012-b456-718262343d27": {
                       type: "rule",
                       properties: {
-                        field: "d4292635-9f12-17b1-9153-c3a854649182",
-                        value: [["Option-2"]],
+                        field: multiSelectFieldUuid,
+                        value: [[option2Uuid]],
                         operator: "multiselect_equals",
                         valueSrc: ["value"],
                         valueType: ["multiselect"],
@@ -399,7 +423,7 @@ export const createUsersFixture = (
                 required: true,
               },
               {
-                id: "d4292635-9f12-17b1-9153-c3a854649182",
+                id: multiSelectLegacyFieldUuid,
                 type: "multiselect",
                 label: "Multi Select(with Legacy `selectText`)",
                 identifier: "multi",
@@ -407,18 +431,18 @@ export const createUsersFixture = (
                 required: false,
               },
               {
-                id: "d4292635-9f12-17b1-9153-c3a854649182",
+                id: multiSelectFieldUuid,
                 type: "multiselect",
                 label: "Multi Select",
-                identifier: "multi",
+                identifier: "multi-new-format",
                 options: [
                   {
-                    id: "d1292635-9f12-17b1-9153-c3a854649182",
-                    value: "Option-1",
+                    id: option1Uuid,
+                    label: "Option-1",
                   },
                   {
-                    id: "d1302635-9f12-17b1-9153-c3a854649182",
-                    value: "Option-2",
+                    id: option2Uuid,
+                    label: "Option-2",
                   },
                 ],
                 required: false,

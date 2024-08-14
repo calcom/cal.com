@@ -17,6 +17,11 @@ function todo(title: string) {
   test.skip(title, () => {});
 }
 
+const Identifiers = {
+  multi: "multi",
+  multiNewFormat: "multi-new-format",
+};
+
 test.describe("Routing Forms", () => {
   test.describe("Zero State Routing Forms", () => {
     test("should be able to add a new form and view it", async ({ page }) => {
@@ -254,7 +259,7 @@ test.describe("Routing Forms", () => {
         responses.push(rowResponses);
       }
 
-      expect(headers).toEqual(["Test field", "Multi Select"]);
+      expect(headers).toEqual(["Test field", "Multi Select(with Legacy `selectText`)", "Multi Select"]);
       expect(responses).toEqual([
         ["event-routing", ""],
         ["external-redirect", ""],
@@ -318,8 +323,13 @@ test.describe("Routing Forms", () => {
       await page.goto(`/router?form=${routingForm.id}&Test field=custom-page`);
       await expect(page.locator("text=Custom Page Result")).toBeVisible();
 
-      await page.goto(`/router?form=${routingForm.id}&Test field=doesntmatter&multi=Option-2`);
-      await expect(page.locator("text=Multiselect chosen")).toBeVisible();
+      await page.goto(`/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multi}=Option-2`);
+      await expect(page.locator("text=Multiselect(Legacy) chosen")).toBeVisible({ timeout: 10000 });
+
+      await page.goto(
+        `/router?form=${routingForm.id}&Test field=doesntmatter&${Identifiers.multiNewFormat}=d1302635-9f12-17b1-9153-c3a854649182`
+      );
+      await expect(page.locator("text=Multiselect chosen")).toBeVisible({ timeout: 10000 });
     });
 
     test("Routing Link should validate fields", async ({ page, users }) => {
@@ -364,8 +374,34 @@ test.describe("Routing Forms", () => {
       route = await page.locator('[data-testid="test-routing-result"]').innerText();
       expect(routingType).toBe("External Redirect");
       expect(route).toBe("https://google.com");
+      await page.click('[data-testid="dialog-rejection"]');
+
+      // Multiselect(Legacy)
+      await page.click('[data-testid="test-preview"]');
+      await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
+      await page.click(`[data-testid="form-field-${Identifiers.multi}"]`); // Open dropdown
+      await page.click("text=Option-2"); // Select option
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      expect(routingType).toBe("Custom Page");
+      expect(route).toBe("Multiselect(Legacy) chosen");
+      await page.click('[data-testid="dialog-rejection"]');
+
+      // Multiselect
+      await page.click('[data-testid="test-preview"]');
+      await page.fill('[data-testid="form-field-Test field"]', "doesntmatter");
+      await page.click(`[data-testid="form-field-${Identifiers.multiNewFormat}"]`); // Open dropdown
+      await page.click("text=Option-2"); // Select option
+      await page.click('[data-testid="test-routing"]');
+      routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
+      route = await page.locator('[data-testid="test-routing-result"]').innerText();
+      expect(routingType).toBe("Custom Page");
+      expect(route).toBe("Multiselect chosen");
+      await page.click('[data-testid="dialog-rejection"]');
 
       //fallback route
+      await page.click('[data-testid="test-preview"]');
       await page.fill('[data-testid="form-field-Test field"]', "fallback");
       await page.click('[data-testid="test-routing"]');
       routingType = await page.locator('[data-testid="test-routing-result-type"]').innerText();
