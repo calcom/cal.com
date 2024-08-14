@@ -10,8 +10,8 @@ import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import type { Organizer } from "@calcom/types/Calendar";
 import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
+import type { Organizer } from "@calcom/types/Calendar";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
