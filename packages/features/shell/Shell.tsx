@@ -43,7 +43,7 @@ import {
   DESKTOP_APP_LINK,
   ENABLE_PROFILE_SWITCHER,
   IS_VISUAL_REGRESSION_TESTING,
-  JOIN_DISCORD,
+  JOIN_COMMUNITY,
   ROADMAP,
   TOP_BANNER_HEIGHT,
   WEBAPP_URL,
@@ -82,7 +82,6 @@ import {
   useCalcomTheme,
   type IconName,
 } from "@calcom/ui";
-import { Discord } from "@calcom/ui/components/icon/Discord";
 import { useGetUserAttributes } from "@calcom/web/components/settings/platform/hooks/useGetUserAttributes";
 
 import { useOrgBranding } from "../ee/organizations/context/provider";
@@ -507,11 +506,11 @@ function UserDropdown({ small }: UserDropdownProps) {
 
                 <DropdownMenuItem>
                   <DropdownItem
-                    CustomStartIcon={<Discord className="text-default h-4 w-4" />}
+                    StartIcon="messages-square"
                     target="_blank"
                     rel="noreferrer"
-                    href={JOIN_DISCORD}>
-                    {t("join_our_discord")}
+                    href={JOIN_COMMUNITY}>
+                    {t("join_our_community")}
                   </DropdownItem>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
@@ -659,7 +658,7 @@ const navigation: NavigationItemType[] = [
   {
     name: "insights",
     href: "/insights",
-    icon: "bar-chart",
+    icon: "chart-bar",
   },
 ];
 
@@ -672,7 +671,7 @@ const platformNavigation: NavigationItemType[] = [
   {
     name: "Documentation",
     href: "https://docs.cal.com/docs/platform",
-    icon: "bar-chart",
+    icon: "chart-bar",
     target: "_blank",
   },
   {
@@ -988,7 +987,7 @@ function SideBar({ bannersHeight, user, isPlatformUser = false }: SideBarProps) 
                 </span>
               </div>
             )}
-            <div className="flex justify-end rtl:space-x-reverse">
+            <div className="flex w-full justify-end rtl:space-x-reverse">
               <button
                 color="minimal"
                 onClick={() => window.history.back()}
