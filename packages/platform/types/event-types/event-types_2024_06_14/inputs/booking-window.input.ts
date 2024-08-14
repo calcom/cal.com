@@ -29,7 +29,7 @@ export type TransformFutureBookingsLimitSchema_2024_06_14 = {
 // Base class for common properties and validation
 class BookingWindowBase {
   @IsEnum(BookingWindowPeriodInputTypeEnum_2024_06_14)
-  type!: BookingWindowPeriodInputTypeEnum_2024_06_14;
+  type!: BookingWindowPeriodInputType_2024_06_14;
 }
 
 // Separate classes for different value types
