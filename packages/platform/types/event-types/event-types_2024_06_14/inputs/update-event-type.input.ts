@@ -4,9 +4,9 @@ import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } 
 
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
 import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-window.input";
 import { Host } from "./create-event-type.input";
-import { IntervalLimits_2024_06_14 } from "./interval-limits.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 
@@ -62,16 +62,16 @@ export class UpdateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsCount?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsCount?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsDuration?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   @ValidateBookingWindow()
@@ -153,16 +153,16 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   assignAllTeamMembers?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsCount?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsCount?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsDuration?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   @ValidateBookingWindow()

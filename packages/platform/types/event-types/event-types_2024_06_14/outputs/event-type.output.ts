@@ -12,9 +12,10 @@ import {
 } from "class-validator";
 
 import type { Location_2024_06_14, BookingField_2024_06_14, BookingWindow_2024_06_14 } from "../inputs";
-import { Host as TeamEventTypeHostInput, IntervalLimits_2024_06_14 } from "../inputs";
+import { Host as TeamEventTypeHostInput, BookingLimitsDuration_2024_06_14 } from "../inputs";
 import { RecurringEvent_2024_06_14 } from "../inputs";
 import { ValidateBookingFields_2024_06_14 } from "../inputs/booking-fields.input";
+import type { BookingLimitsCount_2024_06_14 } from "../inputs/booking-limits-count.input";
 import { ValidateLocations_2024_06_14 } from "../inputs/locations.input";
 
 enum SchedulingTypeEnum {
@@ -139,15 +140,15 @@ export class EventTypeOutput_2024_06_14 {
   scheduleId!: number | null;
 
   @IsOptional()
-  bookingLimitsCount?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsDuration?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   bookingWindow?: BookingWindow_2024_06_14;
@@ -268,15 +269,15 @@ export class TeamEventTypeOutput_2024_06_14 {
   assignAllTeamMembers?: boolean;
 
   @IsOptional()
-  bookingLimitsCount?: IntervalLimits_2024_06_14;
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsDuration?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   bookingWindow?: BookingWindow_2024_06_14;

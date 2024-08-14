@@ -1,5 +1,5 @@
 export * from "./create-event-type.input";
-export * from "./interval-limits.input";
+export * from "./booking-limits-duration.input";
 export * from "./booking-window.input";
 export * from "./locations.input";
 export * from "./booking-fields.input";

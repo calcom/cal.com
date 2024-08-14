@@ -13,10 +13,11 @@ import {
 
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
+import { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
+import { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
 import { SchedulingType } from "./enums/scheduling-type";
-import { IntervalLimits_2024_06_14 } from "./interval-limits.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
 import type { Location_2024_06_14 } from "./locations.input";
 
@@ -77,16 +78,16 @@ export class CreateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsCount?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsCount_2024_06_14)
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
   onlyShowFirstAvailableSlot?: boolean;
 
   @IsOptional()
-  @Type(() => IntervalLimits_2024_06_14)
-  bookingLimitsDuration?: IntervalLimits_2024_06_14;
+  @Type(() => BookingLimitsDuration_2024_06_14)
+  bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
   @ValidateBookingWindow()
