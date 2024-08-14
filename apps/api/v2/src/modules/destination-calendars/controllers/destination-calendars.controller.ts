@@ -8,7 +8,7 @@ import {
 } from "@/modules/destination-calendars/outputs/destination-calendars.output";
 import { DestinationCalendarsService } from "@/modules/destination-calendars/services/destination-calendars.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
-import { Body, Controller, Patch, UseGuards } from "@nestjs/common";
+import { Body, Controller, Put, UseGuards } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { plainToClass } from "class-transformer";
 
@@ -22,8 +22,9 @@ import { SUCCESS_STATUS } from "@calcom/platform-constants";
 export class DestinationCalendarsController {
   constructor(private readonly destinationCalendarsService: DestinationCalendarsService) {}
 
-  @Patch("/")
+  @Put("/")
   @UseGuards(ApiAuthGuard)
+  @DocsTags("Select a third party destination calendar where events will be created")
   async updateDestinationCalendars(
     @Body() input: DestinationCalendarsInputBodyDto,
     @GetUser() user: UserWithProfile

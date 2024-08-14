@@ -134,13 +134,12 @@ describe("Platform Destination Calendar Endpoints", () => {
     };
 
     return request(app.getHttpServer())
-      .patch("/v2/destination-calendars")
+      .put("/v2/destination-calendars")
       .set("Authorization", `Bearer ${accessTokenSecret}`)
       .send(body)
       .expect(200)
       .then(async (response) => {
         const responseBody: DestinationCalendarsOutputResponseDto = response.body;
-
         expect(responseBody.status).toEqual(SUCCESS_STATUS);
         expect(responseBody.data).toBeDefined();
         expect(responseBody.data.credentialId).toEqual(appleCalendarCredentials.id);
@@ -148,6 +147,19 @@ describe("Platform Destination Calendar Endpoints", () => {
         expect(responseBody.data.externalId).toEqual(body.externalId);
         expect(responseBody.data.userId).toEqual(user.id);
       });
+  });
+
+  it(`POST /v2/destination-calendars: should fail 400 if calendar type is invalid`, async () => {
+    const body = {
+      integration: "not-supported-calendar",
+      externalId: "https://caldav.icloud.com/20961146906/calendars/83C4F9A1-F1D0-41C7-8FC3-0B$9AE22E813/",
+    };
+
+    return request(app.getHttpServer())
+      .put("/v2/destination-calendars")
+      .set("Authorization", `Bearer ${accessTokenSecret}`)
+      .send(body)
+      .expect(400);
   });
 
   afterAll(async () => {
