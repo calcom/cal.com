@@ -275,31 +275,30 @@ async function postHandler(req: NextApiRequest) {
     children: _,
     ...parsedBody
   } = schemaEventTypeCreateBodyParams.parse(body || {});
-  if (parsedBody.teamId && parsedBody.parentId) {
-    //parentId and teamId can't be used together as parentId is present only for child event types of a managed event
-    //teamId is used for event types belonging to a team
-    //child events of a team event do not have teamId , they are identified via parentId
-    //throw error to avoid unexpected behaviour
-    throw new HttpError({
-      statusCode: 400,
-      message: "`parentId` and `teamId` both cannot be present in the request",
-    });
+  if (parsedBody.teamId) {
+    if (parsedBody.parentId) {
+      // parentId is present only for child event type, teamId is used for event types belonging to team
+      throw new HttpError({
+        statusCode: 400,
+        message: "`parentId` and `teamId` both cannot be present in the request",
+      });
+    }
+    if (parsedBody.userId) {
+      //team event is not associated with an owner or user
+      throw new HttpError({
+        statusCode: 400,
+        message: "`teamId` and `userId` both cannot be present in the request",
+      });
+    }
+  } else {
+    if (parsedBody.schedulingType) {
+      //schedulingType is applicable only for team events
+      throw new HttpError({
+        statusCode: 400,
+        message: "schedulingType is applicable only for team events",
+      });
+    }
   }
-  if (parsedBody.teamId && parsedBody.userId) {
-    //team event is not associated with an owner or user
-    throw new HttpError({
-      statusCode: 400,
-      message: "`teamId` and `userId` both cannot be present in the request",
-    });
-  }
-  if (!parsedBody.teamId && parsedBody.schedulingType) {
-    //schedulingType is applicable only for team events
-    throw new HttpError({
-      statusCode: 400,
-      message: "schedulingType is applicable only for team events",
-    });
-  }
-
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
     userId: !!parsedBody.teamId ? null : userId,
@@ -319,7 +318,6 @@ async function postHandler(req: NextApiRequest) {
 
   await checkPermissions(req);
 
-  //user with admin or owner role on team can create child event types
   if (parsedBody.parentId && !isSystemWideAdmin) {
     await checkParentEventOwnership(req);
     await checkUserMembership(req);
@@ -370,7 +368,7 @@ async function checkPermissions(req: NextApiRequest) {
     if (orgHasLockedEventTypes) {
       throw new HttpError({
         statusCode: 401,
-        message: "ADMIN required , organization has locked eventType creation",
+        message: "ADMIN required, eventType creation for this organization has been locked",
       });
     }
   }

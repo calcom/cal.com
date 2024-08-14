@@ -153,6 +153,29 @@ describe("POST /api/event-types", () => {
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res._getData()).message).toBe("schedulingType is applicable only for team events");
     });
+    test("should throw 401 if organization has locked event type creation", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "test title",
+          slug: "test-slug",
+          length: 60,
+          hidden: true,
+        },
+      });
+
+      req.userId = adminUserId;
+      prismaMock.user.findUnique.mockResolvedValueOnce({ organizationId: 2 });
+      prismaMock.organizationSettings.findUnique.mockResolvedValueOnce({
+        lockEventTypeCreationForUsers: true,
+      });
+
+      await handler(req, res);
+      const data = JSON.parse(res._getData());
+
+      expect(res.statusCode).toBe(401);
+      expect(data.message).toBe("ADMIN required, eventType creation for this organization has been locked");
+    });
   });
 
   describe("Success", () => {
