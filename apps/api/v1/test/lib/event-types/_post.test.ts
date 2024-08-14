@@ -108,10 +108,8 @@ describe("POST /api/event-types", () => {
           hidden: true,
           userId: memberUserId,
           parentId: 9999,
-          teamId: 9999,
         },
       });
-      req.isSystemWideAdmin = true;
       req.userId = adminUserId;
 
       vi.mocked(canUserAccessTeamWithRole).mockImplementationOnce(async () => false);
@@ -130,8 +128,6 @@ describe("POST /api/event-types", () => {
           slug: "test-slug",
           length: 60,
           hidden: true,
-          userId: memberUserId,
-          parentId: 9999,
           teamId: 9999,
         },
       });
