@@ -36,7 +36,7 @@ type Apps = {
   name: string | null;
   logo: string | null;
   externalId: string | null;
-  app: { slug: string; categories: AppCategories[] };
+  app: { slug: string; categories: AppCategories[] } | null;
 };
 
 // This should improve performance saving already app data found.
