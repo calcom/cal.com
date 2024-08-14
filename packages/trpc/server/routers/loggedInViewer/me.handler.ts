@@ -110,7 +110,7 @@ export const meHandler = async ({ ctx, input }: MeOptions) => {
   const profileData = user.organization?.isPlatform
     ? {
         organizationId: null,
-        organization: { isPlatform: true, slug: "", isOrgAdmin: false },
+        organization: { id: -1, isPlatform: true, slug: "", isOrgAdmin: false },
         username: user.username ?? null,
         profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
         profiles: [],
