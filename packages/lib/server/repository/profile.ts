@@ -23,6 +23,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   startTime: true,
   endTime: true,
   bufferTime: true,
+  isPlatformManaged: true,
 });
 
 const membershipSelect = Prisma.validator<Prisma.MembershipSelect>()({
@@ -331,7 +332,10 @@ export class ProfileRepository {
     }
     const user = profile.user;
     if (profile.organization?.isPlatform && !user.isPlatformManaged) {
-      return this.buildPersonalProfileFromUser({ user });
+      return {
+        ...this.buildPersonalProfileFromUser({ user }),
+        ...ProfileRepository.getInheritedDataFromUser({ user }),
+      };
     }
     return {
       ...profile,
