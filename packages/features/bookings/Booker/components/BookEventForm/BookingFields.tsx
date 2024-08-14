@@ -85,7 +85,7 @@ export const BookingFields = ({
 
         // Attendee location field can be edited during reschedule
         if (field.name === SystemField.Enum.location) {
-          if (["attendeeInPerson", "phone", "somewhereElse"].includes(locationResponse?.value)) {
+          if (locationResponse?.value === "attendeeInPerson" || "phone") {
             readOnly = false;
           }
         }
