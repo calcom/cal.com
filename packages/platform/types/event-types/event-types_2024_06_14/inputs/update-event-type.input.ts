@@ -4,7 +4,11 @@ import { IsString, IsInt, IsBoolean, IsOptional, Min, ValidateNested, IsArray } 
 
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
-import { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
+import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import {
+  BookingLimitsDuration_2024_06_14,
+  ValidateBookingLimistsDuration,
+} from "./booking-limits-duration.input";
 import { ValidateBookingWindow, type BookingWindow_2024_06_14 } from "./booking-window.input";
 import { Host } from "./create-event-type.input";
 import { ValidateLocations_2024_06_14 } from "./locations.input";
@@ -62,8 +66,9 @@ export class UpdateEventTypeInput_2024_06_14 {
   scheduleId?: number;
 
   @IsOptional()
-  @Type(() => BookingLimitsDuration_2024_06_14)
-  bookingLimitsCount?: BookingLimitsDuration_2024_06_14;
+  @Type(() => BookingLimitsCount_2024_06_14)
+  @ValidateBookingLimistsCount()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -71,6 +76,7 @@ export class UpdateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookingLimitsDuration_2024_06_14)
+  @ValidateBookingLimistsDuration()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
@@ -153,8 +159,9 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
   assignAllTeamMembers?: boolean;
 
   @IsOptional()
-  @Type(() => BookingLimitsDuration_2024_06_14)
-  bookingLimitsCount?: BookingLimitsDuration_2024_06_14;
+  @Type(() => BookingLimitsCount_2024_06_14)
+  @ValidateBookingLimistsCount()
+  bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
   @IsBoolean()
@@ -162,6 +169,7 @@ export class UpdateTeamEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookingLimitsDuration_2024_06_14)
+  @ValidateBookingLimistsDuration()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()

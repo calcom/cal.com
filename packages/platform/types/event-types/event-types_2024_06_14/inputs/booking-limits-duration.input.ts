@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsInt, IsOptional, Min } from "class-validator";
+import type { ValidatorConstraintInterface, ValidationOptions } from "class-validator";
+import { IsInt, IsOptional, Min, ValidatorConstraint, registerDecorator } from "class-validator";
 
 export class BookingLimitsDuration_2024_06_14 {
   @IsOptional()
@@ -37,4 +38,57 @@ export class BookingLimitsDuration_2024_06_14 {
     example: 240,
   })
   year?: number;
+}
+
+@ValidatorConstraint({ name: "BookingLimitsDurationValidator", async: false })
+class BookingLimitsDurationValidator implements ValidatorConstraintInterface {
+  private errorDetails: {
+    invalidLimit?: string;
+    comparedLimit?: string;
+  } = {};
+  validate(value: BookingLimitsDuration_2024_06_14) {
+    if (!value) return false;
+
+    const { day, week, month, year } = value;
+
+    // Check if 'day' exceeds 'week', 'month', or 'year'
+    if (day && ((week && day > week) || (month && day > month) || (year && day > year))) {
+      this.errorDetails.invalidLimit = "day";
+      this.errorDetails.comparedLimit = week && day > week ? "week" : month && day > month ? "month" : "year";
+      return false;
+    }
+
+    // Check if 'week' exceeds 'month' or 'year'
+    if (week && ((month && week > month) || (year && week > year))) {
+      this.errorDetails.invalidLimit = "week";
+      this.errorDetails.comparedLimit = month && week > month ? "month" : "year";
+      return false;
+    }
+
+    // Check if 'month' exceeds 'year'
+    if (month && year && month > year) {
+      this.errorDetails.invalidLimit = "month";
+      this.errorDetails.comparedLimit = "year";
+      return false;
+    }
+
+    return true;
+  }
+
+  defaultMessage() {
+    const { invalidLimit, comparedLimit } = this.errorDetails;
+    return `Invalid booking durations: The duration of bookings for ${invalidLimit} cannot exceed the duration of bookings for ${comparedLimit}.`;
+  }
+}
+
+export function ValidateBookingLimistsDuration(validationOptions?: ValidationOptions) {
+  return function (object: any, propertyName: string) {
+    registerDecorator({
+      name: "ValidateBookingLimistsDuration",
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: new BookingLimitsDurationValidator(),
+    });
+  };
 }

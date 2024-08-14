@@ -13,8 +13,11 @@ import {
 
 import type { BookingField_2024_06_14 } from "./booking-fields.input";
 import { ValidateBookingFields_2024_06_14 } from "./booking-fields.input";
-import { BookingLimitsCount_2024_06_14 } from "./booking-limits-count.input";
-import { BookingLimitsDuration_2024_06_14 } from "./booking-limits-duration.input";
+import { BookingLimitsCount_2024_06_14, ValidateBookingLimistsCount } from "./booking-limits-count.input";
+import {
+  BookingLimitsDuration_2024_06_14,
+  ValidateBookingLimistsDuration,
+} from "./booking-limits-duration.input";
 import type { BookingWindow_2024_06_14 } from "./booking-window.input";
 import { ValidateBookingWindow } from "./booking-window.input";
 import { SchedulingType } from "./enums/scheduling-type";
@@ -79,6 +82,7 @@ export class CreateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookingLimitsCount_2024_06_14)
+  @ValidateBookingLimistsCount()
   bookingLimitsCount?: BookingLimitsCount_2024_06_14;
 
   @IsOptional()
@@ -87,6 +91,7 @@ export class CreateEventTypeInput_2024_06_14 {
 
   @IsOptional()
   @Type(() => BookingLimitsDuration_2024_06_14)
+  @ValidateBookingLimistsDuration()
   bookingLimitsDuration?: BookingLimitsDuration_2024_06_14;
 
   @IsOptional()
