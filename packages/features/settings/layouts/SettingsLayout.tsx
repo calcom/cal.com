@@ -182,8 +182,10 @@ const useTabs = () => {
           (childTab) => childTab.href !== "/settings/security/two-factor-auth"
         );
         return { ...tab, children: filtered };
-      } else if (tab.href === "/settings/developer" && !!orgBranding) {
-        const filtered = tab?.children?.filter((childTab) => childTab.name !== "admin_api");
+      } else if (tab.href === "/settings/developer") {
+        const filtered = tab?.children?.filter((childTab) =>
+          childTab.name === "admin_api" ? isOrgAdminOrOwner : true
+        );
         return { ...tab, children: filtered };
       }
       return tab;
