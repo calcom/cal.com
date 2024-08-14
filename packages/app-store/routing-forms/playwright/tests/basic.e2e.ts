@@ -261,9 +261,9 @@ test.describe("Routing Forms", () => {
 
       expect(headers).toEqual(["Test field", "Multi Select(with Legacy `selectText`)", "Multi Select"]);
       expect(responses).toEqual([
-        ["event-routing", ""],
-        ["external-redirect", ""],
-        ["custom-page", ""],
+        ["event-routing", "", ""],
+        ["external-redirect", "", ""],
+        ["custom-page", "", ""],
       ]);
 
       await page.goto(`apps/routing-forms/route-builder/${routingForm.id}`);
@@ -286,19 +286,21 @@ test.describe("Routing Forms", () => {
       });
       const csvRows = csv.trim().split("\n");
       const csvHeaderRow = csvRows[0];
-      expect(csvHeaderRow).toEqual("Test field,Multi Select,Submission Time");
+      expect(csvHeaderRow).toEqual(
+        "Test field,Multi Select(with Legacy `selectText`),Multi Select,Submission Time"
+      );
 
       const firstResponseCells = csvRows[1].split(",");
       const secondResponseCells = csvRows[2].split(",");
       const thirdResponseCells = csvRows[3].split(",");
 
-      expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,");
+      expect(firstResponseCells.slice(0, -1).join(",")).toEqual("event-routing,,");
       expect(new Date(firstResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
-      expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,");
+      expect(secondResponseCells.slice(0, -1).join(",")).toEqual("external-redirect,,");
       expect(new Date(secondResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
 
-      expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,");
+      expect(thirdResponseCells.slice(0, -1).join(",")).toEqual("custom-page,,");
       expect(new Date(thirdResponseCells.at(-1) as string).getDay()).toEqual(new Date().getDay());
     });
 

@@ -1,10 +1,58 @@
 import type { Field, Response } from "../types/types";
 
-export default function transformResponse({
+/**
+ * It takes care of correctly transforming the input to label or id depending on various cases
+ * - It allows us to prefill with ID or Label
+ * - It allows backward compatibility with legacy routes(with labels for options)
+ */
+function transformSelectValue({
+  field,
+  idOrLabel,
+}: {
+  field: Pick<Field, "options" | "type">;
+  idOrLabel: string;
+}) {
+  idOrLabel = idOrLabel.trim();
+  const options = field.options;
+  if (!options) {
+    return idOrLabel;
+  }
+  const areOptionsInLegacyFormat = !!options.find((option) => !option.id);
+  // Because for legacy saved options, routes must have labels in them instead of ids
+  const shouldUseLabelAsValue = areOptionsInLegacyFormat;
+  const foundOptionById = options.find((option) => option.id === idOrLabel);
+  if (foundOptionById) {
+    if (shouldUseLabelAsValue) {
+      return foundOptionById.label;
+    } else {
+      // If shouldUseLabelAsValue is false, then we must use id as value
+      // Because shouldUseLabelAsValue is false, id must be set already
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return foundOptionById.id!;
+    }
+  } else {
+    // No option was found that matches ID
+    // So check if the label is provided
+    const foundOptionByLabel = options.find((option) => {
+      return option.label === idOrLabel;
+    });
+    if (foundOptionByLabel) {
+      if (!shouldUseLabelAsValue) {
+        // If shouldUseLabelAsValue is false, then we must use id as value
+        // Because shouldUseLabelAsValue is false, id must be set already
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        return foundOptionByLabel.id!;
+      }
+    }
+  }
+  return idOrLabel;
+}
+
+export function getFieldResponseForJsonLogic({
   field,
   value,
 }: {
-  field: Field;
+  field: Pick<Field, "options" | "type">;
   value: Response[string]["value"] | undefined;
 }) {
   if (!value) {
@@ -17,58 +65,25 @@ export default function transformResponse({
     }
     return value;
   }
-  if (field.type === "multiselect" || field.type === "select") {
+  if (field.type === "multiselect") {
     // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
-    let valueOrLabelArray =
-      value instanceof Array
-        ? value
-        : value
-            .toString()
-            .split(",")
-            .map((v) => v.trim());
+    let valueOrLabelArray = value instanceof Array ? value : value.toString().split(",");
 
-    const areOptionsInLegacyFormat = !!field.options?.find((option) => !option.id);
-    const shouldUseLabelAsValue = areOptionsInLegacyFormat;
-    const options = field.options;
-    if (!options) {
-      return valueOrLabelArray;
-    }
     valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
-      const foundOptionById = options.find((option) => {
-        return option.id === idOrLabel;
-      });
-
-      if (foundOptionById) {
-        if (shouldUseLabelAsValue) {
-          return foundOptionById.label;
-        } else {
-          // If shouldUseLabelAsValue is false, then we must use id as value
-          // Because shouldUseLabelAsValue is false, id must be set already
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          return foundOptionById.id!;
-        }
-      } else {
-        // No option was found that matches ID
-        // So check if the label is provided
-        const foundOptionByLabel = options.find((option) => {
-          return option.label === idOrLabel;
-        });
-        if (foundOptionByLabel) {
-          if (!shouldUseLabelAsValue) {
-            // If shouldUseLabelAsValue is false, then we must use id as value
-            // Because shouldUseLabelAsValue is false, id must be set already
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-            return foundOptionByLabel.id!;
-          }
-        }
-      }
-      return idOrLabel;
+      return transformSelectValue({ field, idOrLabel });
     });
 
-    if (field.type === "select") {
-      return valueOrLabelArray[0];
-    }
     return valueOrLabelArray;
+  }
+
+  if (field.type === "select") {
+    const valueAsStringOrStringArray = typeof value === "number" ? String(value) : value;
+    const valueAsString =
+      valueAsStringOrStringArray instanceof Array
+        ? valueAsStringOrStringArray[0]
+        : valueAsStringOrStringArray;
+
+    return transformSelectValue({ field, idOrLabel: valueAsString });
   }
   return value;
 }

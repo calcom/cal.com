@@ -5,7 +5,7 @@ import getFieldIdentifier from "../lib/getFieldIdentifier";
 import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
-import transformResponse from "../lib/transformResponse";
+import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
 import type { SerializableForm, Response } from "../types/types";
 
 type Props = {
@@ -56,7 +56,7 @@ export default function FormInputFields(props: Props) {
                     ...response,
                     [field.id]: {
                       label: field.label,
-                      value: transformResponse({ field, value }),
+                      value: getFieldResponseForJsonLogic({ field, value }),
                     },
                   };
                 });

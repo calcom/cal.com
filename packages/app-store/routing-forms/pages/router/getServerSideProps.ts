@@ -12,7 +12,7 @@ import getFieldIdentifier from "../../lib/getFieldIdentifier";
 import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
-import transformResponse from "../../lib/transformResponse";
+import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
 import type { Response } from "../../types/types";
 import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
 
@@ -105,7 +105,7 @@ export const getServerSideProps = async function getServerSideProps(
 
     response[field.id] = {
       label: field.label,
-      value: transformResponse({ field, value: fieldResponse }),
+      value: getFieldResponseForJsonLogic({ field, value: fieldResponse }),
     };
   });
 

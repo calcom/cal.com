@@ -12,14 +12,14 @@ import type { Response, SerializableForm } from "../types/types";
 
 function getFieldResponseInNewFormat({
   field,
-  fieldResponse,
+  fieldResponseValue,
 }: {
-  fieldResponse: Response[keyof Response];
+  fieldResponseValue: Response[keyof Response]["value"];
   field: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
 }) {
   if (field.type === "select" || field.type === "multiselect") {
-    const valueArray = fieldResponse.value instanceof Array ? fieldResponse.value : [fieldResponse.value];
-    const fieldResponseValue = valueArray.map((idOrLabel) => {
+    const valueArray = fieldResponseValue instanceof Array ? fieldResponseValue : [fieldResponseValue];
+    const chosenOptions = valueArray.map((idOrLabel) => {
       const foundOptionById = field.options?.find((option) => {
         return option.id === idOrLabel;
       });
@@ -36,24 +36,33 @@ function getFieldResponseInNewFormat({
       }
     });
     return {
-      ...fieldResponse,
-      value: fieldResponse.value,
-      response: fieldResponseValue,
+      // value is a legacy prop that is just sending the labels which can change
+      value: chosenOptions.map((option) => option.label),
+      // response is new prop that is sending the label along with id(which doesn't change)
+      response: chosenOptions,
     };
   }
 
   return {
-    ...fieldResponse,
-    value: fieldResponse.value,
-    response: fieldResponse.value,
-  }
+    value: fieldResponseValue,
+    response: fieldResponseValue,
+  };
 }
 
-type SelectFieldWebhookResponse = string | number| string[] | { label: string; id: string | null };
-type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<string, {
-  response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
-  value: Response[keyof Response]["value"];
-}>
+type SelectFieldWebhookResponse = string | number | string[] | { label: string; id: string | null };
+type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
+  string,
+  {
+    /**
+     * Deprecates `value` prop as it now has both the id(that doesn't change) and the label(that can change but is human friendly)
+     */
+    response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
+    /**
+     * @deprecated Use `response` instead
+     */
+    value: Response[keyof Response]["value"];
+  }
+>;
 
 export async function onFormSubmission(
   form: Ensure<
@@ -73,7 +82,10 @@ export async function onFormSubmission(
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
       (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
-    fieldResponsesByIdentifier[key] = getFieldResponseInNewFormat({ fieldResponse, field })
+    fieldResponsesByIdentifier[key] = getFieldResponseInNewFormat({
+      fieldResponseValue: fieldResponse.value,
+      field,
+    });
   }
 
   const { userId, teamId } = getWebhookTargetEntity(form);
