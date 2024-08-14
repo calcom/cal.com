@@ -95,6 +95,64 @@ describe("POST /api/event-types", () => {
       expect(res.statusCode).toBe(400);
       expect(JSON.parse(res._getData()).message).toBe("`userId` or `teamId` required");
     });
+    test("should throw 400 if parentId and teamId is present in request", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          parentId: 9999,
+          teamId: 9999,
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe(
+        "`parentId` and `teamId` both cannot be present in the request"
+      );
+    });
+    test("should throw 400 if teamId and userId is present in request", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          userId: 9999,
+          teamId: 9999,
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe(
+        "`teamId` and `userId` both cannot be present in the request"
+      );
+    });
+    test("should throw 400 if schedulingType is present for non team events", async () => {
+      const { req, res } = createMocks<CustomNextApiRequest, CustomNextApiResponse>({
+        method: "POST",
+        body: {
+          title: "Tennis class",
+          slug: "tennis-class-{{$guid}}",
+          length: 60,
+          hidden: true,
+          userId: 9999,
+          schedulingType: "ROUND_ROBIN",
+        },
+      });
+
+      await handler(req, res);
+
+      expect(res.statusCode).toBe(400);
+      expect(JSON.parse(res._getData()).message).toBe("schedulingType is applicable only for team events");
+    });
   });
 
   describe("Success", () => {
