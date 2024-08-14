@@ -187,6 +187,13 @@ export const iso8601 = z.string().transform((val, ctx) => {
   return d;
 });
 
+export const eventTypeColor = z
+  .object({
+    lightEventTypeColor: z.string(),
+    darkEventTypeColor: z.string(),
+  })
+  .nullable();
+
 export const intervalLimitsType = z
   .object({
     PER_DAY: z.number().optional(),
@@ -663,6 +670,7 @@ export const allManagedEventTypeProps: { [k in keyof Omit<Prisma.EventTypeSelect
   lockTimeZoneToggleOnBookingPage: true,
   requiresBookerEmailVerification: true,
   assignAllTeamMembers: true,
+  eventTypeColor: true,
   rescheduleWithSameRoundRobinHost: true,
 };
 

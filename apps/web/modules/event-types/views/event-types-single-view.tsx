@@ -282,6 +282,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       length: eventType.length,
       hidden: eventType.hidden,
       hashedLink: eventType.hashedLink?.link || undefined,
+      eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -518,6 +519,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
@@ -545,6 +548,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
+      eventTypeColor,
       locations,
       metadata,
       customInputs,
@@ -615,6 +619,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       bookingLimits,
       onlyShowFirstAvailableSlot,
       durationLimits,
+      eventTypeColor,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,
@@ -703,6 +708,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
+              eventTypeColor,
               locations,
               metadata,
               customInputs,
@@ -765,6 +771,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               bookingLimits,
               onlyShowFirstAvailableSlot,
               durationLimits,
+              eventTypeColor,
               seatsPerTimeSlot,
               seatsShowAttendees,
               seatsShowAvailabilityCount,
