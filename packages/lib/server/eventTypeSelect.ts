@@ -51,4 +51,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   secondaryEmailId: true,
   bookingLimits: true,
   durationLimits: true,
+  eventTypeColor: true,
 });
