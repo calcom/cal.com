@@ -1,5 +1,6 @@
-import Page from "@pages/settings/security/password";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "~/settings/security/password-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

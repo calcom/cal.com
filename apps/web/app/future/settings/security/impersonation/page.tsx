@@ -1,5 +1,6 @@
-import Page from "@pages/settings/security/impersonation";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "~/settings/security/impersonation-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(

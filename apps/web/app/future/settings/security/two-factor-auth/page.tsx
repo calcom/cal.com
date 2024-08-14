@@ -1,5 +1,6 @@
-import Page from "@pages/settings/security/two-factor-auth";
 import { _generateMetadata } from "app/_utils";
+
+import Page from "~/settings/security/two-factor-auth-view";
 
 export const generateMetadata = async () =>
   await _generateMetadata(
