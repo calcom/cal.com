@@ -23,6 +23,7 @@ const fieldTypeEnum = z.enum([
   "radio",
   "radioInput",
   "boolean",
+  "url",
 ]);
 
 export type FieldType = z.infer<typeof fieldTypeEnum>;
@@ -366,6 +367,22 @@ export const fieldTypesSchemaMap: Partial<
           message: m(`Min. ${minLength} characters required`),
         });
         return;
+      }
+    },
+  },
+  url: {
+    preprocess: ({ response }) => {
+      return response.trim();
+    },
+    superRefine: ({ response, ctx, m }) => {
+      const value = response ?? "";
+      const urlSchema = z.string().url();
+
+      if (!urlSchema.safeParse(value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: m("url_validation_error"),
+        });
       }
     },
   },

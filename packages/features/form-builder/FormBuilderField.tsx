@@ -114,7 +114,11 @@ export const FormBuilderField = ({
   const { t } = useLocale();
   const { control, formState } = useFormContext();
 
-  const { hidden, placeholder, label } = getAndUpdateNormalizedValues(field, t);
+
+  const { hidden, placeholder, label, noLabel, translatedDefaultLabel } = getAndUpdateNormalizedValues(
+    field,
+    t
+  );
   const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
   return (
@@ -133,6 +137,8 @@ export const FormBuilderField = ({
                 setValue={(val: unknown) => {
                   onChange(val);
                 }}
+                noLabel={noLabel}
+                translatedDefaultLabel={translatedDefaultLabel}
               />
               <ErrorMessage
                 name="responses"
@@ -171,6 +177,7 @@ export const FormBuilderField = ({
   );
 };
 
+
 function assertUnreachable(arg: never) {
   throw new Error(`Don't know how to handle ${JSON.stringify(arg)}`);
 }
@@ -181,10 +188,12 @@ const WithLabel = ({
   field,
   children,
   readOnly,
+  noLabel = false,
 }: {
   field: Partial<RhfFormField>;
   readOnly: boolean;
   children: React.ReactNode;
+  noLabel?: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -193,17 +202,21 @@ const WithLabel = ({
       {/* multiemail doesnt show label initially. It is shown on clicking CTA */}
       {/* boolean type doesn't have a label overall, the radio has it's own label */}
       {/* Component itself managing it's label should remove these checks */}
-      {field.type !== "boolean" && field.type !== "multiemail" && field.label && (
-        <div className="mb-2 flex items-center">
-          <Label className="!mb-0 flex">
-            <span>{field.label}</span>
-            <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
-              {!readOnly && field.required ? "*" : ""}
-            </span>
-            {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
-          </Label>
-        </div>
-      )}
+      {noLabel
+        ? null
+        : field.type !== "boolean" &&
+          field.type !== "multiemail" &&
+          field.label && (
+            <div className="mb-2 flex items-center">
+              <Label className="!mb-0 flex">
+                <span>{field.label}</span>
+                <span className="text-emphasis -mb-1 ml-1 text-sm font-medium leading-none">
+                  {!readOnly && field.required ? "*" : ""}
+                </span>
+                {field.type === "phone" && <InfoBadge content={t("number_in_international_format")} />}
+              </Label>
+            </div>
+          )}
       {children}
     </div>
   );
@@ -212,7 +225,7 @@ const WithLabel = ({
 /**
  * Ensures that `labels` and `placeholders`, wherever they are, are set properly. If direct values are not set, default values from fieldTypeConfig are used.
  */
-export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
+function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TFunction) {
   let noLabel = false;
   let hidden = !!field.hidden;
   if (field.type === "radioInput") {
@@ -225,6 +238,7 @@ export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TF
         throw new Error("radioInput must have optionsInputs");
       }
       if (field.optionsInputs[options[0].value]) {
+        // We don't show the label in this case because the optionInput itself will decide what label to show
         noLabel = true;
       } else {
         // If there's only one option and it doesn't have an input, we don't show the field at all because it's visible in the left side bar
@@ -240,7 +254,8 @@ export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TF
     throw new Error(`${field.name}:${field.type} type must have labelAsSafeHtml set`);
   }
 
-  const label = noLabel ? "" : field.labelAsSafeHtml || field.label || t(field.defaultLabel || "");
+  const translatedDefaultLabel = t(field.defaultLabel || "");
+  const label = field.labelAsSafeHtml || field.label || translatedDefaultLabel;
   const placeholder = field.placeholder || t(field.defaultPlaceholder || "");
 
   if (field.variantsConfig?.variants) {
@@ -255,7 +270,7 @@ export function getAndUpdateNormalizedValues(field: RhfFormFields[number], t: TF
     });
   }
 
-  return { hidden, placeholder, label };
+  return { hidden, placeholder, label, noLabel, translatedDefaultLabel };
 }
 
 export const ComponentForField = ({
@@ -263,12 +278,16 @@ export const ComponentForField = ({
   value,
   setValue,
   readOnly,
+  noLabel,
+  translatedDefaultLabel,
 }: {
   field: Omit<RhfFormField, "editable" | "label"> & {
     // Label is optional because radioInput doesn't have a label
     label?: string;
   };
   readOnly: boolean;
+  noLabel?: boolean;
+  translatedDefaultLabel?: string;
 } & ValueProps) => {
   const fieldType = field.type || "text";
   const componentConfig = Components[fieldType];
@@ -288,7 +307,7 @@ export const ComponentForField = ({
   }
   if (componentConfig.propsType === "text") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           minLength={field.minLength}
@@ -305,7 +324,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "boolean") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           name={field.name}
           label={field.label}
@@ -320,7 +339,7 @@ export const ComponentForField = ({
 
   if (componentConfig.propsType === "textList") {
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -339,7 +358,7 @@ export const ComponentForField = ({
     }
 
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           readOnly={readOnly}
           value={value as string}
@@ -357,7 +376,7 @@ export const ComponentForField = ({
       throw new Error("Field options is not defined");
     }
     return (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           name={field.name}
@@ -381,16 +400,18 @@ export const ComponentForField = ({
     const options = field.options;
 
     return field.options.length ? (
-      <WithLabel field={field} readOnly={readOnly}>
+      <WithLabel field={field} readOnly={readOnly} noLabel={noLabel}>
         <componentConfig.factory
           placeholder={field.placeholder}
           readOnly={readOnly}
           name={field.name}
+          label={field.label}
           value={value as { value: string; optionValue: string }}
           setValue={setValue as (arg: typeof value) => void}
           optionsInputs={field.optionsInputs}
           options={options}
           required={field.required}
+          translatedDefaultLabel={translatedDefaultLabel}
         />
       </WithLabel>
     ) : null;
