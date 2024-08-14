@@ -2,10 +2,10 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { Controller, Post, Logger, Body, Headers, UseGuards } from "@nestjs/common";
+import { Controller, Post, Logger, Body, UseGuards, Req } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
+import { Request } from "express";
 
-import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInputPipe,
@@ -27,10 +27,9 @@ export class BookingsController_2024_08_13 {
   async createBooking(
     @Body(new CreateBookingInputPipe(CreateBookingInput_2024_08_13, RescheduleBookingInput_2024_08_13))
     body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13,
-    @Headers(X_CAL_CLIENT_ID) clientId: string | undefined
+    @Req() request: Request
   ): Promise<CreateBookingOutput_2024_08_13> {
-    console.log("asap body", JSON.stringify(body));
-    const booking = await this.bookingsService.createBooking(body, clientId);
+    const booking = await this.bookingsService.createBooking(request, body);
 
     return {
       status: "success",

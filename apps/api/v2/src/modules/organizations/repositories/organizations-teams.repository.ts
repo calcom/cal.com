@@ -17,6 +17,14 @@ export class OrganizationsTeamsRepository {
     });
   }
 
+  async findTeamById(teamId: number) {
+    return this.dbRead.prisma.team.findUnique({
+      where: {
+        id: teamId,
+      },
+    });
+  }
+
   async findOrgTeams(organizationId: number) {
     return this.dbRead.prisma.team.findMany({
       where: {

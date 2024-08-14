@@ -17,6 +17,9 @@ import type { BookingLanguageType } from "./language";
 import { BookingLanguage } from "./language";
 
 class Attendee {
+  @IsString()
+  name!: string;
+
   @IsEmail()
   email!: string;
 
@@ -25,7 +28,8 @@ class Attendee {
   timeZone!: string;
 
   @IsEnum(BookingLanguage)
-  language!: BookingLanguageType;
+  @IsOptional()
+  language?: BookingLanguageType;
 }
 export class CreateBookingInput_2024_08_13 {
   @IsDateString()
@@ -36,7 +40,6 @@ export class CreateBookingInput_2024_08_13 {
 
   @ValidateNested()
   @Type(() => Attendee)
-  @IsArray()
   attendee!: Attendee;
 
   @IsArray()
@@ -45,12 +48,15 @@ export class CreateBookingInput_2024_08_13 {
   guests?: string[];
 
   @IsUrl()
-  meetingUrl!: string;
+  @IsOptional()
+  meetingUrl?: string;
 
   @IsObject()
+  @IsOptional()
   metadata!: Record<string, unknown>;
 
   @IsObject()
+  @IsOptional()
   bookingFieldsResponses!: Record<string, unknown>;
 }
 

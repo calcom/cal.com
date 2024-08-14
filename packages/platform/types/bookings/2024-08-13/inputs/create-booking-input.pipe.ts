@@ -1,12 +1,11 @@
 import type { PipeTransform } from "@nestjs/common";
 import { Injectable, BadRequestException } from "@nestjs/common";
+import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
 
-import type {
-  CreateBookingInput_2024_08_13,
-  RescheduleBookingInput_2024_08_13,
-} from "./create-booking.input";
+import { RescheduleBookingInput_2024_08_13 } from "./create-booking.input";
+import { CreateBookingInput_2024_08_13 } from "./create-booking.input";
 
 @Injectable()
 export class CreateBookingInputPipe implements PipeTransform {
@@ -15,15 +14,29 @@ export class CreateBookingInputPipe implements PipeTransform {
     private readonly rescheduleDto: typeof RescheduleBookingInput_2024_08_13
   ) {}
 
-  transform(value: any) {
-    const dtoClass = this.determineDtoClass(value);
-
-    if (!dtoClass) {
-      throw new BadRequestException("Invalid request body");
+  transform(value: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
+    if (!value) {
+      throw new BadRequestException("Body is required");
+    }
+    if (typeof value !== "object") {
+      throw new BadRequestException("Body should be an object");
     }
 
-    const object = Object.assign(new dtoClass(), value);
-    const errors = validateSync(object);
+    if (this.isRescheduleBookingInput(value)) {
+      return this.validateRescheduleBooking(value);
+    }
+
+    return this.validateBooking(value);
+  }
+
+  validateBooking(value: CreateBookingInput_2024_08_13) {
+    const object = plainToClass(CreateBookingInput_2024_08_13, value);
+
+    const errors = validateSync(object, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      skipMissingProperties: false,
+    });
 
     if (errors.length > 0) {
       throw new BadRequestException(this.formatErrors(errors));
@@ -32,27 +45,36 @@ export class CreateBookingInputPipe implements PipeTransform {
     return object;
   }
 
-  private determineDtoClass(
-    value: any
-  ): typeof CreateBookingInput_2024_08_13 | typeof RescheduleBookingInput_2024_08_13 | null {
-    if (!value) {
-      return null;
+  validateRescheduleBooking(value: RescheduleBookingInput_2024_08_13) {
+    const object = plainToClass(RescheduleBookingInput_2024_08_13, value);
+
+    const errors = validateSync(object, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      skipMissingProperties: false,
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException(this.formatErrors(errors));
     }
 
-    if (value.hasOwnProperty("rescheduleBookingUid")) {
-      return this.rescheduleDto;
-    } else {
-      return this.bookingDto;
-    }
+    return object;
   }
 
   private formatErrors(errors: ValidationError[]): string {
     return errors
       .map((err) => {
-        return `${err.property} has wrong value ${err.value}, ${Object.values(err.constraints || {}).join(
-          ", "
-        )}`;
+        const constraints = err.constraints ? Object.values(err.constraints).join(", ") : "";
+        const childrenErrors =
+          err.children && err.children.length > 0 ? `${this.formatErrors(err.children)}` : "";
+        return `${err.property} property is wrong,${constraints} ${childrenErrors}`;
       })
       .join(", ");
+  }
+
+  private isRescheduleBookingInput(
+    value: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
+  ): value is RescheduleBookingInput_2024_08_13 {
+    return value.hasOwnProperty("rescheduleBookingUid");
   }
 }

@@ -1,7 +1,9 @@
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { BookingsController_2024_08_13 } from "@/ee/bookings/2024-08-13/controllers/bookings.controller";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { InputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/input.service";
 import { OutputBookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/output.service";
+import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { BillingModule } from "@/modules/billing/billing.module";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -20,6 +22,8 @@ import { Module } from "@nestjs/common";
     BookingsService_2024_08_13,
     InputBookingsService_2024_08_13,
     OutputBookingsService_2024_08_13,
+    BookingsRepository_2024_08_13,
+    EventTypesRepository_2024_06_14,
   ],
   controllers: [BookingsController_2024_08_13],
 })
