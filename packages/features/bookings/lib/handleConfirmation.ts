@@ -111,7 +111,8 @@ export async function handleConfirmation(args: {
         { ...evt, additionalInformation: metadata },
         undefined,
         isHostConfirmationEmailsDisabled,
-        isAttendeeConfirmationEmailDisabled
+        isAttendeeConfirmationEmailDisabled,
+        eventTypeMetadata
       );
     } catch (error) {
       log.error(error);
@@ -255,13 +256,15 @@ export async function handleConfirmation(args: {
       evtOfBooking.uid = updatedBookings[index].uid;
       const isFirstBooking = index === 0;
 
-      await scheduleMandatoryReminder(
-        evtOfBooking,
-        workflows,
-        false,
-        !!updatedBookings[index].eventType?.owner?.hideBranding,
-        evt.attendeeSeatId
-      );
+      if (!eventTypeMetadata?.disableStandardEmails?.all?.attendee) {
+        await scheduleMandatoryReminder(
+          evtOfBooking,
+          workflows,
+          false,
+          !!updatedBookings[index].eventType?.owner?.hideBranding,
+          evt.attendeeSeatId
+        );
+      }
 
       await scheduleWorkflowReminders({
         workflows,
