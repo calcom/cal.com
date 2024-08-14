@@ -10,6 +10,7 @@ import { useDebounce } from "@calcom/lib/hooks/useDebounce";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useParamsWithFallback } from "@calcom/lib/hooks/useParamsWithFallback";
 import { MembershipRole } from "@calcom/prisma/enums";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import { trpc } from "@calcom/trpc/react";
 import { Button, Meta, TextField } from "@calcom/ui";
@@ -31,12 +32,19 @@ interface MembersListProps {
   isOrgAdminOrOwner: boolean | undefined;
 }
 
+type ConnectedAppsType = {
+  name: string | null;
+  logo: string | null;
+  externalId: string | null;
+  app: { slug: string; categories: AppCategories[] } | null;
+};
+
 function MembersList(props: MembersListProps) {
   const { team, isOrgAdminOrOwner } = props;
   const { t } = useLocale();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
-  const [connectedApps, setConnectedApps] = useState({});
+  const [connectedApps, setConnectedApps] = useState<Record<number, ConnectedAppsType[]>>({});
   const [userIds, setUserIds] = useState<number[]>([]);
 
   const { data: getUserConnectedApps } = trpc.viewer.teams.getUserConnectedApps.useQuery(
