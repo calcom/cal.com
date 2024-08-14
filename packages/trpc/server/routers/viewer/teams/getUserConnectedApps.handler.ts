@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { getAppFromSlug } from "@calcom/app-store/utils";
 import type { PrismaClient } from "@calcom/prisma";
+import type { AppCategories } from "@calcom/prisma/enums";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import type { TGetUserConnectedAppsInputSchema } from "./getUserConnectedApps.schema";
@@ -29,14 +30,23 @@ const credentialSelect = Prisma.validator<Prisma.CredentialSelect>()({
   },
 });
 
+type Credential = Prisma.CredentialGetPayload<{ select: typeof credentialSelect }>;
+
+type Apps = {
+  name: string | null;
+  logo: string | null;
+  externalId: string | null;
+  app: { slug: string; categories: AppCategories[] };
+};
+
 // This should improve performance saving already app data found.
 const appDataMap = new Map();
 
 export const getUserConnectedAppsHandler = async ({ ctx, input }: GetUserConnectedAppsOptions) => {
   const { userIds } = input;
 
-  const credentialsPromises: Promise<any> = [];
-  const userConnectedAppsMap: Record<number, Credential[]> = {};
+  const credentialsPromises: Promise<Credential>[] = [];
+  const userConnectedAppsMap: Record<number, Apps[]> = {};
 
   for (const userId of userIds) {
     const cred = ctx.prisma.credential.findMany({
