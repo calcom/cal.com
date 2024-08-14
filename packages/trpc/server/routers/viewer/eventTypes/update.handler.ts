@@ -58,6 +58,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     destinationCalendar,
     customInputs,
     recurringEvent,
+    eventTypeColor,
     users,
     children,
     assignAllTeamMembers,
@@ -143,6 +144,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     bookingFields,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
   if (periodType) {

@@ -4,7 +4,7 @@ import { getLocationGroupedOptions } from "@calcom/app-store/server";
 import { getEventTypeAppData } from "@calcom/app-store/utils";
 import type { LocationObject } from "@calcom/core/location";
 import { getBookingFieldsWithSystemFields } from "@calcom/features/bookings/lib/getBookingFields";
-import { parseBookingLimit, parseDurationLimit, parseRecurringEvent } from "@calcom/lib";
+import { parseBookingLimit, parseDurationLimit, parseRecurringEvent, parseEventTypeColor } from "@calcom/lib";
 import { getUserAvatarUrl } from "@calcom/lib/getAvatarUrl";
 import { getTranslation } from "@calcom/lib/server/i18n";
 import { EventTypeRepository } from "@calcom/lib/server/repository/eventType";
@@ -108,6 +108,7 @@ export const getEventTypeById = async ({
     recurringEvent: parseRecurringEvent(restEventType.recurringEvent),
     bookingLimits: parseBookingLimit(restEventType.bookingLimits),
     durationLimits: parseDurationLimit(restEventType.durationLimits),
+    eventTypeColor: parseEventTypeColor(restEventType.eventTypeColor),
     locations: locations as unknown as LocationObject[],
     metadata: parsedMetaData,
     customInputs: parsedCustomInputs,
