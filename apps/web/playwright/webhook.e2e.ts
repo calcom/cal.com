@@ -708,3 +708,139 @@ test.describe("FORM_SUBMITTED", async () => {
     webhookReceiver.close();
   });
 });
+
+test.describe("OOO_CREATED", async () => {
+  test("on creating an OOO, triggers OOO webhook", async ({ page, users, webhooks }) => {
+    const user = await users.create();
+    await user.apiLogin();
+    const webhookReceiver = await webhooks.createReceiver();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+    await page.getByTestId("reason_select").click();
+
+    await page.getByTestId("select-option-4").click();
+
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+    await page.getByTestId("create-entry-ooo-redirect").click();
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = request.body as any;
+    body.createdAt = dynamic;
+    body.payload.oooEntry.createdAt = dynamic;
+    body.payload.oooEntry.updatedAt = dynamic;
+    body.payload.oooEntry.end = dynamic;
+    body.payload.oooEntry.id = dynamic;
+    body.payload.oooEntry.start = dynamic;
+    body.payload.oooEntry.updatedAt = dynamic;
+    body.payload.oooEntry.user.id = dynamic;
+    body.payload.oooEntry.user.email = dynamic;
+    body.payload.oooEntry.user.username = dynamic;
+    body.payload.oooEntry.uuid = dynamic;
+    expect(body).toEqual({
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        oooEntry: {
+          createdAt: "[redacted/dynamic]",
+          end: "[redacted/dynamic]",
+          id: "[redacted/dynamic]",
+          notes: "Demo notes",
+          reason: {
+            emoji: "🤒",
+            reason: "ooo_reasons_sick_leave",
+          },
+          reasonId: 4,
+          start: "[redacted/dynamic]",
+          toUser: null,
+          updatedAt: "[redacted/dynamic]",
+          user: {
+            id: "[redacted/dynamic]",
+            email: "[redacted/dynamic]",
+            name: null,
+            timeZone: "Europe/London",
+            username: "[redacted/dynamic]",
+          },
+          uuid: "[redacted/dynamic]",
+        },
+      },
+      triggerEvent: "OOO_CREATED",
+    });
+
+    webhookReceiver.close();
+  });
+
+  test("on creating an OOO inside a team, triggers OOO webhook", async ({ page, users, webhooks }) => {
+    const user = await users.create(null, {
+      hasTeam: true,
+    });
+    await user.apiLogin();
+    const { webhookReceiver, teamId } = await webhooks.createTeamReceiver();
+
+    await page.goto("/settings/my-account/out-of-office");
+
+    await page.getByTestId("add_entry_ooo").click();
+    await page.getByTestId("reason_select").click();
+
+    await page.getByTestId("select-option-4").click();
+
+    await page.getByTestId("notes_input").click();
+    await page.getByTestId("notes_input").fill("Demo notes");
+    await page.getByTestId("create-entry-ooo-redirect").click();
+
+    await expect(page.locator(`data-testid=table-redirect-n-a`)).toBeVisible();
+
+    await webhookReceiver.waitForRequestCount(1);
+
+    const [request] = webhookReceiver.requestList;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const body = request.body as any;
+    body.createdAt = dynamic;
+    body.payload.oooEntry.createdAt = dynamic;
+    body.payload.oooEntry.updatedAt = dynamic;
+    body.payload.oooEntry.end = dynamic;
+    body.payload.oooEntry.id = dynamic;
+    body.payload.oooEntry.start = dynamic;
+    body.payload.oooEntry.updatedAt = dynamic;
+    body.payload.oooEntry.user.id = dynamic;
+    body.payload.oooEntry.user.email = dynamic;
+    body.payload.oooEntry.user.username = dynamic;
+    body.payload.oooEntry.uuid = dynamic;
+    expect(body).toEqual({
+      triggerEvent: "OOO_CREATED",
+      createdAt: "[redacted/dynamic]",
+      payload: {
+        oooEntry: {
+          createdAt: "[redacted/dynamic]",
+          end: "[redacted/dynamic]",
+          id: "[redacted/dynamic]",
+          notes: "Demo notes",
+          reason: {
+            emoji: "🤒",
+            reason: "ooo_reasons_sick_leave",
+          },
+          reasonId: 4,
+          start: "[redacted/dynamic]",
+          toUser: null,
+          updatedAt: "[redacted/dynamic]",
+          user: {
+            id: "[redacted/dynamic]",
+            email: "[redacted/dynamic]",
+            name: null,
+            timeZone: "Europe/London",
+            username: "[redacted/dynamic]",
+          },
+          uuid: "[redacted/dynamic]",
+        },
+      },
+    });
+
+    webhookReceiver.close();
+  });
+});
