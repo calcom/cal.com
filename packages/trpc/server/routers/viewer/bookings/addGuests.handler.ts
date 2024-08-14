@@ -117,6 +117,7 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
 
   const attendeesList = await Promise.all(attendeesListPromises);
   const tOrganizer = await getTranslation(organizer.locale ?? "en", "common");
+  const videoCallReference = booking.references.find((reference) => reference.type.includes("_video"));
 
   const evt: CalendarEvent = {
     title: booking.title || "",
@@ -142,6 +143,15 @@ export const addGuestsHandler = async ({ ctx, input }: AddGuestsOptions) => {
     seatsPerTimeSlot: booking.eventType?.seatsPerTimeSlot,
     seatsShowAttendees: booking.eventType?.seatsShowAttendees,
   };
+
+  if (videoCallReference) {
+    evt.videoCallData = {
+      type: videoCallReference.type,
+      id: videoCallReference.meetingId,
+      password: videoCallReference?.meetingPassword,
+      url: videoCallReference.meetingUrl,
+    };
+  }
   try {
     await sendAddGuestsEmails(evt, guests);
   } catch (err) {
