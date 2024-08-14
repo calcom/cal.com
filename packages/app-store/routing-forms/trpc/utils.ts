@@ -10,6 +10,51 @@ import type { Ensure } from "@calcom/types/utils";
 import type { OrderedResponses } from "../types/types";
 import type { Response, SerializableForm } from "../types/types";
 
+function getFieldResponseInNewFormat({
+  field,
+  fieldResponse,
+}: {
+  fieldResponse: Response[keyof Response];
+  field: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
+}) {
+  if (field.type === "select" || field.type === "multiselect") {
+    const valueArray = fieldResponse.value instanceof Array ? fieldResponse.value : [fieldResponse.value];
+    const fieldResponseValue = valueArray.map((idOrLabel) => {
+      const foundOptionById = field.options?.find((option) => {
+        return option.id === idOrLabel;
+      });
+      if (foundOptionById) {
+        return {
+          label: foundOptionById.label,
+          id: foundOptionById.id,
+        };
+      } else {
+        return {
+          label: idOrLabel.toString(),
+          id: null,
+        };
+      }
+    });
+    return {
+      ...fieldResponse,
+      value: fieldResponse.value,
+      response: fieldResponseValue,
+    };
+  }
+
+  return {
+    ...fieldResponse,
+    value: fieldResponse.value,
+    response: fieldResponse.value,
+  }
+}
+
+type SelectFieldWebhookResponse = string | number| string[] | { label: string; id: string | null };
+type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<string, {
+  response: number | string | string[] | SelectFieldWebhookResponse | SelectFieldWebhookResponse[];
+  value: Response[keyof Response]["value"];
+}>
+
 export async function onFormSubmission(
   form: Ensure<
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
@@ -17,21 +62,18 @@ export async function onFormSubmission(
   >,
   response: Response
 ) {
-  const fieldResponsesByName: Record<
-    string,
-    {
-      value: Response[keyof Response]["value"];
-    }
-  > = {};
+  const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
   for (const [fieldId, fieldResponse] of Object.entries(response)) {
+    const field = form.fields.find((f) => f.id === fieldId);
+    if (!field) {
+      throw new Error(`Field with id ${fieldId} not found`);
+    }
     // Use the label lowercased as the key to identify a field.
     const key =
       form.fields.find((f) => f.id === fieldId)?.identifier ||
-      (fieldResponse.label as keyof typeof fieldResponsesByName);
-    fieldResponsesByName[key] = {
-      value: fieldResponse.value,
-    };
+      (fieldResponse.label as keyof typeof fieldResponsesByIdentifier);
+    fieldResponsesByIdentifier[key] = getFieldResponseInNewFormat({ fieldResponse, field })
   }
 
   const { userId, teamId } = getWebhookTargetEntity(form);
@@ -57,11 +99,11 @@ export async function onFormSubmission(
         formId: form.id,
         formName: form.name,
         teamId: form.teamId,
-        responses: fieldResponsesByName,
+        responses: fieldResponsesByIdentifier,
       },
       rootData: {
         // Send responses unwrapped at root level for backwards compatibility
-        ...Object.entries(fieldResponsesByName).reduce((acc, [key, value]) => {
+        ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
           acc[key] = value.value;
           return acc;
         }, {} as Record<string, Response[keyof Response]["value"]>),

@@ -15,7 +15,11 @@ export const substituteVariables = (
 
   variables.forEach((variable) => {
     for (const key in response) {
-      const identifier = getFieldIdentifier(fields.find((field) => field.id === key));
+      const field = fields.find((field) => field.id === key)
+      if (!field) {
+        continue;
+      }
+      const identifier = getFieldIdentifier(field);
       if (identifier.toLowerCase() === variable.toLowerCase()) {
         eventTypeUrl = eventTypeUrl.replace(`{${variable}}`, slugify(response[key].value.toString() || ""));
       }

@@ -17,14 +17,58 @@ export default function transformResponse({
     }
     return value;
   }
-  if (field.type === "multiselect") {
-    if (value instanceof Array) {
-      return value;
+  if (field.type === "multiselect" || field.type === "select") {
+    // Could be option id(i.e. a UUIDv4) or option label for ease of prefilling
+    let valueOrLabelArray =
+      value instanceof Array
+        ? value
+        : value
+            .toString()
+            .split(",")
+            .map((v) => v.trim());
+
+    const areOptionsInLegacyFormat = !!field.options?.find((option) => !option.id);
+    const shouldUseLabelAsValue = areOptionsInLegacyFormat;
+    const options = field.options;
+    if (!options) {
+      return valueOrLabelArray;
     }
-    return value
-      .toString()
-      .split(",")
-      .map((v) => v.trim());
+    valueOrLabelArray = valueOrLabelArray.map((idOrLabel) => {
+      const foundOptionById = options.find((option) => {
+        return option.id === idOrLabel;
+      });
+
+      if (foundOptionById) {
+        if (shouldUseLabelAsValue) {
+          return foundOptionById.label;
+        } else {
+          // If shouldUseLabelAsValue is false, then we must use id as value
+          // Because shouldUseLabelAsValue is false, id must be set already
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          return foundOptionById.id!;
+        }
+      } else {
+        // No option was found that matches ID
+        // So check if the label is provided
+        const foundOptionByLabel = options.find((option) => {
+          return option.label === idOrLabel;
+        });
+        if (foundOptionByLabel) {
+          if (!shouldUseLabelAsValue) {
+            // If shouldUseLabelAsValue is false, then we must use id as value
+            // Because shouldUseLabelAsValue is false, id must be set already
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            return foundOptionByLabel.id!;
+          }
+        }
+      }
+      return idOrLabel;
+    });
+
+    if (field.type === "select") {
+      return valueOrLabelArray[0];
+    }
+    return valueOrLabelArray;
   }
   return value;
 }

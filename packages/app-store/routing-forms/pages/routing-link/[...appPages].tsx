@@ -203,8 +203,25 @@ function getUrlSearchParamsToForward(response: Response, fields: NonNullable<Pro
       // If for some reason, the field isn't there, let's just
       return;
     }
-    const valueAsStringOrStringArray =
+    let valueAsStringOrStringArray =
       typeof fieldResponse.value === "number" ? String(fieldResponse.value) : fieldResponse.value;
+    if (foundField.type === "select" || foundField.type === "multiselect") {
+      const options = foundField.options!;
+      let arr =
+        valueAsStringOrStringArray instanceof Array
+          ? valueAsStringOrStringArray
+          : [valueAsStringOrStringArray];
+      arr = arr.map((idOrLabel) => {
+        const foundOptionById = options.find((option) => {
+          return option.id === idOrLabel;
+        });
+        if (foundOptionById) {
+          return foundOptionById.label;
+        }
+        return idOrLabel;
+      });
+      valueAsStringOrStringArray = foundField.type === "select" ? arr[0] : arr;
+    }
     paramsFromResponse[getFieldIdentifier(foundField) as keyof typeof paramsFromResponse] =
       valueAsStringOrStringArray;
   });
