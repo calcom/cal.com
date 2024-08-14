@@ -137,6 +137,8 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  /// @zod.custom(imports.eventTypeColor)
+  eventTypeColor                          Json?
   rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
