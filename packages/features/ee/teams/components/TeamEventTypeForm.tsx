@@ -18,12 +18,17 @@ import { Form, TextField, showToast, Tooltip } from "@calcom/ui";
 import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
 
 type props = {
-  isAdmin: boolean;
+  isTeamAdminOrOwner: boolean;
   teamId: number;
   handleSuccessMutation: (eventType: EventType) => void;
-  submitButton: (isPending: boolean) => ReactNode;
+  SubmitButton: (isPending: boolean) => ReactNode;
 };
-export const TeamEventTypeForm = ({ isAdmin, teamId, handleSuccessMutation, submitButton }: props) => {
+export const TeamEventTypeForm = ({
+  isTeamAdminOrOwner,
+  teamId,
+  handleSuccessMutation,
+  SubmitButton,
+}: props) => {
   const { t } = useLocale();
   const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
@@ -136,6 +141,9 @@ export const TeamEventTypeForm = ({ isAdmin, teamId, handleSuccessMutation, subm
                 </Tooltip>
               }
               {...register("slug")}
+              onChange={(e) => {
+                form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+              }}
             />
             {isManagedEventType && (
               <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
@@ -153,29 +161,29 @@ export const TeamEventTypeForm = ({ isAdmin, teamId, handleSuccessMutation, subm
             onValueChange={(val: SchedulingType) => {
               setValue("schedulingType", val);
             }}
-            className={classNames("mt-1 flex gap-4", isAdmin && "flex-col")}>
+            className={classNames("mt-1 flex gap-4", isTeamAdminOrOwner && "flex-col")}>
             <RadioArea.Item
               {...register("schedulingType")}
               value={SchedulingType.COLLECTIVE}
-              className={classNames("w-full text-sm", !isAdmin && "w-1/2")}
-              classNames={{ container: classNames(isAdmin && "w-full") }}>
+              className={classNames("w-full text-sm", !isTeamAdminOrOwner && "w-1/2")}
+              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}>
               <strong className="mb-1 block">{t("collective")}</strong>
               <p>{t("collective_description")}</p>
             </RadioArea.Item>
             <RadioArea.Item
               {...register("schedulingType")}
               value={SchedulingType.ROUND_ROBIN}
-              className={classNames("text-sm", !isAdmin && "w-1/2")}
-              classNames={{ container: classNames(isAdmin && "w-full") }}>
+              className={classNames("text-sm", !isTeamAdminOrOwner && "w-1/2")}
+              classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}>
               <strong className="mb-1 block">{t("round_robin")}</strong>
               <p>{t("round_robin_description")}</p>
             </RadioArea.Item>
-            {isAdmin && (
+            {isTeamAdminOrOwner && (
               <RadioArea.Item
                 {...register("schedulingType")}
                 value={SchedulingType.MANAGED}
-                className={classNames("text-sm", !isAdmin && "w-1/2")}
-                classNames={{ container: classNames(isAdmin && "w-full") }}
+                className={classNames("text-sm", !isTeamAdminOrOwner && "w-1/2")}
+                classNames={{ container: classNames(isTeamAdminOrOwner && "w-full") }}
                 data-testid="managed-event-type">
                 <strong className="mb-1 block">{t("managed_event")}</strong>
                 <p>{t("managed_event_description")}</p>
@@ -184,7 +192,7 @@ export const TeamEventTypeForm = ({ isAdmin, teamId, handleSuccessMutation, subm
           </RadioArea.Group>
         </div>
       </div>
-      {submitButton(createMutation.isPending)}
+      {SubmitButton(createMutation.isPending)}
     </Form>
   );
 };

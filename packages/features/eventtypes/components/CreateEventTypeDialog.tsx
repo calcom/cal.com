@@ -110,7 +110,7 @@ export default function CreateEventTypeDialog({
 
   const { register } = form;
 
-  const isAdmin =
+  const isTeamAdminOrOwner =
     teamId !== undefined &&
     (teamProfile?.membershipRole === MembershipRole.OWNER ||
       teamProfile?.membershipRole === MembershipRole.ADMIN);
@@ -155,7 +155,7 @@ export default function CreateEventTypeDialog({
     },
   });
 
-  const submitButton = (isPending: boolean) => {
+  const SubmitButton = (isPending: boolean) => {
     return (
       <DialogFooter showDivider>
         <DialogClose />
@@ -197,7 +197,14 @@ export default function CreateEventTypeDialog({
         enableOverflow
         title={teamId ? t("add_new_team_event_type") : t("add_new_event_type")}
         description={t("new_event_type_to_book_description")}>
-        {!teamId ? (
+        {teamId ? (
+          <TeamEventTypeForm
+            isTeamAdminOrOwner={isTeamAdminOrOwner}
+            teamId={teamId}
+            SubmitButton={SubmitButton}
+            handleSuccessMutation={handleSuccessMutation}
+          />
+        ) : (
           <Form
             form={form}
             handleSubmit={(values) => {
@@ -255,6 +262,9 @@ export default function CreateEventTypeDialog({
                       </Tooltip>
                     }
                     {...register("slug")}
+                    onChange={(e) => {
+                      form.setValue("slug", slugify(e?.target.value), { shouldTouch: true });
+                    }}
                   />
                   {isManagedEventType && (
                     <p className="mt-2 text-sm text-gray-600">{t("managed_event_url_clarification")}</p>
@@ -285,15 +295,8 @@ export default function CreateEventTypeDialog({
                 </div>
               </>
             </div>
-            {submitButton(createMutation.isPending)}
+            {SubmitButton(createMutation.isPending)}
           </Form>
-        ) : (
-          <TeamEventTypeForm
-            isAdmin={isAdmin}
-            teamId={teamId}
-            submitButton={submitButton}
-            handleSuccessMutation={handleSuccessMutation}
-          />
         )}
       </DialogContent>
     </Dialog>

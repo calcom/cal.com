@@ -1,12 +1,49 @@
 "use client";
 
 import Head from "next/head";
+import { useRouter } from "next/navigation";
 
-import { CreateTeamEventType } from "@calcom/features/ee/teams/components/CreateTeamEventType";
+import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
+import { Button } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
+
+export const CreateTeamEventType = () => {
+  const router = useRouter();
+  const searchParams = useCompatSearchParams();
+  const { t } = useLocale();
+
+  const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
+
+  const handleSuccessMutation = () => {
+    router.push(`/settings/teams/${teamId}/profile`);
+  };
+
+  const SubmitButton = (isPending: boolean) => {
+    return (
+      <Button
+        data-testid="finish-button"
+        type="submit"
+        color="primary"
+        className="w-full justify-center"
+        disabled={isPending}>
+        {t("finish")}
+      </Button>
+    );
+  };
+
+  return (
+    <TeamEventTypeForm
+      isTeamAdminOrOwner={true}
+      teamId={teamId}
+      SubmitButton={SubmitButton}
+      handleSuccessMutation={handleSuccessMutation}
+    />
+  );
+};
 
 const TeamEventTypePage = () => {
   const { t } = useLocale();
