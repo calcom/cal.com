@@ -36,6 +36,13 @@ function MembersList(props: MembersListProps) {
   const { t } = useLocale();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
+  const [connectedApps, setConnectedApps] = useState({});
+  const [userIds, setUserIds] = useState<number[]>([]);
+
+  const { data: getUserConnectedApps } = trpc.viewer.teams.getUserConnectedApps.useQuery(
+    { userIds },
+    { enabled: !!userIds.length }
+  );
 
   const { data, isFetching, status, fetchNextPage, isFetchingNextPage, hasNextPage } =
     trpc.viewer.teams.lazyLoadMembers.useInfiniteQuery(
@@ -52,6 +59,20 @@ function MembersList(props: MembersListProps) {
         staleTime: 1 * 60 * 60 * 1000,
       }
     );
+
+  // To defer fetching Connected Apps
+  useEffect(() => {
+    if (data?.pages) {
+      const userIds = data.pages[data.pages.length - 1].members.map((member) => member.id);
+      setUserIds(userIds);
+    }
+  }, [data]);
+
+  useEffect(() => {
+    if (getUserConnectedApps) {
+      setConnectedApps((prev) => ({ ...prev, ...getUserConnectedApps }));
+    }
+  }, [getUserConnectedApps]);
 
   const buttonInView = useInViewObserver(() => {
     if (!isFetching && hasNextPage && status === "success") {
@@ -81,6 +102,7 @@ function MembersList(props: MembersListProps) {
                   member={member}
                   isOrgAdminOrOwner={isOrgAdminOrOwner}
                   searchTerm={debouncedSearchTerm}
+                  connectedApps={connectedApps[member.id] ?? []}
                 />
               );
             });

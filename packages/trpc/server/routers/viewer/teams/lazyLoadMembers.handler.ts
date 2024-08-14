@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 
-import { getAppFromSlug } from "@calcom/app-store/utils";
+// import { getAppFromSlug } from "@calcom/app-store/utils";
 import { getBookerBaseUrlSync } from "@calcom/lib/getBookerUrl/client";
 import { UserRepository } from "@calcom/lib/server/repository/user";
 import type { PrismaClient } from "@calcom/prisma";
@@ -19,9 +19,6 @@ type LazyLoadMembersHandlerOptions = {
   input: TLazyLoadMembersInputSchema;
 };
 
-// This should improve performance saving already app data found.
-const appDataMap = new Map();
-
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
   username: true,
   email: true,
@@ -30,31 +27,6 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   id: true,
   bio: true,
   disableImpersonation: true,
-  teams: {
-    select: {
-      team: {
-        select: {
-          id: true,
-          slug: true,
-        },
-      },
-    },
-  },
-  credentials: {
-    select: {
-      app: {
-        select: {
-          slug: true,
-          categories: true,
-        },
-      },
-      destinationCalendars: {
-        select: {
-          externalId: true,
-        },
-      },
-    },
-  },
 });
 
 export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHandlerOptions) => {
@@ -121,7 +93,8 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   );
 
   const membersWithApps = members.map((member) => {
-    const { credentials, profile, ...restUser } = member.user;
+    // const { credentials, profile, ...restUser } = member.user;
+    const { profile, ...restUser } = member.user;
     return {
       ...restUser,
       username: profile?.username ?? restUser.username,
@@ -132,24 +105,6 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
       accepted: member.accepted,
       disableImpersonation: member.user.disableImpersonation,
       bookerUrl: getBookerBaseUrlSync(profile?.organization?.slug || ""),
-      connectedApps: credentials?.map((cred) => {
-        const appSlug = cred.app?.slug;
-        let appData = appDataMap.get(appSlug);
-
-        if (!appData) {
-          appData = getAppFromSlug(appSlug);
-          appDataMap.set(appSlug, appData);
-        }
-
-        const isCalendar = cred?.app?.categories?.includes("calendar") ?? false;
-        const externalId = isCalendar ? cred.destinationCalendars?.[0]?.externalId : null;
-        return {
-          name: appData?.name ?? null,
-          logo: appData?.logo ?? null,
-          app: cred.app,
-          externalId: externalId ?? null,
-        };
-      }),
     };
   });
 

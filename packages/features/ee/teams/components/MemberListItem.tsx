@@ -30,11 +30,14 @@ import MemberChangeRoleModal from "./MemberChangeRoleModal";
 import TeamAvailabilityModal from "./TeamAvailabilityModal";
 import TeamPill, { TeamRole } from "./TeamPill";
 
+type ConnectedAppsType = RouterOutputs["viewer"]["teams"]["getUserConnectedApps"][number]["connectedApps"];
+
 interface Props {
   team: RouterOutputs["viewer"]["teams"]["getTeamWithMinimalData"];
   member: RouterOutputs["viewer"]["teams"]["lazyLoadMembers"]["members"][number];
   isOrgAdminOrOwner: boolean | undefined;
   searchTerm: string;
+  connectedApps: ConnectedAppsType;
 }
 
 /** TODO: Migrate the one in apps/web to tRPC package */
@@ -50,6 +53,8 @@ const checkIsOrg = (team: Props["team"]) => {
 
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
+
+  console.log("props.member", props.member);
 
   const utils = trpc.useUtils();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
@@ -157,7 +162,7 @@ export default function MemberListItem(props: Props) {
   const bookerUrlWithoutProtocol = bookerUrl.replace(/^https?:\/\//, "");
   const bookingLink = !!props.member.username && `${bookerUrlWithoutProtocol}/${props.member.username}`;
   const isAdmin = props.team && ["ADMIN", "OWNER"].includes(props.team.membership?.role);
-  const appList = props.member.connectedApps?.map(({ logo, name, externalId }) => {
+  const appList = props.connectedApps?.map(({ logo, name, externalId }) => {
     return logo ? (
       externalId ? (
         <div className="ltr:mr-2 rtl:ml-2 ">
