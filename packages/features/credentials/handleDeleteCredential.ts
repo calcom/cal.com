@@ -13,7 +13,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { bookingMinimalSelect, prisma } from "@calcom/prisma";
 import { AppCategories, BookingStatus } from "@calcom/prisma/enums";
 import { credentialForCalendarServiceSelect } from "@calcom/prisma/selects/credential";
-import type { EventTypeAppMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeAppMetadataSchema, EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
 
@@ -250,6 +250,7 @@ const handleDeleteCredential = async ({
                       name: true,
                     },
                   },
+                  metadata: true,
                 },
               },
               uid: true,
@@ -348,7 +349,8 @@ const handleDeleteCredential = async ({
               },
               {
                 eventName: booking?.eventType?.eventName,
-              }
+              },
+              booking?.eventType?.metadata as EventTypeMetadata
             );
           }
         });

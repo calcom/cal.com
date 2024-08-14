@@ -1384,17 +1384,20 @@ async function handler(
           )
         );
 
-        sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers);
-        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers);
-        sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers);
+        sendRoundRobinRescheduledEmailsAndSMS(copyEventAdditionalInfo, rescheduledMembers, eventType.metadata);
+        sendRoundRobinScheduledEmailsAndSMS(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
+        sendRoundRobinCancelledEmailsAndSMS(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await sendRescheduledEmailsAndSMS({
-          ...copyEvent,
-          additionalInformation: metadata,
-          additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-        });
+        await sendRescheduledEmailsAndSMS(
+          {
+            ...copyEvent,
+            additionalInformation: metadata,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+          },
+          eventType?.metadata
+        );
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -1531,7 +1534,8 @@ async function handler(
           },
           eventNameObject,
           isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
+          isAttendeeConfirmationEmailDisabled,
+          eventType.metadata
         );
       }
     }
@@ -1560,8 +1564,8 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0]);
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
+    await sendAttendeeRequestEmailAndSMS({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
   }
 
   if (booking.location?.startsWith("http")) {
@@ -1773,13 +1777,15 @@ async function handler(
 
   const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
-  await scheduleMandatoryReminder(
-    evtWithMetadata,
-    workflows,
-    !isConfirmedByDefault,
-    !!eventType.owner?.hideBranding,
-    evt.attendeeSeatId
-  );
+  if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
+      workflows,
+      !isConfirmedByDefault,
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId
+    );
+  }
 
   try {
     await scheduleWorkflowReminders({

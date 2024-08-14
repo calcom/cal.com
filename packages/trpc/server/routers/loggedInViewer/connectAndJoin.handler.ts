@@ -5,7 +5,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
-import { bookingMetadataSchema } from "@calcom/prisma/zod-utils";
+import { bookingMetadataSchema, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
@@ -217,13 +217,16 @@ export const Handler = async ({ ctx, input }: Options) => {
       : undefined,
   };
 
+  const eventTypeMetadata = EventTypeMetaDataSchema.parse(updatedBooking?.eventType?.metadata);
+
   await sendScheduledEmailsAndSMS(
     {
       ...evt,
     },
     undefined,
     false,
-    false
+    false,
+    eventTypeMetadata
   );
 
   return { isBookingAlreadyAcceptedBySomeoneElse, meetingUrl: locationVideoCallUrl };

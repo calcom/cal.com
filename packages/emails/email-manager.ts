@@ -1,6 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
 import { cloneDeep } from "lodash";
 import type { TFunction } from "next-i18next";
+import type { z } from "zod";
 
 import type { EventNameObjectType } from "@calcom/core/event";
 import { getEventName } from "@calcom/core/event";
@@ -8,6 +9,7 @@ import type BaseEmail from "@calcom/emails/templates/_base-email";
 import { formatCalEvent } from "@calcom/lib/formatCalendarEvent";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
+import type { EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent, Person } from "@calcom/types/Calendar";
 
 import AwaitingPaymentSMS from "../sms/attendee/awaiting-payment-sms";
@@ -70,6 +72,8 @@ import SlugReplacementEmail from "./templates/slug-replacement-email";
 import type { TeamInvite } from "./templates/team-invite-email";
 import TeamInviteEmail from "./templates/team-invite-email";
 
+type EventTypeMetadata = z.infer<typeof EventTypeMetaDataSchema>;
+
 const sendEmail = (prepare: () => BaseEmail) => {
   return new Promise((resolve, reject) => {
     try {
@@ -81,16 +85,25 @@ const sendEmail = (prepare: () => BaseEmail) => {
   });
 };
 
+const eventTypeDisableAttendeeEmail = (metadata?: EventTypeMetadata) => {
+  return !!metadata?.disableStandardEmails?.all?.attendee;
+};
+
+const eventTypeDisableHostEmail = (metadata?: EventTypeMetadata) => {
+  return !!metadata?.disableStandardEmails?.all?.host;
+};
+
 export const sendScheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
   eventNameObject?: EventNameObjectType,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
-  if (!hostEmailDisabled) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: formattedCalEvent })));
 
     if (formattedCalEvent.team) {
@@ -102,7 +115,7 @@ export const sendScheduledEmailsAndSMS = async (
     }
   }
 
-  if (!attendeeEmailDisabled) {
+  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       ...formattedCalEvent.attendees.map((attendee) => {
         return sendEmail(
@@ -128,7 +141,12 @@ export const sendScheduledEmailsAndSMS = async (
 };
 
 // for rescheduled round robin booking that assigned new members
-export const sendRoundRobinScheduledEmailsAndSMS = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinScheduledEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  members: Person[],
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const formattedCalEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const eventScheduledSMS = new EventSuccessfullyScheduledSMS(calEvent);
@@ -147,8 +165,11 @@ export const sendRoundRobinScheduledEmailsAndSMS = async (calEvent: CalendarEven
 
 export const sendRoundRobinRescheduledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  teamMembersAndAttendees: Person[]
+  members: Person[],
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
+
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
@@ -165,7 +186,12 @@ export const sendRoundRobinRescheduledEmailsAndSMS = async (
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRoundRobinCancelledEmailsAndSMS = async (calEvent: CalendarEvent, members: Person[]) => {
+export const sendRoundRobinCancelledEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  members: Person[],
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
   const emailsAndSMSToSend: Promise<unknown>[] = [];
   const successfullyReScheduledSMS = new EventCancelledSMS(calEvent);
@@ -182,39 +208,52 @@ export const sendRoundRobinCancelledEmailsAndSMS = async (calEvent: CalendarEven
   await Promise.all(emailsAndSMSToSend);
 };
 
-export const sendRescheduledEmailsAndSMS = async (calEvent: CalendarEvent) => {
+export const sendRescheduledEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
 
-  if (calendarEvent.team) {
-    for (const teamMember of calendarEvent.team.members) {
-      emailsToSend.push(
-        sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember }))
-      );
+    if (calendarEvent.team) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsToSend.push(
+          sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
   }
 
-  emailsToSend.push(
-    ...calendarEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));
-    })
-  );
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    emailsToSend.push(
+      ...calendarEvent.attendees.map((attendee) => {
+        return sendEmail(() => new AttendeeRescheduledEmail(calendarEvent, attendee));
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
   const successfullyReScheduledSms = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSms.sendSMSToAttendees();
 };
 
-export const sendRescheduledSeatEmailAndSMS = async (calEvent: CalendarEvent, attendee: Person) => {
+export const sendRescheduledSeatEmailAndSMS = async (
+  calEvent: CalendarEvent,
+  attendee: Person,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const clonedCalEvent = cloneDeep(calendarEvent);
-  const emailsToSend: Promise<unknown>[] = [
-    sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)),
-    sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })),
-  ];
+  const emailsToSend: Promise<unknown>[] = [];
+
+  if (!eventTypeDisableHostEmail(eventTypeMetadata))
+    emailsToSend.push(sendEmail(() => new OrganizerRescheduledEmail({ calEvent: calendarEvent })));
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata))
+    emailsToSend.push(sendEmail(() => new AttendeeRescheduledEmail(clonedCalEvent, attendee)));
 
   const successfullyReScheduledSMS = new EventSuccessfullyReScheduledSMS(calEvent);
   await successfullyReScheduledSMS.sendSMSToAttendee(attendee);
@@ -228,13 +267,14 @@ export const sendScheduledSeatsEmailsAndSMS = async (
   newSeat: boolean,
   showAttendees: boolean,
   hostEmailDisabled?: boolean,
-  attendeeEmailDisabled?: boolean
+  attendeeEmailDisabled?: boolean,
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
 
-  if (!hostEmailDisabled) {
+  if (!hostEmailDisabled && !eventTypeDisableHostEmail(eventTypeMetadata)) {
     emailsToSend.push(sendEmail(() => new OrganizerScheduledEmail({ calEvent: calendarEvent, newSeat })));
 
     if (calendarEvent.team) {
@@ -246,7 +286,7 @@ export const sendScheduledSeatsEmailsAndSMS = async (
     }
   }
 
-  if (!attendeeEmailDisabled) {
+  if (!attendeeEmailDisabled && !eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
     emailsToSend.push(
       sendEmail(
         () =>
@@ -266,19 +306,32 @@ export const sendScheduledSeatsEmailsAndSMS = async (
   await eventScheduledSMS.sendSMSToAttendee(invitee);
 };
 
-export const sendCancelledSeatEmailsAndSMS = async (calEvent: CalendarEvent, cancelledAttendee: Person) => {
+export const sendCancelledSeatEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  cancelledAttendee: Person,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   const formattedCalEvent = formatCalEvent(calEvent);
   const clonedCalEvent = cloneDeep(formattedCalEvent);
+  const emailsToSend: Promise<unknown>[] = [];
 
-  await Promise.all([
-    sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)),
-    sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent })),
-  ]);
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata))
+    emailsToSend.push(sendEmail(() => new AttendeeCancelledSeatEmail(clonedCalEvent, cancelledAttendee)));
+  if (!eventTypeDisableHostEmail(eventTypeMetadata))
+    emailsToSend.push(
+      sendEmail(() => new OrganizerAttendeeCancelledSeatEmail({ calEvent: formattedCalEvent }))
+    );
+
+  await Promise.all(emailsToSend);
   const cancelledSeatSMS = new CancelledSeatSMS(clonedCalEvent);
   await cancelledSeatSMS.sendSMSToAttendee(cancelledAttendee);
 };
 
-export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerRequestEmail = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
@@ -294,14 +347,22 @@ export const sendOrganizerRequestEmail = async (calEvent: CalendarEvent) => {
   await Promise.all(emailsToSend);
 };
 
-export const sendAttendeeRequestEmailAndSMS = async (calEvent: CalendarEvent, attendee: Person) => {
+export const sendAttendeeRequestEmailAndSMS = async (
+  calEvent: CalendarEvent,
+  attendee: Person,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+  
   const calendarEvent = formatCalEvent(calEvent);
   await sendEmail(() => new AttendeeRequestEmail(calendarEvent, attendee));
   const eventRequestSms = new EventRequestSMS(calendarEvent);
   await eventRequestSms.sendSMSToAttendee(attendee);
 };
 
-export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent) => {
+export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent, eventTypeMetadata?: EventTypeMetadata) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
+
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
 
@@ -318,59 +379,69 @@ export const sendDeclinedEmailsAndSMS = async (calEvent: CalendarEvent) => {
 
 export const sendCancelledEmailsAndSMS = async (
   calEvent: CalendarEvent,
-  eventNameObject: Pick<EventNameObjectType, "eventName">
+  eventNameObject: Pick<EventNameObjectType, "eventName">,
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const calendarEvent = formatCalEvent(calEvent);
   const emailsToSend: Promise<unknown>[] = [];
-
-  emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
   const calEventLength = calendarEvent.length;
+  const eventDuration = calEventLength as number;
+
   if (typeof calEventLength !== "number") {
     logger.error(
       "`calEventLength` is not a number",
       safeStringify({ calEventLength, calEventTitle: calEvent.title, bookingId: calEvent.bookingId })
     );
   }
-  const eventDuration = calEventLength as number;
 
-  if (calendarEvent.team?.members) {
-    for (const teamMember of calendarEvent.team.members) {
-      emailsToSend.push(
-        sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
-      );
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsToSend.push(sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent })));
+
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsToSend.push(
+          sendEmail(() => new OrganizerCancelledEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
   }
 
-  emailsToSend.push(
-    ...calendarEvent.attendees.map((attendee) => {
-      return sendEmail(
-        () =>
-          new AttendeeCancelledEmail(
-            {
-              ...calendarEvent,
-              title: getEventName({
-                ...eventNameObject,
-                t: attendee.language.translate,
-                attendeeName: attendee.name,
-                host: calendarEvent.organizer.name,
-                eventType: calendarEvent.type,
-                eventDuration,
-                ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
-                ...(calendarEvent.location && { location: calendarEvent.location }),
-              }),
-            },
-            attendee
-          )
-      );
-    })
-  );
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    emailsToSend.push(
+      ...calendarEvent.attendees.map((attendee) => {
+        return sendEmail(
+          () =>
+            new AttendeeCancelledEmail(
+              {
+                ...calendarEvent,
+                title: getEventName({
+                  ...eventNameObject,
+                  t: attendee.language.translate,
+                  attendeeName: attendee.name,
+                  host: calendarEvent.organizer.name,
+                  eventType: calendarEvent.type,
+                  eventDuration,
+                  ...(calendarEvent.responses && { bookingFields: calendarEvent.responses }),
+                  ...(calendarEvent.location && { location: calendarEvent.location }),
+                }),
+              },
+              attendee
+            )
+        );
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
   const eventCancelledSms = new EventCancelledSMS(calEvent);
   await eventCancelledSms.sendSMSToAttendees();
 };
 
-export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent) => {
+export const sendOrganizerRequestReminderEmail = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableHostEmail(eventTypeMetadata)) return;
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
@@ -386,7 +457,11 @@ export const sendOrganizerRequestReminderEmail = async (calEvent: CalendarEvent)
   }
 };
 
-export const sendAwaitingPaymentEmailAndSMS = async (calEvent: CalendarEvent) => {
+export const sendAwaitingPaymentEmailAndSMS = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
   const emailsToSend: Promise<unknown>[] = [];
 
   emailsToSend.push(
@@ -444,40 +519,51 @@ export const sendChangeOfEmailVerificationLink = async (verificationInput: Chang
 
 export const sendRequestRescheduleEmailAndSMS = async (
   calEvent: CalendarEvent,
-  metadata: { rescheduleLink: string }
+  metadata: { rescheduleLink: string },
+  eventTypeMetadata?: EventTypeMetadata
 ) => {
   const emailsToSend: Promise<unknown>[] = [];
   const calendarEvent = formatCalEvent(calEvent);
 
-  emailsToSend.push(sendEmail(() => new OrganizerRequestedToRescheduleEmail(calendarEvent, metadata)));
-
-  emailsToSend.push(sendEmail(() => new AttendeeWasRequestedToRescheduleEmail(calendarEvent, metadata)));
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsToSend.push(sendEmail(() => new OrganizerRequestedToRescheduleEmail(calendarEvent, metadata)));
+  }
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    emailsToSend.push(sendEmail(() => new AttendeeWasRequestedToRescheduleEmail(calendarEvent, metadata)));
+  }
 
   await Promise.all(emailsToSend);
   const eventRequestToReschedule = new EventRequestToRescheduleSMS(calendarEvent);
   await eventRequestToReschedule.sendSMSToAttendees();
 };
 
-export const sendLocationChangeEmailsAndSMS = async (calEvent: CalendarEvent) => {
+export const sendLocationChangeEmailsAndSMS = async (
+  calEvent: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
   const calendarEvent = formatCalEvent(calEvent);
 
   const emailsToSend: Promise<unknown>[] = [];
 
-  emailsToSend.push(sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent })));
+  if (!eventTypeDisableHostEmail(eventTypeMetadata)) {
+    emailsToSend.push(sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent })));
 
-  if (calendarEvent.team?.members) {
-    for (const teamMember of calendarEvent.team.members) {
-      emailsToSend.push(
-        sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent, teamMember }))
-      );
+    if (calendarEvent.team?.members) {
+      for (const teamMember of calendarEvent.team.members) {
+        emailsToSend.push(
+          sendEmail(() => new OrganizerLocationChangeEmail({ calEvent: calendarEvent, teamMember }))
+        );
+      }
     }
   }
 
-  emailsToSend.push(
-    ...calendarEvent.attendees.map((attendee) => {
-      return sendEmail(() => new AttendeeLocationChangeEmail(calendarEvent, attendee));
-    })
-  );
+  if (!eventTypeDisableAttendeeEmail(eventTypeMetadata)) {
+    emailsToSend.push(
+      ...calendarEvent.attendees.map((attendee) => {
+        return sendEmail(() => new AttendeeLocationChangeEmail(calendarEvent, attendee));
+      })
+    );
+  }
 
   await Promise.all(emailsToSend);
   const eventLocationChangedSMS = new EventLocationChangedSMS(calendarEvent);
@@ -526,7 +612,12 @@ export const sendSlugReplacementEmail = async ({
   await sendEmail(() => new SlugReplacementEmail(email, name, teamName, slug, t));
 };
 
-export const sendNoShowFeeChargedEmail = async (attendee: Person, evt: CalendarEvent) => {
+export const sendNoShowFeeChargedEmail = async (
+  attendee: Person,
+  evt: CalendarEvent,
+  eventTypeMetadata?: EventTypeMetadata
+) => {
+  if (eventTypeDisableAttendeeEmail(eventTypeMetadata)) return;
   await sendEmail(() => new NoShowFeeChargedEmail(evt, attendee));
 };
 

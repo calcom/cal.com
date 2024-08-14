@@ -11,6 +11,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import { BookingStatus } from "@calcom/prisma/enums";
 import type { Organizer } from "@calcom/types/Calendar";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 
 import { getCalendar } from "../../_utils/getCalendar";
 
@@ -51,6 +52,11 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
           username: true,
           credentials: true,
           destinationCalendar: true,
+        },
+      },
+      eventType: {
+        select: {
+          metadata: true,
         },
       },
     },
@@ -161,9 +167,13 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
 
     // Send emails
     try {
-      await sendRequestRescheduleEmailAndSMS(builder.calendarEvent, {
-        rescheduleLink: builder.rescheduleLink,
-      });
+      await sendRequestRescheduleEmailAndSMS(
+        builder.calendarEvent,
+        {
+          rescheduleLink: builder.rescheduleLink,
+        },
+        bookingToReschedule?.eventType?.metadata as EventTypeMetadata
+      );
     } catch (error) {
       if (error instanceof Error) {
         logger.error(error.message);
