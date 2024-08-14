@@ -136,4 +136,5 @@ export const lucideIconList = new Set([
   "webhook",
   "x",
   "zap",
+  "blocks",
 ]);

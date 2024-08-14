@@ -6,6 +6,7 @@ import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -47,6 +48,7 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
+  eventTypeColor: z.infer<typeof eventTypeColor>;
   locations: {
     type: EventLocationType["type"];
     address?: string;
