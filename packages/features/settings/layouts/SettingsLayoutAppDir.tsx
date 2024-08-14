@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import type { ComponentProps } from "react";
 import React, { Suspense, useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import Shell from "@calcom/features/shell/Shell";
@@ -18,7 +19,7 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { IdentityProvider, MembershipRole, UserPermissionRole } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
 import type { VerticalTabItemProps } from "@calcom/ui";
-import { Badge, Button, ErrorBoundary, Icon, Skeleton, useMeta, VerticalTabItem } from "@calcom/ui";
+import { Badge, Button, ErrorBoundary, Icon, Skeleton, VerticalTabItem } from "@calcom/ui";
 
 const tabs: VerticalTabItemProps[] = [
   {
@@ -31,6 +32,7 @@ const tabs: VerticalTabItemProps[] = [
       { name: "calendars", href: "/settings/my-account/calendars" },
       { name: "conferencing", href: "/settings/my-account/conferencing" },
       { name: "appearance", href: "/settings/my-account/appearance" },
+      { name: "out_of_office", href: "/settings/my-account/out-of-office" },
       // TODO
       // { name: "referrals", href: "/settings/my-account/referrals" },
     ],
@@ -602,8 +604,20 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export default function SettingsLayout({
   children,
+  title,
+  description,
+  CTA,
+  borderInShellHeader,
+  backButton,
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+}: {
+  children: React.ReactNode;
+  title?: string;
+  description?: string | { key: "string"; options: object };
+  CTA?: ReactNode;
+  borderInShellHeader?: boolean;
+  backButton?: boolean;
+} & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -647,7 +661,13 @@ export default function SettingsLayout({
       }>
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-4xl">
-          <ShellHeader />
+          <ShellHeader
+            title={title}
+            description={description}
+            CTA={CTA}
+            borderInShellHeader={borderInShellHeader}
+            backButton={backButton}
+          />
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>
@@ -689,38 +709,49 @@ type SidebarContainerElementProps = {
 
 export const getLayout = (page: React.ReactElement) => <SettingsLayout>{page}</SettingsLayout>;
 
-export function ShellHeader() {
-  const { meta } = useMeta();
+export function ShellHeader({
+  title,
+  description,
+  CTA,
+  borderInShellHeader,
+  backButton,
+}: {
+  title?: string;
+  description?: string | { key: "string"; options: object };
+  CTA?: ReactNode;
+  borderInShellHeader?: boolean;
+  backButton?: boolean;
+}) {
   const { t, isLocaleReady } = useLocale();
   return (
     <>
       <header
         className={classNames(
           "border-subtle mx-auto block justify-between sm:flex",
-          meta.borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
-          meta.borderInShellHeader === undefined && "mb-8 border-b pb-8"
+          borderInShellHeader && "rounded-t-lg border px-4 py-6 sm:px-6",
+          borderInShellHeader === undefined && "mb-8 border-b pb-8"
         )}>
         <div className="flex w-full items-center">
-          {meta.backButton && (
+          {backButton && (
             <a href="javascript:history.back()">
               <Icon name="arrow-left" className="mr-7" />
             </a>
           )}
           <div>
-            {meta.title && isLocaleReady ? (
+            {title && isLocaleReady ? (
               <h1 className="font-cal text-emphasis mb-1 text-xl font-semibold leading-5 tracking-wide">
-                {t(meta.title)}
+                {title}
               </h1>
             ) : (
               <div className="bg-emphasis mb-1 h-5 w-24 animate-pulse rounded-lg" />
             )}
-            {meta.description && isLocaleReady ? (
-              <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{t(meta.description)}</p>
+            {description && isLocaleReady ? (
+              <p className="text-default text-sm ltr:mr-4 rtl:ml-4">{description}</p>
             ) : (
               <div className="bg-emphasis h-5 w-32 animate-pulse rounded-lg" />
             )}
           </div>
-          <div className="ms-auto flex-shrink-0">{meta.CTA}</div>
+          <div className="ms-auto flex-shrink-0">{CTA}</div>
         </div>
       </header>
     </>
