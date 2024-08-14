@@ -613,7 +613,7 @@ export default function SettingsLayout({
 }: {
   children: React.ReactNode;
   title?: string;
-  description?: string | { key: "string"; options: object };
+  description?: string;
   CTA?: ReactNode;
   borderInShellHeader?: boolean;
   backButton?: boolean;
@@ -717,7 +717,7 @@ export function ShellHeader({
   backButton,
 }: {
   title?: string;
-  description?: string | { key: "string"; options: object };
+  description?: string;
   CTA?: ReactNode;
   borderInShellHeader?: boolean;
   backButton?: boolean;
