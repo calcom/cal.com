@@ -71,7 +71,7 @@ export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
     <div className="editor rounded-md">
-      <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
+      <LexicalComposer initialConfig={{ ...editorConfig }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
           <ToolbarPlugin
             getText={props.getText}
@@ -89,7 +89,6 @@ export const Editor = (props: TextEditorProps) => {
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
-                  data-testid="editor-input"
                   readOnly={!editable}
                   style={{ height: props.height }}
                   className="editor-input"
