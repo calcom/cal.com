@@ -32,7 +32,7 @@ interface MembersListProps {
   isOrgAdminOrOwner: boolean | undefined;
 }
 
-type ConnectedAppsType = {
+export type ConnectedAppsType = {
   name: string | null;
   logo: string | null;
   externalId: string | null;
