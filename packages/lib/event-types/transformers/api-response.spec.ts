@@ -9,7 +9,7 @@ import type {
   TransformFutureBookingsLimitSchema_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { UserField, OptionsField } from "./api-request";
+import type { UserField } from "./api-request";
 import {
   getResponseEventTypeLocations,
   getResponseEventTypeBookingFields,
@@ -351,7 +351,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform select field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-select",
         type: "select",
@@ -391,7 +391,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform multiselect field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-multiselect",
         type: "multiselect",
@@ -464,7 +464,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform checkbox field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-checkbox",
         type: "checkbox",
@@ -502,7 +502,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform radio field", () => {
-    const transformedField: OptionsField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-radio",
         type: "radio",

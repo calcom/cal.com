@@ -7,7 +7,7 @@ import type {
   BookingWindow_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { UserField, OptionsField } from "./api-request";
+import type { UserField } from "./api-request";
 import {
   transformApiEventTypeLocations,
   transformApiEventTypeBookingFields,
@@ -343,7 +343,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -379,7 +379,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -450,7 +450,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
@@ -486,7 +486,7 @@ describe("transformApiEventTypeBookingFields", () => {
 
     const input: BookingField_2024_06_14[] = [bookingField];
 
-    const expectedOutput: OptionsField[] = [
+    const expectedOutput: UserField[] = [
       {
         name: bookingField.slug,
         type: bookingField.type,
