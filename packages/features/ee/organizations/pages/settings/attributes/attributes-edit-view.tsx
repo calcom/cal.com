@@ -25,6 +25,7 @@ type FormValues = z.infer<typeof CreateAttributeSchema>;
 function CreateAttributesPage() {
   const router = useRouter();
   const utils = trpc.useUtils();
+  const { t } = useLocale();
   // Get the attribute id from the url
   const { id } = useParams<{ id: string }>();
   // ensure string with zod
@@ -32,7 +33,7 @@ function CreateAttributesPage() {
 
   const mutation = trpc.viewer.attributes.edit.useMutation({
     onSuccess: () => {
-      showToast("Attribute edited successfully", "success");
+      showToast(t("attribute_edited_successfully"), "success");
       utils.viewer.attributes.get.invalidate({
         id: id as string,
       });
@@ -47,7 +48,7 @@ function CreateAttributesPage() {
   return (
     <>
       <LicenseRequired>
-        <Meta title="Attribute" description="Edit an attribute for your team members" />
+        <Meta title="Attribute" description={t("edit_attribute_description")} />
         {!attribute.isLoading && attribute.data ? (
           <AttributeForm
             initialValues={{

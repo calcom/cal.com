@@ -84,7 +84,7 @@ function CreateAttributeHeader(props: { isPending: boolean }) {
           </div>
         </div>
         <Button type="submit" data-testid="create-attribute-button" loading={props.isPending}>
-          Save
+          {t("save")}
         </Button>
       </div>
     </>
