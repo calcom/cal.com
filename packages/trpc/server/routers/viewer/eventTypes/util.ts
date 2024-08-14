@@ -155,7 +155,7 @@ export function ensureUniqueBookingFields(fields: z.infer<typeof EventTypeUpdate
 export function ensureEmailOrPhoneNumberIsPresent(
   fields: z.infer<typeof EventTypeUpdateInput>["bookingFields"]
 ) {
-  if (!fields) {
+  if (!fields || fields.length === 0) {
     return;
   }
 
@@ -186,7 +186,6 @@ export function ensureEmailOrPhoneNumberIsPresent(
   }
 }
 
-
 export const mapEventType = async (eventType: EventType) => ({
   ...eventType,
   safeDescription: eventType?.description ? markdownToSafeHTML(eventType.description) : undefined,
@@ -213,4 +212,3 @@ export const mapEventType = async (eventType: EventType) => ({
     }))
   ),
 });
-
