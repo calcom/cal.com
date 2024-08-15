@@ -7757,6 +7757,21 @@
           "status"
         ]
       },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPlatform",
+          "id"
+        ]
+      },
       "MeOutput": {
         "type": "object",
         "properties": {
@@ -7785,6 +7800,9 @@
           "organizationId": {
             "type": "number",
             "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
           }
         },
         "required": [
