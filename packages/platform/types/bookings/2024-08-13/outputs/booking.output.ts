@@ -40,6 +40,10 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   id!: number;
 
+  @IsString()
+  @Expose()
+  uid!: string;
+
   @IsDateString()
   @Expose()
   start!: string;

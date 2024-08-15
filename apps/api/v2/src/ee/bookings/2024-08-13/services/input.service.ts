@@ -1,4 +1,5 @@
 import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
+import { bookingResponsesSchema } from "@/ee/bookings/2024-08-13/services/output.service";
 import { EventTypesRepository_2024_06_14 } from "@/ee/event-types/event-types_2024_06_14/event-types.repository";
 import { OAuthClientRepository } from "@/modules/oauth-clients/oauth-client.repository";
 import { OAuthFlowService } from "@/modules/oauth-clients/services/oauth-flow.service";
@@ -47,7 +48,7 @@ export class InputBookingsService_2024_08_13 {
     body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
   ): Promise<BookingRequest> {
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
-    const bodyTransformed = await this.transformInputCreateBooking(body as CreateBookingInput_2024_08_13);
+    const bodyTransformed = await this.transformInputCreate(body);
     const oAuthClientId = request.get(X_CAL_CLIENT_ID);
 
     const newRequest = { ...request };
@@ -56,7 +57,8 @@ export class InputBookingsService_2024_08_13 {
       ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
       : DEFAULT_PLATFORM_PARAMS;
 
-    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: request.body.meetingUrl });
+    const location = await this.getLocation(request, body);
+    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
     newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
 
     return newRequest as unknown as BookingRequest;
@@ -92,12 +94,11 @@ export class InputBookingsService_2024_08_13 {
   }
 
   transformInputCreate(inputBooking: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
-    const isReschedule = "rescheduleBookingUid" in inputBooking;
-    const isBooking = "rescheduleBookingUid" in inputBooking === false;
-
-    if (!("rescheduleBookingUid" in inputBooking)) {
-      return this.transformInputCreateBooking(inputBooking);
+    if ("rescheduleBookingUid" in inputBooking) {
+      return this.transformInputRescheduleBooking(inputBooking);
     }
+
+    return this.transformInputCreateBooking(inputBooking);
   }
 
   async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
@@ -134,39 +135,60 @@ export class InputBookingsService_2024_08_13 {
     };
   }
 
-  async transformInputRescheduleBooking(inputBooking: RescheduleBookingInput_2024_08_13) {
-    const booking = await this.bookingsRepository.getByUid(inputBooking.rescheduleBookingUid);
+  async getLocation(
+    request: Request,
+    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
+  ) {
+    if ("rescheduleBookingUid" in body) {
+      const booking = await this.bookingsRepository.getByUid(body.rescheduleBookingUid);
+      if (!booking) {
+        throw new NotFoundException(`Booking with uid=${body.rescheduleBookingUid} not found`);
+      }
+      return booking.location;
+    }
 
+    return request.body.meetingUrl;
+  }
+
+  async transformInputRescheduleBooking(inputBooking: RescheduleBookingInput_2024_08_13) {
+    const booking = await this.bookingsRepository.getByUidWithAttendees(inputBooking.rescheduleBookingUid);
     if (!booking) {
       throw new NotFoundException(`Booking with uid=${inputBooking.rescheduleBookingUid} not found`);
     }
-
     if (!booking.eventTypeId) {
       throw new NotFoundException(
         `Booking with uid=${inputBooking.rescheduleBookingUid} is missing event type`
       );
     }
-
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(booking.eventTypeId);
     if (!eventType) {
       throw new NotFoundException(`Event type with id=${booking.eventTypeId} not found`);
     }
 
-    // note(Lauris): we need to store attendee.timeZone, language in metadata of booking, but need to wait for refactor.
-    return {};
-    // return {
-    //   start: inputBooking.start,
-    //   end: this.getEndTime(inputBooking.start, eventType.length),
-    //   eventTypeId: booking.eventTypeId,
-    //   eventTypeSlug: eventType.slug,
-    //   timeZone: booking.timeZone,
-    //   language: inputBooking.attendee.language,
-    //   metadata: inputBooking.metadata,
-    //   hasHashedBookingLink: false,
-    //   guests: inputBooking.guests,
-    //   locationUrl: inputBooking.meetingUrl,
-    //   responses: inputBooking.bookingFieldsResponses,
-    //   user: eventType.owner ? eventType.owner.username : eventType.team?.slug
-    // }
+    const bookingResponses = bookingResponsesSchema.parse(booking.responses);
+    const attendee = booking.attendees.find((attendee) => attendee.email === bookingResponses.email);
+
+    if (!attendee) {
+      throw new NotFoundException(
+        `Attendee with e-mail ${bookingResponses.email} for booking with uid=${inputBooking.rescheduleBookingUid} not found`
+      );
+    }
+
+    const startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(attendee.timeZone);
+    const endTime = startTime.plus({ minutes: eventType.length });
+
+    return {
+      start: startTime.toISO(),
+      end: endTime.toISO(),
+      eventTypeId: eventType.id,
+      eventTypeSlug: eventType.slug,
+      timeZone: attendee.timeZone,
+      language: attendee.locale,
+      metadata: booking.metadata || {},
+      hasHashedBookingLink: false,
+      guests: bookingResponses.guests,
+      responses: bookingResponses,
+      user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
+    };
   }
 }
