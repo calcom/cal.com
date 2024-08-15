@@ -20,6 +20,7 @@ export const listHandler = async ({ ctx }: ListOptions) => {
       id: true,
       name: true,
       availability: true,
+      timeBlocks: true,
       timeZone: true,
     },
     orderBy: {

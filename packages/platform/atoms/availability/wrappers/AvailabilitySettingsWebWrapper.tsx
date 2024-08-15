@@ -26,7 +26,7 @@ export const AvailabilitySettingsWebWrapper = () => {
     }
   );
 
-  const { data: travelSchedules, isPending: isPendingTravelSchedules } =
+  const { data: travelSchedules, isPending: _isPendingTravelSchedules } =
     trpc.viewer.getTravelSchedules.useQuery();
 
   const isDefaultSchedule = me.data?.defaultScheduleId === scheduleId;
@@ -81,7 +81,14 @@ export const AvailabilitySettingsWebWrapper = () => {
 
   return (
     <AvailabilitySettings
-      schedule={schedule}
+      schedule={{
+        ...schedule,
+        timeBlocks: schedule.timeBlocks.map((timeBlock) => {
+          return {
+            value: timeBlock,
+          };
+        }),
+      }}
       travelSchedules={isDefaultSchedule ? travelSchedules || [] : []}
       isDeleting={deleteMutation.isPending}
       isLoading={isPending}
@@ -93,11 +100,13 @@ export const AvailabilitySettingsWebWrapper = () => {
       handleDelete={() => {
         scheduleId && deleteMutation.mutate({ scheduleId });
       }}
-      handleSubmit={async ({ dateOverrides, ...values }) => {
+      handleSubmit={async ({ dateOverrides, timeBlocks, ...values }) => {
         scheduleId &&
           updateMutation.mutate({
             scheduleId,
             dateOverrides: dateOverrides.flatMap((override) => override.ranges),
+            // convert into an array of strings from an array of objects
+            timeBlocks: timeBlocks.map((timeBlock) => timeBlock.value.trim()).filter((value) => value !== ""),
             ...values,
           });
       }}

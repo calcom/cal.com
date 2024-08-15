@@ -27,6 +27,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
         userId: true,
         name: true,
         availability: true,
+        timeBlocks: true,
         timeZone: true,
       },
     });
@@ -47,6 +48,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateScheduleOptions)
         },
       },
       timeZone: schedule.timeZone ?? user.timeZone,
+      timeBlocks: schedule.timeBlocks,
       availability: {
         createMany: {
           data: availability.map((schedule) => ({

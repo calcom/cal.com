@@ -61,6 +61,7 @@ export const getScheduleByEventSlugHandler = async ({ ctx, input }: GetOptions) 
       name: "No schedules found",
       availability: EMPTY_SCHEDULE,
       dateOverrides: [],
+      timeBlocks: [],
       timeZone: ctx.user.timeZone || "Europe/London",
       workingHours: [],
       isDefault: true,

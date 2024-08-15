@@ -17,6 +17,7 @@ export type AvailabilityFormValues = {
   name: string;
   schedule: ScheduleType;
   dateOverrides: { ranges: TimeRange[] }[];
+  timeBlocks: { value: string }[];
   timeZone: string;
   isDefault: boolean;
 };

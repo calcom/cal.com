@@ -31,6 +31,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
       userId: true,
       name: true,
       availability: true,
+      timeBlocks: true,
       timeZone: true,
     },
   });
@@ -70,6 +71,7 @@ export const getHandler = async ({ ctx, input }: GetOptions) => {
     availability: transformAvailabilityForAtom(schedule),
     timeZone,
     dateOverrides: transformDateOverridesForAtom(schedule, timeZone),
+    timeBlocks: schedule.timeBlocks,
     isDefault: !input.scheduleId || user.defaultScheduleId === schedule.id,
     isLastSchedule: schedulesCount <= 1,
     readOnly: schedule.userId !== user.id && !input.isManagedEventType,
