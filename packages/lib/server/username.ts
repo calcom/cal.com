@@ -64,7 +64,7 @@ export const generateUsernameSuggestion = async (users: string[], username: stri
 };
 
 const processResult = (
-  result: "ok" | "username_exists" | "is_premium"
+  result: "ok" | "username_exists" | "is_premium" | "email_exists"
 ): // explicitly assign return value to ensure statusCode is typehinted
 { statusCode: RequestWithUsernameStatus["usernameStatus"]["statusCode"]; message: string } => {
   // using a switch statement instead of multiple ifs to make sure typescript knows
@@ -82,6 +82,8 @@ const processResult = (
       };
     case "is_premium":
       return { statusCode: 402, message: "This is a premium username." };
+    case "email_exists":
+      return { statusCode: 418, message: "A user exists with that email" };
   }
 };
 
@@ -94,6 +96,7 @@ const usernameHandler =
     let result: Parameters<typeof processResult>[0] = "ok";
     if (check.premium) result = "is_premium";
     if (!check.available) result = "username_exists";
+    if (check.emailExist) result = "email_exists";
 
     const { statusCode, message } = processResult(result);
     req.usernameStatus = {
@@ -197,6 +200,7 @@ const usernameCheckForSignup = async ({
     available: true,
     premium: false,
     suggestedUsername: "",
+    emailExist: false,
   };
 
   const username = slugify(usernameRaw);
@@ -232,6 +236,7 @@ const usernameCheckForSignup = async ({
       response.available = isClaimingUnsetUsername || isClaimingAlreadySetUsername;
       // There are premium users outside an organization only
       response.premium = await isPremiumUserName(username);
+      response.emailExist = true;
     }
     // If user isn't found, it's a direct signup and that can't be of an organization
   } else {
