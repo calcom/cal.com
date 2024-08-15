@@ -30,6 +30,7 @@ const teamSelect = Prisma.validator<Prisma.TeamSelect>()({
   logoUrl: true,
   organizationSettings: true,
   isOrganization: true,
+  isPlatform: true,
 });
 
 const userSelect = Prisma.validator<Prisma.UserSelect>()({
@@ -67,6 +68,7 @@ const userSelect = Prisma.validator<Prisma.UserSelect>()({
   locked: true,
   movedToProfileId: true,
   metadata: true,
+  isPlatformManaged: true,
 });
 
 export class UserRepository {
@@ -330,6 +332,15 @@ export class UserRepository {
     const profiles = await ProfileRepository.findManyForUser({ id: user.id });
     if (profiles.length) {
       const profile = profiles[0];
+      // platform org user doesn't need org profile
+      if (profile?.organization?.isPlatform) {
+        return {
+          ...user,
+          nonProfileUsername: user.username,
+          profile: ProfileRepository.buildPersonalProfileFromUser({ user }),
+        };
+      }
+
       return {
         ...user,
         username: profile.username,
