@@ -58,22 +58,25 @@ export function ScheduleListItem({
               )}
             </div>
             <p className="text-subtle mt-1">
-              {schedule.availability
-                .filter((availability) => !!availability.days.length)
-                .map((availability) =>
-                  availabilityAsString(availability, {
-                    locale: i18n.language,
-                    hour12: displayOptions?.hour12,
-                  })
-                )
-                // sort the availability strings as per user's weekstart (settings)
-                .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
-                .map((availabilityString, index) => (
-                  <Fragment key={index}>
-                    {availabilityString}
-                    <br />
-                  </Fragment>
-                ))}
+              {!schedule.timeBlocks.length &&
+                schedule.availability
+                  .filter((availability) => !!availability.days.length)
+                  .map((availability) =>
+                    availabilityAsString(availability, {
+                      locale: i18n.language,
+                      hour12: displayOptions?.hour12,
+                    })
+                  )
+                  // sort the availability strings as per user's weekstart (settings)
+                  .sort(sortAvailabilityStrings(i18n.language, displayOptions?.weekStart))
+                  .map((availabilityString, index) => (
+                    <Fragment key={index}>
+                      {availabilityString}
+                      <br />
+                    </Fragment>
+                  ))}
+              {schedule.timeBlocks.length > 0 &&
+                `Timeblocks: ${schedule.timeBlocks.map((timeBlock) => `"${timeBlock}"`).join(", ")}`}
               {(schedule.timeZone || displayOptions?.timeZone) && (
                 <p className="my-1 flex items-center first-letter:text-xs">
                   <Icon name="globe" className="h-3.5 w-3.5" />
