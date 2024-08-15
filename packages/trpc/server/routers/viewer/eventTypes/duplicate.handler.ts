@@ -75,6 +75,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       recurringEvent,
       bookingLimits,
       durationLimits,
+      eventTypeColor,
       metadata,
       workflows,
       hashedLink,
@@ -112,6 +113,7 @@ export const duplicateHandler = async ({ ctx, input }: DuplicateOptions) => {
       recurringEvent: recurringEvent || undefined,
       bookingLimits: bookingLimits ?? undefined,
       durationLimits: durationLimits ?? undefined,
+      eventTypeColor: eventTypeColor ?? undefined,
       metadata: metadata === null ? Prisma.DbNull : metadata,
       bookingFields: eventType.bookingFields === null ? Prisma.DbNull : eventType.bookingFields,
     };
