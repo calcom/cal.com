@@ -23,7 +23,7 @@ function getNewSeachParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "responses"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -36,9 +36,25 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     "location",
   ];
 
-  return (Object.keys(booking) as BookingResponseKey[])
+  const basicParams = (Object.keys(booking) as BookingResponseKey[])
     .filter((key) => redirectQueryParamKeys.includes(key))
     .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
+
+  const responseParams = booking.responses
+    ? Object.keys(booking.responses).reduce((obj, key) => {
+        if (Array.isArray(booking.responses[key])) {
+          obj[`responses.${key}`] = booking.responses[key].join(",");
+        } else {
+          obj[`responses.${key}`] = booking.responses[key];
+        }
+        return obj;
+      }, {} as Record<string, never>)
+    : {};
+
+  return {
+    ...basicParams,
+    ...responseParams,
+  };
 };
 
 export const useBookingSuccessRedirect = () => {
