@@ -248,13 +248,34 @@ export const getPublicEvent = async (
       };
 
   // In case it's not a group event, it's either a single user or a team, and we query that data.
-  const event = await prisma.eventType.findFirst({
+  let event = await prisma.eventType.findFirst({
     where: {
       slug: eventSlug,
       ...usersOrTeamQuery,
     },
     select: publicEventSelect,
   });
+
+  // If no event was found, check for platform org user event
+  if (!event && !orgQuery) {
+    event = await prisma.eventType.findFirst({
+      where: {
+        slug: eventSlug,
+        users: {
+          some: {
+            username,
+            isPlatformManaged: false,
+            movedToProfile: {
+              organization: {
+                isPlatform: true,
+              },
+            },
+          },
+        },
+      },
+      select: publicEventSelect,
+    });
+  }
 
   if (!event) return null;
 

@@ -13,6 +13,7 @@ export type IconName =
   | "badge-check"
   | "ban"
   | "bell"
+  | "blocks"
   | "bold"
   | "book-open-check"
   | "book-open"
