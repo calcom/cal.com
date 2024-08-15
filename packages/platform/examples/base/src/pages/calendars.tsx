@@ -1,7 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Inter } from "next/font/google";
 
-import { useConnectedCalendars, CalendarSettings, DestinationCalendarSettings } from "@calcom/atoms";
+import { useConnectedCalendars, CalendarSettings } from "@calcom/atoms";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,13 +17,8 @@ export default function Calendars(props: { calUsername: string; calEmail: string
           You have not connected any calendars yet, please connect your Google, Outlook or Apple calendar.
         </h1>
       )}
-      <DestinationCalendarSettings classNames="mx-5" statusLoader={<>Loading...</>} />
       <div>
-        <CalendarSettings
-          classNames={{
-            calendarSettingsCustomClassnames: "mx-8",
-          }}
-        />
+        <CalendarSettings />
       </div>
     </main>
   );
