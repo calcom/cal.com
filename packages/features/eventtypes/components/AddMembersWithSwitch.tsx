@@ -77,11 +77,13 @@ const CheckedHostField = ({
           }}
           value={(value || [])
             .filter(({ isFixed: _isFixed }) => isFixed === _isFixed)
-            .map((host) => {
+            .reduce((acc, host) => {
               const option = options.find((member) => member.value === host.userId.toString());
-              return option ? { ...option, priority: host.priority ?? 2, isFixed } : options[0];
-            })
-            .filter(Boolean)}
+              if (!option) return acc;
+
+              acc.push({ ...option, priority: host.priority ?? 2, isFixed });
+              return acc;
+            }, [] as CheckedSelectOption[])}
           controlShouldRenderValue={false}
           options={options}
           placeholder={placeholder}

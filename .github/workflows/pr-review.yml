@@ -13,5 +13,5 @@ jobs:
         if: github.event.review.state == 'approved'
         uses: actions-ecosystem/action-add-labels@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.READY_FOR_E2E_PAT }}
           labels: 'ready-for-e2e'
