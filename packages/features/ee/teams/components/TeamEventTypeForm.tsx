@@ -1,18 +1,12 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventType } from "@prisma/client";
 import type { ReactNode } from "react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import type { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { classNames } from "@calcom/lib";
+import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { HttpError } from "@calcom/lib/http-error";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
-import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
-import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
 import { trpc } from "@calcom/trpc/react";
 import { Form, TextField, showToast, Tooltip } from "@calcom/ui";
 import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
@@ -20,63 +14,31 @@ import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
 type props = {
   isTeamAdminOrOwner: boolean;
   teamId: number;
-  handleSuccessMutation: (eventType: EventType) => void;
+  handleSuccessMutation?: (eventType: EventType) => void;
   SubmitButton: (isPending: boolean) => ReactNode;
 };
-export const TeamEventTypeForm = ({
-  isTeamAdminOrOwner,
-  teamId,
-  handleSuccessMutation,
-  SubmitButton,
-}: props) => {
+export const TeamEventTypeForm = ({ isTeamAdminOrOwner, teamId, SubmitButton }: props) => {
   const { t } = useLocale();
-  const utils = trpc.useUtils();
   const orgBranding = useOrgBranding();
   const { data: team } = trpc.viewer.teams.get.useQuery({ teamId, isOrg: false }, { enabled: !!teamId });
-  const form = useForm<z.infer<typeof createEventTypeInput>>({
-    defaultValues: {
-      length: 15,
-    },
-    resolver: zodResolver(createEventTypeInput),
-  });
 
-  const schedulingTypeWatch = form.watch("schedulingType");
-  const isManagedEventType = schedulingTypeWatch === SchedulingType.MANAGED;
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
-  useEffect(() => {
-    if (isManagedEventType) {
-      form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
-    } else {
-      form.setValue("metadata", null);
-    }
-  }, [schedulingTypeWatch]);
+  const onSuccessMutation = async () => {
+    await router.push(`/settings/teams/${teamId}/profile`);
+  };
+
+  const onErrorMutation = (err: string) => {
+    showToast(err, "error");
+  };
+
+  const { form, createMutation, isManagedEventType } = useCreateEventType(
+    onSuccessMutation,
+    onErrorMutation,
+    false
+  );
 
   const { register, setValue, formState } = form;
-
-  const createMutation = trpc.viewer.eventTypes.create.useMutation({
-    onSuccess: async ({ eventType }) => {
-      await utils.viewer.eventTypes.getByViewer.invalidate();
-      handleSuccessMutation(eventType);
-      form.reset();
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
-        showToast(message, "error");
-      }
-    },
-  });
 
   return (
     <Form

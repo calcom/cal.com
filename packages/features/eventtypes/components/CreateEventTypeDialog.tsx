@@ -1,23 +1,18 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import type { EventType } from "@prisma/client";
 import { isValidPhoneNumber } from "libphonenumber-js";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
 import { z } from "zod";
 
 import { useOrgBranding } from "@calcom/features/ee/organizations/context/provider";
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
+import { useCreateEventType } from "@calcom/lib/hooks/useCreateEventType";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
-import { HttpError } from "@calcom/lib/http-error";
 import { md } from "@calcom/lib/markdownIt";
 import slugify from "@calcom/lib/slugify";
 import turndown from "@calcom/lib/turndownService";
 import { MembershipRole, SchedulingType } from "@calcom/prisma/enums";
-import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
-import { createEventTypeInput } from "@calcom/prisma/zod/custom/eventtype";
-import { trpc } from "@calcom/trpc/react";
 import {
   Button,
   Dialog,
@@ -79,7 +74,6 @@ export default function CreateEventTypeDialog({
   }[];
   isInfiniteScrollEnabled: boolean;
 }) {
-  const utils = trpc.useUtils();
   const { t } = useLocale();
   const router = useRouter();
   const [firstRender, setFirstRender] = useState(true);
@@ -90,23 +84,26 @@ export default function CreateEventTypeDialog({
   } = useTypedQuery(querySchema);
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
-  const form = useForm<z.infer<typeof createEventTypeInput>>({
-    defaultValues: {
-      length: 15,
-    },
-    resolver: zodResolver(createEventTypeInput),
-  });
 
-  const schedulingTypeWatch = form.watch("schedulingType");
-  const isManagedEventType = schedulingTypeWatch === SchedulingType.MANAGED;
+  const onSuccessMutation = (eventType: EventType) => {
+    router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
+    showToast(
+      t("event_type_created_successfully", {
+        eventTypeTitle: eventType.title,
+      }),
+      "success"
+    );
+  };
 
-  useEffect(() => {
-    if (isManagedEventType) {
-      form.setValue("metadata.managedEventConfig.unlockedFields", unlockedManagedEventTypeProps);
-    } else {
-      form.setValue("metadata", null);
-    }
-  }, [schedulingTypeWatch]);
+  const onErrorMutation = (err: string) => {
+    showToast(err, "error");
+  };
+
+  const { form, createMutation, isManagedEventType } = useCreateEventType(
+    onSuccessMutation,
+    onErrorMutation,
+    isInfiniteScrollEnabled
+  );
 
   const { register } = form;
 
@@ -114,46 +111,6 @@ export default function CreateEventTypeDialog({
     teamId !== undefined &&
     (teamProfile?.membershipRole === MembershipRole.OWNER ||
       teamProfile?.membershipRole === MembershipRole.ADMIN);
-
-  const createMutation = trpc.viewer.eventTypes.create.useMutation({
-    onSuccess: async ({ eventType }) => {
-      await router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
-
-      if (isInfiniteScrollEnabled) {
-        await utils.viewer.eventTypes.getUserEventGroups.invalidate();
-        await utils.viewer.eventTypes.getEventTypesFromGroup.invalidate({
-          limit: 10,
-          group: { teamId: eventType?.teamId, parentId: eventType?.parentId },
-        });
-      } else {
-        await utils.viewer.eventTypes.getByViewer.invalidate();
-      }
-
-      showToast(
-        t("event_type_created_successfully", {
-          eventTypeTitle: eventType.title,
-        }),
-        "success"
-      );
-      form.reset();
-    },
-    onError: (err) => {
-      if (err instanceof HttpError) {
-        const message = `${err.statusCode}: ${err.message}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "BAD_REQUEST") {
-        const message = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
-        showToast(message, "error");
-      }
-
-      if (err.data?.code === "UNAUTHORIZED") {
-        const message = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
-        showToast(message, "error");
-      }
-    },
-  });
 
   const SubmitButton = (isPending: boolean) => {
     return (
@@ -163,17 +120,6 @@ export default function CreateEventTypeDialog({
           {t("continue")}
         </Button>
       </DialogFooter>
-    );
-  };
-
-  const handleSuccessMutation = (eventType: EventType) => {
-    utils.viewer.eventTypes.getByViewer.invalidate();
-    router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
-    showToast(
-      t("event_type_created_successfully", {
-        eventTypeTitle: eventType.title,
-      }),
-      "success"
     );
   };
 
@@ -202,7 +148,6 @@ export default function CreateEventTypeDialog({
             isTeamAdminOrOwner={isTeamAdminOrOwner}
             teamId={teamId}
             SubmitButton={SubmitButton}
-            handleSuccessMutation={handleSuccessMutation}
           />
         ) : (
           <Form
