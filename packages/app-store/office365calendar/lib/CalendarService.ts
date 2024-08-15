@@ -267,7 +267,7 @@ export default class Office365CalendarService implements Calendar {
       subject: event.title,
       body: {
         contentType: "HTML",
-        content: getRichDescription(event).replace(/\n/g, "<br>"),
+        content: this.getRichDescriptionForOutlook(event),
       },
       start: {
         dateTime: dayjs(event.startTime).tz(event.organizer.timeZone).format("YYYY-MM-DDTHH:mm:ss"),
@@ -315,6 +315,26 @@ export default class Office365CalendarService implements Calendar {
       location: event.location ? { displayName: getLocation(event) } : undefined,
     };
   };
+
+  private getRichDescriptionForOutlook(event: CalendarEvent) {
+    const richDescription = getRichDescription(event);
+    const formattedForOutlook = this.formatDescriptionForOutlook(richDescription);
+
+    return formattedForOutlook;
+  }
+
+  private formatDescriptionForOutlook(description: string) {
+    // note(Lauris): replace newlines with <br> - without them description has no new lines
+    let formatted = description.replace(/\n/g, "<br>");
+
+    // note(Lauris): hyperlink meeting urls - without them they are not clickable and appear as plain text
+    const urlRegex = /https?:\/\/[^\s]+/g;
+    formatted = formatted.replace(urlRegex, (url) => {
+      return `<a href="${url}" target="_blank">${url}</a>`;
+    });
+
+    return formatted;
+  }
 
   private fetcher = async (endpoint: string, init?: RequestInit | undefined) => {
     return this.auth.requestRaw({
