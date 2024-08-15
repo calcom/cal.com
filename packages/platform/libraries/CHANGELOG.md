@@ -1,3 +1,10 @@
+## 0.0.28 
+•	Feature: Added support for new event-type limits in the API.
+	•	Introduced the transformApiEventTypeFutureBookingLimits translator in packages/lib/event-types/transformers/api-request.ts. This enables the “Limit future bookings” feature in the event-type API.
+	•	Introduced the transformApiEventTypeIntervalLimits translator in packages/lib/event-types/transformers/api-request.ts. This allows the “Limit total booking duration” and “Limit booking frequency” features in the event-type API.
+	•	Added getResponseEventTypeIntervalLimits translator in packages/lib/event-types/transformers/api-response.ts to return data in a more human-friendly format.
+	•	Added getResponseEventTypeFutureBookingLimits translator in packages/lib/event-types/transformers/api-response.ts to improve the clarity and readability of the response data.
+
 ## 0.0.26
 Update `packages/app-store/office365calendar/lib/CalendarService.ts` "translateEvent" content so that in microsoft outlook calendar event the description
 has newlines instead of being all in 1 line.
@@ -5,7 +12,6 @@ has newlines instead of being all in 1 line.
 ## 0.0.25
 Refactor "packages/lib/event-types/transformers/api-request.ts" getResponseEventTypeBookingFields - make sure that booking fields with options don't have
 undefines options.
-
 
 ## 0.0.24
 Refactor "packages/lib/event-types/transformers/api-request.ts" - we access event-type booking fields in database and then distinguish them as either
