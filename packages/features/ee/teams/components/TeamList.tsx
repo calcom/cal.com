@@ -75,7 +75,7 @@ export default function TeamList(props: Props) {
                     actionButton={{
                       href: `/settings/organizations/new`,
                       child: t("set_up_your_organization"),
-                      "data-testId": "setup_your_org_action_button",
+                      "data-testid": "setup_your_org_action_button",
                     }}
                   />
                   <Card
@@ -91,7 +91,7 @@ export default function TeamList(props: Props) {
                     }}
                   />
                   <Card
-                    icon={<Icon name="line-chart" className="h-5 w-5 text-green-700" />}
+                    icon={<Icon name="chart-line" className="h-5 w-5 text-green-700" />}
                     variant="basic"
                     title={t("Admin tools and analytics")}
                     description={t(

@@ -3,12 +3,16 @@ import type { NextApiResponse, GetServerSidePropsContext } from "next";
 
 import type { appDataSchemas } from "@calcom/app-store/apps.schemas.generated";
 import updateChildrenEventTypes from "@calcom/features/ee/managed-event-types/lib/handleChildrenEventTypes";
+import {
+  allowDisablingAttendeeConfirmationEmails,
+  allowDisablingHostConfirmationEmails,
+} from "@calcom/features/ee/workflows/lib/allowDisablingStandardEmails";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import logger from "@calcom/lib/logger";
 import { getTranslation } from "@calcom/lib/server";
 import { validateBookerLayouts } from "@calcom/lib/validateBookerLayouts";
 import type { PrismaClient } from "@calcom/prisma";
-import { WorkflowActions, WorkflowTriggerEvents } from "@calcom/prisma/client";
+import { WorkflowTriggerEvents } from "@calcom/prisma/client";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 import { TRPCError } from "@trpc/server";
@@ -49,6 +53,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     destinationCalendar,
     customInputs,
     recurringEvent,
+    eventTypeColor,
     users,
     children,
     assignAllTeamMembers,
@@ -134,6 +139,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     ...rest,
     bookingFields,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
+    eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
   };
   data.locations = locations ?? undefined;
   if (periodType) {
@@ -256,9 +262,15 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     };
   }
 
-  if (input.metadata?.disableStandardEmails) {
-    //check if user is allowed to disabled standard emails
+  if (input.metadata?.disableStandardEmails?.all) {
+    if (!eventType?.team?.parentId) {
+      input.metadata.disableStandardEmails.all.host = false;
+      input.metadata.disableStandardEmails.all.attendee = false;
+    }
+  }
 
+  if (input.metadata?.disableStandardEmails?.confirmation) {
+    //check if user is allowed to disabled standard emails
     const workflows = await ctx.prisma.workflow.findMany({
       where: {
         activeOn: {
@@ -274,21 +286,13 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     });
 
     if (input.metadata?.disableStandardEmails.confirmation?.host) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_HOST)
-        )
-      ) {
+      if (!allowDisablingHostConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.host = false;
       }
     }
 
     if (input.metadata?.disableStandardEmails.confirmation?.attendee) {
-      if (
-        !workflows.find(
-          (workflow) => !!workflow.steps.find((step) => step.action === WorkflowActions.EMAIL_ATTENDEE)
-        )
-      ) {
+      if (!allowDisablingAttendeeConfirmationEmails(workflows)) {
         input.metadata.disableStandardEmails.confirmation.attendee = false;
       }
     }

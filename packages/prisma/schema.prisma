@@ -137,6 +137,9 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  /// @zod.custom(imports.eventTypeColor)
+  eventTypeColor                          Json?
+  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
@@ -320,8 +323,9 @@ model User {
   secondaryEmails            SecondaryEmail[]
   isPlatformManaged          Boolean                      @default(false)
 
-  OutOfOfficeReasons OutOfOfficeReason[]
-  smsLockState       SMSLockState        @default(UNLOCKED)
+  OutOfOfficeReasons     OutOfOfficeReason[]
+  smsLockState           SMSLockState        @default(UNLOCKED)
+  smsLockReviewedByAdmin Boolean             @default(false)
 
   @@unique([email])
   @@unique([email, username])
@@ -412,6 +416,7 @@ model Team {
   smsLockState           SMSLockState            @default(UNLOCKED)
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
+  smsLockReviewedByAdmin Boolean                 @default(false)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -431,6 +436,7 @@ model OrganizationSettings {
   // It is used to allow super sensitive operations like 'impersonation of Org members by Org admin'
   isAdminReviewed               Boolean    @default(false)
   dSyncData                     DSyncData?
+  isAdminAPIEnabled             Boolean    @default(false)
 }
 
 enum MembershipRole {
@@ -726,26 +732,29 @@ enum WebhookTriggerEvents {
 }
 
 model Webhook {
-  id                String                     @id @unique
-  userId            Int?
-  teamId            Int?
-  eventTypeId       Int?
+  id                    String                     @id @unique
+  userId                Int?
+  teamId                Int?
+  eventTypeId           Int?
+  platformOAuthClientId String?
   /// @zod.url()
-  subscriberUrl     String
-  payloadTemplate   String?
-  createdAt         DateTime                   @default(now())
-  active            Boolean                    @default(true)
-  eventTriggers     WebhookTriggerEvents[]
-  user              User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  team              Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  eventType         EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  app               App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
-  appId             String?
-  secret            String?
-  platform          Boolean                    @default(false)
-  scheduledTriggers WebhookScheduledTriggers[]
+  subscriberUrl         String
+  payloadTemplate       String?
+  createdAt             DateTime                   @default(now())
+  active                Boolean                    @default(true)
+  eventTriggers         WebhookTriggerEvents[]
+  user                  User?                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team                  Team?                      @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  eventType             EventType?                 @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  platformOAuthClient   PlatformOAuthClient?       @relation(fields: [platformOAuthClientId], references: [id], onDelete: Cascade)
+  app                   App?                       @relation(fields: [appId], references: [slug], onDelete: Cascade)
+  appId                 String?
+  secret                String?
+  platform              Boolean                    @default(false)
+  scheduledTriggers     WebhookScheduledTriggers[]
 
   @@unique([userId, subscriberUrl], name: "courseIdentifier")
+  @@unique([platformOAuthClientId, subscriberUrl], name: "oauthclientwebhook")
 }
 
 model Impersonations {
@@ -1297,6 +1306,7 @@ model PlatformOAuthClient {
   accessTokens        AccessToken[]
   refreshToken        RefreshToken[]
   authorizationTokens PlatformAuthorizationToken[]
+  webhook             Webhook[]
 
   bookingRedirectUri           String?
   bookingCancelRedirectUri     String?

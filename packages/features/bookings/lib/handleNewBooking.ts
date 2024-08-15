@@ -258,7 +258,6 @@ async function handler(
   }
 
   const fullName = getFullName(bookerName);
-
   // Why are we only using "en" locale
   const tGuests = await getTranslation("en", "common");
 
@@ -295,6 +294,12 @@ async function handler(
     })
   );
 
+  const user = eventType.users.find((user) => user.id === eventType.userId);
+
+  const userSchedule = user?.schedules.find((schedule) => schedule.id === user?.defaultScheduleId);
+
+  const eventTimeZone = eventType.schedule?.timeZone ?? userSchedule?.timeZone;
+
   let timeOutOfBounds = false;
   try {
     timeOutOfBounds = isOutOfBounds(
@@ -305,7 +310,8 @@ async function handler(
         periodEndDate: eventType.periodEndDate,
         periodStartDate: eventType.periodStartDate,
         periodCountCalendarDays: eventType.periodCountCalendarDays,
-        utcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        bookerUtcOffset: getUTCOffsetByTimezone(reqBody.timeZone) ?? 0,
+        eventUtcOffset: eventTimeZone ? getUTCOffsetByTimezone(eventTimeZone) ?? 0 : 0,
       },
       eventType.minimumBookingNotice
     );
@@ -428,7 +434,7 @@ async function handler(
         startAsDate,
         eventType.id,
         rescheduleUid,
-        eventType.schedule?.timeZone
+        eventTimeZone
       );
     }
     if (eventType.durationLimits) {
@@ -592,13 +598,23 @@ async function handler(
 
       // loop through all non-fixed hosts and get the lucky users
       while (luckyUserPool.length > 0 && luckyUsers.length < 1 /* TODO: Add variable */) {
-        const newLuckyUser = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
-          // find a lucky user that is not already in the luckyUsers array
-          availableUsers: luckyUserPool.filter(
-            (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
-          ),
-          eventTypeId: eventType.id,
-        });
+        const freeUsers = luckyUserPool.filter(
+          (user) => !luckyUsers.concat(notAvailableLuckyUsers).find((existing) => existing.id === user.id)
+        );
+        const originalRescheduledBookingUserId =
+          originalRescheduledBooking && originalRescheduledBooking.userId;
+        const isSameRoundRobinHost =
+          !!originalRescheduledBookingUserId &&
+          eventType.schedulingType === SchedulingType.ROUND_ROBIN &&
+          eventType.rescheduleWithSameRoundRobinHost;
+
+        const newLuckyUser = isSameRoundRobinHost
+          ? freeUsers.find((user) => user.id === originalRescheduledBookingUserId)
+          : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
+              // find a lucky user that is not already in the luckyUsers array
+              availableUsers: freeUsers,
+              eventTypeId: eventType.id,
+            });
         if (!newLuckyUser) {
           break; // prevent infinite loop
         }
@@ -687,15 +703,26 @@ async function handler(
 
   const isManagedEventType = !!eventType.parentId;
 
+  // If location passed is empty , use default location of event
+  // If location of event is not set , use host default
+  if (locationBodyString.trim().length == 0) {
+    if (eventType.locations.length > 0) {
+      locationBodyString = eventType.locations[0].type;
+    } else {
+      locationBodyString = OrganizerDefaultConferencingAppType;
+    }
+  }
   // use host default
-  if ((isManagedEventType || isTeamEventType) && locationBodyString === OrganizerDefaultConferencingAppType) {
+  if (locationBodyString == OrganizerDefaultConferencingAppType) {
     const metadataParseResult = userMetadataSchema.safeParse(organizerUser.metadata);
     const organizerMetadata = metadataParseResult.success ? metadataParseResult.data : undefined;
     if (organizerMetadata?.defaultConferencingApp?.appSlug) {
       const app = getAppFromSlug(organizerMetadata?.defaultConferencingApp?.appSlug);
       locationBodyString = app?.appData?.location?.type || locationBodyString;
-      organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
-        organizerMetadata?.defaultConferencingApp?.appLink;
+      if (isManagedEventType || isTeamEventType) {
+        organizerOrFirstDynamicGroupMemberDefaultLocationUrl =
+          organizerMetadata?.defaultConferencingApp?.appLink;
+      }
     } else {
       locationBodyString = "integrations:daily";
     }
@@ -800,6 +827,7 @@ async function handler(
     // TODO: Can we have an unnamed organizer? If not, I would really like to throw an error here.
     host: organizerUser.name || "Nameless",
     location: bookingLocation,
+    eventDuration: eventType.length,
     bookingFields: { ...responses },
     t: tOrganizer,
   };
@@ -835,6 +863,12 @@ async function handler(
     organizerEmail = eventType.secondaryEmail.email;
   }
 
+  //udpate cal event responses with latest location value , later used by webhook
+  if (reqBody.calEventResponses)
+    reqBody.calEventResponses["location"].value = {
+      value: platformBookingLocation ?? bookingLocation,
+      optionValue: "",
+    };
   let evt: CalendarEvent = {
     bookerUrl,
     type: eventType.slug,
@@ -908,6 +942,7 @@ async function handler(
     triggerEvent: WebhookTriggerEvents.BOOKING_CREATED,
     teamId,
     orgId,
+    oAuthClientId: platformClientId,
   };
 
   const eventTrigger: WebhookTriggerEvents = rescheduleUid
@@ -1322,17 +1357,20 @@ async function handler(
           originalBookingMemberEmails.find((orignalMember) => orignalMember.email === member.email)
         );
 
-        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers);
-        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers);
-        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers);
+        sendRoundRobinRescheduledEmails(copyEventAdditionalInfo, rescheduledMembers, eventType.metadata);
+        sendRoundRobinScheduledEmails(copyEventAdditionalInfo, newBookedMembers, eventType.metadata);
+        sendRoundRobinCancelledEmails(copyEventAdditionalInfo, cancelledMembers, eventType.metadata);
       } else {
         // send normal rescheduled emails (non round robin event, where organizers stay the same)
-        await sendRescheduledEmails({
-          ...copyEvent,
-          additionalInformation: metadata,
-          additionalNotes, // Resets back to the additionalNote input and not the override value
-          cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
-        });
+        await sendRescheduledEmails(
+          {
+            ...copyEvent,
+            additionalInformation: metadata,
+            additionalNotes, // Resets back to the additionalNote input and not the override value
+            cancellationReason: `$RCH$${rescheduleReason ? rescheduleReason : ""}`, // Removable code prefix to differentiate cancellation from rescheduling for email
+          },
+          eventType?.metadata
+        );
       }
     }
     // If it's not a reschedule, doesn't require confirmation and there's no price,
@@ -1469,7 +1507,8 @@ async function handler(
           },
           eventNameObject,
           isHostConfirmationEmailsDisabled,
-          isAttendeeConfirmationEmailDisabled
+          isAttendeeConfirmationEmailDisabled,
+          eventType.metadata
         );
       }
     }
@@ -1498,8 +1537,8 @@ async function handler(
         calEvent: getPiiFreeCalendarEvent(evt),
       })
     );
-    await sendOrganizerRequestEmail({ ...evt, additionalNotes });
-    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0]);
+    await sendOrganizerRequestEmail({ ...evt, additionalNotes }, eventType.metadata);
+    await sendAttendeeRequestEmail({ ...evt, additionalNotes }, attendeesList[0], eventType.metadata);
   }
 
   if (booking.location?.startsWith("http")) {
@@ -1577,6 +1616,7 @@ async function handler(
       triggerEvent: WebhookTriggerEvents.BOOKING_PAYMENT_INITIATED,
       teamId,
       orgId,
+      oAuthClientId: platformClientId,
     };
     await handleWebhookTrigger({
       subscriberOptions: subscriberOptionsPaymentInitiated,
@@ -1725,13 +1765,15 @@ async function handler(
 
   const evtWithMetadata = { ...evt, metadata, eventType: { slug: eventType.slug } };
 
-  await scheduleMandatoryReminder(
-    evtWithMetadata,
-    workflows,
-    !isConfirmedByDefault,
-    !!eventType.owner?.hideBranding,
-    evt.attendeeSeatId
-  );
+  if (!eventType.metadata?.disableStandardEmails?.all?.attendee) {
+    await scheduleMandatoryReminder(
+      evtWithMetadata,
+      workflows,
+      !isConfirmedByDefault,
+      !!eventType.owner?.hideBranding,
+      evt.attendeeSeatId
+    );
+  }
 
   try {
     await scheduleWorkflowReminders({

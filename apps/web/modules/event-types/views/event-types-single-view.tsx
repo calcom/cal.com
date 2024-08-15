@@ -248,21 +248,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     endDate: new Date(eventType.periodEndDate || Date.now()),
   });
 
-  const metadata = eventType.metadata;
-  // fallback to !!eventType.schedule when 'useHostSchedulesForTeamEvent' is undefined
-  if (!!team && metadata !== null) {
-    metadata.config = {
-      ...metadata.config,
-      useHostSchedulesForTeamEvent:
-        typeof eventType.metadata?.config?.useHostSchedulesForTeamEvent !== "undefined"
-          ? eventType.metadata?.config?.useHostSchedulesForTeamEvent === true
-          : !!eventType.schedule,
-    };
-  } else {
-    // Make sure non-team events NEVER have this config key;
-    delete metadata?.config?.useHostSchedulesForTeamEvent;
-  }
-
   const bookingFields: Prisma.JsonObject = {};
 
   eventType.bookingFields.forEach(({ name }) => {
@@ -302,6 +287,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         })?.link || undefined,
       singleUseLinks:
         eventType.hashedLink.filter((link) => link.destroyOnUse === true).map((link) => link.link) || [],
+      eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -315,7 +301,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       requiresConfirmation: eventType.requiresConfirmation,
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
-      metadata,
+      metadata: eventType.metadata,
       hosts: eventType.hosts,
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
@@ -335,6 +321,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         },
       })),
       seatsPerTimeSlotEnabled: eventType.seatsPerTimeSlot,
+      rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
       assignAllTeamMembers: eventType.assignAllTeamMembers,
       aiPhoneCallConfig: {
         generalPrompt: eventType.aiPhoneCallConfig?.generalPrompt ?? DEFAULT_PROMPT_VALUE,
@@ -349,7 +336,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
     };
-  }, [eventType, periodDates, metadata]);
+  }, [eventType, periodDates]);
   const formMethods = useForm<FormValues>({
     defaultValues,
     resolver: zodResolver(
@@ -566,6 +553,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
+      eventTypeColor,
       locations,
       metadata,
       customInputs,
@@ -636,6 +624,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       bookingLimits,
       onlyShowFirstAvailableSlot,
       durationLimits,
+      eventTypeColor,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,
@@ -724,6 +713,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
+              eventTypeColor,
               locations,
               metadata,
               customInputs,
@@ -786,6 +776,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               bookingLimits,
               onlyShowFirstAvailableSlot,
               durationLimits,
+              eventTypeColor,
               seatsPerTimeSlot,
               seatsShowAttendees,
               seatsShowAvailabilityCount,
