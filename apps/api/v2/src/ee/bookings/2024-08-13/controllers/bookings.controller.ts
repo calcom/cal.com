@@ -2,7 +2,7 @@ import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { Controller, Post, Logger, Body, UseGuards, Req } from "@nestjs/common";
+import { Controller, Post, Logger, Body, UseGuards, Req, Get } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 
@@ -40,4 +40,18 @@ export class BookingsController_2024_08_13 {
       data: booking,
     };
   }
+
+  // @Get("/:bookingUid")
+  // async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_04_15> {
+  //   const { bookingInfo } = await getBookingInfo(bookingUid);
+
+  //   if (!bookingInfo) {
+  //     throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
+  //   }
+
+  //   return {
+  //     status: SUCCESS_STATUS,
+  //     data: bookingInfo,
+  //   };
+  // }
 }

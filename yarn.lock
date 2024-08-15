@@ -4133,8 +4133,8 @@ __metadata:
   resolution: "@calcom/api-v2@workspace:apps/api/v2"
   dependencies:
     "@calcom/platform-constants": "*"
+    "@calcom/platform-libraries": "npm:@calcom/platform-libraries@0.0.27"
     "@calcom/platform-libraries-0.0.2": "npm:@calcom/platform-libraries@0.0.2"
-    "@calcom/platform-libraries-0.0.26": "npm:@calcom/platform-libraries@0.0.26"
     "@calcom/platform-types": "*"
     "@calcom/platform-utils": "*"
     "@calcom/prisma": "*"
@@ -4190,7 +4190,7 @@ __metadata:
     ts-node: ^10.9.1
     tsconfig-paths: ^4.1.0
     typescript: ^4.9.4
-    uuid: ^8.3.2
+    uuid: ^10.0.0
     winston: ^3.11.0
     zod: ^3.22.4
   languageName: unknown
@@ -4286,7 +4286,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/atoms@*, @calcom/atoms@workspace:^, @calcom/atoms@workspace:packages/platform/atoms":
+"@calcom/atoms@*, @calcom/atoms@workspace:packages/platform/atoms":
   version: 0.0.0-use.local
   resolution: "@calcom/atoms@workspace:packages/platform/atoms"
   dependencies:
@@ -4465,17 +4465,17 @@ __metadata:
     "@heroicons/react": ^1.0.6
     "@prisma/client": ^5.4.2
     "@tailwindcss/forms": ^0.5.2
-    "@types/node": ^20.3.1
+    "@types/node": 16.9.1
     "@types/react": 18.0.26
-    autoprefixer: ^10.4.19
+    autoprefixer: ^10.4.12
     chart.js: ^3.7.1
     client-only: ^0.0.1
     eslint: ^8.34.0
-    next: ^14.1.3
+    next: ^13.5.4
     next-auth: ^4.22.1
     next-i18next: ^13.2.2
-    postcss: ^8.4.38
-    prisma: ^5.7.1
+    postcss: ^8.4.18
+    prisma: ^5.4.2
     prisma-field-encryption: ^1.4.0
     react: ^18.2.0
     react-chartjs-2: ^4.0.1
@@ -4484,7 +4484,7 @@ __metadata:
     react-live-chat-loader: ^2.8.1
     swr: ^1.2.2
     tailwindcss: ^3.3.3
-    typescript: ^5.3.3
+    typescript: ^4.9.4
     zod: ^3.22.4
   languageName: unknown
   linkType: soft
@@ -4849,6 +4849,15 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms":
+  version: 0.0.0-use.local
+  resolution: "@calcom/horizon-workrooms@workspace:packages/app-store/horizon-workrooms"
+  dependencies:
+    "@calcom/lib": "*"
+    "@calcom/types": "*"
+  languageName: unknown
+  linkType: soft
+
 "@calcom/hubspot@workspace:packages/app-store/hubspot":
   version: 0.0.0-use.local
   resolution: "@calcom/hubspot@workspace:packages/app-store/hubspot"
@@ -5086,17 +5095,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@calcom/platform-libraries-0.0.26@npm:@calcom/platform-libraries@0.0.26":
-  version: 0.0.26
-  resolution: "@calcom/platform-libraries@npm:0.0.26"
-  dependencies:
-    "@calcom/core": "*"
-    "@calcom/features": "*"
-    "@calcom/lib": "*"
-  checksum: 95b60b6bccfecf1d75f5b37b6e2b48811d6cbdd6ccb8157fa700558f2947adefd1fa26e7ed123f72960ddbf44ead26cce6e6fbd62505d73f5490abcf7c95563d
-  languageName: node
-  linkType: hard
-
 "@calcom/platform-libraries-0.0.2@npm:@calcom/platform-libraries@0.0.2, @calcom/platform-libraries@npm:0.0.2":
   version: 0.0.2
   resolution: "@calcom/platform-libraries@npm:0.0.2"
@@ -5105,6 +5103,17 @@ __metadata:
     "@calcom/features": "*"
     "@calcom/lib": "*"
   checksum: 61b6be1b9d0be8a54ca8b1dff4b1e4db122b3c30d9203467f5347232eaf600ca3892da45a2de8abfe75327086406c33c1f6f75cd12a7147744437bc85a0ee755
+  languageName: node
+  linkType: hard
+
+"@calcom/platform-libraries@npm:@calcom/platform-libraries@0.0.27":
+  version: 0.0.27
+  resolution: "@calcom/platform-libraries@npm:0.0.27"
+  dependencies:
+    "@calcom/core": "*"
+    "@calcom/features": "*"
+    "@calcom/lib": "*"
+  checksum: 516c347b3f71e45879925d31f067035a7c6857dc0f474a726dcb58a7949e1d6906e8e21b18a3a480052088ef742048029509aa74b6bde31b51a13fc6ea00a9f4
   languageName: node
   linkType: hard
 
@@ -5130,6 +5139,7 @@ __metadata:
   dependencies:
     "@calcom/platform-constants": "*"
     "@types/express": ^4.17.21
+    class-transformer: ^0.5.1
     class-validator: ^0.14.0
   languageName: unknown
   linkType: soft
@@ -5737,7 +5747,6 @@ __metadata:
   dependencies:
     "@algora/sdk": ^0.1.2
     "@calcom/app-store": "*"
-    "@calcom/atoms": "workspace:^"
     "@calcom/config": "*"
     "@calcom/dayjs": "*"
     "@calcom/embed-react": "workspace:^"
@@ -5768,23 +5777,22 @@ __metadata:
     "@radix-ui/react-tabs": ^1.0.0
     "@radix-ui/react-tooltip": ^1.0.0
     "@stripe/stripe-js": ^1.35.0
-    "@tanstack/react-query": ^5.17.15
+    "@tanstack/react-query": ^4.3.9
     "@typeform/embed-react": ^1.2.4
     "@types/bcryptjs": ^2.4.2
     "@types/debounce": ^1.2.1
     "@types/gtag.js": ^0.0.10
     "@types/micro": 7.3.7
-    "@types/node": ^20.3.1
+    "@types/node": 16.9.1
     "@types/react": 18.0.26
     "@types/react-gtm-module": ^2.0.1
     "@types/xml2js": ^0.4.11
     "@vercel/analytics": ^0.1.6
     "@vercel/edge-functions-ui": ^0.2.1
     "@vercel/og": ^0.5.0
-    autoprefixer: ^10.4.19
+    autoprefixer: ^10.4.12
     bcryptjs: ^2.4.3
-    class-variance-authority: ^0.7.0
-    clsx: ^2.0.0
+    clsx: ^1.2.1
     cobe: ^0.4.1
     concurrently: ^7.6.0
     cross-env: ^7.0.3
@@ -5796,7 +5804,6 @@ __metadata:
     env-cmd: ^10.1.0
     eslint: ^8.34.0
     fathom-client: ^3.5.0
-    framer-motion: ^11.0.25
     globby: ^13.1.3
     graphql: ^16.8.0
     graphql-codegen: ^0.4.0
@@ -5806,7 +5813,7 @@ __metadata:
     i18n-unused: ^0.13.0
     iframe-resizer-react: ^1.1.0
     keen-slider: ^6.8.0
-    lucide-react: ^0.364.0
+    lucide-react: ^0.171.0
     micro: ^10.0.1
     next: ^14.1.3
     next-auth: ^4.22.1
@@ -5814,11 +5821,11 @@ __metadata:
     next-i18next: ^13.2.2
     next-seo: ^6.0.0
     playwright-core: ^1.38.1
-    postcss: ^8.4.38
+    postcss: ^8.4.18
     prism-react-renderer: ^1.3.5
     react: ^18.2.0
     react-confetti: ^6.0.1
-    react-datocms: ^5.0.3
+    react-datocms: ^3.1.0
     react-device-detect: ^2.2.2
     react-dom: ^18.2.0
     react-fast-marquee: ^1.6.4
@@ -5828,23 +5835,21 @@ __metadata:
     react-live-chat-loader: ^2.8.1
     react-markdown: ^9.0.1
     react-merge-refs: 1.1.0
-    react-parallax-tilt: ^1.7.226
     react-resize-detector: ^9.1.0
     react-twemoji: ^0.3.0
-    react-twitter-embed: ^4.0.4
     react-use-measure: ^2.1.1
     react-wrap-balancer: ^1.0.0
     remark: ^14.0.2
     remark-html: ^14.0.1
     remeda: ^1.24.1
-    stripe: ^15.3.0
+    stripe: ^9.16.0
     tailwind-merge: ^1.13.2
     tailwindcss: ^3.3.3
     ts-node: ^10.9.1
-    typescript: ^5.3.3
+    typescript: ^4.9.4
     wait-on: ^7.0.1
     xml2js: ^0.6.0
-    zod: ^3.22.4
+    zod: ^3.22.2
   languageName: unknown
   linkType: soft
 
@@ -9250,59 +9255,6 @@ __metadata:
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.4
   checksum: ab9c1fd0142b18875b1fe5134260fcf10b3b7249324cc62f2656d888bafc0db472cd7b4dea4649dfd0f061375b55342e2de557dd075e9f9c8afb3eaf266d987e
-  languageName: node
-  linkType: hard
-
-"@mux/mux-player-react@npm:*":
-  version: 2.9.1
-  resolution: "@mux/mux-player-react@npm:2.9.1"
-  dependencies:
-    "@mux/mux-player": 2.9.1
-    "@mux/playback-core": 0.25.2
-    prop-types: ^15.7.2
-  peerDependencies:
-    "@types/react": ^17.0.0 || ^18 || ^19
-    react: ^17.0.2 || ^18 || ^19
-    react-dom: ^17.0.2 || ^18 || ^19
-  peerDependenciesMeta:
-    "@types/react":
-      optional: true
-    "@types/react-dom":
-      optional: true
-  checksum: bee10ae2a1cf3279d9180020ed4e48a878b3277db98be00c41a143bd0c046066913f030d2c0088923dbc52c2f44c4cf3b7107688caa38b5662f093397ec7ba94
-  languageName: node
-  linkType: hard
-
-"@mux/mux-player@npm:2.9.1":
-  version: 2.9.1
-  resolution: "@mux/mux-player@npm:2.9.1"
-  dependencies:
-    "@mux/mux-video": 0.20.2
-    "@mux/playback-core": 0.25.2
-    media-chrome: ~3.2.5
-  checksum: 21315a5277f17a595741890c4b16149fb05260075f63b25a51fba568aa395de35210fda95b4321025cc3ad093507ceac2e6c4080f378a6f910cc2b37206a4160
-  languageName: node
-  linkType: hard
-
-"@mux/mux-video@npm:0.20.2":
-  version: 0.20.2
-  resolution: "@mux/mux-video@npm:0.20.2"
-  dependencies:
-    "@mux/playback-core": 0.25.2
-    castable-video: ~1.0.9
-    custom-media-element: ~1.3.1
-    media-tracks: ~0.3.2
-  checksum: 58702a90b6c75c0525ef0c533500460fe6b24e9624f4e52d9a07a8a9e2fb132d0d734e823c390fe63d220c6a7b3377422c766a17bfaafe8c9ff527dfc28a0a38
-  languageName: node
-  linkType: hard
-
-"@mux/playback-core@npm:0.25.2":
-  version: 0.25.2
-  resolution: "@mux/playback-core@npm:0.25.2"
-  dependencies:
-    hls.js: ~1.5.11
-    mux-embed: ~5.2.0
-  checksum: 29e1950d605f3f2cc2511f325b94d40b0467f82e7974e7619f135617e6b6dd3424da9282cb01e63a7215029dd3c9ac560b5a208b44531120835bf6244392dbb1
   languageName: node
   linkType: hard
 
@@ -16161,10 +16113,36 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tanstack/query-core@npm:4.36.1":
+  version: 4.36.1
+  resolution: "@tanstack/query-core@npm:4.36.1"
+  checksum: 47672094da20d89402d9fe03bb7b0462be73a76ff9ca715169738bc600a719d064d106d083a8eedae22a2c22de22f87d5eb5d31ef447aba771d9190f2117ed10
+  languageName: node
+  linkType: hard
+
 "@tanstack/query-core@npm:5.17.19":
   version: 5.17.19
   resolution: "@tanstack/query-core@npm:5.17.19"
   checksum: ad09f1d64a169f8427225020b8b68328d64d1e671af28d47c33df31302106a05af4ed61587642704f70e1fe3861a8f00ea1722685a128dc6ee60fdf34b8dcc57
+  languageName: node
+  linkType: hard
+
+"@tanstack/react-query@npm:^4.3.9":
+  version: 4.36.1
+  resolution: "@tanstack/react-query@npm:4.36.1"
+  dependencies:
+    "@tanstack/query-core": 4.36.1
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 1aff0a476859386f8d32253fa0d0bde7b81769a6d4d4d9cbd78778f0f955459a3bdb7ee27a0d2ee7373090f12998b45df80db0b5b313bd0a7a39d36c6e8e51c5
   languageName: node
   linkType: hard
 
@@ -21594,15 +21572,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"castable-video@npm:~1.0.9":
-  version: 1.0.10
-  resolution: "castable-video@npm:1.0.10"
-  dependencies:
-    custom-media-element: ~1.3.2
-  checksum: 5b7a27aacf305f40c6867e96e773f4290260f6eb8b01fe1f209506f8f6dec4cd099f3e35ee57de098829e4bcc688ccdc2cbb2fc86c509712dd573eadf66d42cc
-  languageName: node
-  linkType: hard
-
 "ccount@npm:^2.0.0":
   version: 2.0.1
   resolution: "ccount@npm:2.0.1"
@@ -22067,15 +22036,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"class-variance-authority@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "class-variance-authority@npm:0.7.0"
-  dependencies:
-    clsx: 2.0.0
-  checksum: e7fd1fab433ef06f52a1b7b241b70b4a185864deef199d3b0a2c3412f1cc179517288264c383f3b971a00d76811625fc8f7ffe709e6170219e88cd7368f08a20
-  languageName: node
-  linkType: hard
-
 "classnames@npm:^2.2.5, classnames@npm:^2.2.6":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
@@ -22348,17 +22308,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"clsx@npm:2.0.0":
-  version: 2.0.0
-  resolution: "clsx@npm:2.0.0"
-  checksum: a2cfb2351b254611acf92faa0daf15220f4cd648bdf96ce369d729813b85336993871a4bf6978ddea2b81b5a130478339c20d9d0b5c6fc287e5147f0c059276e
-  languageName: node
-  linkType: hard
-
 "clsx@npm:^1.1.1":
   version: 1.1.1
   resolution: "clsx@npm:1.1.1"
   checksum: ff052650329773b9b245177305fc4c4dc3129f7b2be84af4f58dc5defa99538c61d4207be7419405a5f8f3d92007c954f4daba5a7b74e563d5de71c28c830063
+  languageName: node
+  linkType: hard
+
+"clsx@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "clsx@npm:1.2.1"
+  checksum: 30befca8019b2eb7dbad38cff6266cf543091dae2825c856a62a8ccf2c3ab9c2907c4d12b288b73101196767f66812365400a227581484a05f968b0307cfaf12
   languageName: node
   linkType: hard
 
@@ -23652,13 +23612,6 @@ __metadata:
     csv-stringify: ^5.6.5
     stream-transform: ^2.1.3
   checksum: 0decc2d0d7a0abf127f4556d6f3cef5a54015b78d348608b5e8f42256c2bd0a021f34f1efc9723b2cd162680917de4c0b3967bfb65a07305eca0827654ca727e
-  languageName: node
-  linkType: hard
-
-"custom-media-element@npm:~1.3.1, custom-media-element@npm:~1.3.2":
-  version: 1.3.2
-  resolution: "custom-media-element@npm:1.3.2"
-  checksum: 9ec2ff88c3c5ba7d20b9484c0359b4cfe08ad6804f3116934ffbae2f2e0e04d2a832beb6f0bec56027a969ab366727d217406f750890613c988de6de5330cb4f
   languageName: node
   linkType: hard
 
@@ -27724,26 +27677,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"framer-motion@npm:^11.0.25":
-  version: 11.3.24
-  resolution: "framer-motion@npm:11.3.24"
-  dependencies:
-    tslib: ^2.4.0
-  peerDependencies:
-    "@emotion/is-prop-valid": "*"
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  peerDependenciesMeta:
-    "@emotion/is-prop-valid":
-      optional: true
-    react:
-      optional: true
-    react-dom:
-      optional: true
-  checksum: c036284f7adb0f8fa05624e0bfb5e0000c1a3cfdc349a01797c9f8be0fadb5b9ccdbea095abfe685cc52c94f7a69a79d98569c8f74aa1ba3bc1676624f614952
-  languageName: node
-  linkType: hard
-
 "fresh@npm:0.5.2, fresh@npm:^0.5.2":
   version: 0.5.2
   resolution: "fresh@npm:0.5.2"
@@ -29423,13 +29356,6 @@ __metadata:
   version: 11.6.0
   resolution: "highlight.js@npm:11.6.0"
   checksum: 3908eb34a4b442ca1e20c1ae6415ea935fbbcdb2b532a89948d82b0fa4ad41fc5de3802a0de4e88a0bcb7d97d4445579048cd2aab1d105ac47f59dd58a9a98ae
-  languageName: node
-  linkType: hard
-
-"hls.js@npm:~1.5.11":
-  version: 1.5.14
-  resolution: "hls.js@npm:1.5.14"
-  checksum: 7e8385dd188cc2fbf089d3daed12a4b0905f1468be1b1598ddba07edc9d398f9639a054b8f2a73c2d09a177eecc6559c0030ee051611f109e23559004d953d3e
   languageName: node
   linkType: hard
 
@@ -33954,12 +33880,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lucide-react@npm:^0.364.0":
-  version: 0.364.0
-  resolution: "lucide-react@npm:0.364.0"
+"lucide-react@npm:^0.171.0":
+  version: 0.171.0
+  resolution: "lucide-react@npm:0.171.0"
   peerDependencies:
     react: ^16.5.1 || ^17.0.0 || ^18.0.0
-  checksum: 954f6274df46ffa172130d9e60eb630a377435c7dbf0ddb5ceebf284602dde3b99755dcd5c0757e697ee734a32c808a3cd2c25ad88fec1d8f627a2317f00e3e6
+  checksum: 768ffe368c52a518ee339203d86ff4479989ab4d79c0716f721900c4bb7392ef6ff7a14807f6a685abd74d27f4c1778170bff77a0ab4c3e06c17944b557d8300
   languageName: node
   linkType: hard
 
@@ -34498,20 +34424,6 @@ __metadata:
   version: 1.0.1
   resolution: "mdurl@npm:1.0.1"
   checksum: 71731ecba943926bfbf9f9b51e28b5945f9411c4eda80894221b47cc105afa43ba2da820732b436f0798fd3edbbffcd1fc1415843c41a87fea08a41cc1e3d02b
-  languageName: node
-  linkType: hard
-
-"media-chrome@npm:~3.2.5":
-  version: 3.2.5
-  resolution: "media-chrome@npm:3.2.5"
-  checksum: f1d4620d250327c0cb4872c2f7825f407b4f8086e9830a6db76f6be97d6cbed0c0779a768d1e3b2fde62a4bfa283cfadabf588985af1720af0d4c206515b3b7c
-  languageName: node
-  linkType: hard
-
-"media-tracks@npm:~0.3.2":
-  version: 0.3.3
-  resolution: "media-tracks@npm:0.3.3"
-  checksum: 4795af3f171d7ad3a68d1ac1c1e8166a735244fe57d3fc0ec53b1c7410799e524756fc0bfb389632aebb148436b03baade36ca34a3f5377776c3968f6d2cc580
   languageName: node
   linkType: hard
 
@@ -35877,13 +35789,6 @@ __metadata:
   version: 1.0.0
   resolution: "mute-stream@npm:1.0.0"
   checksum: 36fc968b0e9c9c63029d4f9dc63911950a3bdf55c9a87f58d3a266289b67180201cade911e7699f8b2fa596b34c9db43dad37649e3f7fdd13c3bb9edb0017ee7
-  languageName: node
-  linkType: hard
-
-"mux-embed@npm:~5.2.0":
-  version: 5.2.1
-  resolution: "mux-embed@npm:5.2.1"
-  checksum: ec34d3e003e2520be6d1386ca2383daa198a1fa3a469ca3f06c11a742d6ab136eef4944c37e8f2dcaa0585e1b0a6dfc119e3cf2302c7eb0e7f2ebc7c1fc95fbd
   languageName: node
   linkType: hard
 
@@ -40203,21 +40108,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-datocms@npm:^5.0.3":
-  version: 5.0.3
-  resolution: "react-datocms@npm:5.0.3"
+"react-datocms@npm:^3.1.0":
+  version: 3.1.4
+  resolution: "react-datocms@npm:3.1.4"
   dependencies:
-    "@mux/mux-player-react": "*"
     datocms-listen: ^0.1.9
     datocms-structured-text-generic-html-renderer: ^2.0.1
     datocms-structured-text-utils: ^2.0.1
-    react-intersection-observer: ^9.4.3
+    react-intersection-observer: ^8.33.1
     react-string-replace: ^1.1.0
     universal-base64: ^2.1.0
     use-deep-compare-effect: ^1.6.1
   peerDependencies:
     react: ">= 16.12.0"
-  checksum: 22c20152afb54424acfe967a2c8c525cd9f132a33374f2aba0231f16ea64dade389b096e2dac8de9ffded612bc32e9891d725609ee947639fe1cef907cb143f5
+  checksum: 54aba12aef4937175c2011548a8a576c96c8d8a596e84d191826910624c1d596e76a49782689dc236388a10803b02e700ac820cb7500cca7fd147a81f6c544c3
   languageName: node
   linkType: hard
 
@@ -40458,16 +40362,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-intersection-observer@npm:^9.4.3":
-  version: 9.13.0
-  resolution: "react-intersection-observer@npm:9.13.0"
+"react-intersection-observer@npm:^8.33.1":
+  version: 8.34.0
+  resolution: "react-intersection-observer@npm:8.34.0"
   peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-  peerDependenciesMeta:
-    react-dom:
-      optional: true
-  checksum: ee2a163b078923c1556814834f83d7c3ea3e8a9d3ceef974351fd52afe12163518ec57cb2eb0f6544ac255ac4b64d2e7652bc5d60c255159c0f25bda57a565b6
+    react: ^15.0.0 || ^16.0.0 || ^17.0.0|| ^18.0.0
+  checksum: 7713fecfd1512c7f5a60f9f0bf15403b8f8bbd4110bcafaeaea6de36a0e0eb60368c3638f99e9c97b75ad8fc787ea48c241dcb5c694f821d7f2976f709082cc5
   languageName: node
   linkType: hard
 
@@ -40574,16 +40474,6 @@ __metadata:
     react: ^16.3.2
     react-dom: ^16.3.2
   checksum: d115e76c0ee3b26792a82cd9c4b5b3c6f90f15b1e5ca6f617e7985d324bb5e6b61c09588d9b2156701555c3917cf262523ce1607c2ea26fd95ed15a8d52b5ec7
-  languageName: node
-  linkType: hard
-
-"react-parallax-tilt@npm:^1.7.226":
-  version: 1.7.235
-  resolution: "react-parallax-tilt@npm:1.7.235"
-  peerDependencies:
-    react: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 3174054dc0725ed8260d592931fbef3315f6dae636a8f88c15e68be3378d9c391edb75cdf8f48430689f5fe1db09b55e3ae302889b1a9afa68a79cc394aff1ad
   languageName: node
   linkType: hard
 
@@ -41018,18 +40908,6 @@ __metadata:
     react: ^16.4.2
     react-dom: ^16.4.2
   checksum: d4e56477c28c0ad65b98a062a2e9a1777b808a16c05dfa35d77d84fea26f7d1e884d2e30f95a8f14c94c31330d3d4f53a4fd0bfce917bc4be9fb21d34a05db8a
-  languageName: node
-  linkType: hard
-
-"react-twitter-embed@npm:^4.0.4":
-  version: 4.0.4
-  resolution: "react-twitter-embed@npm:4.0.4"
-  dependencies:
-    scriptjs: ^2.5.9
-  peerDependencies:
-    react: ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: cdb3c5bd04c4da0efa767476be47c0a3865fb6335f2a1b9e242170167b51615c38164223278cef60c77143c4bac27ba582cbea054d0af3f138104fa5ec537c4c
   languageName: node
   linkType: hard
 
@@ -42854,13 +42732,6 @@ __metadata:
   version: 5.2.0
   resolution: "screenfull@npm:5.2.0"
   checksum: 21eae33b780eb4679ea0ea2d14734b11168cf35049c45a2bf24ddeb39c67a788e7a8fb46d8b61ca6d8367fd67ce9dd4fc8bfe476489249c7189c2a79cf83f51a
-  languageName: node
-  linkType: hard
-
-"scriptjs@npm:^2.5.9":
-  version: 2.5.9
-  resolution: "scriptjs@npm:2.5.9"
-  checksum: fc84cb6b60b6fb9aa6f1b3bc59fc94b233bd5241ed3a04233579014382b5eb60640269c87d8657902acc09f9b785ee33230c218627cea00e653564bda8f5acb6
   languageName: node
   linkType: hard
 
@@ -47375,6 +47246,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.2.2
+  resolution: "use-sync-external-store@npm:1.2.2"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: fe07c071c4da3645f112c38c0e57beb479a8838616ff4e92598256ecce527f2888c08febc7f9b2f0ce2f0e18540ba3cde41eb2035e4fafcb4f52955037098a81
+  languageName: node
+  linkType: hard
+
 "utif@npm:^2.0.1":
   version: 2.0.1
   resolution: "utif@npm:2.0.1"
@@ -47433,6 +47313,15 @@ __metadata:
   bin:
     uuid: dist/bin/uuid
   checksum: 39931f6da74e307f51c0fb463dc2462807531dc80760a9bff1e35af4316131b4fc3203d16da60ae33f07fdca5b56f3f1dd662da0c99fea9aaeab2004780cc5f4
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "uuid@npm:10.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 4b81611ade2885d2313ddd8dc865d93d8dccc13ddf901745edca8f86d99bc46d7a330d678e7532e7ebf93ce616679fb19b2e3568873ac0c14c999032acb25869
   languageName: node
   linkType: hard
 

@@ -79,3 +79,53 @@ export class BookingOutput_2024_08_13 {
   @Expose()
   meetingUrl?: string;
 }
+
+export class RecurringBookingOutput_2024_08_13 {
+  @IsInt()
+  @Expose()
+  id!: number;
+
+  @IsString()
+  @Expose()
+  uid!: string;
+
+  @IsEnum(["cancelled", "accepted", "rejected", "pending", "awaiting_host"])
+  @Expose()
+  status!: "cancelled" | "accepted" | "rejected" | "pending" | "awaiting_host";
+
+  @IsDateString()
+  @Expose()
+  start!: string;
+
+  @IsDateString()
+  @Expose()
+  end!: string;
+
+  @IsInt()
+  @Expose()
+  duration!: number;
+
+  @IsInt()
+  @Expose()
+  eventTypeId!: number;
+
+  @IsString()
+  @Expose()
+  recurringBookingUid!: string;
+
+  @ValidateNested()
+  @Type(() => Attendee)
+  @Expose()
+  attendee!: Attendee;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  @Expose()
+  guests?: string[];
+
+  @IsUrl()
+  @IsOptional()
+  @Expose()
+  meetingUrl?: string;
+}

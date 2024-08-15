@@ -8,6 +8,7 @@ import { Logger } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
+import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
@@ -97,6 +98,31 @@ export class InputBookingsService_2024_08_13 {
     return newRequest as unknown as BookingRequest;
   }
 
+  async createRecurringBookingRequest(
+    request: Request,
+    body: CreateRecurringBookingInput_2024_08_13
+  ): Promise<BookingRequest> {
+    // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
+    const bodyTransformed = await this.transformInputCreateRecurringBooking(body);
+    const oAuthClientId = request.get(X_CAL_CLIENT_ID);
+
+    const newRequest = { ...request };
+    const userId = (await this.createBookingRequestOwnerId(request)) ?? undefined;
+    const oAuthParams = oAuthClientId
+      ? await this.createBookingRequestOAuthClientParams(oAuthClientId)
+      : DEFAULT_PLATFORM_PARAMS;
+
+    const location = await this.getLocation(request, body);
+    Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
+
+    newRequest.body = (bodyTransformed as any[]).map((event) => ({
+      ...event,
+      noEmail: !oAuthParams.arePlatformEmailsEnabled,
+    }));
+
+    return newRequest as unknown as BookingRequest;
+  }
+
   private async createBookingRequestOwnerId(req: Request): Promise<number | undefined> {
     try {
       const accessToken = req.get("Authorization")?.replace("Bearer ", "");
@@ -145,15 +171,13 @@ export class InputBookingsService_2024_08_13 {
 
   async transformInputCreateRecurringBooking(inputBooking: CreateRecurringBookingInput_2024_08_13) {
     const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
-      inputBooking.recurringEventTypeId
+      inputBooking.eventTypeId
     );
     if (!eventType) {
-      throw new NotFoundException(`Event type with id=${inputBooking.recurringEventTypeId} not found`);
+      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} not found`);
     }
     if (!eventType.recurringEvent) {
-      throw new NotFoundException(
-        `Event type with id=${inputBooking.recurringEventTypeId} is not a recurring event`
-      );
+      throw new NotFoundException(`Event type with id=${inputBooking.eventTypeId} is not a recurring event`);
     }
 
     const occurrance = recurringEventSchema.parse(eventType.recurringEvent);
@@ -167,6 +191,7 @@ export class InputBookingsService_2024_08_13 {
     }
 
     const events = [];
+    const recurringEventId = uuidv4();
 
     let startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
       inputBooking.attendee.timeZone
@@ -178,8 +203,9 @@ export class InputBookingsService_2024_08_13 {
       events.push({
         start: startTime.toISO(),
         end: endTime.toISO(),
-        eventTypeId: inputBooking.recurringEventTypeId,
+        eventTypeId: inputBooking.eventTypeId,
         eventTypeSlug: eventType.slug,
+        recurringEventId,
         timeZone: inputBooking.attendee.timeZone,
         language: inputBooking.attendee.language || "en",
         metadata: inputBooking.metadata || {},

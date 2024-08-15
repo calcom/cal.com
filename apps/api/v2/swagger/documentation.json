@@ -8963,10 +8963,6 @@
           "data"
         ]
       },
-      "BookingOutput_2024_08_13": {
-        "type": "object",
-        "properties": {}
-      },
       "CreateBookingOutput_2024_08_13": {
         "type": "object",
         "properties": {
@@ -8979,7 +8975,7 @@
             ]
           },
           "data": {
-            "$ref": "#/components/schemas/BookingOutput_2024_08_13"
+            "type": "object"
           }
         },
         "required": [

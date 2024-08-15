@@ -65,7 +65,7 @@ export class CreateRecurringBookingInput_2024_08_13 {
   start!: string;
 
   @IsInt()
-  recurringEventTypeId!: number;
+  eventTypeId!: number;
 
   @ValidateNested()
   @Type(() => Attendee)
