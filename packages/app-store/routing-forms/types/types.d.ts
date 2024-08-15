@@ -10,7 +10,7 @@ export type RoutingForm = SerializableForm<App_RoutingForms_Form>;
 
 export type QueryBuilderUpdatedConfig = typeof QueryBuilderInitialConfig & { fields: Config["fields"] };
 
-export type Response = Record<
+export type FormResponse = Record<
   // Field ID
   string,
   {
@@ -55,4 +55,4 @@ export type SerializableRoute =
     })
   | GlobalRoute;
 
-export type OrderedResponses = Response[string][];
+export type OrderedResponses = FormResponse[string][];

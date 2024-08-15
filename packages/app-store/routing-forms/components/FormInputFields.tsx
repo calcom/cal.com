@@ -6,12 +6,12 @@ import { getQueryBuilderConfig } from "../lib/getQueryBuilderConfig";
 import isRouterLinkedField from "../lib/isRouterLinkedField";
 import { getUIOptionsForSelect } from "../lib/selectOptions";
 import { getFieldResponseForJsonLogic } from "../lib/transformResponse";
-import type { SerializableForm, Response } from "../types/types";
+import type { SerializableForm, FormResponse } from "../types/types";
 
 type Props = {
   form: SerializableForm<App_RoutingForms_Form>;
-  response: Response;
-  setResponse: Dispatch<SetStateAction<Response>>;
+  response: FormResponse;
+  setResponse: Dispatch<SetStateAction<FormResponse>>;
 };
 
 export default function FormInputFields(props: Props) {

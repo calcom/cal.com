@@ -1,4 +1,4 @@
-import type { Field, Response } from "../types/types";
+import type { Field, FormResponse } from "../types/types";
 
 /**
  * It takes care of correctly transforming the input to label or id depending on various cases
@@ -53,7 +53,7 @@ export function getFieldResponseForJsonLogic({
   value,
 }: {
   field: Pick<Field, "options" | "type">;
-  value: Response[string]["value"] | undefined;
+  value: FormResponse[string]["value"] | undefined;
 }) {
   if (!value) {
     return "";

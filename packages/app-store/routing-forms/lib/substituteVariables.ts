@@ -1,11 +1,11 @@
 import slugify from "@calcom/lib/slugify";
 
-import type { Response, Route, Field } from "../types/types";
+import type { FormResponse, Route, Field } from "../types/types";
 import getFieldIdentifier from "./getFieldIdentifier";
 
 export const substituteVariables = (
   routeValue: Route["action"]["value"],
-  response: Response,
+  response: FormResponse,
   fields: Field[]
 ) => {
   const regex = /\{([^\}]+)\}/g;

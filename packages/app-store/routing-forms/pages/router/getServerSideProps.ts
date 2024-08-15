@@ -13,7 +13,7 @@ import { getSerializableForm } from "../../lib/getSerializableForm";
 import { processRoute } from "../../lib/processRoute";
 import { substituteVariables } from "../../lib/substituteVariables";
 import { getFieldResponseForJsonLogic } from "../../lib/transformResponse";
-import type { Response } from "../../types/types";
+import type { FormResponse } from "../../types/types";
 import { isAuthorizedToViewTheForm } from "../routing-link/getServerSideProps";
 
 const log = logger.getSubLogger({ prefix: ["[routing-forms]", "[router]"] });
@@ -96,7 +96,7 @@ export const getServerSideProps = async function getServerSideProps(
     form: enrichFormWithMigrationData(formWithUserProfile),
   });
 
-  const response: Response = {};
+  const response: FormResponse = {};
   if (!serializableForm.fields) {
     throw new Error("Form has no fields");
   }

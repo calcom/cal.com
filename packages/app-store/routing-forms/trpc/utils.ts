@@ -8,13 +8,13 @@ import { WebhookTriggerEvents } from "@calcom/prisma/client";
 import type { Ensure } from "@calcom/types/utils";
 
 import type { OrderedResponses } from "../types/types";
-import type { Response, SerializableForm } from "../types/types";
+import type { FormResponse, SerializableForm } from "../types/types";
 
 function getFieldResponseInNewFormat({
   field,
   fieldResponseValue,
 }: {
-  fieldResponseValue: Response[keyof Response]["value"];
+  fieldResponseValue: FormResponse[keyof FormResponse]["value"];
   field: NonNullable<SerializableForm<App_RoutingForms_Form>["fields"]>[number];
 }) {
   if (field.type === "select" || field.type === "multiselect") {
@@ -60,7 +60,7 @@ type FORM_SUBMITTED_WEBHOOK_RESPONSES = Record<
     /**
      * @deprecated Use `response` instead
      */
-    value: Response[keyof Response]["value"];
+    value: FormResponse[keyof FormResponse]["value"];
   }
 >;
 
@@ -69,7 +69,7 @@ export async function onFormSubmission(
     SerializableForm<App_RoutingForms_Form> & { user: Pick<User, "id" | "email">; userWithEmails?: string[] },
     "fields"
   >,
-  response: Response
+  response: FormResponse
 ) {
   const fieldResponsesByIdentifier: FORM_SUBMITTED_WEBHOOK_RESPONSES = {};
 
@@ -118,7 +118,7 @@ export async function onFormSubmission(
         ...Object.entries(fieldResponsesByIdentifier).reduce((acc, [key, value]) => {
           acc[key] = value.value;
           return acc;
-        }, {} as Record<string, Response[keyof Response]["value"]>),
+        }, {} as Record<string, FormResponse[keyof FormResponse]["value"]>),
       },
     }).catch((e) => {
       console.error(`Error executing routing form webhook`, webhook, e);
