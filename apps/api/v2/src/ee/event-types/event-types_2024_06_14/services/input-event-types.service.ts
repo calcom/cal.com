@@ -37,7 +37,7 @@ export class InputEventTypesService_2024_06_14 {
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
-      bookingWindow: this.transformInputBookingWindow(bookingWindow),
+      ...this.transformInputBookingWindow(bookingWindow),
     };
 
     return eventType;
@@ -65,7 +65,7 @@ export class InputEventTypesService_2024_06_14 {
       durationLimits: bookingLimitsDuration
         ? this.transformInputIntervalLimits(bookingLimitsDuration)
         : undefined,
-      bookingWindow: this.transformInputBookingWindow(bookingWindow),
+      ...this.transformInputBookingWindow(bookingWindow),
     };
 
     return eventType;

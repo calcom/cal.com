@@ -41,7 +41,11 @@ export class EventTypesService_2024_06_14 {
     const {
       bookingLimits,
       durationLimits,
-      bookingWindow = {},
+      periodType = undefined,
+      periodDays = undefined,
+      periodCountCalendarDays = undefined,
+      periodStartDate = undefined,
+      periodEndDate = undefined,
       ...bodyTransformed
     } = this.inputEventTypesService.transformInputCreateEventType(body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -59,7 +63,11 @@ export class EventTypesService_2024_06_14 {
         id: eventTypeCreated.id,
         bookingLimits,
         durationLimits,
-        ...bookingWindow,
+        periodType,
+        periodDays,
+        periodCountCalendarDays,
+        periodStartDate,
+        periodEndDate,
         ...bodyTransformed,
       },
       ctx: {

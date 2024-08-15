@@ -23,8 +23,15 @@ export class InputOrganizationsEventTypesService {
     teamId: number,
     inputEventType: CreateTeamEventTypeInput_2024_06_14
   ) {
-    const { hosts, assignAllTeamMembers, bookingLimitsCount, bookingLimitsDuration, bookingWindow, ...rest } =
-      inputEventType;
+    const {
+      hosts,
+      assignAllTeamMembers,
+      bookingLimitsCount,
+      bookingLimitsDuration,
+      bookingWindow,
+      bookingFields,
+      ...rest
+    } = inputEventType;
 
     const eventType = this.inputEventTypesService.transformInputCreateEventType(rest);
 
@@ -39,6 +46,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookingFields,
       metadata,
     };
 
@@ -52,8 +60,7 @@ export class InputOrganizationsEventTypesService {
   ) {
     const { hosts, assignAllTeamMembers, ...rest } = inputEventType;
 
-    const { bookingWindow = {}, ...eventType } =
-      this.inputEventTypesService.transformInputUpdateEventType(rest);
+    const eventType = this.inputEventTypesService.transformInputUpdateEventType(rest);
     const dbEventType = await this.orgEventTypesRepository.getTeamEventType(teamId, eventTypeId);
 
     if (!dbEventType) {
@@ -63,7 +70,6 @@ export class InputOrganizationsEventTypesService {
     const children = await this.getChildEventTypesForManagedEventType(eventTypeId, inputEventType, teamId);
     const teamEventType = {
       ...eventType,
-      ...bookingWindow,
       // note(Lauris): we don't populate hosts for managed event-types because they are handled by the children
       hosts: !children
         ? assignAllTeamMembers

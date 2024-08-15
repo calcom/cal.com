@@ -44,6 +44,7 @@ export class OrganizationsEventTypesService {
       bookingLimitsCount,
       bookingLimitsDuration,
       bookingWindow,
+      bookingFields,
       ...rest
     } = await this.inputService.transformInputCreateTeamEventType(teamId, body);
     const { eventType: eventTypeCreated } = await createEventType({
@@ -65,6 +66,7 @@ export class OrganizationsEventTypesService {
         bookingLimitsCount,
         bookingLimitsDuration,
         bookingWindow,
+        bookingFields,
         ...rest,
       },
       user
