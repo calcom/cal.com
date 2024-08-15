@@ -314,8 +314,9 @@ async function postHandler(req: NextApiRequest) {
   } else {
     data = {
       ...data,
-      userId: parsedBody.parentId ? parsedBody.userId : userId,
-      users: { connect: { id: parsedBody.parentId ? parsedBody.userId : userId } },
+      // Connect current user only if it is not a managed eventType, or the current user is not systemWideAdmin
+      userId: parsedBody.parentId || isSystemWideAdmin ? parsedBody.userId : userId,
+      users: { connect: { id: parsedBody.parentId || isSystemWideAdmin ? parsedBody.userId : userId } },
     };
   }
 
@@ -324,10 +325,6 @@ async function postHandler(req: NextApiRequest) {
   if (parsedBody.parentId && !isSystemWideAdmin) {
     await checkParentEventOwnership(req);
     await checkUserMembership(req);
-  }
-
-  if (isSystemWideAdmin && parsedBody.userId && !parsedBody.teamId) {
-    data = { ...parsedBody, users: { connect: { id: parsedBody.userId } } };
   }
 
   await checkTeamEventEditPermission(req, parsedBody);
