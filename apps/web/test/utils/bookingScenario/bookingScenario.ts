@@ -17,8 +17,13 @@ import type { HttpError } from "@calcom/lib/http-error";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { ProfileRepository } from "@calcom/lib/server/repository/profile";
-import type { WorkflowActions, WorkflowTemplates, WorkflowTriggerEvents } from "@calcom/prisma/client";
-import type { SchedulingType, SMSLockState } from "@calcom/prisma/enums";
+import type {
+  WorkflowActions,
+  WorkflowTemplates,
+  WorkflowTriggerEvents,
+  WorkflowMethods,
+} from "@calcom/prisma/client";
+import type { SchedulingType, SMSLockState, TimeUnit } from "@calcom/prisma/enums";
 import type { BookingStatus } from "@calcom/prisma/enums";
 import type { teamMetadataSchema } from "@calcom/prisma/zod-utils";
 import type { userMetadataType } from "@calcom/prisma/zod-utils";
@@ -43,13 +48,28 @@ type InputWebhook = {
 };
 
 type InputWorkflow = {
+  id?: number;
   userId?: number | null;
   teamId?: number | null;
   name?: string;
-  activeEventTypeId?: number;
+  activeOn?: number[];
+  activeOnTeams?: number[];
   trigger: WorkflowTriggerEvents;
   action: WorkflowActions;
   template: WorkflowTemplates;
+  time?: number | null;
+  timeUnit?: TimeUnit | null;
+  sendTo?: string;
+};
+
+type InputWorkflowReminder = {
+  id?: number;
+  bookingUid: string;
+  method: WorkflowMethods;
+  scheduledDate: Date;
+  scheduled: boolean;
+  workflowStepId?: number;
+  workflowId: number;
 };
 
 type InputHost = {
@@ -95,6 +115,7 @@ type InputUser = Omit<typeof TestData.users.example, "defaultScheduleId"> & {
       id: number;
       name: string;
       slug: string;
+      parentId?: number;
     };
   }[];
   schedules: {
@@ -130,6 +151,10 @@ export type InputEventType = {
   beforeEventBuffer?: number;
   afterEventBuffer?: number;
   teamId?: number | null;
+  team?: {
+    id?: number | null;
+    parentId?: number | null;
+  };
   requiresConfirmation?: boolean;
   destinationCalendar?: Prisma.DestinationCalendarCreateInput;
   schedule?: InputUser["schedules"][number];
@@ -137,6 +162,7 @@ export type InputEventType = {
   durationLimits?: IntervalLimit;
   owner?: number;
   metadata?: any;
+  rescheduleWithSameRoundRobinHost?: boolean;
 } & Partial<Omit<Prisma.EventTypeCreateInput, "users" | "schedule" | "bookingLimits" | "durationLimits">>;
 
 type AttendeeBookingSeatInput = Pick<Prisma.BookingSeatCreateInput, "referenceUid" | "data">;
@@ -159,6 +185,7 @@ type WhiteListedBookingProps = {
     credentialId?: number | null;
   })[];
   bookingSeat?: Prisma.BookingSeatCreateInput[];
+  createdAt?: string;
 };
 
 type InputBooking = Partial<Omit<Booking, keyof WhiteListedBookingProps>> & WhiteListedBookingProps;
@@ -202,6 +229,9 @@ export async function addEventTypesToDb(
     id?: number;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     users?: any[];
+    userId?: number;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    hosts?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     workflows?: any[];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -295,11 +325,17 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
       eventType.users?.map((userWithJustId) => {
         return usersStore.find((user) => user.id === userWithJustId.id);
       }) || [];
+    const hosts =
+      eventType.users?.map((host) => {
+        const user = usersStore.find((user) => user.id === host.id);
+        return { ...host, user };
+      }) || [];
     return {
       ...baseEventType,
       ...eventType,
       workflows: [],
       users,
+      hosts,
       destinationCalendar: eventType.destinationCalendar
         ? {
             create: eventType.destinationCalendar,
@@ -319,6 +355,7 @@ export async function addEventTypes(eventTypes: InputEventType[], usersStore: In
         : eventType.schedule,
       owner: eventType.owner ? { connect: { id: eventType.owner } } : undefined,
       schedulingType: eventType.schedulingType,
+      rescheduleWithSameRoundRobinHost: eventType.rescheduleWithSameRoundRobinHost,
     };
   });
   log.silly("TestData: Creating EventType", JSON.stringify(eventTypesWithUsers));
@@ -367,7 +404,7 @@ async function addBookingsToDb(
   );
 }
 
-async function addBookings(bookings: InputBooking[]) {
+export async function addBookings(bookings: InputBooking[]) {
   log.silly("TestData: Creating Bookings", JSON.stringify(bookings));
   const allBookings = [...bookings].map((booking) => {
     if (booking.references) {
@@ -444,32 +481,76 @@ async function addWebhooks(webhooks: InputWebhook[]) {
 }
 
 async function addWorkflowsToDb(workflows: InputWorkflow[]) {
-  await prismock.$transaction(
-    workflows.map((workflow) => {
-      return prismock.workflow.create({
+  await Promise.all(
+    workflows.map(async (workflow) => {
+      const team = await prismock.team.findFirst({
+        where: {
+          id: workflow.teamId ?? 0,
+        },
+      });
+
+      if (workflow.teamId && !team) {
+        throw new Error(`Team with ID ${workflow.teamId} not found`);
+      }
+
+      const isOrg = team?.isOrganization;
+
+      // Create the workflow first
+      const createdWorkflow = await prismock.workflow.create({
         data: {
+          ...(workflow.id && { id: workflow.id }),
           userId: workflow.userId,
           teamId: workflow.teamId,
           trigger: workflow.trigger,
           name: workflow.name ? workflow.name : "Test Workflow",
-          steps: {
-            create: {
-              stepNumber: 1,
-              action: workflow.action,
-              template: workflow.template,
-              numberVerificationPending: false,
-              includeCalendarEvent: false,
-            },
-          },
-          activeOn: {
-            create: workflow.activeEventTypeId ? { eventTypeId: workflow.activeEventTypeId } : undefined,
-          },
+          time: workflow.time,
+          timeUnit: workflow.timeUnit,
         },
         include: {
-          activeOn: true,
           steps: true,
         },
       });
+
+      await prismock.workflowStep.create({
+        data: {
+          stepNumber: 1,
+          action: workflow.action,
+          template: workflow.template,
+          numberVerificationPending: false,
+          includeCalendarEvent: false,
+          sendTo: workflow.sendTo,
+          workflow: {
+            connect: {
+              id: createdWorkflow.id,
+            },
+          },
+        },
+      });
+
+      //activate event types and teams on workflows
+      if (isOrg && workflow.activeOnTeams) {
+        await Promise.all(
+          workflow.activeOnTeams.map((id) =>
+            prismock.workflowsOnTeams.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                teamId: id,
+              },
+            })
+          )
+        );
+      } else if (workflow.activeOn) {
+        await Promise.all(
+          workflow.activeOn.map((id) =>
+            prismock.workflowsOnEventTypes.create({
+              data: {
+                workflowId: createdWorkflow.id,
+                eventTypeId: id,
+              },
+            })
+          )
+        );
+      }
     })
   );
 }
@@ -477,7 +558,15 @@ async function addWorkflowsToDb(workflows: InputWorkflow[]) {
 async function addWorkflows(workflows: InputWorkflow[]) {
   log.silly("TestData: Creating Workflows", safeStringify(workflows));
 
-  await addWorkflowsToDb(workflows);
+  return await addWorkflowsToDb(workflows);
+}
+
+export async function addWorkflowReminders(workflowReminders: InputWorkflowReminder[]) {
+  log.silly("TestData: Creating Workflow Reminders", safeStringify(workflowReminders));
+
+  return await prismock.workflowReminder.createMany({
+    data: workflowReminders,
+  });
 }
 
 export async function addUsersToDb(
@@ -488,31 +577,51 @@ export async function addUsersToDb(
     data: users,
   });
 
+  const allUsers = await prismock.user.findMany({
+    include: {
+      credentials: true,
+      teams: true,
+      profiles: true,
+      schedules: {
+        include: {
+          availability: true,
+        },
+      },
+      destinationCalendar: true,
+    },
+  });
+
   log.silly(
     "Added users to Db",
     safeStringify({
-      allUsers: await prismock.user.findMany({
-        include: {
-          credentials: true,
-          teams: true,
-          profiles: true,
-          schedules: {
-            include: {
-              availability: true,
-            },
-          },
-          destinationCalendar: true,
-        },
-      }),
+      allUsers,
     })
   );
+
+  return allUsers;
 }
 
 export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number]["team"][]) {
   log.silly("TestData: Creating Teams", JSON.stringify(teams));
-  await prismock.team.createMany({
-    data: teams,
-  });
+
+  for (const team of teams) {
+    const teamsWithParentId = {
+      ...team,
+      parentId: team.parentId,
+    };
+    await prismock.team.upsert({
+      where: {
+        id: teamsWithParentId.id,
+      },
+      update: {
+        ...teamsWithParentId,
+      },
+      create: {
+        ...teamsWithParentId,
+      },
+    });
+  }
+
   const addedTeams = await prismock.team.findMany({
     where: {
       id: {
@@ -529,7 +638,7 @@ export async function addTeamsToDb(teams: NonNullable<InputUser["teams"]>[number
   return addedTeams;
 }
 
-async function addUsers(users: InputUser[]) {
+export async function addUsers(users: InputUser[]) {
   const prismaUsersCreate = [];
   for (let i = 0; i < users.length; i++) {
     const newUser = users[i];
@@ -586,6 +695,13 @@ async function addUsers(users: InputUser[]) {
         },
       };
     }
+    if (user.destinationCalendar) {
+      newUser.destinationCalendar = {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        create: user.destinationCalendar,
+      };
+    }
     if (user.profiles) {
       newUser.profiles = {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -600,7 +716,7 @@ async function addUsers(users: InputUser[]) {
   }
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   //@ts-ignore
-  await addUsersToDb(prismaUsersCreate);
+  return await addUsersToDb(prismaUsersCreate);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -632,10 +748,11 @@ export async function createBookingScenario(data: ScenarioData) {
   // mockBusyCalendarTimes([]);
   await addWebhooks(data.webhooks || []);
   // addPaymentMock();
-  await addWorkflows(data.workflows || []);
+  const workflows = await addWorkflows(data.workflows || []);
 
   return {
     eventTypes,
+    workflows,
   };
 }
 
@@ -643,17 +760,34 @@ export async function createOrganization(orgData: {
   name: string;
   slug: string;
   metadata?: z.infer<typeof teamMetadataSchema>;
+  withTeam?: boolean;
 }) {
   const org = await prismock.team.create({
     data: {
       name: orgData.name,
       slug: orgData.slug,
+      isOrganization: true,
       metadata: {
         ...(orgData.metadata || {}),
         isOrganization: true,
       },
     },
   });
+  if (orgData.withTeam) {
+    await prismock.team.create({
+      data: {
+        name: "Org Team",
+        slug: "org-team",
+        isOrganization: false,
+        parent: {
+          connect: {
+            id: org.id,
+          },
+        },
+      },
+    });
+  }
+
   return org;
 }
 
@@ -1125,6 +1259,10 @@ export function getScenarioData(
       return {
         ...eventType,
         teamId: eventType.teamId || null,
+        team: {
+          id: eventType.teamId,
+          parentId: org ? org.id : null,
+        },
         title: `Test Event Type - ${index + 1}`,
         description: `It's a test event type - ${index + 1}`,
       };
@@ -1134,13 +1272,6 @@ export function getScenarioData(
         ...user,
         organizationId: user.organizationId ?? null,
       };
-      if (user.destinationCalendar) {
-        newUser.destinationCalendar = {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore
-          create: user.destinationCalendar,
-        };
-      }
       return newUser;
     }),
     apps: [...apps],

@@ -17,12 +17,14 @@ import { DuplicateDialog } from "@calcom/features/eventtypes/components/Duplicat
 import { TeamsFilter } from "@calcom/features/filters/components/TeamsFilter";
 import { getTeamsFiltersFromQuery } from "@calcom/features/filters/lib/getTeamsFiltersFromQuery";
 import Shell from "@calcom/features/shell/Shell";
+import { parseEventTypeColor } from "@calcom/lib";
 import { APP_NAME } from "@calcom/lib/constants";
 import { WEBSITE_URL } from "@calcom/lib/constants";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import useMediaQuery from "@calcom/lib/hooks/useMediaQuery";
 import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
+import { useGetTheme } from "@calcom/lib/hooks/useTheme";
 import { useTypedQuery } from "@calcom/lib/hooks/useTypedQuery";
 import { HttpError } from "@calcom/lib/http-error";
 import type { User } from "@calcom/prisma/client";
@@ -50,7 +52,6 @@ import {
   EmptyScreen,
   HeadSeo,
   HorizontalTabs,
-  Icon,
   Label,
   showToast,
   Skeleton,
@@ -58,24 +59,24 @@ import {
   Tooltip,
   ArrowButton,
   UserAvatarGroup,
+  Icon,
 } from "@calcom/ui";
 
 import type { AppProps } from "@lib/app-providers";
+import { useInViewObserver } from "@lib/hooks/useInViewObserver";
 import useMeQuery from "@lib/hooks/useMeQuery";
 
-import SkeletonLoader from "@components/eventtype/SkeletonLoader";
+import SkeletonLoader, { InfiniteSkeletonLoader } from "@components/eventtype/SkeletonLoader";
+
+type GetUserEventGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getUserEventGroups"];
+type GetEventTypesFromGroupsResponse = RouterOutputs["viewer"]["eventTypes"]["getEventTypesFromGroup"];
+
+type InfiniteEventTypeGroup = GetUserEventGroupsResponse["eventTypeGroups"][number];
+type InfiniteEventType = GetEventTypesFromGroupsResponse["eventTypes"][number];
 
 type EventTypeGroups = RouterOutputs["viewer"]["eventTypes"]["getByViewer"]["eventTypeGroups"];
-
 type EventTypeGroupProfile = EventTypeGroups[number]["profile"];
 type GetByViewerResponse = RouterOutputs["viewer"]["eventTypes"]["getByViewer"] | undefined;
-
-interface EventTypeListHeadingProps {
-  profile: EventTypeGroupProfile;
-  membershipCount: number;
-  teamId?: number | null;
-  bookerUrl: string;
-}
 
 type EventTypeGroup = EventTypeGroups[number];
 type EventType = EventTypeGroup["eventTypes"][number];
@@ -91,6 +92,24 @@ type DeNormalizedEventTypeGroup = Omit<EventTypeGroup, "eventTypes"> & {
   eventTypes: DeNormalizedEventType[];
 };
 
+const LIMIT = 10;
+
+interface EventTypeListHeadingProps {
+  profile: EventTypeGroupProfile;
+  membershipCount: number;
+  teamId?: number | null;
+  bookerUrl: string;
+}
+
+interface InfiniteEventTypeListProps {
+  group: InfiniteEventTypeGroup;
+  readOnly: boolean;
+  bookerUrl: string | null;
+  pages: { nextCursor: number | undefined; eventTypes: InfiniteEventType[] }[] | undefined;
+  lockedByOrg?: boolean;
+  isPending?: boolean;
+}
+
 interface EventTypeListProps {
   group: DeNormalizedEventTypeGroup;
   groupIndex: number;
@@ -98,6 +117,10 @@ interface EventTypeListProps {
   bookerUrl: string | null;
   types: DeNormalizedEventType[];
   lockedByOrg?: boolean;
+}
+
+interface InfiniteMobileTeamsTabProps {
+  activeEventTypeGroup: InfiniteEventTypeGroup;
 }
 
 interface MobileTeamsTabProps {
@@ -136,16 +159,67 @@ const MobileTeamsTab: FC<MobileTeamsTabProps> = (props) => {
   );
 };
 
+const InfiniteMobileTeamsTab: FC<InfiniteMobileTeamsTabProps> = (props) => {
+  const { activeEventTypeGroup } = props;
+  const { t } = useLocale();
+
+  const query = trpc.viewer.eventTypes.getEventTypesFromGroup.useInfiniteQuery(
+    {
+      limit: LIMIT,
+      group: { teamId: activeEventTypeGroup?.teamId, parentId: activeEventTypeGroup?.parentId },
+    },
+    {
+      refetchOnWindowFocus: true,
+      staleTime: 1 * 60 * 60 * 1000,
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    }
+  );
+
+  const buttonInView = useInViewObserver(() => {
+    if (!query.isFetching && query.hasNextPage && query.status === "success") {
+      query.fetchNextPage();
+    }
+  }, null);
+
+  return (
+    <div>
+      {!!activeEventTypeGroup && (
+        <InfiniteEventTypeList
+          pages={query?.data?.pages}
+          group={activeEventTypeGroup}
+          bookerUrl={activeEventTypeGroup.bookerUrl}
+          readOnly={activeEventTypeGroup.metadata.readOnly}
+          isPending={query.isPending}
+        />
+      )}
+      <div className="text-default p-4 text-center" ref={buttonInView.ref}>
+        <Button
+          color="minimal"
+          loading={query.isFetchingNextPage}
+          disabled={!query.hasNextPage}
+          onClick={() => query.fetchNextPage()}>
+          {query.hasNextPage ? t("load_more_results") : t("no_more_results")}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 const Item = ({
   type,
   group,
   readOnly,
 }: {
-  type: DeNormalizedEventType;
-  group: DeNormalizedEventTypeGroup;
+  type: EventType | InfiniteEventType;
+  group: EventTypeGroup | InfiniteEventTypeGroup;
   readOnly: boolean;
 }) => {
   const { t } = useLocale();
+  const { resolvedTheme, forcedTheme } = useGetTheme();
+  const hasDarkTheme = !forcedTheme && resolvedTheme === "dark";
+  const parsedeventTypeColor = parseEventTypeColor(type.eventTypeColor);
+  const eventTypeColor =
+    parsedeventTypeColor && parsedeventTypeColor[hasDarkTheme ? "darkEventTypeColor" : "lightEventTypeColor"];
 
   const content = () => (
     <div>
@@ -171,40 +245,46 @@ const Item = ({
     </div>
   );
 
-  return readOnly ? (
-    <div className="flex-1 overflow-hidden pr-4 text-sm">
-      {content()}
-      <EventTypeDescription eventType={type} shortenDescription />
-    </div>
-  ) : (
-    <Link
-      href={`/event-types/${type.id}?tabName=setup`}
-      className="flex-1 overflow-hidden pr-4 text-sm"
-      title={type.title}>
-      <div>
-        <span
-          className="text-default font-semibold ltr:mr-1 rtl:ml-1"
-          data-testid={`event-type-title-${type.id}`}>
-          {type.title}
-        </span>
-        {group.profile.slug ? (
-          <small
-            className="text-subtle hidden font-normal leading-4 sm:inline"
-            data-testid={`event-type-slug-${type.id}`}>
-            {`/${group.profile.slug}/${type.slug}`}
-          </small>
-        ) : null}
-        {readOnly && (
-          <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
-            {t("readonly")}
-          </Badge>
+  return (
+    <div className="relative flex-1 overflow-hidden pr-4 text-sm">
+      {eventTypeColor && (
+        <div className="absolute h-full w-0.5" style={{ backgroundColor: eventTypeColor }} />
+      )}
+      <div className="ml-3">
+        {readOnly ? (
+          <div>
+            {content()}
+            <EventTypeDescription eventType={type} shortenDescription />
+          </div>
+        ) : (
+          <Link href={`/event-types/${type.id}?tabName=setup`} title={type.title}>
+            <div>
+              <span
+                className="text-default font-semibold ltr:mr-1 rtl:ml-1"
+                data-testid={`event-type-title-${type.id}`}>
+                {type.title}
+              </span>
+              {group.profile.slug ? (
+                <small
+                  className="text-subtle hidden font-normal leading-4 sm:inline"
+                  data-testid={`event-type-slug-${type.id}`}>
+                  {`/${group.profile.slug}/${type.slug}`}
+                </small>
+              ) : null}
+              {readOnly && (
+                <Badge variant="gray" className="ml-2" data-testid="readonly-badge">
+                  {t("readonly")}
+                </Badge>
+              )}
+            </div>
+            <EventTypeDescription
+              eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
+              shortenDescription
+            />
+          </Link>
         )}
       </div>
-      <EventTypeDescription
-        eventType={{ ...type, descriptionAsSafeHTML: type.safeDescription }}
-        shortenDescription
-      />
-    </Link>
+    </div>
   );
 };
 
@@ -233,11 +313,9 @@ export const EventTypeList = ({
     onError: async (err) => {
       console.error(err.message);
       await utils.viewer.eventTypes.getByViewer.cancel();
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       await utils.viewer.eventTypes.invalidate();
     },
     onSettled: () => {
-      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
       utils.viewer.eventTypes.invalidate();
     },
   });
@@ -323,6 +401,8 @@ export const EventTypeList = ({
     setParamsIfDefined("id", eventType.id);
     setParamsIfDefined("length", eventType.length);
     setParamsIfDefined("pageSlug", group.profile.slug);
+    setParamsIfDefined("teamId", eventType.teamId);
+    setParamsIfDefined("parentId", eventType.parentId);
     router.push(`${pathname}?${newSearchParams.toString()}`);
   };
 
@@ -403,7 +483,7 @@ export const EventTypeList = ({
           return (
             <li key={type.id}>
               <div className="hover:bg-muted flex w-full items-center justify-between transition">
-                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+                <div className="group flex w-full max-w-full items-center justify-between overflow-hidden py-4 pl-2 pr-4 sm:pl-3 sm:pr-6">
                   {!(firstItem && firstItem.id === type.id) && (
                     <ArrowButton onClick={() => moveEventType(index, -1)} arrowDirection="up" />
                   )}
@@ -530,7 +610,7 @@ export const EventTypeList = ({
                               {!isManagedEventType && (
                                 <DropdownMenuItem className="outline-none">
                                   <EventTypeEmbedButton
-                                    namespace=""
+                                    namespace={type.slug}
                                     as={DropdownItem}
                                     type="button"
                                     StartIcon="code"
@@ -714,6 +794,549 @@ export const EventTypeList = ({
   );
 };
 
+export const InfiniteEventTypeList = ({
+  group,
+  readOnly,
+  pages,
+  bookerUrl,
+  lockedByOrg,
+  isPending,
+}: InfiniteEventTypeListProps): JSX.Element => {
+  const { t } = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useCompatSearchParams();
+  const [parent] = useAutoAnimate<HTMLUListElement>();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteDialogTypeId, setDeleteDialogTypeId] = useState(0);
+  const [deleteDialogTypeSchedulingType, setDeleteDialogSchedulingType] = useState<SchedulingType | null>(
+    null
+  );
+
+  const utils = trpc.useUtils();
+  const mutation = trpc.viewer.eventTypeOrder.useMutation({
+    onError: async (err) => {
+      console.error(err.message);
+      // REVIEW: Should we invalidate the entire router or just the `getByViewer` query?
+      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+    },
+  });
+
+  const setHiddenMutation = trpc.viewer.eventTypes.update.useMutation({
+    onMutate: async (data) => {
+      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
+
+      if (previousValue) {
+        pages?.forEach((page) => {
+          page?.eventTypes?.forEach((eventType) => {
+            if (eventType.id === data.id) {
+              eventType.hidden = !eventType.hidden;
+            }
+          });
+        });
+      }
+
+      return { previousValue };
+    },
+    onError: async (err, _, context) => {
+      if (context?.previousValue) {
+        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          context.previousValue
+        );
+      }
+      console.error(err.message);
+    },
+  });
+
+  async function moveEventType(index: number, increment: 1 | -1) {
+    if (!pages) return;
+    const newOrder = pages;
+    const pageNo = Math.floor(index / LIMIT);
+
+    const currentPositionEventType = newOrder[pageNo].eventTypes[index % LIMIT];
+
+    const newPageNo =
+      increment === -1
+        ? pageNo > 0 && index % LIMIT === 0
+          ? pageNo - 1
+          : pageNo
+        : index % LIMIT === LIMIT - 1
+        ? pageNo + 1
+        : pageNo;
+
+    const newIdx = (index + increment) % LIMIT;
+    const newPositionEventType = newOrder[newPageNo].eventTypes[newIdx];
+
+    newOrder[pageNo].eventTypes[index % LIMIT] = newPositionEventType;
+    newOrder[newPageNo].eventTypes[newIdx] = currentPositionEventType;
+
+    await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+    const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+      limit: LIMIT,
+      group: { teamId: group?.teamId, parentId: group?.parentId },
+    });
+
+    if (previousValue) {
+      utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+        { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+        (data) => {
+          return {
+            pageParams: data?.pageParams ?? [],
+            pages: newOrder,
+          };
+        }
+      );
+    }
+
+    mutation.mutate({
+      ids: newOrder.flatMap((page) => page.eventTypes.map((type) => type.id)),
+    });
+  }
+
+  async function deleteEventTypeHandler(id: number) {
+    const payload = { id };
+    deleteMutation.mutate(payload);
+  }
+
+  // inject selection data into url for correct router history
+  const openDuplicateModal = (eventType: InfiniteEventType, group: InfiniteEventTypeGroup) => {
+    const newSearchParams = new URLSearchParams(searchParams ?? undefined);
+    function setParamsIfDefined(key: string, value: string | number | boolean | null | undefined) {
+      if (value) newSearchParams.set(key, value.toString());
+      if (value === null) newSearchParams.delete(key);
+    }
+    setParamsIfDefined("dialog", "duplicate");
+    setParamsIfDefined("title", eventType.title);
+    setParamsIfDefined("description", eventType.description);
+    setParamsIfDefined("slug", eventType.slug);
+    setParamsIfDefined("id", eventType.id);
+    setParamsIfDefined("length", eventType.length);
+    setParamsIfDefined("pageSlug", group.profile.slug);
+    router.push(`${pathname}?${newSearchParams.toString()}`);
+  };
+
+  const deleteMutation = trpc.viewer.eventTypes.delete.useMutation({
+    onSuccess: () => {
+      showToast(t("event_type_deleted_successfully"), "success");
+      setDeleteDialogOpen(false);
+    },
+    onMutate: async ({ id }) => {
+      await utils.viewer.eventTypes.getEventTypesFromGroup.cancel();
+      const previousValue = utils.viewer.eventTypes.getEventTypesFromGroup.getInfiniteData({
+        limit: LIMIT,
+        group: { teamId: group?.teamId, parentId: group?.parentId },
+      });
+
+      if (previousValue) {
+        await utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          (data) => {
+            if (!data) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
+            }
+            return {
+              ...data,
+              pages: data.pages.map((page) => ({
+                ...page,
+                eventTypes: page.eventTypes.filter((type) => type.id !== id),
+              })),
+            };
+          }
+        );
+      }
+
+      return { previousValue };
+    },
+    onError: (err, _, context) => {
+      if (context?.previousValue) {
+        utils.viewer.eventTypes.getEventTypesFromGroup.setInfiniteData(
+          { limit: LIMIT, group: { teamId: group?.teamId, parentId: group?.parentId } },
+          context.previousValue
+        );
+      }
+      if (err instanceof HttpError) {
+        const message = `${err.statusCode}: ${err.message}`;
+        showToast(message, "error");
+        setDeleteDialogOpen(false);
+      } else if (err instanceof TRPCClientError) {
+        showToast(err.message, "error");
+      }
+    },
+  });
+
+  const [isNativeShare, setNativeShare] = useState(true);
+
+  useEffect(() => {
+    if (!navigator.share) {
+      setNativeShare(false);
+    }
+  }, []);
+
+  if (!pages?.[0]?.eventTypes?.length) {
+    if (isPending) return <InfiniteSkeletonLoader />;
+
+    return group.teamId ? (
+      <EmptyEventTypeList group={group} />
+    ) : !group.profile.eventTypesLockedByOrg ? (
+      <CreateFirstEventTypeView slug={group.profile.slug ?? ""} />
+    ) : (
+      <></>
+    );
+  }
+
+  const firstItem = pages?.[0]?.eventTypes[0];
+  const lastItem = pages?.[pages.length - 1]?.eventTypes[pages?.[pages.length - 1].eventTypes.length - 1];
+  const isManagedEventPrefix = () => {
+    return deleteDialogTypeSchedulingType === SchedulingType.MANAGED ? "_managed" : "";
+  };
+
+  return (
+    <div className="bg-default border-subtle flex flex-col overflow-hidden rounded-md border">
+      <ul ref={parent} className="divide-subtle !static w-full divide-y" data-testid="event-types">
+        {pages.map((page, pageIdx) => {
+          return page?.eventTypes?.map((type, index) => {
+            const embedLink = `${group.profile.slug}/${type.slug}`;
+            const calLink = `${bookerUrl}/${embedLink}`;
+            const isPrivateURLEnabled = type.hashedLink?.link;
+            const placeholderHashedLink = `${WEBSITE_URL}/d/${type.hashedLink?.link}/${type.slug}`;
+            const isManagedEventType = type.schedulingType === SchedulingType.MANAGED;
+            const isChildrenManagedEventType =
+              type.metadata?.managedEventConfig !== undefined &&
+              type.schedulingType !== SchedulingType.MANAGED;
+            return (
+              <li key={type.id}>
+                <div className="hover:bg-muted flex w-full items-center justify-between transition">
+                  <div className="group flex w-full max-w-full items-center justify-between overflow-hidden px-4 py-4 sm:px-6">
+                    {!(firstItem && firstItem.id === type.id) && (
+                      <ArrowButton
+                        onClick={() => moveEventType(LIMIT * pageIdx + index, -1)}
+                        arrowDirection="up"
+                      />
+                    )}
+
+                    {!(lastItem && lastItem.id === type.id) && (
+                      <ArrowButton
+                        onClick={() => moveEventType(LIMIT * pageIdx + index, 1)}
+                        arrowDirection="down"
+                      />
+                    )}
+                    <MemoizedItem type={type} group={group} readOnly={readOnly} />
+                    <div className="mt-4 hidden sm:mt-0 sm:flex">
+                      <div className="flex justify-between space-x-2 rtl:space-x-reverse">
+                        {!!type.teamId && !isManagedEventType && (
+                          <UserAvatarGroup
+                            className="relative right-3"
+                            size="sm"
+                            truncateAfter={4}
+                            hideTruncatedAvatarsCount={true}
+                            users={type?.users ?? []}
+                          />
+                        )}
+                        {isManagedEventType && type?.children && type.children?.length > 0 && (
+                          <UserAvatarGroup
+                            className="relative right-3"
+                            size="sm"
+                            truncateAfter={4}
+                            hideTruncatedAvatarsCount={true}
+                            users={type?.children.flatMap((ch) => ch.users) ?? []}
+                          />
+                        )}
+                        <div className="flex items-center justify-between space-x-2 rtl:space-x-reverse">
+                          {!isManagedEventType && (
+                            <>
+                              {type.hidden && <Badge variant="gray">{t("hidden")}</Badge>}
+                              <Tooltip
+                                content={
+                                  type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")
+                                }>
+                                <div className="self-center rounded-md p-2">
+                                  <Switch
+                                    name="Hidden"
+                                    disabled={lockedByOrg}
+                                    checked={!type.hidden}
+                                    onCheckedChange={() => {
+                                      setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                    }}
+                                  />
+                                </div>
+                              </Tooltip>
+                            </>
+                          )}
+
+                          <ButtonGroup combined>
+                            {!isManagedEventType && (
+                              <>
+                                <Tooltip content={t("preview")}>
+                                  <Button
+                                    data-testid="preview-link-button"
+                                    color="secondary"
+                                    target="_blank"
+                                    variant="icon"
+                                    href={calLink}
+                                    StartIcon="external-link"
+                                  />
+                                </Tooltip>
+
+                                <Tooltip content={t("copy_link")}>
+                                  <Button
+                                    color="secondary"
+                                    variant="icon"
+                                    StartIcon="link"
+                                    onClick={() => {
+                                      showToast(t("link_copied"), "success");
+                                      navigator.clipboard.writeText(calLink);
+                                    }}
+                                  />
+                                </Tooltip>
+
+                                {isPrivateURLEnabled && (
+                                  <Tooltip content={t("copy_private_link_to_event")}>
+                                    <Button
+                                      color="secondary"
+                                      variant="icon"
+                                      StartIcon="venetian-mask"
+                                      onClick={() => {
+                                        showToast(t("private_link_copied"), "success");
+                                        navigator.clipboard.writeText(placeholderHashedLink);
+                                      }}
+                                    />
+                                  </Tooltip>
+                                )}
+                              </>
+                            )}
+                            <Dropdown modal={false}>
+                              <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
+                                <Button
+                                  type="button"
+                                  variant="icon"
+                                  color="secondary"
+                                  StartIcon="ellipsis"
+                                  className="ltr:radix-state-open:rounded-r-md rtl:radix-state-open:rounded-l-md"
+                                />
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent>
+                                {!readOnly && (
+                                  <DropdownMenuItem>
+                                    <DropdownItem
+                                      type="button"
+                                      data-testid={`event-type-edit-${type.id}`}
+                                      StartIcon="pencil"
+                                      onClick={() => router.push(`/event-types/${type.id}`)}>
+                                      {t("edit")}
+                                    </DropdownItem>
+                                  </DropdownMenuItem>
+                                )}
+                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                                {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                                  <>
+                                    <DropdownMenuItem className="outline-none">
+                                      <DropdownItem
+                                        type="button"
+                                        data-testid={`event-type-duplicate-${type.id}`}
+                                        StartIcon="copy"
+                                        onClick={() => openDuplicateModal(type, group)}>
+                                        {t("duplicate")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                                {!isManagedEventType && (
+                                  <DropdownMenuItem className="outline-none">
+                                    <EventTypeEmbedButton
+                                      namespace={type.slug}
+                                      as={DropdownItem}
+                                      type="button"
+                                      StartIcon="code"
+                                      className="w-full rounded-none"
+                                      embedUrl={encodeURIComponent(embedLink)}
+                                      eventId={type.id}>
+                                      {t("embed")}
+                                    </EventTypeEmbedButton>
+                                  </DropdownMenuItem>
+                                )}
+                                {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                                {!readOnly && !isChildrenManagedEventType && (
+                                  <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem>
+                                      <DropdownItem
+                                        color="destructive"
+                                        onClick={() => {
+                                          setDeleteDialogOpen(true);
+                                          setDeleteDialogTypeId(type.id);
+                                          setDeleteDialogSchedulingType(type.schedulingType);
+                                        }}
+                                        StartIcon="trash"
+                                        className="w-full rounded-none">
+                                        {t("delete")}
+                                      </DropdownItem>
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
+                              </DropdownMenuContent>
+                            </Dropdown>
+                          </ButtonGroup>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="min-w-9 mx-5 flex sm:hidden">
+                    <Dropdown>
+                      <DropdownMenuTrigger asChild data-testid={`event-type-options-${type.id}`}>
+                        <Button type="button" variant="icon" color="secondary" StartIcon="ellipsis" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuPortal>
+                        <DropdownMenuContent>
+                          {!isManagedEventType && (
+                            <>
+                              <DropdownMenuItem className="outline-none">
+                                <DropdownItem
+                                  href={calLink}
+                                  target="_blank"
+                                  StartIcon="external-link"
+                                  className="w-full rounded-none">
+                                  {t("preview")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="outline-none">
+                                <DropdownItem
+                                  data-testid={`event-type-duplicate-${type.id}`}
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(calLink);
+                                    showToast(t("link_copied"), "success");
+                                  }}
+                                  StartIcon="clipboard"
+                                  className="w-full rounded-none text-left">
+                                  {t("copy_link")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {isNativeShare ? (
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                data-testid={`event-type-duplicate-${type.id}`}
+                                onClick={() => {
+                                  navigator
+                                    .share({
+                                      title: t("share"),
+                                      text: t("share_event", { appName: APP_NAME }),
+                                      url: calLink,
+                                    })
+                                    .then(() => showToast(t("link_shared"), "success"))
+                                    .catch(() => showToast(t("failed"), "error"));
+                                }}
+                                StartIcon="upload"
+                                className="w-full rounded-none">
+                                {t("share")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          ) : null}
+                          {!readOnly && (
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                onClick={() => router.push(`/event-types/${type.id}`)}
+                                StartIcon="pencil"
+                                className="w-full rounded-none">
+                                {t("edit")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          {!readOnly && !isManagedEventType && !isChildrenManagedEventType && (
+                            <DropdownMenuItem className="outline-none">
+                              <DropdownItem
+                                onClick={() => openDuplicateModal(type, group)}
+                                StartIcon="copy"
+                                data-testid={`event-type-duplicate-${type.id}`}>
+                                {t("duplicate")}
+                              </DropdownItem>
+                            </DropdownMenuItem>
+                          )}
+                          {/* readonly is only set when we are on a team - if we are on a user event type null will be the value. */}
+                          {!readOnly && !isChildrenManagedEventType && (
+                            <>
+                              <DropdownMenuItem className="outline-none">
+                                <DropdownItem
+                                  color="destructive"
+                                  onClick={() => {
+                                    setDeleteDialogOpen(true);
+                                    setDeleteDialogTypeId(type.id);
+                                    setDeleteDialogSchedulingType(type.schedulingType);
+                                  }}
+                                  StartIcon="trash"
+                                  className="w-full rounded-none">
+                                  {t("delete")}
+                                </DropdownItem>
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          <DropdownMenuSeparator />
+                          {!isManagedEventType && (
+                            <div className="hover:bg-subtle flex h-9 cursor-pointer flex-row items-center justify-between px-4 py-2">
+                              <Skeleton
+                                as={Label}
+                                htmlFor="hiddenSwitch"
+                                className="mt-2 inline cursor-pointer self-center pr-2 ">
+                                {type.hidden ? t("show_eventtype_on_profile") : t("hide_from_profile")}
+                              </Skeleton>
+                              <Switch
+                                id="hiddenSwitch"
+                                name="Hidden"
+                                checked={!type.hidden}
+                                onCheckedChange={() => {
+                                  setHiddenMutation.mutate({ id: type.id, hidden: !type.hidden });
+                                }}
+                              />
+                            </div>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenuPortal>
+                    </Dropdown>
+                  </div>
+                </div>
+              </li>
+            );
+          });
+        })}
+      </ul>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <ConfirmationDialogContent
+          variety="danger"
+          title={t(`delete${isManagedEventPrefix()}_event_type`)}
+          confirmBtnText={t(`confirm_delete_event_type`)}
+          loadingText={t(`confirm_delete_event_type`)}
+          isPending={deleteMutation.isPending}
+          onConfirm={(e) => {
+            e.preventDefault();
+            deleteEventTypeHandler(deleteDialogTypeId);
+          }}>
+          <p className="mt-5">
+            <Trans
+              i18nKey={`delete${isManagedEventPrefix()}_event_type_description`}
+              components={{ li: <li />, ul: <ul className="ml-4 list-disc" /> }}>
+              <ul>
+                <li>Members assigned to this event type will also have their event types deleted.</li>
+                <li>
+                  Anyone who they&apos;ve shared their link with will no longer be able to book using it.
+                </li>
+              </ul>
+            </Trans>
+          </p>
+        </ConfirmationDialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
 const EventTypeListHeading = ({
   profile,
   membershipCount,
@@ -795,6 +1418,7 @@ const CreateFirstEventTypeView = ({ slug }: { slug: string }) => {
 const CTA = ({
   profileOptions,
   isOrganization,
+  isInfiniteScrollEnabled,
 }: {
   profileOptions: {
     teamId: number | null | undefined;
@@ -804,6 +1428,7 @@ const CTA = ({
     slug: string | null;
   }[];
   isOrganization: boolean;
+  isInfiniteScrollEnabled: boolean;
 }) => {
   const { t } = useLocale();
 
@@ -815,7 +1440,10 @@ const CTA = ({
       subtitle={t("create_event_on").toUpperCase()}
       options={profileOptions}
       createDialog={() => (
-        <CreateEventTypeDialog profileOptions={profileOptions} isOrganization={isOrganization} />
+        <CreateEventTypeDialog
+          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
+          profileOptions={profileOptions}
+        />
       )}
     />
   );
@@ -829,7 +1457,7 @@ const Actions = (props: { showDivider: boolean }) => {
   );
 };
 
-const EmptyEventTypeList = ({ group }: { group: DeNormalizedEventTypeGroup }) => {
+const EmptyEventTypeList = ({ group }: { group: EventTypeGroup | InfiniteEventTypeGroup }) => {
   const { t } = useLocale();
   return (
     <>
@@ -941,10 +1569,56 @@ const Main = ({
   );
 };
 
-const EventTypesPage: React.FC & {
+const InfiniteScrollMain = ({
+  status,
+  errorMessage,
+  eventTypeGroups,
+  profiles,
+}: {
+  status: string;
+  errorMessage?: string;
+  eventTypeGroups: GetUserEventGroupsResponse["eventTypeGroups"] | undefined;
+  profiles: GetUserEventGroupsResponse["profiles"] | undefined;
+}) => {
+  const searchParams = useCompatSearchParams();
+  const { data } = useTypedQuery(querySchema);
+
+  if (status === "error") {
+    return <Alert severity="error" title="Something went wrong" message={errorMessage} />;
+  }
+
+  if (!eventTypeGroups || !profiles || status === "pending") {
+    return <InfiniteSkeletonLoader />;
+  }
+
+  const tabs = eventTypeGroups.map((item) => ({
+    name: item.profile.name ?? "",
+    href: item.teamId ? `/event-types?teamId=${item.teamId}` : "/event-types?noTeam",
+    avatar: item.profile.image,
+  }));
+
+  const activeEventTypeGroup =
+    eventTypeGroups.filter((item) => item.teamId === data.teamId) ?? eventTypeGroups[0];
+
+  return (
+    <>
+      {eventTypeGroups.length >= 1 && (
+        <>
+          <HorizontalTabs tabs={tabs} />
+          <InfiniteMobileTeamsTab activeEventTypeGroup={activeEventTypeGroup[0]} />
+        </>
+      )}
+      {eventTypeGroups.length === 0 && <CreateFirstEventTypeView slug={profiles[0].slug ?? ""} />}
+      <EventTypeEmbedDialog />
+      {searchParams?.get("dialog") === "duplicate" && <DuplicateDialog isInfiniteScrollEnabled />}
+    </>
+  );
+};
+
+const EventTypesPage: React.FC<{ isInfiniteScrollEnabled?: boolean }> & {
   PageWrapper?: AppProps["Component"]["PageWrapper"];
   getLayout?: AppProps["Component"]["getLayout"];
-} = () => {
+} = ({ isInfiniteScrollEnabled = false }) => {
   const { t } = useLocale();
   const searchParams = useCompatSearchParams();
   const { open } = useIntercom();
@@ -956,11 +1630,23 @@ const EventTypesPage: React.FC & {
   const filters = getTeamsFiltersFromQuery(routerQuery);
   const router = useRouter();
 
-  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
   const { data, status, error } = trpc.viewer.eventTypes.getByViewer.useQuery(filters && { filters }, {
     refetchOnWindowFocus: false,
     gcTime: 1 * 60 * 60 * 1000,
     staleTime: 1 * 60 * 60 * 1000,
+    enabled: !isInfiniteScrollEnabled,
+  });
+
+  // TODO: Maybe useSuspenseQuery to focus on success case only? Remember that it would crash the page when there is an error in query. Also, it won't support skeleton
+  const {
+    data: getUserEventGroupsData,
+    status: getUserEventGroupsStatus,
+    error: getUserEventGroupsStatusError,
+  } = trpc.viewer.eventTypes.getUserEventGroups.useQuery(filters && { filters }, {
+    refetchOnWindowFocus: false,
+    gcTime: 1 * 60 * 60 * 1000,
+    staleTime: 1 * 60 * 60 * 1000,
+    enabled: isInfiniteScrollEnabled,
   });
 
   useEffect(() => {
@@ -983,20 +1669,32 @@ const EventTypesPage: React.FC & {
     );
   }, [orgBranding, user]);
 
-  const profileOptions = data
-    ? data?.profiles
-        .filter((profile) => !profile.readOnly)
-        .filter((profile) => !profile.eventTypesLockedByOrg)
-        .map((profile) => {
-          return {
-            teamId: profile.teamId,
-            label: profile.name || profile.slug,
-            image: profile.image,
-            membershipRole: profile.membershipRole,
-            slug: profile.slug,
-          };
-        })
-    : [];
+  const profileOptions =
+    (data?.profiles
+      ? data?.profiles
+          .filter((profile) => !profile.readOnly)
+          .filter((profile) => !profile.eventTypesLockedByOrg)
+          .map((profile) => {
+            return {
+              teamId: profile.teamId,
+              label: profile.name || profile.slug,
+              image: profile.image,
+              membershipRole: profile.membershipRole,
+              slug: profile.slug,
+            };
+          })
+      : getUserEventGroupsData?.profiles
+          ?.filter((profile) => !profile.readOnly)
+          ?.filter((profile) => !profile.eventTypesLockedByOrg)
+          ?.map((profile) => {
+            return {
+              teamId: profile.teamId,
+              label: profile.name || profile.slug,
+              image: profile.image,
+              membershipRole: profile.membershipRole,
+              slug: profile.slug,
+            };
+          })) ?? [];
 
   return (
     <Shell
@@ -1007,13 +1705,30 @@ const EventTypesPage: React.FC & {
       heading={t("event_types_page_title")}
       hideHeadingOnMobile
       subtitle={t("event_types_page_subtitle")}
-      beforeCTAactions={<Actions showDivider={profileOptions.length > 0} />}
-      CTA={<CTA profileOptions={profileOptions} isOrganization={!!user?.organizationId} />}>
+      beforeCTAactions={
+        isInfiniteScrollEnabled ? undefined : <Actions showDivider={profileOptions.length > 0} />
+      }
+      CTA={
+        <CTA
+          isInfiniteScrollEnabled={isInfiniteScrollEnabled}
+          profileOptions={profileOptions}
+          isOrganization={!!user?.organizationId}
+        />
+      }>
       <HeadSeo
         title="Event Types"
         description="Create events to share for people to book on your calendar."
       />
-      <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
+      {isInfiniteScrollEnabled ? (
+        <InfiniteScrollMain
+          profiles={getUserEventGroupsData?.profiles}
+          eventTypeGroups={getUserEventGroupsData?.eventTypeGroups}
+          status={getUserEventGroupsStatus}
+          errorMessage={getUserEventGroupsStatusError?.message}
+        />
+      ) : (
+        <Main data={data} status={status} errorMessage={error?.message} filters={filters} />
+      )}
     </Shell>
   );
 };

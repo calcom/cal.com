@@ -7,7 +7,7 @@ import { getTranslation } from "@calcom/lib/server/i18n";
 import prisma from "@calcom/prisma";
 import type { Person, CalendarEvent } from "@calcom/types/Calendar";
 
-import { findBookingQuery } from "../../../handleNewBooking";
+import { findBookingQuery } from "../../../handleNewBooking/findBookingQuery";
 import lastAttendeeDeleteBooking from "../../lib/lastAttendeeDeleteBooking";
 import type { RescheduleSeatedBookingObject, SeatAttendee, NewTimeSlotBooking } from "../../types";
 
@@ -18,7 +18,7 @@ const attendeeRescheduleSeatedBooking = async (
   originalBookingEvt: CalendarEvent,
   eventManager: EventManager
 ) => {
-  const { tAttendees, bookingSeat, bookerEmail, evt } = rescheduleSeatedBookingObject;
+  const { tAttendees, bookingSeat, bookerEmail, evt, eventType } = rescheduleSeatedBookingObject;
   let { originalRescheduledBooking } = rescheduleSeatedBookingObject;
 
   seatAttendee["language"] = { translate: tAttendees, locale: bookingSeat?.attendee.locale ?? "en" };
@@ -91,7 +91,7 @@ const attendeeRescheduleSeatedBooking = async (
 
   await eventManager.updateCalendarAttendees(copyEvent, newTimeSlotBooking);
 
-  await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person);
+  await sendRescheduledSeatEmail(copyEvent, seatAttendee as Person, eventType.metadata);
   const filteredAttendees = originalRescheduledBooking?.attendees.filter((attendee) => {
     return attendee.email !== bookerEmail;
   });

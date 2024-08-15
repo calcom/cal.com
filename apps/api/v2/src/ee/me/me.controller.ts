@@ -23,14 +23,25 @@ import { userSchemaResponse } from "@calcom/platform-types";
 export class MeController {
   constructor(
     private readonly usersRepository: UsersRepository,
-    private readonly schedulesRepository: SchedulesService_2024_04_15
+    private readonly schedulesService: SchedulesService_2024_04_15
   ) {}
 
   @Get("/")
   @Permissions([PROFILE_READ])
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
-    const me = userSchemaResponse.parse(user);
-
+    const organization = user?.movedToProfile?.organization;
+    const me = userSchemaResponse.parse(
+      organization
+        ? {
+            ...user,
+            organizationId: organization.id,
+            organization: {
+              id: organization.id,
+              isPlatform: organization.isPlatform,
+            },
+          }
+        : user
+    );
     return {
       status: SUCCESS_STATUS,
       data: me,
@@ -45,7 +56,7 @@ export class MeController {
   ): Promise<UpdateMeOutput> {
     const updatedUser = await this.usersRepository.update(user.id, bodySchedule);
     if (bodySchedule.timeZone && user.defaultScheduleId) {
-      await this.schedulesRepository.updateUserSchedule(user, user.defaultScheduleId, {
+      await this.schedulesService.updateUserSchedule(user, user.defaultScheduleId, {
         timeZone: bodySchedule.timeZone,
       });
     }

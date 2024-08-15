@@ -7,7 +7,7 @@ import type {
   IntegrationLocation_2024_06_14,
 } from "@calcom/platform-types";
 
-import type { CommonField, OptionsField } from "./api-request";
+import type { UserField, OptionsField } from "./api-request";
 import { getResponseEventTypeLocations, getResponseEventTypeBookingFields } from "./api-response";
 
 describe("getResponseEventTypeLocations", () => {
@@ -99,7 +99,7 @@ describe("getResponseEventTypeLocations", () => {
 
 describe("getResponseEventTypeBookingFields", () => {
   it("should reverse transform name field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-name",
         type: "name",
@@ -134,7 +134,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform email field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-email",
         type: "email",
@@ -169,7 +169,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform phone field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-phone",
         type: "phone",
@@ -204,7 +204,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform address field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-address",
         type: "address",
@@ -239,7 +239,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform text field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-text",
         type: "text",
@@ -274,7 +274,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform number field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-number",
         type: "number",
@@ -309,7 +309,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform textarea field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-textarea",
         type: "textarea",
@@ -422,7 +422,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform multiemail field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "your-multiemail",
         type: "multiemail",
@@ -533,7 +533,7 @@ describe("getResponseEventTypeBookingFields", () => {
   });
 
   it("should reverse transform boolean field", () => {
-    const transformedField: CommonField[] = [
+    const transformedField: UserField[] = [
       {
         name: "agree-to-terms",
         type: "boolean",

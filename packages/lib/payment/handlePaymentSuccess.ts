@@ -26,7 +26,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
 
   const isConfirmed = booking.status === BookingStatus.ACCEPTED;
   if (isConfirmed) {
-    const eventManager = new EventManager(userWithCredentials);
+    const eventManager = new EventManager(userWithCredentials, eventType?.metadata?.apps);
     const scheduleResult = await eventManager.create(evt);
     bookingData.references = { create: scheduleResult.referencesToCreate };
   }
@@ -76,7 +76,7 @@ export async function handlePaymentSuccess(paymentId: number, bookingId: number)
       log.debug(`handling booking request for eventId ${eventType.id}`);
     }
   } else {
-    await sendScheduledEmails({ ...evt });
+    await sendScheduledEmails({ ...evt }, undefined, undefined, undefined, eventType.metadata);
   }
 
   throw new HttpCode({

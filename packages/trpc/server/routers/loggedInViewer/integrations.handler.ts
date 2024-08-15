@@ -1,7 +1,9 @@
 import type { Prisma } from "@prisma/client";
 
 import appStore from "@calcom/app-store";
+import type { TDependencyData } from "@calcom/app-store/_appRegistry";
 import type { CredentialOwner } from "@calcom/app-store/types";
+import { getAppFromSlug } from "@calcom/app-store/utils";
 import getEnabledAppsFromCredentials from "@calcom/lib/apps/getEnabledAppsFromCredentials";
 import getInstallCountPerApp from "@calcom/lib/apps/getInstallCountPerApp";
 import { getUsersCredentials } from "@calcom/lib/server/getUsersCredentials";
@@ -179,6 +181,18 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         }
       }
 
+      let dependencyData: TDependencyData = [];
+      if (app.dependencies?.length) {
+        dependencyData = app.dependencies.map((dependency) => {
+          const dependencyInstalled = enabledApps.some(
+            (dbAppIterator) => dbAppIterator.credentials.length && dbAppIterator.slug === dependency
+          );
+          // If the app marked as dependency is simply deleted from the codebase, we can have the situation where App is marked installed in DB but we couldn't get the app.
+          const dependencyName = getAppFromSlug(dependency)?.name;
+          return { name: dependencyName, installed: dependencyInstalled };
+        });
+      }
+
       return {
         ...app,
         ...(teams.length && {
@@ -189,6 +203,7 @@ export const integrationsHandler = async ({ ctx, input }: IntegrationsOptions) =
         teams,
         isInstalled: !!userCredentialIds.length || !!teams.length || app.isGlobal,
         isSetupAlready,
+        ...(app.dependencies && { dependencyData }),
       };
     })
   );

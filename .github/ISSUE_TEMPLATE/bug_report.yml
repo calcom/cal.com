@@ -1,0 +1,81 @@
+name: Bug report
+description: "Please make sure you have checked for any duplicate issues."
+title: "(bug)"
+labels: ["🐛 bug"]
+assignees: []
+body:
+- type: textarea
+  id: issue-summary
+  attributes:
+    label: Issue Summary
+    description: A summary of the issue. This needs to be a clear detailed-rich summary.
+  validations:
+    required: true
+- type: textarea
+  id: steps-to-reproduce
+  attributes:
+    label: Steps to Reproduce
+    value: |
+      1. (for example) Went to ...
+      2. Clicked on...
+      3. ...
+  validations:
+    required: true
+- type: textarea
+  id: expected-behavior
+  attributes:
+    label: Expected behavior
+    description: A clear and concise description of what you expected to happen.
+  validations:
+    required: true
+- type: textarea
+  id: other-information
+  attributes:
+    label: Other information
+  validations:
+    required: false
+- type: textarea
+  id: screenshots
+  attributes:
+    label: Screenshots
+    description: If applicable, add screenshots to help explain your problem.
+  validations:
+    required: false
+- type: checkboxes
+  id: environment
+  attributes:
+    label: Environment
+    options:
+      - label: app.cal.com
+      - label: Self-hosted Cal
+- type: textarea
+  id: desktop-version
+  attributes:
+    label: Desktop (please complete the following information)
+    description: | 
+      examples: 
+      - **OS**: [e.g. iOS]
+      - **Browser**: [e.g. chrome, safari]
+      - **Version**: [e.g. 22]
+    value: |
+      - OS:
+      - Node:
+      - npm: 
+    render: markdown
+  validations:
+    required: true
+- type: markdown
+  id: nodejs-version
+  attributes:
+    value: | 
+      #### Node.JS version
+      
+      [e.g. v18.15.0] 
+- type: markdown
+  id: anything-else
+  attributes:
+    value: |
+      #### Anything else?
+      
+      - Screen recording, console logs, network requests: You can make a recording with [Loom](https://www.loom.com).
+      - Anything else that you think could be an issue?
