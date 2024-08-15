@@ -301,18 +301,21 @@ async function postHandler(req: NextApiRequest) {
   }
   let data: Prisma.EventTypeCreateArgs["data"] = {
     ...parsedBody,
-    userId: !!parsedBody.teamId ? null : userId,
-    users: !!parsedBody.teamId ? undefined : { connect: { id: userId } },
     bookingLimits: bookingLimits === null ? Prisma.DbNull : bookingLimits,
     durationLimits: durationLimits === null ? Prisma.DbNull : durationLimits,
   };
 
-  if (!parsedBody.teamId) {
-    //connect user if eventtype doesn't belong to a team
+  if (!!parsedBody.teamId) {
     data = {
       ...data,
-      userId,
-      users: { connect: { id: userId } },
+      userId: null,
+      users: undefined,
+    };
+  } else {
+    data = {
+      ...data,
+      userId: parsedBody.parentId ? parsedBody.userId : userId,
+      users: { connect: { id: parsedBody.parentId ? parsedBody.userId : userId } },
     };
   }
 
