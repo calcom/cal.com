@@ -224,6 +224,7 @@ export class UserRepository {
             },
           },
         },
+        createdDate: true,
       },
     });
 

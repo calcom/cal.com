@@ -1,6 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import type { AuthOptions, Session } from "next-auth";
+import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
 import type { Provider } from "next-auth/providers";
@@ -15,7 +15,7 @@ import ImpersonationProvider from "@calcom/features/ee/impersonation/lib/Imperso
 import { getOrgFullOrigin, subdomainSuffix } from "@calcom/features/ee/organizations/lib/orgDomains";
 import { clientSecretVerifier, hostedCal, isSAMLLoginEnabled } from "@calcom/features/ee/sso/lib/saml";
 import { checkRateLimitAndThrowError } from "@calcom/lib/checkRateLimitAndThrowError";
-import { HOSTED_CAL_FEATURES } from "@calcom/lib/constants";
+import { HOSTED_CAL_FEATURES, IS_CALCOM } from "@calcom/lib/constants";
 import { ENABLE_PROFILE_SWITCHER, IS_TEAM_BILLING_ENABLED, WEBAPP_URL } from "@calcom/lib/constants";
 import { symmetricDecrypt, symmetricEncrypt } from "@calcom/lib/crypto";
 import { defaultCookies } from "@calcom/lib/default-cookies";
@@ -238,6 +238,7 @@ const providers: Provider[] = [
         belongsToActiveTeam: hasActiveTeams,
         locale: user.locale,
         profile: user.allProfiles[0],
+        createdAt: user.createdDate,
       };
     },
   }),
@@ -928,15 +929,24 @@ export const AUTH_OPTIONS: AuthOptions = {
     },
   },
   events: {
-    async signIn({ user, isNewUser }) {
+    async signIn(message) {
       /* only run this code if:
          - it's a hosted cal account
          - DUB_API_KEY is configured
          - it's a new user
       */
-      const hostedCal = Boolean(HOSTED_CAL_FEATURES);
-      if (hostedCal && process.env.DUB_API_KEY && isNewUser) {
+      const user = message.user as User & {
+        username: string;
+        createdAt: string;
+      };
+      // check if the user was created in the last 10 minutes
+      // this is a workaround – in the future once we move to use the Account model in the DB
+      // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
+      const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
+      console.log({ isNewUser, createdAt: user.createdAt, dubApiKey: process.env.DUB_API_KEY, IS_CALCOM });
+      if (IS_CALCOM && process.env.DUB_API_KEY && isNewUser) {
         const dclid = cookies().get("dclid")?.value;
+        console.log({ dclid });
         // here we use waitUntil – meaning this code will run async to not block the main thread
         waitUntil(
           Promise.allSettled([
