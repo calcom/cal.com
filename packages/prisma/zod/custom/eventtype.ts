@@ -33,7 +33,7 @@ export const createEventTypeInput = z.object({
     title: z.string().min(1),
     description: z.string(),
     length: z.number(),
-    teamId: z.number().optional().nullable(),
+    teamId: z.number().nullish(),
   }).strict();
 
 export type EventTypeLocation = (z.infer<typeof imports.eventTypeLocations>)[number];
