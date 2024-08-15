@@ -154,8 +154,8 @@ function transformApiEventTypeFutureBookingLimits(
     case BookingWindowPeriodInputTypeEnum_2024_06_14.range:
       return {
         periodType: BookingWindowPeriodOutputTypeEnum_2024_06_14.RANGE,
-        periodEndDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[0]),
-        periodStartDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[1]),
+        periodStartDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[0]),
+        periodEndDate: new Date((inputBookingLimits as RangeWindow_2024_06_14).value[1]),
       };
     default:
       return undefined;

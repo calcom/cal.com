@@ -600,7 +600,7 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
     const transformedField: TransformFutureBookingsLimitSchema_2024_06_14 = {
       periodType: "RANGE",
       periodStartDate: new Date("2024-08-06T09:14:30.000Z"),
-      periodEndDate: new Date("2024-08-23T18:30:00.000Z"),
+      periodEndDate: new Date("2024-08-28T18:30:00.000Z"),
     };
     const expectedOutput = {
       type: "range",
