@@ -86,6 +86,7 @@ const _getEventType = async (id: number) => {
               endTime: true,
             },
           },
+          timeBlocks: true,
           timeZone: true,
         },
       },
@@ -291,7 +292,15 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
   const getBusyTimesStart = dateFrom.toISOString();
   const getBusyTimesEnd = dateTo.toISOString();
 
-  const busyTimes = await getBusyTimes({
+  const userSchedule = user.schedules.filter(
+    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
+  )[0];
+
+  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
+
+  const timeBlocksArr = schedule.timeBlocks;
+
+  const { busyTimes, timeBlocks } = await getBusyTimes({
     credentials: user.credentials,
     startTime: getBusyTimesStart,
     endTime: getBusyTimesEnd,
@@ -306,6 +315,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     rescheduleUid: initialData?.rescheduleUid || null,
     duration,
     currentBookings: initialData?.currentBookings,
+    timeBlocksArr,
   });
 
   const detailedBusyTimes: EventBusyDetails[] = [
@@ -318,12 +328,6 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     })),
     ...busyTimesFromLimits,
   ];
-
-  const userSchedule = user.schedules.filter(
-    (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
-  )[0];
-
-  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule.id;
 
@@ -346,12 +350,16 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     throw new HttpError({ statusCode: 400, message: ErrorCode.AvailabilityNotFoundInSchedule });
   }
 
-  const availability = (
-    schedule?.availability || (eventType?.availability.length ? eventType.availability : user.availability)
-  ).map((a) => ({
-    ...a,
-    userId: user.id,
-  }));
+  const availability =
+    timeBlocksArr.length > 0
+      ? timeBlocks
+      : (
+          schedule?.availability ||
+          (eventType?.availability.length ? eventType.availability : user.availability)
+        ).map((a) => ({
+          ...a,
+          userId: user.id,
+        }));
 
   const workingHours = getWorkingHours({ timeZone }, availability);
 

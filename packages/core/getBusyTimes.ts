@@ -11,7 +11,7 @@ import prisma from "@calcom/prisma";
 import type { Prisma, SelectedCalendar } from "@calcom/prisma/client";
 import { BookingStatus } from "@calcom/prisma/enums";
 import { stringToDayjs } from "@calcom/prisma/zod-utils";
-import type { EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
+import type { EventBusyData, EventBusyDetails, IntervalLimit } from "@calcom/types/Calendar";
 import type { CredentialPayload } from "@calcom/types/Credential";
 
 import { getDefinedBufferTimes } from "../features/eventtypes/lib/getDefinedBufferTimes";
@@ -41,6 +41,7 @@ export async function getBusyTimes(params: {
         };
       })[]
     | null;
+  timeBlocksArr?: string[];
 }) {
   const {
     credentials,
@@ -56,6 +57,7 @@ export async function getBusyTimes(params: {
     seatedEvent,
     rescheduleUid,
     duration,
+    timeBlocksArr,
   } = params;
 
   logger.silly(
@@ -152,6 +154,7 @@ export async function getBusyTimes(params: {
       });
 
   const bookingSeatCountMap: { [x: string]: number } = {};
+  const timeBlocks: { date: string; startTime: Date; endTime: Date; days: number[]; userId: number }[] = [];
   const busyTimes = bookings.reduce(
     (aggregate: EventBusyDetails[], { id, startTime, endTime, eventType, title, ...rest }) => {
       if (rest._count?.seatsReferences) {
@@ -201,12 +204,13 @@ export async function getBusyTimes(params: {
   performance.measure(`prisma booking get took $1'`, "prismaBookingGetStart", "prismaBookingGetEnd");
   if (credentials?.length > 0) {
     const startConnectedCalendarsGet = performance.now();
-    const calendarBusyTimes = await getBusyCalendarTimes(
+    const calendarBusyTimesWithTimeBlocks = await getBusyCalendarTimes(
       username,
       credentials,
       startTime,
       endTime,
-      selectedCalendars
+      selectedCalendars,
+      timeBlocksArr?.length ? true : false
     );
     const endConnectedCalendarsGet = performance.now();
     logger.debug(
@@ -214,9 +218,29 @@ export async function getBusyTimes(params: {
         endConnectedCalendarsGet - startConnectedCalendarsGet
       } ms for user ${username}`,
       JSON.stringify({
-        calendarBusyTimes,
+        calendarBusyTimesWithTimeBlocks,
       })
     );
+
+    const calendarBusyTimes: EventBusyData[] = [];
+    if (timeBlocksArr?.length) {
+      // separate the calendar events that contain any of the time block values in the event title
+      calendarBusyTimesWithTimeBlocks.forEach((busyTime) => {
+        if (timeBlocksArr?.some((timeBlock) => busyTime.title === timeBlock)) {
+          timeBlocks.push({
+            date: dayjs(busyTime.start).startOf("day").utc(true).toISOString(),
+            startTime: dayjs(busyTime.start).utc(true).toDate(),
+            endTime: dayjs(busyTime.end).utc(true).toDate(),
+            days: [],
+            userId,
+          });
+        } else {
+          calendarBusyTimes.push(busyTime);
+        }
+      });
+    } else {
+      calendarBusyTimes.push(...calendarBusyTimesWithTimeBlocks);
+    }
 
     const openSeatsDateRanges = Object.keys(bookingSeatCountMap).map((key) => {
       const [start, end] = key.split("<>");
@@ -267,7 +291,7 @@ export async function getBusyTimes(params: {
       allBusyTimes: busyTimes,
     })
   );
-  return busyTimes;
+  return { busyTimes, timeBlocks };
 }
 
 export async function getBusyTimesForLimitChecks(params: {

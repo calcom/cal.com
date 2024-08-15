@@ -52,6 +52,10 @@ export type EventBusyDate = {
   source?: string | null;
 };
 
+export type EventBusyData = EventBusyDate & {
+  title?: string;
+};
+
 export type EventBusyDetails = EventBusyDate & {
   title?: string;
   source?: string | null;
@@ -248,6 +252,12 @@ export interface Calendar {
   ): Promise<NewCalendarEventType | NewCalendarEventType[]>;
 
   deleteEvent(uid: string, event: CalendarEvent, externalCalendarId?: string | null): Promise<unknown>;
+
+  getEventList?(
+    dateFrom: string,
+    dateTo: string,
+    selectedCalendars: IntegrationCalendar[]
+  ): Promise<EventBusyData[]>;
 
   getAvailability(
     dateFrom: string,
