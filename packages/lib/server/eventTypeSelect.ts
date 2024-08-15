@@ -43,6 +43,7 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   instantMeetingExpiryTimeOffsetInSeconds: true,
   aiPhoneCallConfig: true,
   assignAllTeamMembers: true,
+  rescheduleWithSameRoundRobinHost: true,
   recurringEvent: true,
   locations: true,
   bookingFields: true,
@@ -50,26 +51,5 @@ export const eventTypeSelect = Prisma.validator<Prisma.EventTypeSelect>()({
   secondaryEmailId: true,
   bookingLimits: true,
   durationLimits: true,
-  parent: {
-    select: {
-      team: {
-        select: {
-          id: true,
-          members: {
-            select: {
-              user: {
-                select: {
-                  name: true,
-                  username: true,
-                  email: true,
-                },
-              },
-              role: true,
-              accepted: true,
-            },
-          },
-        },
-      },
-    },
-  },
+  eventTypeColor: true,
 });

@@ -105,6 +105,7 @@ const commons = {
   bookingFields: [],
   assignAllTeamMembers: false,
   isRRWeightsEnabled: false,
+  rescheduleWithSameRoundRobinHost: false,
   useEventTypeDestinationCalendarEmail: false,
   secondaryEmailId: null,
   secondaryEmail: null,

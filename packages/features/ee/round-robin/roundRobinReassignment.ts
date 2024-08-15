@@ -26,6 +26,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const bookingSelect = {
@@ -409,15 +410,19 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       });
     }
 
-    await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
-      {
-        ...previousRRHost,
-        name: previousRRHost.name || "",
-        username: previousRRHost.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-      },
-    ]);
+    await sendRoundRobinCancelledEmails(
+      cancelledRRHostEvt,
+      [
+        {
+          ...previousRRHost,
+          name: previousRRHost.name || "",
+          username: previousRRHost.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+          language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+        },
+      ],
+      eventType?.metadata as EventTypeMetadata
+    );
   }
 
   // Handle changing workflows with organizer

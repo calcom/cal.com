@@ -29,6 +29,13 @@ export class WebhooksRepository {
     });
   }
 
+  async createOAuthClientWebhook(platformOAuthClientId: string, data: WebhookInputData) {
+    const id = uuidv4();
+    return this.dbWrite.prisma.webhook.create({
+      data: { ...data, id, platformOAuthClientId },
+    });
+  }
+
   async updateWebhook(webhookId: string, data: Partial<WebhookInputData>) {
     return this.dbWrite.prisma.webhook.update({
       where: { id: webhookId },
@@ -58,9 +65,23 @@ export class WebhooksRepository {
     });
   }
 
+  async getOAuthClientWebhooksPaginated(platformOAuthClientId: string, skip: number, take: number) {
+    return this.dbRead.prisma.webhook.findMany({
+      where: { platformOAuthClientId },
+      skip,
+      take,
+    });
+  }
+
   async getUserWebhookByUrl(userId: number, subscriberUrl: string) {
     return this.dbRead.prisma.webhook.findFirst({
       where: { userId, subscriberUrl },
+    });
+  }
+
+  async getOAuthClientWebhookByUrl(platformOAuthClientId: string, subscriberUrl: string) {
+    return this.dbRead.prisma.webhook.findFirst({
+      where: { platformOAuthClientId, subscriberUrl },
     });
   }
 
@@ -79,6 +100,12 @@ export class WebhooksRepository {
   async deleteAllEventTypeWebhooks(eventTypeId: number) {
     return this.dbWrite.prisma.webhook.deleteMany({
       where: { eventTypeId },
+    });
+  }
+
+  async deleteAllOAuthClientWebhooks(oAuthClientId: string) {
+    return this.dbWrite.prisma.webhook.deleteMany({
+      where: { platformOAuthClientId: oAuthClientId },
     });
   }
 }
