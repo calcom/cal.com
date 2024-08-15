@@ -271,7 +271,7 @@ const TeamMemberSchedule = ({
   const { t } = useLocale();
 
   const formMethods = useFormContext<FormValues>();
-  const { setValue, getValues, getFieldState } = formMethods;
+  const { getValues } = formMethods;
 
   const { data, isPending } = trpc.viewer.availability.schedule.getAllSchedulesByUserId.useQuery({
     userId: host.userId,
@@ -386,27 +386,35 @@ const UseCommonScheduleSettingsToggle = ({
   teamMembers: TeamMembers;
 }) => {
   const { t } = useLocale();
-  const { setValue, resetField, getFieldState, getValues } = useFormContext<FormValues>();
+  const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
 
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
     Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
   );
 
+  const watchHosts = watch("hosts");
+
   return (
-    <SettingsToggle
-      checked={useHostSchedulesForTeamEvent}
-      onCheckedChange={(checked) => {
-        setUseHostSchedulesForTeamEvent(checked);
-        if (checked) {
-          if (Boolean(eventType.schedule)) resetField("schedule");
-        } else {
-          setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
-        }
-      }}
-      title={t("choose_common_schedule_team_event")}
-      description={t("choose_common_schedule_team_event_description")}>
-      <EventTypeSchedule eventType={eventType} />
-    </SettingsToggle>
+    <>
+      <SettingsToggle
+        checked={useHostSchedulesForTeamEvent}
+        onCheckedChange={(checked) => {
+          setUseHostSchedulesForTeamEvent(checked);
+          if (checked) {
+            if (Boolean(eventType.schedule)) resetField("schedule");
+            getValues("hosts").map((_, index) => {
+              setValue(`hosts.${index}.scheduleId`, null, { shouldDirty: true });
+            });
+          } else {
+            setValue("schedule", null, { shouldDirty: Boolean(eventType.schedule) });
+          }
+        }}
+        title={t("choose_common_schedule_team_event")}
+        description={t("choose_common_schedule_team_event_description")}>
+        <EventTypeSchedule eventType={eventType} />
+      </SettingsToggle>
+      {useHostSchedulesForTeamEvent && <TeamAvailability hosts={watchHosts} teamMembers={teamMembers} />}
+    </>
   );
 };
 

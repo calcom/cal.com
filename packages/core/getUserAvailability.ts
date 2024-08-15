@@ -338,7 +338,9 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
     (schedule) => !user?.defaultScheduleId || schedule.id === user?.defaultScheduleId
   )[0];
 
-  const schedule = eventType?.schedule ? eventType.schedule : userSchedule;
+  const hostSchedule = eventType?.hosts?.find((host) => host.user.id === user.id)?.schedule;
+
+  const schedule = eventType?.schedule ? eventType.schedule : hostSchedule ? hostSchedule : userSchedule;
 
   const isDefaultSchedule = userSchedule && userSchedule.id === schedule?.id;
 
@@ -348,6 +350,7 @@ const _getUserAvailability = async function getUsersWorkingHoursLifeTheUniverseA
       chosenSchedule: schedule,
       eventTypeSchedule: eventType?.schedule,
       userSchedule: userSchedule,
+      hostSchedule: hostSchedule,
     })
   );
 

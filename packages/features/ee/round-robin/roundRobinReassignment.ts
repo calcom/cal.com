@@ -88,7 +88,7 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
-    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2 }));
+    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2, schedule: null }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 

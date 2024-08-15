@@ -1497,11 +1497,7 @@ describe("getSchedule", () => {
               },
             ],
             schedulingType: "ROUND_ROBIN",
-            metadata: {
-              config: {
-                useHostSchedulesForTeamEvent: true,
-              },
-            },
+            schedule: null,
           },
         ],
         users: [
@@ -1568,11 +1564,6 @@ describe("getSchedule", () => {
             ],
             schedule: TestData.schedules.IstEveningShift,
             schedulingType: "ROUND_ROBIN",
-            metadata: {
-              config: {
-                useHostSchedulesForTeamEvent: false,
-              },
-            },
           },
         ],
         users: [
