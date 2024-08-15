@@ -969,7 +969,7 @@ export const getOptions = (req: NextApiRequest): AuthOptions => ({
                 customerId: user.id.toString(),
                 customerName: user.name,
                 customerEmail: user.email,
-                customerAvatar: user.avatarUrl,
+                customerAvatar: user.image,
               }),
           ])
         );
