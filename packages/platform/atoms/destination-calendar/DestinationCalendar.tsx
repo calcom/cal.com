@@ -1,14 +1,15 @@
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { Label } from "@calcom/ui";
 
+import { cn } from "../src/lib/utils";
 import type { DestinationCalendarProps } from "./DestinationCalendarSelector";
 import { DestinationCalendarSelector } from "./DestinationCalendarSelector";
 
-export const DestinationCalendarSettings = (props: DestinationCalendarProps) => {
+export const DestinationCalendarSettings = (props: DestinationCalendarProps & { classNames?: string }) => {
   const { t } = useLocale();
 
   return (
-    <div className="border-subtle mb-6 mt-8 rounded-lg border">
+    <div className={cn("border-subtle mb-6 mt-8 rounded-lg border", props?.classNames)}>
       <DestinationCalendarSettingsHeading />
       <div className="border-t">
         <div className="border-subtle flex w-full flex-col space-y-3 border-y-0 p-6">

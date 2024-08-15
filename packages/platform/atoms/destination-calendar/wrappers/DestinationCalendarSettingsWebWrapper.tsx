@@ -12,7 +12,7 @@ export const DestinationCalendarSettingsWebWrapper = () => {
     },
   });
 
-  if (!calendars.data?.connectedCalendars) {
+  if (!calendars.data?.connectedCalendars || calendars.data.connectedCalendars.length < 1) {
     return null;
   }
 
@@ -24,7 +24,6 @@ export const DestinationCalendarSettingsWebWrapper = () => {
         destinationCalendar={calendars.data.destinationCalendar}
         value={calendars.data.destinationCalendar.externalId}
         hidePlaceholder
-        hideAdvancedText
         onChange={mutation.mutate}
       />
     </AtomsWrapper>
