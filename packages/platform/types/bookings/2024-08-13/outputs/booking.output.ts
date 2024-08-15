@@ -34,7 +34,6 @@ class Attendee {
   @IsOptional()
   language?: BookingLanguageType;
 }
-
 export class BookingOutput_2024_08_13 {
   @IsInt()
   @Expose()
@@ -43,6 +42,10 @@ export class BookingOutput_2024_08_13 {
   @IsString()
   @Expose()
   uid!: string;
+
+  @IsEnum(["cancelled", "accepted", "rejected", "pending", "awaiting_host"])
+  @Expose()
+  status!: "cancelled" | "accepted" | "rejected" | "pending" | "awaiting_host";
 
   @IsDateString()
   @Expose()
