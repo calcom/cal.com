@@ -127,7 +127,7 @@ const AddMembersWithSwitch = ({
 
   return (
     <div className="rounded-md ">
-      <div className={`flex flex-col rounded-md  pb-2 pt-6 ${containerClassName}`}>
+      <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
         {automaticAddAllEnabled ? (
           <div className="mb-2">
             <AssignAllTeamMembers
