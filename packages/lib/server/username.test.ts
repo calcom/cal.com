@@ -24,6 +24,7 @@ describe("usernameCheckForSignup ", async () => {
       available: true,
       premium: false,
       suggestedUsername: "",
+      emailExist: false,
     });
   });
 
@@ -38,6 +39,7 @@ describe("usernameCheckForSignup ", async () => {
       available: false,
       premium: false,
       suggestedUsername: "johnny001",
+      emailExist: true,
     });
   });
 
@@ -55,6 +57,7 @@ describe("usernameCheckForSignup ", async () => {
       // An organization can't have premium username
       premium: false,
       suggestedUsername: "",
+      emailExist: true,
     });
   });
 });
