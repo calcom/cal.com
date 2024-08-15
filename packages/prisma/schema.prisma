@@ -43,12 +43,15 @@ enum PeriodType {
 }
 
 model Host {
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId      Int
-  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId Int
-  isFixed     Boolean   @default(false)
-  priority    Int?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           Int
+  eventType        EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId      Int
+  isFixed          Boolean   @default(false)
+  priority         Int?
+  weight           Int?
+  // amount of fake bookings to be added when calculating the weight (for new hosts, OOO, etc.)
+  weightAdjustment Int?
 
   @@id([userId, eventTypeId])
   @@index([userId])
@@ -137,9 +140,11 @@ model EventType {
   assignAllTeamMembers                    Boolean                   @default(false)
   useEventTypeDestinationCalendarEmail    Boolean                   @default(false)
   aiPhoneCallConfig                       AIPhoneCallConfiguration?
+  isRRWeightsEnabled                      Boolean                   @default(false)
+
   /// @zod.custom(imports.eventTypeColor)
-  eventTypeColor                          Json?
-  rescheduleWithSameRoundRobinHost        Boolean                   @default(false)
+  eventTypeColor                   Json?
+  rescheduleWithSameRoundRobinHost Boolean @default(false)
 
   secondaryEmailId Int?
   secondaryEmail   SecondaryEmail? @relation(fields: [secondaryEmailId], references: [id], onDelete: Cascade)
