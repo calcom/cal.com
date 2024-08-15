@@ -1,5 +1,6 @@
 import type { Membership, Team, UserPermissionRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import type { NextApiRequest } from "next";
 import type { AuthOptions, Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import { encode } from "next-auth/jwt";
@@ -7,7 +8,6 @@ import type { Provider } from "next-auth/providers";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GoogleProvider from "next-auth/providers/google";
-import { cookies } from "next/headers";
 
 import { LicenseKeySingleton } from "@calcom/ee/common/server/LicenseKeyService";
 import createUsersAndConnectToOrg from "@calcom/features/ee/dsync/lib/users/createUsersAndConnectToOrg";
@@ -408,7 +408,7 @@ const mapIdentityProvider = (providerName: string) => {
   }
 };
 
-export const AUTH_OPTIONS: AuthOptions = {
+export const getOptions = (req: NextApiRequest): AuthOptions => ({
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
   adapter: calcomAdapter,
@@ -943,9 +943,8 @@ export const AUTH_OPTIONS: AuthOptions = {
       // this is a workaround – in the future once we move to use the Account model in the DB
       // we should use NextAuth's isNewUser flag instead: https://next-auth.js.org/configuration/events#signin
       const isNewUser = new Date(user.createdAt) > new Date(Date.now() - 10 * 60 * 1000);
-      console.log({ isNewUser, createdAt: user.createdAt, dubApiKey: process.env.DUB_API_KEY, IS_CALCOM });
-      if (IS_CALCOM && process.env.DUB_API_KEY && isNewUser) {
-        const dclid = cookies().get("dclid")?.value;
+      if ((isENVDev || IS_CALCOM) && process.env.DUB_API_KEY && isNewUser) {
+        const { dclid } = req.cookies;
         console.log({ dclid });
         // here we use waitUntil – meaning this code will run async to not block the main thread
         waitUntil(
@@ -974,12 +973,10 @@ export const AUTH_OPTIONS: AuthOptions = {
               }),
           ])
         );
-        // delete the dclid cookie
-        cookies().delete("dclid");
       }
     },
   },
-};
+});
 
 /**
  * Identifies the profile the user should be logged into.

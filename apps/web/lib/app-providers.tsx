@@ -17,7 +17,8 @@ import DynamicHelpscoutProvider from "@calcom/features/ee/support/lib/helpscout/
 import DynamicIntercomProvider from "@calcom/features/ee/support/lib/intercom/providerDynamic";
 import { FeatureProvider } from "@calcom/features/flags/context/provider";
 import { useFlags } from "@calcom/features/flags/hooks";
-import { IS_CALCOM } from "@calcom/lib/constants";
+import { IS_CALCOM, WEBAPP_URL } from "@calcom/lib/constants";
+import { isENVDev } from "@calcom/lib/env";
 import { MetaProvider } from "@calcom/ui";
 
 import useIsBookingPage from "@lib/hooks/useIsBookingPage";
@@ -303,10 +304,10 @@ const AppProviders = (props: AppPropsWithChildren) => {
                 <OrgBrandProvider>
                   <MetaProvider>
                     {props.children}
-                    {IS_CALCOM && (
+                    {(isENVDev || IS_CALCOM) && (
                       <DubAnalytics
                         cookieOptions={{
-                          domain: ".cal.com",
+                          domain: isENVDev ? undefined : new URL(WEBAPP_URL).hostname,
                         }}
                       />
                     )}
