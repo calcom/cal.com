@@ -441,7 +441,7 @@ export const Components: Record<FieldType, Component> = {
                         type="radio"
                         disabled={readOnly}
                         name={name}
-                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
+                        className="bg-default after:bg-default border-emphasis focus:ring-brand-default hover:bg-subtle hover:after:bg-subtle dark:checked:after:bg-brand-accent flex h-4 w-4 cursor-pointer items-center justify-center text-[--cal-brand] transition after:h-[6px] after:w-[6px] after:rounded-full after:content-[''] after:hover:block focus:ring-2 focus:ring-offset-0 ltr:mr-2 rtl:ml-2 dark:checked:hover:text-[--cal-brand]"
                         value={option.value}
                         onChange={(e) => {
                           setValue({
