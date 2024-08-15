@@ -15,11 +15,12 @@ export const DestinationCalendarSettingsPlatformWrapper = ({
     useUpdateDestinationCalendars();
 
   if (calendars.isLoading) {
-    return statusLoader ? (
-      statusLoader
-    ) : (
+    return (
       <AtomsWrapper>
-        <h1 className="m-5 text-xl font-semibold">Loading...</h1>
+        <>
+          {statusLoader}
+          {!statusLoader && <h1 className="m-5 text-xl font-semibold">Loading...</h1>}
+        </>
       </AtomsWrapper>
     );
   }
