@@ -4,17 +4,18 @@ import { plainToClass } from "class-transformer";
 import type { ValidationError } from "class-validator";
 import { validateSync } from "class-validator";
 
+import { CreateRecurringBookingInput_2024_08_13 } from "./create-booking.input";
 import { RescheduleBookingInput_2024_08_13 } from "./create-booking.input";
 import { CreateBookingInput_2024_08_13 } from "./create-booking.input";
 
 @Injectable()
 export class CreateBookingInputPipe implements PipeTransform {
-  constructor(
-    private readonly bookingDto: typeof CreateBookingInput_2024_08_13,
-    private readonly rescheduleDto: typeof RescheduleBookingInput_2024_08_13
-  ) {}
-
-  transform(value: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
+  transform(
+    value:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
+  ) {
     if (!value) {
       throw new BadRequestException("Body is required");
     }
@@ -24,6 +25,10 @@ export class CreateBookingInputPipe implements PipeTransform {
 
     if (this.isRescheduleBookingInput(value)) {
       return this.validateRescheduleBooking(value);
+    }
+
+    if (this.isRecurringBookingInput(value)) {
+      return this.validateRecurringBooking(value);
     }
 
     return this.validateBooking(value);
@@ -61,6 +66,22 @@ export class CreateBookingInputPipe implements PipeTransform {
     return object;
   }
 
+  validateRecurringBooking(value: CreateRecurringBookingInput_2024_08_13) {
+    const object = plainToClass(CreateRecurringBookingInput_2024_08_13, value);
+
+    const errors = validateSync(object, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      skipMissingProperties: false,
+    });
+
+    if (errors.length > 0) {
+      throw new BadRequestException(this.formatErrors(errors));
+    }
+
+    return object;
+  }
+
   private formatErrors(errors: ValidationError[]): string {
     return errors
       .map((err) => {
@@ -73,8 +94,20 @@ export class CreateBookingInputPipe implements PipeTransform {
   }
 
   private isRescheduleBookingInput(
-    value: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
+    value:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
   ): value is RescheduleBookingInput_2024_08_13 {
     return value.hasOwnProperty("rescheduleBookingUid");
+  }
+
+  private isRecurringBookingInput(
+    value:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
+  ): value is CreateRecurringBookingInput_2024_08_13 {
+    return value.hasOwnProperty("recurringEventTypeId");
   }
 }

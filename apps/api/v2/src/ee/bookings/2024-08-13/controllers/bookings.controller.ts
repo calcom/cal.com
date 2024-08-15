@@ -9,6 +9,7 @@ import { Request } from "express";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInputPipe,
+  CreateRecurringBookingInput_2024_08_13,
   RescheduleBookingInput_2024_08_13,
 } from "@calcom/platform-types";
 
@@ -25,8 +26,11 @@ export class BookingsController_2024_08_13 {
 
   @Post("/")
   async createBooking(
-    @Body(new CreateBookingInputPipe(CreateBookingInput_2024_08_13, RescheduleBookingInput_2024_08_13))
-    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13,
+    @Body(new CreateBookingInputPipe())
+    body:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13,
     @Req() request: Request
   ): Promise<CreateBookingOutput_2024_08_13> {
     const booking = await this.bookingsService.createBooking(request, body);

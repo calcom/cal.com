@@ -60,6 +60,35 @@ export class CreateBookingInput_2024_08_13 {
   bookingFieldsResponses!: Record<string, unknown>;
 }
 
+export class CreateRecurringBookingInput_2024_08_13 {
+  @IsDateString()
+  start!: string;
+
+  @IsInt()
+  recurringEventTypeId!: number;
+
+  @ValidateNested()
+  @Type(() => Attendee)
+  attendee!: Attendee;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  guests?: string[];
+
+  @IsUrl()
+  @IsOptional()
+  meetingUrl?: string;
+
+  @IsObject()
+  @IsOptional()
+  metadata!: Record<string, unknown>;
+
+  @IsObject()
+  @IsOptional()
+  bookingFieldsResponses!: Record<string, unknown>;
+}
+
 export class RescheduleBookingInput_2024_08_13 {
   @IsDateString()
   start!: string;

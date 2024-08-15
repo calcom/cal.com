@@ -15,5 +15,5 @@ export class CreateBookingOutput_2024_08_13 {
   })
   @ValidateNested()
   @Type(() => BookingOutput_2024_08_13)
-  data!: BookingOutput_2024_08_13;
+  data!: BookingOutput_2024_08_13 | BookingOutput_2024_08_13[];
 }

@@ -8,9 +8,14 @@ import { Logger } from "@nestjs/common";
 import { Request } from "express";
 import { DateTime } from "luxon";
 import { NextApiRequest } from "next/types";
+import { z } from "zod";
 
 import { X_CAL_CLIENT_ID } from "@calcom/platform-constants";
-import { CreateBookingInput_2024_08_13, RescheduleBookingInput_2024_08_13 } from "@calcom/platform-types";
+import {
+  CreateBookingInput_2024_08_13,
+  CreateRecurringBookingInput_2024_08_13,
+  RescheduleBookingInput_2024_08_13,
+} from "@calcom/platform-types";
 
 type BookingRequest = NextApiRequest & { userId: number | undefined } & OAuthRequestParams;
 
@@ -32,6 +37,24 @@ type OAuthRequestParams = {
   arePlatformEmailsEnabled: boolean;
 };
 
+export enum Frequency {
+  "YEARLY",
+  "MONTHLY",
+  "WEEKLY",
+  "DAILY",
+  "HOURLY",
+  "MINUTELY",
+  "SECONDLY",
+}
+
+const recurringEventSchema = z.object({
+  dtstart: z.string().optional(),
+  interval: z.number().int().optional(),
+  count: z.number().int().optional(),
+  freq: z.nativeEnum(Frequency).optional(),
+  until: z.string().optional(),
+});
+
 @Injectable()
 export class InputBookingsService_2024_08_13 {
   private readonly logger = new Logger("InputBookingsService_2024_08_13");
@@ -45,7 +68,10 @@ export class InputBookingsService_2024_08_13 {
 
   async createBookingRequest(
     request: Request,
-    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
+    body:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
   ): Promise<BookingRequest> {
     // note(Lauris): update to this.transformInputCreate when rescheduling is implemented
     const bodyTransformed = await this.transformInputCreate(body);
@@ -59,7 +85,14 @@ export class InputBookingsService_2024_08_13 {
 
     const location = await this.getLocation(request, body);
     Object.assign(newRequest, { userId, ...oAuthParams, platformBookingLocation: location });
-    newRequest.body = { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled };
+
+    const notRecurring = !("recurringEventTypeId" in body);
+    newRequest.body = notRecurring
+      ? { ...bodyTransformed, noEmail: !oAuthParams.arePlatformEmailsEnabled }
+      : (bodyTransformed as any[]).map((event) => ({
+          ...event,
+          noEmail: !oAuthParams.arePlatformEmailsEnabled,
+        }));
 
     return newRequest as unknown as BookingRequest;
   }
@@ -93,12 +126,92 @@ export class InputBookingsService_2024_08_13 {
     }
   }
 
-  transformInputCreate(inputBooking: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13) {
+  transformInputCreate(
+    inputBooking:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
+  ) {
     if ("rescheduleBookingUid" in inputBooking) {
       return this.transformInputRescheduleBooking(inputBooking);
     }
 
+    if ("recurringEventTypeId" in inputBooking) {
+      return this.transformInputCreateRecurringBooking(inputBooking);
+    }
+
     return this.transformInputCreateBooking(inputBooking);
+  }
+
+  async transformInputCreateRecurringBooking(inputBooking: CreateRecurringBookingInput_2024_08_13) {
+    const eventType = await this.eventTypesRepository.getEventTypeByIdWithOwnerAndTeam(
+      inputBooking.recurringEventTypeId
+    );
+    if (!eventType) {
+      throw new NotFoundException(`Event type with id=${inputBooking.recurringEventTypeId} not found`);
+    }
+    if (!eventType.recurringEvent) {
+      throw new NotFoundException(
+        `Event type with id=${inputBooking.recurringEventTypeId} is not a recurring event`
+      );
+    }
+
+    const occurrance = recurringEventSchema.parse(eventType.recurringEvent);
+    const repeatsEvery = occurrance.interval;
+    const repeatsTimes = occurrance.count;
+    // note(Lauris): timeBetween 0=yearly, 1=monthly and 2=weekly
+    const timeBetween = occurrance.freq;
+
+    if (!repeatsTimes) {
+      throw new Error("Repeats times is required");
+    }
+
+    const events = [];
+
+    let startTime = DateTime.fromISO(inputBooking.start, { zone: "utc" }).setZone(
+      inputBooking.attendee.timeZone
+    );
+
+    for (let i = 0; i < repeatsTimes; i++) {
+      const endTime = startTime.plus({ minutes: eventType.length });
+
+      events.push({
+        start: startTime.toISO(),
+        end: endTime.toISO(),
+        eventTypeId: inputBooking.recurringEventTypeId,
+        eventTypeSlug: eventType.slug,
+        timeZone: inputBooking.attendee.timeZone,
+        language: inputBooking.attendee.language || "en",
+        metadata: inputBooking.metadata || {},
+        hasHashedBookingLink: false,
+        guests: inputBooking.guests,
+        responses: inputBooking.bookingFieldsResponses
+          ? {
+              ...inputBooking.bookingFieldsResponses,
+              name: inputBooking.attendee.name,
+              email: inputBooking.attendee.email,
+            }
+          : { name: inputBooking.attendee.name, email: inputBooking.attendee.email },
+        user: eventType.owner ? eventType.owner.username : eventType.team?.slug,
+        schedulingType: eventType.schedulingType,
+      });
+
+      switch (timeBetween) {
+        case 0: // Yearly
+          startTime = startTime.plus({ years: repeatsEvery });
+          break;
+        case 1: // Monthly
+          startTime = startTime.plus({ months: repeatsEvery });
+          break;
+        case 2: // Weekly
+          startTime = startTime.plus({ weeks: repeatsEvery });
+          break;
+        default:
+          throw new Error("Unsupported timeBetween value");
+      }
+    }
+
+    return events;
   }
 
   async transformInputCreateBooking(inputBooking: CreateBookingInput_2024_08_13) {
@@ -137,7 +250,10 @@ export class InputBookingsService_2024_08_13 {
 
   async getLocation(
     request: Request,
-    body: CreateBookingInput_2024_08_13 | RescheduleBookingInput_2024_08_13
+    body:
+      | CreateBookingInput_2024_08_13
+      | RescheduleBookingInput_2024_08_13
+      | CreateRecurringBookingInput_2024_08_13
   ) {
     if ("rescheduleBookingUid" in body) {
       const booking = await this.bookingsRepository.getByUid(body.rescheduleBookingUid);
