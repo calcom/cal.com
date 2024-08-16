@@ -57,6 +57,8 @@ export type IsFixedAwareUser = User & {
   credentials: CredentialPayload[];
   organization?: { slug: string };
   priority?: number;
+  weight?: number;
+  weightAdjustment?: number;
 };
 
 export type NewBookingEventType = AwaitedGetDefaultEvent | getEventTypeResponse;

@@ -1,3 +1,5 @@
+import type { Prisma } from "@prisma/client";
+
 import { sendAttendeeRequestEmail, sendOrganizerRequestEmail } from "@calcom/emails";
 import { getWebhookPayloadForBooking } from "@calcom/features/bookings/lib/getWebhookPayloadForBooking";
 import getWebhooks from "@calcom/features/webhooks/lib/getWebhooks";
@@ -6,6 +8,7 @@ import getOrgIdFromMemberOrTeamId from "@calcom/lib/getOrgIdFromMemberOrTeamId";
 import logger from "@calcom/lib/logger";
 import { safeStringify } from "@calcom/lib/safeStringify";
 import { WebhookTriggerEvents } from "@calcom/prisma/enums";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const log = logger.getSubLogger({ prefix: ["[handleBookingRequested] book:user"] });
@@ -28,6 +31,7 @@ export async function handleBookingRequested(args: {
       requiresConfirmation: boolean;
       title: string;
       teamId?: number | null;
+      metadata: Prisma.JsonValue;
     } | null;
     eventTypeId: number | null;
     userId: number | null;
@@ -37,8 +41,12 @@ export async function handleBookingRequested(args: {
   const { evt, booking } = args;
 
   log.debug("Emails: Sending booking requested emails");
-  await sendOrganizerRequestEmail({ ...evt });
-  await sendAttendeeRequestEmail({ ...evt }, evt.attendees[0]);
+  await sendOrganizerRequestEmail({ ...evt }, booking?.eventType?.metadata as EventTypeMetadata);
+  await sendAttendeeRequestEmail(
+    { ...evt },
+    evt.attendees[0],
+    booking?.eventType?.metadata as EventTypeMetadata
+  );
 
   const orgId = await getOrgIdFromMemberOrTeamId({
     memberId: booking.userId,

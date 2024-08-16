@@ -26,6 +26,7 @@ import { getTimeFormatStringFromUserTimeFormat } from "@calcom/lib/timeFormat";
 import { prisma } from "@calcom/prisma";
 import { WorkflowActions, WorkflowMethods, WorkflowTriggerEvents } from "@calcom/prisma/enums";
 import { userMetadata as userMetadataSchema } from "@calcom/prisma/zod-utils";
+import type { EventTypeMetadata } from "@calcom/prisma/zod-utils";
 import type { CalendarEvent } from "@calcom/types/Calendar";
 
 const bookingSelect = {
@@ -87,7 +88,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   eventType.hosts = eventType.hosts.length
     ? eventType.hosts
-    : eventType.users.map((user) => ({ user, isFixed: false, priority: 2 }));
+    : eventType.users.map((user) => ({
+        user,
+        isFixed: false,
+        priority: 2,
+        weight: 100,
+        weightAdjustment: 0,
+      }));
 
   const roundRobinHosts = eventType.hosts.filter((host) => !host.isFixed);
 
@@ -129,8 +136,13 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
 
   const reassignedRRHost = await getLuckyUser("MAXIMIZE_AVAILABILITY", {
     availableUsers,
-    eventTypeId: eventTypeId,
+    eventType: {
+      id: eventTypeId,
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
+    },
+    allRRHosts: eventType.hosts.filter((host) => !host.isFixed),
   });
+
   const hasOrganizerChanged = !previousRRHost || booking.userId === previousRRHost?.id;
   const organizer = hasOrganizerChanged ? reassignedRRHost : booking.user;
   const organizerT = await getTranslation(organizer?.locale || "en", "common");
@@ -398,15 +410,19 @@ export const roundRobinReassignment = async ({ bookingId }: { bookingId: number 
       });
     }
 
-    await sendRoundRobinCancelledEmails(cancelledRRHostEvt, [
-      {
-        ...previousRRHost,
-        name: previousRRHost.name || "",
-        username: previousRRHost.username || "",
-        timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
-        language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
-      },
-    ]);
+    await sendRoundRobinCancelledEmails(
+      cancelledRRHostEvt,
+      [
+        {
+          ...previousRRHost,
+          name: previousRRHost.name || "",
+          username: previousRRHost.username || "",
+          timeFormat: getTimeFormatStringFromUserTimeFormat(previousRRHost.timeFormat),
+          language: { translate: previousRRHostT, locale: previousRRHost.locale || "en" },
+        },
+      ],
+      eventType?.metadata as EventTypeMetadata
+    );
   }
 
   // Handle changing workflows with organizer
