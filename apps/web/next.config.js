@@ -369,6 +369,7 @@ const nextConfig = {
         source: "/icons/sprite.svg",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg`,
       },
+      // test
       {
         source: "/icons/sprite.svg#:icon*",
         destination: `${process.env.NEXT_PUBLIC_WEBAPP_URL}/icons/sprite.svg:icon*`,
