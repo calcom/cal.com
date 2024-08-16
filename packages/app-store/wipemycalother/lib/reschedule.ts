@@ -33,7 +33,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       attendees: true,
       references: true,
       eventType: {
-        include: {
+        select: {
           team: {
             select: {
               id: true,

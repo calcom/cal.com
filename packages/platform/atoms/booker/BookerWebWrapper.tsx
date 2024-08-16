@@ -143,7 +143,7 @@ export const BookerWebWrapper = (props: BookerWebWrapperAtomProps) => {
     onSuccess: () => {
       if (!bookerForm.formEmail) return;
 
-      verifyEmail.setVerifiedEmail(bookerForm?.formEmail ?? null);
+      verifyEmail.setVerifiedEmail(bookerForm.formEmail);
       verifyEmail.setEmailVerificationModalVisible(false);
       bookings.handleBookEvent();
     },

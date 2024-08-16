@@ -24,7 +24,7 @@ const handleSendingSMS = ({
         where: {
           id: teamId,
         },
-        include: {
+        select: {
           parent: {
             select: {
               isOrganization: true,
