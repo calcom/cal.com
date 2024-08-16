@@ -36,6 +36,7 @@ export type TextEditorProps = {
   excludedToolbarItems?: string[];
   variables?: string[];
   height?: string;
+  maxHeight?: string;
   placeholder?: string;
   disableLists?: boolean;
   updateTemplate?: boolean;
@@ -69,7 +70,7 @@ const editorConfig = {
 export const Editor = (props: TextEditorProps) => {
   const editable = props.editable ?? true;
   return (
-    <div className="editor rounded-md" style={{ padding: '0 4px' }}> 
+    <div className="editor rounded-md">
       <LexicalComposer initialConfig={{ ...editorConfig, editable }}>
         <div className="editor-container hover:border-emphasis focus-within:ring-brand-default rounded-md p-0 transition focus-within:ring-2">
           <ToolbarPlugin
@@ -90,7 +91,7 @@ export const Editor = (props: TextEditorProps) => {
                 <ContentEditable
                   data-testid="editor-input"
                   readOnly={!editable}
-                  style={{ maxHeight: '250px' }}
+                  style={{ height: props.height, maxHeight: props.maxHeight }}
                   className="editor-input"
                 />
               }
