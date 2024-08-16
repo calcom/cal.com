@@ -60,7 +60,6 @@ export default defineConfig(({ mode }) => {
         "@calcom/prisma": path.resolve(__dirname, "../../prisma"),
         "@calcom/dayjs": path.resolve(__dirname, "../../dayjs"),
         "@calcom/platform-constants": path.resolve(__dirname, "../constants/index.ts"),
-        "@calcom/platform-types/monorepo": path.resolve(__dirname, "../types/monorepo.ts"),
         "@calcom/platform-types": path.resolve(__dirname, "../types/index.ts"),
         "@calcom/platform-utils": path.resolve(__dirname, "../constants/index.ts"),
         "@calcom/web/public/static/locales/en/common.json": path.resolve(
