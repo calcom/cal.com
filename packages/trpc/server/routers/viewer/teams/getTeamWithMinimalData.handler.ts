@@ -1,5 +1,5 @@
 import { getMinimalTeam } from "@calcom/lib/server/queries/teams";
-import { prisma } from "@calcom/prisma";
+import { MembershipRepository } from "@calcom/lib/server/repository/membership";
 
 import { TRPCError } from "@trpc/server";
 
@@ -14,16 +14,14 @@ type GetTeamWithMinimalDataOptions = {
 };
 
 export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalDataOptions) => {
-  const teamMembership = await prisma.membership.findFirst({
-    where: {
-      userId: ctx.user.id,
-      teamId: input.teamId,
-    },
+  const teamMembership = await MembershipRepository.findFirstByUserIdAndTeamId({
+    userId: ctx.user.id,
+    teamId: input.teamId,
   });
 
   if (!teamMembership) {
     throw new TRPCError({
-      code: "NOT_FOUND",
+      code: "UNAUTHORIZED",
       message: "You are not a member of this team.",
     });
   }
