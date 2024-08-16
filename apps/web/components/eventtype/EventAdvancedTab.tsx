@@ -98,7 +98,7 @@ const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
                               navigator.clipboard.writeText(singleUseURL);
                               showToast(t("single_use_link_copied"), "success");
                             }}>
-                            <Icon name="copy" className="h-4 w-4" />
+                            <Icon name="copy" className="ml-1 h-4 w-4" />
                           </Button>
                         </Tooltip>
                       }
@@ -200,7 +200,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { isChildrenManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
+  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
     formMethods,
@@ -465,6 +465,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               childrenClassName="lg:ml-0"
               data-testid="singleUseLinksCheck"
               title={t("single_use_links_title")}
+              {...shouldLockDisableProps("singleUseLinks")}
               description={t("single_use_links_description", { appName: APP_NAME })}
               checked={singleUseLinksVisible}
               onCheckedChange={(e) => {
@@ -479,9 +480,11 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
                 }
                 setSingleUseLinksVisible(e);
               }}>
-              <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                <SingleUseLinksManager team={team} />
-              </div>
+              {!isManagedEventType && (
+                <div className="border-subtle rounded-b-lg border border-t-0 p-6">
+                  <SingleUseLinksManager team={team} />
+                </div>
+              )}
             </SettingsToggle>
           );
         }}
