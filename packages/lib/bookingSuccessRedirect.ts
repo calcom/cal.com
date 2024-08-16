@@ -23,8 +23,11 @@ function getNewSeachParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "responses" | "references"
->;
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location"
+> & {
+  references?: any;
+  responses?: any;
+};
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
   type BookingResponseKey = keyof SuccessRedirectBookingType;
@@ -51,14 +54,14 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
   };
 
   const responseParams = booking.responses
-    ? Object.keys(booking.responses).reduce((obj, key) => {
-        obj[`responses.${key}`] = serializeResponseValue(booking.responses[key]);
+    ? Object.keys(booking.responses as Record<string, any>).reduce((obj, key) => {
+        obj[`responses.${key}`] = serializeResponseValue((booking.responses as Record<string, any>)[key]);
         return obj;
       }, {} as Record<string, any>)
     : {};
 
-  const meetingLink = booking.references?.find(
-    (ref) => ref.meetingUrl
+  const meetingLink = (booking.references as { meetingUrl?: string }[] | undefined)?.find(
+    (ref: { meetingUrl?: string }) => ref.meetingUrl
   )?.meetingUrl;
 
   if (meetingLink) {
