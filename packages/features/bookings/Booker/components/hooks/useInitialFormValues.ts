@@ -1,16 +1,12 @@
 import { useEffect, useState } from "react";
-import type { ZodSchema } from "zod";
-import { z as _z, z } from "zod";
+import type { z } from "zod";
 
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
 import type getBookingResponsesSchema from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import { getBookingResponsesPartialSchema } from "@calcom/features/bookings/lib/getBookingResponsesSchema";
 import type { BookerEvent } from "@calcom/features/bookings/types";
-import type { RouterOutputs } from "@calcom/trpc/react";
 
 export type useInitialFormValuesReturnType = ReturnType<typeof useInitialFormValues>;
-
-type Field = NonNullable<RouterOutputs["viewer"]["public"]["event"]>["bookingFields"][number];
 
 type UseInitialFormValuesProps = {
   eventType?: Pick<BookerEvent, "bookingFields"> | null;
@@ -26,107 +22,6 @@ type UseInitialFormValuesProps = {
     name: string | null;
   };
 };
-
-//basically it will partially test the input values against the schema. validation are not needed at the initial stage
-export function getFieldSchema(field: Field): ZodSchema<unknown> {
-  switch (field.type) {
-    case "name":
-      return _z.string().optional();
-    case "email":
-      return _z.string().optional();
-    case "text":
-      return _z.string().optional();
-    case "textarea":
-      return _z.string().optional();
-    case "multiemail":
-      return _z.union([_z.string(), _z.array(_z.string())]).optional();
-    case "address":
-      return _z.string().optional();
-    case "phone":
-      return _z
-        .string()
-        .regex(/^\+?[0-9]*$/, { message: "Invalid phone number" })
-        .optional();
-    case "number":
-      return _z
-        .string()
-        .refine((val) => !isNaN(Number(val)), { message: "Invalid number" })
-        .transform((val) => Number(val))
-        .optional();
-    case "boolean":
-      return _z
-        .string()
-        .refine((val) => val === "true" || val === "false", { message: "Invalid boolean" })
-        .transform((val) => val === "true")
-        .optional();
-    case "radioInput":
-    case "select":
-    case "radio":
-      if (field.options && field.options.length > 0) {
-        const values = field.options.map((opt) => opt.value) as [string, ...string[]];
-        return _z.union([_z.enum(values), _z.string()]).optional();
-      } else {
-        return _z.any().optional();
-      }
-    case "multiselect":
-    case "checkbox":
-      if (field.options && field.options.length > 0) {
-        const validValues = field.options.map((opt) => opt.value) as [string, ...string[]];
-        return z
-          .union([
-            z
-              .array(z.string())
-              .refine((arr) => arr.some((val) => validValues.includes(val)), {
-                message: "Invalid option in array",
-              })
-              .transform((arr) => arr.filter((val) => validValues.includes(val))),
-
-            z
-              .string()
-              .refine((val) => validValues.includes(val), {
-                message: "Invalid single option",
-              })
-              .optional(),
-          ])
-          .optional();
-      } else {
-        return _z.union([_z.array(_z.string()).optional(), _z.string()]).optional();
-      }
-    // Add more cases as needed
-    default:
-      return _z.any().optional();
-  }
-}
-
-export function checkParseQueryValues(
-  field: Field,
-  parsedQuery: Record<string, unknown> | undefined
-): {
-  success?: boolean;
-  value?: string[] | string | undefined;
-  ignore?: boolean;
-} {
-  if (!parsedQuery || !field) return { ignore: true };
-
-  if (!parsedQuery[field.name]) {
-    return { ignore: true };
-  }
-
-  const schema = getFieldSchema(field);
-  if (!schema) return { ignore: true };
-  const parsedResponses = schema.safeParse(parsedQuery[field.name]);
-  if (parsedResponses.success) {
-    return { success: true, value: parsedResponses.data } as {
-      success: boolean;
-      value: string[] | string | undefined;
-    };
-  } else {
-    return { success: false, value: undefined } as {
-      success: boolean;
-      value: string[] | string | undefined;
-    };
-  }
-}
 
 export function useInitialFormValues({
   eventType,
@@ -145,9 +40,6 @@ export function useInitialFormValues({
   }>({});
   const bookingData = useBookerStore((state) => state.bookingData);
   const formValues = useBookerStore((state) => state.formValues);
-
-  //currently while initializing the form we are checking if the query params are valid and if not, we are returning default values
-
   useEffect(() => {
     (async function () {
       if (Object.keys(formValues).length) {
@@ -192,14 +84,9 @@ export function useInitialFormValues({
         };
 
         const responses = eventType.bookingFields.reduce((responses, field) => {
-          const result = checkParseQueryValues(field, parsedQuery);
-          let value;
-          if (result.success) {
-            value = result.value || undefined;
-          }
           return {
             ...responses,
-            [field.name]: value,
+            [field.name]: parsedQuery[field.name] || undefined,
           };
         }, {});
 
@@ -224,14 +111,9 @@ export function useInitialFormValues({
       };
 
       const responses = eventType.bookingFields.reduce((responses, field) => {
-        const result = checkParseQueryValues(field, parsedQuery);
-        let value;
-        if (result.success) {
-          value = result.value || undefined;
-        }
         return {
           ...responses,
-          [field.name]: value,
+          [field.name]: bookingData?.responses[field.name],
         };
       }, {});
       defaults.responses = {

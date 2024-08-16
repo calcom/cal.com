@@ -31,7 +31,7 @@ export type CommonProps<
   name?: string;
   label?: string;
   value: TVal;
-  setValue: (value: TVal) => void;
+  setValue: (value: TVal | undefined) => void;
   /**
    * required and other validations are supported using zodResolver from react-hook-form
    */
@@ -164,6 +164,12 @@ const MultiSelectWidget = ({
 
   const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
 
+  // If no value could be found in thelist, then we set the value to undefined, but only when it is not already undefined
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thing that the value is set but it is not.
+  if (optionsFromList.length === 0 && value !== undefined) {
+    setValue(undefined);
+  }
+
   return (
     <Select
       aria-label="multi-select-dropdown"
@@ -191,6 +197,12 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
     };
   });
   const optionFromList = selectItems.find((item) => item.value === value);
+
+  // If the value is not in the list, then we set the value to undefined, but only when it is not already undefined
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thing that the value is set but it is not.
+  if (!optionFromList && value !== undefined) {
+    setValue(undefined);
+  }
 
   return (
     <Select

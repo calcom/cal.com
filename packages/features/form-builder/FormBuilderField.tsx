@@ -5,13 +5,16 @@ import type { z } from "zod";
 
 import { classNames } from "@calcom/lib";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
-import { useRouterQuery } from "@calcom/lib/hooks/useRouterQuery";
 import { Icon, InfoBadge, Label } from "@calcom/ui";
 
 import { Components, isValidValueProp } from "./Components";
 import { fieldTypesConfigMap } from "./fieldTypes";
 import { fieldsThatSupportLabelAsSafeHtml } from "./fieldsThatSupportLabelAsSafeHtml";
 import type { fieldsSchema } from "./schema";
+import {
+  useShouldBeDisabledDueToPrefill,
+  getFieldNameFromErrorMessage,
+} from "./useShouldBeDisabledDueToPrefill";
 import { getTranslatedConfig as getTranslatedVariantsConfig } from "./utils/variantsConfig";
 
 type RhfForm = {
@@ -41,66 +44,11 @@ type ValueProps =
   | {
       value: boolean;
       setValue: (value: boolean) => void;
+    }
+  | {
+      value: undefined;
+      setValue: (value: undefined) => void;
     };
-
-export const getFieldNameFromErrorMessage = (errorMessage: string): string => {
-  const name = errorMessage?.replace(/\{([^}]+)\}.*/, "$1");
-  return name;
-};
-
-function toArray(value: string[] | string): string[] {
-  return Array.isArray(value) ? value : [value];
-}
-
-function intersected(arr1: string[], arr2: string[]): boolean {
-  return !!arr1.find((value) => arr2.find((innerValue) => innerValue?.toString() == value?.toString()));
-}
-
-function isEqual(searchParamValue: string | string[], formValue: string[] | string): boolean {
-  if (typeof formValue === "string") {
-    return searchParamValue?.toString() == formValue?.toString();
-  }
-
-  const formValueToArray = toArray(formValue as string | string[]);
-  const urlValueToArray = toArray(searchParamValue);
-
-  return intersected(formValueToArray, urlValueToArray);
-}
-
-//why entire field is paased here. we might need to validated the value based on the field type and options.
-export const useShouldBeDisabledDueToPrefill = (field: RhfFormField): boolean => {
-  const { getValues, formState } = useFormContext();
-  const searchParams = useRouterQuery();
-  //TO DO:currently formValues were defaulted to search params values even the form input value is empty. need to fix that
-  const formValues = getValues()?.responses || {};
-
-  // Get the value of a specific field
-  const errorMessage = (formState?.errors?.responses?.message || "") as string;
-  const fieldNameThatHasError = getFieldNameFromErrorMessage(errorMessage);
-  // If a field is prefilled via the URL and an error occurs upon form submission, we should not disable the field.
-  if (fieldNameThatHasError === field?.name) {
-    return false;
-  }
-
-  const fieldValueInForm = formValues[field.name];
-
-  if (!fieldValueInForm && fieldValueInForm !== 0) {
-    // handling the zero number case
-    return false;
-  }
-
-  if (!field.disableOnPrefill || !searchParams) {
-    return false;
-  }
-  const searchParamValue = searchParams[field.name];
-
-  //normal text,number,boolean,single select validations
-  if (searchParamValue == fieldValueInForm?.toString()) {
-    return true;
-  }
-
-  return isEqual(searchParamValue, fieldValueInForm);
-};
 
 export const FormBuilderField = ({
   field,
@@ -113,7 +61,6 @@ export const FormBuilderField = ({
 }) => {
   const { t } = useLocale();
   const { control, formState } = useFormContext();
-
 
   const { hidden, placeholder, label, noLabel, translatedDefaultLabel } = getAndUpdateNormalizedValues(
     field,
@@ -176,7 +123,6 @@ export const FormBuilderField = ({
     </div>
   );
 };
-
 
 function assertUnreachable(arg: never) {
   throw new Error(`Don't know how to handle ${JSON.stringify(arg)}`);

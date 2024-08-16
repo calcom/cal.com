@@ -1,9 +1,8 @@
 import type { Control } from "react-hook-form";
 import { useFormContext } from "react-hook-form";
-import { describe, expect, vi } from "vitest";
+import { describe, expect, vi, beforeEach, test } from "vitest";
 
-import { checkParseQueryValues } from "@calcom/features/bookings/Booker/components/hooks/useInitialFormValues";
-import { useShouldBeDisabledDueToPrefill } from "@calcom/features/form-builder/FormBuilderField";
+import { useShouldBeDisabledDueToPrefill } from "@calcom/features/form-builder/useShouldBeDisabledDueToPrefill";
 
 import type { RhfFormField } from "./testUtils";
 
@@ -83,13 +82,7 @@ const getFormInitialValueForField = (
   field: RhfFormField,
   searchParams: Record<string, string | string[]>
 ) => {
-  if (!searchParams) return {};
-  const result = checkParseQueryValues(field, searchParams);
-  if (result.success) {
-    return { [field.name]: result.value };
-  }
-
-  return { [field.name]: undefined };
+  return { [field.name]: searchParams[field.name] };
 };
 
 // Mock `react-hook-form` module
@@ -166,6 +159,7 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
       expect(shouldBeDisabled).toBe(false);
     });
   }
+
   for (const { questionType, label, options } of finalQuestionTypes) {
     test(`should return 'true' when 'disableOnPrefill' is true, there are no errors, and the URL search parameter
       value matches the form value for ${label} (${questionType})`, () => {
@@ -228,80 +222,6 @@ describe("FormBuilderField: Disable on Prefill Behavior", () => {
       (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
       const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
       expect(shouldBeDisabled).toBe(true);
-    });
-  }
-
-  for (const { questionType, label, options } of multiOptionsQuestions) {
-    /*
-    when we get the invalid options from search params. should initialise it in form value with Option 1
-    example if field options= [Option1 ,Option 2]
-    and search params =  [Option 1, Option 3]
-    */
-    test(`should return 'true' when 'disableOnPrefill' is true and there is a mismatch between the URL
-       search parameter value and the form value for ${label} (${questionType})(positive negative case)`, () => {
-      if (questionType !== "multiemail") {
-        const field = {
-          value: "",
-          disableOnPrefill: true,
-          type: questionType,
-          name: `test-${questionType}-n-n`,
-          label: `test-${questionType}-n-l`,
-          placeholder: `test-${questionType}-n-p`,
-          required: true,
-          options,
-        } as RhfFormField;
-        //no errors
-        const formState = {};
-        const defaultValues = getFormInitialValueForField(field, searchParams);
-        const mockFormContext = {
-          formState,
-          control: {} as Control,
-          getValues: () => ({
-            responses: defaultValues,
-          }),
-        };
-        // Mock `useFormContext` for this specific test
-        (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
-        const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-        expect(shouldBeDisabled).toBe(true);
-      }
-    });
-  }
-
-  for (const { questionType, label, options } of multiOptionsQuestions) {
-    /*
-    when we get the invalid options from search params. don't initialise it in form values
-    example if field options= [Option1 ,Option 2]
-    and search params =  Option 3 
-    */
-    test(`should return 'false' when 'disableOnPrefill' is true and there is a mismatch between the URL
-       search parameter value and the form value for ${label} (${questionType})(negative case)`, () => {
-      if (questionType !== "multiemail") {
-        const field = {
-          value: "",
-          disableOnPrefill: true,
-          type: questionType,
-          name: `n-test-${questionType}-p-n`,
-          label: `n-test-${questionType}-p-l`,
-          placeholder: `n-test-${questionType}-p-p`,
-          required: true,
-          options,
-        } as RhfFormField;
-        //no errors
-        const formState = {};
-        const defaultValues = getFormInitialValueForField(field, searchParams);
-        const mockFormContext = {
-          formState,
-          control: {} as Control,
-          getValues: () => ({
-            responses: defaultValues,
-          }),
-        };
-        // Mock `useFormContext` for this specific test
-        (vi.mocked(useFormContext) as any).mockReturnValue(mockFormContext);
-        const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
-        expect(shouldBeDisabled).toBe(false);
-      }
     });
   }
 
