@@ -326,6 +326,7 @@ model User {
   OutOfOfficeReasons     OutOfOfficeReason[]
   smsLockState           SMSLockState        @default(UNLOCKED)
   smsLockReviewedByAdmin Boolean             @default(false)
+  smsCredits             Int                 @default(0)
 
   @@unique([email])
   @@unique([email, username])
@@ -417,6 +418,7 @@ model Team {
   platformBilling        PlatformBilling?
   activeOrgWorkflows     WorkflowsOnTeams[]
   smsLockReviewedByAdmin Boolean                 @default(false)
+  smsCredits             Int                     @default(0)
 
   @@unique([slug, parentId])
   @@index([parentId])
@@ -1430,4 +1432,11 @@ model PlatformBilling {
   overdue           Boolean? @default(false)
 
   team Team @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model CountrySMSCredits {
+  id      String @id @unique @default(uuid())
+  iso     String
+  country String
+  credits Int
 }
