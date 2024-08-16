@@ -53,8 +53,6 @@ const checkIsOrg = (team: Props["team"]) => {
 export default function MemberListItem(props: Props) {
   const { t, i18n } = useLocale();
 
-  console.log("props.member", props.member);
-
   const utils = trpc.useUtils();
   const [showChangeMemberRoleModal, setShowChangeMemberRoleModal] = useState(false);
   const [showTeamAvailabilityModal, setShowTeamAvailabilityModal] = useState(false);
@@ -402,6 +400,7 @@ export default function MemberListItem(props: Props) {
           currentMember={props.team.membership.role}
           teamId={props.team?.id ?? 0}
           memberId={props.member.id}
+          searchTerm={props.searchTerm}
           initialRole={props.member.role as MembershipRole}
           onExit={() => setShowChangeMemberRoleModal(false)}
         />

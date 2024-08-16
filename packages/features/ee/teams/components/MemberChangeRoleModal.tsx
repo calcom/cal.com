@@ -18,6 +18,7 @@ export default function MemberChangeRoleModal(props: {
   teamId: number;
   initialRole: MembershipRole;
   onExit: () => void;
+  searchTerm?: string;
 }) {
   const { t } = useLocale();
 
@@ -51,6 +52,11 @@ export default function MemberChangeRoleModal(props: {
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
+      await utils.viewer.teams.lazyLoadMembers.invalidate({
+        teamId: props.teamId,
+        searchTerm: props.searchTerm,
+        limit: 10,
+      });
 
       props.onExit();
     },
