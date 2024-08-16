@@ -41,8 +41,9 @@ test.describe("Managed Event Types", () => {
       await page.locator("[data-testid=publish-button]").click();
       await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/event-type$/i);
       // and finish
-      await page.locator("[data-testid=finish-button]").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.getByTestId("finish-button").click();
+      await page.waitForLoadState("networkidle");
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
       // Going to create an event type
       await page.goto("/event-types");
       await page.getByTestId("new-event-type").click();

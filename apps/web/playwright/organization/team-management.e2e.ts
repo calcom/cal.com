@@ -71,7 +71,8 @@ test.describe("Teams", () => {
 
     await test.step("Can finish team creation", async () => {
       await page.getByTestId("finish-button").click();
-      await page.waitForURL(/\/settings\/teams\/(\d+)\/profile$/i);
+      await page.waitForLoadState("networkidle");
+      await expect(page).toHaveURL(/\/settings\/teams\/(\d+)\/profile$/i);
     });
 
     await test.step("Can disband team", async () => {
