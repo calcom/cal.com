@@ -61,11 +61,13 @@ const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
         }
         const addSingleUseLink = () => {
           const newSingleUseLink = generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id);
+          if (!value) value = [];
           value.push(newSingleUseLink);
           onChange(value);
         };
 
         const removeSingleUseLink = (index: number) => {
+          if (!value) value = [];
           value.splice(index, 1);
           onChange(value);
         };
