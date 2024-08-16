@@ -40,15 +40,21 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     .filter((key) => redirectQueryParamKeys.includes(key))
     .reduce((obj, key) => ({ ...obj, [key]: booking[key] }), {});
 
+  const serializeResponseValue = (value: any): string => {
+    if (Array.isArray(value)) {
+      return value.join(",");
+    } else if (typeof value === "object" && value !== null) {
+      return encodeURIComponent(JSON.stringify(value));
+    } else {
+      return String(value);
+    }
+  };
+
   const responseParams = booking.responses
     ? Object.keys(booking.responses).reduce((obj, key) => {
-        if (Array.isArray(booking.responses[key])) {
-          obj[`responses.${key}`] = booking.responses[key].join(",");
-        } else {
-          obj[`responses.${key}`] = booking.responses[key];
-        }
+        obj[`responses.${key}`] = serializeResponseValue(booking.responses[key]);
         return obj;
-      }, {} as Record<string, never>)
+      }, {} as Record<string, any>)
     : {};
 
   return {
