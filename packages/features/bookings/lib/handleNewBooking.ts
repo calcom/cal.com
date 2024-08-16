@@ -613,7 +613,8 @@ async function handler(
           : await getLuckyUser("MAXIMIZE_AVAILABILITY", {
               // find a lucky user that is not already in the luckyUsers array
               availableUsers: freeUsers,
-              eventTypeId: eventType.id,
+              allRRHosts: eventTypeWithUsers.hosts.filter((host) => !host.isFixed),
+              eventType,
             });
         if (!newLuckyUser) {
           break; // prevent infinite loop

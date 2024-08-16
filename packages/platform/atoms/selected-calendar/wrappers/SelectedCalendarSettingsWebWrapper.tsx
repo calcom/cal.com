@@ -11,16 +11,17 @@ import { List } from "@calcom/ui";
 import AppListCard from "@calcom/web/components/AppListCard";
 import AdditionalCalendarSelector from "@calcom/web/components/apps/AdditionalCalendarSelector";
 
-import { CalendarSettings } from "../CalendarSettings";
+import { SelectedCalendarSettings } from "../SelectedCalendarSettings";
 
-type CalendarSettingsWebWrapperProps = {
+type SelectedCalendarSettingsWebWrapperProps = {
   onChanged: () => unknown | Promise<unknown>;
   fromOnboarding?: boolean;
   destinationCalendarId?: string;
   isPending?: boolean;
+  classNames?: string;
 };
 
-export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProps) => {
+export const SelectedCalendarSettingsWebWrapper = (props: SelectedCalendarSettingsWebWrapperProps) => {
   const { t } = useLocale();
   const query = trpc.viewer.connectedCalendars.useQuery(undefined, {
     suspense: true,
@@ -38,8 +39,8 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
           }
 
           return (
-            <CalendarSettings>
-              <CalendarSettingsHeading
+            <SelectedCalendarSettings classNames={props.classNames}>
+              <SelectedCalendarSettingsHeading
                 isConnectedCalendarsPresent={!!data.connectedCalendars.length}
                 isPending={isPending}
               />
@@ -121,7 +122,7 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
                   );
                 })}
               </List>
-            </CalendarSettings>
+            </SelectedCalendarSettings>
           );
         }}
       />
@@ -129,7 +130,10 @@ export const CalendarSettingsWebWrapper = (props: CalendarSettingsWebWrapperProp
   );
 };
 
-const CalendarSettingsHeading = (props: { isConnectedCalendarsPresent: boolean; isPending?: boolean }) => {
+const SelectedCalendarSettingsHeading = (props: {
+  isConnectedCalendarsPresent: boolean;
+  isPending?: boolean;
+}) => {
   const { t } = useLocale();
 
   return (

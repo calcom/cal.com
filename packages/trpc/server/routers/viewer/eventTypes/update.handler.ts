@@ -20,7 +20,12 @@ import { TRPCError } from "@trpc/server";
 import type { TrpcSessionUser } from "../../../trpc";
 import { setDestinationCalendarHandler } from "../../loggedInViewer/setDestinationCalendar.handler";
 import type { TUpdateInputSchema } from "./update.schema";
-import { ensureUniqueBookingFields, handleCustomInputs, handlePeriodType } from "./util";
+import {
+  addWeightAdjustmentToNewHosts,
+  ensureUniqueBookingFields,
+  handleCustomInputs,
+  handlePeriodType,
+} from "./util";
 
 type SessionUser = NonNullable<TrpcSessionUser>;
 type User = {
@@ -68,6 +73,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     offsetStart,
     secondaryEmailId,
     aiPhoneCallConfig,
+    isRRWeightsEnabled,
     ...rest
   } = input;
 
@@ -75,6 +81,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     where: { id },
     select: {
       title: true,
+      isRRWeightsEnabled: true,
       aiPhoneCallConfig: {
         select: {
           generalPrompt: true,
@@ -138,6 +145,7 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
   const data: Prisma.EventTypeUpdateInput = {
     ...rest,
     bookingFields,
+    isRRWeightsEnabled,
     metadata: rest.metadata === null ? Prisma.DbNull : (rest.metadata as Prisma.InputJsonObject),
     eventTypeColor: eventTypeColor === null ? Prisma.DbNull : (eventTypeColor as Prisma.InputJsonObject),
   };
@@ -249,14 +257,28 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
         code: "FORBIDDEN",
       });
     }
+
+    // weights were already enabled or are enabled now
+    const isWeightsEnabled =
+      isRRWeightsEnabled || (typeof isRRWeightsEnabled === "undefined" && eventType.isRRWeightsEnabled);
+
+    const hostsWithWeightAdjustment = await addWeightAdjustmentToNewHosts({
+      hosts,
+      isWeightsEnabled,
+      eventTypeId: id,
+      prisma: ctx.prisma,
+    });
+
     data.hosts = {
       deleteMany: {},
-      create: hosts.map((host) => {
+      create: hostsWithWeightAdjustment.map((host) => {
         const { ...rest } = host;
         return {
           ...rest,
           isFixed: data.schedulingType === SchedulingType.COLLECTIVE || host.isFixed,
           priority: host.priority ?? 2, // default to medium priority
+          weight: host.weight ?? 100,
+          weightAdjustment: host.weightAdjustment,
         };
       }),
     };
