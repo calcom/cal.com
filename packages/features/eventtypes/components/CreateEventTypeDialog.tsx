@@ -85,6 +85,11 @@ export default function CreateEventTypeDialog({
 
   const teamProfile = profileOptions.find((profile) => profile.teamId === teamId);
 
+  const isTeamAdminOrOwner =
+    teamId !== undefined &&
+    (teamProfile?.membershipRole === MembershipRole.OWNER ||
+      teamProfile?.membershipRole === MembershipRole.ADMIN);
+
   const onSuccessMutation = (eventType: EventType) => {
     router.replace(`/event-types/${eventType.id}${teamId ? "?tabName=team" : ""}`);
     showToast(
@@ -99,19 +104,6 @@ export default function CreateEventTypeDialog({
     showToast(err, "error");
   };
 
-  const { form, createMutation, isManagedEventType } = useCreateEventType(
-    onSuccessMutation,
-    onErrorMutation,
-    isInfiniteScrollEnabled
-  );
-
-  const { register } = form;
-
-  const isTeamAdminOrOwner =
-    teamId !== undefined &&
-    (teamProfile?.membershipRole === MembershipRole.OWNER ||
-      teamProfile?.membershipRole === MembershipRole.ADMIN);
-
   const SubmitButton = (isPending: boolean) => {
     return (
       <DialogFooter showDivider>
@@ -123,6 +115,13 @@ export default function CreateEventTypeDialog({
     );
   };
 
+  const { form, createMutation, isManagedEventType } = useCreateEventType(
+    onSuccessMutation,
+    onErrorMutation,
+    isInfiniteScrollEnabled
+  );
+
+  const { register } = form;
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
 
   return (
@@ -148,6 +147,9 @@ export default function CreateEventTypeDialog({
             isTeamAdminOrOwner={isTeamAdminOrOwner}
             teamId={teamId}
             SubmitButton={SubmitButton}
+            onSuccessMutation={onSuccessMutation}
+            onErrorMutation={onErrorMutation}
+            isInfiniteScrollEnabled={isInfiniteScrollEnabled}
           />
         ) : (
           <Form

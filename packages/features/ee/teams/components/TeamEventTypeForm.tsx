@@ -8,36 +8,35 @@ import { useLocale } from "@calcom/lib/hooks/useLocale";
 import slugify from "@calcom/lib/slugify";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { trpc } from "@calcom/trpc/react";
-import { Form, TextField, showToast, Tooltip } from "@calcom/ui";
+import { Form, TextField, Tooltip } from "@calcom/ui";
 import { Alert, RadioGroup as RadioArea } from "@calcom/ui";
 
 type props = {
   isTeamAdminOrOwner: boolean;
   teamId: number;
-  handleSuccessMutation?: (eventType: EventType) => void;
   SubmitButton: (isPending: boolean) => ReactNode;
+  onSuccessMutation: (eventType: EventType) => void;
+  onErrorMutation: (message: string) => void;
+  isInfiniteScrollEnabled: boolean;
 };
-export const TeamEventTypeForm = ({ isTeamAdminOrOwner, teamId, SubmitButton }: props) => {
+export const TeamEventTypeForm = ({
+  isTeamAdminOrOwner,
+  teamId,
+  SubmitButton,
+  onSuccessMutation,
+  onErrorMutation,
+  isInfiniteScrollEnabled,
+}: props) => {
   const { t } = useLocale();
   const orgBranding = useOrgBranding();
   const { data: team } = trpc.viewer.teams.get.useQuery({ teamId, isOrg: false }, { enabled: !!teamId });
-
   const urlPrefix = orgBranding?.fullDomain ?? process.env.NEXT_PUBLIC_WEBSITE_URL;
-
-  const onSuccessMutation = async () => {
-    await router.push(`/settings/teams/${teamId}/profile`);
-  };
-
-  const onErrorMutation = (err: string) => {
-    showToast(err, "error");
-  };
 
   const { form, createMutation, isManagedEventType } = useCreateEventType(
     onSuccessMutation,
     onErrorMutation,
-    false
+    isInfiniteScrollEnabled
   );
-
   const { register, setValue, formState } = form;
 
   return (

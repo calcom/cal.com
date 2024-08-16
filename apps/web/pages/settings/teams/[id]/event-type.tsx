@@ -1,20 +1,30 @@
 "use client";
 
 import Head from "next/head";
+import { useRouter } from "next/navigation";
 
 import { TeamEventTypeForm } from "@calcom/features/ee/teams/components/TeamEventTypeForm";
 import { useCompatSearchParams } from "@calcom/lib/hooks/useCompatSearchParams";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { WizardLayout } from "@calcom/ui";
-import { Button } from "@calcom/ui";
+import { Button, showToast } from "@calcom/ui";
 
 import PageWrapper from "@components/PageWrapper";
 
 export const CreateTeamEventType = () => {
   const searchParams = useCompatSearchParams();
   const { t } = useLocale();
-
+  const router = useRouter();
   const teamId = searchParams?.get("id") ? Number(searchParams.get("id")) : -1;
+
+  const onSuccessMutation = () => {
+    router.push(`/settings/teams/${teamId}/profile`);
+  };
+
+  const onErrorMutation = (err: string) => {
+    showToast(err, "error");
+  };
+
   const SubmitButton = (isPending: boolean) => {
     return (
       <Button
@@ -28,7 +38,16 @@ export const CreateTeamEventType = () => {
     );
   };
 
-  return <TeamEventTypeForm isTeamAdminOrOwner={true} teamId={teamId} SubmitButton={SubmitButton} />;
+  return (
+    <TeamEventTypeForm
+      isTeamAdminOrOwner={true}
+      teamId={teamId}
+      SubmitButton={SubmitButton}
+      onSuccessMutation={onSuccessMutation}
+      onErrorMutation={onErrorMutation}
+      isInfiniteScrollEnabled={false}
+    />
+  );
 };
 
 const TeamEventTypePage = () => {

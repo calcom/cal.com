@@ -51,7 +51,7 @@ export const useCreateEventType = (
       form.reset();
     },
     onError: (err) => {
-      let error;
+      let error = err.message;
       if (err instanceof HttpError) {
         error = `${err.statusCode}: ${err.message}`;
       }
