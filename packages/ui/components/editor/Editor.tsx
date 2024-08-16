@@ -36,6 +36,7 @@ export type TextEditorProps = {
   excludedToolbarItems?: string[];
   variables?: string[];
   height?: string;
+  maxHeight?: string;
   placeholder?: string;
   disableLists?: boolean;
   updateTemplate?: boolean;
@@ -84,13 +85,13 @@ export const Editor = (props: TextEditorProps) => {
           />
           <div
             className={classNames("editor-inner scroll-bar", !editable && "!bg-subtle")}
-            style={{ height: props.height }}>
+            style={{ height: props.height, overflow: "hidden auto" }}>
             <RichTextPlugin
               contentEditable={
                 <ContentEditable
                   data-testid="editor-input"
                   readOnly={!editable}
-                  style={{ height: props.height }}
+                  style={{ height: props.height, maxHeight: props.maxHeight }}
                   className="editor-input"
                 />
               }

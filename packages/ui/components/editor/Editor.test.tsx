@@ -11,6 +11,7 @@ describe("Editor", () => {
     setText: vi.fn(),
     variables: ["name", "email"],
     height: "200px",
+    maxHeight: "",
     placeholder: "Start typing...",
   };
 
@@ -68,7 +69,11 @@ describe("Editor", () => {
     const editorInner = screen.getByRole("textbox").parentElement;
     expect(editorInner).toHaveStyle({ height: "300px" });
   });
-
+  it("applies custom maxHeight", () => {
+    render(<Editor {...defaultProps} maxHeight="250px" />);
+    const editorInner = screen.getByRole("textbox").parentElement;
+    expect(editorInner).toHaveStyle({ maxHeight: "250px" });
+  });
   it("handles first render and update template", () => {
     const setFirstRender = vi.fn();
     render(
