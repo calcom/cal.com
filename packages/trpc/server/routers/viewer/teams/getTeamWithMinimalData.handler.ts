@@ -24,7 +24,7 @@ export const getTeamWithMinimalData = async ({ ctx, input }: GetTeamWithMinimalD
   if (!teamMembership) {
     throw new TRPCError({
       code: "NOT_FOUND",
-      message: "Team membership not found",
+      message: "You are not a member of this team.",
     });
   }
 

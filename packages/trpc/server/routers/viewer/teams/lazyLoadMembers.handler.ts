@@ -38,7 +38,7 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
   if (!canAccessMembers) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
-      message: "You are not authorized to access this team",
+      message: "You are not authorized to see members of the team",
     });
   }
 
@@ -51,11 +51,19 @@ export const lazyLoadMembersHandler = async ({ ctx, input }: LazyLoadMembersHand
             {
               email: {
                 contains: searchTerm,
+                mode: "insensitive",
               },
             },
             {
               username: {
                 contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+            {
+              name: {
+                contains: searchTerm,
+                mode: "insensitive",
               },
             },
           ],
