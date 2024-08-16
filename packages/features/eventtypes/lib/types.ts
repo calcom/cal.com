@@ -24,6 +24,8 @@ export type Host = {
   isFixed: boolean;
   userId: number;
   priority: number;
+  weight: number;
+  weightAdjustment: number;
   scheduleId?: number | null;
 };
 export type TeamMember = {
@@ -128,6 +130,7 @@ export type FormValues = {
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
+  isRRWeightsEnabled: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;

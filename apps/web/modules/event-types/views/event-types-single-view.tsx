@@ -21,6 +21,7 @@ import {
 } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -93,6 +94,8 @@ export type Host = {
   isFixed: boolean;
   userId: number;
   priority: number;
+  weight: number;
+  weightAdjustment: number;
   scheduleId?: number | null;
 };
 
@@ -303,7 +306,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata: eventType.metadata,
-      hosts: eventType.hosts,
+      hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -336,6 +339,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
     };
   }, [eventType, periodDates]);
   const formMethods = useForm<FormValues>({
@@ -405,6 +409,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;

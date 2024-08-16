@@ -48,6 +48,7 @@ const CheckedHostField = ({
   value,
   onChange,
   helperText,
+  isRRWeightsEnabled,
   ...rest
 }: {
   labelText?: string;
@@ -57,6 +58,7 @@ const CheckedHostField = ({
   onChange?: (options: Host[]) => void;
   options?: Options<CheckedSelectOption>;
   helperText?: React.ReactNode | string;
+  isRRWeightsEnabled?: boolean;
 } & Omit<Partial<ComponentProps<typeof CheckedTeamSelect>>, "onChange" | "value">) => {
   return (
     <div className="flex flex-col rounded-md">
@@ -71,6 +73,8 @@ const CheckedHostField = ({
                   isFixed,
                   userId: parseInt(option.value, 10),
                   priority: option.priority ?? 2,
+                  weight: option.weight ?? 100,
+                  weightAdjustment: option.weightAdjustment ?? 0,
                   scheduleId: option.defaultScheduleId,
                 }))
               );
@@ -81,12 +85,14 @@ const CheckedHostField = ({
               const option = options.find((member) => member.value === host.userId.toString());
               if (!option) return acc;
 
-              acc.push({ ...option, priority: host.priority ?? 2, isFixed });
+              acc.push({ ...option, priority: host.priority ?? 2, isFixed, weight: host.weight ?? 100 });
+
               return acc;
             }, [] as CheckedSelectOption[])}
           controlShouldRenderValue={false}
           options={options}
           placeholder={placeholder}
+          isRRWeightsEnabled={isRRWeightsEnabled}
           {...rest}
         />
       </div>
@@ -105,6 +111,7 @@ const AddMembersWithSwitch = ({
   isFixed,
   placeholder = "",
   containerClassName = "",
+  isRRWeightsEnabled,
 }: {
   value: Host[];
   onChange: (hosts: Host[]) => void;
@@ -116,13 +123,14 @@ const AddMembersWithSwitch = ({
   isFixed: boolean;
   placeholder?: string;
   containerClassName?: string;
+  isRRWeightsEnabled?: boolean;
 }) => {
   const { t } = useLocale();
   const { setValue } = useFormContext<FormValues>();
 
   return (
     <div className="rounded-md ">
-      <div className={`flex flex-col rounded-md px-6 pb-2 pt-6 ${containerClassName}`}>
+      <div className={`flex flex-col rounded-md pb-2 pt-6 ${containerClassName}`}>
         {automaticAddAllEnabled ? (
           <div className="mb-2">
             <AssignAllTeamMembers
@@ -142,6 +150,7 @@ const AddMembersWithSwitch = ({
             isFixed={isFixed}
             options={teamMembers.sort(sortByLabel)}
             placeholder={placeholder ?? t("add_attendees")}
+            isRRWeightsEnabled={isRRWeightsEnabled}
           />
         ) : (
           <></>
