@@ -34,6 +34,7 @@ const Reschedule = async (bookingUid: string, cancellationReason: string) => {
       references: true,
       eventType: {
         select: {
+          metadata: true,
           team: {
             select: {
               id: true,

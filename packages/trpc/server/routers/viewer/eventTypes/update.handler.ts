@@ -24,8 +24,6 @@ import {
   ensureUniqueBookingFields,
   ensureEmailOrPhoneNumberIsPresent,
   addWeightAdjustmentToNewHosts,
-  ensureUniqueBookingFields,
-  ensureEmailOrPhoneNumberIsPresent,
   handleCustomInputs,
   handlePeriodType,
 } from "./util";
