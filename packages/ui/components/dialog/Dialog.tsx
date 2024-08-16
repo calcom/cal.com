@@ -195,7 +195,7 @@ export function DialogFooter(props: DialogFooterProps) {
           !props.showDivider && "pb-8",
           props.className
         )}
-        style={{ borderColor: props.borderColor }}>
+        style={{ borderColor: props.borderColor ? props.borderColor : "transparent" }}>
         {props.children}
       </div>
     </div>
