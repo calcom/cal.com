@@ -61,10 +61,13 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
     (ref) => ref.meetingUrl
   )?.meetingUrl;
 
+  if (meetingLink) {
+    responseParams["responses.location"] = meetingLink;
+  }
+
   return {
     ...basicParams,
     ...responseParams,
-    ...(meetingLink ? { "responses.meetingLink": meetingLink } : {}),
   };
 };
 
