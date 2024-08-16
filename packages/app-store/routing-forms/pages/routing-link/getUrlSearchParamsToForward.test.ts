@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid";
 import { describe, it, expect } from "vitest";
 
 import { getUrlSearchParamsToForward } from "./getUrlSearchParamsToForward";
@@ -29,15 +30,17 @@ function fromEntriesWithDuplicateKeys(entries: IterableIterator<[string, string]
 
 describe("getUrlSearchParamsToForward", () => {
   it("should build query params from response correctly when identifier is present in fields", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const formResponse = {
-      field1: { value: "value1", label: "Field 1" },
-      field2: { value: ["option1", "option2"], label: "Field 2" },
+      [field1Id]: { value: "value1", label: "Field 1" },
+      [field2Id]: { value: ["option1", "option2"], label: "Field 2" },
     };
 
     const fields = [
-      { id: "field1", identifier: "f1", type: "text", label: "Field 1" },
+      { id: field1Id, identifier: "f1", type: "text", label: "Field 1" },
       {
-        id: "field2",
+        id: field2Id,
         identifier: "f2",
         label: "Field 2",
         type: "multiselect",
@@ -65,14 +68,16 @@ describe("getUrlSearchParamsToForward", () => {
   });
 
   it("should build query params from response correctly when identifier is not present in fields. Should fallback to label", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const formResponse = {
-      field1: { value: "value1" },
-      field2: { value: "value2" },
+      [field1Id]: { value: "value1" },
+      [field2Id]: { value: "value2" },
     };
 
     const fields = [
-      { id: "field1", label: "Field 1", type: "text" },
-      { id: "field2", label: "Field 2", type: "text" },
+      { id: field1Id, label: "Field 1", type: "text" },
+      { id: field2Id, label: "Field 2", type: "text" },
     ];
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
@@ -93,14 +98,16 @@ describe("getUrlSearchParamsToForward", () => {
   });
 
   it("should handle select fields correctly when options have id set", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const formResponse = {
-      field1: { value: "Option 1" },
-      field2: { value: ["Option 1", "Option 2"] },
+      [field1Id]: { value: "Option 1" },
+      [field2Id]: { value: ["Option 1", "Option 2"] },
     };
 
     const fields = [
       {
-        id: "field1",
+        id: field1Id,
         label: "Field 1",
         type: "select",
         options: [
@@ -109,7 +116,7 @@ describe("getUrlSearchParamsToForward", () => {
         ],
       },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         type: "multiselect",
         options: [
@@ -138,14 +145,16 @@ describe("getUrlSearchParamsToForward", () => {
   });
 
   it("should handle select fields correctly when options have no id set(Legacy options)", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const formResponse = {
-      field1: { value: "Option 1" },
-      field2: { value: ["Option 1", "Option 2"] },
+      [field1Id]: { value: "Option 1" },
+      [field2Id]: { value: ["Option 1", "Option 2"] },
     };
 
     const fields = [
       {
-        id: "field1",
+        id: field1Id,
         label: "Field 1",
         type: "select",
         options: [
@@ -154,7 +163,7 @@ describe("getUrlSearchParamsToForward", () => {
         ],
       },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         type: "multiselect",
         options: [
@@ -183,11 +192,12 @@ describe("getUrlSearchParamsToForward", () => {
   });
 
   it("should handle number values correctly", () => {
+    const field1Id = uuidv4();
     const response = {
-      field1: { value: 123 },
+      [field1Id]: { value: 123 },
     };
 
-    const fields = [{ id: "field1", label: "Field 1", type: "number" }];
+    const fields = [{ id: field1Id, label: "Field 1", type: "number" }];
 
     const searchParams = new URLSearchParams("?query1=value1&query2=value2");
     const expectedParams = {

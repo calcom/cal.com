@@ -1,20 +1,24 @@
+import { v4 as uuidv4 } from "uuid";
 import { describe, it, expect } from "vitest";
 
 import { buildResponsesForReporting } from "./report.handler";
 
 describe("buildResponsesForReporting", () => {
   it("for fields with options, it should return the labels of the options", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
+
     const responsesFromDb = [
       {
-        field1: { value: "value1" },
-        field2: { value: ["option1", "option2"] },
+        [field1Id]: { value: "value1" },
+        [field2Id]: { value: ["option1", "option2"] },
       },
     ];
 
     const fields = [
-      { id: "field1", label: "Field 1" },
+      { id: field1Id, label: "Field 1" },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         options: [
           { id: "option1", label: "Option 1" },
@@ -31,17 +35,19 @@ describe("buildResponsesForReporting", () => {
   });
 
   it("for fields with options having null id(i.e. legacy fields), it should return what DB provided(as that would be labels only).", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const responsesFromDb = [
       {
-        field1: { value: "value1" },
-        field2: { value: ["Option 1", "Option 2"] },
+        [field1Id]: { value: "value1" },
+        [field2Id]: { value: ["Option 1", "Option 2"] },
       },
     ];
 
     const fields = [
-      { id: "field1", label: "Field 1" },
+      { id: field1Id, label: "Field 1" },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         options: [
           { id: null, label: "Option 1" },
@@ -58,17 +64,19 @@ describe("buildResponsesForReporting", () => {
   });
 
   it("should correctly handle numeric responses converting them to strings", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const responsesFromDb = [
       {
-        field1: { value: 1 },
-        field2: { value: [1, 2] },
+        [field1Id]: { value: 1 },
+        [field2Id]: { value: [1, 2] },
       },
     ];
 
     const fields = [
-      { id: "field1", label: "Field 1" },
+      { id: field1Id, label: "Field 1" },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         options: [
           { id: null, label: "Option 1" },
@@ -83,9 +91,10 @@ describe("buildResponsesForReporting", () => {
   });
 
   it("should handle empty responses", () => {
+    const field1Id = uuidv4();
     const responsesFromDb = [{}];
 
-    const fields = [{ id: "field1", label: "Field 1" }];
+    const fields = [{ id: field1Id, label: "Field 1" }];
 
     const expectedResponses = [[""]];
 
@@ -95,17 +104,19 @@ describe("buildResponsesForReporting", () => {
   });
 
   it("should show correct header for deleted fields", () => {
+    const field1Id = uuidv4();
+    const field2Id = uuidv4();
     const responsesFromDb = [
       {
-        field1: { value: "value1" },
-        field2: { value: ["Option 1", "Option 2"] },
+        [field1Id]: { value: "value1" },
+        [field2Id]: { value: ["Option 1", "Option 2"] },
       },
     ];
 
     const fields = [
-      { id: "field1", label: "Field 1" },
+      { id: field1Id, label: "Field 1" },
       {
-        id: "field2",
+        id: field2Id,
         label: "Field 2",
         deleted: true,
         options: [
