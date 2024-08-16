@@ -156,9 +156,6 @@ const useTabs = () => {
   const processTabsMemod = useMemo(() => {
     const processedTabs = tabs.map((tab) => {
       if (tab.href === "/settings/my-account") {
-        if (!!session.data?.user?.org?.id) {
-          tab.children = tab?.children?.filter((child) => child.href !== "/settings/my-account/appearance");
-        }
         return {
           ...tab,
           name: user?.name || "my_account",
@@ -169,6 +166,16 @@ const useTabs = () => {
         const newArray = (tab?.children ?? []).filter(
           (child) => isOrgAdminOrOwner || !organizationAdminKeys.includes(child.name)
         );
+
+        // TODO: figure out feature flag as it doesnt cause a re-render of the component when loaded.
+        // You have to refresh the page to see the changes.
+        if (true) {
+          newArray.splice(4, 0, {
+            name: "attributes",
+            href: "/settings/organizations/attributes",
+          });
+        }
+
         return {
           ...tab,
           children: newArray,
@@ -639,8 +646,12 @@ const MobileSettingsContainer = (props: { onSideContainerOpen?: () => void }) =>
 
 export default function SettingsLayout({
   children,
+  hideHeader,
   ...rest
-}: { children: React.ReactNode } & ComponentProps<typeof Shell>) {
+}: {
+  children: React.ReactNode;
+  hideHeader?: boolean;
+} & ComponentProps<typeof Shell>) {
   const pathname = usePathname();
   const state = useState(false);
   const { t } = useLocale();
@@ -684,7 +695,7 @@ export default function SettingsLayout({
       }>
       <div className="flex flex-1 [&>*]:flex-1">
         <div className="mx-auto max-w-full justify-center lg:max-w-3xl">
-          <ShellHeader />
+          {!hideHeader && <ShellHeader />}
           <ErrorBoundary>
             <Suspense fallback={<Icon name="loader" />}>{children}</Suspense>
           </ErrorBoundary>

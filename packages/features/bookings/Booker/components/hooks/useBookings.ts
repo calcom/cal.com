@@ -50,6 +50,29 @@ export interface IUseBookings {
   teamMemberEmail?: string;
 }
 
+const getBookingSuccessfulEventPayload = (booking: {
+  title?: string;
+  startTime: string;
+  endTime: string;
+  eventTypeId?: number | null;
+  status?: BookingStatus;
+  paymentRequired: boolean;
+  uid?: string;
+  isRecurring: boolean;
+}) => {
+  return {
+    uid: booking.uid,
+    title: booking.title,
+    startTime: booking.startTime,
+    endTime: booking.endTime,
+    eventTypeId: booking.eventTypeId,
+    status: booking.status,
+    paymentRequired: booking.paymentRequired,
+    isRecurring: booking.isRecurring,
+  };
+};
+
+const getRescheduleBookingSuccessfulEventPayload = getBookingSuccessfulEventPayload;
 export interface IUseBookingLoadingStates {
   creatingBooking: boolean;
   creatingRecurringBooking: boolean;
@@ -113,8 +136,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
 
   const createBookingMutation = useMutation({
     mutationFn: createBooking,
-    onSuccess: (responseData) => {
-      const { uid, paymentUid } = responseData;
+    onSuccess: (booking) => {
+      const { uid, paymentUid } = booking;
       const fullName = getFullName(bookingForm.getValues("responses.name"));
 
       const users = !!event.data?.hosts?.length
@@ -126,44 +149,48 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         : duration && event.data?.metadata?.multipleDuration?.includes(duration)
         ? duration
         : event.data?.length;
-      const eventPayload = {
-        uid: responseData.uid,
-        title: responseData.title,
-        startTime: responseData.startTime,
-        endTime: responseData.endTime,
-        eventTypeId: responseData.eventTypeId,
-        status: responseData.status,
-        paymentRequired: responseData.paymentRequired,
-      };
+
       if (isRescheduling) {
         sdkActionManager?.fire("rescheduleBookingSuccessful", {
-          booking: responseData,
+          booking: booking,
           eventType: event.data,
-          date: responseData?.startTime?.toString() || "",
+          date: booking?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
             name: users?.[0]?.name || "Nameless",
-            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
-            timeZone: responseData.user?.timeZone || "Europe/London",
+            email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+            timeZone: booking.user?.timeZone || "Europe/London",
           },
-          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+          confirmed: !(booking.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
-        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", eventPayload);
+        sdkActionManager?.fire(
+          "rescheduleBookingSuccessfulV2",
+          getRescheduleBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: false,
+          })
+        );
       } else {
         sdkActionManager?.fire("bookingSuccessful", {
-          booking: responseData,
+          booking: booking,
           eventType: event.data,
-          date: responseData?.startTime?.toString() || "",
+          date: booking?.startTime?.toString() || "",
           duration: validDuration,
           organizer: {
             name: users?.[0]?.name || "Nameless",
-            email: responseData?.userPrimaryEmail || responseData.user?.email || "Email-less",
-            timeZone: responseData.user?.timeZone || "Europe/London",
+            email: booking?.userPrimaryEmail || booking.user?.email || "Email-less",
+            timeZone: booking.user?.timeZone || "Europe/London",
           },
-          confirmed: !(responseData.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
+          confirmed: !(booking.status === BookingStatus.PENDING && event.data?.requiresConfirmation),
         });
 
-        sdkActionManager?.fire("bookingSuccessfulV2", eventPayload);
+        sdkActionManager?.fire(
+          "bookingSuccessfulV2",
+          getBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: false,
+          })
+        );
       }
 
       if (paymentUid) {
@@ -188,7 +215,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         isSuccessBookingPage: true,
         email: bookingForm.getValues("responses.email"),
         eventTypeSlug: eventSlug,
-        seatReferenceUid: "seatReferenceUid" in responseData ? responseData.seatReferenceUid : null,
+        seatReferenceUid: "seatReferenceUid" in booking ? booking.seatReferenceUid : null,
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
@@ -196,7 +223,7 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",
         query,
-        booking: responseData,
+        booking: booking,
         forwardParamsSuccessRedirect:
           event?.data?.forwardParamsSuccessRedirect === undefined
             ? true
@@ -223,8 +250,8 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
 
   const createRecurringBookingMutation = useMutation({
     mutationFn: createRecurringBooking,
-    onSuccess: async (responseData) => {
-      const booking = responseData[0] || {};
+    onSuccess: async (bookings) => {
+      const booking = bookings[0] || {};
       const { uid } = booking;
 
       if (!uid) {
@@ -240,6 +267,31 @@ export const useBookings = ({ event, hashedLink, bookingForm, metadata, teamMemb
         formerTime:
           isRescheduling && bookingData?.startTime ? dayjs(bookingData.startTime).toString() : undefined,
       };
+
+      if (isRescheduling) {
+        // NOTE: It is recommended to define the event payload in the argument itself to provide a better type safety.
+        sdkActionManager?.fire("rescheduleBookingSuccessfulV2", {
+          ...getRescheduleBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: true,
+          }),
+          allBookings: bookings.map((booking) => ({
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+          })),
+        });
+      } else {
+        sdkActionManager?.fire("bookingSuccessfulV2", {
+          ...getBookingSuccessfulEventPayload({
+            ...booking,
+            isRecurring: true,
+          }),
+          allBookings: bookings.map((booking) => ({
+            startTime: booking.startTime,
+            endTime: booking.endTime,
+          })),
+        });
+      }
 
       bookingSuccessRedirect({
         successRedirectUrl: event?.data?.successRedirectUrl || "",

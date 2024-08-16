@@ -2,7 +2,7 @@ import React from "react";
 
 const isInteractionObserverSupported = typeof window !== "undefined" && "IntersectionObserver" in window;
 
-export const useInViewObserver = (onInViewCallback: () => void) => {
+export const useInViewObserver = (onInViewCallback: () => void, root?: Element | Document | null) => {
   const [node, setRef] = React.useState<HTMLElement | null>(null);
 
   const onInViewCallbackRef = React.useRef(onInViewCallback);
@@ -23,7 +23,8 @@ export const useInViewObserver = (onInViewCallback: () => void) => {
           }
         },
         {
-          root: document.body,
+          // We want to accept null as root
+          root: root !== undefined ? root : document.body,
         }
       );
       observer.observe(node);

@@ -29,8 +29,19 @@ export class MeController {
   @Get("/")
   @Permissions([PROFILE_READ])
   async getMe(@GetUser() user: UserWithProfile): Promise<GetMeOutput> {
-    const me = userSchemaResponse.parse(user);
-
+    const organization = user?.movedToProfile?.organization;
+    const me = userSchemaResponse.parse(
+      organization
+        ? {
+            ...user,
+            organizationId: organization.id,
+            organization: {
+              id: organization.id,
+              isPlatform: organization.isPlatform,
+            },
+          }
+        : user
+    );
     return {
       status: SUCCESS_STATUS,
       data: me,
