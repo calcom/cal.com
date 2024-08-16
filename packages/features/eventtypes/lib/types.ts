@@ -6,6 +6,7 @@ import type { PeriodType, SchedulingType } from "@calcom/prisma/enums";
 import type { BookerLayoutSettings, EventTypeMetaDataSchema } from "@calcom/prisma/zod-utils";
 import type { customInputSchema } from "@calcom/prisma/zod-utils";
 import type { eventTypeBookingFields } from "@calcom/prisma/zod-utils";
+import type { eventTypeColor } from "@calcom/prisma/zod-utils";
 import type { RouterOutputs } from "@calcom/trpc/react";
 import type { IntervalLimit, RecurringEvent } from "@calcom/types/Calendar";
 
@@ -19,7 +20,13 @@ export type AvailabilityOption = {
 };
 export type EventTypeSetupProps = RouterOutputs["viewer"]["eventTypes"]["get"];
 export type EventTypeSetup = RouterOutputs["viewer"]["eventTypes"]["get"]["eventType"];
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  weight: number;
+  weightAdjustment: number;
+};
 export type TeamMember = {
   value: string;
   label: string;
@@ -47,6 +54,7 @@ export type FormValues = {
   hidden: boolean;
   hideCalendarNotes: boolean;
   hashedLink: string | undefined;
+  eventTypeColor: z.infer<typeof eventTypeColor>;
   locations: {
     type: EventLocationType["type"];
     address?: string;
@@ -120,6 +128,7 @@ export type FormValues = {
   useEventTypeDestinationCalendarEmail: boolean;
   forwardParamsSuccessRedirect: boolean | null;
   secondaryEmailId?: number;
+  isRRWeightsEnabled: boolean;
 };
 
 export type LocationFormValues = Pick<FormValues, "id" | "locations" | "bookingFields" | "seatsPerTimeSlot">;
