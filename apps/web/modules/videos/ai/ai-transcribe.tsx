@@ -23,6 +23,18 @@ const BUTTONS = {
     iconPath: TRANSCRIPTION_STOPPED_ICON,
     iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
   },
+  WAIT_FOR_TRANSCRIPTION_TO_START: {
+    label: "Starting..",
+    tooltip: "Please wait while we start transcription",
+    iconPath: TRANSCRIPTION_STOPPED_ICON,
+    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+  },
+  WAIT_FOR_TRANSCRIPTION_TO_STOP: {
+    label: "Stopping..",
+    tooltip: "Please wait while we stop transcription",
+    iconPath: TRANSCRIPTION_STOPPED_ICON,
+    iconPathDarkMode: TRANSCRIPTION_STOPPED_ICON,
+  },
   START_RECORDING: {
     label: "Record",
     tooltip: "Start recording",
@@ -32,6 +44,12 @@ const BUTTONS = {
   WAIT_FOR_RECORDING_TO_START: {
     label: "Starting..",
     tooltip: "Please wait while we start recording",
+    iconPath: RECORDING_DEFAULT_ICON,
+    iconPathDarkMode: RECORDING_DEFAULT_ICON,
+  },
+  WAIT_FOR_RECORDING_TO_STOP: {
+    label: "Stopping..",
+    tooltip: "Please wait while we stop recording",
     iconPath: RECORDING_DEFAULT_ICON,
     iconPathDarkMode: RECORDING_DEFAULT_ICON,
   },
@@ -93,6 +111,12 @@ export const CalAiTranscribe = () => {
 
   const toggleRecording = async () => {
     if (recording?.isRecording) {
+      daily?.updateCustomTrayButtons({
+        recording: BUTTONS.WAIT_FOR_RECORDING_TO_STOP,
+        transcription: transcription?.isTranscribing
+          ? BUTTONS.STOP_TRANSCRIPTION
+          : BUTTONS.START_TRANSCRIPTION,
+      });
       await daily?.stopRecording();
     } else {
       daily?.updateCustomTrayButtons({
@@ -111,8 +135,16 @@ export const CalAiTranscribe = () => {
 
   const toggleTranscription = async () => {
     if (transcription?.isTranscribing) {
+      daily?.updateCustomTrayButtons({
+        recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+        transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_STOP,
+      });
       daily?.stopTranscription();
     } else {
+      daily?.updateCustomTrayButtons({
+        recording: recording?.isRecording ? BUTTONS.STOP_RECORDING : BUTTONS.START_RECORDING,
+        transcription: BUTTONS.WAIT_FOR_TRANSCRIPTION_TO_START,
+      });
       daily?.startTranscription();
     }
   };
@@ -147,7 +179,7 @@ export const CalAiTranscribe = () => {
   }, [transcriptHeight]);
 
   return (
-    <>
+    transcript && (
       <div
         id="cal-ai-transcription"
         style={{
@@ -165,6 +197,6 @@ export const CalAiTranscribe = () => {
             ))
           : ""}
       </div>
-    </>
+    )
   );
 };
