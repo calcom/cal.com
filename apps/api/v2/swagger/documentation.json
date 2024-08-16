@@ -2920,7 +2920,7 @@
     },
     "/v2/bookings/{bookingUid}": {
       "get": {
-        "operationId": "BookingsController_2024_04_15_getBooking",
+        "operationId": "BookingsController_2024_08_13_getBooking",
         "parameters": [
           {
             "name": "bookingUid",
@@ -2937,7 +2937,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GetBookingOutput_2024_04_15"
+                  "$ref": "#/components/schemas/GetBookingOutput_2024_08_13"
                 }
               }
             }
@@ -8976,6 +8976,30 @@
           },
           "data": {
             "type": "object"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "BookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {}
+      },
+      "GetBookingOutput_2024_08_13": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/BookingOutput_2024_08_13"
           }
         },
         "required": [

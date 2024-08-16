@@ -66,22 +66,31 @@ export class BookingsService_2024_08_13 {
   async createRecurringBooking(request: Request, body: CreateRecurringBookingInput_2024_08_13) {
     const bookingRequest = await this.inputService.createRecurringBookingRequest(request, body);
     const bookings = await handleNewRecurringBooking(bookingRequest);
-
-    const transformed = [];
-
-    for (const booking of bookings) {
-      if (!booking.id) {
-        throw new Error("Booking was not created");
-      }
-
-      const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
-      if (!databaseBooking) {
-        throw new Error(`Booking with id=${booking.id} was not found in the database`);
-      }
-
-      transformed.push(this.outputService.getOutputRecurringBooking(databaseBooking));
+    const uid = bookings[0].recurringEventId;
+    if (!uid) {
+      throw new Error("Recurring booking was not created");
     }
 
-    return transformed;
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(uid);
+    return this.outputService.getOutputRecurringBookings(recurringBooking);
+  }
+
+  async getBooking(uid: string) {
+    const booking = await this.bookingsRepository.getByUidWithAttendees(uid);
+
+    if (booking) {
+      const isRecurring = !!booking.recurringEventId;
+      if (isRecurring) {
+        return this.outputService.getOutputRecurringBooking(booking);
+      }
+      return this.outputService.getOutputBooking(booking);
+    }
+
+    const recurringBooking = await this.bookingsRepository.getRecurringByUidWithAttendees(uid);
+    if (!recurringBooking.length) {
+      throw new Error(`Booking with uid=${uid} was not found in the database`);
+    }
+
+    return this.outputService.getOutputRecurringBookings(recurringBooking);
   }
 }

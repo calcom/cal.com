@@ -1,3 +1,4 @@
+import { BookingsRepository_2024_08_13 } from "@/ee/bookings/2024-08-13/bookings.repository";
 import { Injectable } from "@nestjs/common";
 import { plainToClass } from "class-transformer";
 import { DateTime } from "luxon";
@@ -14,6 +15,8 @@ export const bookingResponsesSchema = z.object({
 
 @Injectable()
 export class OutputBookingsService_2024_08_13 {
+  constructor(private readonly bookingsRepository: BookingsRepository_2024_08_13) {}
+
   getOutputBooking(
     databaseBooking: Booking & {
       attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
@@ -49,6 +52,29 @@ export class OutputBookingsService_2024_08_13 {
     };
 
     return plainToClass(BookingOutput_2024_08_13, booking, { strategy: "excludeAll" });
+  }
+
+  async getOutputRecurringBookings(
+    databaseBookings: (Booking & {
+      attendees: { name: string; email: string; timeZone: string; locale: string | null }[];
+    })[]
+  ) {
+    const transformed = [];
+
+    for (const booking of databaseBookings) {
+      if (!booking.id) {
+        throw new Error("Booking was not created");
+      }
+
+      const databaseBooking = await this.bookingsRepository.getByIdWithAttendees(booking.id);
+      if (!databaseBooking) {
+        throw new Error(`Booking with id=${booking.id} was not found in the database`);
+      }
+
+      transformed.push(this.getOutputRecurringBooking(databaseBooking));
+    }
+
+    return transformed;
   }
 
   getOutputRecurringBooking(

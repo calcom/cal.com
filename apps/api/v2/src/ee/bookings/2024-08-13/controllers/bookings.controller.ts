@@ -1,11 +1,13 @@
 import { CreateBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/create-booking.output";
+import { GetBookingOutput_2024_08_13 } from "@/ee/bookings/2024-08-13/outputs/get-booking.output";
 import { BookingsService_2024_08_13 } from "@/ee/bookings/2024-08-13/services/bookings.service";
 import { VERSION_2024_08_13_VALUE } from "@/lib/api-versions";
 import { PermissionsGuard } from "@/modules/auth/guards/permissions/permissions.guard";
-import { Controller, Post, Logger, Body, UseGuards, Req, Get } from "@nestjs/common";
+import { Controller, Post, Logger, Body, UseGuards, Req, Get, Param } from "@nestjs/common";
 import { ApiTags as DocsTags } from "@nestjs/swagger";
 import { Request } from "express";
 
+import { SUCCESS_STATUS } from "@calcom/platform-constants";
 import {
   CreateBookingInput_2024_08_13,
   CreateBookingInputPipe,
@@ -36,22 +38,18 @@ export class BookingsController_2024_08_13 {
     const booking = await this.bookingsService.createBooking(request, body);
 
     return {
-      status: "success",
+      status: SUCCESS_STATUS,
       data: booking,
     };
   }
 
-  // @Get("/:bookingUid")
-  // async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_04_15> {
-  //   const { bookingInfo } = await getBookingInfo(bookingUid);
+  @Get("/:bookingUid")
+  async getBooking(@Param("bookingUid") bookingUid: string): Promise<GetBookingOutput_2024_08_13> {
+    const booking = await this.bookingsService.getBooking(bookingUid);
 
-  //   if (!bookingInfo) {
-  //     throw new NotFoundException(`Booking with UID=${bookingUid} does not exist.`);
-  //   }
-
-  //   return {
-  //     status: SUCCESS_STATUS,
-  //     data: bookingInfo,
-  //   };
-  // }
+    return {
+      status: SUCCESS_STATUS,
+      data: booking,
+    };
+  }
 }
