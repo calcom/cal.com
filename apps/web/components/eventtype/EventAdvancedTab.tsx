@@ -21,7 +21,7 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -47,7 +47,10 @@ import {
 import RequiresConfirmationController from "./RequiresConfirmationController";
 import { DisableAllEmailsSetting } from "./settings/DisableAllEmailsSetting";
 
-const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
+const SingleUseLinksManager = ({
+  team,
+  bookerUrl,
+}: Pick<EventTypeSetupProps["eventType"], "team" | "bookerUrl">) => {
   const formMethods = useFormContext<FormValues>();
   const { t } = useLocale();
   const [animateRef] = useAutoAnimate<HTMLUListElement>();
@@ -76,7 +79,7 @@ const SingleUseLinksManager = ({ team }: Pick<EventTypeSetupProps, "team">) => {
           <ul ref={animateRef}>
             {value &&
               value.map((val: string, key: number) => {
-                const singleUseURL = `${WEBSITE_URL}/d/${val}/${formMethods.getValues("slug")}`;
+                const singleUseURL = `${bookerUrl}/d/${val}/${formMethods.getValues("slug")}`;
                 return (
                   <li data-testid="add-single-use-link" className="mb-4 flex items-center" key={val}>
                     <TextField
@@ -482,7 +485,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
               }}>
               {!isManagedEventType && (
                 <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-                  <SingleUseLinksManager team={team} />
+                  <SingleUseLinksManager team={team} bookerUrl={eventType.bookerUrl} />
                 </div>
               )}
             </SettingsToggle>
