@@ -21,6 +21,7 @@ import {
 } from "@calcom/features/ee/cal-ai-phone/promptTemplates";
 import type { Workflow } from "@calcom/features/ee/workflows/lib/types";
 import type { ChildrenEventType } from "@calcom/features/eventtypes/components/ChildrenEventTypeSelect";
+import { sortHosts } from "@calcom/features/eventtypes/components/HostEditDialogs";
 import type { FormValues } from "@calcom/features/eventtypes/lib/types";
 import { validateIntervalLimitOrder } from "@calcom/lib";
 import { WEBSITE_URL } from "@calcom/lib/constants";
@@ -89,7 +90,13 @@ const ManagedEventTypeDialog = dynamic(() => import("@components/eventtype/Manag
 
 const AssignmentWarningDialog = dynamic(() => import("@components/eventtype/AssignmentWarningDialog"));
 
-export type Host = { isFixed: boolean; userId: number; priority: number };
+export type Host = {
+  isFixed: boolean;
+  userId: number;
+  priority: number;
+  weight: number;
+  weightAdjustment: number;
+};
 
 export type CustomInputParsed = typeof customInputSchema._output;
 
@@ -282,6 +289,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       length: eventType.length,
       hidden: eventType.hidden,
       hashedLink: eventType.hashedLink?.link || undefined,
+      eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
         endDate: periodDates.endDate,
@@ -296,7 +304,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       slotInterval: eventType.slotInterval,
       minimumBookingNotice: eventType.minimumBookingNotice,
       metadata: eventType.metadata,
-      hosts: eventType.hosts,
+      hosts: eventType.hosts.sort((a, b) => sortHosts(a, b, eventType.isRRWeightsEnabled)),
       successRedirectUrl: eventType.successRedirectUrl || "",
       forwardParamsSuccessRedirect: eventType.forwardParamsSuccessRedirect,
       users: eventType.users,
@@ -329,6 +337,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
         templateType: eventType.aiPhoneCallConfig?.templateType ?? "CUSTOM_TEMPLATE",
         schedulerName: eventType.aiPhoneCallConfig?.schedulerName,
       },
+      isRRWeightsEnabled: eventType.isRRWeightsEnabled,
     };
   }, [eventType, periodDates]);
   const formMethods = useForm<FormValues>({
@@ -398,6 +407,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     return () => {
       router.events.off("routeChangeStart", handleRouteChange);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router, eventType.hosts, eventType.children, eventType.assignAllTeamMembers]);
 
   const appsMetadata = formMethods.getValues("metadata")?.apps;
@@ -518,6 +528,8 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
     const updatedFields: Partial<FormValues> = {};
     Object.keys(dirtyFields).forEach((key) => {
       const typedKey = key as keyof typeof dirtyFields;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       updatedFields[typedKey] = undefined;
       const isDirty = isFieldDirty(typedKey);
       if (isDirty) {
@@ -545,6 +557,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       onlyShowFirstAvailableSlot,
       durationLimits,
       recurringEvent,
+      eventTypeColor,
       locations,
       metadata,
       customInputs,
@@ -615,6 +628,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       bookingLimits,
       onlyShowFirstAvailableSlot,
       durationLimits,
+      eventTypeColor,
       seatsPerTimeSlot,
       seatsShowAttendees,
       seatsShowAvailabilityCount,
@@ -703,6 +717,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               onlyShowFirstAvailableSlot,
               durationLimits,
               recurringEvent,
+              eventTypeColor,
               locations,
               metadata,
               customInputs,
@@ -765,6 +780,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               bookingLimits,
               onlyShowFirstAvailableSlot,
               durationLimits,
+              eventTypeColor,
               seatsPerTimeSlot,
               seatsShowAttendees,
               seatsShowAvailabilityCount,
