@@ -1,3 +1,5 @@
+"use client";
+
 // eslint-disable-next-line no-restricted-imports
 import { noop } from "lodash";
 import { usePathname } from "next/navigation";

@@ -962,6 +962,14 @@
             "schema": {
               "type": "number"
             }
+          },
+          {
+            "name": "x-cal-client-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "requestBody": {
@@ -981,6 +989,57 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OrgTeamOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Organizations Teams"
+        ]
+      }
+    },
+    "/v2/organizations/{orgId}/teams/me": {
+      "get": {
+        "operationId": "OrganizationsTeamsController_getMyTeams",
+        "summary": "Get the organization's teams user is a member of",
+        "parameters": [
+          {
+            "name": "orgId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrgMeTeamsOutputResponseDto"
                 }
               }
             }
@@ -1075,7 +1134,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateOrgTeamDto"
+                "$ref": "#/components/schemas/UpdateOrgTeamDto"
               }
             }
           }
@@ -3172,6 +3231,601 @@
           "Timezones"
         ]
       }
+    },
+    "/v2/webhooks": {
+      "post": {
+        "operationId": "WebhooksController_createWebhook",
+        "summary": "Create a webhook",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "WebhooksController_getWebhooks",
+        "summary": "Get all user webhooks paginated",
+        "parameters": [
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      }
+    },
+    "/v2/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "WebhooksController_updateWebhook",
+        "summary": "Update a webhook",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "WebhooksController_getWebhook",
+        "summary": "Get a webhook",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "WebhooksController_deleteWebhook",
+        "summary": "Delete a webhook",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' Webhooks"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/webhooks": {
+      "post": {
+        "operationId": "EventTypeWebhooksController_createEventTypeWebhook",
+        "summary": "Create a webhook for an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypeWebhooksController_getEventTypeWebhooks",
+        "summary": "Get all webhooks of an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypeWebhooksController_deleteAllEventTypeWebhooks",
+        "summary": "Delete all webhooks of an event-type",
+        "parameters": [
+          {
+            "name": "eventTypeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      }
+    },
+    "/v2/event-types/{eventTypeId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "EventTypeWebhooksController_updateEventTypeWebhook",
+        "summary": "Update a webhook of an event-type",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "EventTypeWebhooksController_getEventTypeWebhook",
+        "summary": "Get a webhook of an event-type",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "EventTypeWebhooksController_deleteEventTypeWebhook",
+        "summary": "Delete a webhook of an event-type",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventTypeWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Users' EventTypes Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks": {
+      "post": {
+        "operationId": "OAuthClientWebhooksController_createOAuthClientWebhook",
+        "summary": "Create a webhook for an oAuthClient",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhooks",
+        "summary": "Get all webhooks of an oAuthClient",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "take",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to return",
+            "example": 10,
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "skip",
+            "required": false,
+            "in": "query",
+            "description": "The number of items to skip",
+            "example": 0,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteAllOAuthClientWebhooks",
+        "summary": "Delete all webhooks of an oAuthClient",
+        "parameters": [
+          {
+            "name": "clientId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteManyWebhooksOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      }
+    },
+    "/v2/oauth-clients/{clientId}/webhooks/{webhookId}": {
+      "patch": {
+        "operationId": "OAuthClientWebhooksController_updateOAuthClientWebhook",
+        "summary": "Update a webhook of an oAuthClient",
+        "parameters": [
+          {
+            "name": "webhookId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookInputDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "get": {
+        "operationId": "OAuthClientWebhooksController_getOAuthClientWebhook",
+        "summary": "Get a webhook of an oAuthClient",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "OAuthClientWebhooksController_deleteOAuthClientWebhook",
+        "summary": "Delete a webhook of an oAuthClient",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OAuthClientWebhookOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "OAuthClients Webhooks"
+        ]
+      }
+    },
+    "/v2/destination-calendars": {
+      "put": {
+        "operationId": "DestinationCalendarsController_updateDestinationCalendars",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DestinationCalendarsInputBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DestinationCalendarsOutputResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Destination-Calendars",
+          "Select a third party destination calendar where events will be created"
+        ]
+      }
     }
   },
   "info": {
@@ -5100,6 +5754,29 @@
           "data"
         ]
       },
+      "OrgMeTeamsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrgTeamOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
       "OrgTeamOutputResponseDto": {
         "type": "object",
         "properties": {
@@ -5119,6 +5796,69 @@
           "status",
           "data"
         ]
+      },
+      "UpdateOrgTeamDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "slug": {
+            "type": "string"
+          },
+          "logoUrl": {
+            "type": "string"
+          },
+          "calVideoLogo": {
+            "type": "string"
+          },
+          "appLogo": {
+            "type": "string"
+          },
+          "appIconLogo": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "hideBranding": {
+            "type": "boolean",
+            "default": false
+          },
+          "isPrivate": {
+            "type": "boolean"
+          },
+          "hideBookATeamMember": {
+            "type": "boolean"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "theme": {
+            "type": "string"
+          },
+          "brandColor": {
+            "type": "string"
+          },
+          "darkBrandColor": {
+            "type": "string"
+          },
+          "bannerUrl": {
+            "type": "string"
+          },
+          "timeFormat": {
+            "type": "number"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Europe/London"
+          },
+          "weekStart": {
+            "type": "string",
+            "default": "Sunday"
+          }
+        }
       },
       "CreateOrgTeamDto": {
         "type": "object",
@@ -5180,6 +5920,10 @@
           "weekStart": {
             "type": "string",
             "default": "Sunday"
+          },
+          "autoAcceptCreator": {
+            "type": "boolean",
+            "default": true
           }
         },
         "required": [
@@ -6012,9 +6756,12 @@
           "freq"
         ]
       },
-      "Host": {
+      "TeamEventTypeResponseHost": {
         "type": "object",
         "properties": {
+          "name": {
+            "type": "string"
+          },
           "userId": {
             "type": "number"
           },
@@ -6028,6 +6775,7 @@
           }
         },
         "required": [
+          "name",
           "userId"
         ]
       },
@@ -6145,7 +6893,7 @@
           "hosts": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/Host"
+              "$ref": "#/components/schemas/TeamEventTypeResponseHost"
             }
           },
           "assignAllTeamMembers": {
@@ -7009,6 +7757,21 @@
           "status"
         ]
       },
+      "MeOrgOutput": {
+        "type": "object",
+        "properties": {
+          "isPlatform": {
+            "type": "boolean"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "isPlatform",
+          "id"
+        ]
+      },
       "MeOutput": {
         "type": "object",
         "properties": {
@@ -7033,6 +7796,13 @@
           },
           "timeZone": {
             "type": "string"
+          },
+          "organizationId": {
+            "type": "number",
+            "nullable": true
+          },
+          "organization": {
+            "$ref": "#/components/schemas/MeOrgOutput"
           }
         },
         "required": [
@@ -7042,7 +7812,8 @@
           "timeFormat",
           "defaultScheduleId",
           "weekStart",
-          "timeZone"
+          "timeZone",
+          "organizationId"
         ]
       },
       "GetMeOutput": {
@@ -8023,9 +8794,6 @@
           "noShowHost": {
             "type": "boolean"
           },
-          "messageKey": {
-            "type": "string"
-          },
           "attendees": {
             "type": "array",
             "items": {
@@ -8060,6 +8828,441 @@
       "ReserveSlotInput": {
         "type": "object",
         "properties": {}
+      },
+      "CreateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "triggers",
+          "active",
+          "subscriberUrl"
+        ]
+      },
+      "UserWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "userId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "UserWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/UserWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "UpdateWebhookInputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "triggers": {
+            "type": "string",
+            "example": [
+              "BOOKING_CREATED",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_CANCELLED",
+              "BOOKING_CONFIRMED",
+              "BOOKING_REJECTED",
+              "BOOKING_COMPLETED",
+              "BOOKING_NO_SHOW",
+              "BOOKING_REOPENED"
+            ],
+            "enum": [
+              "BOOKING_CREATED",
+              "BOOKING_PAYMENT_INITIATED",
+              "BOOKING_PAID",
+              "BOOKING_RESCHEDULED",
+              "BOOKING_REQUESTED",
+              "BOOKING_CANCELLED",
+              "BOOKING_REJECTED",
+              "BOOKING_NO_SHOW_UPDATED",
+              "FORM_SUBMITTED",
+              "MEETING_ENDED",
+              "MEETING_STARTED",
+              "RECORDING_READY",
+              "INSTANT_MEETING",
+              "RECORDING_TRANSCRIPTION_GENERATED"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "secret": {
+            "type": "string"
+          }
+        }
+      },
+      "UserWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "eventTypeId": {
+            "type": "number"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "eventTypeId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "EventTypeWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/EventTypeWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "EventTypeWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EventTypeWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DeleteManyWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OAuthClientWebhookOutputDto": {
+        "type": "object",
+        "properties": {
+          "payloadTemplate": {
+            "type": "string",
+            "description": "The template of the payload that will be sent to the subscriberUrl, check cal.com/docs/core-features/webhooks for more information",
+            "example": "{\"content\":\"A new event has been scheduled\",\"type\":\"{{type}}\",\"name\":\"{{title}}\",\"organizer\":\"{{organizer.name}}\",\"booker\":\"{{attendees.0.name}}\"}"
+          },
+          "oAuthClientId": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "triggers": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "subscriberUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "secret": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "payloadTemplate",
+          "oAuthClientId",
+          "id",
+          "triggers",
+          "subscriberUrl",
+          "active"
+        ]
+      },
+      "OAuthClientWebhookOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "OAuthClientWebhooksOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OAuthClientWebhookOutputDto"
+            }
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
+      },
+      "DestinationCalendarsInputBodyDto": {
+        "type": "object",
+        "properties": {
+          "integration": {
+            "type": "string",
+            "example": "apple_calendar",
+            "description": "The calendar service you want to integrate, as returned by the /calendars endpoint",
+            "enum": [
+              "apple_calendar",
+              "google_calendar",
+              "office365_calendar"
+            ]
+          },
+          "externalId": {
+            "type": "string",
+            "example": "https://caldav.icloud.com/26962146906/calendars/1644422A-1945-4438-BBC0-4F0Q23A57R7S/",
+            "description": "Unique identifier used to represent the specfic calendar, as returned by the /calendars endpoint"
+          }
+        },
+        "required": [
+          "integration",
+          "externalId"
+        ]
+      },
+      "DestinationCalendarsOutputDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "integration": {
+            "type": "string"
+          },
+          "externalId": {
+            "type": "string"
+          },
+          "credentialId": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "integration",
+          "externalId",
+          "credentialId"
+        ]
+      },
+      "DestinationCalendarsOutputResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "example": "success",
+            "enum": [
+              "success",
+              "error"
+            ]
+          },
+          "data": {
+            "$ref": "#/components/schemas/DestinationCalendarsOutputDto"
+          }
+        },
+        "required": [
+          "status",
+          "data"
+        ]
       }
     }
   }

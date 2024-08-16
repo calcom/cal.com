@@ -41,6 +41,7 @@ export const getEventTypesFromDB = async (id: number) => {
       bookingFields: true,
       disableGuests: true,
       timeZone: true,
+      teamId: true,
       owner: {
         select: userSelect,
       },

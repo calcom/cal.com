@@ -50,7 +50,7 @@ export type State = {
   deleteMember: Payload;
   impersonateMember: Payload;
   inviteMember: Payload;
-  editSheet: Payload;
+  editSheet: Payload & { user?: User };
 };
 
 export type Action =
@@ -323,7 +323,20 @@ export function UserListTable() {
   return (
     <>
       <DataTable
-        data-testId="user-list-data-table"
+        onRowMouseclick={(row) => {
+          const user = row.original;
+          const canEdit = adminOrOwner;
+          if (canEdit) {
+            // dispatch({
+            //   type: "EDIT_USER_SHEET",
+            //   payload: {
+            //     showModal: true,
+            //     user,
+            //   },
+            // });
+          }
+        }}
+        data-testid="user-list-data-table"
         onSearch={(value) => setDebouncedSearchTerm(value)}
         selectionOptions={[
           {

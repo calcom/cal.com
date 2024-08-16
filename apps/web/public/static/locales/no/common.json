@@ -1391,5 +1391,6 @@
   "timezone_variable": "Tidssone",
   "need_help": "Trenger du hjelp?",
   "send_email": "Send e-post",
-  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}"
+  "email_team_invite|subject|invited_to_regular_team": "{{user}} inviterte deg til å bli med i teamet {{team}} på {{appName}}",
+  "signing_up_terms": "Ved å fortsette godtar du <0>Vilkår</0> og <1>Datapolitikk<1>"
 }

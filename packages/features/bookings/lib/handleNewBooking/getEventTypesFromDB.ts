@@ -24,6 +24,7 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         },
       },
       slug: true,
+      teamId: true,
       team: {
         select: {
           id: true,
@@ -59,7 +60,9 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
       seatsShowAvailabilityCount: true,
       bookingLimits: true,
       durationLimits: true,
+      rescheduleWithSameRoundRobinHost: true,
       assignAllTeamMembers: true,
+      isRRWeightsEnabled: true,
       parentId: true,
       parent: {
         select: {
@@ -92,6 +95,8 @@ export const getEventTypesFromDB = async (eventTypeId: number) => {
         select: {
           isFixed: true,
           priority: true,
+          weight: true,
+          weightAdjustment: true,
           user: {
             select: {
               credentials: {

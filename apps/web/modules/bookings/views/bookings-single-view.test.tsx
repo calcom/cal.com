@@ -37,6 +37,8 @@ function mockedSuccessComponentProps(props: Partial<React.ComponentProps<typeof 
       team: {
         logoUrl: "/avatar.svg",
       },
+      teamId: null,
+      team: null,
       workflows: [],
       hosts: [],
       users: [],

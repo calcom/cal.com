@@ -243,12 +243,19 @@ const Locations: React.FC<LocationsProps> = ({
                         eventLocationType.organizerInputType ||
                         !validLocations?.find((location) => location.type === newLocationType);
 
+                      const shouldUpdateLink =
+                        eventLocationType?.organizerInputType === "text" &&
+                        eventLocationType.defaultValueVariable === "link";
+
                       if (canAddLocation) {
                         updateLocationField(index, {
                           type: newLocationType,
                           ...(e.credentialId && {
                             credentialId: e.credentialId,
                             teamName: e.teamName ?? undefined,
+                          }),
+                          ...(shouldUpdateLink && {
+                            link: "",
                           }),
                         });
                       } else {
@@ -260,23 +267,6 @@ const Locations: React.FC<LocationsProps> = ({
                           }),
                         });
                         showToast(t("location_already_exists"), "warning");
-                      }
-                      // Whenever location changes, we need to reset the locations item in booking questions list else it overflows
-                      // previously added values resulting in wrong behaviour
-                      const existingBookingFields = getValues("bookingFields");
-                      const findLocation = existingBookingFields.findIndex(
-                        (field) => field.name === "location"
-                      );
-                      if (findLocation >= 0) {
-                        existingBookingFields[findLocation] = {
-                          ...existingBookingFields[findLocation],
-                          type: "radioInput",
-                          label: "",
-                          placeholder: "",
-                        };
-                        setValue("bookingFields", existingBookingFields, {
-                          shouldDirty: true,
-                        });
                       }
                     }
                   }}
