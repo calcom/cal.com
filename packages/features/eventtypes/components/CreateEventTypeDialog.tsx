@@ -323,7 +323,10 @@ export default function CreateEventTypeDialog({
             )}
           </div>
 
-          <DialogFooter showDivider className="-ml-1 -mr-1 border-l-4 border-r-4">
+          <DialogFooter
+            showDivider
+            className="-ml-1 -mr-1 border-l-4 border-r-4"
+            borderColor="var(--cal-bg, innert)">
             <DialogClose />
             <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}

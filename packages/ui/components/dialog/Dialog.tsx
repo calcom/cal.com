@@ -179,6 +179,7 @@ type DialogFooterProps = {
   showDivider?: boolean;
   noSticky?: boolean;
   className?: string;
+  borderColor?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function DialogFooter(props: DialogFooterProps) {
@@ -194,7 +195,7 @@ export function DialogFooter(props: DialogFooterProps) {
           !props.showDivider && "pb-8",
           props.className
         )}
-        style={{ borderColor: "var(--cal-bg)" }}>
+        style={{ borderColor: props.borderColor }}>
         {props.children}
       </div>
     </div>
