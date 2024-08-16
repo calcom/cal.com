@@ -26,7 +26,7 @@ import {
   EventTypeOutput_2024_06_14,
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
-import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
+import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 describe("Event types Endpoints", () => {

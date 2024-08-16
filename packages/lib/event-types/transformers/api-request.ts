@@ -1,21 +1,19 @@
 import { z } from "zod";
 
-import type {
-  BookingLimitsKeyOutputType_2024_06_14,
-  TransformBookingLimitsSchema_2024_06_14,
-} from "@calcom/platform-types";
 import {
   type CreateEventTypeInput_2024_06_14,
   type Integration_2024_06_14,
   type BusinessDaysWindow_2024_06_14,
   type RangeWindow_2024_06_14,
   type TransformFutureBookingsLimitSchema_2024_06_14,
+  type BookingLimitsKeyOutputType_2024_06_14,
+  type TransformBookingLimitsSchema_2024_06_14,
 } from "@calcom/platform-types";
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
+  BookingLimitsEnum_2024_06_14,
+} from "@calcom/platform-types";
 
 const integrationsMapping: Record<Integration_2024_06_14, string> = {
   "cal-video": "integrations:daily",

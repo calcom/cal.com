@@ -16,8 +16,8 @@ import type {
 import {
   BookingWindowPeriodInputTypeEnum_2024_06_14,
   BookingWindowPeriodOutputTypeEnum_2024_06_14,
-} from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
-import { BookingLimitsEnum_2024_06_14 } from "@calcom/platform-types/event-types/event-types_2024_06_14/inputs/enums/interval-limits.enum";
+  BookingLimitsEnum_2024_06_14,
+} from "@calcom/platform-types";
 
 import type { transformApiEventTypeBookingFields, transformApiEventTypeLocations } from "./api-request";
 
