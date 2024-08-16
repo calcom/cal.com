@@ -23,7 +23,7 @@ function getNewSeachParams(args: {
 
 type SuccessRedirectBookingType = Pick<
   BookingResponse | PaymentPageProps["booking"],
-  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "responses"
+  "uid" | "title" | "description" | "startTime" | "endTime" | "location" | "responses" | "references"
 >;
 
 export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingType) => {
@@ -57,9 +57,14 @@ export const getBookingRedirectExtraParams = (booking: SuccessRedirectBookingTyp
       }, {} as Record<string, any>)
     : {};
 
+  const meetingLink = booking.references?.find(
+    (ref) => ref.meetingUrl
+  )?.meetingUrl;
+
   return {
     ...basicParams,
     ...responseParams,
+    ...(meetingLink ? { "responses.meetingLink": meetingLink } : {}),
   };
 };
 
