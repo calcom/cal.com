@@ -1,4 +1,3 @@
-import { transformAvailabilityForAtom } from "@calcom/lib";
 import { hasReadPermissionsForUserId } from "@calcom/lib/hasEditPermissionForUser";
 import { prisma } from "@calcom/prisma";
 
@@ -39,8 +38,6 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
       id: true,
       userId: true,
       name: true,
-      availability: true,
-      timeZone: true,
     },
   });
 
@@ -56,7 +53,6 @@ export const getAllSchedulesByUserIdHandler = async ({ ctx, input }: GetOptions)
     schedules: schedules.map((schedule) => {
       return {
         ...schedule,
-        availability: transformAvailabilityForAtom(schedule),
         isDefault: schedule.id === defaultScheduleId,
         readOnly: schedule.userId !== user.id,
       };

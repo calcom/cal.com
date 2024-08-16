@@ -389,7 +389,7 @@ const UseCommonScheduleSettingsToggle = ({
   const { setValue, resetField, getFieldState, getValues, watch } = useFormContext<FormValues>();
 
   const [useHostSchedulesForTeamEvent, setUseHostSchedulesForTeamEvent] = useState(
-    Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
+    !Boolean(getFieldState("schedule").isDirty ? getValues("schedule") : eventType.schedule)
   );
 
   const watchHosts = watch("hosts");
@@ -397,9 +397,9 @@ const UseCommonScheduleSettingsToggle = ({
   return (
     <>
       <SettingsToggle
-        checked={useHostSchedulesForTeamEvent}
+        checked={!useHostSchedulesForTeamEvent}
         onCheckedChange={(checked) => {
-          setUseHostSchedulesForTeamEvent(checked);
+          setUseHostSchedulesForTeamEvent(!checked);
           if (checked) {
             if (Boolean(eventType.schedule)) resetField("schedule");
             getValues("hosts").map((_, index) => {
@@ -413,7 +413,11 @@ const UseCommonScheduleSettingsToggle = ({
         description={t("choose_common_schedule_team_event_description")}>
         <EventTypeSchedule eventType={eventType} />
       </SettingsToggle>
-      {useHostSchedulesForTeamEvent && <TeamAvailability hosts={watchHosts} teamMembers={teamMembers} />}
+      {useHostSchedulesForTeamEvent && (
+        <div className="lg:ml-14">
+          <TeamAvailability hosts={watchHosts} teamMembers={teamMembers} />
+        </div>
+      )}
     </>
   );
 };
