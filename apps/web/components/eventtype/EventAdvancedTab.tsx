@@ -1,7 +1,7 @@
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import dynamic from "next/dynamic";
 import type { EventTypeSetupProps } from "pages/event-types/[type]";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
 import type { z } from "zod";
 
@@ -21,7 +21,7 @@ import { BookerLayoutSelector } from "@calcom/features/settings/BookerLayoutSele
 import { classNames } from "@calcom/lib";
 import cx from "@calcom/lib/classNames";
 import { DEFAULT_LIGHT_BRAND_COLOR, DEFAULT_DARK_BRAND_COLOR } from "@calcom/lib/constants";
-import { APP_NAME, IS_VISUAL_REGRESSION_TESTING, WEBSITE_URL } from "@calcom/lib/constants";
+import { APP_NAME, WEBSITE_URL } from "@calcom/lib/constants";
 import { generateHashedLink } from "@calcom/lib/generateHashedLink";
 import { checkWCAGContrastColor } from "@calcom/lib/getBrandColours";
 import { useLocale } from "@calcom/lib/hooks/useLocale";
@@ -136,18 +136,12 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [showEventNameTip, setShowEventNameTip] = useState(false);
   const [darkModeError, setDarkModeError] = useState(false);
   const [lightModeError, setLightModeError] = useState(false);
-  const [hashedLinkVisible, setHashedLinkVisible] = useState(!!formMethods.getValues("hashedLink"));
   const [singleUseLinksVisible, setSingleUseLinksVisible] = useState(
     !!formMethods.getValues("singleUseLinks") && formMethods.getValues("singleUseLinks")?.length !== 0
   );
   const [redirectUrlVisible, setRedirectUrlVisible] = useState(!!formMethods.getValues("successRedirectUrl"));
   const [useEventTypeDestinationCalendarEmail, setUseEventTypeDestinationCalendarEmail] = useState(
     formMethods.getValues("useEventTypeDestinationCalendarEmail")
-  );
-  const [hashedUrl, setHashedUrl] = useState(
-    eventType.hashedLink.find((link) => {
-      return link.destroyOnUse === false;
-    })?.link
   );
 
   const bookingFields: Prisma.JsonObject = {};
@@ -175,7 +169,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
   const [requiresConfirmation, setRequiresConfirmation] = useState(
     formMethods.getValues("requiresConfirmation")
   );
-  const placeholderHashedLink = `${WEBSITE_URL}/d/${hashedUrl}/${formMethods.getValues("slug")}`;
   const seatsEnabled = formMethods.watch("seatsPerTimeSlotEnabled");
   const multiLocation = (formMethods.getValues("locations") || []).length > 1;
   const noShowFeeEnabled =
@@ -184,11 +177,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
 
   const isRoundRobinEventType =
     eventType.schedulingType && eventType.schedulingType === SchedulingType.ROUND_ROBIN;
-
-  useEffect(() => {
-    !hashedUrl && setHashedUrl(generateHashedLink(formMethods.getValues("users")[0]?.id ?? team?.id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventType.hashedLink, formMethods.getValues("users"), hashedUrl, team?.id]);
 
   const toggleGuests = (enabled: boolean) => {
     const bookingFields = formMethods.getValues("bookingFields");
@@ -210,7 +198,7 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
     );
   };
 
-  const { isChildrenManagedEventType, isManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
+  const { isChildrenManagedEventType, shouldLockDisableProps } = useLockedFieldsManager({
     eventType,
     translate: t,
     formMethods,
@@ -461,72 +449,6 @@ export const EventAdvancedTab = ({ eventType, team }: Pick<EventTypeSetupProps, 
           </>
         )}
       />
-      <SettingsToggle
-        labelClassName="text-sm"
-        toggleSwitchAtTheEnd={true}
-        switchContainerClassName={classNames(
-          "border-subtle rounded-lg border py-6 px-4 sm:px-6",
-          hashedLinkVisible && "rounded-b-none"
-        )}
-        childrenClassName="lg:ml-0"
-        data-testid="hashedLinkCheck"
-        title={t("enable_private_url")}
-        Badge={
-          <a
-            data-testid="hashedLinkCheck-info"
-            target="_blank"
-            rel="noreferrer"
-            href="https://cal.com/docs/core-features/event-types/single-use-private-links">
-            <Icon name="info" className="ml-1.5 h-4 w-4 cursor-pointer" />
-          </a>
-        }
-        {...shouldLockDisableProps("hashedLink")}
-        description={t("private_link_description", { appName: APP_NAME })}
-        checked={hashedLinkVisible}
-        onCheckedChange={(e) => {
-          formMethods.setValue("hashedLink", e ? hashedUrl : undefined, { shouldDirty: true });
-          setHashedLinkVisible(e);
-        }}>
-        {!isManagedEventType && (
-          <div className="border-subtle rounded-b-lg border border-t-0 p-6">
-            {!IS_VISUAL_REGRESSION_TESTING && (
-              <TextField
-                disabled
-                name="hashedLink"
-                label={t("private_link_label")}
-                data-testid="generated-hash-url"
-                labelSrOnly
-                type="text"
-                hint={t("private_link_hint")}
-                defaultValue={placeholderHashedLink}
-                addOnSuffix={
-                  <Tooltip
-                    content={
-                      formMethods.getValues("hashedLink") ? t("copy_to_clipboard") : t("enabled_after_update")
-                    }>
-                    <Button
-                      color="minimal"
-                      size="sm"
-                      type="button"
-                      className="hover:stroke-3 hover:text-emphasis min-w-fit !py-0 px-0 hover:bg-transparent"
-                      aria-label="copy link"
-                      onClick={() => {
-                        navigator.clipboard.writeText(placeholderHashedLink);
-                        if (formMethods.getValues("hashedLink")) {
-                          showToast(t("private_link_copied"), "success");
-                        } else {
-                          showToast(t("enabled_after_update_description"), "warning");
-                        }
-                      }}>
-                      <Icon name="copy" className="h-4 w-4" />
-                    </Button>
-                  </Tooltip>
-                }
-              />
-            )}
-          </div>
-        )}
-      </SettingsToggle>
       <Controller
         name="singleUseLinks"
         render={() => {

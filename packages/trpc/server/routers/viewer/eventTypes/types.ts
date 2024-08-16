@@ -61,7 +61,6 @@ export const EventTypeUpdateInput = _EventTypeModel
       )
       .optional(),
     schedule: z.number().nullable().optional(),
-    hashedLink: z.string(),
     singleUseLinks: z.array(z.string()),
     assignAllTeamMembers: z.boolean().optional(),
     isRRWeightsEnabled: z.boolean().optional(),

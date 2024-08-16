@@ -791,11 +791,10 @@ model ApiKey {
 }
 
 model HashedLink {
-  id           Int       @id @default(autoincrement())
-  link         String    @unique()
-  eventType    EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
-  eventTypeId  Int
-  destroyOnUse Boolean   @default(false)
+  id          Int       @id @default(autoincrement())
+  link        String    @unique()
+  eventType   EventType @relation(fields: [eventTypeId], references: [id], onDelete: Cascade)
+  eventTypeId Int
 }
 
 model Account {

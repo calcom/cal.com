@@ -53,7 +53,6 @@ export type FormValues = {
   schedulingType: SchedulingType | null;
   hidden: boolean;
   hideCalendarNotes: boolean;
-  hashedLink: string | undefined;
   singleUseLinks: string[] | undefined;
   eventTypeColor: z.infer<typeof eventTypeColor>;
   locations: {

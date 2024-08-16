@@ -1707,37 +1707,13 @@ async function handler(
     await handleWebhookTrigger({ subscriberOptions, eventTrigger, webhookData });
   }
 
-  // Avoid passing referencesToCreate with id unique constrain values
-  // refresh hashed link if used
-  const urlSeed = `${organizerUser.username}:${dayjs(reqBody.start).utc().format()}`;
-  const hashedUid = translator.fromUUID(uuidv5(urlSeed, uuidv5.URL));
-
   try {
     if (hasHashedBookingLink && reqBody.hashedLink) {
-      const existingHashedLink = await prisma.hashedLink.findUnique({
+      await prisma.hashedLink.delete({
         where: {
-          link: reqBody.hashedLink,
-        },
-        select: {
-          destroyOnUse: true,
+          link: reqBody.hashedLink as string,
         },
       });
-      if (existingHashedLink && existingHashedLink.destroyOnUse) {
-        await prisma.hashedLink.delete({
-          where: {
-            link: reqBody.hashedLink as string,
-          },
-        });
-      } else {
-        await prisma.hashedLink.update({
-          where: {
-            link: reqBody.hashedLink as string,
-          },
-          data: {
-            link: hashedUid,
-          },
-        });
-      }
     }
   } catch (error) {
     loggerWithEventDetails.error("Error while updating hashed link", JSON.stringify({ error }));

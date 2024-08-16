@@ -288,12 +288,7 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
       durationLimits: eventType.durationLimits || undefined,
       length: eventType.length,
       hidden: eventType.hidden,
-      hashedLink:
-        eventType.hashedLink.find((link) => {
-          return link.destroyOnUse === false;
-        })?.link || undefined,
-      singleUseLinks:
-        eventType.hashedLink.filter((link) => link.destroyOnUse === true).map((link) => link.link) || [],
+      singleUseLinks: eventType.hashedLink.map((link) => link.link) || [],
       eventTypeColor: eventType.eventTypeColor || null,
       periodDates: {
         startDate: periodDates.startDate,
@@ -805,7 +800,6 @@ const EventTypePage = (props: EventTypeSetupProps & { allActiveWorkflows?: Workf
               updateMutation.mutate({
                 ...filteredPayload,
                 id: eventType.id,
-                hashedLink: values.hashedLink,
                 singleUseLinks: values.singleUseLinks,
               });
             }

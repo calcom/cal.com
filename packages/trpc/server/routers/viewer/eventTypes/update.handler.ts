@@ -64,7 +64,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     assignAllTeamMembers,
     hosts,
     id,
-    hashedLink,
     singleUseLinks,
     // Extract this from the input so it doesn't get saved in the db
     // eslint-disable-next-line
@@ -336,16 +335,10 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     select: {
       id: true,
       link: true,
-      destroyOnUse: true,
     },
   });
 
-  const connectedPrivateLink = connectedLinks.find((link) => {
-    return link.destroyOnUse === false;
-  });
-
-  const connectedSingleUseLinks =
-    connectedLinks.filter((link) => link.destroyOnUse === true).map((link) => link.link) || [];
+  const connectedSingleUseLinks = connectedLinks.map((link) => link.link);
 
   if (singleUseLinks && singleUseLinks.length > 0) {
     const singleUseLinksToBeInserted = singleUseLinks.filter(
@@ -368,7 +361,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           return {
             link: link,
             eventTypeId: input.id,
-            destroyOnUse: true,
           };
         }),
       });
@@ -382,32 +374,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
           link: {
             in: connectedSingleUseLinks,
           },
-        },
-      });
-    }
-  }
-
-  if (hashedLink) {
-    // check if hashed connection existed. If it did, do nothing. If it didn't, add a new connection
-    if (!connectedPrivateLink) {
-      // create a hashed link
-      await ctx.prisma.hashedLink.create({
-        data: {
-          link: hashedLink,
-          eventType: {
-            connect: { id: input.id },
-          },
-          destroyOnUse: false,
-        },
-      });
-    }
-  } else {
-    // check if hashed connection exists. If it does, disconnect
-    if (connectedPrivateLink) {
-      await ctx.prisma.hashedLink.delete({
-        where: {
-          link: connectedPrivateLink.link,
-          eventTypeId: input.id,
         },
       });
     }
@@ -500,8 +466,6 @@ export const updateHandler = async ({ ctx, input }: UpdateOptions) => {
     eventTypeId: id,
     currentUserId: ctx.user.id,
     oldEventType: eventType,
-    hashedLink,
-    connectedLink: connectedPrivateLink || null,
     updatedEventType,
     children,
     profileId: ctx.user.profile.id,
