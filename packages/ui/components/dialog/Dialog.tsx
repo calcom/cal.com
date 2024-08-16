@@ -178,6 +178,7 @@ type DialogFooterProps = {
   children: React.ReactNode;
   showDivider?: boolean;
   noSticky?: boolean;
+  className?: string;
 } & React.HTMLAttributes<HTMLDivElement>;
 
 export function DialogFooter(props: DialogFooterProps) {
@@ -190,7 +191,7 @@ export function DialogFooter(props: DialogFooterProps) {
       <div
         className={classNames(
           "flex justify-end space-x-2 pb-4 pt-4 rtl:space-x-reverse",
-          "bg-default -ml-1 -mr-1",
+          props.className,
           !props.showDivider && "pb-8"
         )}>
         {props.children}
