@@ -11,6 +11,7 @@ import type { TrpcSessionUser } from "@calcom/trpc/server/trpc";
 
 import { TRPCError } from "@trpc/server";
 
+import assignUserToAttributeHandler from "../attributes/assignUserToAttribute.handler";
 import type { TUpdateUserInputSchema } from "./updateUser.schema";
 
 type UpdateUserOptions = {
@@ -162,6 +163,15 @@ export const updateUserHandler = async ({ ctx, input }: UpdateUserOptions) => {
   }
 
   await prisma.$transaction(transactions);
+
+  if (input.attributeOptions) {
+    await assignUserToAttributeHandler({
+      ctx: {
+        user: ctx.user,
+      },
+      input: input.attributeOptions,
+    });
+  }
 
   if (input.role === MembershipRole.ADMIN || input.role === MembershipRole.OWNER) {
     const teamIds = requestedMember.team.children

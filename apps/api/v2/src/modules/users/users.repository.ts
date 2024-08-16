@@ -7,6 +7,7 @@ import type { Profile, User, Team } from "@prisma/client";
 
 export type UserWithProfile = User & {
   movedToProfile?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> }) | null;
+  profiles?: (Profile & { organization: Pick<Team, "isPlatform" | "id" | "slug" | "name"> })[];
 };
 
 @Injectable()
@@ -76,6 +77,9 @@ export class UsersRepository {
         movedToProfile: {
           include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
         },
+        profiles: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
       },
     });
   }
@@ -130,6 +134,9 @@ export class UsersRepository {
       },
       include: {
         movedToProfile: {
+          include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
+        },
+        profiles: {
           include: { organization: { select: { isPlatform: true, name: true, slug: true, id: true } } },
         },
       },
