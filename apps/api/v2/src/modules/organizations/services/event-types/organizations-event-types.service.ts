@@ -6,6 +6,7 @@ import { OrganizationsTeamsRepository } from "@/modules/organizations/repositori
 import { InputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/input.service";
 import { OutputOrganizationsEventTypesService } from "@/modules/organizations/services/event-types/output.service";
 import { PrismaWriteService } from "@/modules/prisma/prisma-write.service";
+import { UsersService } from "@/modules/users/services/users.service";
 import { UserWithProfile } from "@/modules/users/users.repository";
 import { Injectable, NotFoundException } from "@nestjs/common";
 
@@ -25,7 +26,8 @@ export class OrganizationsEventTypesService {
     private readonly eventTypesRepository: EventTypesRepository_2024_06_14,
     private readonly outputService: OutputOrganizationsEventTypesService,
     private readonly membershipsRepository: MembershipsRepository,
-    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository
+    private readonly organizationsTeamsRepository: OrganizationsTeamsRepository,
+    private readonly usersService: UsersService
   ) {}
 
   async createTeamEventType(
@@ -93,7 +95,8 @@ export class OrganizationsEventTypesService {
 
   async getUserToCreateTeamEvent(user: UserWithProfile, organizationId: number) {
     const isOrgAdmin = await this.membershipsRepository.isUserOrganizationAdmin(user.id, organizationId);
-    const profileId = user.movedToProfileId || null;
+    const profileId =
+      this.usersService.getUserProfileByOrgId(user, organizationId)?.id || user.movedToProfileId;
     return {
       id: user.id,
       role: user.role,
