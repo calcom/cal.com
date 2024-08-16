@@ -49,14 +49,48 @@ export default function MemberChangeRoleModal(props: {
   const utils = trpc.useUtils();
 
   const changeRoleMutation = trpc.viewer.teams.changeMemberRole.useMutation({
+    onMutate: async ({ teamId, memberId, role }) => {
+      await utils.viewer.teams.lazyLoadMembers.cancel();
+      const previousValue = utils.viewer.teams.lazyLoadMembers.getInfiniteData({
+        limit: 10,
+        teamId: teamId,
+        searchTerm: props.searchTerm,
+      });
+
+      if (previousValue) {
+        utils.viewer.teams.lazyLoadMembers.setInfiniteData(
+          {
+            limit: 10,
+            teamId: teamId,
+            searchTerm: props.searchTerm,
+          },
+          (data) => {
+            if (!data) {
+              return {
+                pages: [],
+                pageParams: [],
+              };
+            }
+
+            return {
+              ...data,
+              pages: data.pages.map((page) => ({
+                ...page,
+                members: page.members.map((member) => ({
+                  ...member,
+                  role: member.id === memberId ? role : member.role,
+                })),
+              })),
+            };
+          }
+        );
+      }
+
+      return { previousValue };
+    },
     async onSuccess() {
       await utils.viewer.teams.get.invalidate();
       await utils.viewer.organizations.listMembers.invalidate();
-      await utils.viewer.teams.lazyLoadMembers.invalidate({
-        teamId: props.teamId,
-        searchTerm: props.searchTerm,
-        limit: 10,
-      });
 
       props.onExit();
     },
