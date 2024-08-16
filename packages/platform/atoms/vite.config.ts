@@ -7,7 +7,7 @@ import Inspect from "vite-plugin-inspect";
 import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), "");
+  const env = loadEnv(mode, process.cwd(), ""); // .env inside of packages/platform/atoms
   return {
     optimizeDeps: {
       include: [
