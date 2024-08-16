@@ -203,3 +203,4 @@ export type { OrgBannerProps } from "./components/organization-banner";
 export { StorybookTrpcProvider } from "./components/mocks/trpc";
 export { default as Icon } from "./components/icon/Icon";
 export type { IconName } from "./components/icon/icon-names";
+export { IconSprites } from "./components/icon/IconSprites";
