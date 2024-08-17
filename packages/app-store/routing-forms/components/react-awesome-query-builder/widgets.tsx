@@ -164,8 +164,9 @@ const MultiSelectWidget = ({
 
   const optionsFromList = selectItems.filter((item) => value?.includes(item.value));
 
-  // If no value could be found in thelist, then we set the value to undefined, but only when it is not already undefined
-  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thing that the value is set but it is not.
+  // If no value could be found in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
+  // Do it but only when it is not already undefined, this is to avoid infinite state updates
   if (optionsFromList.length === 0 && value !== undefined) {
     setValue(undefined);
   }
@@ -198,8 +199,8 @@ function SelectWidget({ listValues, setValue, value, ...remainingProps }: Select
   });
   const optionFromList = selectItems.find((item) => item.value === value);
 
-  // If the value is not in the list, then we set the value to undefined, but only when it is not already undefined
-  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thing that the value is set but it is not.
+  // If the value is not in the list, then we set the value to undefined.
+  // This is to update the value back to the source that we couldn't set it. This is important otherwise the outside party thinks that the value is set but it is not.
   if (!optionFromList && value !== undefined) {
     setValue(undefined);
   }
