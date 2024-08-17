@@ -254,6 +254,7 @@ export default function CreateEventTypeDialog({
                   placeholder={t("quick_video_meeting")}
                   firstRender={firstRender}
                   setFirstRender={setFirstRender}
+                  maxHeight="200px"
                 />
 
                 <div className="relative">
@@ -322,7 +323,7 @@ export default function CreateEventTypeDialog({
             )}
           </div>
 
-          <DialogFooter showDivider className="bg-default -ml-1 -mr-1 pl-1 pr-1">
+          <DialogFooter showDivider>
             <DialogClose />
             <Button type="submit" loading={createMutation.isPending}>
               {t("continue")}

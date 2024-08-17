@@ -68,6 +68,7 @@ describe("Editor", () => {
     const editorInner = screen.getByRole("textbox").parentElement;
     expect(editorInner).toHaveStyle({ height: "300px" });
   });
+
   it("handles first render and update template", () => {
     const setFirstRender = vi.fn();
     render(
