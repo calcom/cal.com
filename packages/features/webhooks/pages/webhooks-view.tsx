@@ -1,3 +1,5 @@
+"use client";
+
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -17,8 +19,8 @@ import {
   SkeletonText,
 } from "@calcom/ui";
 
-import { getLayout } from "../../settings/layouts/SettingsLayout";
-import { WebhookListItem } from "../components";
+import { WebhookListItem, CreateNewWebhookButton } from "../components";
+import { getNewWebhookUrl } from "../lib/getNewWebhookUrl";
 
 const SkeletonLoader = ({
   title,
@@ -51,12 +53,10 @@ const WebhooksView = () => {
   });
 
   const createFunction = (teamId?: number, platform?: boolean) => {
-    if (platform) {
-      router.push(`webhooks/new${platform ? `?platform=${platform}` : ""}`);
-    } else {
-      router.push(`webhooks/new${teamId ? `?teamId=${teamId}` : ""}`);
-    }
+    const newWebhookUrl = getNewWebhookUrl(teamId, platform);
+    router.push(newWebhookUrl);
   };
+
   if (isPending || !data) {
     return (
       <SkeletonLoader
@@ -74,14 +74,7 @@ const WebhooksView = () => {
         description={t("add_webhook_description", { appName: APP_NAME })}
         CTA={
           data && data.webhookGroups.length > 0 ? (
-            <CreateButtonWithTeamsList
-              color="secondary"
-              subtitle={t("create_for").toUpperCase()}
-              isAdmin={isAdmin}
-              createFunction={createFunction}
-              data-testid="new_webhook"
-              includeOrg={true}
-            />
+            <CreateNewWebhookButton isAdmin={isAdmin} createFunction={createFunction} t={t} />
           ) : (
             <></>
           )
@@ -178,7 +171,5 @@ const WebhooksList = ({
     </>
   );
 };
-
-WebhooksView.getLayout = getLayout;
 
 export default WebhooksView;
