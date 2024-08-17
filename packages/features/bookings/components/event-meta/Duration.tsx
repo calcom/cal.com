@@ -1,5 +1,5 @@
 import type { TFunction } from "next-i18next";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import { useIsPlatform } from "@calcom/atoms/monorepo";
 import { useBookerStore } from "@calcom/features/bookings/Booker/store";
@@ -41,6 +41,7 @@ export const EventDuration = ({
   event: Pick<BookerEvent, "length" | "metadata" | "isDynamic">;
 }) => {
   const { t } = useLocale();
+  const itemRefs = useRef([]);
   const isPlatform = useIsPlatform();
   const [selectedDuration, setSelectedDuration, state] = useBookerStore((state) => [
     state.selectedDuration,
@@ -71,6 +72,16 @@ export const EventDuration = ({
       setSelectedDuration(event.length);
   }, [selectedDuration, setSelectedDuration, event.metadata?.multipleDuration, event.length, isDynamicEvent]);
 
+  useEffect(() => {
+    if (selectedDuration && itemRefs.current[selectedDuration]) {
+      itemRefs.current[selectedDuration].scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+        inline: "center",
+      });
+    }
+  }, [selectedDuration]);
+
   if ((!event?.metadata?.multipleDuration && !isDynamicEvent) || isPlatform)
     return <>{getDurationFormatted(event.length, t)}</>;
 
@@ -98,6 +109,7 @@ export const EventDuration = ({
               data-active={selectedDuration === duration ? "true" : "false"}
               key={index}
               onClick={() => setSelectedDuration(duration)}
+              ref={(el) => (itemRefs.current[duration] = el)} // Assign ref here
               className={classNames(
                 selectedDuration === duration ? "bg-emphasis" : "hover:text-emphasis",
                 "text-default cursor-pointer rounded-[4px] px-3 py-1.5 text-sm leading-tight transition"

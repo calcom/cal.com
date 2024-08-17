@@ -22,15 +22,9 @@ export function useShouldShowArrows() {
     right: false,
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const appCategoryList = ref.current;
-      if (appCategoryList && appCategoryList.scrollWidth > appCategoryList.clientWidth) {
-        setShowArrowScroll({ left: false, right: true });
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+
+  const itemRefs = useRef([]);
+
 
   const calculateScroll = (e: UIEvent<HTMLUListElement>) => {
     setShowArrowScroll({
