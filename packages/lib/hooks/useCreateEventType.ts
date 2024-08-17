@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { z } from "zod";
 
+import { useLocale } from "@calcom/lib/hooks/useLocale";
 import { HttpError } from "@calcom/lib/http-error";
 import { SchedulingType } from "@calcom/prisma/enums";
 import { unlockedManagedEventTypeProps } from "@calcom/prisma/zod-utils";
@@ -16,6 +17,7 @@ export const useCreateEventType = (
   isInfiniteScrollEnabled: boolean
 ) => {
   const utils = trpc.useUtils();
+  const { t } = useLocale();
   const form = useForm<z.infer<typeof createEventTypeInput>>({
     defaultValues: {
       length: 15,
@@ -57,11 +59,11 @@ export const useCreateEventType = (
       }
 
       if (err.data?.code === "BAD_REQUEST") {
-        error = `${err.data.code}: An event type with this URL already exists.`;
+        error = `${err.data.code}: ${t("error_event_type_url_duplicate")}`;
       }
 
       if (err.data?.code === "UNAUTHORIZED") {
-        error = `${err.data.code}: You are not able to create this event.`;
+        error = `${err.data.code}: ${t("error_event_type_unauthorized_create")}`;
       }
       onErrorMutation(error);
     },
