@@ -30,6 +30,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsDuration,
       bookingWindow,
       bookingFields,
+      recurringEvent,
       ...rest
     } = inputEventType;
 
@@ -47,6 +48,7 @@ export class InputOrganizationsEventTypesService {
       bookingLimitsDuration,
       bookingWindow,
       bookingFields,
+      recurringEvent,
       metadata,
     };
 

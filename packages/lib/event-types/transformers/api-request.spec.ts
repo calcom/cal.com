@@ -5,7 +5,9 @@ import type {
   Location_2024_06_14,
   BookingLimitsCount_2024_06_14,
   BookingWindow_2024_06_14,
+  RecurringEvent_2024_06_14,
 } from "@calcom/platform-types";
+import { FrequencyInput } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/frequency";
 
 import type { UserField } from "./api-request";
 import {
@@ -14,6 +16,7 @@ import {
   transformSelectOptions,
   transformApiEventTypeIntervalLimits,
   transformApiEventTypeFutureBookingLimits,
+  transformApiEventTypeReccuringEvent,
 } from "./api-request";
 
 describe("transformApiEventTypeLocations", () => {
@@ -649,6 +652,24 @@ describe("transformApiEventTypeFutureBookingLimits", () => {
     };
 
     const result = transformApiEventTypeFutureBookingLimits(input);
+
+    expect(result).toEqual(expectedOutput);
+  });
+});
+
+describe("transformApiEventTypeReccuringEvent", () => {
+  it("should transform recurringEvent", () => {
+    const input: RecurringEvent_2024_06_14 = {
+      frequency: FrequencyInput.weekly,
+      interval: 2,
+      occurrences: 10,
+    };
+    const expectedOutput = {
+      interval: 2,
+      count: 10,
+      freq: 2,
+    };
+    const result = transformApiEventTypeReccuringEvent(input);
 
     expect(result).toEqual(expectedOutput);
   });

@@ -27,6 +27,7 @@ import {
   UpdateEventTypeInput_2024_06_14,
 } from "@calcom/platform-types";
 import { BookingWindowPeriodInputTypeEnum_2024_06_14 } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/booking-window.enum";
+import { FrequencyInput } from "@calcom/platform-types/dist/event-types/event-types_2024_06_14/inputs/enums/frequency";
 import { SchedulingType } from "@calcom/prisma/enums";
 
 describe("Event types Endpoints", () => {
@@ -230,6 +231,11 @@ describe("Event types Endpoints", () => {
           value: 30,
           rolling: true,
         },
+        recurringEvent: {
+          frequency: FrequencyInput.weekly,
+          interval: 2,
+          occurrences: 10,
+        },
       };
 
       return request(app.getHttpServer())
@@ -253,6 +259,7 @@ describe("Event types Endpoints", () => {
           expect(createdEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(createdEventType.offsetStart).toEqual(body.offsetStart);
           expect(createdEventType.bookingWindow).toEqual(body.bookingWindow);
+          expect(createdEventType.recurringEvent).toEqual(body.recurringEvent);
           eventType = responseBody.data;
         });
     });
@@ -277,6 +284,11 @@ describe("Event types Endpoints", () => {
           type: BookingWindowPeriodInputTypeEnum_2024_06_14.businessDays,
           value: 40,
           rolling: false,
+        },
+        recurringEvent: {
+          frequency: FrequencyInput.monthly,
+          interval: 4,
+          occurrences: 10,
         },
       };
 
@@ -303,6 +315,7 @@ describe("Event types Endpoints", () => {
           expect(updatedEventType.bookingLimitsDuration).toEqual(body.bookingLimitsDuration);
           expect(updatedEventType.offsetStart).toEqual(body.offsetStart);
           expect(updatedEventType.bookingWindow).toEqual(body.bookingWindow);
+          expect(updatedEventType.recurringEvent).toEqual(body.recurringEvent);
 
           eventType.title = newTitle;
           eventType.scheduleId = secondSchedule.id;
@@ -311,6 +324,7 @@ describe("Event types Endpoints", () => {
           eventType.bookingLimitsDuration = updatedEventType.bookingLimitsDuration;
           eventType.offsetStart = updatedEventType.offsetStart;
           eventType.bookingWindow = updatedEventType.bookingWindow;
+          eventType.recurringEvent = updatedEventType.recurringEvent;
         });
     });
 
@@ -351,6 +365,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.recurringEvent).toEqual(eventType.recurringEvent);
     });
 
     it(`/GET/even-types by username`, async () => {
@@ -381,6 +396,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.recurringEvent).toEqual(eventType.recurringEvent);
     });
 
     it(`/GET/event-types by username and eventSlug`, async () => {
@@ -406,6 +422,7 @@ describe("Event types Endpoints", () => {
       expect(fetchedEventType.bookingLimitsDuration).toEqual(eventType.bookingLimitsDuration);
       expect(fetchedEventType.offsetStart).toEqual(eventType.offsetStart);
       expect(fetchedEventType.bookingWindow).toEqual(eventType.bookingWindow);
+      expect(fetchedEventType.recurringEvent).toEqual(eventType.recurringEvent);
     });
 
     it(`/GET/:id not existing`, async () => {
