@@ -21,6 +21,7 @@ vi.mock("react-hook-form", async () => {
 
 const defaultField = {
   name: "test-field",
+  type: "text" as const,
 };
 
 const buildFormState = () => {
@@ -152,6 +153,48 @@ describe("useShouldBeDisabledDueToPrefill", () => {
       const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
 
       expect(shouldBeDisabled).toBe(false);
+    });
+
+    describe("Special handling of radioInput and variantsConfig type fields", () => {
+      test(`should return true for radioInput type field when the searchParams value is set and responses are empty`, () => {
+        const field = {
+          ...defaultField,
+          type: "radioInput" as const,
+          disableOnPrefill: true,
+        };
+        mockScenario({
+          formState: buildFormStateWithNoErrors(),
+          searchParams: {
+            [field.name]: "TestValue1",
+          },
+          responses: {},
+        });
+        const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+        expect(shouldBeDisabled).toBe(true);
+      });
+      test(`should return true for field with variantsConfig when the searchParams value is set and responses are empty`, () => {
+        const field = {
+          ...defaultField,
+          type: "text" as const,
+          variantsConfig: {
+            variants: {
+              TestValue1: {
+                fields: [],
+              },
+            },
+          },
+          disableOnPrefill: true,
+        };
+        mockScenario({
+          formState: buildFormStateWithNoErrors(),
+          searchParams: {
+            [field.name]: "TestValue1",
+          },
+          responses: {},
+        });
+        const shouldBeDisabled = useShouldBeDisabledDueToPrefill(field);
+        expect(shouldBeDisabled).toBe(true);
+      });
     });
 
     describe("for array type value", () => {
